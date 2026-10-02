@@ -23,7 +23,16 @@ it('pošle odkaz pro nastavení hesla na e-mail účtu', function (): void {
     $this->post(route('password.email'), ['email' => $user->email])
         ->assertSessionHas('status', __('passwords.sent'));
 
-    Notification::assertSentTo($user, ResetPassword::class);
+    // Texty e-mailu jsou klíče Laravelu přeložené v lang/cs.json — po aktualizaci frameworku se mění
+    Notification::assertSentTo($user, ResetPassword::class, function (ResetPassword $notification) use ($user): bool {
+        $mail = $notification->toMail($user);
+
+        expect($mail->subject)->toBe('Nastavení nového hesla')
+            ->and($mail->actionText)->toBe('Nastavit nové heslo')
+            ->and($mail->introLines[0])->toStartWith('Tento e-mail vám přišel');
+
+        return true;
+    });
 });
 
 it('zobrazí stránku nového hesla s tokenem a e-mailem z odkazu', function (): void {
