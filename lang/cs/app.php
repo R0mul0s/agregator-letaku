@@ -281,7 +281,7 @@ return [
         'auth' => [
             // Panel vedle přihlášení a registrace (AuthShowcase.vue)
             'showcase' => [
-                'chains' => 'Hlídá akce v Kauflandu, Tescu, Lidlu a Penny — z letáků i e-shopů.',
+                'chains' => 'Hlídá akce z letáků i e-shopů.',
                 'unit_price' => 'Řadí podle ceny za kilo, litr nebo kus, s vaší věrnostní kartou.',
                 'mentions' => 'Najde i to, co je v letáku bez ceny.',
             ],
@@ -318,6 +318,49 @@ return [
                 'title' => 'Nové heslo',
                 'submit' => 'Nastavit heslo',
             ],
+        ],
+
+        // Úvodní stránka pro nepřihlášené (R44, Landing.vue)
+        'landing' => [
+            'title' => 'Slevohlídka — rychlý lovec slev',
+            'eyebrow' => 'Rychlý lovec slev',
+            'headline' => 'Slevy z letáků na to, co opravdu kupujete',
+            'lead' => 'Slevohlídka každý den projde letáky a e-shopy Kauflandu, Tesca, Albertu, Lidlu a Penny. Řeknete jí, co kupujete — a ona vám ukáže, kde je to právě ve slevě a kde nejlevněji za kilo nebo litr.',
+            'register' => 'Začít zdarma',
+            'browse' => 'Prohlédnout akce',
+            'login_hint' => 'Už máte účet?',
+            'login' => 'Přihlaste se',
+            'stats' => [
+                'offers' => 'akce právě teď|akce právě teď|akcí právě teď',
+                'chains' => 'obchod|obchody|obchodů',
+                'products' => 'produkt v katalogu|produkty v katalogu|produktů v katalogu',
+                'updates' => 'aktualizace denně',
+            ],
+            'features_title' => 'Co Slevohlídka umí',
+            'features' => [
+                'watch' => ['title' => 'Hlídá, co kupujete', 'text' => 'Vyberte z katalogu máslo, pivo nebo Coca-Colu Zero, nebo napište vlastní slova. Ostatní akce vás nebudou rušit.'],
+                'unit_price' => ['title' => 'Cena za kilo a litr', 'text' => 'Akce řadí podle ceny za jednotku, takže velké balení nepřebije menší, ale levnější.'],
+                'cards' => ['title' => 'S vaší kartou', 'text' => 'Clubcard, Lidl Plus, Kaufland Card… Akce jen s kartou uvidíte, jen když kartu máte.'],
+                'mentions' => ['title' => 'I to, co je v letáku bez ceny', 'text' => 'Když leták zmíní, co hlídáte, ale cenu z něj přečíst nejde, dostanete odkaz přímo na stránku letáku.'],
+                'digest' => ['title' => 'Souhrn e-mailem', 'text' => 'Ráno po vydání letáků přijde souhrn nových akcí — denně nebo jednou týdně, jen když je co hlásit.'],
+                'free' => ['title' => 'Zdarma a bez reklam', 'text' => 'Žádné bannery ani sledování. Jen akce z letáků, seřazené tak, aby se daly porovnat.'],
+            ],
+            'steps_title' => 'Jak to funguje',
+            'steps' => [
+                'chains' => ['title' => 'Vyberte obchody', 'text' => 'Kde nakupujete, jaký typ prodejny a které karty máte.'],
+                'watch' => ['title' => 'Řekněte, co hlídat', 'text' => 'Produkty z katalogu jedním klepnutím, nebo vlastní slova.'],
+                'hunt' => ['title' => 'Slevohlídka loví', 'text' => 'Každé ráno projde letáky a v Mých slevách máte jen to, co vás zajímá.'],
+            ],
+            'top_title' => 'Právě teď nejvyšší slevy',
+            'top_more' => 'Všechny akce',
+            'cta_title' => 'Ať slevy loví Slevohlídka, ne vy',
+            'cta_text' => 'Registrace zabere minutu a nic nestojí.',
+        ],
+
+        // Výzva k registraci nad Všemi akcemi pro nepřihlášené (R44)
+        'offers_guest' => [
+            'text' => 'Chcete vidět jen akce na to, co kupujete, seřazené podle ceny za kilo?',
+            'register' => 'Zaregistrujte se zdarma',
         ],
 
         'home' => [

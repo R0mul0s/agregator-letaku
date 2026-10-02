@@ -43,7 +43,15 @@ const page = usePage();
             <div class="app-header__actions">
                 <!-- Přihlášený má vzhled i odhlášení v menu pod avatarem (R40) -->
                 <UserMenu v-if="page.props.auth.user" />
-                <ThemeSwitch v-else />
+                <template v-else>
+                    <!-- Na mobilu by se vedle přihlášení nevešel — vzhled se tam řídí systémem -->
+                    <ThemeSwitch class="app-header__guest-theme" />
+                    <!-- Nepřihlášený (R44): přihlášení a registrace; na jejich stránkách se neopakují -->
+                    <Link v-if="page.component !== 'Auth/Login'" :href="page.props.auth.loginUrl" class="button button--ghost">{{ t('auth.login.submit') }}</Link>
+                    <Link v-if="page.component !== 'Auth/Register'" :href="page.props.auth.registerUrl" class="button button--primary app-header__register">
+                        {{ t('auth.register.title') }}
+                    </Link>
+                </template>
             </div>
         </div>
     </header>

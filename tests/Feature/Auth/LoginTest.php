@@ -14,8 +14,9 @@ use App\Models\User;
 use Database\Factories\UserFactory;
 use Inertia\Testing\AssertableInertia as Assert;
 
-it('pošle nepřihlášeného ze seznamu slev na přihlášení', function (): void {
-    $this->get('/')->assertRedirect(route('login'));
+it('pošle nepřihlášeného ze stránek pro přihlášené na přihlášení', function (): void {
+    $this->get(route('watch-items.index'))->assertRedirect(route('login'));
+    $this->get(route('account'))->assertRedirect(route('login'));
 });
 
 it('zobrazí přihlašovací stránku s adresami formuláře', function (): void {

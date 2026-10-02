@@ -2,6 +2,7 @@
 
 /**
  * Úvodní stránka přihlášeného uživatele — slevy k jeho hlídaným položkám (R18, R19).
+ * Nepřihlášený má na stejné adrese úvodní stránku Slevohlídky (LandingController, R44).
  *
  * @author Roman Hlaváček
  *
@@ -26,10 +27,13 @@ class HomeController extends Controller
      * Zobrazí slevy po hlídaných položkách, s cenou, kterou uživatel zaplatí, a zmínky
      * v letácích bez ceny (R27).
      */
-    public function __invoke(Request $request, MyOffers $myOffers, OfferPresenter $presenter, MentionPresenter $mentionPresenter): Response
+    public function __invoke(Request $request, MyOffers $myOffers, OfferPresenter $presenter, MentionPresenter $mentionPresenter, LandingController $landing): Response
     {
-        /** @var User $user */
+        // Nepřihlášený má na stejné adrese úvodní stránku (R44)
         $user = $request->user();
+        if (! $user instanceof User) {
+            return $landing->show();
+        }
 
         return Inertia::render('Home', [
             'hasFollowedChains' => $user->followedChains()->exists(),

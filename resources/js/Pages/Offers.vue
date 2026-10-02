@@ -1,5 +1,6 @@
 <!--
-    Přehled všech aktuálních akcí s hledáním a filtrem obchodu.
+    Přehled všech aktuálních akcí s hledáním a filtrem obchodu. Veřejný (R44) — nepřihlášený
+    vidí nad výpisem výzvu k registraci.
 
     @author Roman Hlaváček
     @created 2026-10-02
@@ -12,7 +13,7 @@ import Pagination from '@/Components/Pagination.vue';
 import SearchSuggest from '@/Components/SearchSuggest.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { useTranslations } from '@/lib/i18n';
-import { Head, router } from '@inertiajs/vue3';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { reactive } from 'vue';
 
 const props = defineProps({
@@ -29,6 +30,7 @@ const props = defineProps({
 });
 
 const t = useTranslations();
+const page = usePage();
 
 const filters = reactive({ ...props.filters });
 
@@ -48,6 +50,12 @@ function search() {
             <h1 class="page__title">{{ t('offers.title') }}</h1>
             <p class="page__subtitle">{{ t('offers.count', { count: offers.total }) }}</p>
         </header>
+
+        <!-- Nepřihlášený (R44): co získá registrací -->
+        <aside v-if="!page.props.auth.user" class="guest-banner">
+            <p class="guest-banner__text">{{ t('offers_guest.text') }}</p>
+            <Link :href="page.props.auth.registerUrl" class="button button--primary">{{ t('offers_guest.register') }}</Link>
+        </aside>
 
         <form class="search-form" role="search" @submit.prevent="search">
             <SearchSuggest

@@ -44,10 +44,18 @@ function offerNames(array $query = []): array
     return $names;
 }
 
-it('pošle nepřihlášeného na přihlášení', function (): void {
+it('je veřejná: nepřihlášený vidí akce a v navigaci jen Všechny akce (R44)', function (): void {
     auth()->logout();
+    Offer::factory()->create(['name' => 'Vejce M']);
 
-    $this->get(route('offers'))->assertRedirect(route('login'));
+    $this->get(route('offers'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('offers.data.0.name', 'Vejce M')
+            ->where('auth.user', null)
+            ->where('auth.registerUrl', '/register')
+            ->where('navigation', [['url' => '/akce', 'label' => 'nav.offers', 'active' => true]]));
+    $this->get(route('offers.suggestions', ['q' => 'vej']))->assertOk();
 });
 
 it('ukáže platné i budoucí akce, skončené a stažené obchodem ne', function (): void {

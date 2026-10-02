@@ -30,11 +30,12 @@ Route::get('/cron/send-digests', [CronController::class, 'sendDigests'])->name('
 // Monitoring stahování (UptimeRobot) — veřejné, jen stav
 Route::get('/health/imports', HealthImportsController::class)->name('health.imports');
 
-Route::middleware('auth')->group(function (): void {
-    Route::get('/', HomeController::class)->name('home');
-    Route::get('/akce', OffersController::class)->name('offers');
-    Route::get('/akce/naseptavac', OfferSuggestionsController::class)->name('offers.suggestions');
+// Veřejné (R44): úvodní stránka pro nepřihlášené (přihlášený tu má Moje slevy) a Všechny akce
+Route::get('/', HomeController::class)->name('home');
+Route::get('/akce', OffersController::class)->name('offers');
+Route::get('/akce/naseptavac', OfferSuggestionsController::class)->name('offers.suggestions');
 
+Route::middleware('auth')->group(function (): void {
     Route::get('/hlidam', [WatchItemController::class, 'index'])->name('watch-items.index');
     Route::post('/hlidam', [WatchItemController::class, 'store'])->name('watch-items.store');
     Route::put('/hlidam/{watchItem}', [WatchItemController::class, 'update'])->name('watch-items.update');

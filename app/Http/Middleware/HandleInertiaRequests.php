@@ -34,6 +34,11 @@ class HandleInertiaRequests extends Middleware
         'offers' => 'offers',
     ];
 
+    /** Navigace nepřihlášeného (R44): veřejné jsou jen Všechny akce. */
+    private const GUEST_NAVIGATION = [
+        'offers' => 'offers',
+    ];
+
     /** Položky navigace navíc pro admina (R29). */
     private const ADMIN_NAVIGATION = [
         'catalog.index' => 'catalog',
@@ -69,6 +74,9 @@ class HandleInertiaRequests extends Middleware
                     'avatarUrl' => $user->avatarUrl(),
                 ] : null,
                 'logoutUrl' => route('logout', absolute: false),
+                // Nepřihlášený má v hlavičce přihlášení a registraci (R44)
+                'loginUrl' => route('login', absolute: false),
+                'registerUrl' => route('register', absolute: false),
                 // Účet je v menu pod avatarem vpravo nahoře (R40), ne v hlavní navigaci
                 'accountUrl' => route('account', absolute: false),
                 'accountActive' => $request->routeIs('account'),
@@ -76,7 +84,7 @@ class HandleInertiaRequests extends Middleware
             // Zpráva Fortify po akci: přeložený text (odkaz na obnovu hesla odeslán)
             // nebo kód (profile-information-updated, password-updated)
             'status' => fn (): ?string => $request->session()->get('status'),
-            'navigation' => fn (): array => $user === null ? [] : array_map(
+            'navigation' => fn (): array => array_map(
                 fn (string $routeName, string $labelKey): array => [
                     'url' => route($routeName, absolute: false),
                     'label' => 'nav.'.$labelKey,
@@ -89,12 +97,16 @@ class HandleInertiaRequests extends Middleware
     }
 
     /**
-     * Položky navigace uživatele: název routy => klíč textu; admin má navíc katalog.
+     * Položky navigace: název routy => klíč textu; admin má navíc katalog, nepřihlášený jen Všechny akce (R44).
      *
      * @return array<string, string>
      */
-    private function navigation(User $user): array
+    private function navigation(?User $user): array
     {
+        if ($user === null) {
+            return self::GUEST_NAVIGATION;
+        }
+
         return $user->is_admin ? [...self::NAVIGATION, ...self::ADMIN_NAVIGATION] : self::NAVIGATION;
     }
 }

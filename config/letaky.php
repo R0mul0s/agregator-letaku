@@ -204,6 +204,15 @@ return [
     ],
 
     /*
+    | Úvodní stránka pro nepřihlášené (R44): kolik akcí s nejvyšší slevou ukázat a z kolikrát
+    | většího výběru je brát (ať se v ukázce vystřídají obchody).
+    */
+    'landing' => [
+        'top_offers' => 6,
+        'top_offers_candidates_factor' => 5,
+    ],
+
+    /*
     | Stránkování s „Načíst další“ (R43) — Všechny akce i katalog: nejvýš tolik stránek
     | najednou; kolik čísel stránek ukázat kolem načteného rozsahu (vždy i první a poslední).
     */
