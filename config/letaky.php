@@ -13,6 +13,10 @@
 
 declare(strict_types=1);
 
+use App\Domain\Sources\Kaufland\KauflandOfferSource;
+use App\Domain\Sources\Kaufland\KauflandStoreSource;
+use App\Domain\Sources\Tesco\TescoOfferSource;
+
 return [
 
     /*
@@ -34,6 +38,51 @@ return [
     */
     'auth' => [
         'login_attempts_per_minute' => 5,
+    ],
+
+    /*
+    | Stahování od obchodů — šetrně a s identifikovatelným User-Agentem (R5).
+    */
+    'http' => [
+        'user_agent' => env('LETAKY_USER_AGENT', 'AgregatorLetaku/0.1 (osobni projekt; +https://github.com/R0mul0s/agregator-letaku)'),
+        'timeout_seconds' => 30,
+        'retries' => 2,
+        'retry_delay_ms' => 2000,
+        // Pauza mezi požadavky na stejný obchod
+        'request_delay_ms' => (int) env('LETAKY_REQUEST_DELAY_MS', 1500),
+    ],
+
+    /*
+    | Zdroje obchodů (docs/ZDROJE_DAT.md). Obchod bez offers_source se nestahuje.
+    */
+    'sources' => [
+        'kaufland' => [
+            'offers_source' => KauflandOfferSource::class,
+            'stores_source' => KauflandStoreSource::class,
+            // Web kamenných prodejen — www.kaufland.cz je marketplace za Cloudflare
+            'offers_url' => 'https://prodejny.kaufland.cz/nabidka/prehled.html',
+            'stores_url' => 'https://prodejny.kaufland.cz/.klstorefinder.json',
+        ],
+        'tesco' => [
+            'offers_source' => TescoOfferSource::class,
+            'eshop_api_url' => 'https://xapi.tesco.com/',
+            // Veřejný klíč z HTML e-shopu (mangoApiKey), může se změnit
+            'eshop_api_key' => env('TESCO_API_KEY'),
+            'eshop_page_size' => 200,
+            'eshop_product_url' => 'https://nakup.itesco.cz/groceries/cs-CZ/products/',
+            'eshop_promotions_url' => 'https://nakup.itesco.cz/groceries/cs-CZ/promotions',
+            'leaflets_api_url' => 'https://api.prod.retail.tesco.com/marketing/leaflets-be/graphql',
+            // ID produktu v letáku a v e-shopu se shodují v posledních 8 číslicích (ZDROJE_DAT.md)
+            'leaflet_product_id_suffix_length' => 8,
+        ],
+    ],
+
+    /*
+    | Přehled nabídek.
+    */
+    'offers' => [
+        'per_page' => 50,
+        'search_max_length' => 100,
     ],
 
 ];

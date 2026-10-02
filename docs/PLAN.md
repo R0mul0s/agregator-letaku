@@ -94,10 +94,11 @@ Stejný stack jako projekt Počasí ([R2](#8-log-rozhodnutí)).
 
 ---
 
-## 4. Datový model (návrh)
+## 4. Datový model
 
-Návrh se upřesní v etapě 1. Obchody (řetězce) jsou pevný výčet `Chain` v kódu,
-jejich nastavení je v `config/letaky.php`.
+Tabulky `stores`, `leaflets`, `offers` a `scrape_runs` existují (etapy 1–2), ostatní jsou
+návrh. Obchody (řetězce) jsou pevný výčet `Chain` v kódu, jejich nastavení je
+v `config/letaky.php`.
 
 ### `stores`: prodejny
 | Sloupec | Význam |
@@ -113,27 +114,35 @@ jejich nastavení je v `config/letaky.php`.
 | `chain`, `kind` | obchod; `leaflet` / `web` / `eshop` |
 | `external_id`, `title`, `source_url` | identifikace u obchodu, odkaz pro uživatele |
 | `format` | pro letáky HM / SM |
-| `valid_from`, `valid_to` | platnost, **místní datum** ([R7](#8-log-rozhodnutí)) |
+| `valid_from`, `valid_to` | platnost, **místní datum** ([R7](#8-log-rozhodnutí)); null u průběžných akcí e-shopu |
 | `fetched_at` | kdy se naposledy stáhl |
+
+Klíč je `chain` + `kind` + `external_id` (Kaufland `nabidka-2026-09-30`, Tesco `708`, e-shop Tesco `eshop`).
 
 ### `offers`: akční nabídky
 | Sloupec | Význam |
 |---|---|
-| `chain`, `leaflet_id`, `store_id` | `store_id` null = platí pro všechny prodejny obchodu nebo formátu |
-| `external_id` | ID položky u obchodu (Kaufland `klNr`, Lidl `productId`, Tesco `id`…), pro deduplikaci |
+| `chain`, `leaflet_id` | obchod a zdroj; nabídka e-shopu Tesco, která je v letáku, patří k letáku ([R17](#8-log-rozhodnutí)) |
+| `store_format` | `hypermarket` / `supermarket`; null = všechny prodejny obchodu |
+| `scrape_run_id`, `withdrawn_at` | stažení, ve kterém se nabídka naposledy objevila; kdy ji obchod stáhl před koncem platnosti ([R16](#8-log-rozhodnutí)) |
+| `external_id` | ID položky u obchodu (Kaufland `klNr`, Tesco `id` produktu…) |
 | `name`, `brand`, `description` | |
 | `variant_note` | „různé druhy“, „vybrané druhy“ → párování „možná“ ([R9](#8-log-rozhodnutí)) |
-| `package_text`, `quantity`, `unit` | balení: text a rozparsované množství (g / ml / ks) |
-| `price`, `original_price`, `loyalty_price` | **v haléřích** ([R7](#8-log-rozhodnutí)); `loyalty_price` = cena s kartou nebo aplikací |
+| `package_text`, `quantity`, `unit` | balení: text obchodu a rozparsované množství (g / ml / ks); nejednoznačné („250 ml/500 ml“) bez množství |
+| `price`, `original_price`, `loyalty_price` | **v haléřích** ([R7](#8-log-rozhodnutí)); `price` = bez karty (null, když ji obchod neuvádí), `loyalty_price` = s kartou nebo aplikací |
 | `loyalty_program` | `kaufland_card` / `clubcard` / `muj_albert` / `lidl_plus` / `penny_karta` / null |
-| `discount_percent`, `unit_price` | sleva podle obchodu; cena za kg / l / ks v haléřích |
-| `offer_type` | `discount` / `everyday_price` / `loyalty_only` / `multibuy`… ([R8](#8-log-rozhodnutí)) |
+| `discount_percent` | sleva podle obchodu, jen u typu `discount` |
+| `offer_type` | `discount` / `promo_price` / `loyalty_only` / `multibuy` ([R8](#8-log-rozhodnutí)) |
+| `promotion_text` | popis akce od obchodu („3 za cenu 2“, „Více než o polovinu nižší cena s Clubcard“) |
 | `online_only` | jen e-shop Tesco ([R4](#8-log-rozhodnutí)) |
-| `purchase_limit` | „max. 3 balení na nákup“ |
 | `valid_from`, `valid_to` | platnost položky (víkendové akce mají kratší než leták) |
-| `category_id` | vlastní kategorie ([O3](#7-otevřené-otázky)) |
+| `source_category` | kategorie u obchodu |
 | `image_url`, `source_url` | odkazy u obchodu, obrázky se nestahují ([R5](#8-log-rozhodnutí)) |
 | `raw` | JSON původní položky, aby se nic neztratilo |
+
+Klíč je `chain` + `external_id` + `valid_from` + `valid_to`. Cena za jednotku se nepočítá
+do sloupce, ale při zobrazení z ceny a množství (`UnitPrice`). Přibudou `category_id`
+(etapa 5) a `purchase_limit` (až ho bude některý zdroj dodávat: Lidl, Penny, Albert).
 
 ### Uživatelé a hlídání
 - `users`: účty (Fortify)
@@ -143,7 +152,7 @@ jejich nastavení je v `config/letaky.php`.
 - `watch_matches`: shody hlídané položky s nabídkou. Stav `match` / `maybe`, důvod
 
 ### Provoz
-- `scrape_runs`: každé stažení zdroje (obchod, zdroj, začátek, konec, stav, počet položek, chyba). **Nula položek u zdroje, který je obvykle má, je chyba**, ne „žádné akce“.
+- `scrape_runs`: každé stažení obchodu (začátek, konec, stav, počet uložených a stažených nabídek, chyba). **Nula položek je chyba**, ne „žádné akce“.
 - `llm_extractions`: (etapa 6) vytěžené stránky letáků, aby se stránka neposílala do LLM dvakrát.
 
 ---
@@ -151,16 +160,23 @@ jejich nastavení je v `config/letaky.php`.
 ## 5. Toky dat
 
 ```
-scheduler / cron (1–2× denně)
-   └─▶ ImportChainOffers (pro každý obchod)
-          ├─ zdroj obchodu (Sources/<Obchod>) ──HTTP──▶ web / API obchodu
-          ├─ normalizace (balení, cena za jednotku, typ akce, platnost)
-          ├─ deduplikace (stejná položka ve více kategoriích, web × leták)
-          └─▶ offers  +  scrape_runs
+php artisan letaky:import-offers [obchod…]      (zatím ručně, později plánovaně — O1)
+   └─▶ ImportChainOffers (pro každý obchod, selhání jednoho nezastaví ostatní)
+          ├─ zdroj obchodu (Sources/<Obchod>, SourceHttp s pauzami) ──HTTP──▶ web / API obchodu
+          │     └─ převod na OfferData: cena v haléřích, balení, typ akce, místní platnost
+          ├─ upsert leaflets + offers (deduplikace podle klíče), v jedné transakci
+          ├─ neskončené nabídky obchodu, které chyběly → withdrawn_at (R16)
+          └─▶ scrape_runs (úspěch / chyba)
                  │
-                 ▼
+                 ▼  (etapa 3)
           MatchWatchItems ──▶ watch_matches ──▶ seznam slev uživatele
 ```
+
+Prodejny: `php artisan letaky:import-stores` (zatím Kaufland), nové přidá, existující
+aktualizuje, nic nemaže.
+
+Doba stažení (2. 10. 2026): Kaufland ~2 s (1 požadavek, příští týden +1),
+Tesco ~45 s (seznam letáků, 2 letáky, 26 stránek akcí po 200 s pauzou 1,5 s).
 
 Etapa 6 přidá extrakci letáků:
 
@@ -180,7 +196,7 @@ z artisan příkazu i odjinud.
 |---|---|---|
 | 0 | Technický průzkum zdrojů dat všech 5 obchodů ([ZDROJE_DAT.md](ZDROJE_DAT.md)), dokumentace | hotovo 2026-10-02 |
 | 1 | **Kostra:** Laravel 13, Docker, Pint, Larastan, Pest, SCSS tokeny, layout; přihlášení a registrace (Fortify); model `stores` | hotovo 2026-10-02 |
-| 2 | **Kaufland a Tesco:** zdroje, normalizace, `offers`, `leaflets`, `scrape_runs`, artisan příkaz importu; import seznamu prodejen; přehled všech nabídek s fulltextem | |
+| 2 | **Kaufland a Tesco:** zdroje, normalizace, `offers`, `leaflets`, `scrape_runs`, artisan příkaz importu; import seznamu prodejen (Kaufland); přehled všech nabídek s hledáním (`/akce`); stažené nabídky (R16) | hotovo 2026-10-02 |
 | 3 | **Hlídání:** výběr prodejen a věrnostních programů, hlídané položky (produkt / kategorie), párování podle pravidel (klíčová slova, vylučovací slova), seznam slev uživatele s cenou za jednotku | |
 | 4 | **Lidl a Penny, strukturovaná část:** Lidl `data-grid-data` z kampaňových stránek, Penny product-discovery API | |
 | 5 | **Kategorizace:** vlastní strom kategorií ([O3](#7-otevřené-otázky)), zařazení nabídek (pravidla, případně LLM), stav „možná“ pro „různé druhy“ | |
@@ -195,8 +211,8 @@ z artisan příkazu i odjinud.
 |---|---|---|
 | O1 | **Kde poběží produkce?** Shared hosting jako Počasí (Websupport: bez SSH, fronty a scheduleru, cron umí jen volat URL), nebo VPS? Rozhoduje o tom, jak se budou spouštět dlouhé úlohy: stažení PDF letáku 25–40 MB, desítky volání LLM, binárka `pdftotext` | |
 | O2 | **LLM pro extrakci letáků:** konkrétní model a měsíční rozpočet. Objem je zhruba 400 stran letáků týdně (Albert ~100, Lidl ~250, Penny ~37), plus případná klasifikace kategorií | |
-| O3 | **Kategorie:** vlastní strom, nebo převzít strukturu některého obchodu (Tesco `superDepartment` / `department`)? Jak jemně dělit (mléko → polotučné → trvanlivé / čerstvé)? | |
-| O4 | **Seznamy prodejen** Tesco, Lidl a Penny: odkud je brát. Kaufland má `.klstorefinder.json`, Albert vrací prodejny u letáku, ostatní zatím neověřeno | |
+| O3 | **Kategorie:** vlastní strom, nebo převzít strukturu některého obchodu (Tesco `superDepartment` / `department`)? Jak jemně dělit (mléko → polotučné → trvanlivé / čerstvé)? Pozor: obchody „polotučné“ často nepíšou, jen „tuk 1,5 %“ (Kaufland Kunín má „polotučné“ jen v popisu), a hledání „vejce“ najde i „MAGGI Přidej vejce“ | |
+| O4 | **Seznamy prodejen** Tesco, Lidl a Penny: odkud je brát. Albert vrací prodejny u letáku, ostatní zatím neověřeno | Kaufland hotovo (etapa 2) |
 | O5 | **„Různé druhy“:** jde konkrétní variantu dohledat? Hotspoty letáku Tesco obsahují jednotlivé varianty (COCA-COLA ZERO 1,5l), Albert má katalog `productSearch`. U Kauflandu a Penny zřejmě ne | |
 | O6 | **Zveřejnění aplikace:** před zpřístupněním dalším lidem právně posoudit. Podmínky Tesco výslovně zakazují užití obsahu pro jinou než osobní potřebu, VOP Albert zakazují stahování obsahu e-shopu a aplikace; dále autorský zákon a právo pořizovatele databáze. Viz [R5](#8-log-rozhodnutí) | odloženo do zveřejnění |
 | O7 | Obrázky produktů: zobrazovat odkazem na CDN obchodu, nebo vůbec? | |
@@ -221,3 +237,6 @@ z artisan příkazu i odjinud.
 | R12 | 2026-10-02 | **Přihlášení přes Laravel Fortify** s vlastními Vue stránkami, ne starter kit | Starter kity Laravelu stojí na Tailwindu, což je v rozporu s pravidly stylování (SCSS a BEM). Fortify dodá backend (registrace, přihlášení, reset hesla, throttle) bez UI. |
 | R13 | 2026-10-02 | **Fortify jen s registrací, přihlášením, obnovou hesla, úpravou profilu a změnou hesla.** Dvoufázové ověření, passkeys a ověření e-mailu jsou vypnuté. Přihlášení má limit pokusů na dvojici e-mail + IP (`letaky.auth.login_attempts_per_minute`). Session v databázi, fronta zatím `sync` (O1). Adresy formulářů posílá server v props, routy Fortify nejsou ve Vue natvrdo | Aplikace je zatím jen pro autora (R5), další vrstvy zabezpečení by přidaly stránky a tabulky bez užitku. Jdou zapnout v `config/fortify.php`, až se aplikace zveřejní. Session v databázi (na rozdíl od cookie v Počasí) jde u uživatelských účtů zrušit smazáním řádku. |
 | R14 | 2026-10-02 | **CI v GitHub Actions zatím není**, kontroly kvality se pouštějí jen ručně před commitem | V rané fázi projektu zbytečné, rozhodnutí autora. Workflow jde převzít z Počasí (`.github/workflows/ci.yml`), až bude potřeba. |
+| R15 | 2026-10-02 | **Kaufland zatím jen výchozí varianta nabídky** (bez cookie prodejny, odpovídá CZ3300), platná pro všechny prodejny. Upřesňuje R3 | Rozdíl mezi prodejnami je v desítkách položek ze ~740 (CZ3300 × CZ4600: 736 × 732). Stahovat každou vybranou prodejnu zvlášť by násobilo požadavky i řádky skoro bez užitku. Varianty po prodejnách jsou v [TODO.md](TODO.md). |
+| R16 | 2026-10-02 | **Nabídka, kterou obchod stáhne nebo změní před koncem platnosti, se označí `withdrawn_at`** a z výpisů zmizí; nemaže se (R10). Pozná se tak, že v novém úplném stažení obchodu chybí (`scrape_run_id` není poslední stažení). Když se znovu objeví, označení zmizí | Kaufland během 2. 10. 2026 zkrátil akci na vejce z 6. 10. na 2. 10. Ranní záznam by bez toho dál tvrdil, že akce platí do 6. 10. Funguje jen proto, že každý zdroj stahuje celou nabídku obchodu najednou. |
+| R17 | 2026-10-02 | **Tesco: ceny z akcí e-shopu, leták jen určuje, kde akce platí.** Produkt e-shopu se páruje s produktem letáku podle **posledních 8 číslic ID** (leták `2001019279706` = e-shop `219279706`) a překryvu platnosti. V letáku HM i SM = všechny prodejny, v jednom = jeho formát, v žádném = jen online (R4). Katalog (CAT) se nesleduje. Položky letáku bez akce v e-shopu („Super cena“ za běžnou cenu) chybí | Ceny jsou jen v e-shopu, PDF letáku má poškozenou textovou vrstvu. Pravidlo 8 číslic ověřené na celém letáku 2. 10. 2026: HM 880 z 1 210 produktů, SM 237 z 277, žádná kolize v 5 139 produktech e-shopu; nespárované jsou hlavně „Super ceny“ a zboží bez akce online. „Super ceny“ by šly doplnit vision LLM (etapa 6). |

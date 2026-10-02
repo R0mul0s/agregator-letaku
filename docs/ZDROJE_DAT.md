@@ -63,6 +63,13 @@ Nabídka s Kaufland Card:
 ```
 
 ### Pole a pasti
+Implementace: `app/Domain/Sources/Kaufland/KauflandOfferParser.php`.
+
+- **Název není jednotný.** Někdy je v `title` značka a v `subtitle` produkt („Tatra“ + „Máslo“), jindy je produkt v `title` („Čerstvá vejce M20“ + „podestýlková“). Název = `title` + `subtitle`.
+- **22 ze 736 položek nemá `title`.** Pak se použije `detailTitle` („Rostlinná“, značka je až v `detailDescription` „Rama různé druhy“). U nabídek s kartou je `detailTitle` reklamní „Tvoje cena s Kaufland XTRA“, ten se nepoužije. Položka bez obojího se přeskočí.
+- **9 položek nemá `formattedPrice`**, jen `loyaltyFormattedPrice`: akce platí jen s kartou a běžná cena je v `loyaltyFormattedOldPrice`.
+- **Nabídka se mění i během týdne.** 2. 10. 2026 dopoledne byla vejce M20 v sortimentu a Superkaufu do 6. 10., odpoledne už jen v „Mimořádné nabídce“ do 2. 10. Proto R16 (stažené nabídky).
+- Popis (`detailDescription`) nese údaje, které v názvu chybí: „Kunín Trvanlivé mléko tuk 1,5 %“ má „polotučné“ jen v popisu.
 - Platnost `dateFrom` / `dateTo` je u kategorie i u položky. Kampaně (Víkend, Start týdne) mají kratší platnost.
 - `label` určuje typ akce. Skutečná sleva je `reducedPrice` a `halfPrice`. **`smallPrice` („AKCE! pouze“) a `specialItems` nemají původní cenu**, často jde o trvale nízkou cenu ([R8](PLAN.md#8-log-rozhodnutí)).
 - Kaufland Card: `customerType == "KDN"` a pole `loyalty*`.
@@ -90,8 +97,9 @@ region: CZ
 language: cs-CZ
 content-type: application/json
 ```
-Klíč je veřejný a je vložený v HTML e-shopu jako `mangoApiKey`. Patří do konfigurace,
-ne do kódu. Při chybě 401 ho znovu načíst z HTML (tam už jsou potřeba browser hlavičky).
+Klíč je veřejný a je vložený v HTML e-shopu jako `mangoApiKey`. Patří do `.env`
+(`TESCO_API_KEY`), ne do kódu. Při chybě 401 ho znovu načíst z HTML (tam už jsou potřeba
+browser hlavičky): ve zdrojovém kódu stránky `nakup.itesco.cz` hledat `mangoApiKey`.
 
 Výpis všech akcí (stránkování po 200, ~5 100 produktů, 26 požadavků):
 ```json
@@ -119,6 +127,14 @@ Vyhledávání: `search(query:, page:, count:)` se stejnými poli.
 - Neveřejné dotazy (`protectedLeaflets`, `adminPromotionList`) vrací `UNAUTHENTICATED` a **nemají se obcházet**.
 
 ### Pole a pasti
+Implementace: `app/Domain/Sources/Tesco/TescoParser.php` a `TescoOfferSource.php` ([R17](PLAN.md#8-log-rozhodnutí)).
+
+- **Párování letáku s e-shopem: posledních 8 číslic ID.** Leták `…/products/2001019279706`, e-shop `219279706`. Ověřeno 2. 10. 2026 na celém letáku: HM 880 z 1 210 produktů, SM 237 z 277, v 5 139 produktech e-shopu žádná kolize. Nespárované jsou hlavně „Super ceny“ (bez akce v e-shopu) a zboží, které online není.
+- **Zboží na váhu:** `afterDiscount` / `beforeDiscount` jsou ceny **za kg** (nebo za kus u okurky), `price.actual` je cena odhadovaného kusu (mandarinky 3,91 Kč). Balení se pak bere z jednotky v `unitSellingInfo` („27,90 Kč/kg“ = 1 kg).
+- **Akce bez `price`** (95 položek): „3 za cenu 2“, „MENU BAGETY“, „PECIVO+NAPOJ“, „2 za 799 Kč“. Cena produktu je jen `price.actual`.
+- Typy popisů Clubcard (2. 10. 2026): „N Kč s Clubcard“ (4 045×), „N Kč Ušetřete N% s Clubcard“, „N Kč Ušetřete 1/3 s Clubcard“, „N Kč Poloviční cena s Clubcard“, „Ušetřete 1/3 99,00 Kč/kg s Clubcard“. Cena s kartou je vždy první částka v Kč.
+- „Super cena“ může mít `beforeDiscount` vyšší než `afterDiscount`, pak je to normální sleva.
+- Konec platnosti bývá půlnoc dalšího dne (`2026-10-04T22:00:00Z` = do 4. 10.) i poslední sekunda dne (`21:59:59Z`); v zimním čase o hodinu posunuté.
 - Časy jsou v **UTC**: `2026-09-29T22:00Z` = 30. 9. místního času ([R7](PLAN.md#8-log-rozhodnutí)).
 - **Cena s Clubcard je jen v textu `description`** („8,90 Kč … s Clubcard“). U Clubcard akcí je `afterDiscount` **běžná cena**. Parsovat regexem a ověřit testem.
 - Běžná akce: `beforeDiscount` → `afterDiscount`, procento jen v textu („-50%, předtím 59,90 Kč“).

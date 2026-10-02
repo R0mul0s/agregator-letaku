@@ -1,0 +1,57 @@
+// _tag.scss
+// Štítky — obchod v jeho barvě, typ akce, formát prodejny, „jen e-shop“.
+//
+// @author Roman Hlaváček
+// @created 2026-10-02
+
+.tag,
+.chain-badge {
+    display: inline-block;
+    padding: 0 var(--space-2);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    line-height: var(--line-height-base);
+}
+
+.tag {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    color: var(--color-text-muted);
+
+    &--accent {
+        background: var(--color-accent-soft);
+        border-color: transparent;
+        color: var(--color-accent-strong);
+    }
+
+    &--warning {
+        background: var(--color-warning-soft);
+        border-color: transparent;
+        color: var(--color-warning-text);
+    }
+}
+
+.chain-badge {
+    color: var(--color-on-chain);
+
+    &--kaufland {
+        background: var(--chain-kaufland);
+    }
+
+    &--tesco {
+        background: var(--chain-tesco);
+    }
+
+    &--albert {
+        background: var(--chain-albert);
+    }
+
+    &--lidl {
+        background: var(--chain-lidl);
+    }
+
+    &--penny {
+        background: var(--chain-penny);
+    }
+}

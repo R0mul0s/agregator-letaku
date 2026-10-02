@@ -29,7 +29,8 @@ p {
 
 // Formulářové prvky dědí písmo stránky (prohlížeč jim dává vlastní)
 button,
-input {
+input,
+select {
     font: inherit;
 }
 

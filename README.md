@@ -14,8 +14,9 @@ kde a za kolik je to právě ve slevě, včetně cen s věrnostní kartou a ceny
 | **Instrukce pro AI agenty** | [CLAUDE.md](CLAUDE.md) |
 | **Správce** | Roman Hlaváček |
 
-> **Stav:** hotová je kostra aplikace s účty a přihlášením (etapa 1). Stahování
-> nabídek obchodů přibude v etapě 2 ([PLAN.md, sekce 6](docs/PLAN.md#6-etapy)).
+> **Stav:** hotové jsou účty (etapa 1) a stahování nabídek Kauflandu a Tesca
+> s přehledem všech akcí a hledáním (etapa 2). Hlídání vlastních položek přibude
+> v etapě 3 ([PLAN.md, sekce 6](docs/PLAN.md#6-etapy)).
 
 ## Jak to funguje
 
@@ -39,6 +40,7 @@ git clone https://github.com/R0mul0s/agregator-letaku.git
 cd agregator-letaku
 
 cp .env.example .env
+# doplnit do .env: TESCO_API_KEY (veřejný klíč z HTML e-shopu, viz docs/ZDROJE_DAT.md)
 
 docker compose up -d
 docker compose exec app composer install
@@ -49,6 +51,10 @@ docker compose exec app npm run build
 
 # volitelně vývojový uživatel test@example.com / password
 docker compose exec app php artisan db:seed
+
+# nabídky a prodejny od obchodů (Tesco trvá kolem minuty)
+docker compose exec app php artisan letaky:import-offers
+docker compose exec app php artisan letaky:import-stores
 ```
 
 Pak otevři http://localhost:54720 a zaregistruj se (nebo se přihlas vývojovým uživatelem).
@@ -66,6 +72,17 @@ Databáze pro testy `agregator_test` vzniká automaticky, ale **jen při prvním
 startu nad prázdným volume** (`docker/mariadb/init.sql`). Když chybí, smaž
 volume (`docker compose down -v`).
 
+## Konfigurace
+
+| Proměnná | Povinná | K čemu |
+|---|---|---|
+| `TESCO_API_KEY` | pro Tesco | veřejný klíč e-shopu Tesco (`mangoApiKey` v HTML `nakup.itesco.cz`); bez něj stažení Tesca skončí chybou |
+| `LETAKY_REQUEST_DELAY_MS` | ne (1500) | pauza mezi požadavky na stejný obchod |
+| `LETAKY_USER_AGENT` | ne | User-Agent požadavků na obchody |
+| `LETAKY_DISPLAY_TIMEZONE` | ne (`Europe/Prague`) | zóna pro „místní datum“ platnosti akcí |
+
+Adresy zdrojů obchodů a ostatní konstanty jsou v `config/letaky.php`.
+
 ## Běžné příkazy
 
 Kontrola kvality před commitem: viz [CODING_GUIDELINES.md, sekce 9](docs/CODING_GUIDELINES.md#9-nástroje-a-kvalita).
@@ -73,30 +90,36 @@ Kontrola kvality před commitem: viz [CODING_GUIDELINES.md, sekce 9](docs/CODING
 ```bash
 docker compose exec app npm run dev      # assety: watch s HMR
 docker compose exec app npm run build    # assety: produkční build
+
+# stažení nabídek (bez argumentu všechny obchody se zdrojem) a prodejen
+docker compose exec app php artisan letaky:import-offers [kaufland] [tesco]
+docker compose exec app php artisan letaky:import-stores [kaufland]
 ```
 
 ## Struktura repozitáře
 
 ```
 app/
-  Actions/Fortify/       registrace, obnova a změna hesla, úprava profilu (R12)
-  Enums/                 Chain (obchody), StoreFormat (hypermarket / supermarket)
-  Http/                  tenké kontrolery, sdílená data Inertie
-  Models/                User, Store
-config/letaky.php        konstanty aplikace
-config/fortify.php       zapnuté funkce účtu (R13)
-docker/                  PHP, nginx a MariaDB pro vývoj
-docs/                    zadání, pravidla, zdroje dat
-lang/cs/                 všechny texty (app.php) a překlady Laravelu
-resources/js/            Inertia stránky a Vue komponenty
-resources/scss/          styly (tokeny, komponenty, stránky)
-tests/                   Pest — Feature a Unit
+  Actions/Fortify/         registrace, obnova a změna hesla, úprava profilu (R12)
+  Console/Commands/        artisan importy (obálky nad akcemi)
+  Domain/Chains/Actions/   import prodejen
+  Domain/Offers/           jednotný tvar nabídek (Data), parsery cen a balení (Parsing),
+                           import (Actions), hledání, cena za jednotku, místní kalendář
+  Domain/Sources/<Obchod>/ stažení a převod nabídky jednoho obchodu (Kaufland, Tesco)
+  Domain/Sources/          rozhraní zdrojů, registr, HTTP klient s pauzami
+  Enums/                   Chain, StoreFormat, OfferType, LoyaltyProgram, PackageUnit…
+  Http/                    tenké kontrolery, Form Requesty, sdílená data Inertie
+  Models/                  User, Store, Leaflet, Offer, ScrapeRun
+config/letaky.php          zdroje obchodů a konstanty aplikace
+config/fortify.php         zapnuté funkce účtu (R13)
+docker/                    PHP, nginx a MariaDB pro vývoj
+docs/                      zadání, pravidla, zdroje dat
+lang/cs/                   všechny texty (app.php) a překlady Laravelu
+resources/js/              Inertia stránky a Vue komponenty
+resources/scss/            styly (tokeny, komponenty, stránky)
+tests/                     Pest — Feature a Unit
+tests/Fixtures/<obchod>/   zkrácené skutečné odpovědi obchodů (popis v README tamtéž)
 ```
-
-S dalšími etapami přibudou `app/Domain/Sources/<Obchod>/` (stažení nabídky obchodu),
-`app/Domain/Offers/` (normalizace a uložení), `app/Domain/Matching/` (párování) a
-`tests/Fixtures/<obchod>/` (uložené odpovědi obchodů), viz
-[CODING_GUIDELINES.md, sekce 3](docs/CODING_GUIDELINES.md#3-php--laravel).
 
 ## Řešení potíží
 

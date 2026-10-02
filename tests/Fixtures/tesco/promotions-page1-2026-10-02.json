@@ -1,0 +1,151 @@
+[
+ {
+  "data": {
+   "promotions": {
+    "info": {
+     "total": 9,
+     "page": 1,
+     "count": 5,
+     "pageSize": 5,
+     "offset": 0
+    },
+    "products": [
+     {
+      "id": "205389945",
+      "title": "Kuřecí prsní řízky volné",
+      "brandName": "TESCO",
+      "superDepartmentName": "Maso a lahůdky",
+      "departmentName": "Z našich pultů",
+      "price": {
+       "actual": 29.98,
+       "unitPrice": 119.9,
+       "unitOfMeasure": "kg"
+      },
+      "promotions": [
+       {
+        "id": "837464ba-23bc-4aa5-92d3-04c2fd0e6982",
+        "startDate": "2026-09-29T22:00:00Z",
+        "endDate": "2026-10-06T22:00:00Z",
+        "description": "-45%, předtím 219,90 Kč",
+        "unitSellingInfo": "119,90 Kč/kg",
+        "price": {
+         "beforeDiscount": 219.9,
+         "afterDiscount": 119.9
+        },
+        "attributes": []
+       }
+      ]
+     },
+     {
+      "id": "219279706",
+      "title": "Tesco Čerstvá vejce M 10 ks",
+      "brandName": "TESCO",
+      "superDepartmentName": "Mléčné, vejce a margaríny",
+      "departmentName": "Vejce a droždí",
+      "price": {
+       "actual": 29.9,
+       "unitPrice": 2.99,
+       "unitOfMeasure": "kus"
+      },
+      "promotions": [
+       {
+        "id": "78b4575d-8e59-46a5-a272-214b105d9f9c",
+        "startDate": "2026-09-29T22:00:00Z",
+        "endDate": "2026-10-06T22:00:00Z",
+        "description": "-50%, předtím 59,90 Kč",
+        "unitSellingInfo": "2,99 Kč/kus",
+        "price": {
+         "beforeDiscount": 59.9,
+         "afterDiscount": 29.9
+        },
+        "attributes": []
+       }
+      ]
+     },
+     {
+      "id": "211037571",
+      "title": "Tesco Mléko UHT polotučné 1,5% 1l",
+      "brandName": "TESCO",
+      "superDepartmentName": "Mléčné, vejce a margaríny",
+      "departmentName": "Mléko, mléčné a jogurtové nápoje",
+      "price": {
+       "actual": 21.9,
+       "unitPrice": 21.9,
+       "unitOfMeasure": "l"
+      },
+      "promotions": [
+       {
+        "id": "103531261",
+        "startDate": "2026-10-01T22:00:00Z",
+        "endDate": "2026-10-04T22:00:00Z",
+        "description": "8,90 Kč Více než o polovinu nižší cena s Clubcard",
+        "unitSellingInfo": "8,90 Kč/l",
+        "price": {
+         "beforeDiscount": null,
+         "afterDiscount": 21.9
+        },
+        "attributes": [
+         "CLUBCARD_PRICING"
+        ]
+       }
+      ]
+     },
+     {
+      "id": "213564945",
+      "title": "Mandarinky",
+      "brandName": "TESCO",
+      "superDepartmentName": "Ovoce a zelenina",
+      "departmentName": "Ovoce",
+      "price": {
+       "actual": 3.91,
+       "unitPrice": 27.9,
+       "unitOfMeasure": "kg"
+      },
+      "promotions": [
+       {
+        "id": "24f61fe0-bd67-448d-a968-58c6b88051a9",
+        "startDate": "2026-09-29T22:00:00Z",
+        "endDate": "2026-10-06T22:00:00Z",
+        "description": "-53%, předtím 59,90 Kč",
+        "unitSellingInfo": "27,90 Kč/kg",
+        "price": {
+         "beforeDiscount": 59.9,
+         "afterDiscount": 27.9
+        },
+        "attributes": []
+       }
+      ]
+     },
+     {
+      "id": "212693462",
+      "title": "Česnek",
+      "brandName": "TESCO",
+      "superDepartmentName": "Ovoce a zelenina",
+      "departmentName": "Zelenina",
+      "price": {
+       "actual": 7.9,
+       "unitPrice": 149,
+       "unitOfMeasure": "kg"
+      },
+      "promotions": [
+       {
+        "id": "103472590",
+        "startDate": "2026-09-29T22:00:00Z",
+        "endDate": "2026-10-06T22:00:00Z",
+        "description": "Ušetřete 1/3 99,00 Kč/kg s Clubcard",
+        "unitSellingInfo": "99,00 Kč/kg",
+        "price": {
+         "beforeDiscount": null,
+         "afterDiscount": 149
+        },
+        "attributes": [
+         "CLUBCARD_PRICING"
+        ]
+       }
+      ]
+     }
+    ]
+   }
+  }
+ }
+]

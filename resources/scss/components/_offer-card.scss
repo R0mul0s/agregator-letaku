@@ -1,0 +1,89 @@
+// _offer-card.scss
+// Karta akční nabídky a mřížka karet.
+//
+// @author Roman Hlaváček
+// @created 2026-10-02
+
+.offer-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--offer-card-min-width)), 1fr));
+    gap: var(--space-3);
+}
+
+.offer-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    padding: var(--space-3);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-card);
+
+    &__badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-1);
+        margin-bottom: var(--space-1);
+    }
+
+    &__name {
+        font-size: var(--font-size-md);
+    }
+
+    &__description,
+    &__package,
+    &__note,
+    &__unit-price {
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+    }
+
+    &__variant {
+        color: var(--color-warning-text);
+        font-size: var(--font-size-sm);
+        font-weight: 600;
+    }
+
+    &__prices {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: var(--space-1) var(--space-2);
+        margin-top: var(--space-2);
+    }
+
+    &__price {
+        font-size: var(--font-size-price);
+        font-weight: 700;
+
+        &--text {
+            font-size: var(--font-size-md);
+        }
+    }
+
+    &__original {
+        color: var(--color-text-muted);
+    }
+
+    &__discount {
+        color: var(--color-accent-strong);
+        font-weight: 700;
+    }
+
+    &__loyalty {
+        font-weight: 600;
+    }
+
+    // Platnost a odkaz vždy dole, i když jsou karty v řádku různě vysoké
+    &__footer {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: var(--space-2);
+        margin-top: auto;
+        padding-top: var(--space-2);
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+    }
+}

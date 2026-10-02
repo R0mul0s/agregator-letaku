@@ -1,0 +1,642 @@
+{
+ "data": {
+  "leafletBySlug": {
+   "id": 709,
+   "type": "SM",
+   "leafletUrl": "https://digitalcontent.api.tesco.com/v2/media/dotcom-cz/f8f51dea-4338-4944-806d-c832e4f74b66/20260923234902747_2026_P31_CZ_SM.pdf",
+   "validFrom": "2026-09-30T06:00:00.000Z",
+   "validTo": "2026-10-06T21:59:59.000Z",
+   "pages": [
+    {
+     "id": 18179,
+     "page": 15,
+     "pagePNG": "https://digitalcontent.api.tesco.com/v2/media/dotcom-cz/50dae9f4-80cf-455f-a089-6c7737976ecb/20260923234916625_2026_P31_CZ_SM.15.jpeg",
+     "positions": [
+      {
+       "id": 159115,
+       "calculatedPositionX": 20.76275,
+       "calculatedPositionY": 82.51252,
+       "type": "BASKET",
+       "hyperlinkUrl": null,
+       "width": null,
+       "height": null,
+       "products": [
+        {
+         "id": 502655,
+         "promoOfferName": "Hřbitovní svíčky náhradní*",
+         "isMainProduct": true,
+         "addToBasketURL": "https://nakup.itesco.cz/groceries/cs-CZ/products/2005100392141",
+         "addToShareURL": "https://nakup.itesco.cz/groceries/cs-CZ/products/2005100392141",
+         "product": {
+          "isInGhs": true,
+          "pngFileURL": "https://digitalcontent.api.tesco.com/v2/media/dotcom-cz/c3b353ca-c4ce-4ccf-92a5-77cf9594a205/20260923234636793_hrbitovni-svicky-nahradni_2005100392141_1.png",
+          "productName": "NAHRADNI SVICKY PLAST 10X30 G ",
+          "productPeriods": [
+           {
+            "id": 887593,
+            "periodName": "P31",
+            "promoStart": "2026-09-15T22:00:00.000Z",
+            "promoEnd": "2026-11-01T22:59:59.000Z"
+           }
+          ]
+         }
+        }
+       ]
+      },
+      {
+       "id": 159116,
+       "calculatedPositionX": 52.32708,
+       "calculatedPositionY": 82.36524,
+       "type": "BASKET",
+       "hyperlinkUrl": null,
+       "width": null,
+       "height": null,
+       "products": [
+        {
+         "id": 502656,
+         "promoOfferName": "Hřbitovní svíčky náhradní*",
+         "isMainProduct": true,
+         "addToBasketURL": "https://nakup.itesco.cz/groceries/cs-CZ/products/2005100876357",
+         "addToShareURL": "https://nakup.itesco.cz/groceries/cs-CZ/products/2005100876357",
+         "product": {
+          "isInGhs": true,
+          "pngFileURL": "https://digitalcontent.api.tesco.com/v2/media/dotcom-cz/b99adc68-043a-475b-b765-2ac763f8a2cb/20260923234636811_hrbitovni-svicky-nahradni_2005100876357_1.png",
+          "productName": "Náplň 150 g 3 ks  ",
+          "productPeriods": [
+           {
+            "id": 887594,
+            "periodName": "P31",
+            "promoStart": "2026-09-15T22:00:00.000Z",
+            "promoEnd": "2026-11-01T22:59:59.000Z"
+           }
+          ]
+         }
+        }
+       ]
+      },
+      {
+       "id": 159117,
+       "calculatedPositionX": 85.91313,
+       "calculatedPositionY": 84.27982,
+       "type": "BASKET",
+       "hyperlinkUrl": null,
+       "width": null,
+       "height": null,
+       "products": [
+        {
+         "id": 502657,
+         "promoOfferName": "Svíčka LED*",
+         "isMainProduct": true,
+         "addToBasketURL": "https://nakup.itesco.cz/groceries/cs-CZ/products/2005100972418",
+         "addToShareURL": "https://nakup.itesco.cz/groceries/cs-CZ/products/2005100972418",
+         "product": {
+          "isInGhs": true,
+          "pngFileURL": "https://digitalcontent.api.tesco.com/v2/media/dotcom-cz/8b36f105-2220-41f6-bed3-9c551f6b87c8/20260923234636815_svicka-led_2005100972418_1.png",
+          "productName": "SVÍČKA LED  ",
+          "productPeriods": [
+           {
+            "id": 887595,
+            "periodName": "P31",
+            "promoStart": "2026-09-15T22:00:00.000Z",
+            "promoEnd": "2026-11-01T22:59:59.000Z"
+           }
+          ]
+         }
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": 18174,
+     "page": 10,
+     "pagePNG": "https://digitalcontent.api.tesco.com/v2/media/dotcom-cz/22ae3415-73ef-4933-a92d-30019af8e831/20260923234916620_2026_P31_CZ_SM.10.jpeg",
+     "positions": [
+      {
+       "id": 159155,
+       "calculatedPositionX": 20.46002,
+       "calculatedPositionY": 80.94158,
+       "type": "BASKET",
+       "hyperlinkUrl": null,
+       "width": null,
+       "height": null,
+       "products": [
+        {
+         "id": 502551,
+         "promoOfferName": "Trvanlivé Mléko",
+         "isMainProduct": true,
+         "addToBasketURL": "https://nakup.itesco.cz/groceries/cs-CZ/products/2001011037571",
+         "addToShareURL": "https://nakup.itesco.cz/groceries/cs-CZ/products/2001011037571",
+         "product": {
+          "isInGhs": true,
+          "pngFileURL": "https://digitalcontent.api.tesco.com/v2/media/dotcom-cz/f4614eaa-c4b6-4f8e-ba1f-2b0ba5507a01/20260923233636182_trvanlive-mleko_2001011037571_1.png",
+          "productName": "TS MLÉKO TRVANLIVÉ 1,5% 1 L",
+          "productPeriods": [
+           {
+            "id": 837676,
+            "periodName": "P21",
+            "promoStart": "2026-07-23T22:00:00.000Z",
+            "promoEnd": "2026-07-26T21:59:59.000Z"
+           },
+           {
+            "id": 838429,
+            "periodName": "P21",
+            "promoStart": "2026-07-23T22:00:00.000Z",
+            "promoEnd": "2026-07-26T21:59:59.000Z"
+           },
+           {
+            "id": 841908,
+            "periodName": "P22",
+            "promoStart": "2026-07-28T22:00:00.000Z",
+            "promoEnd": "2026-08-04T21:59:59.000Z"
+           },
+           {
+            "id": 842637,
+            "periodName": "P22",
+            "promoStart": "2026-07-28T22:00:00.000Z",
+            "promoEnd": "2026-08-04T21:59:59.000Z"
+           },
+           {
+            "id": 852783,
+            "periodName": "P24",
+            "promoStart": "2026-08-13T22:00:00.000Z",
+            "promoEnd": "2026-08-16T21:59:59.000Z"
+           },
+           {
+            "id": 853444,
+            "periodName": "P24",
+            "promoStart": "2026-08-13T22:00:00.000Z",
+            "promoEnd": "2026-08-16T21:59:59.000Z"
+           },
+           {
+            "id": 863812,
+            "periodName": "P26",
+            "promoStart": "2026-08-27T22:00:00.000Z",
+            "promoEnd": "2026-08-30T21:59:59.000Z"
+           },
+           {
+            "id": 864454,
+            "periodName": "P26",
+            "promoStart": "2026-08-27T22:00:00.000Z",
+            "promoEnd": "2026-08-30T21:59:59.000Z"
+           },
+           {
+            "id": 867721,
+            "periodName": "P27",
+            "promoStart": "2026-09-01T22:00:00.000Z",
+            "promoEnd": "2026-09-08T21:59:59.000Z"
+           },
+           {
+            "id": 868534,
+            "periodName": "P27",
+            "promoStart": "2026-09-01T22:00:00.000Z",
+            "promoEnd": "2026-09-08T21:59:59.000Z"
+           },
+           {
+            "id": 791293,
+            "periodName": "P13",
+            "promoStart": "2026-05-05T22:00:00.000Z",
+            "promoEnd": "2026-06-02T21:59:59.000Z"
+           },
+           {
+            "id": 785095,
+            "periodName": "P12",
+            "promoStart": "2026-05-21T22:00:00.000Z",
+            "promoEnd": "2026-05-24T21:59:59.000Z"
+           },
+           {
+            "id": 785872,
+            "periodName": "P12",
+            "promoStart": "2026-05-21T22:00:00.000Z",
+            "promoEnd": "2026-05-24T21:59:59.000Z"
+           },
+           {
+            "id": 795512,
+            "periodName": "P14",
+            "promoStart": "2026-06-02T22:00:00.000Z",
+            "promoEnd": "2026-06-09T21:59:59.000Z"
+           },
+           {
+            "id": 796058,
+            "periodName": "P14",
+            "promoStart": "2026-06-02T22:00:00.000Z",
+            "promoEnd": "2026-06-09T21:59:59.000Z"
+           },
+           {
+            "id": 886721,
+            "periodName": "P31",
+            "promoStart": "2026-10-01T22:00:00.000Z",
+            "promoEnd": "2026-10-04T21:59:59.000Z"
+           },
+           {
+            "id": 887657,
+            "periodName": "P31",
+            "promoStart": "2026-10-01T22:00:00.000Z",
+            "promoEnd": "2026-10-04T21:59:59.000Z"
+           },
+           {
+            "id": 890640,
+            "periodName": "P32",
+            "promoStart": "2026-10-06T22:00:00.000Z",
+            "promoEnd": "2026-10-13T21:59:59.000Z"
+           },
+           {
+            "id": 893260,
+            "periodName": "P32",
+            "promoStart": "2026-10-06T22:00:00.000Z",
+            "promoEnd": "2026-10-13T21:59:59.000Z"
+           }
+          ]
+         }
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": 18167,
+     "page": 2,
+     "pagePNG": "https://digitalcontent.api.tesco.com/v2/media/dotcom-cz/642391d7-c990-4f02-81c8-0da117ccbecc/20260923234916608_2026_P31_CZ_SM.2.jpeg",
+     "positions": [
+      {
+       "id": 159139,
+       "calculatedPositionX": 37.64462,
+       "calculatedPositionY": 66.12813,
+       "type": "BASKET",
+       "hyperlinkUrl": null,
+       "width": null,
+       "height": null,
+       "products": [
+        {
+         "id": 502429,
+         "promoOfferName": "Okurka hadovka",
+         "isMainProduct": true,
+         "addToBasketURL": "https://nakup.itesco.cz/groceries/cs-CZ/products/2001014829975",
+         "addToShareURL": "https://nakup.itesco.cz/groceries/cs-CZ/products/2001014829975",
+         "product": {
+          "isInGhs": true,
+          "pngFileURL": "https://digitalcontent.api.tesco.com/v2/media/dotcom-cz/8c1b5daa-2391-43a6-b457-68b45c5d75ba/20260923233649523_okurka-hadovka_2001014829975_1.png",
+          "productName": "OKURKA HADOVKA ks ",
+          "productPeriods": [
+           {
+            "id": 805437,
+            "periodName": "P16",
+            "promoStart": "2026-06-18T22:00:00.000Z",
+            "promoEnd": "2026-06-21T21:59:59.000Z"
+           },
+           {
+            "id": 805639,
+            "periodName": "P16",
+            "promoStart": "2026-06-18T22:00:00.000Z",
+            "promoEnd": "2026-06-21T21:59:59.000Z"
+           },
+           {
+            "id": 769213,
+            "periodName": "P10",
+            "promoStart": "2026-05-05T22:00:00.000Z",
+            "promoEnd": "2026-05-12T21:59:59.000Z"
+           },
+           {
+            "id": 770556,
+            "periodName": "P10",
+            "promoStart": "2026-05-05T22:00:00.000Z",
+            "promoEnd": "2026-05-12T21:59:59.000Z"
+           },
+           {
+            "id": 876379,
+            "periodName": "P29",
+            "promoStart": "2026-09-15T22:00:00.000Z",
+            "promoEnd": "2026-09-22T21:59:59.000Z"
+           },
+           {
+            "id": 876836,
+            "periodName": "P29",
+            "promoStart": "2026-09-15T22:00:00.000Z",
+            "promoEnd": "2026-09-22T21:59:59.000Z"
+           },
+           {
+            "id": 849191,
+            "periodName": "P23",
+            "promoStart": "2026-08-06T22:00:00.000Z",
+            "promoEnd": "2026-08-09T21:59:59.000Z"
+           },
+           {
+            "id": 849537,
+            "periodName": "P23",
+            "promoStart": "2026-08-06T22:00:00.000Z",
+            "promoEnd": "2026-08-09T21:59:59.000Z"
+           },
+           {
+            "id": 852607,
+            "periodName": "P24",
+            "promoStart": "2026-08-11T22:00:00.000Z",
+            "promoEnd": "2026-08-18T21:59:59.000Z"
+           },
+           {
+            "id": 853410,
+            "periodName": "P24",
+            "promoStart": "2026-08-11T22:00:00.000Z",
+            "promoEnd": "2026-08-18T21:59:59.000Z"
+           },
+           {
+            "id": 814671,
+            "periodName": "P17",
+            "promoStart": "2026-06-25T22:00:00.000Z",
+            "promoEnd": "2026-06-28T21:59:59.000Z"
+           },
+           {
+            "id": 790703,
+            "periodName": "P13",
+            "promoStart": "2026-05-26T22:00:00.000Z",
+            "promoEnd": "2026-06-02T21:59:59.000Z"
+           },
+           {
+            "id": 868008,
+            "periodName": "P27",
+            "promoStart": "2026-09-03T22:00:00.000Z",
+            "promoEnd": "2026-09-06T21:59:59.000Z"
+           },
+           {
+            "id": 868446,
+            "periodName": "P27",
+            "promoStart": "2026-09-03T22:00:00.000Z",
+            "promoEnd": "2026-09-06T21:59:59.000Z"
+           },
+           {
+            "id": 791181,
+            "periodName": "P13",
+            "promoStart": "2026-05-26T22:00:00.000Z",
+            "promoEnd": "2026-06-02T21:59:59.000Z"
+           },
+           {
+            "id": 815670,
+            "periodName": "P17",
+            "promoStart": "2026-06-25T22:00:00.000Z",
+            "promoEnd": "2026-06-28T21:59:59.000Z"
+           },
+           {
+            "id": 800258,
+            "periodName": "P15",
+            "promoStart": "2026-06-09T22:00:00.000Z",
+            "promoEnd": "2026-06-16T21:59:59.000Z"
+           },
+           {
+            "id": 800800,
+            "periodName": "P15",
+            "promoStart": "2026-06-09T22:00:00.000Z",
+            "promoEnd": "2026-06-16T21:59:59.000Z"
+           },
+           {
+            "id": 821007,
+            "periodName": "P18",
+            "promoStart": "2026-07-05T22:00:00.000Z",
+            "promoEnd": "2026-07-07T21:59:59.000Z"
+           },
+           {
+            "id": 821148,
+            "periodName": "P18",
+            "promoStart": "2026-07-05T22:00:00.000Z",
+            "promoEnd": "2026-07-07T21:59:59.000Z"
+           },
+           {
+            "id": 887350,
+            "periodName": "P31",
+            "promoStart": "2026-09-29T22:00:00.000Z",
+            "promoEnd": "2026-10-06T21:59:59.000Z"
+           },
+           {
+            "id": 887626,
+            "periodName": "P31",
+            "promoStart": "2026-09-29T22:00:00.000Z",
+            "promoEnd": "2026-10-06T21:59:59.000Z"
+           },
+           {
+            "id": 890637,
+            "periodName": "P32",
+            "promoStart": "2026-10-08T22:00:00.000Z",
+            "promoEnd": "2026-10-11T21:59:59.000Z"
+           },
+           {
+            "id": 893587,
+            "periodName": "P32",
+            "promoStart": "2026-10-08T22:00:00.000Z",
+            "promoEnd": "2026-10-11T21:59:59.000Z"
+           },
+           {
+            "id": 628164,
+            "periodName": "P50",
+            "promoStart": "2026-02-03T23:00:00.000Z",
+            "promoEnd": "2026-02-10T22:59:59.000Z"
+           },
+           {
+            "id": 628460,
+            "periodName": "P50",
+            "promoStart": "2026-02-03T23:00:00.000Z",
+            "promoEnd": "2026-02-10T22:59:59.000Z"
+           }
+          ]
+         }
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": 18166,
+     "page": 1,
+     "pagePNG": "https://digitalcontent.api.tesco.com/v2/media/dotcom-cz/c0ba3508-db80-43cb-8308-cf97f1a00828/20260923234916602_2026_P31_CZ_SM.1.jpeg",
+     "positions": [
+      {
+       "id": 159140,
+       "calculatedPositionX": 16.6693,
+       "calculatedPositionY": 49.17919,
+       "type": "BASKET",
+       "hyperlinkUrl": null,
+       "width": null,
+       "height": null,
+       "products": [
+        {
+         "id": 502411,
+         "promoOfferName": "Mandarinky",
+         "isMainProduct": true,
+         "addToBasketURL": "https://nakup.itesco.cz/groceries/cs-CZ/products/2001013564945",
+         "addToShareURL": "https://nakup.itesco.cz/groceries/cs-CZ/products/2001013564945",
+         "product": {
+          "isInGhs": true,
+          "pngFileURL": "https://digitalcontent.api.tesco.com/v2/media/dotcom-cz/0319fd96-691b-4531-a838-1bd6303c5a92/20260923234636805_mandarinky_2001013564945_1.png",
+          "productName": "MANDARINKY kg  ",
+          "productPeriods": [
+           {
+            "id": 842138,
+            "periodName": "P22",
+            "promoStart": "2026-07-28T22:00:00.000Z",
+            "promoEnd": "2026-08-04T21:59:59.000Z"
+           },
+           {
+            "id": 826021,
+            "periodName": "P19",
+            "promoStart": "2026-07-07T22:00:00.000Z",
+            "promoEnd": "2026-07-14T21:59:59.000Z"
+           },
+           {
+            "id": 790711,
+            "periodName": "P13",
+            "promoStart": "2026-05-26T22:00:00.000Z",
+            "promoEnd": "2026-06-02T21:59:59.000Z"
+           },
+           {
+            "id": 750757,
+            "periodName": "P07",
+            "promoStart": "2026-04-14T22:00:00.000Z",
+            "promoEnd": "2026-04-21T21:59:59.000Z"
+           },
+           {
+            "id": 864351,
+            "periodName": "P26",
+            "promoStart": "2026-08-25T22:00:00.000Z",
+            "promoEnd": "2026-09-01T21:59:59.000Z"
+           },
+           {
+            "id": 868396,
+            "periodName": "P27",
+            "promoStart": "2026-09-06T22:00:00.000Z",
+            "promoEnd": "2026-09-08T21:59:59.000Z"
+           },
+           {
+            "id": 868678,
+            "periodName": "P27",
+            "promoStart": "2026-09-06T22:00:00.000Z",
+            "promoEnd": "2026-09-08T21:59:59.000Z"
+           },
+           {
+            "id": 887351,
+            "periodName": "P31",
+            "promoStart": "2026-09-29T22:00:00.000Z",
+            "promoEnd": "2026-10-06T21:59:59.000Z"
+           },
+           {
+            "id": 887627,
+            "periodName": "P31",
+            "promoStart": "2026-09-29T22:00:00.000Z",
+            "promoEnd": "2026-10-06T21:59:59.000Z"
+           },
+           {
+            "id": 628172,
+            "periodName": "P50",
+            "promoStart": "2026-02-05T23:00:00.000Z",
+            "promoEnd": "2026-02-08T22:59:59.000Z"
+           },
+           {
+            "id": 628464,
+            "periodName": "P50",
+            "promoStart": "2026-02-05T23:00:00.000Z",
+            "promoEnd": "2026-02-08T22:59:59.000Z"
+           }
+          ]
+         }
+        }
+       ]
+      },
+      {
+       "id": 159154,
+       "calculatedPositionX": 54.87923,
+       "calculatedPositionY": 68.61954,
+       "type": "BASKET",
+       "hyperlinkUrl": null,
+       "width": null,
+       "height": null,
+       "products": [
+        {
+         "id": 502414,
+         "promoOfferName": "TS vejce halove M10",
+         "isMainProduct": true,
+         "addToBasketURL": "https://nakup.itesco.cz/groceries/cs-CZ/products/2001019279706",
+         "addToShareURL": "https://nakup.itesco.cz/groceries/cs-CZ/products/2001019279706",
+         "product": {
+          "isInGhs": true,
+          "pngFileURL": "https://digitalcontent.api.tesco.com/v2/media/dotcom-cz/6af4d8ef-57d0-427a-98bd-b6d15f322e1b/20260923234638018_ts-vejce-halove-m10_2001019279706_1.png",
+          "productName": "TS CERSTVÁ VEJCE NOSNIC V HALÁCH M 10 ks",
+          "productPeriods": [
+           {
+            "id": 805451,
+            "periodName": "P16",
+            "promoStart": "2026-06-18T22:00:00.000Z",
+            "promoEnd": "2026-06-21T21:59:59.000Z"
+           },
+           {
+            "id": 805682,
+            "periodName": "P16",
+            "promoStart": "2026-06-18T22:00:00.000Z",
+            "promoEnd": "2026-06-21T21:59:59.000Z"
+           },
+           {
+            "id": 841909,
+            "periodName": "P22",
+            "promoStart": "2026-07-28T22:00:00.000Z",
+            "promoEnd": "2026-08-04T21:59:59.000Z"
+           },
+           {
+            "id": 842638,
+            "periodName": "P22",
+            "promoStart": "2026-07-28T22:00:00.000Z",
+            "promoEnd": "2026-08-04T21:59:59.000Z"
+           },
+           {
+            "id": 814792,
+            "periodName": "P17",
+            "promoStart": "2026-06-23T22:00:00.000Z",
+            "promoEnd": "2026-06-30T21:59:59.000Z"
+           },
+           {
+            "id": 858604,
+            "periodName": "P25",
+            "promoStart": "2026-08-18T22:00:00.000Z",
+            "promoEnd": "2026-08-25T21:59:59.000Z"
+           },
+           {
+            "id": 859467,
+            "periodName": "P25",
+            "promoStart": "2026-08-18T22:00:00.000Z",
+            "promoEnd": "2026-08-25T21:59:59.000Z"
+           },
+           {
+            "id": 820534,
+            "periodName": "P18",
+            "promoStart": "2026-06-30T22:00:00.000Z",
+            "promoEnd": "2026-07-07T21:59:59.000Z"
+           },
+           {
+            "id": 815987,
+            "periodName": "P17",
+            "promoStart": "2026-06-23T22:00:00.000Z",
+            "promoEnd": "2026-06-30T21:59:59.000Z"
+           },
+           {
+            "id": 821017,
+            "periodName": "P18",
+            "promoStart": "2026-06-30T22:00:00.000Z",
+            "promoEnd": "2026-07-07T21:59:59.000Z"
+           },
+           {
+            "id": 886720,
+            "periodName": "P31",
+            "promoStart": "2026-09-29T22:00:00.000Z",
+            "promoEnd": "2026-10-06T21:59:59.000Z"
+           },
+           {
+            "id": 887656,
+            "periodName": "P31",
+            "promoStart": "2026-09-29T22:00:00.000Z",
+            "promoEnd": "2026-10-06T21:59:59.000Z"
+           }
+          ]
+         }
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ }
+}

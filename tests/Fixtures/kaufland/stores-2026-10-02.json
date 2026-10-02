@@ -1,0 +1,75 @@
+[
+ {
+  "n": "CZ1000",
+  "slf": "BakingFresh,GourmetFood,DelicatessenService,Elevators,Barrier-freeWC,ServiceIsland,WCWomen,WCMen,Meat,Sausage,Cheese,Fish,MobilePayment,LoyaltyProgram,LoyaltyPointsProgram,LoyaltyCoupons,AdBanner,PartnerBenefits,KStories,KScanDZ,Xtra,CustomerSurvey",
+  "lat": "49.8002711",
+  "lng": "18.2306163",
+  "cn": "Kaufland Ostrava-Zábřeh",
+  "p": "800 165 894",
+  "pc": "700 30",
+  "sn": "Výškovická 3086/44",
+  "t": "Ostrava",
+  "opd": "1998-01-28T00:00:00.000Z",
+  "wod": [
+   "Monday|07:00|22:00",
+   "Tuesday|07:00|22:00",
+   "Wednesday|07:00|22:00",
+   "Thursday|07:00|22:00",
+   "Friday|07:00|22:00",
+   "Saturday|07:00|22:00",
+   "Sunday|07:00|22:00"
+  ],
+  "f": {
+   "from": "2024-05-30",
+   "to": "2024-05-30"
+  },
+  "friendlyUrl": "ostrava-zabreh-1000",
+  "eod": ""
+ },
+ {
+  "n": "CZ1010",
+  "slf": "BakingFresh,GourmetFood,DelicatessenService,MeatSpecialChest,ServiceIsland,Meat,Sausage,Cheese,Poultry,Fish,MobilePayment,LoyaltyProgram,LoyaltyPointsProgram,LoyaltyCoupons,AdBanner,PartnerBenefits,KStories,KScanDZ,Xtra,CustomerSurvey",
+  "lat": "49.8289321",
+  "lng": "18.2806484",
+  "cn": "Kaufland Ostrava-Vítkovice",
+  "p": "800 165 894",
+  "pc": "702 00",
+  "sn": "Vítkovická 3278/3",
+  "t": "Ostrava",
+  "opd": "2005-08-02T00:00:00.000Z",
+  "wod": [
+   "Monday|07:00|22:00",
+   "Tuesday|07:00|22:00",
+   "Wednesday|07:00|22:00",
+   "Thursday|07:00|22:00",
+   "Friday|07:00|22:00",
+   "Saturday|07:00|22:00",
+   "Sunday|07:00|22:00"
+  ],
+  "friendlyUrl": "ostrava-vitkovice-1010",
+  "eod": ""
+ },
+ {
+  "n": "CZ1050",
+  "slf": "BakingFresh,GourmetFood,DelicatessenService,Barrier-freeWC,ServiceIsland,WCWomen,WCMen,Sausage,Cheese,Poultry,MobilePayment,LoyaltyProgram,LoyaltyPointsProgram,LoyaltyCoupons,AdBanner,PartnerBenefits,KScanDZ,Xtra,CustomerSurvey",
+  "lat": "49.0093779",
+  "lng": "14.0007567",
+  "cn": "Kaufland Prachatice",
+  "p": "800 165 894",
+  "pc": "383 01",
+  "sn": "Krumlovská 1103",
+  "t": "Prachatice",
+  "opd": "2014-07-03T00:00:00.000Z",
+  "wod": [
+   "Monday|07:00|22:00",
+   "Tuesday|07:00|22:00",
+   "Wednesday|07:00|22:00",
+   "Thursday|07:00|22:00",
+   "Friday|07:00|22:00",
+   "Saturday|07:00|22:00",
+   "Sunday|07:00|22:00"
+  ],
+  "friendlyUrl": "prachatice-1050",
+  "eod": ""
+ }
+]

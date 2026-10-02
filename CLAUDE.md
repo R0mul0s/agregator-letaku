@@ -20,9 +20,9 @@ volné číslo R…). Změna chování obchodu (nový endpoint, jiné pole) pat�
 
 ## Stav
 
-Hotová je etapa 1: kostra aplikace, přihlášení a registrace (Fortify, R12, R13),
-stránka účtu a model prodejen (`stores`, `store_user`). Další je etapa 2:
-zdroje dat Kaufland a Tesco (viz PLAN.md, kap. 6).
+Hotové jsou etapy 1 a 2: kostra aplikace s účty (Fortify, R12, R13), stahování
+nabídek Kauflandu a Tesca (R15–R17), seznam prodejen Kauflandu a přehled všech akcí
+s hledáním na `/akce`. Další je etapa 3: hlídání (viz PLAN.md, kap. 6).
 
 Vývojový uživatel ze seederu: `test@example.com` / `password`
 (`docker compose exec app php artisan db:seed`). E-maily (obnova hesla) se lokálně
@@ -51,6 +51,15 @@ docker compose exec app composer install
 docker compose exec app npm run build   # produkční build assetů
 docker compose exec app npm run dev     # watch s HMR
 ```
+
+Stažení nabídek a prodejen od obchodů (skutečné požadavky, šetrně s pauzami; Tesco
+potřebuje `TESCO_API_KEY` v `.env`, viz ZDROJE_DAT.md):
+```bash
+docker compose exec app php artisan letaky:import-offers            # všechny obchody se zdrojem
+docker compose exec app php artisan letaky:import-offers kaufland   # jen vybrané
+docker compose exec app php artisan letaky:import-stores
+```
+Výsledek každého stažení je v tabulce `scrape_runs`.
 
 ## Kontrola kvality
 
@@ -85,11 +94,15 @@ MariaDB 11.4 · Pest 4 · Larastan · Pint. Extrakce letáků (etapa 6): Claude 
 7. **Duplicity:** Kaufland má stejnou položku ve více kategoriích (dedup podle `klNr` a platnosti), Lidl a Penny mají položku na webu i v letáku, Tesco v letáku i v e-shopu.
 8. **Varianty nabídky:** Albert a Tesco mají odlišné letáky pro hypermarket a supermarket, Kaufland se mírně liší po prodejnách (cookie `x-aem-variant`). Nabídka bez prodejny nebo formátu platí pro celý obchod.
 9. **Uvnitř letáku se liší platnost.** Víkendové akce (pá–ne) a „Start týdne“ mají kratší platnost než leták. Brát platnost položky, ne letáku.
-10. **Neveřejná API se mění bez varování.** Neočekávaný tvar odpovědi = výjimka, nula položek = chyba v `scrape_runs`. Oprava začíná porovnáním s ZDROJE_DAT.md a novou fixture.
-11. **Testy nesahají na síť** (R11). Fixtures jsou zkrácené skutečné odpovědi v `tests/Fixtures/<obchod>/`, nevymýšlet vlastní tvar dat.
+10. **Neveřejná API se mění bez varování.** Neočekávaný tvar odpovědi = `SourceResponseChanged`, nula položek = `SourceReturnedNoOffers`, obojí skončí v `scrape_runs`. Oprava začíná porovnáním s ZDROJE_DAT.md a novou fixture.
+11. **Testy nesahají na síť** (R11). Fixtures jsou zkrácené skutečné odpovědi v `tests/Fixtures/<obchod>/` (popis v `tests/Fixtures/README.md`), nevymýšlet vlastní tvar dat.
 12. **Nepoužívat zakázané a chráněné zdroje:** Lidl search API (robots.txt), Tesco `protectedLeaflets` (`UNAUTHENTICATED`), www.kaufland.cz (marketplace za Cloudflare; prodejny jsou na `prodejny.kaufland.cz`).
 13. **Staré letáky mizí** (Penny, Albert, Lidl). Nic se nemaže, nabídky jsou historie (R10).
 14. **Tesco API klíč je v konfiguraci**, ne v kódu. Je veřejný (`mangoApiKey` v HTML e-shopu), ale může se změnit.
+15. **Zdroj musí vracet celou nabídku obchodu najednou.** Neskončené nabídky, které v novém stažení chybí, se označí jako stažené obchodem (`withdrawn_at`, R16). Zdroj, který by stáhl jen část (jedna stránka, jeden leták), by zbytek nabídky „stáhl“. Výpisy nabídek filtrují `->active()->notExpired()`.
+16. **Tesco zboží na váhu:** cena je `afterDiscount` za kg, ne `price.actual` (cena odhadovaného kusu). Leták a e-shop se párují podle posledních 8 číslic ID (R17).
+17. **Hromadný zápis nabídek (`upsert`) obchází přetypování modelu** — enumy jako `->value`, JSON přes `json_encode`, data jako `Y-m-d` (`ImportChainOffers::row`).
+18. **V testech je helper `responseFixture()`**, ne `fixture()` — tu má Pest vlastní.
 
 ## Jazyk
 

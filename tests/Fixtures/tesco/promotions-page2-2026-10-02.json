@@ -1,0 +1,122 @@
+[
+ {
+  "data": {
+   "promotions": {
+    "info": {
+     "total": 9,
+     "page": 2,
+     "count": 4,
+     "pageSize": 5,
+     "offset": 5
+    },
+    "products": [
+     {
+      "id": "218272500",
+      "title": "Coca-Cola Zero 500ml",
+      "brandName": "Coca-Cola",
+      "superDepartmentName": "Nápoje",
+      "departmentName": "Limonády a ledové čaje",
+      "price": {
+       "actual": 26.9,
+       "unitPrice": 53.8,
+       "unitOfMeasure": "l"
+      },
+      "promotions": [
+       {
+        "id": "103485556",
+        "startDate": "2026-09-29T22:00:00Z",
+        "endDate": "2026-10-13T22:00:00Z",
+        "description": "24,90 Kč s Clubcard",
+        "unitSellingInfo": "49,80 Kč/l",
+        "price": {
+         "beforeDiscount": null,
+         "afterDiscount": 26.9
+        },
+        "attributes": [
+         "CLUBCARD_PRICING"
+        ]
+       }
+      ]
+     },
+     {
+      "id": "105029083",
+      "title": "Tesco Avokádová pomazánka 90g",
+      "brandName": "TESCO",
+      "superDepartmentName": "Maso a lahůdky",
+      "departmentName": "Tapas",
+      "price": {
+       "actual": 54.9,
+       "unitPrice": 610,
+       "unitOfMeasure": "kg"
+      },
+      "promotions": [
+       {
+        "id": "103086646",
+        "startDate": "2026-09-13T22:00:00Z",
+        "endDate": "2026-11-01T23:00:00Z",
+        "description": "3 za cenu 2 Clubcard cena - Nejlevnější produkt zdarma",
+        "unitSellingInfo": null,
+        "price": null,
+        "attributes": [
+         "CLUBCARD_PRICING"
+        ]
+       }
+      ]
+     },
+     {
+      "id": "214829975",
+      "title": "Okurka hadovka",
+      "brandName": "TESCO",
+      "superDepartmentName": "Ovoce a zelenina",
+      "departmentName": "Zelenina",
+      "price": {
+       "actual": 13.9,
+       "unitPrice": 13.9,
+       "unitOfMeasure": "kus"
+      },
+      "promotions": [
+       {
+        "id": "e32a634d-a649-41cb-b821-2f4a72ff93ed",
+        "startDate": "2026-09-29T22:00:00Z",
+        "endDate": "2026-10-06T22:00:00Z",
+        "description": "-44%, předtím 24,90 Kč",
+        "unitSellingInfo": "13,90 Kč/kus",
+        "price": {
+         "beforeDiscount": 24.9,
+         "afterDiscount": 13.9
+        },
+        "attributes": []
+       }
+      ]
+     },
+     {
+      "id": "217605279",
+      "title": "Jacobs Velvet Crema rozpustná káva 200g",
+      "brandName": "Jacobs",
+      "superDepartmentName": "Nápoje",
+      "departmentName": "Káva a kávoviny",
+      "price": {
+       "actual": 129.9,
+       "unitPrice": 649.5,
+       "unitOfMeasure": "kg"
+      },
+      "promotions": [
+       {
+        "id": "f0277419-fcda-43a9-b5c9-e2097cd14f55",
+        "startDate": "2026-09-29T22:00:00Z",
+        "endDate": "2026-10-13T22:00:00Z",
+        "description": "Super cena",
+        "unitSellingInfo": "649,50 Kč/kg",
+        "price": {
+         "beforeDiscount": 229.9,
+         "afterDiscount": 129.9
+        },
+        "attributes": []
+       }
+      ]
+     }
+    ]
+   }
+  }
+ }
+]

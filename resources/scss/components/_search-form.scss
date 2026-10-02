@@ -1,0 +1,29 @@
+// _search-form.scss
+// Hledání v nabídkách a stránkování výsledků.
+//
+// @author Roman Hlaváček
+// @created 2026-10-02
+
+.search-form {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+
+    &__text {
+        flex: 1 1 var(--search-text-min-width);
+    }
+}
+
+.pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-3);
+    margin-top: var(--space-4);
+
+    &__position {
+        color: var(--color-text-muted);
+    }
+}

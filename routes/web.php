@@ -12,9 +12,11 @@ declare(strict_types=1);
 
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\OffersController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth')->group(function (): void {
     Route::get('/', HomeController::class)->name('home');
+    Route::get('/akce', OffersController::class)->name('offers');
     Route::get('/ucet', AccountController::class)->name('account');
 });

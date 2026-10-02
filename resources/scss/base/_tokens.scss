@@ -27,6 +27,16 @@
     --color-success-soft: #ebfbee;
     --color-danger: #c92a2a;
     --color-danger-soft: #fff0f0;
+    --color-warning-soft: #fff4e0;
+    --color-warning-text: #9a5b00;
+
+    // Barvy obchodů (štítky) — text na nich bílý s kontrastem aspoň 4,5 : 1
+    --chain-kaufland: #c8102e;
+    --chain-tesco: #00539f;
+    --chain-albert: #0f6fb5;
+    --chain-lidl: #0050aa;
+    --chain-penny: #b5121b;
+    --color-on-chain: #ffffff;
 
     --space-1: 0.25rem;
     --space-2: 0.5rem;
@@ -55,6 +65,9 @@
     --content-max-width: 72rem;
     --auth-card-max-width: 28rem;
     --account-column-min-width: 20rem;
+    --offer-card-min-width: 17rem;
+    --search-text-min-width: 16rem;
+    --font-size-price: 1.5rem;
     --control-size: 2.5rem;
     --checkbox-size: 1.125rem;
     --logo-size: 2.5rem;
@@ -78,6 +91,8 @@
         --color-success-soft: #13301b;
         --color-danger: #ff6b6b;
         --color-danger-soft: #3a1717;
+        --color-warning-soft: #3a2a0c;
+        --color-warning-text: #fab005;
         --shadow-card: none;
         --focus-ring: 0 0 0 3px rgb(77 171 247 / 45%);
     }

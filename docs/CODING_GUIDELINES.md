@@ -104,9 +104,12 @@ Eloquent model                 ← perzistence
 
 | Složka | Obsah |
 |---|---|
-| `app/Domain/Chains` | výčet obchodů `Chain`, prodejny, věrnostní programy |
+| `app/Domain/Chains/Actions` | prodejny obchodů (`ImportChainStores`) |
+| `app/Domain/Sources` | rozhraní `OfferSource` a `StoreSource`, `SourceRegistry` (zdroje podle `config/letaky.php`), `SourceHttp` |
 | `app/Domain/Sources/<Obchod>` | **zdroj dat jednoho obchodu**: HTTP požadavky a převod odpovědi na `OfferData`; nic jiného |
-| `app/Domain/Offers` | normalizace (balení, cena za jednotku, typ akce, platnost), deduplikace, uložení |
+| `app/Domain/Offers/Data` | jednotný tvar ze zdrojů (`OfferData`, `LeafletData`, `SourceBatch`, `PackageSize`) |
+| `app/Domain/Offers/Parsing` | sdílené parsery: `PriceParser` (haléře), `PackageParser` (balení), `VariantNote`, `Text` |
+| `app/Domain/Offers` | místní kalendář (`LocalCalendar`), cena za jednotku, hledání a příprava pro stránku |
 | `app/Domain/Offers/Actions` | use-casy (`ImportChainOffers`) |
 | `app/Domain/Extraction` | extrakce položek z letáků přes LLM (etapa 6) |
 | `app/Domain/Matching` | párování hlídaných položek s nabídkami, kategorie |
@@ -161,7 +164,7 @@ Eloquent model                 ← perzistence
 ### Testy
 - **Pest.** Popis testu česky jako věta o chování: `it('u Clubcard akce vezme cenu z popisu, ne z afterDiscount')`.
 - **Testy nikdy nesahají na síť** ([R11](PLAN.md#8-log-rozhodnutí)). `Http::preventStrayRequests()` v `tests/Pest.php`, odpovědi přes `Http::fake()`.
-- **Fixtures jsou zkrácené skutečné odpovědi obchodů** v `tests/Fixtures/<obchod>/`. Nové testy je používají, nevymýšlí vlastní tvar dat. Název souboru nese datum stažení (`kaufland/prehled-2026-10-02.html`).
+- **Fixtures jsou zkrácené skutečné odpovědi obchodů** v `tests/Fixtures/<obchod>/`, popsané v `tests/Fixtures/README.md`. Nové testy je používají přes `responseFixture()` / `jsonResponseFixture()` z `tests/Pest.php`, nevymýšlí vlastní tvar dat. Název souboru nese datum stažení (`kaufland/prehled-2026-10-02.html`).
 - **Feature testy** pokrývají use-case end-to-end (artisan nebo HTTP request → stav DB).
 - **Unit testy** jsou pro parsery a normalizaci (ceny, balení, typ akce, platnost) a pro párování.
 - Testy běží proti MariaDB `agregator_test`, ne SQLite.

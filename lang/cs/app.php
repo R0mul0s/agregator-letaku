@@ -34,6 +34,14 @@ return [
         'supermarket' => 'Supermarket',
     ],
 
+    // Artisan příkazy importu
+    'import' => [
+        'offers_done' => ':chain — uloženo nabídek: :count',
+        'stores_done' => ':chain — uloženo prodejen: :count',
+        'failed' => ':chain — chyba: :error',
+        'unknown_chain' => 'Neznámý obchod nebo obchod bez zdroje „:chain“. Dostupné: :available',
+    ],
+
     'ui' => [
         'app_name' => 'Agregátor letáků',
         'skip_to_content' => 'Přeskočit na obsah',
@@ -41,7 +49,62 @@ return [
         'nav' => [
             'label' => 'Hlavní navigace',
             'home' => 'Moje slevy',
+            'offers' => 'Všechny akce',
             'account' => 'Účet',
+        ],
+
+        // App\Enums\OfferType
+        'offer_types' => [
+            'discount' => 'Sleva',
+            'promo_price' => 'Akční cena',
+            'loyalty_only' => 'Jen s kartou',
+            'multibuy' => 'Akce na více kusů',
+        ],
+
+        // App\Enums\LoyaltyProgram
+        'loyalty_programs' => [
+            'kaufland_card' => 'Kaufland Card',
+            'clubcard' => 'Clubcard',
+            'muj_albert' => 'Můj Albert',
+            'lidl_plus' => 'Lidl Plus',
+            'penny_karta' => 'PENNY karta',
+        ],
+
+        // App\Enums\PackageUnit::unitPriceKey()
+        'unit_price_units' => [
+            'kg' => 'kg',
+            'l' => 'l',
+            'ks' => 'ks',
+        ],
+
+        // Jednotky balení (App\Enums\PackageUnit) a větší jednotky od tisíce (resources/js/lib/format.js)
+        'package_units' => [
+            'g' => 'g',
+            'kg' => 'kg',
+            'ml' => 'ml',
+            'l' => 'l',
+            'ks' => 'ks',
+        ],
+
+        'offers' => [
+            'title' => 'Všechny akce',
+            'search' => 'Hledat',
+            'search_placeholder' => 'např. vejce, mléko, Coca-Cola',
+            'chain' => 'Obchod',
+            'all_chains' => 'Všechny obchody',
+            'submit' => 'Hledat',
+            'count' => ':count nabídka|:count nabídky|:count nabídek',
+            'empty' => 'Žádná aktuální akce neodpovídá hledání.',
+            'with_card' => 's kartou :program',
+            'regular_price' => 'běžně :price',
+            'unit_price' => ':price / :unit',
+            'valid' => 'Platí :from – :to',
+            'online_only' => 'Jen e-shop',
+            'source' => 'U obchodu',
+            'pagination' => 'Stránkování',
+            'previous' => 'Předchozí',
+            'next' => 'Další',
+            'page' => 'Strana :current z :last',
         ],
 
         'theme' => [

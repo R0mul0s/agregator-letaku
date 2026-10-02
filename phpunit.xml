@@ -27,6 +27,9 @@
         <env name="DB_HOST" value="db"/>
         <env name="DB_DATABASE" value="agregator_test"/>
         <env name="DB_URL" value=""/>
+        <!-- Testy na síť nesahají (R11) — pauza mezi požadavky by je jen zdržovala -->
+        <env name="LETAKY_REQUEST_DELAY_MS" value="0"/>
+        <env name="TESCO_API_KEY" value="test-api-key"/>
         <env name="MAIL_MAILER" value="array"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>
