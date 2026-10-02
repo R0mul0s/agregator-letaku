@@ -1,5 +1,5 @@
 <!--
-    Moje obchody — sledované obchody s upřesněním, prodejny a věrnostní karty (R19).
+    Moje obchody — sledované obchody s upřesněním a věrnostní karty (R19, R21).
 
     @author Roman Hlaváček
     @created 2026-10-02
@@ -8,7 +8,7 @@
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { useTranslations } from '@/lib/i18n';
 import { Head, useForm, usePage } from '@inertiajs/vue3';
-import { computed, ref } from 'vue';
+import { ref } from 'vue';
 
 /** Kód stavu, kterým server potvrzuje uložení. */
 const STATUS_SAVED = 'preferences-saved';
@@ -18,9 +18,6 @@ const props = defineProps({
     /** Všechny obchody; nedostupné (bez zdroje) jen jako připravované. */
     chains: { type: Array, required: true },
     storeFormats: { type: Array, required: true },
-    /** Prodejny obchodů se seznamem prodejen. */
-    stores: { type: Array, required: true },
-    selectedStoreIds: { type: Array, required: true },
     loyaltyPrograms: { type: Array, required: true },
 });
 
@@ -38,33 +35,10 @@ const chainSettings = ref(
 );
 
 const form = useForm({
-    store_ids: [...props.selectedStoreIds],
     loyalty_programs: [...props.loyaltyPrograms],
 });
 
-/** Text pro filtr prodejen podle obchodu. */
-const storeFilters = ref({});
-
-/**
- * Prodejny obchodu odpovídající filtru (město, název, adresa).
- *
- * @param {string} chain
- * @returns {object[]}
- */
-function filteredStores(chain) {
-    const filter = (storeFilters.value[chain] ?? '').trim().toLocaleLowerCase();
-
-    return props.stores.filter(
-        (store) => store.chain === chain && (filter === '' || [store.city, store.name, store.address].join(' ').toLocaleLowerCase().includes(filter)),
-    );
-}
-
-/** Počet vybraných prodejen podle obchodu. */
-const selectedCounts = computed(() =>
-    Object.fromEntries(props.chains.map((chain) => [chain.value, props.stores.filter((store) => store.chain === chain.value && form.store_ids.includes(store.id)).length])),
-);
-
-/** Uloží nastavení — sledované obchody z chainSettings, prodejny a karty z formuláře. */
+/** Uloží nastavení — sledované obchody z chainSettings, karty z formuláře. */
 function submit() {
     form
         .transform((data) => ({
@@ -121,27 +95,6 @@ function submit() {
                         <input v-model="form.loyalty_programs" type="checkbox" :value="chain.loyaltyProgram" class="form-checkbox__input" />
                         <span>{{ t('preferences.loyalty', { program: chain.loyaltyProgramName }) }}</span>
                     </label>
-
-                    <fieldset v-if="chain.hasStores" class="store-picker">
-                        <legend class="form-field__label">
-                            {{ t('preferences.stores') }}
-                            <span class="store-picker__count">{{ t('preferences.stores_selected', { count: selectedCounts[chain.value] }) }}</span>
-                        </legend>
-                        <p class="form-field__hint">{{ t('preferences.stores_hint') }}</p>
-                        <input
-                            v-model="storeFilters[chain.value]"
-                            type="search"
-                            class="form-field__input"
-                            :placeholder="t('preferences.stores_filter')"
-                            :aria-label="t('preferences.stores_filter')"
-                        />
-                        <div class="store-picker__list">
-                            <label v-for="store in filteredStores(chain.value)" :key="store.id" class="form-checkbox">
-                                <input v-model="form.store_ids" type="checkbox" :value="store.id" class="form-checkbox__input" />
-                                <span>{{ store.name }}<span class="store-picker__address">, {{ store.address }}</span></span>
-                            </label>
-                        </div>
-                    </fieldset>
                 </div>
             </section>
 

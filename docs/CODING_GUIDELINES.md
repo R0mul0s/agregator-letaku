@@ -104,8 +104,8 @@ Eloquent model                 ← perzistence
 
 | Složka | Obsah |
 |---|---|
-| `app/Domain/Chains/Actions` | prodejny obchodů (`ImportChainStores`) |
-| `app/Domain/Sources` | rozhraní `OfferSource` a `StoreSource`, `SourceRegistry` (zdroje podle `config/letaky.php`), `SourceHttp` |
+| `app/Domain/Chains` | sledovatelné obchody a jejich možnosti (`ChainCatalog`), uložení nastavení (`Actions/UpdateShoppingPreferences`) |
+| `app/Domain/Sources` | rozhraní `OfferSource`, `SourceRegistry` (zdroje podle `config/letaky.php`), `SourceHttp` |
 | `app/Domain/Sources/<Obchod>` | **zdroj dat jednoho obchodu**: HTTP požadavky a převod odpovědi na `OfferData`; nic jiného |
 | `app/Domain/Offers/Data` | jednotný tvar ze zdrojů (`OfferData`, `LeafletData`, `SourceBatch`, `PackageSize`) |
 | `app/Domain/Offers/Parsing` | sdílené parsery: `PriceParser` (haléře), `PackageParser` (balení), `VariantNote`, `Text` |
@@ -275,7 +275,7 @@ CI (GitHub Actions) zatím není, ruční kontroly jsou jediná pojistka ([R14](
 ## 10. Bezpečnost
 
 - **Přihlášení přes Fortify** ([R12](PLAN.md#8-log-rozhodnutí), [R13](PLAN.md#8-log-rozhodnutí)): hesla hashovaná, limit pokusů o přihlášení na dvojici e-mail + IP, odeslání odkazu na obnovu hesla omezuje Laravel (jednou za minutu).
-- **Uživatel vidí a mění jen svá data.** Hlídané položky a výběr prodejen přes Policy a vazby na uživatele.
+- **Uživatel vidí a mění jen svá data.** Hlídané položky a sledované obchody přes Policy a vazby na uživatele.
 - Tajemství (API klíče obchodů a LLM) jsou v `.env`, nikdy v repu. `.env.example` má prázdné hodnoty.
 - CSRF všude. Případná cron URL je chráněná tokenem z `.env` a rate limitem.
 - **Obsah od obchodu je nedůvěryhodný vstup**: ve Vue jen textová interpolace, nikdy `v-html`. Totéž platí pro text od LLM.

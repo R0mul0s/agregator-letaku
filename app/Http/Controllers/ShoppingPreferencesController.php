@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Stránka „Moje obchody“ — co uživatel sleduje a jaké má karty (R19).
+ * Stránka „Moje obchody“ — co uživatel sleduje a jaké má karty (R19, R21).
  *
  * @author Roman Hlaváček
  *
@@ -18,7 +18,6 @@ use App\Enums\Chain;
 use App\Enums\StoreFormat;
 use App\Http\Requests\UpdateShoppingPreferencesRequest;
 use App\Models\FollowedChain;
-use App\Models\Store;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -51,7 +50,6 @@ class ShoppingPreferencesController extends Controller
                 'includeOnlineOnly' => $followed->get($chain->value)->include_online_only ?? true,
                 'hasStoreFormats' => $catalog->hasStoreFormats($chain),
                 'hasEshop' => $catalog->hasEshop($chain),
-                'hasStores' => $catalog->hasStores($chain),
                 'loyaltyProgram' => $catalog->loyaltyProgram($chain)?->value,
                 'loyaltyProgramName' => $catalog->loyaltyProgram($chain)?->label(),
             ], Chain::cases()),
@@ -59,19 +57,6 @@ class ShoppingPreferencesController extends Controller
                 'value' => $format->value,
                 'name' => $format->label(),
             ], StoreFormat::cases()),
-            'stores' => Store::query()
-                ->whereIn('chain', array_filter($available, $catalog->hasStores(...)))
-                ->orderBy('city')
-                ->orderBy('name')
-                ->get()
-                ->map(fn (Store $store): array => [
-                    'id' => $store->id,
-                    'chain' => $store->chain->value,
-                    'name' => $store->name,
-                    'city' => $store->city,
-                    'address' => $store->address,
-                ]),
-            'selectedStoreIds' => $user->stores()->pluck('stores.id'),
             'loyaltyPrograms' => $user->loyalty_programs?->map->value->values() ?? [],
         ]);
     }
@@ -83,7 +68,7 @@ class ShoppingPreferencesController extends Controller
     {
         /** @var User $user */
         $user = $request->user();
-        $update($user, $request->followedChains(), $request->storeIds(), $request->loyaltyPrograms());
+        $update($user, $request->followedChains(), $request->loyaltyPrograms());
 
         return to_route('preferences')->with('status', self::STATUS_SAVED);
     }

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Uživatel aplikace — účet přes Fortify (R12), sledované obchody a prodejny, karty
+ * Uživatel aplikace — účet přes Fortify (R12), sledované obchody, karty
  * a hlídané položky (R18, R19).
  *
  * @author Roman Hlaváček
@@ -18,7 +18,6 @@ use Carbon\CarbonImmutable;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Casts\AsEnumCollection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -68,16 +67,6 @@ class User extends Authenticatable
             'created_at' => 'immutable_datetime',
             'updated_at' => 'immutable_datetime',
         ];
-    }
-
-    /**
-     * Vybrané prodejny (R3) — zatím jen u obchodů se seznamem prodejen.
-     *
-     * @return BelongsToMany<Store, $this>
-     */
-    public function stores(): BelongsToMany
-    {
-        return $this->belongsToMany(Store::class)->withTimestamps();
     }
 
     /**

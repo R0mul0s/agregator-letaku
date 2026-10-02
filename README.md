@@ -20,7 +20,7 @@ kde a za kolik je to právě ve slevě, včetně cen s věrnostní kartou a ceny
 
 ## Jak se to používá
 
-1. **Obchody** — zaškrtni obchody, karty a aplikace, které máš; u Tesca typ prodejny, u Kauflandu prodejny.
+1. **Obchody** — zaškrtni obchody, karty a aplikace, které máš; u Tesca typ prodejny (hypermarket / supermarket).
 2. **Hlídám** — přidej, co hlídáš: hledaná slova, případně variantu („zero“) a slova k vyloučení. Pro vejce, mléko, máslo a Coca-Colu Zero jsou šablony.
 3. **Moje slevy** — akce k hlídaným položkám od nejnižší ceny za kg / l / ks. Souhrnné akce („různé druhy“) bez hledané varianty jsou označené **Možná**.
 
@@ -58,9 +58,8 @@ docker compose exec app npm run build
 # volitelně vývojový uživatel test@example.com / password
 docker compose exec app php artisan db:seed
 
-# nabídky a prodejny od obchodů (Tesco trvá kolem minuty)
+# nabídky od obchodů (Tesco trvá kolem minuty)
 docker compose exec app php artisan letaky:import-offers
-docker compose exec app php artisan letaky:import-stores
 ```
 
 Pak otevři http://localhost:54720 a zaregistruj se (nebo se přihlas vývojovým uživatelem).
@@ -97,9 +96,8 @@ Kontrola kvality před commitem: viz [CODING_GUIDELINES.md, sekce 9](docs/CODING
 docker compose exec app npm run dev      # assety: watch s HMR
 docker compose exec app npm run build    # assety: produkční build
 
-# stažení nabídek (bez argumentu všechny obchody se zdrojem) a prodejen
+# stažení nabídek (bez argumentu všechny obchody se zdrojem)
 docker compose exec app php artisan letaky:import-offers [kaufland] [tesco]
-docker compose exec app php artisan letaky:import-stores [kaufland]
 ```
 
 ## Struktura repozitáře
@@ -108,7 +106,7 @@ docker compose exec app php artisan letaky:import-stores [kaufland]
 app/
   Actions/Fortify/         registrace, obnova a změna hesla, úprava profilu (R12)
   Console/Commands/        artisan importy (obálky nad akcemi)
-  Domain/Chains/           sledované obchody a jejich možnosti, import prodejen, uložení nastavení
+  Domain/Chains/           sledované obchody a jejich možnosti, uložení nastavení
   Domain/Matching/         hlídané položky: pravidla, párování, Moje slevy
   Domain/Offers/           jednotný tvar nabídek (Data), parsery cen a balení (Parsing),
                            import (Actions), hledání, cena za jednotku, místní kalendář

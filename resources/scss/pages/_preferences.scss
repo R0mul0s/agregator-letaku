@@ -1,5 +1,5 @@
 // _preferences.scss
-// Moje obchody — karta každého obchodu s upřesněním a výběrem prodejen.
+// Moje obchody — karta každého obchodu s upřesněním.
 //
 // @author Roman Hlaváček
 // @created 2026-10-02
@@ -27,36 +27,5 @@
         margin-top: var(--space-3);
         padding-top: var(--space-3);
         border-top: 1px solid var(--color-border);
-    }
-}
-
-.store-picker {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
-    margin: 0;
-    padding: 0;
-    border: 0;
-
-    &__count {
-        margin-left: var(--space-2);
-        color: var(--color-text-muted);
-        font-weight: 400;
-    }
-
-    // Seznam stovky prodejen — posouvá se uvnitř, stránka zůstane krátká
-    &__list {
-        display: flex;
-        flex-direction: column;
-        gap: var(--space-1);
-        max-height: var(--store-list-max-height);
-        overflow-y: auto;
-        padding: var(--space-2);
-        border: 1px solid var(--color-border);
-        border-radius: var(--radius-sm);
-    }
-
-    &__address {
-        color: var(--color-text-muted);
     }
 }

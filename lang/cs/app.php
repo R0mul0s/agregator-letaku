@@ -37,7 +37,6 @@ return [
     // Artisan příkazy importu
     'import' => [
         'offers_done' => ':chain — uloženo nabídek: :count',
-        'stores_done' => ':chain — uloženo prodejen: :count',
         'failed' => ':chain — chyba: :error',
         'unknown_chain' => 'Neznámý obchod nebo obchod bez zdroje „:chain“. Dostupné: :available',
     ],
@@ -93,10 +92,6 @@ return [
             'all_formats' => 'Všechny',
             'include_online_only' => 'Ukazovat i akce jen z e-shopu',
             'loyalty' => 'Mám :program',
-            'stores' => 'Moje prodejny',
-            'stores_hint' => 'Nepovinné. Nabídka se zatím pro všechny prodejny stahuje stejná, výběr se projeví později.',
-            'stores_filter' => 'Hledat město nebo prodejnu',
-            'stores_selected' => 'Vybráno: :count',
             'save' => 'Uložit',
             'saved' => 'Nastavení je uložené.',
         ],

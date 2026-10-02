@@ -14,7 +14,6 @@
 declare(strict_types=1);
 
 use App\Domain\Sources\Kaufland\KauflandOfferSource;
-use App\Domain\Sources\Kaufland\KauflandStoreSource;
 use App\Domain\Sources\Tesco\TescoOfferSource;
 
 return [
@@ -58,13 +57,11 @@ return [
     'sources' => [
         'kaufland' => [
             'offers_source' => KauflandOfferSource::class,
-            'stores_source' => KauflandStoreSource::class,
             // Uživatel volí typ prodejny (HM / SM) a akce jen z e-shopu (R19)
             'has_store_formats' => false,
             'has_eshop' => false,
             // Web kamenných prodejen — www.kaufland.cz je marketplace za Cloudflare
             'offers_url' => 'https://prodejny.kaufland.cz/nabidka/prehled.html',
-            'stores_url' => 'https://prodejny.kaufland.cz/.klstorefinder.json',
         ],
         'tesco' => [
             'offers_source' => TescoOfferSource::class,

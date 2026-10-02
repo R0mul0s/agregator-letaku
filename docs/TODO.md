@@ -44,10 +44,8 @@ v [PLAN.md](PLAN.md). Větší celky se z toho stávají etapou.
 
 **Odkud:** etapa 2, R15–R17 v PLAN.md.
 
-- **Kaufland po prodejnách** (R15): až si uživatelé vyberou prodejny, stahovat i jejich variantu nabídky (cookie `x-aem-variant`) a ukládat rozdíly s `store_id`
 - **Tesco „Super ceny“ z letáku** (R17): položky letáku bez akce v e-shopu chybí — doplnit z obrázků stránek letáku (vision LLM, etapa 6)
-- **seznam prodejen Tesco** (O4) — `storeId` v API letáků existuje, zdroj seznamu neověřený
-- **plánované spouštění** importů podle hostingu (O1) — dnes jen ručně artisan příkazem
+- **plánované spouštění** importů cron URL na Websupportu (R20, etapa 7) — dnes jen ručně artisan příkazem
 - **řazení výsledků hledání** podle shody nebo slevy — dnes podle začátku platnosti, takže dlouhodobé akce e-shopu jsou nahoře
 
 ## Upřesnění „různých druhů“
@@ -60,5 +58,4 @@ v [PLAN.md](PLAN.md). Větší celky se z toho stávají etapou.
 
 ## Zobrazení
 
-- mapa vybraných prodejen
 - aplikace na plochu telefonu (manifest), jako u Počasí

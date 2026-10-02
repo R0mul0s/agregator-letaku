@@ -47,14 +47,6 @@ final class ChainCatalog
     }
 
     /**
-     * Má obchod seznam prodejen?
-     */
-    public function hasStores(Chain $chain): bool
-    {
-        return in_array($chain, $this->sources->chainsWithStores(), true);
-    }
-
-    /**
      * Věrnostní program obchodu.
      */
     public function loyaltyProgram(Chain $chain): ?LoyaltyProgram

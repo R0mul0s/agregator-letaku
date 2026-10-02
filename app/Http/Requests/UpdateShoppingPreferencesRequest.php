@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Formulář „Moje obchody“ — sledované obchody s upřesněním, prodejny a věrnostní karty (R19).
+ * Formulář „Moje obchody“ — sledované obchody s upřesněním a věrnostní karty (R19, R21).
  *
  * @author Roman Hlaváček
  *
@@ -34,8 +34,6 @@ class UpdateShoppingPreferencesRequest extends FormRequest
             'chains.*.chain' => ['required', 'distinct', Rule::in(array_map(fn (Chain $chain): string => $chain->value, $catalog->available()))],
             'chains.*.store_format' => ['nullable', Rule::enum(StoreFormat::class)],
             'chains.*.include_online_only' => ['required', 'boolean'],
-            'store_ids' => ['present', 'array'],
-            'store_ids.*' => ['integer', 'exists:stores,id'],
             'loyalty_programs' => ['present', 'array'],
             'loyalty_programs.*' => ['distinct', Rule::enum(LoyaltyProgram::class)],
         ];
@@ -53,16 +51,6 @@ class UpdateShoppingPreferencesRequest extends FormRequest
             isset($chain['store_format']) ? StoreFormat::from($chain['store_format']) : null,
             (bool) $chain['include_online_only'],
         ), $this->validated('chains')));
-    }
-
-    /**
-     * ID vybraných prodejen.
-     *
-     * @return list<int>
-     */
-    public function storeIds(): array
-    {
-        return array_values(array_map(intval(...), $this->validated('store_ids')));
     }
 
     /**

@@ -53,12 +53,11 @@ docker compose exec app npm run build   # produkční build assetů
 docker compose exec app npm run dev     # watch s HMR
 ```
 
-Stažení nabídek a prodejen od obchodů (skutečné požadavky, šetrně s pauzami; Tesco
+Stažení nabídek od obchodů (skutečné požadavky, šetrně s pauzami; Tesco
 potřebuje `TESCO_API_KEY` v `.env`, viz ZDROJE_DAT.md):
 ```bash
 docker compose exec app php artisan letaky:import-offers            # všechny obchody se zdrojem
 docker compose exec app php artisan letaky:import-offers kaufland   # jen vybrané
-docker compose exec app php artisan letaky:import-stores
 ```
 Výsledek každého stažení je v tabulce `scrape_runs`.
 

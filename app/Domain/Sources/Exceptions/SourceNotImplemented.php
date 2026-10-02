@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Obchod zatím nemá zdroj daného druhu (config/letaky.php, sources).
+ * Obchod zatím nemá zdroj nabídek (config/letaky.php, sources).
  *
  * @author Roman Hlaváček
  *
@@ -18,10 +18,10 @@ use RuntimeException;
 final class SourceNotImplemented extends RuntimeException
 {
     /**
-     * Výjimka pro obchod a druh zdroje (offers, stores).
+     * Výjimka pro obchod.
      */
-    public static function for(Chain $chain, string $kind): self
+    public static function for(Chain $chain): self
     {
-        return new self("{$chain->label()}: zdroj „{$kind}“ zatím není.");
+        return new self("{$chain->label()}: zdroj nabídek zatím není.");
     }
 }
