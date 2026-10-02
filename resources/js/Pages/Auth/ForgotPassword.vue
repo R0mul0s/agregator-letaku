@@ -5,6 +5,7 @@
     @created 2026-10-02
 -->
 <script setup>
+import AuthShowcase from '@/Components/AuthShowcase.vue';
 import TextField from '@/Components/TextField.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { useTranslations } from '@/lib/i18n';
@@ -31,20 +32,22 @@ function submit() {
     <AppLayout>
         <Head :title="t('auth.forgot.title')" />
 
-        <section class="auth-card">
-            <h1 class="auth-card__title">{{ t('auth.forgot.title') }}</h1>
-            <p class="auth-card__intro">{{ t('auth.forgot.intro') }}</p>
+        <AuthShowcase>
+            <section class="auth-card">
+                <h1 class="auth-card__title">{{ t('auth.forgot.title') }}</h1>
+                <p class="auth-card__intro">{{ t('auth.forgot.intro') }}</p>
 
-            <p v-if="page.props.status" class="notice notice--success" role="status">{{ page.props.status }}</p>
+                <p v-if="page.props.status" class="notice notice--success" role="status">{{ page.props.status }}</p>
 
-            <form class="form" novalidate @submit.prevent="submit">
-                <TextField id="email" v-model="form.email" :label="t('auth.email')" type="email" autocomplete="username" required autofocus :error="form.errors.email" />
+                <form class="form" novalidate @submit.prevent="submit">
+                    <TextField id="email" v-model="form.email" :label="t('auth.email')" type="email" autocomplete="username" required autofocus :error="form.errors.email" />
 
-                <div class="form__actions">
-                    <button type="submit" class="button button--primary" :disabled="form.processing">{{ t('auth.forgot.submit') }}</button>
-                    <Link :href="urls.login" class="link">{{ t('auth.forgot.back') }}</Link>
-                </div>
-            </form>
-        </section>
+                    <div class="form__actions">
+                        <button type="submit" class="button button--primary" :disabled="form.processing">{{ t('auth.forgot.submit') }}</button>
+                        <Link :href="urls.login" class="link">{{ t('auth.forgot.back') }}</Link>
+                    </div>
+                </form>
+            </section>
+        </AuthShowcase>
     </AppLayout>
 </template>

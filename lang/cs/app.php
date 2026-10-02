@@ -210,6 +210,12 @@ return [
         ],
 
         'auth' => [
+            // Panel vedle přihlášení a registrace (AuthShowcase.vue)
+            'showcase' => [
+                'chains' => 'Hlídá akce v Kauflandu, Tescu, Lidlu a Penny — z letáků i e-shopů.',
+                'unit_price' => 'Řadí podle ceny za kilo, litr nebo kus, s vaší věrnostní kartou.',
+                'mentions' => 'Najde i to, co je v letáku bez ceny.',
+            ],
             'logout' => 'Odhlásit se',
             'name' => 'Jméno',
             'email' => 'E-mail',
@@ -247,6 +253,11 @@ return [
 
         'home' => [
             'title' => 'Moje slevy',
+            'hello' => 'Ahoj, :name!',
+            'hero_text' => 'Tohle Slevohlídka ulovila v letácích a e-shopech obchodů, které sledujete.',
+            'stat_items' => 'hlídaná položka|hlídané položky|hlídaných položek',
+            'stat_offers' => 'akce|akce|akcí',
+            'stat_best' => 'nejvyšší sleva',
             'no_chains' => 'Nejdřív vyberte obchody, které chcete sledovat.',
             'no_chains_link' => 'Vybrat obchody',
             'no_watch_items' => 'Zatím nic nehlídáte.',

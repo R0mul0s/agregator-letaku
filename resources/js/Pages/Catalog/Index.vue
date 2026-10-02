@@ -5,6 +5,7 @@
     @created 2026-10-02
 -->
 <script setup>
+import EmptyState from '@/Components/EmptyState.vue';
 import ProductForm from '@/Components/ProductForm.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { useTranslations } from '@/lib/i18n';
@@ -32,7 +33,7 @@ const t = useTranslations();
 
         <div class="watch-layout">
             <section class="watch-layout__list">
-                <p v-if="!products.length" class="page__empty">{{ t('catalog.empty') }}</p>
+                <EmptyState v-if="!products.length" :text="t('catalog.empty')" />
                 <article v-for="product in products" :key="product.id" class="card catalog-product">
                     <h2 class="card__title">
                         <Link :href="product.showUrl" class="link">{{ product.name }}</Link>

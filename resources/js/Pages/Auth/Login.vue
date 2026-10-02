@@ -5,6 +5,7 @@
     @created 2026-10-02
 -->
 <script setup>
+import AuthShowcase from '@/Components/AuthShowcase.vue';
 import CheckboxField from '@/Components/CheckboxField.vue';
 import TextField from '@/Components/TextField.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
@@ -36,26 +37,28 @@ function submit() {
     <AppLayout>
         <Head :title="t('auth.login.title')" />
 
-        <section class="auth-card">
-            <h1 class="auth-card__title">{{ t('auth.login.title') }}</h1>
+        <AuthShowcase>
+            <section class="auth-card">
+                <h1 class="auth-card__title">{{ t('auth.login.title') }}</h1>
 
-            <p v-if="page.props.status" class="notice notice--success" role="status">{{ page.props.status }}</p>
+                <p v-if="page.props.status" class="notice notice--success" role="status">{{ page.props.status }}</p>
 
-            <form class="form" novalidate @submit.prevent="submit">
-                <TextField id="email" v-model="form.email" :label="t('auth.email')" type="email" autocomplete="username" required autofocus :error="form.errors.email" />
-                <TextField id="password" v-model="form.password" :label="t('auth.password')" type="password" autocomplete="current-password" required :error="form.errors.password" />
-                <CheckboxField id="remember" v-model="form.remember" :label="t('auth.remember')" />
+                <form class="form" novalidate @submit.prevent="submit">
+                    <TextField id="email" v-model="form.email" :label="t('auth.email')" type="email" autocomplete="username" required autofocus :error="form.errors.email" />
+                    <TextField id="password" v-model="form.password" :label="t('auth.password')" type="password" autocomplete="current-password" required :error="form.errors.password" />
+                    <CheckboxField id="remember" v-model="form.remember" :label="t('auth.remember')" />
 
-                <div class="form__actions">
-                    <button type="submit" class="button button--primary" :disabled="form.processing">{{ t('auth.login.submit') }}</button>
-                    <Link :href="urls.forgotPassword" class="link">{{ t('auth.login.forgot') }}</Link>
-                </div>
-            </form>
+                    <div class="form__actions">
+                        <button type="submit" class="button button--primary" :disabled="form.processing">{{ t('auth.login.submit') }}</button>
+                        <Link :href="urls.forgotPassword" class="link">{{ t('auth.login.forgot') }}</Link>
+                    </div>
+                </form>
 
-            <p class="auth-card__footer">
-                {{ t('auth.login.no_account') }}
-                <Link :href="urls.register" class="link">{{ t('auth.login.register') }}</Link>
-            </p>
-        </section>
+                <p class="auth-card__footer">
+                    {{ t('auth.login.no_account') }}
+                    <Link :href="urls.register" class="link">{{ t('auth.login.register') }}</Link>
+                </p>
+            </section>
+        </AuthShowcase>
     </AppLayout>
 </template>

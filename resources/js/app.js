@@ -4,6 +4,8 @@
  * @author Roman Hlaváček
  * @created 2026-10-02
  */
+// Písmo Nunito (zaoblené jako nápis v logu) — variabilní, latinka i s češtinou, z balíčku, ne z CDN
+import '@fontsource-variable/nunito/wght.css';
 import { createInertiaApp } from '@inertiajs/vue3';
 import { createApp, h } from 'vue';
 
@@ -11,7 +13,7 @@ import { createApp, h } from 'vue';
 const APP_NAME = document.querySelector('meta[name="application-name"]')?.content ?? '';
 
 createInertiaApp({
-    // „Účet · Agregátor letáků"; stránka bez titulku dostane jen název aplikace
+    // „Účet · Slevohlídka"; stránka bez titulku dostane jen název aplikace
     title: (title) => (title && APP_NAME ? `${title} · ${APP_NAME}` : title || APP_NAME),
     // Stránky se načítají líně — každá má vlastní chunk.
     resolve: (name) => {

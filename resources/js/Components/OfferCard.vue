@@ -8,6 +8,7 @@
 import ChainLogo from '@/Components/ChainLogo.vue';
 import { formatDate, formatPackage, formatPrice } from '@/lib/format';
 import { useTranslations } from '@/lib/i18n';
+import { discountPercent } from '@/lib/offer';
 import { usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 
@@ -19,6 +20,9 @@ const props = defineProps({
 const t = useTranslations();
 const page = usePage();
 const locale = computed(() => page.props.locale);
+
+/** Sleva v procentech na cenovku přes obrázek. */
+const discount = computed(() => discountPercent(props.offer));
 
 /** Akce platí jen s kartou — hlavní cena je cena s kartou, běžná cena vedle. */
 const isLoyaltyOnly = computed(() => props.offer.offerType === 'loyalty_only');
@@ -65,8 +69,12 @@ function unitPriceLabel(halers) {
             <span class="tag" :class="{ 'tag--accent': offer.offerType === 'discount' }">{{ t(`offer_types.${offer.offerType}`) }}</span>
         </div>
 
-        <!-- Obrázek z CDN obchodu, nestahuje se k nám (R22); název nese nadpis, obrázek je dekorativní -->
-        <img v-if="offer.imageUrl" :src="offer.imageUrl" alt="" class="offer-card__image" loading="lazy" referrerpolicy="no-referrer" />
+        <!-- Obrázek z CDN obchodu, nestahuje se k nám (R22); název nese nadpis, obrázek je dekorativní.
+             Sleva jako červená cenovka přes obrázek (motiv z loga); čtečka ji má i u ceny. -->
+        <div class="offer-card__media">
+            <img v-if="offer.imageUrl" :src="offer.imageUrl" alt="" class="offer-card__image" loading="lazy" referrerpolicy="no-referrer" />
+            <span v-if="discount" class="offer-card__sticker" aria-hidden="true">−{{ discount }} %</span>
+        </div>
         <h2 class="offer-card__name">{{ offer.name }}</h2>
         <p v-if="offer.description" class="offer-card__description">{{ offer.description }}</p>
         <p v-if="offer.variantNote" class="offer-card__variant">{{ offer.variantNote }}</p>
@@ -85,7 +93,7 @@ function unitPriceLabel(halers) {
             <template v-else>
                 <span class="offer-card__price">{{ formatPrice(offer.price, locale) }}</span>
                 <s v-if="offer.originalPrice !== null" class="offer-card__original">{{ formatPrice(offer.originalPrice, locale) }}</s>
-                <span v-if="offer.discountPercent" class="offer-card__discount">−{{ offer.discountPercent }} %</span>
+                <span v-if="discount" class="offer-card__discount">−{{ discount }} %</span>
             </template>
         </div>
 

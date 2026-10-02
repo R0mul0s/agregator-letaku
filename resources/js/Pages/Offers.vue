@@ -6,6 +6,7 @@
 -->
 <script setup>
 import ChainSelect from '@/Components/ChainSelect.vue';
+import EmptyState from '@/Components/EmptyState.vue';
 import OfferCard from '@/Components/OfferCard.vue';
 import Pagination from '@/Components/Pagination.vue';
 import SearchSuggest from '@/Components/SearchSuggest.vue';
@@ -69,7 +70,7 @@ function search() {
             <button type="submit" class="button button--primary">{{ t('offers.submit') }}</button>
         </form>
 
-        <p v-if="offers.data.length === 0" class="page__empty">{{ t('offers.empty') }}</p>
+        <EmptyState v-if="offers.data.length === 0" :text="t('offers.empty')" />
         <div v-else class="offer-grid">
             <OfferCard v-for="offer in offers.data" :key="offer.id" :offer="offer" />
         </div>

@@ -7,8 +7,20 @@
 @use '../abstracts/mixins' as *;
 
 .app-header {
+    position: relative;
     background: var(--color-surface);
     border-bottom: 1px solid var(--color-border);
+
+    // Červená linka pod hlavičkou v barvách loga
+    &::after {
+        content: '';
+        position: absolute;
+        right: 0;
+        bottom: -1px;
+        left: 0;
+        height: var(--header-accent-height);
+        background: var(--gradient-brand);
+    }
 
     // Na mobilu dva řádky: logo a akce nahoře, navigace pod nimi přes celou šířku
     &__inner {

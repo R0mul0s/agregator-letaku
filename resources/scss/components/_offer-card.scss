@@ -17,8 +17,15 @@
     padding: var(--space-3);
     background: var(--color-surface);
     border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-lg);
     box-shadow: var(--shadow-card);
+    transition: transform var(--duration-fast), box-shadow var(--duration-fast);
+
+    // Při najetí se karta nadzvedne — vypadá jako leták, který jde vzít do ruky
+    &:hover {
+        transform: translateY(var(--hover-lift));
+        box-shadow: var(--shadow-card-hover);
+    }
 
     &__badges {
         display: flex;
@@ -27,17 +34,41 @@
         margin-bottom: var(--space-1);
     }
 
-    // Fotky obchodů mají různé poměry stran — vejdou se celé do stejně vysokého pole
+    // Fotky obchodů jsou na bílém pozadí — bílé pole i v tmavém režimu, ať nesvítí jako díra
+    &__media {
+        position: relative;
+        margin-bottom: var(--space-2);
+        padding: var(--space-2);
+        background: var(--color-logo-bg);
+        border-radius: var(--radius-md);
+    }
+
+    // Fotky mají různé poměry stran — vejdou se celé do stejně vysokého pole
     &__image {
-        align-self: center;
+        display: block;
         width: 100%;
         height: var(--offer-image-height);
-        margin-bottom: var(--space-2);
         object-fit: contain;
+    }
+
+    // Sleva jako cenovka z loga: červený štítek s mírným náklonem v rohu obrázku
+    &__sticker {
+        position: absolute;
+        top: var(--space-2);
+        right: var(--space-2);
+        padding: var(--space-1) var(--space-2);
+        background: var(--gradient-brand);
+        border-radius: var(--radius-sm);
+        box-shadow: var(--shadow-card);
+        color: var(--color-on-brand);
+        font-size: var(--font-size-sticker);
+        font-weight: 900;
+        transform: rotate(var(--sticker-rotation));
     }
 
     &__name {
         font-size: var(--font-size-md);
+        line-height: var(--line-height-heading);
     }
 
     &__description,
@@ -62,9 +93,11 @@
         margin-top: var(--space-2);
     }
 
+    // Cena je hlavní informace karty — největší a v barvě slev
     &__price {
+        color: var(--color-price);
         font-size: var(--font-size-price);
-        font-weight: 700;
+        font-weight: 900;
 
         &--text {
             font-size: var(--font-size-md);

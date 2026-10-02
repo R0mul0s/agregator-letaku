@@ -23,8 +23,27 @@ body {
 
 h1,
 h2,
+h3,
 p {
     margin: 0;
+}
+
+// Nadpisy tučným Nunito jako nápis v logu
+h1,
+h2,
+h3 {
+    font-weight: var(--font-weight-heading);
+    letter-spacing: var(--letter-spacing-heading);
+    line-height: var(--line-height-heading);
+}
+
+// Pohyb jen pro ty, kdo ho nevypnuli v systému
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        transition: none !important;
+    }
 }
 
 // Formulářové prvky dědí písmo stránky (prohlížeč jim dává vlastní)

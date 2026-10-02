@@ -5,6 +5,7 @@
     @created 2026-10-02
 -->
 <script setup>
+import AuthShowcase from '@/Components/AuthShowcase.vue';
 import TextField from '@/Components/TextField.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { useTranslations } from '@/lib/i18n';
@@ -38,26 +39,28 @@ function submit() {
     <AppLayout>
         <Head :title="t('auth.reset.title')" />
 
-        <section class="auth-card">
-            <h1 class="auth-card__title">{{ t('auth.reset.title') }}</h1>
+        <AuthShowcase>
+            <section class="auth-card">
+                <h1 class="auth-card__title">{{ t('auth.reset.title') }}</h1>
 
-            <form class="form" novalidate @submit.prevent="submit">
-                <TextField id="email" v-model="form.email" :label="t('auth.email')" type="email" autocomplete="username" required :error="form.errors.email" />
-                <TextField id="password" v-model="form.password" :label="t('auth.password')" type="password" autocomplete="new-password" required autofocus :error="form.errors.password" />
-                <TextField
-                    id="password_confirmation"
-                    v-model="form.password_confirmation"
-                    :label="t('auth.password_confirmation')"
-                    type="password"
-                    autocomplete="new-password"
-                    required
-                    :error="form.errors.password_confirmation"
-                />
+                <form class="form" novalidate @submit.prevent="submit">
+                    <TextField id="email" v-model="form.email" :label="t('auth.email')" type="email" autocomplete="username" required :error="form.errors.email" />
+                    <TextField id="password" v-model="form.password" :label="t('auth.password')" type="password" autocomplete="new-password" required autofocus :error="form.errors.password" />
+                    <TextField
+                        id="password_confirmation"
+                        v-model="form.password_confirmation"
+                        :label="t('auth.password_confirmation')"
+                        type="password"
+                        autocomplete="new-password"
+                        required
+                        :error="form.errors.password_confirmation"
+                    />
 
-                <div class="form__actions">
-                    <button type="submit" class="button button--primary" :disabled="form.processing">{{ t('auth.reset.submit') }}</button>
-                </div>
-            </form>
-        </section>
+                    <div class="form__actions">
+                        <button type="submit" class="button button--primary" :disabled="form.processing">{{ t('auth.reset.submit') }}</button>
+                    </div>
+                </form>
+            </section>
+        </AuthShowcase>
     </AppLayout>
 </template>

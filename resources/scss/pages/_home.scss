@@ -1,0 +1,98 @@
+// _home.scss
+// Moje slevy — úvodní pruh s maskotem, pozdravem a souhrnem úlovků.
+//
+// @author Roman Hlaváček
+// @created 2026-10-02
+
+@use '../abstracts/mixins' as *;
+
+.home-hero {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    gap: var(--space-3);
+    margin-bottom: var(--space-5);
+    padding: var(--space-4);
+    background: var(--gradient-hero);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+
+    // Na širokém displeji tlačítko vpravo, na mobilu pod textem přes celou šířku
+    @include from-md {
+        grid-template-columns: auto 1fr auto;
+        gap: var(--space-4);
+    }
+
+    // Na mobilu u nadpisu, na širokém displeji uprostřed výšky pruhu
+    &__mascot {
+        align-self: start;
+        width: var(--hero-mascot-size-mobile);
+        height: auto;
+
+        @include from-md {
+            align-self: center;
+            width: var(--hero-mascot-size);
+        }
+    }
+
+    &__body {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-1);
+    }
+
+    &__title {
+        font-size: var(--font-size-lg);
+    }
+
+    &__text {
+        color: var(--color-text-muted);
+    }
+
+    &__stats {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-2);
+        margin: var(--space-2) 0 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    // Souhrn jako „cenovky“ — číslo tučně, popisek vedle
+    &__stat {
+        display: inline-flex;
+        align-items: baseline;
+        gap: var(--space-1);
+        padding: var(--space-1) var(--space-3);
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-pill);
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+
+        &--accent {
+            border-color: transparent;
+            background: var(--color-accent-soft);
+            color: var(--color-accent-strong);
+        }
+    }
+
+    &__stat-value {
+        color: var(--color-text);
+        font-size: var(--font-size-md);
+        font-weight: 900;
+    }
+
+    &__stat--accent &__stat-value {
+        color: var(--color-accent-strong);
+    }
+
+    &__action {
+        grid-column: 1 / -1;
+
+        @include from-md {
+            grid-column: auto;
+        }
+    }
+}

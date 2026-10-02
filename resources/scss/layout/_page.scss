@@ -30,8 +30,23 @@
         margin-bottom: var(--space-4);
     }
 
+    // Nadpis stránky s „rychlostními čárkami“ z loga (tři čárky ubývající délky)
     &__title {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
         font-size: var(--font-size-lg);
+
+        &::before {
+            content: '';
+            flex: none;
+            width: var(--speed-lines-width);
+            height: var(--speed-lines-height);
+            background:
+                linear-gradient(var(--color-brand), var(--color-brand)) right top / 100% var(--speed-line-thickness) no-repeat,
+                linear-gradient(var(--color-brand), var(--color-brand)) right center / 70% var(--speed-line-thickness) no-repeat,
+                linear-gradient(var(--color-brand), var(--color-brand)) right bottom / 40% var(--speed-line-thickness) no-repeat;
+        }
     }
 
     &__subtitle,

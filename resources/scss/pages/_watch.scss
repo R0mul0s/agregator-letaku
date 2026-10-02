@@ -9,19 +9,33 @@
 .watch-group {
     margin-bottom: var(--space-5);
 
+    // Nadpis skupiny s linkou až k okraji — odděluje hlídané položky jako oddíly letáku
     &__title {
         display: flex;
         flex-wrap: wrap;
-        align-items: baseline;
+        align-items: center;
         gap: var(--space-2);
         margin-bottom: var(--space-3);
         font-size: var(--font-size-card-title);
+
+        &::after {
+            content: '';
+            flex: 1;
+            min-width: var(--space-4);
+            height: 1px;
+            background: var(--color-border);
+        }
     }
 
+    // Počet akcí jako červený štítek
     &__count {
-        color: var(--color-text-muted);
+        padding: 0 var(--space-2);
+        background: var(--color-accent-soft);
+        border-radius: var(--radius-pill);
+        color: var(--color-accent-strong);
         font-size: var(--font-size-sm);
-        font-weight: 400;
+        font-weight: 800;
+        letter-spacing: normal;
     }
 
     // Zmínky v letácích bez ceny pod akcemi (R27)

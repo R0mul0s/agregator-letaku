@@ -19,6 +19,9 @@
     // Barvy loga Slevohlídky — jen na název v hlavičce (velký tučný text stačí s kontrastem 3 : 1)
     --color-brand: #f42630;
     --color-brand-dark: #1f222a;
+    // Text na červeném přechodu loga (cenovka slevy) — tučný 16px, přechod začíná tmavší červenou
+    --color-on-brand: #ffffff;
+    --color-price: #b8141e;
     // Akcent = červená z loga ztmavená tak, aby bílý text na tlačítku měl kontrast aspoň 4,5 : 1
     // (WCAG AA; čistá #f42630 má jen 4,06); odkazy a text v akcentu ještě tmavší
     --color-accent: #d91f29;
@@ -47,16 +50,38 @@
 
     --radius-sm: 0.5rem;
     --radius-md: 0.75rem;
+    --radius-lg: 1.25rem;
+    --radius-pill: 999px;
     --shadow-card: 0 1px 2px rgb(31 34 42 / 6%), 0 4px 12px rgb(31 34 42 / 6%);
     --focus-ring: 0 0 0 3px rgb(28 126 214 / 35%);
+    --shadow-card-hover: 0 2px 4px rgb(31 34 42 / 8%), 0 12px 28px rgb(31 34 42 / 12%);
+    // Červený přechod jako stínování koše v logu (#f42630 → #c00010)
+    --gradient-brand: linear-gradient(135deg, #f42630 0%, #c00010 100%);
+    // Jemný podklad úvodních pruhů (Moje slevy) — do bílé karty
+    --gradient-hero: linear-gradient(120deg, #fdecec 0%, #ffffff 70%);
+    // Panel s bílým textem — tmavší konec palety loga, ať má běžný text kontrast aspoň 4,5 : 1
+    --gradient-panel: linear-gradient(150deg, #d91f29 0%, #a5121b 100%);
+    --color-panel-lines: rgb(255 255 255 / 35%);
+    --hover-lift: -2px;
+    --button-edge: 3px;
+    --sticker-rotation: -6deg;
+    --header-accent-height: 3px;
+    --duration-fast: 150ms;
+    // „Rychlostní čárky“ z loga u nadpisů stránek
+    --speed-lines-width: 1.25rem;
+    --speed-lines-height: 0.75em;
+    --speed-line-thickness: 0.2em;
 
     // Kresby SVG (ikony) — v jednotkách viewBoxu, ne v pixelech obrazovky
     --svg-stroke-icon: 2;
 
     --opacity-disabled: 0.5;
 
-    --font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --font-family: 'Nunito Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --font-weight-heading: 800;
+    --letter-spacing-heading: -0.01em;
     --line-height-base: 1.5;
+    --line-height-heading: 1.2;
     --font-size-xs: 0.75rem;
     --font-size-sm: 0.875rem;
     --font-size-md: 1rem;
@@ -67,6 +92,12 @@
 
     --content-max-width: 72rem;
     --auth-card-max-width: 28rem;
+    --auth-showcase-max-width: 60rem;
+    --auth-mascot-size: 10rem;
+    --auth-mascot-size-mobile: 6rem;
+    --panel-lines-width: 3rem;
+    --panel-lines-height: 1.5rem;
+    --panel-line-thickness: 0.3rem;
     --account-column-min-width: 20rem;
     --offer-card-min-width: 17rem;
     --offer-image-height: 8rem;
@@ -76,8 +107,14 @@
     --chain-logo-height-large: 2.25rem;
     --chain-select-min-width: 12rem;
     --mention-image-width: 4.5rem;
+    --hero-mascot-size: 6.5rem;
+    --hero-mascot-size-mobile: 4rem;
+    --empty-mascot-size: 6rem;
+    --empty-text-max-width: 32rem;
     --search-text-min-width: 16rem;
-    --font-size-price: 1.5rem;
+    --font-size-price: 1.75rem;
+    // Cenovka slevy: bílý text na červené potřebuje „velký text“ (≥ 18,66 px tučně) pro kontrast 3 : 1
+    --font-size-sticker: 1.25rem;
     --control-size: 2.5rem;
     --checkbox-size: 1.125rem;
     --logo-size: 3rem;
@@ -95,6 +132,7 @@
         --color-text-muted: #9aa0ab;
         --color-brand: #ff4a52;
         --color-brand-dark: #eceef2;
+        --color-price: #ff858a;
         --color-logo-mark-bg: #eceef2;
         --color-accent: #ff5c63;
         --color-accent-strong: #ff858a;
@@ -109,6 +147,9 @@
         --color-warning-soft: #3a2a0c;
         --color-warning-text: #fab005;
         --shadow-card: none;
+        --shadow-card-hover: 0 12px 28px rgb(0 0 0 / 45%);
+        --gradient-brand: linear-gradient(135deg, #ff4a52 0%, #d91f29 100%);
+        --gradient-hero: linear-gradient(120deg, #3a1c1f 0%, #1f222a 70%);
         --focus-ring: 0 0 0 3px rgb(77 171 247 / 45%);
     }
 }

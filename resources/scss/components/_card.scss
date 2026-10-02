@@ -47,3 +47,112 @@
         color: var(--color-text-muted);
     }
 }
+
+// Přihlášení a registrace — barevný panel s maskotem vedle formuláře (AuthShowcase.vue)
+.auth-showcase {
+    display: grid;
+    align-items: stretch;
+    gap: var(--space-4);
+    max-width: var(--auth-showcase-max-width);
+    margin: 0 auto;
+
+    @include from-md {
+        grid-template-columns: 1fr 1fr;
+        margin-top: var(--space-4);
+    }
+
+    // Formulářová karta v rámci nemá vlastní horní odsazení
+    .auth-card {
+        width: 100%;
+        margin-top: 0;
+    }
+
+    &__form {
+        display: flex;
+        align-items: center;
+    }
+
+    &__panel {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: var(--space-2);
+        padding: var(--space-4);
+        overflow: hidden;
+        background: var(--gradient-panel);
+        border-radius: var(--radius-lg);
+        color: var(--color-on-brand);
+        text-align: center;
+
+        @include from-md {
+            justify-content: center;
+            padding: var(--space-5) var(--space-4);
+        }
+
+        // „Rychlostní čárky“ z loga přes roh panelu
+        &::before {
+            content: '';
+            position: absolute;
+            top: var(--space-4);
+            left: var(--space-4);
+            width: var(--panel-lines-width);
+            height: var(--panel-lines-height);
+            background:
+                linear-gradient(var(--color-panel-lines), var(--color-panel-lines)) left top / 100% var(--panel-line-thickness) no-repeat,
+                linear-gradient(var(--color-panel-lines), var(--color-panel-lines)) left center / 70% var(--panel-line-thickness) no-repeat,
+                linear-gradient(var(--color-panel-lines), var(--color-panel-lines)) left bottom / 40% var(--panel-line-thickness) no-repeat;
+        }
+    }
+
+    // Maskot na bílém kruhu — tělo je černé, na červené by zaniklo
+    &__mascot {
+        width: var(--auth-mascot-size-mobile);
+        height: auto;
+        padding: var(--space-2);
+        background: var(--color-logo-bg);
+        border-radius: 50%;
+        box-shadow: var(--shadow-card-hover);
+
+        @include from-md {
+            width: var(--auth-mascot-size);
+        }
+    }
+
+    &__name {
+        font-size: var(--font-size-lg);
+        font-weight: 900;
+        letter-spacing: var(--letter-spacing-brand);
+    }
+
+    &__tagline {
+        font-size: var(--font-size-card-title);
+        font-weight: 700;
+    }
+
+    // Přednosti jen na širším displeji — na mobilu stačí maskot a motto nad formulářem
+    &__benefits {
+        display: none;
+        margin: var(--space-3) 0 0;
+        padding: 0;
+        list-style: none;
+        text-align: left;
+
+        @include from-md {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-2);
+        }
+    }
+
+    &__benefit {
+        display: flex;
+        gap: var(--space-2);
+
+        &::before {
+            content: '✓';
+            flex: none;
+            font-weight: 900;
+        }
+    }
+}

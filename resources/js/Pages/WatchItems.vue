@@ -6,6 +6,7 @@
     @created 2026-10-02
 -->
 <script setup>
+import EmptyState from '@/Components/EmptyState.vue';
 import WatchItemForm from '@/Components/WatchItemForm.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { useTranslations } from '@/lib/i18n';
@@ -71,7 +72,7 @@ function remove(item) {
 
         <div class="watch-layout">
             <section class="watch-layout__list">
-                <p v-if="!watchItems.length" class="page__empty">{{ t('watch.empty') }}</p>
+                <EmptyState v-if="!watchItems.length" :text="t('watch.empty')" />
                 <article v-for="item in watchItems" :key="item.id" class="card watch-item">
                     <WatchItemForm
                         v-if="editingId === item.id"
