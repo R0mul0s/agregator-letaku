@@ -54,8 +54,11 @@
         gap: var(--space-3);
     }
 
-    // Formulář nové položky je na mobilu nahoře — přidání je nejčastější akce
+    // Přidání je na mobilu nahoře — je to nejčastější akce
     &__new {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-3);
         order: -1;
 
         @include from-lg {
@@ -81,9 +84,60 @@
     }
 }
 
-.watch-templates {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-2);
-    margin: var(--space-2) 0 var(--space-4);
+// Katalog v Hlídám (R31) — produkty jako řádky, klepnutím se začnou hlídat
+.watch-catalog {
+    &__filter {
+        width: 100%;
+        margin: var(--space-3) 0 var(--space-2);
+    }
+
+    &__list {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-1);
+        max-height: var(--watch-catalog-max-height);
+        margin: 0;
+        padding: 0;
+        overflow-y: auto;
+        list-style: none;
+    }
+
+    &__product {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: var(--space-1) var(--space-2);
+        width: 100%;
+        padding: var(--space-2) var(--space-3);
+        background: var(--color-bg);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-sm);
+        color: var(--color-text);
+        text-align: left;
+        cursor: pointer;
+
+        &:hover:not(:disabled) {
+            border-color: var(--color-accent);
+        }
+
+        &--watched {
+            cursor: default;
+            opacity: var(--opacity-disabled);
+        }
+    }
+
+    &__name {
+        font-weight: 600;
+    }
+
+    &__category {
+        color: var(--color-text-muted);
+        font-size: var(--font-size-xs);
+    }
+}
+
+// Nápověda oddílu nad formulářem
+.watch-hint {
+    margin-bottom: var(--space-3);
 }

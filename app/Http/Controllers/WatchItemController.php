@@ -32,6 +32,7 @@ class WatchItemController extends Controller
     {
         /** @var User $user */
         $user = $request->user();
+        $watchedProductIds = $user->watchItems()->whereNotNull('product_id')->pluck('product_id')->all();
 
         return Inertia::render('WatchItems', [
             'urls' => ['store' => route('watch-items.store', absolute: false)],
@@ -46,11 +47,12 @@ class WatchItemController extends Controller
                 'updateUrl' => route('watch-items.update', $item, absolute: false),
                 'deleteUrl' => route('watch-items.destroy', $item, absolute: false),
             ]),
-            // Katalog nahradil šablony (R31) — produkt jde hlídat jedním klepnutím
+            // Katalog nahradil šablony (R31) — produkt jde hlídat jedním klepnutím, nejvýš jednou
             'products' => Product::query()->orderBy('name')->get()->map(fn (Product $product): array => [
                 'id' => $product->id,
                 'name' => $product->name,
                 'categoryLabel' => $categories->label($product->category_id),
+                'watched' => in_array($product->id, $watchedProductIds, true),
             ]),
         ]);
     }

@@ -108,3 +108,19 @@ it('cizí položku neupraví ani nesmaže', function (): void {
 
     expect($foreign->fresh()?->name)->toBe('Cizí');
 });
+
+it('stejný produkt z katalogu nepřidá podruhé a v katalogu ho označí jako hlídaný', function (): void {
+    $product = Product::factory()->create(['name' => 'Vejce']);
+    $this->post(route('watch-items.store'), ['name' => 'Vejce', 'product_id' => $product->id]);
+
+    $this->post(route('watch-items.store'), ['name' => 'Vejce znovu', 'product_id' => $product->id])
+        ->assertSessionHasErrors(['product_id' => 'Tenhle produkt už hlídáte.']);
+
+    expect($this->user->watchItems()->count())->toBe(1);
+    $this->get(route('watch-items.index'))->assertInertia(fn (Assert $page) => $page->where('products.0.watched', true));
+
+    // Jiný uživatel stejný produkt hlídat může
+    $this->actingAs(User::factory()->create())
+        ->post(route('watch-items.store'), ['name' => 'Vejce', 'product_id' => $product->id])
+        ->assertSessionHasNoErrors();
+});

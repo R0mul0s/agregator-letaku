@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Models\WatchItem;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
@@ -26,10 +27,17 @@ class WatchItemRequest extends FormRequest
     public function rules(): array
     {
         $keywordsMax = 'max:'.config()->integer('letaky.watch.keywords_max_length');
+        $watchItem = $this->route('watchItem');
 
         return [
             'name' => ['required', 'string', 'max:'.config()->integer('letaky.watch.name_max_length')],
-            'product_id' => ['nullable', 'integer', Rule::exists('products', 'id')],
+            'product_id' => [
+                'nullable', 'integer', Rule::exists('products', 'id'),
+                // Jeden produkt nejvýš jednou na uživatele (R31)
+                Rule::unique('watch_items', 'product_id')
+                    ->where('user_id', $this->user()?->getAuthIdentifier())
+                    ->ignore($watchItem instanceof WatchItem ? $watchItem->id : null),
+            ],
             'keywords' => ['required_without:product_id', 'nullable', 'string', $keywordsMax],
             'variant_keywords' => ['nullable', 'string', $keywordsMax],
             'exclude_keywords' => ['nullable', 'string', $keywordsMax],
@@ -90,6 +98,7 @@ class WatchItemRequest extends FormRequest
     {
         return [
             'keywords.required_without' => __('app.ui.watch.keywords_or_product'),
+            'product_id.unique' => __('app.ui.watch.already_watched'),
         ];
     }
 

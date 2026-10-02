@@ -6,6 +6,7 @@
 -->
 <script setup>
 import { useTranslations } from '@/lib/i18n';
+import { normalizeSearch } from '@/lib/search';
 import { computed, ref } from 'vue';
 
 /** Kolik řádků seznamu je vidět najednou. */
@@ -26,24 +27,14 @@ const model = defineModel({ type: Number, default: null });
 const t = useTranslations();
 const filter = ref('');
 
-/**
- * Text bez diakritiky a velkých písmen pro porovnání.
- *
- * @param {string} text
- * @returns {string}
- */
-function normalize(text) {
-    return text.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
-}
-
 /** Kategorie, jejichž cesta obsahuje všechna slova filtru; vybraná zůstává vždy. */
 const filtered = computed(() => {
-    const words = normalize(filter.value).split(/\s+/).filter(Boolean);
+    const words = normalizeSearch(filter.value).split(/\s+/).filter(Boolean);
     if (!words.length) {
         return props.options;
     }
 
-    return props.options.filter((option) => option.id === model.value || words.every((word) => normalize(option.label).includes(word)));
+    return props.options.filter((option) => option.id === model.value || words.every((word) => normalizeSearch(option.label).includes(word)));
 });
 
 /** Celá cesta vybrané kategorie. */

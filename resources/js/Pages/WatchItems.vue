@@ -1,5 +1,6 @@
 <!--
-    Hlídám — seznam hlídaných položek, jejich úpravy a nová položka z katalogu nebo se slovy (R18, R31).
+    Hlídám — seznam hlídaných položek, přidání produktu z katalogu jedním klepnutím (R31)
+    a vlastní hledání slovy pro věci, které v katalogu nejsou (R18).
 
     @author Roman Hlaváček
     @created 2026-10-02
@@ -8,31 +9,43 @@
 import WatchItemForm from '@/Components/WatchItemForm.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { useTranslations } from '@/lib/i18n';
-import { Head, router } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { normalizeSearch } from '@/lib/search';
+import { Head, router, usePage } from '@inertiajs/vue3';
+import { computed, ref } from 'vue';
 
-defineProps({
+const props = defineProps({
     urls: { type: Object, required: true },
     watchItems: { type: Array, required: true },
-    /** Produkty katalogu [{ id, name, categoryLabel }]. */
+    /** Produkty katalogu [{ id, name, categoryLabel, watched }]. */
     products: { type: Array, required: true },
 });
 
 const t = useTranslations();
+const page = usePage();
 
 /** Položka, kterou uživatel právě upravuje (id), nebo null. */
 const editingId = ref(null);
 
-/** Předvyplnění formuláře nové položky (rychlý výběr produktu). */
-const newItem = ref({});
+/** Filtr seznamu katalogu. */
+const catalogFilter = ref('');
+
+/** Produkty katalogu, jejichž název nebo kategorie obsahuje všechna slova filtru. */
+const filteredProducts = computed(() => {
+    const words = normalizeSearch(catalogFilter.value).split(/\s+/).filter(Boolean);
+
+    return props.products.filter((product) => words.every((word) => normalizeSearch(`${product.name} ${product.categoryLabel ?? ''}`).includes(word)));
+});
+
+/** Chyba při přidání produktu (už hlídaný, limit položek). */
+const catalogError = computed(() => page.props.errors?.product_id ?? page.props.errors?.name ?? null);
 
 /**
- * Předvyplní novou položku produktem z katalogu.
+ * Začne hlídat produkt z katalogu.
  *
  * @param {object} product
  */
-function pickProduct(product) {
-    newItem.value = { productId: product.id, name: product.name };
+function watchProduct(product) {
+    router.post(props.urls.store, { product_id: product.id, name: product.name }, { preserveScroll: true });
 }
 
 /**
@@ -65,7 +78,6 @@ function remove(item) {
                         :url="item.updateUrl"
                         method="put"
                         :item="item"
-                        :products="products"
                         :submit-label="t('watch.save')"
                         @saved="editingId = null"
                         @cancel="editingId = null"
@@ -89,32 +101,49 @@ function remove(item) {
                             </template>
                         </dl>
                         <div class="form__actions">
-                            <button type="button" class="button button--ghost" @click="editingId = item.id">{{ t('watch.edit') }}</button>
-                            <button type="button" class="button button--ghost" @click="remove(item)">{{ t('watch.delete') }}</button>
+                            <button v-if="!item.productId" type="button" class="button button--ghost" @click="editingId = item.id">{{ t('watch.edit') }}</button>
+                            <button type="button" class="button button--ghost" @click="remove(item)">{{ item.productId ? t('watch.stop') : t('watch.delete') }}</button>
                         </div>
                     </template>
                 </article>
             </section>
 
-            <section class="card watch-layout__new">
-                <h2 class="card__title">{{ t('watch.add_title') }}</h2>
-                <template v-if="products.length">
-                    <p class="form-field__label">{{ t('watch.quick_pick') }}</p>
-                    <div class="watch-templates">
-                        <button
-                            v-for="product in products"
-                            :key="product.id"
-                            type="button"
-                            class="tag tag--button"
-                            :title="product.categoryLabel"
-                            @click="pickProduct(product)"
-                        >
-                            {{ product.name }}
-                        </button>
-                    </div>
-                </template>
-                <WatchItemForm :url="urls.store" :item="newItem" :products="products" :submit-label="t('watch.add')" />
-            </section>
+            <div class="watch-layout__new">
+                <section class="card watch-catalog">
+                    <h2 class="card__title">{{ t('watch.catalog_title') }}</h2>
+                    <p class="form-field__hint">{{ t('watch.catalog_hint') }}</p>
+                    <input
+                        v-model="catalogFilter"
+                        type="search"
+                        class="form-field__input watch-catalog__filter"
+                        :placeholder="t('watch.catalog_filter')"
+                        :aria-label="t('watch.catalog_filter')"
+                    />
+                    <p v-if="catalogError" class="form-field__error" role="alert">{{ catalogError }}</p>
+                    <ul class="watch-catalog__list">
+                        <li v-for="product in filteredProducts" :key="product.id">
+                            <button
+                                type="button"
+                                class="watch-catalog__product"
+                                :class="{ 'watch-catalog__product--watched': product.watched }"
+                                :disabled="product.watched"
+                                @click="watchProduct(product)"
+                            >
+                                <span class="watch-catalog__name">{{ product.name }}</span>
+                                <span v-if="product.watched" class="tag tag--accent">✓ {{ t('watch.watching') }}</span>
+                                <span v-else-if="product.categoryLabel" class="watch-catalog__category">{{ product.categoryLabel }}</span>
+                            </button>
+                        </li>
+                    </ul>
+                    <p v-if="!filteredProducts.length" class="page__empty">{{ t('watch.catalog_empty') }}</p>
+                </section>
+
+                <section class="card">
+                    <h2 class="card__title">{{ t('watch.own_title') }}</h2>
+                    <p class="form-field__hint watch-hint">{{ t('watch.own_hint') }}</p>
+                    <WatchItemForm :url="urls.store" :submit-label="t('watch.add')" />
+                </section>
+            </div>
         </div>
     </AppLayout>
 </template>
