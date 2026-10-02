@@ -189,10 +189,10 @@ změně odpovědi obchodu (`SourceResponseChanged`) i neplatném klíči Tesca.
 5. Nové proměnné v `deploy/.env.production.example` doplň do `.env` na hostingu
 6. Ověř `version.txt?v=<cokoli>` a zapiš verzi do tabulky *Nasazené verze*
 
-### Aktualizace z `c5d45d7` (2026-10-02, druhé nasazení)
+### Aktualizace z `c5d45d7` (2026-10-02, druhé nasazení — provedeno, `20ef035`)
 
 Účet s avatarem, předvolby Mých slev, e-mailový souhrn, nové Hlídám, stránkování, úvodní
-stránka, SEO a limity požadavků (R39–R45) nové obchody Globus (R46) a Billa (R48) a úpravy vzhledu (R47). `composer.lock` se nezměnil.
+stránka, SEO a limity požadavků (R39–R45), nové obchody Globus (R46) a Billa (R48) a úpravy vzhledu (R47). `composer.lock` se nezměnil.
 
 1. **Záloha databáze** (phpMyAdmin → Exportovat, viz *Záloha databáze*).
 2. **SQL:** v phpMyAdminu spusť `deploy/migrations-2026-10-02-ucet.sql` — přidá sloupce do
@@ -250,7 +250,7 @@ a ruční opravy katalogu. Před každým SQL skriptem a jinak aspoň jednou mě
 |---|---|---|
 | `migrations-2026-10-02-init.sql` | výchozí schéma — všechny tabulky k 2026-10-02 a záznamy v `migrations` | 2026-10-02 |
 | `data-2026-10-02-katalog.sql` | strom kategorií e-shopu Tesco (1 728) a 164 produktů katalogu (R28, R37), `REPLACE` — opakovatelný; až po init | 2026-10-02 |
-| `migrations-2026-10-02-ucet.sql` | nastavení účtu: `users.avatar_path` (R40), `users.offers_sort` a `min_discount_percent` (R41), `users.digest_frequency` a `digest_sent_at` (R42); opakovatelný, pustit **před** nahráním kódu | |
+| `migrations-2026-10-02-ucet.sql` | nastavení účtu: `users.avatar_path` (R40), `users.offers_sort` a `min_discount_percent` (R41), `users.digest_frequency` a `digest_sent_at` (R42); opakovatelný, pustit **před** nahráním kódu | 2026-10-02 |
 
 ## Nasazené verze
 
@@ -260,3 +260,4 @@ Co běží na produkci — pro `git log <commit>..HEAD` při dalším nasazení
 | Datum | Commit | Co |
 |---|---|---|
 | 2026-10-02 | `c5d45d7` + `config/inertia.php` z `a17fbae` | první nasazení: balíček, schéma a katalog, crony stahování |
+| 2026-10-02 | `20ef035` | druhé nasazení: účet a e-mailový souhrn (R39–R45), Globus (R46), vzhled (R47), Billa (R48); SQL `migrations-2026-10-02-ucet.sql`, crony Globus, Billa a souhrn. První stažení: Globus 656, Billa 3 421 nabídek |

@@ -272,7 +272,7 @@ z artisan příkazu i z kontroleru.
 | 5f | **Billa** (R48): zdroj z product-discovery API s celým katalogem, akce jen s BILLA Klubem, akce na množství, zboží na váhu, platnost jako akční týden st–út | hotovo 2026-10-02 |
 | 5e | **Vzhled podle zkoušení** (R47): toasty místo zpráv v obsahu, vlastní potvrzovací okno, Moje obchody s přepínači, katalog v Hlídám jako dlaždice oddělení, jedoucí košík v Mých slevách, oslovení v 5. pádě, posuvník v barvách webu | hotovo 2026-10-02 |
 | 6 | **LLM** (R23), jen pokud bude potřeba: Albert (obrázky stránek), zbytek letáku Lidlu, třídění nepřiřazených nabídek | |
-| 7 | **Nasazení na Websupport** (R20, R38): cron URL pro stahování, hlídání stažení (`/health/imports`), HTTPS a bezpečnostní hlavičky v `public/.htaccess`, SQL skripty schématu a katalogu, build balíčku, [deploy/DEPLOYMENT.md](../deploy/DEPLOYMENT.md), ověření O8 | nasazeno 2026-10-02 (první verze); aktualizace s R39–R48 připravená |
+| 7 | **Nasazení na Websupport** (R20, R38): cron URL pro stahování, hlídání stažení (`/health/imports`), HTTPS a bezpečnostní hlavičky v `public/.htaccess`, SQL skripty schématu a katalogu, build balíčku, [deploy/DEPLOYMENT.md](../deploy/DEPLOYMENT.md), ověření O8 | nasazeno 2026-10-02 (první verze `c5d45d7`, aktualizace `20ef035` s R39–R48) |
 
 ---
 
