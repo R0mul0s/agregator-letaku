@@ -345,10 +345,18 @@
     padding: 0;
     list-style: none;
 
+    // Na telefonu kroky pod sebou na střed (číslo nad textem), od středního displeje vlevo ve sloupcích
     &__item {
         display: flex;
         flex-direction: column;
+        align-items: center;
         gap: var(--space-2);
+        text-align: center;
+
+        @include from-md {
+            align-items: flex-start;
+            text-align: left;
+        }
     }
 
     &__number {
