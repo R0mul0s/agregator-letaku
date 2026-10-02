@@ -201,7 +201,8 @@ Eloquent model                 ← perzistence
 - **`<script setup>`**, props s typy a výchozí hodnotou.
 - **Žádné texty natvrdo.** Vše přes `useTranslations()`, klíče ve skupině `app.ui` v `lang/cs/app.php`.
 - Ceny, čísla a datumy formátuje `resources/js/lib/format.js` (`Intl`, haléře → Kč). Nikdy se neskládají ručně.
-- Data do stránky připravuje server. Komponenta nepočítá ceny za jednotku ani nefiltruje velké seznamy.
+- Data do stránky připravuje server. Komponenta nepočítá ceny za jednotku ani nefiltruje velké seznamy (výjimka: malé seznamy pro admina, např. ~160 produktů katalogu, se filtrují a řadí v prohlížeči).
+- Sdílená data Inertie (`HandleInertiaRequests::share`) nesmí mít stejný klíč jako prop stránky — prop stránky ho přepíše.
 - Žádný jQuery.
 
 ---
@@ -214,7 +215,10 @@ Eloquent model                 ← perzistence
 - **Žádné utility třídy (Tailwind).** Používáme BEM třídy (`.offer-card__price--loyalty`).
 - **Barvy, mezery, poloměry a písmo jen z tokenů** v `base/_tokens.scss` (CSS custom properties).
 - Tmavý režim přepíná tokeny přes mixin `dark`, komponenty o něm nevědí.
-- Barvy obchodů (Kaufland červená, Tesco modrá…) jsou tokeny, ne hodnoty v komponentách.
+- Obchody se ukazují **logem** (`ChainLogo`, vodoznak `ChainWatermark`), ne barvou — loga jsou v `public/images/chains`, názvy a adresy sdílí `chainInfo`.
+- Barvy loga Slevohlídky (`--color-brand`, `--color-brand-dark`) jen na název v hlavičce; na tlačítka a text akcent (`--color-accent*`) se splněným kontrastem WCAG AA (bílý text na červené: velký tučný text 3 : 1, jinak 4,5 : 1).
+- Pohyb (nadzvednutí karet a tlačítek) jen přes `transition` s tokeny; při `prefers-reduced-motion` se vypne v `_reset.scss`.
+- Prázdný stav stránky = komponenta `EmptyState` s maskotem, ne holá věta.
 
 ### Struktura
 

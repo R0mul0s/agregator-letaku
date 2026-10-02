@@ -20,13 +20,16 @@ volné číslo R…). Změna chování obchodu (nový endpoint, jiné pole) pat�
 
 ## Stav
 
-Hotové jsou etapy 1–4: kostra aplikace s účty (Fortify, R12, R13), stahování
-nabídek Kauflandu, Tesca, Lidlu a Penny (R15–R17, R25, R26), Albert zatím jen zmínky (R36), přehled všech akcí
-na `/akce` a hlídání: Moje obchody (`/obchody`), Hlídám (`/hlidam`) a Moje slevy
-(`/`, R18, R19). K tomu zmínky v letácích Lidlu a Penny bez ceny (etapa 4b, R27).
-Hotová je i etapa 5, katalog produktů (R24, R28–R31): strom kategorií z Tesca, katalog
-pro admina (`/katalog`) s přiřazováním nabídek a hlídaná položka z katalogu. Další je
-etapa 6 (LLM, jen když bude potřeba) nebo 7 (nasazení na Websupport).
+Hotové jsou etapy 1–5b (PLAN.md, kap. 6):
+- účty (Fortify, R12, R13); stahování akcí Kauflandu, Tesca, Lidlu a Penny (R15–R17, R25, R26)
+- zmínky v letácích bez ceny — Lidl, Penny a Albert (R27, R36; Albert jen zmínky, ceny zatím ne)
+- Všechny akce (`/akce`) s našeptávačem a výběrem obchodu s logy; Moje obchody (`/obchody`),
+  Hlídám (`/hlidam`, produkt z katalogu klepnutím, nebo vlastní slova) a Moje slevy (`/`)
+- katalog produktů (R24, R28–R31, R37): strom kategorií z Tesca, 164 produktů, tabulka pro
+  admina (`/katalog`) s přiřazováním akcí a ručními opravami
+- název Slevohlídka a vzhled podle loga (R34, R35), loga obchodů (R32)
+
+Další je etapa 6 (LLM, jen když bude potřeba) nebo 7 (nasazení na Websupport).
 Co z dřívějších rozhodnutí platí a co ne, je v tabulce na začátku PLAN.md.
 
 Vývojový uživatel ze seederu: `test@example.com` / `password` (admin katalogu; seeder
@@ -62,7 +65,7 @@ Stažení nabídek od obchodů (skutečné požadavky, šetrně s pauzami; Tesco
 potřebuje `TESCO_API_KEY` v `.env`, viz ZDROJE_DAT.md):
 ```bash
 docker compose exec app php artisan letaky:import-offers            # všechny obchody se zdrojem
-docker compose exec app php artisan letaky:import-offers kaufland   # jen vybrané
+docker compose exec app php artisan letaky:import-offers kaufland   # jen vybrané (kaufland, tesco, albert, lidl, penny)
 docker compose exec app php artisan letaky:import-categories        # strom kategorií katalogu (Tesco, R28)
 docker compose exec app php artisan letaky:admin email@example.com  # správa katalogu /katalog (R29), --revoke odebere
 ```
@@ -126,6 +129,8 @@ MariaDB 11.4 · Pest 4 · Larastan · Pint. Extrakce letáků (etapa 6): Claude 
 23. **Pauza mezi požadavky je podle zdroje** (`request_delay_ms` u Lidlu a Penny, jinak `letaky.http`); stránka letáku bez textové vrstvy vrací 404 — `SourceHttp::request(allowNotFound: true)`. V testech musí být nulová i pauza zdroje (`LETAKY_LIDL_…`, `LETAKY_PENNY_REQUEST_DELAY_MS` v `phpunit.xml`), jinak test spí.
 24. **Zmínky v letácích bez ceny (R27)** se párují jinak než akce: `WatchItemMatcher::mention` hledá **celá slova** a **bez vyloučených slov** (stránka je směs produktů). Stránky s receptem vyřadí fráze `letaky.mentions.excluded_page_phrases`. Zmínka se nezobrazí, když má obchod k položce ve stejném období akci s cenou. Text stránek je v `leaflet_pages` (Lidl `keyWords` + `altText`, Penny text SVG, Albert `text` ze `spreads.json` Publitas); zdroj je přidává do `SourceBatch::$pages`. Zdroj jen se stránkami (Albert) nabídky mít nemusí — `SourceReturnedNoOffers` padá až při prázdnu ve všem.
 25. **Katalog produktů (R28–R30):** přiřazení nabídek k produktům (`offer_product`) přepočítává `AssignProducts` — po importu obchodu (`forChain`, uvnitř transakce importu) a po uložení produktu (`forProduct`). Ruční řádky (`is_manual`) a vyřazení (`offer_product_exclusions`) přepočet nesmí změnit. Pravidla produktu = pravidla hlídané položky (`WatchRule::fromProduct`, `WatchItemMatcher::matchText` nad jednou normalizovaným textem). Předvýběr v SQL jen přes `OfferPrefilter` (stejné sloupce jako `WatchItemMatcher::offerText`). Kategorie se nemažou, `source_id` je zakódovaná cesta názvů u Tesca.
+26. **Vzhled (R34, R35):** barvy loga jsou tokeny `--color-brand` / `--color-brand-dark` jen pro název v hlavičce; tlačítka a odkazy mají ztmavený akcent kvůli kontrastu (WCAG AA). Loga obchodů jsou v `public/images/chains` a zobrazují se přes `ChainLogo` / `ChainWatermark` ze sdílených dat `chainInfo` — sdílený prop se nesmí jmenovat stejně jako prop stránky (`chains` na Všech akcích ho přepsal). Prázdný stav = `EmptyState` s maskotem. Ikony a logo jsou vygenerované z `resources/brand/slevohlidka-logo.png`.
+27. **Pravidla katalogu jsou začátky slov** — krátká slova chytají i jiná („rum“ → „Rump steak“, „sůl“ → „sultánky“). Nový produkt v `database/seeders/data/catalog-products.php` vždy ověřit na ostrých akcích a doplnit vyloučená slova.
 
 ## Jazyk
 

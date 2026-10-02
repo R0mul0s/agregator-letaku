@@ -75,4 +75,4 @@ v [PLAN.md](PLAN.md). Větší celky se z toho stávají etapou.
 
 ## Zobrazení
 
-- aplikace na plochu telefonu (manifest), jako u Počasí
+- aplikace na plochu telefonu (manifest), jako u Počasí — ikony 192 a 512 px z loga už jsou v `public/images/brand`

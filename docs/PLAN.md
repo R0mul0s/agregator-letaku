@@ -1,5 +1,5 @@
 <!--
-  Agregátor letáků — plán projektu
+  Slevohlídka (agregátor letáků) — plán projektu
   @author Roman Hlaváček
   @created 2026-10-02
 -->
@@ -37,6 +37,10 @@ Log rozhodnutí (kap. 8) se nepřepisuje — starší rozhodnutí nahrazují nov
 | **Zmínky v letácích bez ceny** — Lidl, Penny a Albert (R27, R36) | Vyhledávací API letáků Lidlu (zakázané v robots.txt) |
 | Hlídaná položka = slova + varianta + vyloučení (R18); katalog produktů (R24, R28–R31) — kategorie ze stromu Tesca, produkty spravuje admin, přiřazení nabídek se ukládá s ručními opravami; hlídaná položka = produkt z katalogu, nebo vlastní slova | Dva oddělené typy hlídání produkt / kategorie (R9 → R18; tři stavy shody platí dál); vymýšlení vlastních kategorií (→ R28); šablony hlídaných položek v konfiguraci (→ produkty katalogu, R31) |
 | Obrázky produktů odkazem na CDN obchodu (R22); loga obchodů jako soubory aplikace (R32) | Ukládání obrázků |
+| Katalog 164 produktů ověřených na skutečných akcích (R33, R37), data v `database/seeders/data/catalog-products.php`; admin ho spravuje v tabulce `/katalog` | Startovní sada 4 produktů ze šablon (→ R33, R37) |
+| Název **Slevohlídka**, motto „Rychlý lovec slev“, barvy a motivy z loga (R34, R35): písmo Nunito, cenovky slev, maskot v prázdných stavech, vodoznak loga obchodu v kartách | Pracovní název Agregátor letáků; vzhled v růžové barvě cenovky |
+| Hledání ve Všech akcích s našeptávačem; výběr obchodu s logy (R32) | — |
+| Odkaz akce Kauflandu vede na kategorii a textovým fragmentem na dlaždici (detail akce nemá vlastní adresu) | Odkaz na celý přehled nabídky |
 | Produkce Websupport, cron URL, SQL skripty migrací, bez fronty (R20) | GitHub CI (R14 — zatím ne) |
 
 ---
@@ -246,6 +250,7 @@ z artisan příkazu i z kontroleru.
 | 4 | **Lidl a Penny bez LLM** (R23, R25, R26): Lidl `data-grid-data` z kampaní (potraviny), Penny product-discovery API a parser vektorové vrstvy letáku ověřený cenou za jednotku | hotovo 2026-10-02 |
 | 4b | **Zmínky v letácích bez ceny** (R27): text stránek letáků Lidl (API letáků Schwarz) a Penny (vektorová vrstva), sekce „V letáku, ale bez ceny“ v Mých slevách | hotovo 2026-10-02 |
 | 5 | **Katalog produktů** ([O3](#7-otevřené-otázky), R24, R28–R31, návrh v kap. 7): 5a strom kategorií z e-shopu Tesco (`categories`, `letaky:import-categories`); 5b produkty se slovy a správa katalogu pro admina (`/katalog`, `letaky:admin`), přiřazení nabídek při importu s ručními opravami (`offer_product`); 5c hlídaná položka z katalogu nebo s vlastními slovy, šablony nahradí produkty | hotovo 2026-10-02 |
+| 5b | **Dolaďování podle zkoušení** (R32–R37): loga obchodů a výběr obchodu s logy, našeptávač ve Všech akcích, Hlídám s katalogem klepnutím (produkt jen jednou), odkazy Kauflandu na dlaždici, název Slevohlídka a vzhled podle loga, Albert jako zmínky z textu stránek Publitas, katalog 164 produktů a tabulka katalogu | hotovo 2026-10-02 |
 | 6 | **LLM** (R23), jen pokud bude potřeba: Albert (obrázky stránek), zbytek letáku Lidlu, třídění nepřiřazených nabídek | |
 | 7 | **Nasazení na Websupport** (R20): cron URL pro stahování, SQL skripty migrací, build a nahrání přes FTP, DEPLOYMENT.md, ověření O8 | |
 
