@@ -1,30 +1,45 @@
 // _preferences.scss
-// Moje obchody — karta každého obchodu s upřesněním.
+// Moje obchody — karty obchodů v mřížce (na širokém displeji všech pět v řádku).
 //
 // @author Roman Hlaváček
 // @created 2026-10-02
 
 .preferences {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--chain-card-min-width)), 1fr));
+    align-items: start;
     gap: var(--space-3);
+
+    // Uložení pod celou mřížkou
+    .form__actions {
+        grid-column: 1 / -1;
+    }
 }
 
 .chain-settings {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    padding: var(--space-3);
+    transition: border-color var(--duration-fast);
+
+    // Sledovaný obchod má rámeček v akcentu — je vidět i bez čtení zaškrtávátek
+    &--followed {
+        border-color: var(--color-accent);
+    }
+
     &--disabled {
         opacity: var(--opacity-disabled);
     }
 
     &__header {
         display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        justify-content: space-between;
+        flex-direction: column;
+        align-items: flex-start;
         gap: var(--space-2);
     }
 
     &__body {
-        margin-top: var(--space-3);
         padding-top: var(--space-3);
         border-top: 1px solid var(--color-border);
     }

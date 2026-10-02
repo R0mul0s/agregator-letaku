@@ -68,7 +68,15 @@ function submit() {
         <p v-if="page.props.status === STATUS_SAVED" class="notice notice--success" role="status">{{ t('preferences.saved') }}</p>
 
         <form class="preferences" novalidate @submit.prevent="submit">
-            <section v-for="chain in chains" :key="chain.value" class="card chain-settings" :class="{ 'chain-settings--disabled': !chain.available }">
+            <section
+                v-for="chain in chains"
+                :key="chain.value"
+                class="card chain-settings"
+                :class="{
+                    'chain-settings--disabled': !chain.available,
+                    'chain-settings--followed': chain.available && chainSettings[chain.value].followed,
+                }"
+            >
                 <div class="chain-settings__header">
                     <ChainLogo :chain="chain.value" with-name large />
                     <label v-if="chain.available" class="form-checkbox">
