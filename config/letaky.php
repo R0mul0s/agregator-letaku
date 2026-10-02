@@ -59,12 +59,17 @@ return [
         'kaufland' => [
             'offers_source' => KauflandOfferSource::class,
             'stores_source' => KauflandStoreSource::class,
+            // Uživatel volí typ prodejny (HM / SM) a akce jen z e-shopu (R19)
+            'has_store_formats' => false,
+            'has_eshop' => false,
             // Web kamenných prodejen — www.kaufland.cz je marketplace za Cloudflare
             'offers_url' => 'https://prodejny.kaufland.cz/nabidka/prehled.html',
             'stores_url' => 'https://prodejny.kaufland.cz/.klstorefinder.json',
         ],
         'tesco' => [
             'offers_source' => TescoOfferSource::class,
+            'has_store_formats' => true,
+            'has_eshop' => true,
             'eshop_api_url' => 'https://xapi.tesco.com/',
             // Veřejný klíč z HTML e-shopu (mangoApiKey), může se změnit
             'eshop_api_key' => env('TESCO_API_KEY'),
@@ -83,6 +88,40 @@ return [
     'offers' => [
         'per_page' => 50,
         'search_max_length' => 100,
+    ],
+
+    /*
+    | Hlídané položky (R18). Šablony předvyplní formulář; zápis slov viz App\Domain\Matching\WatchRule.
+    | Vyloučená slova jsou ze skutečných nabídek 2. 10. 2026: „MAGGI Přidej vejce“, „toustový chléb
+    | s vejcem“, „Ruské vejce“, ochucený „Lipánek“ (tuk 1,3–1,5 %), „máslová dýně“, „máslový karamel“.
+    | Slova se hledají jako začátek slova, takže „máslov“ vyřadí máslová, máslový i máslové.
+    */
+    'watch' => [
+        'max_items_per_user' => 50,
+        'name_max_length' => 100,
+        'keywords_max_length' => 255,
+        'templates' => [
+            'eggs' => [
+                'keywords' => 'vejce',
+                'variant_keywords' => null,
+                'exclude_keywords' => 'maggi polévka těstoviny toust aspik pomazánka bageta ruské',
+            ],
+            'semi_skimmed_milk' => [
+                'keywords' => 'mléko polotučné|1,5',
+                'variant_keywords' => null,
+                'exclude_keywords' => 'kefír kokos zakysané acidofil čokoláda lipánek ochucené',
+            ],
+            'butter' => [
+                'keywords' => 'máslo',
+                'variant_keywords' => null,
+                'exclude_keywords' => 'máslov arašíd kakao bylink pomazánk sušenk',
+            ],
+            'coca_cola_zero' => [
+                'keywords' => 'coca cola',
+                'variant_keywords' => 'zero',
+                'exclude_keywords' => null,
+            ],
+        ],
     ],
 
 ];

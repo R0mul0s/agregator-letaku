@@ -1,5 +1,5 @@
 <!--
-    Textové pole formuláře s popiskem a chybou validace.
+    Textové pole formuláře s popiskem, nápovědou a chybou validace.
 
     @author Roman Hlaváček
     @created 2026-10-02
@@ -15,13 +15,19 @@ const props = defineProps({
     autocomplete: { type: String, default: undefined },
     required: { type: Boolean, default: false },
     autofocus: { type: Boolean, default: false },
+    /** Nápověda pod polem. */
+    hint: { type: String, default: undefined },
     /** Chyba validace ze serveru (form.errors.…). */
     error: { type: String, default: undefined },
 });
 
 const model = defineModel({ type: String, default: '' });
 
+const hintId = computed(() => `${props.id}-hint`);
 const errorId = computed(() => `${props.id}-error`);
+
+/** Popis pole pro čtečky — nápověda a chyba, pokud jsou. */
+const describedBy = computed(() => [props.hint ? hintId.value : null, props.error ? errorId.value : null].filter(Boolean).join(' ') || undefined);
 </script>
 
 <template>
@@ -38,8 +44,9 @@ const errorId = computed(() => `${props.id}-error`);
             class="form-field__input"
             :class="{ 'form-field__input--invalid': error }"
             :aria-invalid="error ? 'true' : undefined"
-            :aria-describedby="error ? errorId : undefined"
+            :aria-describedby="describedBy"
         />
+        <p v-if="hint" :id="hintId" class="form-field__hint">{{ hint }}</p>
         <p v-if="error" :id="errorId" class="form-field__error">{{ error }}</p>
     </div>
 </template>

@@ -30,6 +30,18 @@
         border-color: transparent;
         color: var(--color-warning-text);
     }
+
+    // Štítek jako tlačítko (šablony hlídaných položek)
+    &--button {
+        padding: var(--space-1) var(--space-3);
+        font-size: var(--font-size-sm);
+        cursor: pointer;
+
+        &:hover {
+            border-color: var(--color-accent);
+            color: var(--color-accent-strong);
+        }
+    }
 }
 
 .chain-badge {

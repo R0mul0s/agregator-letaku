@@ -144,12 +144,14 @@ Klíč je `chain` + `external_id` + `valid_from` + `valid_to`. Cena za jednotku 
 do sloupce, ale při zobrazení z ceny a množství (`UnitPrice`). Přibudou `category_id`
 (etapa 5) a `purchase_limit` (až ho bude některý zdroj dodávat: Lidl, Penny, Albert).
 
-### Uživatelé a hlídání
-- `users`: účty (Fortify)
-- `store_user`: vybrané prodejny uživatele
-- `loyalty_program_user`: věrnostní programy, které uživatel má; podle nich se ukazuje cena s kartou jako dosažitelná
-- `watch_items`: hlídané položky. Typ `product` / `category`, hledaný text, kategorie, volitelně značka
-- `watch_matches`: shody hlídané položky s nabídkou. Stav `match` / `maybe`, důvod
+### Uživatelé a hlídání (etapa 3)
+- `users`: účty (Fortify); `loyalty_programs` = JSON seznam karet a aplikací, které uživatel má ([R19](#8-log-rozhodnutí))
+- `followed_chains`: sledované obchody — `chain`, `store_format` (null = všechny typy prodejen), `include_online_only` ([R19](#8-log-rozhodnutí))
+- `store_user`: vybrané prodejny (zatím jen Kaufland, nabídka se podle nich ještě nerozlišuje — [R15](#8-log-rozhodnutí))
+- `watch_items`: hlídané položky — `name`, `keywords`, `variant_keywords`, `exclude_keywords` ([R18](#8-log-rozhodnutí))
+
+Shody hlídaných položek s nabídkami se neukládají, počítají se při zobrazení ([R19](#8-log-rozhodnutí)).
+Tabulka `watch_matches` přibude s upozorněními (TODO).
 
 ### Provoz
 - `scrape_runs`: každé stažení obchodu (začátek, konec, stav, počet uložených a stažených nabídek, chyba). **Nula položek je chyba**, ne „žádné akce“.
@@ -167,9 +169,18 @@ php artisan letaky:import-offers [obchod…]      (zatím ručně, později plá
           ├─ upsert leaflets + offers (deduplikace podle klíče), v jedné transakci
           ├─ neskončené nabídky obchodu, které chyběly → withdrawn_at (R16)
           └─▶ scrape_runs (úspěch / chyba)
-                 │
-                 ▼  (etapa 3)
-          MatchWatchItems ──▶ watch_matches ──▶ seznam slev uživatele
+```
+
+Moje slevy (etapa 3) se počítají při zobrazení stránky:
+
+```
+GET / ──▶ MyOffers::forUser
+             ├─ kandidáti: neskončené a nestažené nabídky sledovaných obchodů (typ prodejny,
+             │  akce jen z e-shopu), které obsahují první slovo některé hlídané položky (SQL LIKE)
+             ├─ WatchItemMatcher: všechna slova, vyloučení, varianta → shoda / možná (R18, R9)
+             ├─ akce jen s kartou, kterou uživatel nemá, vynechá (R19)
+             └─ řazení: shody, pak akce s cenou od nejnižší ceny za jednotku (s kartou, pokud ji má),
+                akce na více kusů, nakonec „možná“
 ```
 
 Prodejny: `php artisan letaky:import-stores` (zatím Kaufland), nové přidá, existující
@@ -197,7 +208,7 @@ z artisan příkazu i odjinud.
 | 0 | Technický průzkum zdrojů dat všech 5 obchodů ([ZDROJE_DAT.md](ZDROJE_DAT.md)), dokumentace | hotovo 2026-10-02 |
 | 1 | **Kostra:** Laravel 13, Docker, Pint, Larastan, Pest, SCSS tokeny, layout; přihlášení a registrace (Fortify); model `stores` | hotovo 2026-10-02 |
 | 2 | **Kaufland a Tesco:** zdroje, normalizace, `offers`, `leaflets`, `scrape_runs`, artisan příkaz importu; import seznamu prodejen (Kaufland); přehled všech nabídek s hledáním (`/akce`); stažené nabídky (R16) | hotovo 2026-10-02 |
-| 3 | **Hlídání:** výběr prodejen a věrnostních programů, hlídané položky (produkt / kategorie), párování podle pravidel (klíčová slova, vylučovací slova), seznam slev uživatele s cenou za jednotku | |
+| 3 | **Hlídání:** výběr obchodů s upřesněním, prodejen a věrnostních karet (`/obchody`), hlídané položky se slovy, variantou a vyloučením a šablonami (`/hlidam`), Moje slevy seřazené podle ceny za jednotku (`/`) | hotovo 2026-10-02 |
 | 4 | **Lidl a Penny, strukturovaná část:** Lidl `data-grid-data` z kampaňových stránek, Penny product-discovery API | |
 | 5 | **Kategorizace:** vlastní strom kategorií ([O3](#7-otevřené-otázky)), zařazení nabídek (pravidla, případně LLM), stav „možná“ pro „různé druhy“ | |
 | 6 | **Extrakce letáků přes LLM:** Albert (obrázky stránek), Lidl (PDF), Penny (SVG vrstva); deduplikace proti strukturovaným datům | |
@@ -240,3 +251,5 @@ z artisan příkazu i odjinud.
 | R15 | 2026-10-02 | **Kaufland zatím jen výchozí varianta nabídky** (bez cookie prodejny, odpovídá CZ3300), platná pro všechny prodejny. Upřesňuje R3 | Rozdíl mezi prodejnami je v desítkách položek ze ~740 (CZ3300 × CZ4600: 736 × 732). Stahovat každou vybranou prodejnu zvlášť by násobilo požadavky i řádky skoro bez užitku. Varianty po prodejnách jsou v [TODO.md](TODO.md). |
 | R16 | 2026-10-02 | **Nabídka, kterou obchod stáhne nebo změní před koncem platnosti, se označí `withdrawn_at`** a z výpisů zmizí; nemaže se (R10). Pozná se tak, že v novém úplném stažení obchodu chybí (`scrape_run_id` není poslední stažení). Když se znovu objeví, označení zmizí | Kaufland během 2. 10. 2026 zkrátil akci na vejce z 6. 10. na 2. 10. Ranní záznam by bez toho dál tvrdil, že akce platí do 6. 10. Funguje jen proto, že každý zdroj stahuje celou nabídku obchodu najednou. |
 | R17 | 2026-10-02 | **Tesco: ceny z akcí e-shopu, leták jen určuje, kde akce platí.** Produkt e-shopu se páruje s produktem letáku podle **posledních 8 číslic ID** (leták `2001019279706` = e-shop `219279706`) a překryvu platnosti. V letáku HM i SM = všechny prodejny, v jednom = jeho formát, v žádném = jen online (R4). Katalog (CAT) se nesleduje. Položky letáku bez akce v e-shopu („Super cena“ za běžnou cenu) chybí | Ceny jsou jen v e-shopu, PDF letáku má poškozenou textovou vrstvu. Pravidlo 8 číslic ověřené na celém letáku 2. 10. 2026: HM 880 z 1 210 produktů, SM 237 z 277, žádná kolize v 5 139 produktech e-shopu; nespárované jsou hlavně „Super ceny“ a zboží bez akce online. „Super ceny“ by šly doplnit vision LLM (etapa 6). |
+| R18 | 2026-10-02 | **Hlídaná položka = název + hledaná slova + varianta + vyloučení**, místo dvou typů produkt / kategorie. Slova se hledají v názvu, značce a popisu nabídky jako **začátek slova**, bez diakritiky a velikosti písmen; všechna musí být v nabídce, alternativy přes „\|“ („mléko polotučné\|1,5“). Chybí-li varianta („zero“) u nabídky „různé druhy“, je shoda **možná** (R9). Kterékoli vyloučené slovo nabídku vyřadí. Šablony (vejce, polotučné mléko, máslo, Coca-Cola Zero) v `config/letaky.php` předvyplní formulář | Rozhodnutí uživatele. Jeden zápis pokryje produkt („coca cola“ + „zero“) i kategorii („vejce“ bez značky) a funguje hned, bez kategorizace (etapa 5). Začátek slova kvůli českým koncovkám („vejce“ najde „vejcem“) — proto ale „máslo“ najde i „máslová dýně“; šablony mají vyloučení ze skutečných nabídek 2. 10. 2026 („máslov“, „ruské“, „lipánek“, „maggi“). Obchody „polotučné“ často nepíšou, proto alternativa „1,5“. |
+| R19 | 2026-10-02 | **Sledují se obchody s upřesněním:** u Tesca typ prodejny (nabídka bez typu platí všude) a akce jen z e-shopu, u Kauflandu výběr prodejen; k tomu karty a aplikace, které uživatel má. **Akce jen s kartou, kterou uživatel nemá, se v Mých slevách neukáže**; s kartou se řadí podle ceny s kartou. Shody se počítají při zobrazení, neukládají se | Rozhodnutí uživatele („obchody + upřesnění“) — seznam prodejen zatím má jen Kaufland. Akce jen s kartou bez karty není akce. Nabídek je tisíce a hlídaných položek jednotky: SQL předvybere kandidáty podle prvního slova, pravidla se vyhodnotí v PHP za desítky milisekund; tabulka shod by se musela přepočítávat po každém importu i úpravě položky. Bude potřeba až pro upozornění. |

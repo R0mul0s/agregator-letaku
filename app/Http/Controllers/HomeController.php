@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Úvodní stránka přihlášeného uživatele — seznam jeho slev (od etapy 3).
+ * Úvodní stránka přihlášeného uživatele — slevy k jeho hlídaným položkám (R18, R19).
  *
  * @author Roman Hlaváček
  *
@@ -12,16 +12,37 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Domain\Matching\MyOffers;
+use App\Domain\Offers\OfferPresenter;
+use App\Models\User;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class HomeController extends Controller
 {
     /**
-     * Zobrazí seznam slev. Do etapy 3 (hlídání) jen prázdný stav.
+     * Zobrazí slevy po hlídaných položkách, s cenou, kterou uživatel zaplatí.
      */
-    public function __invoke(): Response
+    public function __invoke(Request $request, MyOffers $myOffers, OfferPresenter $presenter): Response
     {
-        return Inertia::render('Home');
+        /** @var User $user */
+        $user = $request->user();
+
+        return Inertia::render('Home', [
+            'hasFollowedChains' => $user->followedChains()->exists(),
+            'urls' => [
+                'preferences' => route('preferences', absolute: false),
+                'watchItems' => route('watch-items.index', absolute: false),
+            ],
+            'watchItems' => array_map(fn (array $group): array => [
+                'id' => $group['watchItem']->id,
+                'name' => $group['watchItem']->name,
+                'offers' => array_map(fn (array $match): array => [
+                    ...$presenter->toPage($match['offer']),
+                    'matchStatus' => $match['status']->value,
+                ], $group['offers']),
+            ], $myOffers->forUser($user)),
+        ]);
     }
 }

@@ -11,7 +11,7 @@ import { usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 
 const props = defineProps({
-    /** Nabídka z App\Domain\Offers\OfferPresenter. */
+    /** Nabídka z App\Domain\Offers\OfferPresenter; v Mých slevách navíc matchStatus (match / maybe). */
     offer: { type: Object, required: true },
 });
 
@@ -58,6 +58,7 @@ function unitPriceLabel(halers) {
     <article class="offer-card">
         <div class="offer-card__badges">
             <span class="chain-badge" :class="`chain-badge--${offer.chain}`">{{ offer.chainName }}</span>
+            <span v-if="offer.matchStatus === 'maybe'" class="tag tag--warning" :title="t('offers.maybe_hint')">{{ t('offers.maybe') }}</span>
             <span v-if="offer.storeFormatName" class="tag">{{ offer.storeFormatName }}</span>
             <span v-if="offer.onlineOnly" class="tag tag--warning">{{ t('offers.online_only') }}</span>
             <span class="tag" :class="{ 'tag--accent': offer.offerType === 'discount' }">{{ t(`offer_types.${offer.offerType}`) }}</span>

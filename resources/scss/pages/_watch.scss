@@ -1,0 +1,76 @@
+// _watch.scss
+// Moje slevy (skupiny podle hlídaných položek) a stránka Hlídám.
+//
+// @author Roman Hlaváček
+// @created 2026-10-02
+
+@use '../abstracts/mixins' as *;
+
+.watch-group {
+    margin-bottom: var(--space-5);
+
+    &__title {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: var(--space-2);
+        margin-bottom: var(--space-3);
+        font-size: var(--font-size-card-title);
+    }
+
+    &__count {
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+        font-weight: 400;
+    }
+}
+
+// Na širokém displeji seznam vlevo, nová položka vpravo
+.watch-layout {
+    display: grid;
+    align-items: start;
+    gap: var(--space-4);
+
+    @include from-lg {
+        grid-template-columns: 3fr 2fr;
+    }
+
+    &__list {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-3);
+    }
+
+    // Formulář nové položky je na mobilu nahoře — přidání je nejčastější akce
+    &__new {
+        order: -1;
+
+        @include from-lg {
+            order: 0;
+        }
+    }
+}
+
+.watch-item {
+    &__rules {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: var(--space-1) var(--space-3);
+        margin: 0 0 var(--space-2);
+    }
+
+    &__label {
+        color: var(--color-text-muted);
+    }
+
+    &__value {
+        margin: 0;
+    }
+}
+
+.watch-templates {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin: var(--space-2) 0 var(--space-4);
+}

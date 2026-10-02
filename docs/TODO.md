@@ -18,6 +18,15 @@ v [PLAN.md](PLAN.md). Větší celky se z toho stávají etapou.
 
 - e-mail (případně Telegram), když se hlídaná položka objeví v akci
 - souhrn jednou týdně po vydání nových letáků
+- k tomu tabulka `watch_matches` (co už uživatel viděl / dostal), dnes se shody počítají při zobrazení (R19)
+
+## Hlídání — rozšíření
+
+**Odkud:** etapa 3, R18 a R19 v PLAN.md.
+
+- víc šablon podle toho, co se v praxi hlídá (káva, pivo, toaletní papír…); vyloučená slova odvozovat ze skutečných nabídek
+- náhled „co by položka teď našla“ přímo ve formuláři Hlídám, aby šlo ladit vyloučená slova bez přepínání stránek
+- u „Možná“ ukázat, které slovo chybí
 
 ## Historie a porovnání cen
 

@@ -61,9 +61,11 @@
     }
 
     // Na mobilu vlastní řádek (order za akcemi), od md mezi logem a akcemi
+    // Pět položek se na mobilu nevejde na jeden řádek — zalomí se
     &__nav {
         display: flex;
         flex: 1 0 100%;
+        flex-wrap: wrap;
         order: 1;
         gap: var(--space-1);
 

@@ -28,6 +28,8 @@ class HandleInertiaRequests extends Middleware
     /** Položky hlavní navigace přihlášeného uživatele: název routy => klíč textu v app.ui.nav. */
     private const NAVIGATION = [
         'home' => 'home',
+        'watch-items.index' => 'watch_items',
+        'preferences' => 'preferences',
         'offers' => 'offers',
         'account' => 'account',
     ];

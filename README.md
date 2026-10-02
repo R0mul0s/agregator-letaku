@@ -14,9 +14,15 @@ kde a za kolik je to právě ve slevě, včetně cen s věrnostní kartou a ceny
 | **Instrukce pro AI agenty** | [CLAUDE.md](CLAUDE.md) |
 | **Správce** | Roman Hlaváček |
 
-> **Stav:** hotové jsou účty (etapa 1) a stahování nabídek Kauflandu a Tesca
-> s přehledem všech akcí a hledáním (etapa 2). Hlídání vlastních položek přibude
-> v etapě 3 ([PLAN.md, sekce 6](docs/PLAN.md#6-etapy)).
+> **Stav:** hotové jsou účty (etapa 1), stahování nabídek Kauflandu a Tesca s přehledem
+> všech akcí (etapa 2) a hlídání vlastních položek (etapa 3). Lidl a Penny přibudou
+> v etapě 4 ([PLAN.md, sekce 6](docs/PLAN.md#6-etapy)).
+
+## Jak se to používá
+
+1. **Obchody** — zaškrtni obchody, karty a aplikace, které máš; u Tesca typ prodejny, u Kauflandu prodejny.
+2. **Hlídám** — přidej, co hlídáš: hledaná slova, případně variantu („zero“) a slova k vyloučení. Pro vejce, mléko, máslo a Coca-Colu Zero jsou šablony.
+3. **Moje slevy** — akce k hlídaným položkám od nejnižší ceny za kg / l / ks. Souhrnné akce („různé druhy“) bez hledané varianty jsou označené **Možná**.
 
 ## Jak to funguje
 
@@ -102,14 +108,16 @@ docker compose exec app php artisan letaky:import-stores [kaufland]
 app/
   Actions/Fortify/         registrace, obnova a změna hesla, úprava profilu (R12)
   Console/Commands/        artisan importy (obálky nad akcemi)
-  Domain/Chains/Actions/   import prodejen
+  Domain/Chains/           sledované obchody a jejich možnosti, import prodejen, uložení nastavení
+  Domain/Matching/         hlídané položky: pravidla, párování, Moje slevy
   Domain/Offers/           jednotný tvar nabídek (Data), parsery cen a balení (Parsing),
                            import (Actions), hledání, cena za jednotku, místní kalendář
   Domain/Sources/<Obchod>/ stažení a převod nabídky jednoho obchodu (Kaufland, Tesco)
   Domain/Sources/          rozhraní zdrojů, registr, HTTP klient s pauzami
   Enums/                   Chain, StoreFormat, OfferType, LoyaltyProgram, PackageUnit…
   Http/                    tenké kontrolery, Form Requesty, sdílená data Inertie
-  Models/                  User, Store, Leaflet, Offer, ScrapeRun
+  Models/                  User, Store, Leaflet, Offer, ScrapeRun, FollowedChain, WatchItem
+  Policies/                oprávnění k hlídaným položkám (jen vlastník)
 config/letaky.php          zdroje obchodů a konstanty aplikace
 config/fortify.php         zapnuté funkce účtu (R13)
 docker/                    PHP, nginx a MariaDB pro vývoj

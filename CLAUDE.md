@@ -20,9 +20,10 @@ volné číslo R…). Změna chování obchodu (nový endpoint, jiné pole) pat�
 
 ## Stav
 
-Hotové jsou etapy 1 a 2: kostra aplikace s účty (Fortify, R12, R13), stahování
-nabídek Kauflandu a Tesca (R15–R17), seznam prodejen Kauflandu a přehled všech akcí
-s hledáním na `/akce`. Další je etapa 3: hlídání (viz PLAN.md, kap. 6).
+Hotové jsou etapy 1–3: kostra aplikace s účty (Fortify, R12, R13), stahování
+nabídek Kauflandu a Tesca (R15–R17), přehled všech akcí na `/akce` a hlídání:
+Moje obchody (`/obchody`), Hlídám (`/hlidam`) a Moje slevy (`/`, R18, R19).
+Další je etapa 4: Lidl a Penny (viz PLAN.md, kap. 6).
 
 Vývojový uživatel ze seederu: `test@example.com` / `password`
 (`docker compose exec app php artisan db:seed`). E-maily (obnova hesla) se lokálně
@@ -103,6 +104,9 @@ MariaDB 11.4 · Pest 4 · Larastan · Pint. Extrakce letáků (etapa 6): Claude 
 16. **Tesco zboží na váhu:** cena je `afterDiscount` za kg, ne `price.actual` (cena odhadovaného kusu). Leták a e-shop se párují podle posledních 8 číslic ID (R17).
 17. **Hromadný zápis nabídek (`upsert`) obchází přetypování modelu** — enumy jako `->value`, JSON přes `json_encode`, data jako `Y-m-d` (`ImportChainOffers::row`).
 18. **V testech je helper `responseFixture()`**, ne `fixture()` — tu má Pest vlastní.
+19. **Párování hlídaných položek hledá začátek slova** v textu normalizovaném `TextNormalizer` (bez diakritiky, interpunkce = mezera). `WatchItemMatcher` a předvýběr kandidátů v `MyOffers` musí hledat ve stejných sloupcích (`name`, `brand`, `description`). Nový obrat pro „různé druhy“ patří do `VariantNote`, jinak varianta nedá stav „možná“.
+20. **Akce jen s kartou se v Mých slevách ukáže jen uživateli s tou kartou** (R19) — `LoyaltyProgram::chain()` páruje kartu s obchodem; nový obchod s kartou ji tam potřebuje.
+21. **Šablony hlídaných položek** jsou v `config/letaky.php` (`watch.templates`), jejich názvy v `lang` (`ui.watch.templates`) — test hlídá, že žádný nechybí.
 
 ## Jazyk
 

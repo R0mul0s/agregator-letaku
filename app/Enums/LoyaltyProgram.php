@@ -21,6 +21,20 @@ enum LoyaltyProgram: string
     case PennyKarta = 'penny_karta';
 
     /**
+     * Obchod, ke kterému program patří.
+     */
+    public function chain(): Chain
+    {
+        return match ($this) {
+            self::KauflandCard => Chain::Kaufland,
+            self::Clubcard => Chain::Tesco,
+            self::MujAlbert => Chain::Albert,
+            self::LidlPlus => Chain::Lidl,
+            self::PennyKarta => Chain::Penny,
+        };
+    }
+
+    /**
      * Název programu pro zobrazení (lang/cs/app.php, skupina ui.loyalty_programs).
      */
     public function label(): string
