@@ -27,11 +27,28 @@ final class WatchItemMatcher
      */
     public function match(WatchRule $rule, Offer $offer): ?MatchStatus
     {
+        return $this->matchText($rule, $this->offerText($offer), $offer->variant_note !== null);
+    }
+
+    /**
+     * Text nabídky, ve kterém se hledá (název, značka, popis), normalizovaný pro párování.
+     */
+    public function offerText(Offer $offer): string
+    {
+        return $this->normalizer->normalize($offer->name, $offer->brand, $offer->description);
+    }
+
+    /**
+     * Stav shody nad už normalizovaným textem nabídky — pro přepočet tisíců nabídek
+     * proti více pravidlům, kde se text normalizuje jen jednou.
+     *
+     * @param  bool  $hasVariantNote  Nabídka je souhrnná („různé druhy“)
+     */
+    public function matchText(WatchRule $rule, string $text, bool $hasVariantNote): ?MatchStatus
+    {
         if ($rule->keywords === []) {
             return null;
         }
-
-        $text = $this->normalizer->normalize($offer->name, $offer->brand, $offer->description);
 
         foreach ($rule->exclude as $word) {
             if ($this->containsWord($text, $word)) {
@@ -47,7 +64,7 @@ final class WatchItemMatcher
             return MatchStatus::Match;
         }
 
-        return $offer->variant_note !== null ? MatchStatus::Maybe : null;
+        return $hasVariantNote ? MatchStatus::Maybe : null;
     }
 
     /**

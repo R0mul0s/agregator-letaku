@@ -34,6 +34,11 @@ class HandleInertiaRequests extends Middleware
         'account' => 'account',
     ];
 
+    /** Položky navigace navíc pro admina (R29). */
+    private const ADMIN_NAVIGATION = [
+        'catalog.index' => 'catalog',
+    ];
+
     /**
      * Sdílí s každou stránkou texty UI, jazyk a zónu, přihlášeného uživatele,
      * stavovou zprávu Fortify a navigaci.
@@ -63,11 +68,21 @@ class HandleInertiaRequests extends Middleware
                 fn (string $routeName, string $labelKey): array => [
                     'url' => route($routeName, absolute: false),
                     'label' => 'nav.'.$labelKey,
-                    'active' => $request->routeIs($routeName),
+                    'active' => $request->routeIs($routeName) || $request->routeIs(str_replace('.index', '.*', $routeName)),
                 ],
-                array_keys(self::NAVIGATION),
-                self::NAVIGATION,
+                array_keys($this->navigation($user)),
+                $this->navigation($user),
             ),
         ];
+    }
+
+    /**
+     * Položky navigace uživatele: název routy => klíč textu; admin má navíc katalog.
+     *
+     * @return array<string, string>
+     */
+    private function navigation(User $user): array
+    {
+        return $user->is_admin ? [...self::NAVIGATION, ...self::ADMIN_NAVIGATION] : self::NAVIGATION;
     }
 }

@@ -6,7 +6,8 @@
  * Každé stažení má záznam v scrape_runs. Nula nabídek je chyba zdroje, ne „žádné akce“
  * (CODING_GUIDELINES, sekce 3). Nabídky se nemažou (R10): opakované stažení stejnou
  * nabídku podle obchodu, ID položky a platnosti jen aktualizuje. Neskončená nabídka,
- * která v novém stažení chybí, se označí jako stažená obchodem (R16).
+ * která v novém stažení chybí, se označí jako stažená obchodem (R16). Nakonec se nabídky
+ * obchodu znovu přiřadí k produktům katalogu (R30).
  *
  * @author Roman Hlaváček
  *
@@ -17,6 +18,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Offers\Actions;
 
+use App\Domain\Catalog\Actions\AssignProducts;
 use App\Domain\Offers\Data\LeafletData;
 use App\Domain\Offers\Data\LeafletPageData;
 use App\Domain\Offers\Data\OfferData;
@@ -52,6 +54,7 @@ final class ImportChainOffers
     public function __construct(
         private readonly SourceRegistry $sources,
         private readonly LocalCalendar $calendar,
+        private readonly AssignProducts $assignProducts,
     ) {}
 
     /**
@@ -76,7 +79,10 @@ final class ImportChainOffers
                     throw SourceReturnedNoOffers::for($chain);
                 }
 
-                return [count($stored), $this->markWithdrawn($chain, $run)];
+                $withdrawn = $this->markWithdrawn($chain, $run);
+                $this->assignProducts->forChain($chain);
+
+                return [count($stored), $withdrawn];
             });
 
             $run->succeed($offersCount, $withdrawnCount);

@@ -30,6 +30,7 @@ use Illuminate\Support\Collection;
  * @property CarbonImmutable|null $email_verified_at
  * @property string $password
  * @property Collection<int, LoyaltyProgram>|null $loyalty_programs
+ * @property bool $is_admin Smí spravovat katalog produktů (R29); nastavuje se příkazem, ne formulářem
  * @property string|null $remember_token
  * @property CarbonImmutable $created_at
  * @property CarbonImmutable $updated_at
@@ -45,6 +46,15 @@ class User extends Authenticatable
         'email',
         'password',
         'loyalty_programs',
+    ];
+
+    /**
+     * Výchozí hodnoty nového účtu (jinak by je model znal až po načtení z databáze).
+     *
+     * @var array<string, mixed>
+     */
+    protected $attributes = [
+        'is_admin' => false,
     ];
 
     /** @var list<string> */
@@ -64,6 +74,7 @@ class User extends Authenticatable
             'email_verified_at' => 'immutable_datetime',
             'password' => 'hashed',
             'loyalty_programs' => AsEnumCollection::of(LoyaltyProgram::class),
+            'is_admin' => 'boolean',
             'created_at' => 'immutable_datetime',
             'updated_at' => 'immutable_datetime',
         ];

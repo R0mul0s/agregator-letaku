@@ -97,5 +97,9 @@ function unitPriceLabel(halers) {
             <span>{{ t('offers.valid', { from: formatDate(offer.validFrom, locale), to: formatDate(offer.validTo, locale) }) }}</span>
             <a v-if="offer.sourceUrl" :href="offer.sourceUrl" class="link" target="_blank" rel="noopener noreferrer">{{ t('offers.source') }}</a>
         </footer>
+        <!-- Akce ke kartě (oprava přiřazení v katalogu) -->
+        <div v-if="$slots.default" class="offer-card__actions">
+            <slot />
+        </div>
     </article>
 </template>

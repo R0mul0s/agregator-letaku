@@ -23,6 +23,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * @property int $id
@@ -128,6 +129,16 @@ class Offer extends Model
     public function leaflet(): BelongsTo
     {
         return $this->belongsTo(Leaflet::class);
+    }
+
+    /**
+     * Přiřazení nabídky k produktům katalogu (R30).
+     *
+     * @return HasMany<OfferProduct, $this>
+     */
+    public function productAssignments(): HasMany
+    {
+        return $this->hasMany(OfferProduct::class);
     }
 
     /**

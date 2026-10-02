@@ -35,9 +35,6 @@ use Illuminate\Database\Eloquent\Collection;
 
 final class MyOffers
 {
-    /** Sloupce, ve kterých databáze předvybírá kandidáty — stejné jako WatchItemMatcher. */
-    private const SEARCHED_COLUMNS = ['name', 'brand', 'description'];
-
     public function __construct(
         private readonly TextNormalizer $normalizer,
         private readonly WatchItemMatcher $matcher,
@@ -166,13 +163,7 @@ final class MyOffers
                     $query->orWhere(fn (Builder $query) => $this->whereFollowed($query, $chain));
                 }
             })
-            ->where(function (Builder $query) use ($rules): void {
-                foreach ($this->firstWords($rules) as $word) {
-                    foreach (self::SEARCHED_COLUMNS as $column) {
-                        $query->orWhere($column, 'like', '%'.addcslashes($word, '%_\\').'%');
-                    }
-                }
-            })
+            ->tap(fn (Builder $query) => OfferPrefilter::containingAny($query, $this->firstWords($rules)))
             ->get();
     }
 

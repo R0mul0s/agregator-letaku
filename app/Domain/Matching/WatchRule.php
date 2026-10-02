@@ -15,6 +15,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Matching;
 
+use App\Models\Product;
 use App\Models\WatchItem;
 
 final readonly class WatchRule
@@ -37,11 +38,37 @@ final readonly class WatchRule
      */
     public static function fromWatchItem(WatchItem $item, TextNormalizer $normalizer): self
     {
+        return self::fromText($item->keywords, $item->variant_keywords, $item->exclude_keywords, $normalizer);
+    }
+
+    /**
+     * Pravidla produktu katalogu (R29) — stejný zápis jako u hlídané položky.
+     */
+    public static function fromProduct(Product $product, TextNormalizer $normalizer): self
+    {
+        return self::fromText($product->keywords, $product->variant_keywords, $product->exclude_keywords, $normalizer);
+    }
+
+    /**
+     * Pravidla ze zápisu slov, varianty a vyloučení.
+     */
+    public static function fromText(?string $keywords, ?string $variant, ?string $exclude, TextNormalizer $normalizer): self
+    {
         return new self(
-            self::terms($item->keywords, $normalizer),
-            self::terms($item->variant_keywords, $normalizer),
-            array_merge(...self::terms($item->exclude_keywords, $normalizer) ?: [[]]),
+            self::terms($keywords, $normalizer),
+            self::terms($variant, $normalizer),
+            array_merge(...self::terms($exclude, $normalizer) ?: [[]]),
         );
+    }
+
+    /**
+     * Alternativy prvního slova — podle nich databáze předvybírá kandidáty.
+     *
+     * @return list<string>
+     */
+    public function firstWord(): array
+    {
+        return $this->keywords[0] ?? [];
     }
 
     /**

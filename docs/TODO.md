@@ -52,6 +52,16 @@ v [PLAN.md](PLAN.md). Větší celky se z toho stávají etapou.
 - **plánované spouštění** importů cron URL na Websupportu (R20, etapa 7) — dnes jen ručně artisan příkazem
 - **řazení výsledků hledání** podle shody nebo slevy — dnes podle začátku platnosti, takže dlouhodobé akce e-shopu jsou nahoře
 
+## Katalog produktů — rozšíření
+
+**Odkud:** etapa 5, R28–R30 v PLAN.md.
+
+- seznam **nepřiřazených akcí** v katalogu (potraviny bez produktu) jako podklad pro nové produkty; později třídění přes LLM (etapa 6)
+- akce Tesca mají v e-shopu i polici stromu (`superDepartmentName`, `departmentName`; regál a police jde doplnit do dotazu) — zařadit je do kategorií rovnou, bez pravidel
+- filtr podle kategorie ve Všech akcích a procházení katalogu stromem
+- v detailu produktu ukázat, které slovo akci našlo, a náhled změny pravidel před uložením
+- přepočet automatického přiřazení po změně pravidel nechává staré přiřazení u skončených akcí (historie) — zvážit, jestli je přepočítat taky
+
 ## Upřesnění „různých druhů“
 
 **Odkud:** O5 v PLAN.md.

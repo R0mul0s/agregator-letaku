@@ -15,14 +15,16 @@ kde a za kolik je to právě ve slevě, včetně cen s věrnostní kartou a ceny
 | **Správce** | Roman Hlaváček |
 
 > **Stav:** hotové jsou účty (etapa 1), stahování nabídek Kauflandu, Tesca, Lidlu a Penny
-> s přehledem všech akcí (etapy 2 a 4) a hlídání vlastních položek (etapa 3). Další je
-> katalog produktů ([PLAN.md, sekce 6](docs/PLAN.md#6-etapy)); Albert čeká na LLM.
+> s přehledem všech akcí (etapy 2 a 4) a hlídání vlastních položek (etapa 3). Rozpracovaný je
+> katalog produktů ([PLAN.md, sekce 6](docs/PLAN.md#6-etapy)): kategorie a správa katalogu
+> hotové, výběr produktu v Hlídám chybí; Albert čeká na LLM.
 
 ## Jak se to používá
 
 1. **Obchody** — zaškrtni obchody, karty a aplikace, které máš; u Tesca typ prodejny (hypermarket / supermarket).
 2. **Hlídám** — přidej, co hlídáš: hledaná slova, případně variantu („zero“) a slova k vyloučení. Pro vejce, mléko, máslo a Coca-Colu Zero jsou šablony.
 3. **Moje slevy** — akce k hlídaným položkám od nejnižší ceny za kg / l / ks. Souhrnné akce („různé druhy“) bez hledané varianty jsou označené **Možná**. Pod akcemi jsou **zmínky v letácích bez ceny** (Lidl, Penny) s odkazem na stránku letáku.
+4. **Katalog** (jen admin, `php artisan letaky:admin email`) — sdílené produkty se slovy a kategorií ze stromu e-shopu Tesco. Akce se k nim přiřadí při každém stažení; v detailu produktu jde přiřazení ručně opravit („sem patří“ / „sem nepatří“).
 
 ## Jak to funguje
 
@@ -102,6 +104,9 @@ docker compose exec app php artisan letaky:import-offers [kaufland] [tesco] [lid
 
 # strom kategorií katalogu z e-shopu Tesco (stačí občas)
 docker compose exec app php artisan letaky:import-categories
+
+# správa katalogu pro účet (--revoke odebere)
+docker compose exec app php artisan letaky:admin email@example.com
 ```
 
 ## Struktura repozitáře

@@ -43,6 +43,12 @@ return [
         'categories_failed' => 'Kategorie — chyba: :error',
     ],
 
+    'admin' => [
+        'unknown_user' => 'Účet s e-mailem :email neexistuje.',
+        'granted' => ':email teď spravuje katalog produktů.',
+        'revoked' => ':email už katalog produktů nespravuje.',
+    ],
+
     'ui' => [
         'app_name' => 'Agregátor letáků',
         'skip_to_content' => 'Přeskočit na obsah',
@@ -54,6 +60,37 @@ return [
             'preferences' => 'Obchody',
             'offers' => 'Všechny akce',
             'account' => 'Účet',
+            'catalog' => 'Katalog',
+        ],
+
+        'catalog' => [
+            'title' => 'Katalog produktů',
+            'intro' => 'Produkty, které jde hlídat. Akce se k nim přiřazují podle slov při každém stažení; přiřazení jde ručně opravit v detailu produktu.',
+            'empty' => 'Katalog je zatím prázdný.',
+            'name' => 'Název',
+            'name_hint' => 'Co člověk hledá, bez ohledu na obchod: „Polotučné mléko“, „Coca-Cola Zero“.',
+            'category' => 'Kategorie',
+            'category_hint' => 'Nepovinné. Strom kategorií e-shopu Tesco.',
+            'category_filter' => 'Zúžit kategorie…',
+            'no_category' => '— bez kategorie —',
+            'match_count' => ':count akce|:count akce|:count akcí',
+            'maybe_count' => '+ :count možná|+ :count možná|+ :count možná',
+            'add_title' => 'Nový produkt',
+            'add' => 'Přidat',
+            'edit_title' => 'Pravidla produktu',
+            'edit_hint' => 'Po uložení se akce k produktu přiřadí znovu; ruční opravy zůstanou.',
+            'save' => 'Uložit',
+            'delete' => 'Smazat produkt',
+            'delete_confirm' => 'Smazat produkt „:name“ i s přiřazením akcí?',
+            'back' => '← Katalog',
+            'assigned' => 'Přiřazené akce',
+            'assigned_empty' => 'K produktu teď nepatří žádná akce.',
+            'manual' => 'Ručně',
+            'exclude' => 'Sem nepatří',
+            'excluded' => 'Vyřazené akce',
+            'restore' => 'Vrátit',
+            'add_offer' => 'Přiřadit akci ručně',
+            'include' => 'Sem patří',
         ],
 
         'watch' => [

@@ -22,7 +22,8 @@ class DatabaseSeeder extends Seeder
     use WithoutModelEvents;
 
     /**
-     * Vytvoří vývojového uživatele test@example.com s heslem UserFactory::PASSWORD.
+     * Vytvoří vývojového uživatele test@example.com s heslem UserFactory::PASSWORD,
+     * který spravuje katalog (R29), a výchozí produkty katalogu.
      */
     public function run(): void
     {
@@ -30,6 +31,9 @@ class DatabaseSeeder extends Seeder
             'name' => 'Testovací uživatel',
             'email' => 'test@example.com',
             'password' => UserFactory::PASSWORD,
+            'is_admin' => true,
         ]);
+
+        $this->call(CatalogSeeder::class);
     }
 }

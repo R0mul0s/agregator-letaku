@@ -1,0 +1,43 @@
+// _catalog.scss
+// Katalog produktů pro admina (R29) — seznam produktů, detail a výběr kategorie.
+//
+// @author Roman Hlaváček
+// @created 2026-10-02
+
+.catalog-product {
+    &__category {
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+    }
+
+    &__counts {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--space-2);
+        margin-top: var(--space-1);
+        font-size: var(--font-size-sm);
+    }
+}
+
+.catalog-back {
+    display: inline-block;
+    margin-bottom: var(--space-2);
+}
+
+// Další oddíl detailu produktu pod mřížkou akcí
+.catalog-section {
+    margin-top: var(--space-5);
+}
+
+.category-select {
+    &__list {
+        width: 100%;
+        padding: var(--space-1);
+    }
+
+    &__selected {
+        font-size: var(--font-size-sm);
+        font-weight: 600;
+    }
+}

@@ -12,7 +12,9 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -37,5 +39,8 @@ class AppServiceProvider extends ServiceProvider
         // N+1 dotazy, přiřazení mimo $fillable a čtení nenačtených atributů
         // jsou při vývoji chyba, na produkci jen ne
         Model::shouldBeStrict(! $this->app->isProduction());
+
+        // Katalog produktů spravuje jen admin (R29)
+        Gate::define('manage-catalog', fn (User $user): bool => $user->is_admin);
     }
 }

@@ -125,6 +125,14 @@ return [
     ],
 
     /*
+    | Katalog produktů (R29, R30) — správa pro admina.
+    */
+    'catalog' => [
+        // Kolik nalezených nabídek se ukáže při ručním přiřazování k produktu
+        'search_results' => 20,
+    ],
+
+    /*
     | Přehled nabídek.
     */
     'offers' => [

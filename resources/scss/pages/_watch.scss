@@ -44,7 +44,8 @@
     gap: var(--space-4);
 
     @include from-lg {
-        grid-template-columns: 3fr 2fr;
+        // minmax(0, …) — dlouhý obsah (cesty kategorií v katalogu) nesmí sloupec roztáhnout
+        grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
     }
 
     &__list {

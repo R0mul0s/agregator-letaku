@@ -11,6 +11,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\OffersController;
 use App\Http\Controllers\ShoppingPreferencesController;
@@ -30,4 +31,16 @@ Route::middleware('auth')->group(function (): void {
     Route::put('/obchody', [ShoppingPreferencesController::class, 'update'])->name('preferences.update');
 
     Route::get('/ucet', AccountController::class)->name('account');
+
+    // Katalog produktů spravuje admin (R29)
+    Route::middleware('can:manage-catalog')->prefix('katalog')->name('catalog.')->group(function (): void {
+        Route::get('/', [CatalogController::class, 'index'])->name('index');
+        Route::post('/', [CatalogController::class, 'store'])->name('store');
+        Route::get('/{product}', [CatalogController::class, 'show'])->name('show');
+        Route::put('/{product}', [CatalogController::class, 'update'])->name('update');
+        Route::delete('/{product}', [CatalogController::class, 'destroy'])->name('destroy');
+        Route::post('/{product}/nabidky/{offer}', [CatalogController::class, 'includeOffer'])->name('offers.include');
+        Route::delete('/{product}/nabidky/{offer}', [CatalogController::class, 'excludeOffer'])->name('offers.exclude');
+        Route::delete('/{product}/vyrazene/{offer}', [CatalogController::class, 'restoreOffer'])->name('offers.restore');
+    });
 });
