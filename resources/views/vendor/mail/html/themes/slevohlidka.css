@@ -310,12 +310,20 @@ img {
 
 .header {
     border-bottom: 3px solid #f42630;
+    padding: 12px 0;
 }
 
+/* Logo bez okrajů výchozího tématu — hlavička nemá zbytečně zabírat polovinu náhledu */
 .logo {
     height: auto;
+    margin: 0;
     max-height: none;
-    width: 120px;
+    width: 96px;
+}
+
+/* Mezera mezi červenou linkou a obsahem — box nesmí být nalepený na linku */
+.body {
+    padding-top: 24px;
 }
 
 /* Souhrn nových akcí (R42): skupina hlídané položky */
