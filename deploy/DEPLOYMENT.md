@@ -187,7 +187,7 @@ změně odpovědi obchodu (`SourceResponseChanged`) i neplatném klíči Tesca.
 5. Nové proměnné v `deploy/.env.production.example` doplň do `.env` na hostingu
 6. Ověř `version.txt?v=<cokoli>` a zapiš verzi do tabulky *Nasazené verze*
 
-### Aktualizace `c5d45d7` → `82d6328` (2026-10-02)
+### Aktualizace z `c5d45d7` (2026-10-02, druhé nasazení)
 
 Účet s avatarem, předvolby Mých slev, e-mailový souhrn, nové Hlídám, stránkování, úvodní
 stránka, SEO a limity požadavků (R39–R45). `composer.lock` se nezměnil.
@@ -208,7 +208,7 @@ stránka, SEO a limity požadavků (R39–R45). `composer.lock` se nezměnil.
 6. **Cron** ve WebAdminu přidej: `30 6 * * *` →
    `https://slevohlidka.rhsoft.cz/cron/send-digests?token=<LETAKY_CRON_TOKEN>` (souhrny e-mailem).
 7. **Ověř** (kroky 1–8 v *7) Ověř*), navíc:
-   - `version.txt?v=…` vrací `82d6328`,
+   - `version.txt?v=…` vrací commit balíčku (vypíše ho `build-upload.ps1` na konci),
    - úvodní stránka bez přihlášení, `/akce` bez přihlášení,
    - v účtu nahrání profilového obrázku (zapisuje do `storage/app/private/avatars`),
    - zapomenuté heslo → e-mail dorazí s českým předmětem,
