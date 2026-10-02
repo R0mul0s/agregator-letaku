@@ -122,7 +122,7 @@ class CatalogController extends Controller
                 'updateUrl' => route('catalog.update', $product, absolute: false),
                 'deleteUrl' => route('catalog.destroy', $product, absolute: false),
             ],
-            'categories' => $this->categoryOptions(),
+            'categories' => $this->categoryOptions($product->category_id),
             'assigned' => $assignments->map(fn (OfferProduct $assignment): array => [
                 ...$presenter->toPage($assignment->offer),
                 'matchStatus' => $assignment->status->value,
@@ -222,15 +222,21 @@ class CatalogController extends Controller
     }
 
     /**
-     * Kategorie pro výběr ve formuláři, v pořadí stromu.
+     * Kategorie pro výběr ve formuláři, v pořadí stromu. Regál a police se stejným názvem
+     * („Balené chleby › Balené chleby“) mají stejný popisek — ve výběru zůstane jen první
+     * (regál); kategorie, kterou už produkt má, se ukáže vždy.
      *
      * @return list<array{id: int, label: string}>
      */
-    private function categoryOptions(): array
+    private function categoryOptions(?int $selectedId = null): array
     {
         $options = [];
+        $labels = [];
         foreach ($this->categories->all() as $id => $label) {
-            $options[] = ['id' => $id, 'label' => $label];
+            if (! isset($labels[$label]) || $id === $selectedId) {
+                $labels[$label] = true;
+                $options[] = ['id' => $id, 'label' => $label];
+            }
         }
 
         return $options;

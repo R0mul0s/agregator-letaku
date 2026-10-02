@@ -51,7 +51,14 @@ it('ukáže produkty s cestou kategorie a počtem přiřazených akcí', functio
         ->where('products.0.categoryLabel', 'Mléčné, vejce a margaríny › Máslo')
         ->where('products.0.matchCount', 2)
         ->where('products.0.maybeCount', 0)
-        ->where('categories.2.label', 'Mléčné, vejce a margaríny › Máslo'));
+        // Regál a police „Máslo › Máslo“ mají stejný popisek — ve výběru jen jednou
+        ->has('categories', 2)
+        ->where('categories.1.label', 'Mléčné, vejce a margaríny › Máslo'));
+
+    // V detailu produktu se jeho kategorie (police) ukáže, i když má stejný popisek jako regál
+    $this->actingAs($this->admin)->get(route('catalog.show', $product))->assertInertia(fn (Assert $page) => $page
+        ->has('categories', 3)
+        ->where('categories.2.id', $butterShelf->id));
 });
 
 it('založí produkt, přiřadí mu akce a otevře jeho detail', function (): void {
