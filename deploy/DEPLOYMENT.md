@@ -187,6 +187,35 @@ změně odpovědi obchodu (`SourceResponseChanged`) i neplatném klíči Tesca.
 5. Nové proměnné v `deploy/.env.production.example` doplň do `.env` na hostingu
 6. Ověř `version.txt?v=<cokoli>` a zapiš verzi do tabulky *Nasazené verze*
 
+### Aktualizace `c5d45d7` → `82d6328` (2026-10-02)
+
+Účet s avatarem, předvolby Mých slev, e-mailový souhrn, nové Hlídám, stránkování, úvodní
+stránka, SEO a limity požadavků (R39–R45). `composer.lock` se nezměnil.
+
+1. **Záloha databáze** (phpMyAdmin → Exportovat, viz *Záloha databáze*).
+2. **SQL:** v phpMyAdminu spusť `deploy/migrations-2026-10-02-ucet.sql` — přidá sloupce do
+   `users` (avatar, předvolby, souhrn). Opakovatelný. Stará verze kódu s ním běží dál.
+3. **`.env` na hostingu** — nové proměnné nejsou, zkontroluj ale:
+   - `APP_ENV=production` — jinak `robots.txt` zakáže indexaci celého webu,
+   - `APP_DEBUG=false`,
+   - `APP_URL=https://slevohlidka.rhsoft.cz`,
+   - `MAIL_*` vyplněné — posílá se obnova hesla a souhrn akcí.
+4. **Smaž na hostingu `public/robots.txt`** — `robots.txt` teď generuje aplikace a statický
+   soubor by ho přebil.
+5. **Nahraj `deploy/upload/` přes FTP** bez složky `vendor/` (nezměnila se), ale
+   **s `bootstrap/cache/packages.php`**. Složku `public/build/` na hostingu nejdřív smaž —
+   jinak tam zůstanou staré assety (neškodí, jen zabírají místo).
+6. **Cron** ve WebAdminu přidej: `30 6 * * *` →
+   `https://slevohlidka.rhsoft.cz/cron/send-digests?token=<LETAKY_CRON_TOKEN>` (souhrny e-mailem).
+7. **Ověř** (kroky 1–8 v *7) Ověř*), navíc:
+   - `version.txt?v=…` vrací `82d6328`,
+   - úvodní stránka bez přihlášení, `/akce` bez přihlášení,
+   - v účtu nahrání profilového obrázku (zapisuje do `storage/app/private/avatars`),
+   - zapomenuté heslo → e-mail dorazí s českým předmětem,
+   - `/cron/send-digests?token=…` vrací `Souhrny — odesláno: N`.
+8. **Search Console** a odeslání sitemap (*Vyhledávače*).
+9. Zapiš verzi do *Nasazené verze* a datum ke skriptu v *Historii SQL skriptů*.
+
 **Každá nová migrace potřebuje SQL skript** `deploy/migrations-<datum>-<popis>.sql`
 (opakovatelný: `CREATE TABLE IF NOT EXISTS`, `ADD COLUMN IF NOT EXISTS`) včetně zápisu do
 tabulky `migrations` — ve stejném commitu jako migrace. Nové produkty katalogu jdou na
@@ -208,8 +237,8 @@ a ruční opravy katalogu. Před každým SQL skriptem a jinak aspoň jednou mě
 
 | Skript | Obsah | Nasazeno |
 |---|---|---|
-| `migrations-2026-10-02-init.sql` | výchozí schéma — všechny tabulky k 2026-10-02 a záznamy v `migrations` | |
-| `data-2026-10-02-katalog.sql` | strom kategorií e-shopu Tesco (1 728) a 164 produktů katalogu (R28, R37), `REPLACE` — opakovatelný; až po init | |
+| `migrations-2026-10-02-init.sql` | výchozí schéma — všechny tabulky k 2026-10-02 a záznamy v `migrations` | 2026-10-02 |
+| `data-2026-10-02-katalog.sql` | strom kategorií e-shopu Tesco (1 728) a 164 produktů katalogu (R28, R37), `REPLACE` — opakovatelný; až po init | 2026-10-02 |
 | `migrations-2026-10-02-ucet.sql` | nastavení účtu: `users.avatar_path` (R40), `users.offers_sort` a `min_discount_percent` (R41), `users.digest_frequency` a `digest_sent_at` (R42); opakovatelný, pustit **před** nahráním kódu | |
 
 ## Nasazené verze
@@ -219,4 +248,4 @@ Co běží na produkci — pro `git log <commit>..HEAD` při dalším nasazení
 
 | Datum | Commit | Co |
 |---|---|---|
-| | | zatím nenasazeno |
+| 2026-10-02 | `c5d45d7` + `config/inertia.php` z `a17fbae` | první nasazení: balíček, schéma a katalog, crony stahování |
