@@ -6,6 +6,7 @@
 -->
 <script setup>
 import ChainLogo from '@/Components/ChainLogo.vue';
+import ChainWatermark from '@/Components/ChainWatermark.vue';
 import { formatDate } from '@/lib/format';
 import { useTranslations } from '@/lib/i18n';
 import { usePage } from '@inertiajs/vue3';
@@ -23,14 +24,16 @@ const locale = computed(() => page.props.locale);
 
 <template>
     <article class="mention-card">
+        <ChainWatermark :chain="mention.chain" />
         <!-- Náhled stránky z CDN obchodu (R22); obsah nese text karty, obrázek je dekorativní -->
         <img v-if="mention.imageUrl" :src="mention.imageUrl" alt="" class="mention-card__image" loading="lazy" referrerpolicy="no-referrer" />
         <div class="mention-card__body">
             <div class="offer-card__badges">
                 <ChainLogo :chain="mention.chain" />
+                <span v-if="mention.storeFormatName" class="tag">{{ mention.storeFormatName }}</span>
                 <span v-if="mention.matchStatus === 'maybe'" class="tag tag--warning" :title="t('home.mention_maybe_hint')">{{ t('offers.maybe') }}</span>
             </div>
-            <p v-if="mention.leafletTitle" class="mention-card__title">{{ mention.leafletTitle }}</p>
+            <p class="mention-card__title">{{ mention.leafletTitle || t('home.mention_leaflet') }}</p>
             <p v-if="mention.validFrom && mention.validTo" class="mention-card__meta">
                 {{ t('offers.valid', { from: formatDate(mention.validFrom, locale), to: formatDate(mention.validTo, locale) }) }}
             </p>

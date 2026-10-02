@@ -33,6 +33,8 @@ final class MentionPresenter
             'chain' => $leaflet->chain->value,
             'chainName' => $leaflet->chain->label(),
             'leafletTitle' => $leaflet->title,
+            // Obchod s odlišnými letáky pro hypermarkety a supermarkety (Albert, Tesco)
+            'storeFormatName' => $leaflet->format?->label(),
             'pageNumber' => $page->number,
             'validFrom' => $leaflet->valid_from?->format(self::DATE_FORMAT),
             'validTo' => $leaflet->valid_to?->format(self::DATE_FORMAT),

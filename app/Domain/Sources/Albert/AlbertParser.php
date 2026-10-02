@@ -68,7 +68,9 @@ final class AlbertParser
                 'leaflet' => new LeafletData(
                     kind: LeafletKind::Leaflet,
                     externalId: $id,
-                    title: Text::clean(is_string($item['title'] ?? null) ? $item['title'] : null),
+                    // Název z GraphQL je technický („Albert - 40HM_akcni_letak“) — typ prodejny
+                    // nese formát a stránka ukáže obecné „Akční leták“
+                    title: null,
                     format: $format,
                     validFrom: $this->calendar->startFromInstant($this->instant($start)),
                     validTo: $this->calendar->endFromInstant($this->instant($end)),

@@ -82,3 +82,24 @@
         }
     }
 }
+
+// Logo obchodu jako vodoznak v pozadí karty (ChainWatermark) — velké, šedé, uříznuté rohem.
+// Karta musí mít isolation: isolate a overflow: hidden — logo je pak nad jejím pozadím
+// a pod obsahem.
+.chain-watermark {
+    position: absolute;
+    z-index: -1;
+    right: var(--watermark-offset);
+    bottom: var(--watermark-offset);
+    width: auto;
+    max-width: var(--watermark-max-width);
+    height: var(--watermark-size);
+    // Široká loga (Tesco) se zmenší v poměru stran, nedeformují se
+    object-fit: contain;
+    object-position: right bottom;
+    opacity: var(--watermark-opacity);
+    filter: grayscale(1);
+    transform: rotate(var(--watermark-rotation));
+    pointer-events: none;
+    user-select: none;
+}

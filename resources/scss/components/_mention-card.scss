@@ -11,6 +11,9 @@
 }
 
 .mention-card {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
     display: flex;
     gap: var(--space-3);
     padding: var(--space-3);

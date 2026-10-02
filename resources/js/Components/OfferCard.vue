@@ -6,6 +6,7 @@
 -->
 <script setup>
 import ChainLogo from '@/Components/ChainLogo.vue';
+import ChainWatermark from '@/Components/ChainWatermark.vue';
 import { formatDate, formatPackage, formatPrice } from '@/lib/format';
 import { useTranslations } from '@/lib/i18n';
 import { discountPercent } from '@/lib/offer';
@@ -61,6 +62,7 @@ function unitPriceLabel(halers) {
 
 <template>
     <article class="offer-card">
+        <ChainWatermark :chain="offer.chain" />
         <div class="offer-card__badges">
             <ChainLogo :chain="offer.chain" />
             <span v-if="offer.matchStatus === 'maybe'" class="tag tag--warning" :title="t('offers.maybe_hint')">{{ t('offers.maybe') }}</span>
