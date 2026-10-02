@@ -1,4 +1,6 @@
-# Agregátor letáků
+<img src="public/images/brand/logo.png" alt="Slevohlídka" width="240">
+
+# Slevohlídka — rychlý lovec slev
 
 Hlídání akčních nabídek z letáků obchodů **Kaufland, Tesco, Albert, Lidl a Penny**.
 Vybereš si prodejny a zadáš, co tě zajímá: konkrétní produkt („Coca-Cola Zero“)

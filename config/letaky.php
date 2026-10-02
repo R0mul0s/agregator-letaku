@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Konstanty aplikace Agregátor letáků.
+ * Konstanty aplikace Slevohlídka (repozitář agregator-letaku).
  *
  * Do .env patří jen infrastruktura a tajemství; tady jsou výchozí hodnoty
  * a vše, co se v kódu nesmí objevit jako magic number.
@@ -36,7 +36,7 @@ return [
     */
     'theme_colors' => [
         'light' => '#f4f6f8',
-        'dark' => '#11161d',
+        'dark' => '#16181d',
     ],
 
     /*

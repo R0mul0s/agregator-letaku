@@ -1,5 +1,5 @@
 // _app-header.scss
-// Hlavička aplikace — logo, navigace, přepínač vzhledu a odhlášení.
+// Hlavička aplikace — logo a název Slevohlídky s mottem, navigace, přepínač vzhledu a odhlášení.
 //
 // @author Roman Hlaváček
 // @created 2026-10-02
@@ -57,6 +57,32 @@
             overflow: visible;
             clip-path: none;
             white-space: normal;
+        }
+    }
+
+    // Název jako v logu: „Slevo“ červeně, „hlídka“ antracitově (v tmavém režimu světle)
+    &__wordmark {
+        display: block;
+        color: var(--color-brand-dark);
+        font-size: var(--font-size-brand);
+        font-weight: 800;
+        letter-spacing: var(--letter-spacing-brand);
+        line-height: 1;
+    }
+
+    &__wordmark-first {
+        color: var(--color-brand);
+    }
+
+    // Motto se vejde jen na širokou obrazovku vedle celé navigace
+    &__tagline {
+        display: none;
+        color: var(--color-text-muted);
+        font-size: var(--font-size-xs);
+        font-weight: 400;
+
+        @include from-lg {
+            display: block;
         }
     }
 

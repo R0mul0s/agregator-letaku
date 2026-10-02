@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Texty aplikace Agregátor letáků.
+ * Texty aplikace Slevohlídka.
  *
  * Skupina `ui` se sdílí do Vue přes Inertia (HandleInertiaRequests) a čte se
  * helperem `t()` z resources/js/lib/i18n.js.
@@ -16,7 +16,7 @@ declare(strict_types=1);
 return [
 
     'meta' => [
-        'description' => 'Hlídání akčních nabídek z letáků obchodů Kaufland, Tesco, Albert, Lidl a Penny.',
+        'description' => 'Slevohlídka — rychlý lovec slev. Hlídá akce z letáků obchodů Kaufland, Tesco, Albert, Lidl a Penny.',
     ],
 
     // App\Enums\Chain
@@ -50,7 +50,13 @@ return [
     ],
 
     'ui' => [
-        'app_name' => 'Agregátor letáků',
+        'app_name' => 'Slevohlídka',
+        // Název v hlavičce ve dvou barvách jako v logu (resources/js/Layouts/AppLayout.vue)
+        'brand' => [
+            'first' => 'Slevo',
+            'second' => 'hlídka',
+            'tagline' => 'Rychlý lovec slev',
+        ],
         'skip_to_content' => 'Přeskočit na obsah',
 
         'nav' => [

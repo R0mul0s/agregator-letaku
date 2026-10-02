@@ -16,7 +16,10 @@
         <meta name="theme-color" content="{{ config('letaky.theme_colors.light') }}" media="(prefers-color-scheme: light)">
         <meta name="theme-color" content="{{ config('letaky.theme_colors.dark') }}" media="(prefers-color-scheme: dark)">
         <title inertia>{{ __('app.ui.app_name') }}</title>
-        <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+        {{-- Ikony z loga Slevohlídky (public/images/brand, vygenerované z slevohlidka-logo.png) --}}
+        <link rel="icon" href="/images/brand/icon-32.png" sizes="32x32" type="image/png">
+        <link rel="icon" href="/images/brand/icon-192.png" sizes="192x192" type="image/png">
+        <link rel="apple-touch-icon" href="/images/brand/apple-touch-icon.png">
         {{-- Uložený vzhled nastavit před vykreslením, jinak stránka problikne (viz resources/js/lib/theme.js) --}}
         <script src="/theme-init.js"></script>
         @vite(['resources/scss/app.scss', 'resources/js/app.js'])

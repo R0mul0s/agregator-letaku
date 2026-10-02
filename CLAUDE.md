@@ -1,6 +1,6 @@
-# Agregátor letáků
+# Slevohlídka (agregátor letáků)
 
-Webová aplikace, která hlídá akční nabídky z letáků obchodů **Kaufland, Tesco,
+Webová aplikace **Slevohlídka** („Rychlý lovec slev“, R34), která hlídá akční nabídky z letáků obchodů **Kaufland, Tesco,
 Albert, Lidl a Penny**. Uživatel si vybere prodejny a hlídané položky (konkrétní
 produkt nebo kategorii) a vidí, kde a za kolik jsou ve slevě. Osobní projekt,
 zatím jen pro vlastní použití.

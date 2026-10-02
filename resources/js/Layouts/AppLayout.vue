@@ -18,8 +18,14 @@ const page = usePage();
     <header class="app-header">
         <div class="app-header__inner">
             <Link href="/" class="app-header__brand">
-                <img src="/favicon.svg" alt="" class="app-header__logo" />
-                <span class="app-header__name">{{ t('app_name') }}</span>
+                <img src="/images/brand/logo-mark.png" alt="" class="app-header__logo" />
+                <!-- Název ve dvou barvách jako v logu; části bez mezery, čtečka přečte jedno slovo -->
+                <span class="app-header__name">
+                    <span class="app-header__wordmark"
+                        ><span class="app-header__wordmark-first">{{ t('brand.first') }}</span>{{ t('brand.second') }}</span
+                    >
+                    <span class="app-header__tagline">{{ t('brand.tagline') }}</span>
+                </span>
             </Link>
             <nav v-if="page.props.navigation.length" class="app-header__nav" :aria-label="t('nav.label')">
                 <Link

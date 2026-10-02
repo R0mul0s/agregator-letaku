@@ -14,14 +14,18 @@
     // --color-bg musí sedět s config/letaky.php (theme_colors) — barva lišty prohlížeče
     --color-bg: #f4f6f8;
     --color-surface: #ffffff;
-    --color-text: #18202a;
-    --color-text-muted: #5c6773;
-    // Akcent v barvě cenovky z ikony; text na akcentu má kontrast aspoň 4,5 : 1 (WCAG AA)
-    --color-accent: #c2255c;
-    --color-accent-strong: #a61e4d;
-    --color-accent-soft: #fdeef3;
+    --color-text: #1f222a;
+    --color-text-muted: #5c6370;
+    // Barvy loga Slevohlídky — jen na název v hlavičce (velký tučný text stačí s kontrastem 3 : 1)
+    --color-brand: #f42630;
+    --color-brand-dark: #1f222a;
+    // Akcent = červená z loga ztmavená tak, aby bílý text na tlačítku měl kontrast aspoň 4,5 : 1
+    // (WCAG AA; čistá #f42630 má jen 4,06); odkazy a text v akcentu ještě tmavší
+    --color-accent: #d91f29;
+    --color-accent-strong: #b8141e;
+    --color-accent-soft: #fdecec;
     --color-on-accent: #ffffff;
-    --color-border: #dce1e7;
+    --color-border: #dfe1e6;
     --color-focus: #1c7ed6;
     --color-success: #2f9e44;
     --color-success-soft: #ebfbee;
@@ -41,7 +45,7 @@
 
     --radius-sm: 0.5rem;
     --radius-md: 0.75rem;
-    --shadow-card: 0 1px 2px rgb(24 32 42 / 6%), 0 4px 12px rgb(24 32 42 / 6%);
+    --shadow-card: 0 1px 2px rgb(31 34 42 / 6%), 0 4px 12px rgb(31 34 42 / 6%);
     --focus-ring: 0 0 0 3px rgb(28 126 214 / 35%);
 
     // Kresby SVG (ikony) — v jednotkách viewBoxu, ne v pixelech obrazovky
@@ -56,6 +60,8 @@
     --font-size-md: 1rem;
     --font-size-card-title: 1.25rem;
     --font-size-lg: 1.75rem;
+    --font-size-brand: 1.25rem;
+    --letter-spacing-brand: -0.02em;
 
     --content-max-width: 72rem;
     --auth-card-max-width: 28rem;
@@ -72,22 +78,25 @@
     --font-size-price: 1.5rem;
     --control-size: 2.5rem;
     --checkbox-size: 1.125rem;
-    --logo-size: 2.5rem;
-    --logo-size-mobile: 2rem;
+    --logo-size: 3rem;
+    --logo-size-mobile: 2.5rem;
     --theme-button-size: 2rem;
     --theme-icon-size: 1.125rem;
 
     @include dark {
         color-scheme: dark;
-        --color-bg: #11161d;
-        --color-surface: #1a212b;
-        --color-text: #e7edf3;
-        --color-text-muted: #98a4b3;
-        --color-accent: #f06595;
-        --color-accent-strong: #f783ac;
-        --color-accent-soft: #3a1a27;
-        --color-on-accent: #11161d;
-        --color-border: #2a3441;
+        // Podklad karet je antracit z loga
+        --color-bg: #16181d;
+        --color-surface: #1f222a;
+        --color-text: #eceef2;
+        --color-text-muted: #9aa0ab;
+        --color-brand: #ff4a52;
+        --color-brand-dark: #eceef2;
+        --color-accent: #ff5c63;
+        --color-accent-strong: #ff858a;
+        --color-accent-soft: #3a1c1f;
+        --color-on-accent: #16181d;
+        --color-border: #2e323b;
         --color-focus: #4dabf7;
         --color-success: #51cf66;
         --color-success-soft: #13301b;
