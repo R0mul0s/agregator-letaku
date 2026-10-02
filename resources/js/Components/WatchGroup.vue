@@ -17,6 +17,10 @@ import { computed, useId } from 'vue';
 const props = defineProps({
     /** Položka z HomeController (akce, zmínky, nejnižší cena, adresy úprav). */
     item: { type: Object, required: true },
+    /** Jak často chodí e-mailový souhrn („denně“), null = vypnutý (R42). */
+    digestFrequency: { type: String, default: null },
+    /** Nastavení souhrnu v účtu. */
+    digestUrl: { type: String, required: true },
 });
 
 /** Rozbalená skupina (řídí stránka — pamatuje si stav a umí rozbalit vše). */
@@ -83,6 +87,11 @@ function remove() {
                     <p>
                         <strong class="watch-group__empty-title">{{ t('home.no_offers') }}</strong>
                         <span class="watch-group__empty-hint">{{ t('home.no_offers_hint') }}</span>
+                        <span v-if="digestFrequency" class="watch-group__empty-hint">{{ t('home.no_offers_digest_on', { frequency: digestFrequency }) }}</span>
+                        <span v-else class="watch-group__empty-hint">
+                            {{ t('home.no_offers_digest_off') }}
+                            <Link :href="digestUrl" class="link">{{ t('home.no_offers_digest_link') }}</Link>
+                        </span>
                     </p>
                 </div>
                 <div v-if="item.offers.length" class="offer-grid">

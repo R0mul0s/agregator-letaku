@@ -26,6 +26,8 @@ const props = defineProps({
     urls: { type: Object, required: true },
     /** Předvolby uživatele { sortLabel, minDiscountPercent } (R41). */
     offersPreferences: { type: Object, required: true },
+    /** Jak často chodí e-mailový souhrn („denně“), null = vypnutý (R42). */
+    digestFrequency: { type: String, default: null },
     /** Hlídané položky s nabídkami od nejnižší ceny za jednotku a zmínkami v letácích (App\Domain\Matching\MyOffers). */
     watchItems: { type: Array, required: true },
 });
@@ -149,6 +151,8 @@ onMounted(async () => {
                 v-for="item in watchItems"
                 :key="item.id"
                 :item="item"
+                :digest-frequency="digestFrequency"
+                :digest-url="urls.digest"
                 :expanded="expandedIds.has(item.id)"
                 @update:expanded="(value) => setExpanded(item.id, value)"
             />

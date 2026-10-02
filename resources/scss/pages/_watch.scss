@@ -159,6 +159,7 @@
     }
 
     &__empty-hint {
+        display: block;
         color: var(--color-text-muted);
         font-size: var(--font-size-sm);
     }

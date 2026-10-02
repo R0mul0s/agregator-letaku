@@ -16,6 +16,7 @@ namespace App\Http\Controllers;
 use App\Domain\Matching\MyOffers;
 use App\Domain\Offers\MentionPresenter;
 use App\Domain\Offers\OfferPresenter;
+use App\Enums\DigestFrequency;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -41,7 +42,10 @@ class HomeController extends Controller
                 'preferences' => route('preferences', absolute: false),
                 'watchItems' => route('watch-items.index', absolute: false),
                 'offersPreferences' => route('account', absolute: false).'#moje-slevy',
+                'digest' => route('account', absolute: false).'#souhrn',
             ],
+            // E-mailový souhrn (R42) — prázdná skupina na něj upozorní; null = vypnutý
+            'digestFrequency' => $user->digest_frequency === DigestFrequency::Off ? null : mb_strtolower($user->digest_frequency->label()),
             // Předvolby řazení a minimální slevy (R41) — stránka je ukazuje u souhrnu
             'offersPreferences' => [
                 'sortLabel' => $user->offers_sort->label(),

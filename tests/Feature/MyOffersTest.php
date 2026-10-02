@@ -13,6 +13,7 @@ declare(strict_types=1);
 use App\Domain\Catalog\Actions\AssignProducts;
 use App\Domain\Catalog\Actions\CorrectAssignment;
 use App\Enums\Chain;
+use App\Enums\DigestFrequency;
 use App\Enums\LeafletKind;
 use App\Enums\LoyaltyProgram;
 use App\Enums\OffersSort;
@@ -274,4 +275,14 @@ it('položka z katalogu ukáže akce přiřazené k produktu i s ručními oprav
     app(CorrectAssignment::class)->include($product, $quail);
 
     expect(myOffers()['Moje vejce'])->toEqualCanonicalizing(['Čerstvá vejce', 'Křepelčí vajíčka']);
+});
+
+it('u prázdné skupiny řekne, jestli chodí e-mailový souhrn (R42)', function (): void {
+    $this->get(route('home'))->assertInertia(fn (Assert $page) => $page
+        ->where('digestFrequency', null)
+        ->where('urls.digest', '/ucet#souhrn'));
+
+    $this->user->forceFill(['digest_frequency' => DigestFrequency::Weekly])->save();
+
+    $this->get(route('home'))->assertInertia(fn (Assert $page) => $page->where('digestFrequency', 'jednou týdně'));
 });
