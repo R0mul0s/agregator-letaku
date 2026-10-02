@@ -221,35 +221,8 @@
         }
     }
 
-    // Nepřihlášený (R44): na mobilu logo, Všechny akce, Přihlásit a Registrace v jednom řádku —
-    // navigace nemá vlastní řádek a tlačítka jsou kompaktní, ať se vejdou na šířku telefonu
-    &--guest &__inner {
-        flex-wrap: nowrap;
-        gap: var(--space-1);
-
-        @include from-md {
-            gap: var(--space-2);
-        }
-    }
-
-    &--guest &__nav {
-        flex: 1 1 auto;
-        flex-wrap: nowrap;
-        order: 0;
-        justify-content: flex-end;
-    }
-
-    &--guest &__link {
-        padding-inline: var(--space-1);
-        font-size: var(--font-size-sm);
-        white-space: nowrap;
-
-        @include from-md {
-            padding-inline: var(--space-3);
-            font-size: inherit;
-        }
-    }
-
+    // Nepřihlášený (R44) na telefonu: v hlavičce logo, Registrace a hamburger; Všechny akce,
+    // přihlášení a vzhled jsou v menu. Kompaktní tlačítka, ať se vejdou na šířku telefonu.
     &--guest &__actions {
         gap: var(--space-1);
 
@@ -267,6 +240,31 @@
                 padding: var(--space-2) var(--space-3);
                 font-size: inherit;
             }
+        }
+    }
+
+    // Přihlášení v hlavičce jen od středního displeje — na telefonu je v menu
+    &__actions &__login {
+        display: none;
+
+        @include from-md {
+            display: inline-flex;
+        }
+    }
+
+    // Část menu jen pro telefon (přihlášení, vzhled) — od středního displeje je v hlavičce
+    &__nav-extra {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-2);
+        margin-top: var(--space-1);
+        padding: var(--space-2) var(--space-3) var(--space-1);
+        border-top: 1px solid var(--color-border);
+
+        @include from-md {
+            display: none;
         }
     }
 

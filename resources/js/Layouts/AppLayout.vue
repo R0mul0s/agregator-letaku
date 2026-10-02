@@ -1,7 +1,7 @@
 <!--
-    Společné rozvržení stránek — hlavička s navigací a menu účtu (nepřihlášený jen přepínač vzhledu), obsah.
-    Přihlášený má na telefonu navigaci pod tlačítkem menu (hamburger); nepřihlášený má jen
-    „Všechny akce“, ty se vejdou do řádku s přihlášením (R44).
+    Společné rozvržení stránek — hlavička s navigací a menu účtu (nepřihlášený přihlášení,
+    registraci a přepínač vzhledu), obsah. Na telefonu je navigace pod tlačítkem menu
+    (hamburger); nepřihlášený má v hlavičce jen Registraci, přihlášení a vzhled jsou v menu (R44).
 
     @author Roman Hlaváček
     @created 2026-10-02
@@ -19,8 +19,8 @@ const NAV_ID = 'app-navigation';
 const t = useTranslations();
 const page = usePage();
 
-/** Hamburger má smysl jen s víc položkami navigace (přihlášený). */
-const hasMenuButton = computed(() => page.props.navigation.length > 1);
+/** Hamburger na telefonu — přihlášený i nepřihlášený, kdykoli je co navigovat. */
+const hasMenuButton = computed(() => page.props.navigation.length > 0);
 
 /** Navigace rozbalená na telefonu. */
 const navOpen = ref(false);
@@ -52,7 +52,6 @@ onBeforeUnmount(() => {
 
 <template>
     <a href="#main" class="skip-link">{{ t('skip_to_content') }}</a>
-    <!-- Nepřihlášený má na mobilu navigaci i přihlášení v jednom řádku s logem (R44) -->
     <!-- Na úvodní stránce logo na telefonu jede jako košík v hlavním pruhu (ten je na mobilu skrytý) -->
     <header
         class="app-header"
@@ -85,6 +84,11 @@ onBeforeUnmount(() => {
                 >
                     {{ t(item.label) }}
                 </Link>
+                <!-- Nepřihlášený na telefonu: přihlášení a vzhled v menu (v hlavičce se nevejdou) -->
+                <div v-if="!page.props.auth.user" class="app-header__nav-extra">
+                    <Link v-if="page.component !== 'Auth/Login'" :href="page.props.auth.loginUrl" class="link">{{ t('auth.login.submit') }}</Link>
+                    <ThemeSwitch />
+                </div>
             </nav>
             <div class="app-header__actions">
                 <!-- Přihlášený má vzhled i odhlášení v menu pod avatarem (R40) -->
@@ -93,7 +97,7 @@ onBeforeUnmount(() => {
                     <!-- Na mobilu by se vedle přihlášení nevešel — vzhled se tam řídí systémem -->
                     <ThemeSwitch class="app-header__guest-theme" />
                     <!-- Nepřihlášený (R44): přihlášení a registrace; na jejich stránkách se neopakují -->
-                    <Link v-if="page.component !== 'Auth/Login'" :href="page.props.auth.loginUrl" class="button button--ghost">{{ t('auth.login.submit') }}</Link>
+                    <Link v-if="page.component !== 'Auth/Login'" :href="page.props.auth.loginUrl" class="button button--ghost app-header__login">{{ t('auth.login.submit') }}</Link>
                     <Link v-if="page.component !== 'Auth/Register'" :href="page.props.auth.registerUrl" class="button button--primary app-header__register">
                         {{ t('auth.register.title') }}
                     </Link>
