@@ -15,6 +15,8 @@ defineProps({
     pagination: { type: Object, required: true },
     /** Celkový počet položek. */
     total: { type: Number, required: true },
+    /** Text tlačítka „Načíst další“ s počtem (akce, produkty…). */
+    loadMoreKey: { type: String, default: 'offers.load_more' },
 });
 
 const t = useTranslations();
@@ -35,7 +37,7 @@ function formatNumber(value) {
     <div v-if="total" class="pagination">
         <!-- Načtené akce zůstanou, nová stránka se připojí pod ně a posun stránky se nezmění -->
         <Link v-if="pagination.loadMoreUrl" :href="pagination.loadMoreUrl" class="button button--primary" preserve-scroll preserve-state>
-            {{ t('offers.load_more', { count: pagination.loadMoreCount }) }}
+            {{ t(loadMoreKey, { count: pagination.loadMoreCount }) }}
         </Link>
 
         <p class="pagination__shown">

@@ -64,6 +64,55 @@ it('ukáže produkty s cestou kategorie a počtem přiřazených akcí', functio
         ->where('categories.2.id', $butterShelf->id));
 });
 
+it('hledá v názvu, slovech i cestě kategorie bez diakritiky a filtruje oddělení (R43)', function (): void {
+    $drinks = Category::factory()->create(['name' => 'Nápoje']);
+    $beer = Category::factory()->childOf($drinks)->create(['name' => 'Pivo']);
+    $dairy = Category::factory()->create(['name' => 'Mléčné výrobky']);
+    Product::factory()->create(['name' => 'Ležák', 'keywords' => 'lezak', 'category_id' => $beer->id]);
+    Product::factory()->create(['name' => 'Máslo', 'keywords' => 'máslo', 'category_id' => $dairy->id]);
+    Product::factory()->create(['name' => 'Kofola', 'keywords' => 'kofola', 'category_id' => null]);
+    $names = fn (string $url): array => array_column($this->actingAs($this->admin)->get($url)->viewData('page')['props']['products'], 'name');
+
+    expect($names('/katalog?q=napoje'))->toBe(['Ležák'])
+        ->and($names('/katalog?q=MASLO'))->toBe(['Máslo'])
+        ->and($names('/katalog?q=pivo+lezak'))->toBe(['Ležák'])
+        ->and($names('/katalog?oddeleni=Mléčné+výrobky'))->toBe(['Máslo']);
+
+    $this->actingAs($this->admin)->get('/katalog')->assertInertia(fn (Assert $page) => $page
+        ->where('departments', ['Mléčné výrobky', 'Nápoje'])
+        ->where('total', 3)
+        ->where('hasProducts', true));
+});
+
+it('řadí na serveru podle názvu, kategorie a počtu hlídajících (R43)', function (): void {
+    $a = Category::factory()->create(['name' => 'A oddělení']);
+    $z = Category::factory()->create(['name' => 'Z oddělení']);
+    Product::factory()->create(['name' => 'Bez kategorie', 'category_id' => null]);
+    Product::factory()->create(['name' => 'Cé', 'category_id' => $a->id]);
+    $watched = Product::factory()->create(['name' => 'Áčko', 'category_id' => $z->id]);
+    WatchItem::factory()->create(['product_id' => $watched->id, 'keywords' => null]);
+    $names = fn (string $url): array => array_column($this->actingAs($this->admin)->get($url)->viewData('page')['props']['products'], 'name');
+
+    expect($names('/katalog'))->toBe(['Áčko', 'Bez kategorie', 'Cé'])
+        ->and($names('/katalog?razeni=category'))->toBe(['Cé', 'Áčko', 'Bez kategorie'])
+        ->and($names('/katalog?razeni=category&smer=desc'))->toBe(['Áčko', 'Cé', 'Bez kategorie'])
+        ->and($names('/katalog?razeni=watchers'))->toBe(['Áčko', 'Bez kategorie', 'Cé']);
+});
+
+it('stránkuje s „Načíst další“ a zachová hledání a řazení v odkazech (R43)', function (): void {
+    config(['letaky.catalog.per_page' => 2]);
+    Product::factory()->count(5)->sequence(fn ($sequence): array => ['name' => 'Pivo '.$sequence->index])->create();
+
+    $this->actingAs($this->admin)->get('/katalog?q=pivo&razeni=watchers')->assertInertia(fn (Assert $page) => $page
+        ->has('products', 2)
+        ->where('total', 5)
+        ->where('pagination.loadMoreUrl', '/katalog?q=pivo&razeni=watchers&od=1&strana=2'));
+
+    $this->actingAs($this->admin)->get('/katalog?od=1&strana=3')->assertInertia(fn (Assert $page) => $page
+        ->has('products', 5)
+        ->where('pagination.loadMoreUrl', null));
+});
+
 it('založí produkt, přiřadí mu akce a otevře jeho detail', function (): void {
     Offer::factory()->create(['name' => 'Čerstvá vejce']);
 

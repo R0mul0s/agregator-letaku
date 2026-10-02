@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Rozsah stránek výpisu (R43): od stránky `from` po stránku `to` včetně. „Načíst další“
+ * Rozsah stránek výpisu (R43, Všechny akce i katalog): od stránky `from` po stránku `to` včetně. „Načíst další“
  * rozsah prodlouží, adresa ho nese (?od=1&strana=3), takže po obnovení nebo návratu
  * zpět zůstane načteno totéž. Rozsah má strop, aby adresa nevynutila tisíce akcí najednou.
  *
@@ -12,7 +12,7 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Offers;
+namespace App\Support\Pagination;
 
 final readonly class PageWindow
 {

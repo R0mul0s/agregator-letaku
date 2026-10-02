@@ -107,6 +107,7 @@ return [
             'all_departments' => 'Všechna oddělení',
             'count' => ':count produkt|:count produkty|:count produktů',
             'no_results' => 'Hledání neodpovídá žádný produkt.',
+            'load_more' => 'Načíst další :count produkt|Načíst další :count produkty|Načíst dalších :count produktů',
             'columns' => [
                 'name' => 'Produkt',
                 'category' => 'Kategorie',

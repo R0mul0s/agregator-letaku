@@ -199,6 +199,17 @@ return [
     'catalog' => [
         // Kolik nalezených nabídek se ukáže při ručním přiřazování k produktu
         'search_results' => 20,
+        'per_page' => 50,
+        'search_max_length' => 100,
+    ],
+
+    /*
+    | Stránkování s „Načíst další“ (R43) — Všechny akce i katalog: nejvýš tolik stránek
+    | najednou; kolik čísel stránek ukázat kolem načteného rozsahu (vždy i první a poslední).
+    */
+    'pagination' => [
+        'max_loaded_pages' => 10,
+        'page_link_neighbours' => 1,
     ],
 
     /*
@@ -206,10 +217,6 @@ return [
     */
     'offers' => [
         'per_page' => 50,
-        // „Načíst další“ (R43): nejvýš tolik stránek najednou; kolik čísel stránek ukázat
-        // kolem načteného rozsahu (vždy i první a poslední)
-        'max_loaded_pages' => 10,
-        'page_link_neighbours' => 1,
         'search_max_length' => 100,
         // Našeptávač hledání: od kolika znaků a kolik návrhů
         'suggest_min_length' => 2,

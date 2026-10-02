@@ -1,67 +1,79 @@
 <!--
-    Katalog produktů pro admina (R29) — tabulka produktů s hledáním, filtrem oddělení a řazením;
-    formulář nového produktu se otevře tlačítkem.
+    Katalog produktů pro admina (R29) — tabulka produktů s hledáním, filtrem oddělení, řazením
+    a stránkováním (vše na serveru, R43); formulář nového produktu se otevře tlačítkem.
 
     @author Roman Hlaváček
     @created 2026-10-02
 -->
 <script setup>
 import EmptyState from '@/Components/EmptyState.vue';
+import Pagination from '@/Components/Pagination.vue';
 import ProductForm from '@/Components/ProductForm.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { useTranslations } from '@/lib/i18n';
-import { normalizeSearch } from '@/lib/search';
-import { Head, Link } from '@inertiajs/vue3';
-import { computed, ref } from 'vue';
+import { Head, Link, router } from '@inertiajs/vue3';
+import { onBeforeUnmount, ref } from 'vue';
+
+/** Pauza v psaní, po které se načtou výsledky hledání (ms). */
+const SEARCH_DEBOUNCE_MS = 300;
+
+/** Výchozí řazení — do adresy se nepíše. */
+const DEFAULT_SORT = 'name';
+
+/** Číselné sloupce se po přepnutí řadí nejdřív od největšího. */
+const NUMERIC_SORTS = ['offers', 'watchers'];
 
 const props = defineProps({
     urls: { type: Object, required: true },
     /** Kategorie [{ id, label }] pro výběr ve formuláři. */
     categories: { type: Array, required: true },
-    /** Produkty s oddělením, kategorií, slovy a počty (matchCount, maybeCount, watchersCount). */
+    /** Je v katalogu aspoň jeden produkt (bez ohledu na hledání)? */
+    hasProducts: { type: Boolean, required: true },
+    /** Oddělení, ve kterých katalog má produkty, abecedně. */
+    departments: { type: Array, required: true },
+    /** Hledání, oddělení a řazení { q, department, sort, descending }. */
+    filters: { type: Object, required: true },
+    /** Počet produktů odpovídajících hledání. */
+    total: { type: Number, required: true },
+    /** Produkty načteného rozsahu stránek s oddělením, kategorií, slovy a počty. */
     products: { type: Array, required: true },
+    /** Odkazy stránkování a „Načíst další“ (PaginationLinks, R43). */
+    pagination: { type: Object, required: true },
 });
 
 const t = useTranslations();
 
-/** Sloupce, podle kterých jde řadit: klíč => hodnota produktu pro porovnání. */
-const SORT_VALUES = {
-    name: (product) => normalizeSearch(product.name),
-    category: (product) => normalizeSearch(product.categoryLabel ?? '￿'),
-    offers: (product) => product.matchCount + product.maybeCount,
-    watchers: (product) => product.watchersCount,
-};
-
-/** Číselné sloupce se řadí nejdřív od největšího. */
-const NUMERIC_SORTS = ['offers', 'watchers'];
-
 const showForm = ref(false);
-const query = ref('');
-const department = ref('');
-const sort = ref({ key: 'name', descending: false });
+const query = ref(props.filters.q);
+const department = ref(props.filters.department);
+let searchTimer = null;
 
-/** Oddělení, která v katalogu jsou, abecedně. */
-const departments = computed(() => [...new Set(props.products.map((product) => product.department).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'cs')));
+/**
+ * Načte tabulku s hledáním, oddělením a řazením od první stránky; výchozí hodnoty do adresy nedává.
+ *
+ * @param {{ sort?: string, descending?: boolean }} sort
+ */
+function reload(sort = { sort: props.filters.sort, descending: props.filters.descending }) {
+    const descendingByDefault = NUMERIC_SORTS.includes(sort.sort);
+    const params = {
+        q: query.value.trim(),
+        oddeleni: department.value,
+        razeni: sort.sort === DEFAULT_SORT ? '' : sort.sort,
+        smer: sort.descending === descendingByDefault ? '' : sort.descending ? 'desc' : 'asc',
+    };
 
-/** Produkty podle hledání (název, kategorie, slova) a oddělení, seřazené podle zvoleného sloupce. */
-const rows = computed(() => {
-    const words = normalizeSearch(query.value).split(/\s+/).filter(Boolean);
-    const value = SORT_VALUES[sort.value.key];
-    const direction = sort.value.descending ? -1 : 1;
+    router.get(props.urls.index, Object.fromEntries(Object.entries(params).filter(([, value]) => value !== '')), {
+        preserveState: true,
+        preserveScroll: true,
+        replace: true,
+    });
+}
 
-    return props.products
-        .filter((product) => !department.value || product.department === department.value)
-        .filter((product) => {
-            const text = normalizeSearch(`${product.name} ${product.categoryLabel ?? ''} ${product.keywords}`);
-
-            return words.every((word) => text.includes(word));
-        })
-        .sort((a, b) => {
-            const [x, y] = [value(a), value(b)];
-
-            return (x < y ? -1 : x > y ? 1 : 0) * direction;
-        });
-});
+/** Hledání se načte po pauze v psaní. */
+function onSearchInput() {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(reload, SEARCH_DEBOUNCE_MS);
+}
 
 /**
  * Seřadí podle sloupce; opakované klepnutí obrátí směr.
@@ -69,7 +81,7 @@ const rows = computed(() => {
  * @param {string} key
  */
 function sortBy(key) {
-    sort.value = sort.value.key === key ? { key, descending: !sort.value.descending } : { key, descending: NUMERIC_SORTS.includes(key) };
+    reload(props.filters.sort === key ? { sort: key, descending: !props.filters.descending } : { sort: key, descending: NUMERIC_SORTS.includes(key) });
 }
 
 /**
@@ -79,12 +91,14 @@ function sortBy(key) {
  * @returns {string}
  */
 function ariaSort(key) {
-    if (sort.value.key !== key) {
+    if (props.filters.sort !== key) {
         return 'none';
     }
 
-    return sort.value.descending ? 'descending' : 'ascending';
+    return props.filters.descending ? 'descending' : 'ascending';
 }
+
+onBeforeUnmount(() => clearTimeout(searchTimer));
 </script>
 
 <template>
@@ -104,25 +118,25 @@ function ariaSort(key) {
             <ProductForm :url="urls.store" :categories="categories" :submit-label="t('catalog.add')" />
         </section>
 
-        <EmptyState v-if="!products.length" :text="t('catalog.empty')" />
+        <EmptyState v-if="!hasProducts" :text="t('catalog.empty')" />
 
         <template v-else>
             <div class="catalog-toolbar">
                 <div class="form-field catalog-toolbar__search">
                     <label for="catalog-search" class="form-field__label">{{ t('catalog.search') }}</label>
-                    <input id="catalog-search" v-model="query" type="search" class="form-field__input" :placeholder="t('catalog.search_placeholder')" />
+                    <input id="catalog-search" v-model="query" type="search" class="form-field__input" :placeholder="t('catalog.search_placeholder')" @input="onSearchInput" />
                 </div>
                 <div class="form-field">
                     <label for="catalog-department" class="form-field__label">{{ t('catalog.department') }}</label>
-                    <select id="catalog-department" v-model="department" class="form-field__input">
+                    <select id="catalog-department" v-model="department" class="form-field__input" @change="reload()">
                         <option value="">{{ t('catalog.all_departments') }}</option>
                         <option v-for="name in departments" :key="name" :value="name">{{ name }}</option>
                     </select>
                 </div>
-                <p class="catalog-toolbar__count" role="status">{{ t('catalog.count', { count: rows.length }) }}</p>
+                <p class="catalog-toolbar__count" role="status">{{ t('catalog.count', { count: total }) }}</p>
             </div>
 
-            <EmptyState v-if="!rows.length" :text="t('catalog.no_results')" />
+            <EmptyState v-if="!products.length" :text="t('catalog.no_results')" />
 
             <!-- Široká tabulka se na mobilu posouvá vodorovně, stránka zůstává v šířce displeje -->
             <div v-else class="data-table">
@@ -132,7 +146,7 @@ function ariaSort(key) {
                             <th v-for="column in ['name', 'category']" :key="column" scope="col" :aria-sort="ariaSort(column)">
                                 <button type="button" class="data-table__sort" @click="sortBy(column)">
                                     {{ t(`catalog.columns.${column}`) }}
-                                    <span class="data-table__sort-icon" aria-hidden="true">{{ sort.key === column ? (sort.descending ? '▼' : '▲') : '↕' }}</span>
+                                    <span class="data-table__sort-icon" aria-hidden="true">{{ filters.sort === column ? (filters.descending ? '▼' : '▲') : '↕' }}</span>
                                 </button>
                             </th>
                             <th scope="col">{{ t('catalog.columns.keywords') }}</th>
@@ -145,13 +159,13 @@ function ariaSort(key) {
                             >
                                 <button type="button" class="data-table__sort" @click="sortBy(column)">
                                     {{ t(`catalog.columns.${column}`) }}
-                                    <span class="data-table__sort-icon" aria-hidden="true">{{ sort.key === column ? (sort.descending ? '▼' : '▲') : '↕' }}</span>
+                                    <span class="data-table__sort-icon" aria-hidden="true">{{ filters.sort === column ? (filters.descending ? '▼' : '▲') : '↕' }}</span>
                                 </button>
                             </th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="product in rows" :key="product.id">
+                        <tr v-for="product in products" :key="product.id">
                             <th scope="row" class="data-table__primary">
                                 <Link :href="product.showUrl" class="link">{{ product.name }}</Link>
                             </th>
@@ -178,6 +192,8 @@ function ariaSort(key) {
                     </tbody>
                 </table>
             </div>
+
+            <Pagination :pagination="pagination" :total="total" load-more-key="catalog.load_more" />
         </template>
     </AppLayout>
 </template>

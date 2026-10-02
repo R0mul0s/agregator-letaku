@@ -153,7 +153,7 @@ it('„Načíst další“ načte celý rozsah stránek z adresy a označí ho (
 });
 
 it('stránku za koncem výpisu zkrátí na poslední a rozsah omezí stropem (R43)', function (): void {
-    config(['letaky.offers.per_page' => 2, 'letaky.offers.max_loaded_pages' => 2]);
+    config(['letaky.offers.per_page' => 2, 'letaky.pagination.max_loaded_pages' => 2]);
     Offer::factory()->count(9)->create();
 
     $this->get('/akce?strana=99')

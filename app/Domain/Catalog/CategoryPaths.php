@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Catalog;
 
+use App\Domain\Matching\TextNormalizer;
 use App\Models\Category;
 
 final class CategoryPaths
@@ -60,6 +61,60 @@ final class CategoryPaths
         $parts = $label === null ? [] : explode(self::SEPARATOR, $label);
 
         return $parts === [] ? null : $parts[count($parts) - 1];
+    }
+
+    /**
+     * ID kategorií, jejichž popisek (celá cesta) obsahuje text — bez ohledu na diakritiku
+     * a velikost písmen. Pro hledání v tabulce katalogu (R43).
+     *
+     * @return list<int>
+     */
+    public function idsContaining(string $text, TextNormalizer $normalizer): array
+    {
+        $needle = $normalizer->word($text);
+
+        return array_keys(array_filter($this->all(), fn (string $label): bool => $needle !== '' && str_contains($normalizer->normalize($label), $needle)));
+    }
+
+    /**
+     * ID kategorií oddělení (první úroveň cesty) včetně samotného oddělení.
+     *
+     * @return list<int>
+     */
+    public function idsInDepartment(string $department): array
+    {
+        return array_keys(array_filter(
+            $this->all(),
+            fn (string $label): bool => explode(self::SEPARATOR, $label)[0] === $department,
+        ));
+    }
+
+    /**
+     * ID kategorií seřazená podle popisku bez diakritiky — pro řazení tabulky podle kategorie.
+     * Bez Intl: vývojový kontejner má data ICU jen pro angličtinu.
+     *
+     * @return list<int>
+     */
+    public function idsByLabel(TextNormalizer $normalizer): array
+    {
+        $keys = array_map(fn (string $label): string => $normalizer->normalize($label), $this->all());
+        asort($keys, SORT_STRING);
+
+        return array_keys($keys);
+    }
+
+    /**
+     * Oddělení, ve kterých jsou zadané kategorie, abecedně (výběr oddělení v tabulce katalogu).
+     *
+     * @param  array<int|null>  $categoryIds
+     * @return list<string>
+     */
+    public function departmentsOf(array $categoryIds, TextNormalizer $normalizer): array
+    {
+        $departments = array_values(array_unique(array_filter(array_map(fn (?int $id): ?string => $this->department($id), $categoryIds))));
+        usort($departments, fn (string $a, string $b): int => strcmp($normalizer->normalize($a), $normalizer->normalize($b)));
+
+        return $departments;
     }
 
     /**
