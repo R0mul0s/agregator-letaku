@@ -303,6 +303,22 @@ Publitas (Albert CZ, groupId 90263):
 
 ---
 
+## Makro (průzkum 2026-10-02 — zatím bez zdroje)
+
+Požadavek uživatele přidat Makro. Výsledek: **zdroj, který by šel použít v souladu s pravidly projektu, zatím není.**
+
+- `www.makro.cz` je za ochranou proti robotům: běžný HTTP požadavek (i s User-Agentem prohlížeče)
+  vrací **403** se stránkou „ARE YOU LOST?“ — **včetně `robots.txt`**. Ochranu neobcházíme
+  (stejně jako marketplace Kauflandu), takže ani nejde zjistit, co robots.txt dovoluje.
+- Letáky Makra jinak nabízejí jen agregátory (mojeletaky.cz, kompasslev.cz, kaufino.com,
+  najdislevu.cz) — ty jako zdroj nepoužíváme ([R1](PLAN.md#8-log-rozhodnutí)).
+- Makro je velkoobchod: nákup jen s kartou zákazníka (podnikatelé, ale i karta pro domácnosti)
+  a ceny se uvádějí **bez DPH i s DPH** — pro porovnání s ostatními obchody by se brala cena s DPH.
+- Možná cesta: požádat Makro o přístup (oficiální feed letáků nebo povolení stahování), nebo
+  počkat, jestli leták nezveřejní na platformě bez ochrany (jako Albert na Publitas).
+
+---
+
 ## Výsledky testovacích scénářů (leták 30. 9.–6. 10. 2026)
 
 Slouží jako referenční data pro první testy párování.

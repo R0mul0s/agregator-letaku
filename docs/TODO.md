@@ -38,7 +38,8 @@ v [PLAN.md](PLAN.md). Větší celky se z toho stávají etapou.
 
 ## Další obchody
 
-- Billa, Globus, Norma, Coop, Makro, Rossmann, dm. Každý potřebuje vlastní průzkum zdroje dat jako v [ZDROJE_DAT.md](ZDROJE_DAT.md).
+- Billa, Globus, Norma, Coop, Rossmann, dm. Každý potřebuje vlastní průzkum zdroje dat jako v [ZDROJE_DAT.md](ZDROJE_DAT.md).
+- **Makro** — průzkum 2026-10-02: makro.cz je za ochranou proti robotům (403 i `robots.txt`), jinde jen agregátory (R1). Čeká na oficiální přístup, viz [ZDROJE_DAT.md](ZDROJE_DAT.md#makro-průzkum-2026-10-02--zatím-bez-zdroje).
 
 ## Stahování — rozšíření
 
