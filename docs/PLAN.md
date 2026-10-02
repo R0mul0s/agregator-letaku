@@ -31,7 +31,7 @@ Log rozhodnutí (kap. 8) se nepřepisuje — starší rozhodnutí nahrazují nov
 | Kaufland: jedna výchozí varianta nabídky pro všechny prodejny (R15) | Stahování nabídky Kauflandu po prodejnách (R3 → R15, R21) |
 | Bez LLM: Kaufland, Tesco, Lidl (kampaně na webu), Penny (API + parser SVG letáku) (R23, R25, R26) | LLM jako hlavní cesta pro letáky (R6 → R23); LLM jen v etapě 6, pokud bude potřeba |
 | **Zmínky v letácích bez ceny** — Lidl a Penny (R27) | Vyhledávací API letáků Lidlu (zakázané v robots.txt) |
-| Hlídaná položka = slova + varianta + vyloučení (R18); katalog produktů (R24, R28–R31) — kategorie ze stromu Tesca, produkty spravuje admin, přiřazení nabídek se ukládá s ručními opravami | Dva oddělené typy hlídání produkt / kategorie (R9 → R18; tři stavy shody platí dál); vymýšlení vlastních kategorií (→ R28) |
+| Hlídaná položka = slova + varianta + vyloučení (R18); katalog produktů (R24, R28–R31) — kategorie ze stromu Tesca, produkty spravuje admin, přiřazení nabídek se ukládá s ručními opravami; hlídaná položka = produkt z katalogu, nebo vlastní slova | Dva oddělené typy hlídání produkt / kategorie (R9 → R18; tři stavy shody platí dál); vymýšlení vlastních kategorií (→ R28); šablony hlídaných položek v konfiguraci (→ produkty katalogu, R31) |
 | Obrázky odkazem na CDN obchodu (R22) | Ukládání obrázků |
 | Produkce Websupport, cron URL, SQL skripty migrací, bez fronty (R20) | GitHub CI (R14 — zatím ne) |
 
@@ -171,7 +171,7 @@ Stránka se při dalším stažení přepíše. Slouží jen pro zmínky bez cen
 ### Uživatelé a hlídání (etapa 3)
 - `users`: účty (Fortify); `loyalty_programs` = JSON seznam karet a aplikací, které uživatel má ([R19](#8-log-rozhodnutí))
 - `followed_chains`: sledované obchody — `chain`, `store_format` (null = všechny typy prodejen), `include_online_only` ([R19](#8-log-rozhodnutí))
-- `watch_items`: hlídané položky — `name`, `keywords`, `variant_keywords`, `exclude_keywords` ([R18](#8-log-rozhodnutí))
+- `watch_items`: hlídané položky — `name`, `product_id` (produkt katalogu, R31) nebo vlastní `keywords`, `variant_keywords`, `exclude_keywords` ([R18](#8-log-rozhodnutí))
 
 Shody hlídaných položek s nabídkami se neukládají, počítají se při zobrazení ([R19](#8-log-rozhodnutí)).
 Tabulka `watch_matches` přibude s upozorněními (TODO).
@@ -202,6 +202,7 @@ Moje slevy (etapa 3) se počítají při zobrazení stránky:
 
 ```
 GET / ──▶ MyOffers::forUser
+             ├─ položka z katalogu (R31): nabídky z offer_product jejího produktu (sledované obchody)
              ├─ kandidáti: neskončené a nestažené nabídky sledovaných obchodů (typ prodejny,
              │  akce jen z e-shopu), které obsahují první slovo některé hlídané položky (SQL LIKE)
              ├─ WatchItemMatcher: všechna slova, vyloučení, varianta → shoda / možná (R18, R9)
@@ -240,7 +241,7 @@ z artisan příkazu i z kontroleru.
 | 3 | **Hlídání:** výběr obchodů s upřesněním a věrnostních karet (`/obchody`), hlídané položky se slovy, variantou a vyloučením a šablonami (`/hlidam`), Moje slevy seřazené podle ceny za jednotku (`/`) | hotovo 2026-10-02 |
 | 4 | **Lidl a Penny bez LLM** (R23, R25, R26): Lidl `data-grid-data` z kampaní (potraviny), Penny product-discovery API a parser vektorové vrstvy letáku ověřený cenou za jednotku | hotovo 2026-10-02 |
 | 4b | **Zmínky v letácích bez ceny** (R27): text stránek letáků Lidl (API letáků Schwarz) a Penny (vektorová vrstva), sekce „V letáku, ale bez ceny“ v Mých slevách | hotovo 2026-10-02 |
-| 5 | **Katalog produktů** ([O3](#7-otevřené-otázky), R24, R28–R31, návrh v kap. 7): 5a strom kategorií z e-shopu Tesco (`categories`, `letaky:import-categories`); 5b produkty se slovy a správa katalogu pro admina (`/katalog`, `letaky:admin`), přiřazení nabídek při importu s ručními opravami (`offer_product`); 5c hlídaná položka z katalogu nebo s vlastními slovy, šablony nahradí produkty | 5a a 5b hotovo 2026-10-02, 5c rozpracováno |
+| 5 | **Katalog produktů** ([O3](#7-otevřené-otázky), R24, R28–R31, návrh v kap. 7): 5a strom kategorií z e-shopu Tesco (`categories`, `letaky:import-categories`); 5b produkty se slovy a správa katalogu pro admina (`/katalog`, `letaky:admin`), přiřazení nabídek při importu s ručními opravami (`offer_product`); 5c hlídaná položka z katalogu nebo s vlastními slovy, šablony nahradí produkty | hotovo 2026-10-02 |
 | 6 | **LLM** (R23), jen pokud bude potřeba: Albert (obrázky stránek), zbytek letáku Lidlu, třídění nepřiřazených nabídek | |
 | 7 | **Nasazení na Websupport** (R20): cron URL pro stahování, SQL skripty migrací, build a nahrání přes FTP, DEPLOYMENT.md, ověření O8 | |
 

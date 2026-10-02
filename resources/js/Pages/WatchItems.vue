@@ -1,5 +1,5 @@
 <!--
-    Hlídám — seznam hlídaných položek, jejich úpravy a nová položka se šablonami (R18).
+    Hlídám — seznam hlídaných položek, jejich úpravy a nová položka z katalogu nebo se slovy (R18, R31).
 
     @author Roman Hlaváček
     @created 2026-10-02
@@ -14,7 +14,8 @@ import { ref } from 'vue';
 defineProps({
     urls: { type: Object, required: true },
     watchItems: { type: Array, required: true },
-    templates: { type: Array, required: true },
+    /** Produkty katalogu [{ id, name, categoryLabel }]. */
+    products: { type: Array, required: true },
 });
 
 const t = useTranslations();
@@ -22,16 +23,16 @@ const t = useTranslations();
 /** Položka, kterou uživatel právě upravuje (id), nebo null. */
 const editingId = ref(null);
 
-/** Předvyplnění formuláře nové položky (šablona). */
+/** Předvyplnění formuláře nové položky (rychlý výběr produktu). */
 const newItem = ref({});
 
 /**
- * Předvyplní novou položku podle šablony.
+ * Předvyplní novou položku produktem z katalogu.
  *
- * @param {object} template
+ * @param {object} product
  */
-function useTemplate(template) {
-    newItem.value = { ...template };
+function pickProduct(product) {
+    newItem.value = { productId: product.id, name: product.name };
 }
 
 /**
@@ -64,13 +65,18 @@ function remove(item) {
                         :url="item.updateUrl"
                         method="put"
                         :item="item"
+                        :products="products"
                         :submit-label="t('watch.save')"
                         @saved="editingId = null"
                         @cancel="editingId = null"
                     />
                     <template v-else>
                         <h2 class="card__title">{{ item.name }}</h2>
-                        <dl class="watch-item__rules">
+                        <dl v-if="item.productId" class="watch-item__rules">
+                            <dt class="watch-item__label">{{ t('watch.from_catalog') }}</dt>
+                            <dd class="watch-item__value">{{ item.productName }}</dd>
+                        </dl>
+                        <dl v-else class="watch-item__rules">
                             <dt class="watch-item__label">{{ t('watch.keywords') }}</dt>
                             <dd class="watch-item__value">{{ item.keywords }}</dd>
                             <template v-if="item.variantKeywords">
@@ -92,13 +98,22 @@ function remove(item) {
 
             <section class="card watch-layout__new">
                 <h2 class="card__title">{{ t('watch.add_title') }}</h2>
-                <p class="form-field__label">{{ t('watch.templates.label') }}</p>
-                <div class="watch-templates">
-                    <button v-for="template in templates" :key="template.key" type="button" class="tag tag--button" @click="useTemplate(template)">
-                        {{ template.name }}
-                    </button>
-                </div>
-                <WatchItemForm :url="urls.store" :item="newItem" :submit-label="t('watch.add')" />
+                <template v-if="products.length">
+                    <p class="form-field__label">{{ t('watch.quick_pick') }}</p>
+                    <div class="watch-templates">
+                        <button
+                            v-for="product in products"
+                            :key="product.id"
+                            type="button"
+                            class="tag tag--button"
+                            :title="product.categoryLabel"
+                            @click="pickProduct(product)"
+                        >
+                            {{ product.name }}
+                        </button>
+                    </div>
+                </template>
+                <WatchItemForm :url="urls.store" :item="newItem" :products="products" :submit-label="t('watch.add')" />
             </section>
         </div>
     </AppLayout>

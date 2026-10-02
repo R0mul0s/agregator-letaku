@@ -3,9 +3,10 @@
 /**
  * Slevy k hlídaným položkám uživatele ve sledovaných obchodech (R18, R19).
  *
- * Párování se počítá při zobrazení — nabídek je řádově tisíce a hlídaných položek
- * jednotky, tabulka shod zatím není potřeba (R19). Kandidáty předvybere databáze
- * podle prvního slova položek, přesná pravidla pak vyhodnotí WatchItemMatcher.
+ * Položka z katalogu (R31) bere nabídky z uloženého přiřazení k produktu (`offer_product`).
+ * Položka s vlastními slovy se páruje při zobrazení — nabídek je řádově tisíce a hlídaných
+ * položek jednotky (R19). Kandidáty předvybere databáze podle prvního slova položek, přesná
+ * pravidla pak vyhodnotí WatchItemMatcher.
  *
  * K tomu zmínky na stránkách letáků bez ceny (R27): položka je v letáku, ale cenu k ní
  * neznáme. Zmínka se vynechá, když stejný obchod má k položce akci s cenou ve stejném období.
@@ -28,6 +29,7 @@ use App\Models\FollowedChain;
 use App\Models\Leaflet;
 use App\Models\LeafletPage;
 use App\Models\Offer;
+use App\Models\OfferProduct;
 use App\Models\User;
 use App\Models\WatchItem;
 use Illuminate\Database\Eloquent\Builder;
@@ -50,21 +52,33 @@ final class MyOffers
      */
     public function forUser(User $user): array
     {
-        $watchItems = $user->watchItems()->orderBy('name')->get();
+        $watchItems = $user->watchItems()->with('product')->orderBy('name')->get();
         $followed = $user->followedChains()->get();
 
         $rules = [];
+        $keywordRules = [];
         foreach ($watchItems as $item) {
             $rules[$item->id] = WatchRule::fromWatchItem($item, $this->normalizer);
+            if ($item->product_id === null) {
+                $keywordRules[$item->id] = $rules[$item->id];
+            }
         }
+        $productIds = array_values(array_unique(array_filter(array_map(
+            fn (WatchItem $item): ?int => $item->product_id,
+            $watchItems->all(),
+        ))));
 
         $searchable = ! $followed->isEmpty() && $rules !== [];
-        $candidates = $searchable ? $this->candidates($followed, $rules) : new Collection;
+        $candidates = $searchable && $keywordRules !== [] ? $this->candidates($followed, $keywordRules) : new Collection;
+        $assignments = $searchable && $productIds !== [] ? $this->assignments($followed, $productIds) : new Collection;
         $pages = $searchable ? $this->candidatePages($followed, $rules) : [];
 
         $groups = [];
         foreach ($watchItems as $item) {
-            $offers = $this->matches($user, $rules[$item->id], $candidates);
+            $found = $item->product_id === null
+                ? $this->matchByRule($rules[$item->id], $candidates)
+                : $this->matchByProduct($item->product_id, $assignments);
+            $offers = $this->availableSorted($user, $found);
             $groups[] = [
                 'watchItem' => $item,
                 'offers' => $offers,
@@ -76,24 +90,66 @@ final class MyOffers
     }
 
     /**
-     * Nabídky položky podle pravidel; akce jen s kartou, kterou uživatel nemá, vynechá.
+     * Nabídky položky s vlastními slovy podle jejích pravidel.
      *
      * @param  Collection<int, Offer>  $candidates
      * @return list<array{offer: Offer, status: MatchStatus}>
      */
-    private function matches(User $user, WatchRule $rule, Collection $candidates): array
+    private function matchByRule(WatchRule $rule, Collection $candidates): array
     {
         $matches = [];
         foreach ($candidates as $offer) {
             $status = $this->matcher->match($rule, $offer);
-            if ($status !== null && $this->isAvailableTo($user, $offer)) {
+            if ($status !== null) {
                 $matches[] = ['offer' => $offer, 'status' => $status];
             }
         }
 
-        usort($matches, fn (array $a, array $b): int => $this->sortKey($user, $a) <=> $this->sortKey($user, $b));
-
         return $matches;
+    }
+
+    /**
+     * Nabídky položky z katalogu — uložené přiřazení k produktu (R30, R31).
+     *
+     * @param  Collection<int, OfferProduct>  $assignments
+     * @return list<array{offer: Offer, status: MatchStatus}>
+     */
+    private function matchByProduct(int $productId, Collection $assignments): array
+    {
+        return array_values($assignments
+            ->where('product_id', $productId)
+            ->map(fn (OfferProduct $assignment): array => ['offer' => $assignment->offer, 'status' => $assignment->status])
+            ->all());
+    }
+
+    /**
+     * Vynechá akce jen s kartou, kterou uživatel nemá, a seřadí zbytek (sortKey).
+     *
+     * @param  list<array{offer: Offer, status: MatchStatus}>  $matches
+     * @return list<array{offer: Offer, status: MatchStatus}>
+     */
+    private function availableSorted(User $user, array $matches): array
+    {
+        $available = array_values(array_filter($matches, fn (array $match): bool => $this->isAvailableTo($user, $match['offer'])));
+        usort($available, fn (array $a, array $b): int => $this->sortKey($user, $a) <=> $this->sortKey($user, $b));
+
+        return $available;
+    }
+
+    /**
+     * Přiřazení produktů k neskončeným nabídkám sledovaných obchodů podle jejich upřesnění.
+     *
+     * @param  Collection<int, FollowedChain>  $followed
+     * @param  list<int>  $productIds
+     * @return Collection<int, OfferProduct>
+     */
+    private function assignments(Collection $followed, array $productIds): Collection
+    {
+        return OfferProduct::query()
+            ->whereIn('product_id', $productIds)
+            ->whereHas('offer', fn (Builder $query) => $this->whereCurrentFollowed($query, $followed))
+            ->with('offer')
+            ->get();
     }
 
     /**
@@ -156,15 +212,26 @@ final class MyOffers
     private function candidates(Collection $followed, array $rules): Collection
     {
         return Offer::query()
-            ->active()
+            ->tap(fn (Builder $query) => $this->whereCurrentFollowed($query, $followed))
+            ->tap(fn (Builder $query) => OfferPrefilter::containingAny($query, $this->firstWords($rules)))
+            ->get();
+    }
+
+    /**
+     * Neskončené a obchodem nestažené nabídky sledovaných obchodů podle jejich upřesnění.
+     *
+     * @param  Builder<Offer>  $query
+     * @param  Collection<int, FollowedChain>  $followed
+     */
+    private function whereCurrentFollowed(Builder $query, Collection $followed): void
+    {
+        $query->active()
             ->notExpired($this->calendar->today())
             ->where(function (Builder $query) use ($followed): void {
                 foreach ($followed as $chain) {
                     $query->orWhere(fn (Builder $query) => $this->whereFollowed($query, $chain));
                 }
-            })
-            ->tap(fn (Builder $query) => OfferPrefilter::containingAny($query, $this->firstWords($rules)))
-            ->get();
+            });
     }
 
     /**

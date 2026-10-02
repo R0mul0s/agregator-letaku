@@ -23,12 +23,6 @@ it('má název pro každý formát prodejny', function (StoreFormat $format): vo
     expect(trans()->has('app.store_formats.'.$format->value))->toBeTrue();
 })->with(StoreFormat::cases());
 
-it('má název pro každou šablonu hlídané položky', function (): void {
-    foreach (array_keys(config()->array('letaky.watch.templates')) as $key) {
-        expect(trans()->has('app.ui.watch.templates.'.$key))->toBeTrue("Chybí název šablony {$key}");
-    }
-});
-
 it('má texty pro každý typ akce a věrnostní program', function (): void {
     foreach (OfferType::cases() as $type) {
         expect(trans()->has('app.ui.offer_types.'.$type->value))->toBeTrue();

@@ -95,7 +95,7 @@ return [
 
         'watch' => [
             'title' => 'Hlídám',
-            'intro' => 'Hlídaná položka najde akce, ve kterých jsou všechna hledaná slova. Diakritika ani velká písmena nehrají roli a slovo stačí jako začátek („vejce“ najde i „vejcem“).',
+            'intro' => 'Vyberte produkt z katalogu, nebo zadejte vlastní slova: položka pak najde akce, ve kterých jsou všechna. Diakritika ani velká písmena nehrají roli a slovo stačí jako začátek („vejce“ najde i „vejcem“).',
             'name' => 'Název',
             'name_hint' => 'Jak se položka ukáže v Mých slevách.',
             'keywords' => 'Hledaná slova',
@@ -105,13 +105,12 @@ return [
             'exclude_keywords' => 'Vyloučit',
             'exclude_keywords_hint' => 'Nepovinné. Akce s kterýmkoli z těchto slov se neukáže.',
             'add_title' => 'Nová položka',
-            'templates' => [
-                'label' => 'Předvyplnit podle šablony',
-                'eggs' => 'Vejce',
-                'semi_skimmed_milk' => 'Polotučné mléko',
-                'butter' => 'Máslo',
-                'coca_cola_zero' => 'Coca-Cola Zero',
-            ],
+            'product' => 'Produkt z katalogu',
+            'product_hint' => 'Produkt hlídá sdílená pravidla katalogu. Pro věc, která v katalogu není, zvolte vlastní slova.',
+            'own_keywords' => '— vlastní slova —',
+            'keywords_or_product' => 'Zadejte hledaná slova, nebo vyberte produkt z katalogu.',
+            'from_catalog' => 'Z katalogu',
+            'quick_pick' => 'Rychlý výběr z katalogu',
             'add' => 'Přidat',
             'save' => 'Uložit',
             'cancel' => 'Zrušit',

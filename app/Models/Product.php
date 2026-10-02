@@ -78,6 +78,16 @@ class Product extends Model
     }
 
     /**
+     * Hlídané položky uživatelů, které produkt hlídají (R31).
+     *
+     * @return HasMany<WatchItem, $this>
+     */
+    public function watchItems(): HasMany
+    {
+        return $this->hasMany(WatchItem::class);
+    }
+
+    /**
      * Nabídky, které podle admina k produktu nepatří (R30).
      *
      * @return HasMany<OfferProductExclusion, $this>

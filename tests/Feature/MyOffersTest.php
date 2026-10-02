@@ -10,6 +10,8 @@
 
 declare(strict_types=1);
 
+use App\Domain\Catalog\Actions\AssignProducts;
+use App\Domain\Catalog\Actions\CorrectAssignment;
 use App\Enums\Chain;
 use App\Enums\LeafletKind;
 use App\Enums\LoyaltyProgram;
@@ -20,6 +22,7 @@ use App\Models\FollowedChain;
 use App\Models\Leaflet;
 use App\Models\LeafletPage;
 use App\Models\Offer;
+use App\Models\Product;
 use App\Models\User;
 use App\Models\WatchItem;
 use Carbon\CarbonImmutable;
@@ -231,4 +234,17 @@ it('zmínku vynechá, když má obchod ve stejném období akci s cenou', functi
     Offer::factory()->create(['name' => 'Čerstvá vejce', 'chain' => Chain::Lidl, 'valid_from' => '2026-10-08', 'valid_to' => '2026-10-10']);
 
     expect(myMentions())->toBe(['Vejce' => ['lidl Leták s.5 match']]);
+});
+
+it('položka z katalogu ukáže akce přiřazené k produktu i s ručními opravami (R31)', function (): void {
+    follow(Chain::Kaufland);
+    $product = Product::factory()->create(['name' => 'Vejce', 'keywords' => 'vejce']);
+    watch('Moje vejce', ['product_id' => $product->id, 'keywords' => null]);
+    Offer::factory()->create(['name' => 'Čerstvá vejce']);
+    $quail = Offer::factory()->create(['name' => 'Křepelčí vajíčka']);
+    Offer::factory()->create(['name' => 'Vejce v Tescu', 'chain' => Chain::Tesco]);
+    app(AssignProducts::class)->forProduct($product);
+    app(CorrectAssignment::class)->include($product, $quail);
+
+    expect(myOffers()['Moje vejce'])->toEqualCanonicalizing(['Čerstvá vejce', 'Křepelčí vajíčka']);
 });

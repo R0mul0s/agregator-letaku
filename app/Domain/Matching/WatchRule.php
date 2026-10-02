@@ -38,6 +38,11 @@ final readonly class WatchRule
      */
     public static function fromWatchItem(WatchItem $item, TextNormalizer $normalizer): self
     {
+        // Položka z katalogu (R31) má pravidla produktu — relace musí být načtená
+        if ($item->product_id !== null && $item->product !== null) {
+            return self::fromProduct($item->product, $normalizer);
+        }
+
         return self::fromText($item->keywords, $item->variant_keywords, $item->exclude_keywords, $normalizer);
     }
 

@@ -149,37 +149,13 @@ return [
     ],
 
     /*
-    | Hlídané položky (R18). Šablony předvyplní formulář; zápis slov viz App\Domain\Matching\WatchRule.
-    | Vyloučená slova jsou ze skutečných nabídek 2. 10. 2026: „MAGGI Přidej vejce“, „toustový chléb
-    | s vejcem“, „Ruské vejce“, ochucený „Lipánek“ (tuk 1,3–1,5 %), „máslová dýně“, „máslový karamel“.
-    | Slova se hledají jako začátek slova, takže „máslov“ vyřadí máslová, máslový i máslové.
+    | Hlídané položky (R18, R31) — produkt z katalogu, nebo vlastní slova (zápis viz
+    | App\Domain\Matching\WatchRule). Výchozí produkty katalogu jsou v Database\Seeders\CatalogSeeder.
     */
     'watch' => [
         'max_items_per_user' => 50,
         'name_max_length' => 100,
         'keywords_max_length' => 255,
-        'templates' => [
-            'eggs' => [
-                'keywords' => 'vejce',
-                'variant_keywords' => null,
-                'exclude_keywords' => 'maggi polévka těstoviny toust aspik pomazánka bageta ruské',
-            ],
-            'semi_skimmed_milk' => [
-                'keywords' => 'mléko polotučné|1,5',
-                'variant_keywords' => null,
-                'exclude_keywords' => 'kefír kokos zakysané acidofil čokoláda lipánek ochucené',
-            ],
-            'butter' => [
-                'keywords' => 'máslo',
-                'variant_keywords' => null,
-                'exclude_keywords' => 'máslov arašíd kakao bylink pomazánk sušenk',
-            ],
-            'coca_cola_zero' => [
-                'keywords' => 'coca cola',
-                'variant_keywords' => 'zero',
-                'exclude_keywords' => null,
-            ],
-        ],
     ],
 
 ];

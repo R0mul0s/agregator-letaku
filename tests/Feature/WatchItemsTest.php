@@ -10,6 +10,7 @@
 
 declare(strict_types=1);
 
+use App\Models\Product;
 use App\Models\User;
 use App\Models\WatchItem;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -19,19 +20,39 @@ beforeEach(function (): void {
     $this->actingAs($this->user);
 });
 
-it('ukáže jen vlastní položky a šablony z konfigurace', function (): void {
+it('ukáže jen vlastní položky a produkty katalogu', function (): void {
+    $product = Product::factory()->create(['name' => 'Máslo']);
     WatchItem::factory()->for($this->user)->create(['name' => 'Moje vejce']);
+    WatchItem::factory()->for($this->user)->create(['name' => 'Moje máslo', 'product_id' => $product->id, 'keywords' => null]);
     WatchItem::factory()->create(['name' => 'Cizí vejce']);
 
     $this->get(route('watch-items.index'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('WatchItems')
-            ->has('watchItems', 1)
-            ->where('watchItems.0.name', 'Moje vejce')
-            ->where('templates.0.key', 'eggs')
-            ->where('templates.0.name', 'Vejce')
-            ->where('templates.0.keywords', 'vejce'));
+            ->has('watchItems', 2)
+            ->where('watchItems.0.name', 'Moje máslo')
+            ->where('watchItems.0.productName', 'Máslo')
+            ->where('watchItems.1.name', 'Moje vejce')
+            ->where('watchItems.1.productId', null)
+            ->where('products.0.name', 'Máslo'));
+});
+
+it('přidá položku z katalogu bez vlastních slov', function (): void {
+    $product = Product::factory()->create(['name' => 'Vejce']);
+
+    $this->post(route('watch-items.store'), [
+        'name' => 'Vejce',
+        'product_id' => $product->id,
+        'keywords' => 'zapomenutá slova',
+    ])->assertRedirect(route('watch-items.index'));
+
+    expect($this->user->watchItems()->sole())
+        ->product_id->toBe($product->id)
+        ->keywords->toBeNull();
+
+    $this->post(route('watch-items.store'), ['name' => 'Neexistující', 'product_id' => 999999])
+        ->assertSessionHasErrors('product_id');
 });
 
 it('přidá položku', function (): void {
@@ -51,7 +72,7 @@ it('přidá položku', function (): void {
 
 it('bez hledaných slov položku nepřidá a chybu napíše česky', function (): void {
     $this->post(route('watch-items.store'), ['name' => 'Vejce', 'keywords' => ''])
-        ->assertSessionHasErrors(['keywords' => 'Pole Hledaná slova je povinné.']);
+        ->assertSessionHasErrors(['keywords' => 'Zadejte hledaná slova, nebo vyberte produkt z katalogu.']);
 
     expect(WatchItem::query()->count())->toBe(0);
 });

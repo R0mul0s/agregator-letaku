@@ -12,7 +12,9 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Domain\Catalog\CategoryPaths;
 use App\Http\Requests\WatchItemRequest;
+use App\Models\Product;
 use App\Models\User;
 use App\Models\WatchItem;
 use Illuminate\Http\RedirectResponse;
@@ -24,31 +26,32 @@ use Inertia\Response;
 class WatchItemController extends Controller
 {
     /**
-     * Seznam položek, formulář nové položky a šablony.
+     * Seznam položek, formulář nové položky a produkty katalogu.
      */
-    public function index(Request $request): Response
+    public function index(Request $request, CategoryPaths $categories): Response
     {
         /** @var User $user */
         $user = $request->user();
 
         return Inertia::render('WatchItems', [
             'urls' => ['store' => route('watch-items.store', absolute: false)],
-            'watchItems' => $user->watchItems()->orderBy('name')->get()->map(fn (WatchItem $item): array => [
+            'watchItems' => $user->watchItems()->with('product')->orderBy('name')->get()->map(fn (WatchItem $item): array => [
                 'id' => $item->id,
                 'name' => $item->name,
+                'productId' => $item->product_id,
+                'productName' => $item->product?->name,
                 'keywords' => $item->keywords,
                 'variantKeywords' => $item->variant_keywords,
                 'excludeKeywords' => $item->exclude_keywords,
                 'updateUrl' => route('watch-items.update', $item, absolute: false),
                 'deleteUrl' => route('watch-items.destroy', $item, absolute: false),
             ]),
-            'templates' => collect(config()->array('letaky.watch.templates'))->map(fn (array $template, string $key): array => [
-                'key' => $key,
-                'name' => __('app.ui.watch.templates.'.$key),
-                'keywords' => $template['keywords'],
-                'variantKeywords' => $template['variant_keywords'],
-                'excludeKeywords' => $template['exclude_keywords'],
-            ])->values(),
+            // Katalog nahradil šablony (R31) — produkt jde hlídat jedním klepnutím
+            'products' => Product::query()->orderBy('name')->get()->map(fn (Product $product): array => [
+                'id' => $product->id,
+                'name' => $product->name,
+                'categoryLabel' => $categories->label($product->category_id),
+            ]),
         ]);
     }
 
@@ -59,7 +62,7 @@ class WatchItemController extends Controller
     {
         /** @var User $user */
         $user = $request->user();
-        $user->watchItems()->create($request->validated());
+        $user->watchItems()->create($request->watchItemData());
 
         return to_route('watch-items.index');
     }
@@ -70,7 +73,7 @@ class WatchItemController extends Controller
     public function update(WatchItemRequest $request, WatchItem $watchItem): RedirectResponse
     {
         Gate::authorize('update', $watchItem);
-        $watchItem->update($request->validated());
+        $watchItem->update($request->watchItemData());
 
         return to_route('watch-items.index');
     }

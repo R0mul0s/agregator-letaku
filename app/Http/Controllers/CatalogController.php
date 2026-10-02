@@ -155,11 +155,20 @@ class CatalogController extends Controller
     }
 
     /**
-     * Smaže produkt i s přiřazeními a vyřazeními.
+     * Smaže produkt i s přiřazeními a vyřazeními. Hlídané položky, které ho hlídají,
+     * dostanou jeho pravidla jako vlastní slova — uživatelům nic nezmizí (R31).
      */
     public function destroy(Product $product): RedirectResponse
     {
-        $product->delete();
+        DB::transaction(function () use ($product): void {
+            $product->watchItems()->update([
+                'product_id' => null,
+                'keywords' => $product->keywords,
+                'variant_keywords' => $product->variant_keywords,
+                'exclude_keywords' => $product->exclude_keywords,
+            ]);
+            $product->delete();
+        });
 
         return to_route('catalog.index');
     }

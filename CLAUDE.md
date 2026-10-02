@@ -24,8 +24,9 @@ Hotové jsou etapy 1–4: kostra aplikace s účty (Fortify, R12, R13), stahová
 nabídek Kauflandu, Tesca, Lidlu a Penny (R15–R17, R25, R26), přehled všech akcí
 na `/akce` a hlídání: Moje obchody (`/obchody`), Hlídám (`/hlidam`) a Moje slevy
 (`/`, R18, R19). K tomu zmínky v letácích Lidlu a Penny bez ceny (etapa 4b, R27).
-Etapa 5 (katalog produktů, R24, R28–R31): hotový strom kategorií z Tesca a katalog
-pro admina (`/katalog`) s přiřazováním nabídek; zbývá 5c — hlídaná položka z katalogu.
+Hotová je i etapa 5, katalog produktů (R24, R28–R31): strom kategorií z Tesca, katalog
+pro admina (`/katalog`) s přiřazováním nabídek a hlídaná položka z katalogu. Další je
+etapa 6 (LLM, jen když bude potřeba) nebo 7 (nasazení na Websupport).
 Co z dřívějších rozhodnutí platí a co ne, je v tabulce na začátku PLAN.md.
 
 Vývojový uživatel ze seederu: `test@example.com` / `password` (admin katalogu; seeder
@@ -120,7 +121,7 @@ MariaDB 11.4 · Pest 4 · Larastan · Pint. Extrakce letáků (etapa 6): Claude 
 18. **V testech je helper `responseFixture()`**, ne `fixture()` — tu má Pest vlastní.
 19. **Párování hlídaných položek hledá začátek slova** v textu normalizovaném `TextNormalizer` (bez diakritiky, interpunkce = mezera). `WatchItemMatcher` a předvýběr kandidátů v `MyOffers` musí hledat ve stejných sloupcích (`name`, `brand`, `description`). Nový obrat pro „různé druhy“ patří do `VariantNote`, jinak varianta nedá stav „možná“.
 20. **Akce jen s kartou se v Mých slevách ukáže jen uživateli s tou kartou** (R19) — `LoyaltyProgram::chain()` páruje kartu s obchodem; nový obchod s kartou ji tam potřebuje.
-21. **Šablony hlídaných položek** jsou v `config/letaky.php` (`watch.templates`), jejich názvy v `lang` (`ui.watch.templates`) — test hlídá, že žádný nechybí.
+21. **Šablony hlídaných položek už nejsou** (R31) — nahradil je katalog; výchozí produkty zakládá `CatalogSeeder`. Hlídaná položka z katalogu má `keywords` null a pravidla bere z produktu (`WatchRule::fromWatchItem` potřebuje načtenou relaci `product`). Při smazání produktu se jeho pravidla zkopírují do položek, které ho hlídají.
 22. **Leták Penny: glyfy fontu** — `Ǻ` = „,90“, U+E00A U+E009 = „90“, červené U+E00F/E010/E011 = přeškrtávací čára (ne číslice). Přiřazení ceny k dlaždici musí projít kontrolou ceny za jednotku (R26); pravidla neuvolňovat bez porovnání výsledku na celém letáku.
 23. **Pauza mezi požadavky je podle zdroje** (`request_delay_ms` u Lidlu a Penny, jinak `letaky.http`); stránka letáku bez textové vrstvy vrací 404 — `SourceHttp::request(allowNotFound: true)`. V testech musí být nulová i pauza zdroje (`LETAKY_LIDL_…`, `LETAKY_PENNY_REQUEST_DELAY_MS` v `phpunit.xml`), jinak test spí.
 24. **Zmínky v letácích bez ceny (R27)** se párují jinak než akce: `WatchItemMatcher::mention` hledá **celá slova** a **bez vyloučených slov** (stránka je směs produktů). Stránky s receptem vyřadí fráze `letaky.mentions.excluded_page_phrases`. Zmínka se nezobrazí, když má obchod k položce ve stejném období akci s cenou. Text stránek je v `leaflet_pages` (Lidl `keyWords` + `altText`, Penny text SVG); zdroj je přidává do `SourceBatch::$pages`.

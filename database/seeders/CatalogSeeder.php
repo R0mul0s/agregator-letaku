@@ -1,9 +1,12 @@
 <?php
 
 /**
- * Výchozí produkty katalogu (R29) — dřívější šablony hlídaných položek. Vyloučená slova
- * jsou ze skutečných nabídek 2. 10. 2026 (viz config/letaky.php, sekce watch). Kategorie
+ * Výchozí produkty katalogu (R29) — dřívější šablony hlídaných položek (R31). Kategorie
  * se přiřadí, jen když je strom stažený (`letaky:import-categories`).
+ *
+ * Vyloučená slova jsou ze skutečných nabídek 2. 10. 2026: „MAGGI Přidej vejce“, „toustový chléb
+ * s vejcem“, „Ruské vejce“, ochucený „Lipánek“ (tuk 1,3–1,5 %), „máslová dýně“, „máslový
+ * karamel“. Slova se hledají jako začátek slova, takže „máslov“ vyřadí máslová, máslový i máslové.
  *
  * @author Roman Hlaváček
  *

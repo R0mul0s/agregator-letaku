@@ -22,7 +22,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $id
  * @property int $user_id
  * @property string $name
- * @property string $keywords
+ * @property int|null $product_id Produkt katalogu (R31); null = vlastní slova
+ * @property string|null $keywords Vlastní slova; null u položky z katalogu
  * @property string|null $variant_keywords
  * @property string|null $exclude_keywords
  * @property CarbonImmutable $created_at
@@ -35,6 +36,7 @@ class WatchItem extends Model
 
     /** @var list<string> */
     protected $fillable = [
+        'product_id',
         'name',
         'keywords',
         'variant_keywords',
@@ -62,5 +64,15 @@ class WatchItem extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Produkt katalogu, který položka hlídá (R31); null = vlastní slova.
+     *
+     * @return BelongsTo<Product, $this>
+     */
+    public function product(): BelongsTo
+    {
+        return $this->belongsTo(Product::class);
     }
 }

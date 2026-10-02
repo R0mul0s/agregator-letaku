@@ -16,6 +16,7 @@ use App\Models\OfferProduct;
 use App\Models\OfferProductExclusion;
 use App\Models\Product;
 use App\Models\User;
+use App\Models\WatchItem;
 use Inertia\Testing\AssertableInertia as Assert;
 
 beforeEach(function (): void {
@@ -93,15 +94,20 @@ it('v detailu najde akce k ručnímu přiřazení a opraví přiřazení', funct
         ->and(OfferProductExclusion::query()->count())->toBe(0);
 });
 
-it('smaže produkt i s přiřazením', function (): void {
-    $product = Product::factory()->create();
+it('smaže produkt i s přiřazením a hlídaným položkám nechá jeho pravidla', function (): void {
+    $product = Product::factory()->create(['keywords' => 'vejce', 'exclude_keywords' => 'těstoviny']);
     $offer = Offer::factory()->create(['name' => 'Vejce']);
     OfferProduct::query()->create(['offer_id' => $offer->id, 'product_id' => $product->id, 'status' => 'match']);
+    $watchItem = WatchItem::factory()->create(['product_id' => $product->id, 'keywords' => null]);
 
     $this->actingAs($this->admin)->delete(route('catalog.destroy', $product))->assertRedirect(route('catalog.index'));
 
     expect(Product::query()->count())->toBe(0)
-        ->and(OfferProduct::query()->count())->toBe(0);
+        ->and(OfferProduct::query()->count())->toBe(0)
+        ->and($watchItem->refresh())
+        ->product_id->toBeNull()
+        ->keywords->toBe('vejce')
+        ->exclude_keywords->toBe('těstoviny');
 });
 
 it('příkaz letaky:admin udělí a odebere správu katalogu', function (): void {
