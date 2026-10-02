@@ -36,6 +36,8 @@
 
     // Podklad loga obchodu — loga počítají se světlým pozadím i v tmavém režimu
     --color-logo-bg: #ffffff;
+    // Podklad maskota v hlavičce — ve světlém režimu není potřeba
+    --color-logo-mark-bg: transparent;
 
     --space-1: 0.25rem;
     --space-2: 0.5rem;
@@ -80,6 +82,7 @@
     --checkbox-size: 1.125rem;
     --logo-size: 3rem;
     --logo-size-mobile: 2.5rem;
+    --logo-mark-padding: 0.125rem;
     --theme-button-size: 2rem;
     --theme-icon-size: 1.125rem;
 
@@ -92,6 +95,7 @@
         --color-text-muted: #9aa0ab;
         --color-brand: #ff4a52;
         --color-brand-dark: #eceef2;
+        --color-logo-mark-bg: #eceef2;
         --color-accent: #ff5c63;
         --color-accent-strong: #ff858a;
         --color-accent-soft: #3a1c1f;

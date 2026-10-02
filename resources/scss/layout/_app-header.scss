@@ -35,9 +35,13 @@
         text-decoration: none;
     }
 
+    // Maskot má černé tělo — v tmavém režimu dostane světlý kruhový podklad (--color-logo-mark-bg)
     &__logo {
         width: var(--logo-size-mobile);
         height: var(--logo-size-mobile);
+        padding: var(--logo-mark-padding);
+        background: var(--color-logo-mark-bg);
+        border-radius: 50%;
 
         @include from-md {
             width: var(--logo-size);
