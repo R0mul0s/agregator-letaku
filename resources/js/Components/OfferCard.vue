@@ -5,6 +5,7 @@
     @created 2026-10-02
 -->
 <script setup>
+import ChainLogo from '@/Components/ChainLogo.vue';
 import { formatDate, formatPackage, formatPrice } from '@/lib/format';
 import { useTranslations } from '@/lib/i18n';
 import { usePage } from '@inertiajs/vue3';
@@ -57,7 +58,7 @@ function unitPriceLabel(halers) {
 <template>
     <article class="offer-card">
         <div class="offer-card__badges">
-            <span class="chain-badge" :class="`chain-badge--${offer.chain}`">{{ offer.chainName }}</span>
+            <ChainLogo :chain="offer.chain" />
             <span v-if="offer.matchStatus === 'maybe'" class="tag tag--warning" :title="t('offers.maybe_hint')">{{ t('offers.maybe') }}</span>
             <span v-if="offer.storeFormatName" class="tag">{{ offer.storeFormatName }}</span>
             <span v-if="offer.onlineOnly" class="tag tag--warning">{{ t('offers.online_only') }}</span>

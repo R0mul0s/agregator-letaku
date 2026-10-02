@@ -5,6 +5,7 @@
     @created 2026-10-02
 -->
 <script setup>
+import ChainSelect from '@/Components/ChainSelect.vue';
 import OfferCard from '@/Components/OfferCard.vue';
 import Pagination from '@/Components/Pagination.vue';
 import SearchSuggest from '@/Components/SearchSuggest.vue';
@@ -57,13 +58,14 @@ function search() {
                 :min-length="suggestMinLength"
                 @select="search"
             />
-            <div class="form-field">
-                <label for="chain" class="form-field__label">{{ t('offers.chain') }}</label>
-                <select id="chain" v-model="filters.chain" name="chain" class="form-field__input" @change="search">
-                    <option value="">{{ t('offers.all_chains') }}</option>
-                    <option v-for="chain in chains" :key="chain.value" :value="chain.value">{{ chain.name }}</option>
-                </select>
-            </div>
+            <ChainSelect
+                id="chain"
+                v-model="filters.chain"
+                :label="t('offers.chain')"
+                :chains="chains.map((chain) => chain.value)"
+                :all-label="t('offers.all_chains')"
+                @change="search"
+            />
             <button type="submit" class="button button--primary">{{ t('offers.submit') }}</button>
         </form>
 

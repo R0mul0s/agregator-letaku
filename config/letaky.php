@@ -27,6 +27,11 @@ return [
     'display_timezone' => env('LETAKY_DISPLAY_TIMEZONE', 'Europe/Prague'),
 
     /*
+    | Loga obchodů v public/ (sprintf s hodnotou App\Enums\Chain) — zdroje v hlavičkách souborů.
+    */
+    'chain_logo_path' => 'images/chains/%s.svg',
+
+    /*
     | Barva lišty prohlížeče na mobilu podle režimu (= --color-bg v base/_tokens.scss).
     */
     'theme_colors' => [

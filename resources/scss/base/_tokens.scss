@@ -30,13 +30,8 @@
     --color-warning-soft: #fff4e0;
     --color-warning-text: #9a5b00;
 
-    // Barvy obchodů (štítky) — text na nich bílý s kontrastem aspoň 4,5 : 1
-    --chain-kaufland: #c8102e;
-    --chain-tesco: #00539f;
-    --chain-albert: #0f6fb5;
-    --chain-lidl: #0050aa;
-    --chain-penny: #b5121b;
-    --color-on-chain: #ffffff;
+    // Podklad loga obchodu — loga počítají se světlým pozadím i v tmavém režimu
+    --color-logo-bg: #ffffff;
 
     --space-1: 0.25rem;
     --space-2: 0.5rem;
@@ -69,6 +64,9 @@
     --offer-image-height: 8rem;
     --watch-catalog-max-height: 22rem;
     --z-dropdown: 20;
+    --chain-logo-height: 1.5rem;
+    --chain-logo-height-large: 2.25rem;
+    --chain-select-min-width: 12rem;
     --mention-image-width: 4.5rem;
     --search-text-min-width: 16rem;
     --font-size-price: 1.5rem;

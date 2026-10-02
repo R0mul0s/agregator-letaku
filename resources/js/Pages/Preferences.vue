@@ -5,6 +5,7 @@
     @created 2026-10-02
 -->
 <script setup>
+import ChainLogo from '@/Components/ChainLogo.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { useTranslations } from '@/lib/i18n';
 import { Head, useForm, usePage } from '@inertiajs/vue3';
@@ -69,7 +70,7 @@ function submit() {
         <form class="preferences" novalidate @submit.prevent="submit">
             <section v-for="chain in chains" :key="chain.value" class="card chain-settings" :class="{ 'chain-settings--disabled': !chain.available }">
                 <div class="chain-settings__header">
-                    <span class="chain-badge" :class="`chain-badge--${chain.value}`">{{ chain.name }}</span>
+                    <ChainLogo :chain="chain.value" with-name large />
                     <label v-if="chain.available" class="form-checkbox">
                         <input v-model="chainSettings[chain.value].followed" type="checkbox" class="form-checkbox__input" />
                         <span>{{ t('preferences.follow') }}</span>

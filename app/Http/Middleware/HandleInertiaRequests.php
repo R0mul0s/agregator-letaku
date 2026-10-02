@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Enums\Chain;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -52,6 +53,14 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'translations' => fn () => trans('app.ui'),
+            // Názvy a loga obchodů pro ChainLogo a výběr obchodu (public/images/chains)
+            'chainInfo' => fn (): array => array_combine(
+                array_map(fn (Chain $chain): string => $chain->value, Chain::cases()),
+                array_map(fn (Chain $chain): array => [
+                    'name' => $chain->label(),
+                    'logo' => asset(sprintf(config()->string('letaky.chain_logo_path'), $chain->value)),
+                ], Chain::cases()),
+            ),
             'locale' => app()->getLocale(),
             'timezone' => config('letaky.display_timezone'),
             'auth' => [
