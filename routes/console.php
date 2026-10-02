@@ -3,7 +3,7 @@
 /**
  * Artisan příkazy definované closurou a plánované úlohy.
  *
- * Způsob spouštění plánovaných úloh závisí na hostingu (O1 v docs/PLAN.md).
+ * Produkce na Websupportu nemá scheduler (R20 v docs/PLAN.md) — úlohy spouští cron URL.
  *
  * @author Roman Hlaváček
  *

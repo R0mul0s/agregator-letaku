@@ -64,6 +64,8 @@ function unitPriceLabel(halers) {
             <span class="tag" :class="{ 'tag--accent': offer.offerType === 'discount' }">{{ t(`offer_types.${offer.offerType}`) }}</span>
         </div>
 
+        <!-- Obrázek z CDN obchodu, nestahuje se k nám (R22); název nese nadpis, obrázek je dekorativní -->
+        <img v-if="offer.imageUrl" :src="offer.imageUrl" alt="" class="offer-card__image" loading="lazy" referrerpolicy="no-referrer" />
         <h2 class="offer-card__name">{{ offer.name }}</h2>
         <p v-if="offer.description" class="offer-card__description">{{ offer.description }}</p>
         <p v-if="offer.variantNote" class="offer-card__variant">{{ offer.variantNote }}</p>

@@ -120,7 +120,7 @@ Eloquent model                 ← perzistence
 
 - **Doménová logika nepatří do kontroleru, commandu ani modelu.**
 - Repository třídy nezavádíme, Eloquent stačí.
-- Úlohy importu jsou **Actions**, které jde spustit z artisan příkazu i odjinud (scheduler, cron URL). Způsob spouštění závisí na hostingu ([O1](PLAN.md#7-otevřené-otázky)).
+- Úlohy importu jsou **Actions**, které jde spustit z artisan příkazu i z cron URL. Produkce na Websupportu nemá frontu ani scheduler ([R20](PLAN.md#8-log-rozhodnutí)): nic nesmí implementovat `ShouldQueue` a každá migrace bude potřebovat SQL skript v `deploy/`.
 
 ### Zdroje dat obchodů (scrapery)
 - **Každý obchod = jedna třída zdroje** v `app/Domain/Sources/<Obchod>`, implementuje společné rozhraní a vrací kolekci `OfferData` (DTO, `readonly`). Zdroj neukládá do DB a neví o uživatelích.

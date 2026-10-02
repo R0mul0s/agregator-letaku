@@ -27,6 +27,15 @@
         margin-bottom: var(--space-1);
     }
 
+    // Fotky obchodů mají různé poměry stran — vejdou se celé do stejně vysokého pole
+    &__image {
+        align-self: center;
+        width: 100%;
+        height: var(--offer-image-height);
+        margin-bottom: var(--space-2);
+        object-fit: contain;
+    }
+
     &__name {
         font-size: var(--font-size-md);
     }

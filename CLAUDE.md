@@ -76,8 +76,17 @@ Testy běží proti MariaDB `agregator_test`, ne SQLite, a **nikdy nesahají na 
 
 ## Produkce
 
-Zatím neurčeno (O1 v PLAN.md). Než se rozhodne, nic nesmí záviset na tom, jestli
-poběží scheduler a fronta. Každá úloha je Action volatelná z artisan příkazu.
+Sdílený hosting **Websupport** (R20), stejně jako Počasí: Apache 2.4 + PHP 8.4,
+MariaDB 11.4. **Není tam SSH ani composer** — nic z `php artisan` se na produkci nespustí.
+Nasazení zatím neproběhlo (etapa 7). Už teď z toho plyne:
+
+- **Žádná fronta, scheduler ani démon** — nic nesmí implementovat `ShouldQueue`.
+  Stahování bude spouštět cron WebAdminu voláním URL s tokenem; každá úloha je Action
+  volatelná z artisan příkazu i z kontroleru.
+- **Každá migrace bude potřebovat SQL skript** `deploy/migrations-<datum>-<popis>.sql`
+  (od prvního nasazení; první skript pokryje všechny dosavadní migrace).
+- **Dlouhé požadavky:** stažení Tesca trvá ~45 s; limit hostingu se ověří při nasazení (O8).
+- Nepřidávej závislost, kterou hosting nemá (Redis, fronta, binárky jako `pdftotext`).
 
 ## Stack
 

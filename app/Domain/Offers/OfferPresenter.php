@@ -51,6 +51,8 @@ final class OfferPresenter
             'validFrom' => $offer->valid_from->format(self::DATE_FORMAT),
             'validTo' => $offer->valid_to->format(self::DATE_FORMAT),
             'sourceUrl' => $offer->source_url,
+            // Odkaz na CDN obchodu — obrázek se nestahuje ani neukládá (R22)
+            'imageUrl' => $offer->image_url,
         ];
     }
 }
