@@ -75,6 +75,17 @@ it('slevu s původní cenou uloží jako slevu a duplicitu z kampaně vynechá',
         ->source_category->toBe('Mléčné výrobky, tuky, vejce');
 });
 
+it('odkaz akce vede na její kategorii a textovým fragmentem na dlaždici', function (): void {
+    Http::fake([KAUFLAND_OFFERS_URL => Http::response(responseFixture('kaufland/prehled-2026-10-02.html'))]);
+
+    $this->artisan('letaky:import-offers', ['chain' => ['kaufland']]);
+
+    $url = kauflandOffer('00153062')->source_url;
+    expect($url)
+        ->toStartWith('https://prodejny.kaufland.cz/nabidka/prehled.html?kloffer-week=current&kloffer-category='.urlencode('03_Mléčné_výrobky__tuky__vejce').'#:~:text=')
+        ->and(rawurldecode((string) parse_url((string) $url, PHP_URL_FRAGMENT)))->toStartWith(':~:text=Čerstvá vejce');
+});
+
 it('„AKCE! pouze“ bez původní ceny uloží jako akční cenu, ne slevu (R8)', function (): void {
     Http::fake([KAUFLAND_OFFERS_URL => Http::response(responseFixture('kaufland/prehled-2026-10-02.html'))]);
 

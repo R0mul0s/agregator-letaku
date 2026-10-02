@@ -47,12 +47,20 @@ final class KauflandOfferSource implements OfferSource
     {
         $url = config()->string('letaky.sources.kaufland.offers_url');
 
-        $current = $this->parser->parse($this->download($url, self::CURRENT_WEEK), $url);
+        $current = $this->parser->parse($this->download($url, self::CURRENT_WEEK), $this->weekUrl($url, self::CURRENT_WEEK));
         if (! $current->nextWeekPublished) {
             return [$current->batch];
         }
 
-        return [$current->batch, $this->parser->parse($this->download($url, self::NEXT_WEEK), $url)->batch];
+        return [$current->batch, $this->parser->parse($this->download($url, self::NEXT_WEEK), $this->weekUrl($url, self::NEXT_WEEK))->batch];
+    }
+
+    /**
+     * Adresa nabídky týdne pro uživatele (odkaz u zdroje a základ odkazu u akce).
+     */
+    private function weekUrl(string $url, string $week): string
+    {
+        return $url.'?'.http_build_query([self::WEEK_PARAMETER => $week]);
     }
 
     /**

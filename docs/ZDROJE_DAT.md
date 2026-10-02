@@ -79,6 +79,7 @@ Implementace: `app/Domain/Sources/Kaufland/KauflandOfferParser.php`.
 - URL obrázku obsahuje EAN (`8594061460122_CZ_P`).
 - Příští týden se zveřejňuje 3 dny před začátkem platnosti. Týden začíná ve středu, takže v neděli **(předpoklad z textu webu)**.
 - robots.txt zakazuje jen detaily (`/nabidka/*/detail`), `/nabidka/prehled.html` je povolená.
+- **Detail akce nemá vlastní adresu** — otevírá se jen jako okno nad stránkou, v datech je jen `offerId` a `klNr`. Odkaz u akce proto vede na stránku její kategorie (`?kloffer-week=current|next&kloffer-category={name kategorie}`, např. `03_Mléčné_výrobky__tuky__vejce`) s textovým fragmentem `#:~:text={title dlaždice}`: prohlížeč na dlaždici odroluje a zvýrazní ji (nadpis je v HTML jako `k-product-tile__title`). Pomlčka se ve fragmentu musí kódovat (`%2D`).
 
 ---
 
