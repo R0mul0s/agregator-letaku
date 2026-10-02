@@ -1,0 +1,49 @@
+// _card.scss
+// Karta obsahu a karta přihlašovacích formulářů.
+//
+// @author Roman Hlaváček
+// @created 2026-10-02
+
+@use '../abstracts/mixins' as *;
+
+.card {
+    padding: var(--space-4);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-card);
+
+    &__title {
+        margin-bottom: var(--space-3);
+        font-size: var(--font-size-card-title);
+    }
+}
+
+// Přihlášení, registrace, obnova hesla — úzká karta uprostřed
+.auth-card {
+    @extend .card;
+
+    max-width: var(--auth-card-max-width);
+    margin: 0 auto;
+
+    @include from-md {
+        margin-top: var(--space-5);
+    }
+
+    &__title {
+        margin-bottom: var(--space-4);
+        font-size: var(--font-size-lg);
+    }
+
+    &__intro {
+        margin-bottom: var(--space-3);
+        color: var(--color-text-muted);
+    }
+
+    &__footer {
+        margin-top: var(--space-4);
+        padding-top: var(--space-3);
+        border-top: 1px solid var(--color-border);
+        color: var(--color-text-muted);
+    }
+}

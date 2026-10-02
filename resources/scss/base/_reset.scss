@@ -1,0 +1,44 @@
+// _reset.scss
+// Základní styly dokumentu.
+//
+// @author Roman Hlaváček
+// @created 2026-10-02
+
+@use '../abstracts/mixins' as *;
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-family);
+    font-size: var(--font-size-md);
+    line-height: var(--line-height-base);
+}
+
+h1,
+h2,
+p {
+    margin: 0;
+}
+
+// Formulářové prvky dědí písmo stránky (prohlížeč jim dává vlastní)
+button,
+input {
+    font: inherit;
+}
+
+:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+}
+
+// Text jen pro čtečky obrazovky (např. popisky ikonových tlačítek)
+.visually-hidden {
+    @include visually-hidden;
+}

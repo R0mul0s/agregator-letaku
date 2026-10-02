@@ -1,0 +1,47 @@
+// _mixins.scss
+// Sdílené mixiny. Negeneruje žádné CSS.
+//
+// @author Roman Hlaváček
+// @created 2026-10-02
+
+@use 'variables' as *;
+
+/// Styly od středně širokého displeje výš.
+@mixin from-md {
+    @media (min-width: $breakpoint-md) {
+        @content;
+    }
+}
+
+/// Tmavý režim podle nastavení systému.
+/// Tmavý režim — volba uživatele (data-theme na <html>, viz resources/js/lib/theme.js),
+/// jinak podle systému. Používá se jen uvnitř :root (tokeny).
+@mixin dark {
+    &[data-theme='dark'] {
+        @content;
+    }
+
+    @media (prefers-color-scheme: dark) {
+        &:not([data-theme='light']) {
+            @content;
+        }
+    }
+}
+
+/// Skryje prvek vizuálně, čtečka obrazovky ho dál přečte.
+@mixin visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+/// Styly od širokého displeje výš.
+@mixin from-lg {
+    @media (min-width: $breakpoint-lg) {
+        @content;
+    }
+}

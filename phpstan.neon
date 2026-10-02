@@ -1,0 +1,25 @@
+# Statická analýza — Larastan
+#
+# Level 8 je podle docs/CODING_GUIDELINES.md minimum.
+#
+# @author Roman Hlaváček
+# @created 2026-10-02
+
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    level: 8
+
+    # Testy ne — Pest pracuje s dynamickým $this a pomocnými funkcemi, analýza
+    # tam hlásí nálezy bez užitku (zkušenost z projektu Počasí).
+    paths:
+        - app
+        - bootstrap/app.php
+        - config
+        - database
+        - routes
+
+    # Migrace jsou anonymní třídy s dynamickým Blueprintem — analýza tam jen šumí.
+    excludePaths:
+        - database/migrations

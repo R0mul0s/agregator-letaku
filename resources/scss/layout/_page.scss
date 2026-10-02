@@ -1,0 +1,67 @@
+// _page.scss
+// Obsah stránky pod hlavičkou — šířka, odsazení, nadpis.
+//
+// @author Roman Hlaváček
+// @created 2026-10-02
+
+@use '../abstracts/mixins' as *;
+
+.page {
+    max-width: var(--content-max-width);
+    margin: 0 auto;
+    padding: var(--space-4) var(--space-3);
+
+    // Fokus dostává jen programově (odkaz „Přeskočit na obsah"), rámeček kolem
+    // celého obsahu by jen rušil
+    &:focus {
+        outline: none;
+    }
+
+    @include from-md {
+        padding: var(--space-5) var(--space-4);
+    }
+
+    &__header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: var(--space-3);
+        margin-bottom: var(--space-4);
+    }
+
+    &__title {
+        font-size: var(--font-size-lg);
+    }
+
+    &__subtitle,
+    &__empty {
+        color: var(--color-text-muted);
+    }
+
+    &__subtitle {
+        flex-basis: 100%;
+    }
+}
+
+// Odkaz „Přeskočit na obsah" — první prvek stránky pro klávesnici, vidět je
+// jen při fokusu (jinak by překážel)
+.skip-link {
+    @include visually-hidden;
+
+    &:focus {
+        top: var(--space-2);
+        left: var(--space-2);
+        z-index: 1;
+        width: auto;
+        height: auto;
+        margin: 0;
+        padding: var(--space-2) var(--space-3);
+        overflow: visible;
+        clip-path: none;
+        background: var(--color-surface);
+        border: 1px solid var(--color-accent);
+        border-radius: var(--radius-sm);
+        color: var(--color-accent-strong);
+    }
+}

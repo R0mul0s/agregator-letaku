@@ -265,14 +265,13 @@ docker compose exec app ./vendor/bin/phpstan analyse --memory-limit=1G
 docker compose exec app npm run build          # při změně JS, Vue nebo SCSS
 ```
 
-Totéž po každém push do `main` spouští GitHub Actions (`.github/workflows/ci.yml`,
-MariaDB 11.4 jako služba). CI je pojistka, ne náhrada ručních kontrol.
+CI (GitHub Actions) zatím není, ruční kontroly jsou jediná pojistka ([R14](PLAN.md#8-log-rozhodnutí)).
 
 ---
 
 ## 10. Bezpečnost
 
-- **Přihlášení přes Fortify** ([R12](PLAN.md#8-log-rozhodnutí)): hesla hashovaná, throttle na přihlášení i registraci.
+- **Přihlášení přes Fortify** ([R12](PLAN.md#8-log-rozhodnutí), [R13](PLAN.md#8-log-rozhodnutí)): hesla hashovaná, limit pokusů o přihlášení na dvojici e-mail + IP, odeslání odkazu na obnovu hesla omezuje Laravel (jednou za minutu).
 - **Uživatel vidí a mění jen svá data.** Hlídané položky a výběr prodejen přes Policy a vazby na uživatele.
 - Tajemství (API klíče obchodů a LLM) jsou v `.env`, nikdy v repu. `.env.example` má prázdné hodnoty.
 - CSRF všude. Případná cron URL je chráněná tokenem z `.env` a rate limitem.

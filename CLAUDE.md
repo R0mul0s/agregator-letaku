@@ -20,8 +20,13 @@ volné číslo R…). Změna chování obchodu (nový endpoint, jiné pole) pat�
 
 ## Stav
 
-Hotový je technický průzkum a dokumentace (etapa 0). **Kostra aplikace zatím
-neexistuje**, vznikne v etapě 1. Příkazy níže platí od ní.
+Hotová je etapa 1: kostra aplikace, přihlášení a registrace (Fortify, R12, R13),
+stránka účtu a model prodejen (`stores`, `store_user`). Další je etapa 2:
+zdroje dat Kaufland a Tesco (viz PLAN.md, kap. 6).
+
+Vývojový uživatel ze seederu: `test@example.com` / `password`
+(`docker compose exec app php artisan db:seed`). E-maily (obnova hesla) se lokálně
+jen zapisují do `storage/logs/laravel.log`.
 
 ## Prostředí
 
@@ -66,8 +71,8 @@ poběží scheduler a fronta. Každá úloha je Action volatelná z artisan př�
 
 ## Stack
 
-PHP 8.4 · Laravel 13 · Inertia · Vue 3 · SCSS (BEM + CSS tokeny) · Fortify ·
-MariaDB 11.4 · Pest · Larastan · Pint. Extrakce letáků (etapa 6): Claude API.
+PHP 8.4 · Laravel 13 · Inertia 3 · Vue 3 · SCSS (BEM + CSS tokeny) · Fortify ·
+MariaDB 11.4 · Pest 4 · Larastan · Pint. Extrakce letáků (etapa 6): Claude API.
 
 ## Nejčastější zdroje chyb v tomhle projektu
 

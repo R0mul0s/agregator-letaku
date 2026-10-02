@@ -1,0 +1,79 @@
+# Agregátor letáků — Docker Compose stack pro vývoj
+#
+# Aplikace:        http://localhost:54720
+# MariaDB:         localhost:54721 (agregator / agregator)
+# Vite dev server: http://localhost:54722 (jen při `npm run dev`)
+#
+# Porty nekolidují s Počasím (54710–54712) ani s Píchačkami (54687–54690).
+#
+# @author Roman Hlaváček
+# @created 2026-10-02
+
+name: agregator-letaku
+
+services:
+    app:
+        build:
+            context: ./docker/php
+            dockerfile: Dockerfile
+        container_name: letaky-app
+        working_dir: /var/www/html
+        # Kontejner běží pod www-data jako php-fpm workery — soubory vytvořené
+        # přes `docker compose exec app …` tak web může přepsat.
+        user: www-data
+        volumes:
+            - ./:/var/www/html
+        # Porty jen na localhost — ne do sítě (DB má vývojová hesla)
+        ports:
+            - "127.0.0.1:54722:5173"
+        depends_on:
+            db:
+                condition: service_healthy
+        networks:
+            - letaky
+        environment:
+            # Composer i npm potřebují zapisovatelný domovský adresář.
+            HOME: /tmp
+
+    nginx:
+        image: nginx:1.27-alpine
+        container_name: letaky-nginx
+        ports:
+            - "127.0.0.1:54720:80"
+        volumes:
+            - ./:/var/www/html
+            - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+        depends_on:
+            - app
+        networks:
+            - letaky
+
+    db:
+        image: mariadb:11.4
+        container_name: letaky-db
+        restart: unless-stopped
+        environment:
+            MARIADB_ROOT_PASSWORD: root
+            MARIADB_DATABASE: agregator
+            MARIADB_USER: agregator
+            MARIADB_PASSWORD: agregator
+        ports:
+            - "127.0.0.1:54721:3306"
+        volumes:
+            - dbdata:/var/lib/mysql
+            - ./docker/mariadb/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+        # app startuje až s databází připravenou na spojení (skript je součástí image)
+        healthcheck:
+            test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+            interval: 5s
+            timeout: 5s
+            retries: 20
+        networks:
+            - letaky
+
+volumes:
+    dbdata:
+
+networks:
+    letaky:
+        driver: bridge

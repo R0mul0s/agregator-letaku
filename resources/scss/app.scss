@@ -1,0 +1,15 @@
+// app.scss
+// Vstupní bod stylů — jen @use jednotlivých částí.
+//
+// @author Roman Hlaváček
+// @created 2026-10-02
+
+@use 'base/tokens';
+@use 'base/reset';
+@use 'layout/app-header';
+@use 'layout/page';
+@use 'components/button';
+@use 'components/form';
+@use 'components/card';
+@use 'components/notice';
+@use 'pages/account';

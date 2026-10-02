@@ -14,8 +14,8 @@ kde a za kolik je to právě ve slevě, včetně cen s věrnostní kartou a ceny
 | **Instrukce pro AI agenty** | [CLAUDE.md](CLAUDE.md) |
 | **Správce** | Roman Hlaváček |
 
-> **Stav:** hotový je technický průzkum zdrojů dat a dokumentace. Kostra aplikace
-> vznikne v etapě 1 ([PLAN.md, sekce 6](docs/PLAN.md#6-etapy)). Návod níže platí od ní.
+> **Stav:** hotová je kostra aplikace s účty a přihlášením (etapa 1). Stahování
+> nabídek obchodů přibude v etapě 2 ([PLAN.md, sekce 6](docs/PLAN.md#6-etapy)).
 
 ## Jak to funguje
 
@@ -39,7 +39,6 @@ git clone https://github.com/R0mul0s/agregator-letaku.git
 cd agregator-letaku
 
 cp .env.example .env
-# doplnit do .env: TESCO_API_KEY (veřejný klíč z HTML e-shopu, viz docs/ZDROJE_DAT.md)
 
 docker compose up -d
 docker compose exec app composer install
@@ -47,9 +46,13 @@ docker compose exec app php artisan key:generate
 docker compose exec app php artisan migrate
 docker compose exec app npm install
 docker compose exec app npm run build
+
+# volitelně vývojový uživatel test@example.com / password
+docker compose exec app php artisan db:seed
 ```
 
-Pak otevři http://localhost:54720.
+Pak otevři http://localhost:54720 a zaregistruj se (nebo se přihlas vývojovým uživatelem).
+E-maily (odkaz na obnovu hesla) se lokálně jen zapisují do `storage/logs/laravel.log`.
 
 ### Služby
 
@@ -59,21 +62,46 @@ Pak otevři http://localhost:54720.
 | MariaDB | localhost:54721 (`agregator` / `agregator`) |
 | Vite dev server | http://localhost:54722 (při `npm run dev`) |
 
-## Struktura repozitáře (plán)
+Databáze pro testy `agregator_test` vzniká automaticky, ale **jen při prvním
+startu nad prázdným volume** (`docker/mariadb/init.sql`). Když chybí, smaž
+volume (`docker compose down -v`).
+
+## Běžné příkazy
+
+Kontrola kvality před commitem: viz [CODING_GUIDELINES.md, sekce 9](docs/CODING_GUIDELINES.md#9-nástroje-a-kvalita).
+
+```bash
+docker compose exec app npm run dev      # assety: watch s HMR
+docker compose exec app npm run build    # assety: produkční build
+```
+
+## Struktura repozitáře
 
 ```
 app/
-  Console/Commands/      artisan příkazy (obálky nad akcemi)
-  Domain/Chains/         obchody, prodejny, věrnostní programy
-  Domain/Sources/<Obchod>/ stažení a převod nabídky jednoho obchodu
-  Domain/Offers/         normalizace, deduplikace, uložení nabídek
-  Domain/Extraction/     extrakce letáků přes LLM (etapa 6)
-  Domain/Matching/       párování hlídaných položek, kategorie
-  Enums/                 Chain, OfferType, LoyaltyProgram, MatchStatus
-config/letaky.php        nastavení obchodů a konstanty
+  Actions/Fortify/       registrace, obnova a změna hesla, úprava profilu (R12)
+  Enums/                 Chain (obchody), StoreFormat (hypermarket / supermarket)
+  Http/                  tenké kontrolery, sdílená data Inertie
+  Models/                User, Store
+config/letaky.php        konstanty aplikace
+config/fortify.php       zapnuté funkce účtu (R13)
+docker/                  PHP, nginx a MariaDB pro vývoj
 docs/                    zadání, pravidla, zdroje dat
-lang/cs/app.php          všechny texty
+lang/cs/                 všechny texty (app.php) a překlady Laravelu
 resources/js/            Inertia stránky a Vue komponenty
 resources/scss/          styly (tokeny, komponenty, stránky)
-tests/Fixtures/<obchod>/ uložené skutečné odpovědi obchodů pro testy
+tests/                   Pest — Feature a Unit
 ```
+
+S dalšími etapami přibudou `app/Domain/Sources/<Obchod>/` (stažení nabídky obchodu),
+`app/Domain/Offers/` (normalizace a uložení), `app/Domain/Matching/` (párování) a
+`tests/Fixtures/<obchod>/` (uložené odpovědi obchodů), viz
+[CODING_GUIDELINES.md, sekce 3](docs/CODING_GUIDELINES.md#3-php--laravel).
+
+## Řešení potíží
+
+| Příznak | Příčina a řešení |
+|---|---|
+| Testy padají na připojení k databázi | chybí `agregator_test`, viz *Služby* |
+| Na stránce chybí styly | nesestavené assety, `npm run build` |
+| `Route [...] not defined` | cache rout, `php artisan optimize:clear` |

@@ -1,0 +1,140 @@
+// _app-header.scss
+// Hlavička aplikace — logo, navigace, přepínač vzhledu a odhlášení.
+//
+// @author Roman Hlaváček
+// @created 2026-10-02
+
+@use '../abstracts/mixins' as *;
+
+.app-header {
+    background: var(--color-surface);
+    border-bottom: 1px solid var(--color-border);
+
+    // Na mobilu dva řádky: logo a akce nahoře, navigace pod nimi přes celou šířku
+    &__inner {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-2);
+        max-width: var(--content-max-width);
+        margin: 0 auto;
+        padding: var(--space-2) var(--space-3);
+
+        @include from-md {
+            flex-wrap: nowrap;
+        }
+    }
+
+    &__brand {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+        color: var(--color-text);
+        font-weight: 700;
+        text-decoration: none;
+    }
+
+    &__logo {
+        width: var(--logo-size-mobile);
+        height: var(--logo-size-mobile);
+
+        @include from-md {
+            width: var(--logo-size);
+            height: var(--logo-size);
+        }
+    }
+
+    // Na mobilu jen logo — název by se vedle přepínače vzhledu a odhlášení nevešel
+    &__name {
+        @include visually-hidden;
+
+        @include from-md {
+            position: static;
+            width: auto;
+            height: auto;
+            margin: 0;
+            overflow: visible;
+            clip-path: none;
+            white-space: normal;
+        }
+    }
+
+    // Na mobilu vlastní řádek (order za akcemi), od md mezi logem a akcemi
+    &__nav {
+        display: flex;
+        flex: 1 0 100%;
+        order: 1;
+        gap: var(--space-1);
+
+        @include from-md {
+            flex: 1;
+            order: 0;
+            justify-content: flex-end;
+        }
+    }
+
+    &__link {
+        padding: var(--space-2) var(--space-3);
+        border-radius: var(--radius-sm);
+        color: var(--color-text-muted);
+        text-decoration: none;
+
+        &:hover {
+            color: var(--color-text);
+        }
+
+        &--active {
+            background: var(--color-accent-soft);
+            color: var(--color-accent-strong);
+            font-weight: 600;
+        }
+    }
+
+    &__actions {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+    }
+}
+
+// Přepínač vzhledu — tři ikonová tlačítka
+.theme-switch {
+    display: inline-flex;
+    padding: var(--space-1);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+
+    &__button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: var(--theme-button-size);
+        height: var(--theme-button-size);
+        padding: 0;
+        background: none;
+        border: 0;
+        border-radius: var(--radius-sm);
+        color: var(--color-text-muted);
+        cursor: pointer;
+
+        &:hover {
+            color: var(--color-text);
+        }
+
+        &--active {
+            background: var(--color-accent-soft);
+            color: var(--color-accent-strong);
+        }
+    }
+
+    &__icon {
+        width: var(--theme-icon-size);
+        height: var(--theme-icon-size);
+        fill: none;
+        stroke: currentcolor;
+        stroke-width: var(--svg-stroke-icon);
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+}

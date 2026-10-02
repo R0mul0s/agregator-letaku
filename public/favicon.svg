@@ -1,0 +1,10 @@
+<!--
+    Ikona aplikace — cenovka.
+
+    @author Roman Hlaváček
+    @created 2026-10-02
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+    <path d="M3 5.5V14a2 2 0 0 0 .6 1.4l12 12a2 2 0 0 0 2.8 0l8.5-8.5a2 2 0 0 0 0-2.8l-12-12A2 2 0 0 0 13.5 3.5H5a2 2 0 0 0-2 2z" fill="#d6336c"/>
+    <circle cx="9" cy="9.5" r="2.25" fill="#ffffff"/>
+</svg>

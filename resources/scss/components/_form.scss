@@ -1,0 +1,61 @@
+// _form.scss
+// Formuláře — rozložení, textové pole s chybou, zaškrtávací pole.
+//
+// @author Roman Hlaváček
+// @created 2026-10-02
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+
+    &__actions {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--space-3);
+        margin-top: var(--space-2);
+    }
+}
+
+.form-field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+
+    &__label {
+        font-weight: 600;
+    }
+
+    &__input {
+        min-height: var(--control-size);
+        padding: var(--space-2) var(--space-3);
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-sm);
+        color: var(--color-text);
+
+        &--invalid {
+            border-color: var(--color-danger);
+        }
+    }
+
+    &__error {
+        color: var(--color-danger);
+        font-size: var(--font-size-sm);
+    }
+}
+
+.form-checkbox {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    cursor: pointer;
+
+    &__input {
+        width: var(--checkbox-size);
+        height: var(--checkbox-size);
+        margin: 0;
+        accent-color: var(--color-accent);
+    }
+}

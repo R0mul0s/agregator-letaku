@@ -179,7 +179,7 @@ z artisan příkazu i odjinud.
 | # | Obsah | Stav |
 |---|---|---|
 | 0 | Technický průzkum zdrojů dat všech 5 obchodů ([ZDROJE_DAT.md](ZDROJE_DAT.md)), dokumentace | hotovo 2026-10-02 |
-| 1 | **Kostra:** Laravel 13, Docker, CI, Pint, Larastan, Pest, SCSS tokeny, layout; přihlášení a registrace (Fortify); model `stores` | |
+| 1 | **Kostra:** Laravel 13, Docker, Pint, Larastan, Pest, SCSS tokeny, layout; přihlášení a registrace (Fortify); model `stores` | hotovo 2026-10-02 |
 | 2 | **Kaufland a Tesco:** zdroje, normalizace, `offers`, `leaflets`, `scrape_runs`, artisan příkaz importu; import seznamu prodejen; přehled všech nabídek s fulltextem | |
 | 3 | **Hlídání:** výběr prodejen a věrnostních programů, hlídané položky (produkt / kategorie), párování podle pravidel (klíčová slova, vylučovací slova), seznam slev uživatele s cenou za jednotku | |
 | 4 | **Lidl a Penny, strukturovaná část:** Lidl `data-grid-data` z kampaňových stránek, Penny product-discovery API | |
@@ -219,3 +219,5 @@ z artisan příkazu i odjinud.
 | R10 | 2026-10-02 | **Nabídky ani letáky se nemažou**, zůstávají jako historie | Penny a Albert staré letáky z webu mažou. Historie umožní porovnat, jestli je „akce“ opravdu levnější než obvykle. |
 | R11 | 2026-10-02 | **Testy nikdy nesahají na síť.** Odpovědi obchodů jsou fixtures v `tests/Fixtures/<obchod>/` uložené ze skutečných odpovědí | Neveřejná API se mění a testy musí být deterministické. Fixture zároveň dokumentuje tvar dat k danému datu. |
 | R12 | 2026-10-02 | **Přihlášení přes Laravel Fortify** s vlastními Vue stránkami, ne starter kit | Starter kity Laravelu stojí na Tailwindu, což je v rozporu s pravidly stylování (SCSS a BEM). Fortify dodá backend (registrace, přihlášení, reset hesla, throttle) bez UI. |
+| R13 | 2026-10-02 | **Fortify jen s registrací, přihlášením, obnovou hesla, úpravou profilu a změnou hesla.** Dvoufázové ověření, passkeys a ověření e-mailu jsou vypnuté. Přihlášení má limit pokusů na dvojici e-mail + IP (`letaky.auth.login_attempts_per_minute`). Session v databázi, fronta zatím `sync` (O1). Adresy formulářů posílá server v props, routy Fortify nejsou ve Vue natvrdo | Aplikace je zatím jen pro autora (R5), další vrstvy zabezpečení by přidaly stránky a tabulky bez užitku. Jdou zapnout v `config/fortify.php`, až se aplikace zveřejní. Session v databázi (na rozdíl od cookie v Počasí) jde u uživatelských účtů zrušit smazáním řádku. |
+| R14 | 2026-10-02 | **CI v GitHub Actions zatím není**, kontroly kvality se pouštějí jen ručně před commitem | V rané fázi projektu zbytečné, rozhodnutí autora. Workflow jde převzít z Počasí (`.github/workflows/ci.yml`), až bude potřeba. |

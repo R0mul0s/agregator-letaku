@@ -1,0 +1,17 @@
+// _notice.scss
+// Upozornění v obsahu stránky (potvrzení uložení, odeslaný odkaz).
+//
+// @author Roman Hlaváček
+// @created 2026-10-02
+
+.notice {
+    margin-bottom: var(--space-3);
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+
+    &--success {
+        background: var(--color-success-soft);
+        border-color: var(--color-success);
+    }
+}

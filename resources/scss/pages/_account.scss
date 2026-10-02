@@ -1,0 +1,12 @@
+// _account.scss
+// Stránka účtu — formuláře vedle sebe na širokém displeji.
+//
+// @author Roman Hlaváček
+// @created 2026-10-02
+
+.account {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--account-column-min-width)), 1fr));
+    align-items: start;
+    gap: var(--space-4);
+}
