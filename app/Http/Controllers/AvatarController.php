@@ -23,7 +23,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AvatarController extends Controller
 {
-    /** Kód stavu po uložení nebo odebrání obrázku (Account.vue). */
+    /** Kód stavu po uložení nebo odebrání obrázku — toast (R47, lang: ui.toast.messages). */
     public const STATUS_UPDATED = 'avatar-updated';
 
     /**

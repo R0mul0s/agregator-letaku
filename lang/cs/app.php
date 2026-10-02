@@ -174,7 +174,8 @@ return [
             'edit_hint' => 'Po uložení se akce k produktu přiřadí znovu; ruční opravy zůstanou.',
             'save' => 'Uložit',
             'delete' => 'Smazat produkt',
-            'delete_confirm' => 'Smazat produkt „:name“ i s přiřazením akcí?',
+            'delete_confirm_title' => 'Smazat produkt?',
+            'delete_confirm' => 'Produkt „:name“ se smaže i s přiřazením akcí. Kdo ho hlídá, dostane jeho pravidla jako vlastní slova.',
             'back' => '← Katalog',
             'assigned' => 'Přiřazené akce',
             'assigned_empty' => 'K produktu teď nepatří žádná akce.',
@@ -204,7 +205,10 @@ return [
             'show_offers' => 'Zobrazit v Mých slevách',
             'browse_title' => 'Procházet katalog',
             'browse_count' => ':count produkt|:count produkty|:count produktů',
-            'all_departments' => 'Vše',
+            'browse_hint' => 'Vyberte oddělení a klepnutím na produkt ho začněte hlídat.',
+            'browse_back' => 'Všechna oddělení',
+            'watched_count' => 'hlídáte :count',
+            'other_department' => 'Ostatní',
             'own_title' => 'Vlastní hledání',
             'own_hint' => 'Pro věc, která v katalogu není. Položka najde akce, ve kterých jsou všechna hledaná slova; diakritika ani velká písmena nehrají roli a slovo stačí jako začátek („vejce“ najde i „vejcem“).',
             'name' => 'Název',
@@ -225,7 +229,8 @@ return [
             'edit' => 'Upravit',
             'delete' => 'Smazat',
             'stop' => 'Přestat hlídat',
-            'delete_confirm' => 'Opravdu přestat hlídat „:name“?',
+            'delete_confirm_title' => 'Přestat hlídat?',
+            'delete_confirm' => '„:name“ zmizí z Hlídám i z Mých slev.',
             'empty' => 'Zatím nic nehlídáte. Napište nahoře, co chcete hlídat, nebo projděte katalog.',
             'limit' => 'Hlídat jde nejvýš :count položek.',
         ],
@@ -233,14 +238,17 @@ return [
         'preferences' => [
             'title' => 'Moje obchody',
             'intro' => 'Vyberte obchody, jejichž akce chcete hlídat, a karty nebo aplikace, které máte. Akce jen s kartou, kterou nemáte, se v Mých slevách neukážou.',
-            'follow' => 'Sledovat',
+            'follow' => 'Sledovat :chain',
+            'followed' => 'Sledujete',
+            'not_followed' => 'Akce z tohoto obchodu neuvidíte.',
+            'followed_count' => 'Sledujete :count z :total obchodů|Sledujete :count z :total obchodů|Sledujete :count z :total obchodů',
             'coming_soon' => 'Připravujeme',
             'store_format' => 'Typ prodejny',
             'all_formats' => 'Všechny',
-            'include_online_only' => 'Ukazovat i akce jen z e-shopu',
+            'include_online_only' => 'Akce jen z e-shopu',
             'loyalty' => 'Mám :program',
             'save' => 'Uložit',
-            'saved' => 'Nastavení je uložené.',
+            'unsaved' => 'Máte neuložené změny.',
         ],
 
         // App\Enums\OfferType
@@ -477,16 +485,39 @@ return [
             'delete_title' => 'Zrušení účtu',
             'delete_hint' => 'Smaže účet, hlídané položky i nastavení obchodů. Nejde to vrátit.',
             'delete_submit' => 'Zrušit účet',
-            'delete_confirm' => 'Opravdu zrušit účet? Hlídané položky a nastavení se smažou a nepůjdou vrátit.',
+            'delete_confirm_title' => 'Zrušit účet?',
+            'delete_confirm' => 'Účet, hlídané položky i nastavení se smažou a nepůjde to vrátit.',
             'deleted' => 'Účet je zrušený. Díky, že jste Slevohlídku vyzkoušeli.',
-            // Kódy stavu po uložení (Fortify a AccountController / AvatarController)
-            'status' => [
+        ],
+
+        // Potvrzovací okno nevratné akce (R47, ConfirmDialog.vue) — „Zpět“, ne „Zrušit“: vedle
+        // „Zrušit účet“ by bylo matoucí
+        'confirm' => [
+            'cancel' => 'Zpět',
+        ],
+
+        // Potvrzení po uložení jako toast (R47, Toaster.vue): kód stavu ze session('status') => text.
+        // Stav, který tu není (věta od Fortify, „Účet je zrušený…“), se ukáže tak, jak je.
+        'toast' => [
+            'close' => 'Zavřít zprávu',
+            'messages' => [
+                // Fortify a AccountController / AvatarController
                 'profile-information-updated' => 'Osobní údaje jsou uložené.',
                 'password-updated' => 'Heslo je změněné.',
                 'avatar-updated' => 'Profilový obrázek je uložený.',
                 'other-devices-logged-out' => 'Ostatní zařízení jsou odhlášená.',
                 'offers-preferences-saved' => 'Předvolby Mých slev jsou uložené.',
                 'digest-saved' => 'Nastavení souhrnu je uložené.',
+                // ShoppingPreferencesController
+                'preferences-saved' => 'Nastavení obchodů je uložené.',
+                // WatchItemController
+                'watch-item-added' => 'Položka je mezi hlídanými.',
+                'watch-item-updated' => 'Hlídaná položka je uložená.',
+                'watch-item-removed' => 'Položku už nehlídáte.',
+                // CatalogController
+                'product-saved' => 'Produkt je uložený.',
+                'product-deleted' => 'Produkt je smazaný.',
+                'assignment-changed' => 'Přiřazení akce je opravené.',
             ],
         ],
     ],

@@ -8,6 +8,7 @@
 import OfferCard from '@/Components/OfferCard.vue';
 import ProductForm from '@/Components/ProductForm.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
+import { confirmDialog } from '@/lib/confirm';
 import { useTranslations } from '@/lib/i18n';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ref } from 'vue';
@@ -43,8 +44,13 @@ function correct(method, url) {
 }
 
 /** Po potvrzení smaže produkt. */
-function remove() {
-    if (window.confirm(t('catalog.delete_confirm', { name: props.product.name }))) {
+async function remove() {
+    const confirmed = await confirmDialog({
+        title: t('catalog.delete_confirm_title'),
+        message: t('catalog.delete_confirm', { name: props.product.name }),
+        confirmLabel: t('catalog.delete'),
+    });
+    if (confirmed) {
         router.delete(props.product.deleteUrl);
     }
 }

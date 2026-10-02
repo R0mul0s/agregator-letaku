@@ -10,20 +10,11 @@ import TextField from '@/Components/TextField.vue';
 import UserAvatar from '@/Components/UserAvatar.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { formatDateTime } from '@/lib/format';
+import { confirmDialog } from '@/lib/confirm';
 import { useTranslations } from '@/lib/i18n';
 import { squareImage } from '@/lib/image';
 import { Head, router, useForm, usePage } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
-
-/** Kódy stavu, kterými server potvrzuje uložení: kód => oddíl stránky, kde se zpráva ukáže. */
-const STATUS_SECTIONS = {
-    'avatar-updated': 'profile',
-    'profile-information-updated': 'profile',
-    'password-updated': 'password',
-    'other-devices-logged-out': 'devices',
-    'offers-preferences-saved': 'offers',
-    'digest-saved': 'digest',
-};
 
 const props = defineProps({
     urls: { type: Object, required: true },
@@ -43,13 +34,6 @@ const t = useTranslations();
 const page = usePage();
 
 const user = computed(() => page.props.auth.user);
-
-/** Zpráva o uložení pro oddíl stránky, nebo null. */
-function statusFor(section) {
-    const status = page.props.status;
-
-    return status && STATUS_SECTIONS[status] === section ? t(`account.status.${status}`) : null;
-}
 
 const profileForm = useForm({
     name: page.props.auth.user.name,
@@ -159,8 +143,13 @@ function logoutOtherDevices() {
 }
 
 /** Po potvrzení zruší účet. */
-function deleteAccount() {
-    if (!window.confirm(t('account.delete_confirm'))) {
+async function deleteAccount() {
+    const confirmed = await confirmDialog({
+        title: t('account.delete_confirm_title'),
+        message: t('account.delete_confirm'),
+        confirmLabel: t('account.delete_submit'),
+    });
+    if (!confirmed) {
         return;
     }
 
@@ -183,7 +172,6 @@ function deleteAccount() {
         <div class="account">
             <section class="card">
                 <h2 class="card__title">{{ t('account.profile') }}</h2>
-                <p v-if="statusFor('profile')" class="notice notice--success" role="status">{{ statusFor('profile') }}</p>
 
                 <div class="account-avatar">
                     <UserAvatar :name="user.name" :url="user.avatarUrl" large />
@@ -213,7 +201,6 @@ function deleteAccount() {
 
             <section class="card">
                 <h2 class="card__title">{{ t('account.password') }}</h2>
-                <p v-if="statusFor('password')" class="notice notice--success" role="status">{{ statusFor('password') }}</p>
 
                 <form class="form" novalidate @submit.prevent="updatePassword">
                     <TextField
@@ -252,7 +239,6 @@ function deleteAccount() {
 
             <section id="moje-slevy" class="card">
                 <h2 class="card__title">{{ t('account.offers_title') }}</h2>
-                <p v-if="statusFor('offers')" class="notice notice--success" role="status">{{ statusFor('offers') }}</p>
                 <p class="card__intro">{{ t('account.offers_hint') }}</p>
 
                 <form class="form" novalidate @submit.prevent="updateOffersPreferences">
@@ -283,7 +269,6 @@ function deleteAccount() {
 
             <section id="souhrn" class="card">
                 <h2 class="card__title">{{ t('account.digest_title') }}</h2>
-                <p v-if="statusFor('digest')" class="notice notice--success" role="status">{{ statusFor('digest') }}</p>
                 <p class="card__intro">{{ t('account.digest_hint', { email: user.email }) }}</p>
 
                 <form class="form" novalidate @submit.prevent="updateDigest">
@@ -304,7 +289,6 @@ function deleteAccount() {
 
             <section class="card">
                 <h2 class="card__title">{{ t('account.devices') }}</h2>
-                <p v-if="statusFor('devices')" class="notice notice--success" role="status">{{ statusFor('devices') }}</p>
                 <p class="card__intro">{{ t('account.devices_hint') }}</p>
 
                 <ul v-if="sessions.length" class="device-list">

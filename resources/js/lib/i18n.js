@@ -38,6 +38,20 @@ function choosePluralForm(text, count, locale) {
 }
 
 /**
+ * Text pod klíčem („toast.messages.digest-saved“) v překladech, nebo null, když chybí.
+ * Pro místa mimo komponentu (posluchač událostí routeru), kde useTranslations nejde.
+ *
+ * @param {object} translations Sdílená vlastnost `translations`
+ * @param {string} key
+ * @returns {string|null}
+ */
+export function lookup(translations, key) {
+    const text = key.split('.').reduce((node, part) => (node && typeof node === 'object' ? node[part] : undefined), translations);
+
+    return typeof text === 'string' ? text : null;
+}
+
+/**
  * Vrátí funkci t(key, replacements) nad aktuálními překlady.
  * Chybějící klíč vrací jako holý text — stejně jako Laravel, je to chyba k opravě.
  * Text s tvary oddělenými „|" vybere tvar podle `replacements.count`.
@@ -48,11 +62,9 @@ export function useTranslations() {
     const page = usePage();
 
     return (key, replacements = {}) => {
-        const text = key
-            .split('.')
-            .reduce((node, part) => (node && typeof node === 'object' ? node[part] : undefined), page.props.translations);
+        const text = lookup(page.props.translations, key);
 
-        if (typeof text !== 'string') {
+        if (text === null) {
             return key;
         }
 

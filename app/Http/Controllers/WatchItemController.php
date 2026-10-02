@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Domain\Catalog\CatalogBrowseTree;
 use App\Domain\Catalog\CategoryPaths;
 use App\Domain\Matching\MyOffers;
 use App\Http\Requests\WatchItemRequest;
@@ -29,15 +30,23 @@ class WatchItemController extends Controller
     /** Parametr adresy Hlídám, který otevře úpravu položky (odkaz z Mých slev). */
     public const EDIT_PARAMETER = 'upravit';
 
+    /** Kódy stavu pro toast po uložení (R47, lang: ui.toast.messages). */
+    public const STATUS_ADDED = 'watch-item-added';
+
+    public const STATUS_UPDATED = 'watch-item-updated';
+
+    public const STATUS_REMOVED = 'watch-item-removed';
+
     /**
      * Hlídané položky s tím, co k nim teď je v akci (počet akcí, nejnižší cena, zmínky
      * v letácích — stejně jako v Mých slevách), a produkty katalogu k přidání.
      */
-    public function index(Request $request, CategoryPaths $categories, MyOffers $myOffers): Response
+    public function index(Request $request, CategoryPaths $categories, CatalogBrowseTree $browseTree, MyOffers $myOffers): Response
     {
         /** @var User $user */
         $user = $request->user();
         $watchedProductIds = $user->watchItems()->whereNotNull('product_id')->pluck('product_id')->all();
+        $products = Product::query()->orderBy('name')->get();
 
         return Inertia::render('WatchItems', [
             'urls' => [
@@ -53,13 +62,15 @@ class WatchItemController extends Controller
             // Odkaz „Upravit“ z Mých slev (?upravit=id) otevře úpravu položky rovnou v dlaždici
             'editId' => $request->integer(self::EDIT_PARAMETER) ?: null,
             // Katalog nahradil šablony (R31) — produkt jde hlídat jedním klepnutím, nejvýš jednou
-            'products' => Product::query()->orderBy('name')->get()->map(fn (Product $product): array => [
+            'products' => $products->map(fn (Product $product): array => [
                 'id' => $product->id,
                 'name' => $product->name,
                 'categoryLabel' => $categories->label($product->category_id),
                 'department' => $categories->department($product->category_id),
                 'watched' => in_array($product->id, $watchedProductIds, true),
             ]),
+            // Procházení katalogu po odděleních jako v e-shopu (R47)
+            'catalogTree' => $browseTree->build($products),
         ]);
     }
 
@@ -92,7 +103,7 @@ class WatchItemController extends Controller
         $user = $request->user();
         $user->watchItems()->create($request->watchItemData());
 
-        return to_route('watch-items.index');
+        return to_route('watch-items.index')->with('status', self::STATUS_ADDED);
     }
 
     /**
@@ -103,7 +114,7 @@ class WatchItemController extends Controller
         Gate::authorize('update', $watchItem);
         $watchItem->update($request->watchItemData());
 
-        return to_route('watch-items.index');
+        return to_route('watch-items.index')->with('status', self::STATUS_UPDATED);
     }
 
     /**
@@ -114,6 +125,6 @@ class WatchItemController extends Controller
         Gate::authorize('delete', $watchItem);
         $watchItem->delete();
 
-        return back(fallback: route('watch-items.index'));
+        return back(fallback: route('watch-items.index'))->with('status', self::STATUS_REMOVED);
     }
 }

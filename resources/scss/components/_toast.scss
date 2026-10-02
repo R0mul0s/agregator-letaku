@@ -1,0 +1,107 @@
+// _toast.scss
+// Toasty s potvrzením po uložení (Toaster.vue, R47) — dole uprostřed, nad obsahem i tlačítkem Nahoru.
+//
+// @author Roman Hlaváček
+// @created 2026-10-02
+
+@use '../abstracts/mixins' as *;
+
+.toaster {
+    position: fixed;
+    z-index: var(--z-toast);
+    right: var(--space-3);
+    // Na telefonu nad tlačítkem Nahoru (toast je přes celou šířku), na širokém displeji dole
+    bottom: calc(var(--back-to-top-offset) + var(--back-to-top-size) + var(--space-2));
+    left: var(--space-3);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-2);
+    pointer-events: none;
+
+    @include from-md {
+        bottom: var(--back-to-top-offset);
+    }
+}
+
+.toast {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    width: 100%;
+    max-width: var(--toast-max-width);
+    padding: var(--space-2) var(--space-2) var(--space-2) var(--space-3);
+    background: var(--color-toast-bg);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-toast);
+    color: var(--color-toast-text);
+    pointer-events: auto;
+
+    &__icon {
+        display: inline-flex;
+        flex: none;
+        align-items: center;
+        justify-content: center;
+        width: var(--toast-icon-box-size);
+        height: var(--toast-icon-box-size);
+        background: var(--color-success);
+        border-radius: 50%;
+        color: var(--color-on-accent);
+    }
+
+    &__icon svg,
+    &__close svg {
+        width: var(--icon-size);
+        height: var(--icon-size);
+        fill: none;
+        stroke: currentcolor;
+        stroke-width: var(--svg-stroke-icon);
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+
+    &__message {
+        flex: 1;
+        font-weight: 700;
+    }
+
+    &__close {
+        display: inline-flex;
+        flex: none;
+        align-items: center;
+        justify-content: center;
+        width: var(--icon-button-size);
+        height: var(--icon-button-size);
+        padding: 0;
+        background: none;
+        border: 0;
+        border-radius: 50%;
+        color: inherit;
+        cursor: pointer;
+        opacity: 0.7;
+
+        &:hover,
+        &:focus-visible {
+            opacity: 1;
+        }
+    }
+}
+
+// Vyjede zespodu a zmizí; při omezení pohybu jen prolne
+.toast-enter-active,
+.toast-leave-active {
+    transition: opacity var(--duration-toast), transform var(--duration-toast);
+}
+
+.toast-enter-from,
+.toast-leave-to {
+    opacity: 0;
+    transform: translateY(var(--toast-travel));
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .toast-enter-from,
+    .toast-leave-to {
+        transform: none;
+    }
+}

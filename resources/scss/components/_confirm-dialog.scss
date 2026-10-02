@@ -1,0 +1,99 @@
+// _confirm-dialog.scss
+// Potvrzovací okno nevratné akce (ConfirmDialog.vue, R47) — karta uprostřed nad ztmaveným pozadím.
+//
+// @author Roman Hlaváček
+// @created 2026-10-02
+
+@use '../abstracts/mixins' as *;
+
+.confirm-dialog {
+    width: min(calc(100% - 2 * var(--space-3)), var(--confirm-dialog-max-width));
+    padding: var(--space-4);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-toast);
+    color: var(--color-text);
+
+    &::backdrop {
+        background: var(--color-backdrop);
+    }
+
+    &[open] {
+        animation: confirm-dialog-in var(--duration-toast) ease-out;
+    }
+
+    &[open]::backdrop {
+        animation: confirm-backdrop-in var(--duration-toast) ease-out;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        &[open],
+        &[open]::backdrop {
+            animation: none;
+        }
+    }
+
+    &__body {
+        display: flex;
+        align-items: flex-start;
+        gap: var(--space-3);
+    }
+
+    &__icon {
+        display: inline-flex;
+        flex: none;
+        align-items: center;
+        justify-content: center;
+        width: var(--empty-inline-icon-box-size);
+        height: var(--empty-inline-icon-box-size);
+        background: var(--color-danger-soft);
+        border-radius: 50%;
+        color: var(--color-danger);
+
+        svg {
+            width: var(--icon-size);
+            height: var(--icon-size);
+            fill: none;
+            stroke: currentcolor;
+            stroke-width: var(--svg-stroke-icon);
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+    }
+
+    &__title {
+        margin-bottom: var(--space-1);
+        font-size: var(--font-size-card-title);
+    }
+
+    &__message {
+        color: var(--color-text-muted);
+    }
+
+    // Na telefonu tlačítka přes celou šířku pod sebou (potvrzení nahoře), jinak vpravo vedle sebe
+    &__actions {
+        display: flex;
+        flex-direction: column-reverse;
+        gap: var(--space-2);
+        margin-top: var(--space-4);
+
+        @include from-md {
+            flex-direction: row;
+            justify-content: flex-end;
+        }
+    }
+}
+
+@keyframes confirm-dialog-in {
+    from {
+        opacity: 0;
+        transform: translateY(var(--toast-travel)) scale(0.98);
+    }
+}
+
+@keyframes confirm-backdrop-in {
+    from {
+        opacity: 0;
+    }
+}

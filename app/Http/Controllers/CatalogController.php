@@ -41,6 +41,13 @@ class CatalogController extends Controller
     /** Parametr hledání nabídek k ručnímu přiřazení. */
     private const SEARCH_PARAMETER = 'hledat';
 
+    /** Kódy stavu pro toast po uložení (R47, lang: ui.toast.messages). */
+    public const STATUS_PRODUCT_SAVED = 'product-saved';
+
+    public const STATUS_PRODUCT_DELETED = 'product-deleted';
+
+    public const STATUS_ASSIGNMENT_CHANGED = 'assignment-changed';
+
     public function __construct(
         private readonly CategoryPaths $categories,
         private readonly AssignProducts $assign,
@@ -201,7 +208,7 @@ class CatalogController extends Controller
             return $product;
         });
 
-        return to_route('catalog.show', $product);
+        return to_route('catalog.show', $product)->with('status', self::STATUS_PRODUCT_SAVED);
     }
 
     /**
@@ -272,7 +279,7 @@ class CatalogController extends Controller
             $this->assign->forProduct($product);
         });
 
-        return to_route('catalog.show', $product);
+        return to_route('catalog.show', $product)->with('status', self::STATUS_PRODUCT_SAVED);
     }
 
     /**
@@ -291,7 +298,7 @@ class CatalogController extends Controller
             $product->delete();
         });
 
-        return to_route('catalog.index');
+        return to_route('catalog.index')->with('status', self::STATUS_PRODUCT_DELETED);
     }
 
     /**
@@ -301,7 +308,7 @@ class CatalogController extends Controller
     {
         $correct->include($product, $offer);
 
-        return back();
+        return back()->with('status', self::STATUS_ASSIGNMENT_CHANGED);
     }
 
     /**
@@ -311,7 +318,7 @@ class CatalogController extends Controller
     {
         $correct->exclude($product, $offer);
 
-        return back();
+        return back()->with('status', self::STATUS_ASSIGNMENT_CHANGED);
     }
 
     /**
@@ -321,7 +328,7 @@ class CatalogController extends Controller
     {
         $correct->restore($product, $offer);
 
-        return back();
+        return back()->with('status', self::STATUS_ASSIGNMENT_CHANGED);
     }
 
     /**

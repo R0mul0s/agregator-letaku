@@ -12,7 +12,7 @@ import WatchGroup from '@/Components/WatchGroup.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { useTranslations } from '@/lib/i18n';
 import { discountPercent } from '@/lib/offer';
-import { Head, Link, usePage } from '@inertiajs/vue3';
+import { Head, Link } from '@inertiajs/vue3';
 import { computed, nextTick, onMounted, ref } from 'vue';
 
 /** Klíč v localStorage s rozbalenými položkami — jen pohodlí prohlížeče, ne nastavení účtu. */
@@ -23,6 +23,8 @@ const GROUP_HASH_PATTERN = /^#polozka-(\d+)$/;
 
 const props = defineProps({
     hasFollowedChains: { type: Boolean, required: true },
+    /** Křestní jméno v 5. pádě do pozdravu („Romane“, R47). */
+    greetingName: { type: String, required: true },
     urls: { type: Object, required: true },
     /** Předvolby uživatele { sortLabel, minDiscountPercent } (R41). */
     offersPreferences: { type: Object, required: true },
@@ -33,10 +35,6 @@ const props = defineProps({
 });
 
 const t = useTranslations();
-const page = usePage();
-
-/** Křestní jméno do pozdravu (první slovo jména účtu). */
-const firstName = computed(() => page.props.auth.user?.name.split(' ')[0] ?? '');
 
 /** Souhrn do úvodního pruhu: počet akcí a nejvyšší sleva napříč hlídanými položkami. */
 const summary = computed(() => {
@@ -106,9 +104,17 @@ onMounted(async () => {
 
         <!-- Úvodní pruh: maskot, pozdrav a co Slevohlídka právě ulovila -->
         <section class="home-hero">
-            <img src="/images/brand/icon-192.png" alt="" class="home-hero__mascot" />
+            <!-- Košík jede jako na úvodní stránce (R44): popojíždí, poskakuje, za ním čárky rychlosti -->
+            <div class="home-hero__art" aria-hidden="true">
+                <span class="home-hero__streak"></span>
+                <span class="home-hero__streak"></span>
+                <span class="home-hero__streak"></span>
+                <div class="home-hero__drive">
+                    <img src="/images/brand/icon-192.png" alt="" class="home-hero__mascot" />
+                </div>
+            </div>
             <div class="home-hero__body">
-                <h1 class="home-hero__title">{{ firstName ? t('home.hello', { name: firstName }) : t('home.title') }}</h1>
+                <h1 class="home-hero__title">{{ greetingName ? t('home.hello', { name: greetingName }) : t('home.title') }}</h1>
                 <p class="home-hero__text">{{ t('home.hero_text') }}</p>
                 <p v-if="watchItems.length" class="home-hero__preferences">
                     {{ t('home.sorted_by', { sort: offersPreferences.sortLabel }) }}<template v-if="offersPreferences.minDiscountPercent"

@@ -51,6 +51,59 @@
     }
 }
 
+// Přepínač zapnuto / vypnuto — zaškrtávátko s role="switch" (Moje obchody). Popisek je mimo
+// (řádek nastavení) nebo skrytý pro čtečky.
+.form-switch {
+    display: inline-flex;
+    flex: none;
+
+    &__input {
+        position: relative;
+        width: var(--switch-width);
+        height: var(--switch-height);
+        margin: 0;
+        background: var(--color-border);
+        border-radius: var(--radius-pill);
+        cursor: pointer;
+        transition: background-color var(--duration-fast);
+        appearance: none;
+
+        &::before {
+            content: '';
+            position: absolute;
+            top: var(--switch-knob-inset);
+            left: var(--switch-knob-inset);
+            width: calc(var(--switch-height) - 2 * var(--switch-knob-inset));
+            height: calc(var(--switch-height) - 2 * var(--switch-knob-inset));
+            background: var(--color-switch-knob);
+            border-radius: 50%;
+            box-shadow: var(--shadow-card);
+            transition: transform var(--duration-fast);
+        }
+
+        &:checked {
+            background: var(--color-accent);
+        }
+
+        &:checked::before {
+            transform: translateX(calc(var(--switch-width) - var(--switch-height)));
+        }
+
+        &:focus-visible {
+            outline: none;
+            box-shadow: var(--focus-ring);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            transition: none;
+
+            &::before {
+                transition: none;
+            }
+        }
+    }
+}
+
 .form-checkbox {
     display: inline-flex;
     align-items: center;

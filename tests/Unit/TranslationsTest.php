@@ -14,6 +14,11 @@ use App\Enums\Chain;
 use App\Enums\LoyaltyProgram;
 use App\Enums\OfferType;
 use App\Enums\StoreFormat;
+use App\Http\Controllers\AccountController;
+use App\Http\Controllers\AvatarController;
+use App\Http\Controllers\CatalogController;
+use App\Http\Controllers\ShoppingPreferencesController;
+use App\Http\Controllers\WatchItemController;
 
 it('má název pro každý obchod', function (Chain $chain): void {
     expect(trans()->has('app.chains.'.$chain->value))->toBeTrue();
@@ -31,3 +36,22 @@ it('má texty pro každý typ akce a věrnostní program', function (): void {
         expect(trans()->has('app.ui.loyalty_programs.'.$program->value))->toBeTrue();
     }
 });
+
+it('má text toastu pro každý kód stavu po uložení (R47)', function (string $status): void {
+    expect(trans()->has('app.ui.toast.messages.'.$status))->toBeTrue();
+})->with([
+    // Fortify
+    'profile-information-updated',
+    'password-updated',
+    AccountController::STATUS_DEVICES_LOGGED_OUT,
+    AccountController::STATUS_OFFERS_PREFERENCES_SAVED,
+    AccountController::STATUS_DIGEST_SAVED,
+    AvatarController::STATUS_UPDATED,
+    ShoppingPreferencesController::STATUS_SAVED,
+    WatchItemController::STATUS_ADDED,
+    WatchItemController::STATUS_UPDATED,
+    WatchItemController::STATUS_REMOVED,
+    CatalogController::STATUS_PRODUCT_SAVED,
+    CatalogController::STATUS_PRODUCT_DELETED,
+    CatalogController::STATUS_ASSIGNMENT_CHANGED,
+]);

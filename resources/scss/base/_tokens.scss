@@ -40,6 +40,14 @@
     --color-scrollbar-thumb: #eba4a7;
     --color-scrollbar-thumb-hover: var(--color-accent);
     --color-scrollbar-track: var(--color-bg);
+    // Jezdec přepínače — bílý v obou režimech, ať je vidět na šedé i červené dráze
+    --color-switch-knob: #ffffff;
+    // Ztmavení stránky pod potvrzovacím oknem (R47)
+    --color-backdrop: rgb(22 24 29 / 55%);
+    // Toast (R47): obrácené barvy — tmavý na světlé stránce, světlý na tmavé
+    --color-toast-bg: #1f222a;
+    --color-toast-text: #ffffff;
+    --shadow-toast: 0 4px 12px rgb(31 34 42 / 18%), 0 16px 40px rgb(31 34 42 / 22%);
 
     // Podklad loga obchodu — loga počítají se světlým pozadím i v tmavém režimu
     --color-logo-bg: #ffffff;
@@ -105,11 +113,20 @@
     --panel-lines-height: 1.5rem;
     --panel-line-thickness: 0.3rem;
     --account-column-min-width: 20rem;
-    // Karta obchodu v Mých obchodech — pět v řádku do šířky obsahu (69rem bez odsazení)
-    --chain-card-min-width: 12.5rem;
+    // Karta obchodu v Mých obchodech — tři v řádku do šířky obsahu (69rem bez odsazení)
+    --chain-card-min-width: 20rem;
+    --chain-card-select-min-width: 8rem;
+    // Přepínač (Moje obchody): dráha a jezdec
+    --switch-width: 2.75rem;
+    --switch-height: 1.5rem;
+    --switch-knob-inset: 3px;
     --offer-card-min-width: 17rem;
     --offer-image-height: 8rem;
     --watch-tile-min-width: 15rem;
+    // Dlaždice oddělení katalogu v Hlídám (R47)
+    --department-tile-min-width: 14rem;
+    --department-icon-box-size: 2.75rem;
+    --department-icon-size: 1.375rem;
     --watch-tile-accent-width: 4px;
     --icon-button-size: 2rem;
     --avatar-size: 2.25rem;
@@ -147,6 +164,7 @@
     // Plovoucí hlavička nad obsahem i jeho rozbalovacími seznamy, tlačítko nahoru nad vším
     --z-header: 30;
     --z-back-to-top: 40;
+    --z-toast: 50;
     // O kolik méně posunout na kotvu (#polozka-…) — výška plovoucí hlavičky s rezervou
     --header-scroll-offset: 6rem;
     --back-to-top-size: 3rem;
@@ -187,6 +205,21 @@
     --scrollbar-thumb-inset: 3px;
     // Štítky v hlavičce skupiny Mých slev: odsazení textu oříznutého na výšku verzálek
     --badge-padding-y: 0.375em;
+    // Jedoucí košík v úvodním pruhu Mých slev — menší než na úvodní stránce
+    --home-hero-drive-distance: 0.4rem;
+    --home-hero-bump-height: 0.15rem;
+    --home-hero-streak-travel: 1.25rem;
+    --home-hero-streak-thickness: 0.25rem;
+    --home-hero-streak-long: 1.75rem;
+    --home-hero-streak-medium: 1.25rem;
+    --home-hero-streak-short: 0.875rem;
+    // Potvrzovací okno (R47)
+    --confirm-dialog-max-width: 28rem;
+    // Toast (R47)
+    --toast-max-width: 28rem;
+    --toast-icon-box-size: 1.75rem;
+    --toast-travel: 1rem;
+    --duration-toast: 250ms;
     // Ikona prázdné skupiny Mých slev
     --empty-inline-icon-box-size: 2.5rem;
 
@@ -208,6 +241,8 @@
         --color-on-accent: #16181d;
         --color-border: #2e323b;
         --color-scrollbar-thumb: #6b3236;
+        --color-toast-bg: #eceef2;
+        --color-toast-text: #16181d;
         --color-focus: #4dabf7;
         --color-success: #51cf66;
         --color-success-soft: #13301b;

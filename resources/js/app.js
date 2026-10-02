@@ -6,6 +6,7 @@
  */
 // Písmo Nunito (zaoblené jako nápis v logu) — variabilní, latinka i s češtinou, z balíčku, ne z CDN
 import '@fontsource-variable/nunito/wght.css';
+import { installStatusToasts } from '@/lib/toast';
 import { createInertiaApp } from '@inertiajs/vue3';
 import { createApp, h } from 'vue';
 
@@ -26,5 +27,6 @@ createInertiaApp({
         createApp({ render: () => h(App, props) })
             .use(plugin)
             .mount(el);
+        installStatusToasts(props.initialPage);
     },
 });

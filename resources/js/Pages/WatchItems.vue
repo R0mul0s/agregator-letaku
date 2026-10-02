@@ -8,6 +8,7 @@
 <script setup>
 import EmptyState from '@/Components/EmptyState.vue';
 import WatchAdd from '@/Components/WatchAdd.vue';
+import WatchBrowse from '@/Components/WatchBrowse.vue';
 import WatchItemForm from '@/Components/WatchItemForm.vue';
 import WatchItemTile from '@/Components/WatchItemTile.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
@@ -21,6 +22,8 @@ const props = defineProps({
     watchItems: { type: Array, required: true },
     /** Produkty katalogu [{ id, name, categoryLabel, department, watched }]. */
     products: { type: Array, required: true },
+    /** Katalog po odděleních a pododděleních (CatalogBrowseTree, R47). */
+    catalogTree: { type: Array, required: true },
     /** Položka, jejíž úprava se má otevřít (odkaz z Mých slev), nebo null. */
     editId: { type: Number, default: null },
 });
@@ -34,14 +37,6 @@ const ownForm = ref(null);
 const ownFormKey = ref(0);
 const ownFormElement = ref(null);
 
-/** Zvolené oddělení v katalogu; '' = všechna. */
-const department = ref('');
-
-/** Oddělení katalogu podle abecedy (produkty bez kategorie jsou jen ve „Vše“). */
-const departments = computed(() => [...new Set(props.products.map((product) => product.department).filter(Boolean))].sort((a, b) => a.localeCompare(b, page.props.locale)));
-
-const browsedProducts = computed(() => (department.value ? props.products.filter((product) => product.department === department.value) : props.products));
-
 /** Chyba při přidání produktu (už hlídaný, limit položek). */
 const addError = computed(() => (ownForm.value ? null : (page.props.errors?.product_id ?? page.props.errors?.name ?? null)));
 
@@ -51,7 +46,8 @@ const addError = computed(() => (ownForm.value ? null : (page.props.errors?.prod
  * @param {object} product
  */
 function watchProduct(product) {
-    router.post(props.urls.store, { product_id: product.id, name: product.name }, { preserveScroll: true });
+    // preserveState: otevřené oddělení katalogu zůstane otevřené
+    router.post(props.urls.store, { product_id: product.id, name: product.name }, { preserveScroll: true, preserveState: true });
 }
 
 /**
@@ -100,35 +96,6 @@ async function openOwnForm(text) {
             </template>
         </section>
 
-        <details class="card watch-browse">
-            <summary class="watch-browse__summary">
-                {{ t('watch.browse_title') }}
-                <span class="watch-browse__count">{{ t('watch.browse_count', { count: products.length }) }}</span>
-            </summary>
-
-            <div class="watch-browse__departments" role="group" :aria-label="t('catalog.department')">
-                <button type="button" class="chip" :aria-pressed="department === ''" @click="department = ''">{{ t('watch.all_departments') }}</button>
-                <button v-for="name in departments" :key="name" type="button" class="chip" :aria-pressed="department === name" @click="department = name">
-                    {{ name }}
-                </button>
-            </div>
-
-            <ul class="watch-browse__products">
-                <li v-for="product in browsedProducts" :key="product.id">
-                    <button
-                        type="button"
-                        class="watch-browse__product"
-                        :disabled="product.watched"
-                        :title="product.categoryLabel ?? undefined"
-                        @click="watchProduct(product)"
-                    >
-                        <span v-if="product.watched" aria-hidden="true">✓</span>
-                        <span v-else aria-hidden="true">+</span>
-                        {{ product.name }}
-                        <span v-if="product.watched" class="visually-hidden">({{ t('watch.watching') }})</span>
-                    </button>
-                </li>
-            </ul>
-        </details>
+        <WatchBrowse :tree="catalogTree" :products="products" @product="watchProduct" />
     </AppLayout>
 </template>

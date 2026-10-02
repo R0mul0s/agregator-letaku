@@ -1,5 +1,7 @@
 <!--
-    Moje obchody — sledované obchody s upřesněním a věrnostní karty (R19, R21).
+    Moje obchody — sledované obchody s upřesněním a věrnostní karty (R19, R21). Každý obchod
+    je karta s přepínačem sledování; nastavení obchodu (typ prodejny, e-shop, karta) jsou řádky
+    s popiskem vlevo a ovládáním vpravo. Uložení je v liště, která drží u spodního okraje (R47).
 
     @author Roman Hlaváček
     @created 2026-10-02
@@ -8,11 +10,8 @@
 import ChainLogo from '@/Components/ChainLogo.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { useTranslations } from '@/lib/i18n';
-import { Head, useForm, usePage } from '@inertiajs/vue3';
-import { ref } from 'vue';
-
-/** Kód stavu, kterým server potvrzuje uložení. */
-const STATUS_SAVED = 'preferences-saved';
+import { Head, useForm } from '@inertiajs/vue3';
+import { computed, ref } from 'vue';
 
 const props = defineProps({
     urls: { type: Object, required: true },
@@ -23,7 +22,6 @@ const props = defineProps({
 });
 
 const t = useTranslations();
-const page = usePage();
 
 /** Nastavení obchodů ve formuláři, podle hodnoty obchodu. */
 const chainSettings = ref(
@@ -39,13 +37,23 @@ const form = useForm({
     loyalty_programs: [...props.loyaltyPrograms],
 });
 
+/** Stav formuláře jako text — pro porovnání s uloženým. */
+const snapshot = () => JSON.stringify([chainSettings.value, [...form.loyalty_programs].sort()]);
+const savedSnapshot = snapshot();
+
+/** Změnil uživatel něco od načtení stránky? */
+const dirty = computed(() => snapshot() !== savedSnapshot);
+
+const availableChains = computed(() => props.chains.filter((chain) => chain.available));
+const followedCount = computed(() => availableChains.value.filter((chain) => chainSettings.value[chain.value].followed).length);
+
 /** Uloží nastavení — sledované obchody z chainSettings, karty z formuláře. */
 function submit() {
     form
         .transform((data) => ({
             ...data,
-            chains: props.chains
-                .filter((chain) => chain.available && chainSettings.value[chain.value].followed)
+            chains: availableChains.value
+                .filter((chain) => chainSettings.value[chain.value].followed)
                 .map((chain) => ({
                     chain: chain.value,
                     store_format: chainSettings.value[chain.value].storeFormat || null,
@@ -65,49 +73,65 @@ function submit() {
             <p class="page__subtitle">{{ t('preferences.intro') }}</p>
         </header>
 
-        <p v-if="page.props.status === STATUS_SAVED" class="notice notice--success" role="status">{{ t('preferences.saved') }}</p>
-
         <form class="preferences" novalidate @submit.prevent="submit">
-            <section
-                v-for="chain in chains"
-                :key="chain.value"
-                class="card chain-settings"
-                :class="{
-                    'chain-settings--disabled': !chain.available,
-                    'chain-settings--followed': chain.available && chainSettings[chain.value].followed,
-                }"
-            >
-                <div class="chain-settings__header">
-                    <ChainLogo :chain="chain.value" with-name large />
-                    <label v-if="chain.available" class="form-checkbox">
-                        <input v-model="chainSettings[chain.value].followed" type="checkbox" class="form-checkbox__input" />
-                        <span>{{ t('preferences.follow') }}</span>
-                    </label>
-                    <span v-else class="tag">{{ t('preferences.coming_soon') }}</span>
-                </div>
+            <p class="preferences__count">
+                {{ t('preferences.followed_count', { count: followedCount, total: availableChains.length }) }}
+            </p>
 
-                <div v-if="chain.available && chainSettings[chain.value].followed" class="form chain-settings__body">
-                    <div v-if="chain.hasStoreFormats" class="form-field">
-                        <label :for="`format-${chain.value}`" class="form-field__label">{{ t('preferences.store_format') }}</label>
-                        <select :id="`format-${chain.value}`" v-model="chainSettings[chain.value].storeFormat" class="form-field__input">
-                            <option value="">{{ t('preferences.all_formats') }}</option>
-                            <option v-for="format in storeFormats" :key="format.value" :value="format.value">{{ format.name }}</option>
-                        </select>
+            <div class="preferences__grid">
+                <section
+                    v-for="chain in chains"
+                    :key="chain.value"
+                    class="chain-card"
+                    :class="{
+                        'chain-card--disabled': !chain.available,
+                        'chain-card--off': chain.available && !chainSettings[chain.value].followed,
+                    }"
+                >
+                    <div class="chain-card__header">
+                        <ChainLogo :chain="chain.value" large />
+                        <div class="chain-card__title">
+                            <h2 class="chain-card__name">{{ chain.name }}</h2>
+                            <p class="chain-card__state">
+                                <template v-if="!chain.available">{{ t('preferences.coming_soon') }}</template>
+                                <template v-else-if="chainSettings[chain.value].followed">{{ t('preferences.followed') }}</template>
+                                <template v-else>{{ t('preferences.not_followed') }}</template>
+                            </p>
+                        </div>
+                        <label v-if="chain.available" class="form-switch">
+                            <input v-model="chainSettings[chain.value].followed" type="checkbox" role="switch" class="form-switch__input" />
+                            <span class="visually-hidden">{{ t('preferences.follow', { chain: chain.name }) }}</span>
+                        </label>
                     </div>
 
-                    <label v-if="chain.hasEshop" class="form-checkbox">
-                        <input v-model="chainSettings[chain.value].includeOnlineOnly" type="checkbox" class="form-checkbox__input" />
-                        <span>{{ t('preferences.include_online_only') }}</span>
-                    </label>
+                    <div v-if="chain.available && chainSettings[chain.value].followed && (chain.hasStoreFormats || chain.hasEshop || chain.loyaltyProgram)" class="chain-card__settings">
+                        <div v-if="chain.hasStoreFormats" class="chain-card__setting">
+                            <label :for="`format-${chain.value}`" class="chain-card__setting-label">{{ t('preferences.store_format') }}</label>
+                            <select :id="`format-${chain.value}`" v-model="chainSettings[chain.value].storeFormat" class="form-field__input chain-card__select">
+                                <option value="">{{ t('preferences.all_formats') }}</option>
+                                <option v-for="format in storeFormats" :key="format.value" :value="format.value">{{ format.name }}</option>
+                            </select>
+                        </div>
 
-                    <label v-if="chain.loyaltyProgram" class="form-checkbox">
-                        <input v-model="form.loyalty_programs" type="checkbox" :value="chain.loyaltyProgram" class="form-checkbox__input" />
-                        <span>{{ t('preferences.loyalty', { program: chain.loyaltyProgramName }) }}</span>
-                    </label>
-                </div>
-            </section>
+                        <label v-if="chain.hasEshop" class="chain-card__setting">
+                            <span class="chain-card__setting-label">{{ t('preferences.include_online_only') }}</span>
+                            <span class="form-switch">
+                                <input v-model="chainSettings[chain.value].includeOnlineOnly" type="checkbox" role="switch" class="form-switch__input" />
+                            </span>
+                        </label>
 
-            <div class="form__actions">
+                        <label v-if="chain.loyaltyProgram" class="chain-card__setting">
+                            <span class="chain-card__setting-label">{{ t('preferences.loyalty', { program: chain.loyaltyProgramName }) }}</span>
+                            <span class="form-switch">
+                                <input v-model="form.loyalty_programs" type="checkbox" role="switch" :value="chain.loyaltyProgram" class="form-switch__input" />
+                            </span>
+                        </label>
+                    </div>
+                </section>
+            </div>
+
+            <div class="preferences__actions" :class="{ 'preferences__actions--dirty': dirty }">
+                <p v-if="dirty" class="preferences__unsaved" role="status">{{ t('preferences.unsaved') }}</p>
                 <button type="submit" class="button button--primary" :disabled="form.processing">{{ t('preferences.save') }}</button>
             </div>
         </form>

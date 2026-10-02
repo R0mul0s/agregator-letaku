@@ -18,6 +18,7 @@ use App\Domain\Offers\MentionPresenter;
 use App\Domain\Offers\OfferPresenter;
 use App\Enums\DigestFrequency;
 use App\Models\User;
+use App\Support\CzechVocative;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -28,7 +29,7 @@ class HomeController extends Controller
      * Zobrazí slevy po hlídaných položkách, s cenou, kterou uživatel zaplatí, a zmínky
      * v letácích bez ceny (R27).
      */
-    public function __invoke(Request $request, MyOffers $myOffers, OfferPresenter $presenter, MentionPresenter $mentionPresenter, LandingController $landing): Response
+    public function __invoke(Request $request, MyOffers $myOffers, OfferPresenter $presenter, MentionPresenter $mentionPresenter, LandingController $landing, CzechVocative $vocative): Response
     {
         // Nepřihlášený má na stejné adrese úvodní stránku (R44)
         $user = $request->user();
@@ -38,6 +39,8 @@ class HomeController extends Controller
 
         return Inertia::render('Home', [
             'hasFollowedChains' => $user->followedChains()->exists(),
+            // Pozdrav „Ahoj, Romane!“ — křestní jméno v 5. pádě (R47)
+            'greetingName' => $vocative->firstName($user->name),
             'urls' => [
                 'preferences' => route('preferences', absolute: false),
                 'watchItems' => route('watch-items.index', absolute: false),

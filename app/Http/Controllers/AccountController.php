@@ -36,13 +36,13 @@ class AccountController extends Controller
     /** Sada chyb formuláře zrušení účtu. */
     public const ERROR_BAG_DELETE = 'deleteAccount';
 
-    /** Kód stavu po odhlášení ostatních zařízení (Account.vue). */
+    /** Kód stavu po odhlášení ostatních zařízení — toast (R47, lang: ui.toast.messages). */
     public const STATUS_DEVICES_LOGGED_OUT = 'other-devices-logged-out';
 
-    /** Kód stavu po uložení předvoleb Mých slev (Account.vue). */
+    /** Kód stavu po uložení předvoleb Mých slev — toast (R47, lang: ui.toast.messages). */
     public const STATUS_OFFERS_PREFERENCES_SAVED = 'offers-preferences-saved';
 
-    /** Kód stavu po uložení nastavení souhrnu (Account.vue). */
+    /** Kód stavu po uložení nastavení souhrnu — toast (R47, lang: ui.toast.messages). */
     public const STATUS_DIGEST_SAVED = 'digest-saved';
 
     /**

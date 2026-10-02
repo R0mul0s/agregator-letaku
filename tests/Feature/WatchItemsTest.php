@@ -12,6 +12,8 @@ declare(strict_types=1);
 
 use App\Enums\Chain;
 use App\Enums\LoyaltyProgram;
+use App\Http\Controllers\WatchItemController;
+use App\Models\Category;
 use App\Models\FollowedChain;
 use App\Models\Offer;
 use App\Models\Product;
@@ -160,4 +162,45 @@ it('stejný produkt z katalogu nepřidá podruhé a v katalogu ho označí jako 
     $this->actingAs(User::factory()->create())
         ->post(route('watch-items.store'), ['name' => 'Vejce', 'product_id' => $product->id])
         ->assertSessionHasNoErrors();
+});
+
+it('katalog k procházení rozdělí na oddělení a pododdělení v pořadí stromu Tesca (R47)', function (): void {
+    $produce = Category::factory()->create(['name' => 'Ovoce a zelenina', 'position' => 0]);
+    $drinks = Category::factory()->create(['name' => 'Nápoje', 'position' => 1]);
+    $fruit = Category::factory()->childOf($produce)->create(['name' => 'Ovoce', 'position' => 0]);
+    $vegetables = Category::factory()->childOf($produce)->create(['name' => 'Zelenina', 'position' => 1]);
+    $beer = Category::factory()->childOf($drinks)->create(['name' => 'Pivo']);
+    $lager = Category::factory()->childOf($beer)->create(['name' => 'Ležáky']);
+    $kozel = Product::factory()->create(['name' => 'Kozel', 'category_id' => $lager->id]);
+    $carrot = Product::factory()->create(['name' => 'Mrkev', 'category_id' => $vegetables->id]);
+    $banana = Product::factory()->create(['name' => 'Banány', 'category_id' => $fruit->id]);
+    $apples = Product::factory()->create(['name' => 'Jablka', 'category_id' => $fruit->id]);
+    $other = Product::factory()->create(['name' => 'Bez kategorie', 'category_id' => null]);
+    // Oddělení bez vlastní ikony v konfiguraci
+    config(['letaky.catalog.department_icons' => ['Ovoce a zelenina' => 'produce']]);
+
+    $this->get(route('watch-items.index'))->assertInertia(fn (Assert $page) => $page
+        ->where('catalogTree', [
+            ['name' => 'Ovoce a zelenina', 'icon' => 'produce', 'aisles' => [
+                ['name' => 'Ovoce', 'productIds' => [$banana->id, $apples->id]],
+                ['name' => 'Zelenina', 'productIds' => [$carrot->id]],
+            ]],
+            ['name' => 'Nápoje', 'icon' => 'other', 'aisles' => [
+                ['name' => 'Pivo', 'productIds' => [$kozel->id]],
+            ]],
+            ['name' => 'Ostatní', 'icon' => 'other', 'aisles' => [
+                ['name' => 'Ostatní', 'productIds' => [$other->id]],
+            ]],
+        ]));
+});
+
+it('po přidání, úpravě a smazání položky pošle kód stavu pro toast (R47)', function (): void {
+    $this->post(route('watch-items.store'), ['name' => 'Vejce', 'keywords' => 'vejce'])
+        ->assertSessionHas('status', WatchItemController::STATUS_ADDED);
+    $item = $this->user->watchItems()->sole();
+
+    $this->put(route('watch-items.update', $item), ['name' => 'Vejce M', 'keywords' => 'vejce'])
+        ->assertSessionHas('status', WatchItemController::STATUS_UPDATED);
+    $this->delete(route('watch-items.destroy', $item))
+        ->assertSessionHas('status', WatchItemController::STATUS_REMOVED);
 });

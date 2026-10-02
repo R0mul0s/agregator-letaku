@@ -311,33 +311,26 @@
     }
 }
 
-// Katalog k procházení — sbalený, produkty jako čipy, filtr podle oddělení
+// Procházení katalogu (R47, WatchBrowse.vue): dlaždice oddělení, pak pododdělení s produkty
 .watch-browse {
-    padding: var(--space-3) var(--space-4);
+    padding: var(--space-4);
 
-    &__summary {
-        display: flex;
-        align-items: center;
-        gap: var(--space-2);
-        font-size: var(--font-size-card-title);
-        font-weight: var(--font-weight-heading);
-        list-style: none;
-        cursor: pointer;
-
-        // Vlastní šipka místo výchozího trojúhelníku (flex ho schová), po otevření dolů
-        &::before {
-            content: '▸';
-            color: var(--color-accent);
-            transition: transform var(--duration-fast);
-        }
-
-        &::-webkit-details-marker {
-            display: none;
-        }
+    &__header {
+        margin-bottom: var(--space-3);
     }
 
-    &[open] &__summary::before {
-        transform: rotate(90deg);
+    &__title {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: var(--space-2);
+        font-size: var(--font-size-card-title);
+
+        &:focus,
+        &:focus-visible {
+            outline: none;
+            box-shadow: none;
+        }
     }
 
     &__count {
@@ -346,11 +339,88 @@
         font-weight: 400;
     }
 
-    &__departments {
-        display: flex;
-        flex-wrap: wrap;
+    &__hint {
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+    }
+
+    &__tiles {
+        display: grid;
+        // Na telefonu dva sloupce, na širokém displeji podle šířky
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+
+        @include from-md {
+            grid-template-columns: repeat(auto-fill, minmax(var(--department-tile-min-width), 1fr));
+        }
         gap: var(--space-2);
-        margin: var(--space-3) 0;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    &__back {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-1);
+        margin-bottom: var(--space-2);
+        padding: var(--space-1) var(--space-2) var(--space-1) 0;
+        background: none;
+        border: 0;
+        color: var(--color-accent-strong);
+        font: inherit;
+        font-size: var(--font-size-sm);
+        font-weight: 700;
+        cursor: pointer;
+
+        svg {
+            width: var(--icon-size);
+            height: var(--icon-size);
+            fill: none;
+            stroke: currentcolor;
+            stroke-width: var(--svg-stroke-icon);
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+
+    // Nadpis dostane fokus po otevření oddělení (čtečka pokračuje v novém obsahu) — bez rámečku
+    &__department-title {
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+        font-size: var(--font-size-card-title);
+
+        &:focus,
+        &:focus-visible {
+            outline: none;
+            box-shadow: none;
+        }
+    }
+
+    &__aisle {
+        padding: var(--space-3) 0;
+
+        & + & {
+            border-top: 1px solid var(--color-border);
+        }
+    }
+
+    &__aisle-title {
+        display: flex;
+        align-items: baseline;
+        gap: var(--space-2);
+        margin-bottom: var(--space-2);
+        font-size: var(--font-size-md);
+    }
+
+    &__aisle-count {
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+        font-weight: 400;
     }
 
     &__products {
@@ -358,8 +428,7 @@
         flex-wrap: wrap;
         gap: var(--space-2);
         margin: 0;
-        padding: var(--space-3) 0 0;
-        border-top: 1px solid var(--color-border);
+        padding: 0;
         list-style: none;
     }
 
@@ -380,11 +449,99 @@
             color: var(--color-accent-strong);
         }
 
+        // Hlídaný produkt: fajfka na červeném podkladu, znovu přidat nejde
         &:disabled {
+            background: var(--color-accent-soft);
+            border-color: transparent;
+            color: var(--color-accent-strong);
+            font-weight: 700;
             cursor: default;
-            opacity: var(--opacity-disabled);
         }
     }
+}
+
+// Dlaždice oddělení: ikona v kroužku, název a počet produktů
+// Na telefonu ikona nad názvem (úzké dlaždice ve dvou sloupcích), na širokém displeji vedle
+.department-tile {
+    display: grid;
+    grid-template-columns: 1fr;
+    row-gap: var(--space-1);
+    column-gap: var(--space-3);
+    align-content: start;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    padding: var(--space-3);
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    color: var(--color-text);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: border-color var(--duration-fast), box-shadow var(--duration-fast), transform var(--duration-fast);
+
+    &:hover {
+        border-color: var(--color-accent);
+        box-shadow: var(--shadow-card);
+        transform: translateY(var(--hover-lift));
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        transition: none;
+
+        &:hover {
+            transform: none;
+        }
+    }
+
+    @include from-md {
+        grid-template-columns: auto 1fr;
+        grid-template-rows: auto auto;
+        row-gap: 0;
+        align-content: center;
+    }
+
+    &__icon {
+        display: inline-flex;
+
+        @include from-md {
+            grid-row: 1 / 3;
+        }
+
+        align-items: center;
+        justify-content: center;
+        width: var(--department-icon-box-size);
+        height: var(--department-icon-box-size);
+        background: var(--color-accent-soft);
+        border-radius: 50%;
+        color: var(--color-accent-strong);
+    }
+
+    &__name {
+        font-weight: 800;
+        line-height: var(--line-height-heading);
+    }
+
+    &__meta {
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+    }
+
+    &__watched {
+        color: var(--color-accent-strong);
+        font-weight: 700;
+    }
+}
+
+.department-icon {
+    width: var(--department-icon-size);
+    height: var(--department-icon-size);
+    fill: none;
+    stroke: currentcolor;
+    stroke-width: var(--svg-stroke-icon);
+    stroke-linecap: round;
+    stroke-linejoin: round;
 }
 
 // Nápověda oddílu nad formulářem

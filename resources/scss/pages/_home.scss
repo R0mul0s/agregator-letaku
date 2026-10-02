@@ -25,14 +25,72 @@
     }
 
     // Na mobilu u nadpisu, na širokém displeji uprostřed výšky pruhu
-    &__mascot {
+    // Jedoucí košík — animace z úvodní stránky (_landing.scss) s menším rozsahem
+    &__art {
+        --landing-drive-distance: var(--home-hero-drive-distance);
+        --landing-bump-height: var(--home-hero-bump-height);
+        --landing-streak-travel: var(--home-hero-streak-travel);
+
+        position: relative;
         align-self: start;
         width: var(--hero-mascot-size-mobile);
-        height: auto;
 
         @include from-md {
             align-self: center;
             width: var(--hero-mascot-size);
+        }
+    }
+
+    &__drive {
+        position: relative;
+        animation: landing-drive var(--landing-drive-duration) ease-in-out infinite;
+    }
+
+    &__mascot {
+        display: block;
+        width: 100%;
+        height: auto;
+        animation: landing-bump var(--landing-bump-duration) ease-in-out infinite;
+        transform-origin: 50% 85%;
+    }
+
+    // Čárky rychlosti za košíkem (vlevo od něj, zprava doleva)
+    &__streak {
+        position: absolute;
+        right: 70%;
+        height: var(--home-hero-streak-thickness);
+        background: var(--color-brand);
+        border-radius: var(--radius-pill);
+        opacity: 0;
+        animation: landing-streak var(--landing-streak-duration) linear infinite;
+
+        &:nth-child(1) {
+            top: 40%;
+            width: var(--home-hero-streak-long);
+        }
+
+        &:nth-child(2) {
+            top: 52%;
+            width: var(--home-hero-streak-medium);
+            animation-delay: calc(var(--landing-streak-duration) / -3);
+        }
+
+        &:nth-child(3) {
+            top: 64%;
+            width: var(--home-hero-streak-short);
+            animation-delay: calc(var(--landing-streak-duration) / -1.5);
+        }
+    }
+
+    // Kdo si v systému vypnul animace, uvidí košík stát
+    @media (prefers-reduced-motion: reduce) {
+        &__drive,
+        &__mascot {
+            animation: none;
+        }
+
+        &__streak {
+            display: none;
         }
     }
 

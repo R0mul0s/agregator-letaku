@@ -9,6 +9,7 @@
 <script setup>
 import WatchItemForm from '@/Components/WatchItemForm.vue';
 import { formatPrice } from '@/lib/format';
+import { confirmDialog } from '@/lib/confirm';
 import { useTranslations } from '@/lib/i18n';
 import { Link, router, usePage } from '@inertiajs/vue3';
 import { onMounted, ref } from 'vue';
@@ -35,8 +36,13 @@ onMounted(() => {
 });
 
 /** Po potvrzení položku smaže. */
-function remove() {
-    if (window.confirm(t('watch.delete_confirm', { name: props.item.name }))) {
+async function remove() {
+    const confirmed = await confirmDialog({
+        title: t('watch.delete_confirm_title'),
+        message: t('watch.delete_confirm', { name: props.item.name }),
+        confirmLabel: t('watch.stop'),
+    });
+    if (confirmed) {
         router.delete(props.item.deleteUrl, { preserveScroll: true });
     }
 }

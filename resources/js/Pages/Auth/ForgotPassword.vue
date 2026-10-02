@@ -9,14 +9,13 @@ import AuthShowcase from '@/Components/AuthShowcase.vue';
 import TextField from '@/Components/TextField.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { useTranslations } from '@/lib/i18n';
-import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
+import { Head, Link, useForm } from '@inertiajs/vue3';
 
 const props = defineProps({
     urls: { type: Object, required: true },
 });
 
 const t = useTranslations();
-const page = usePage();
 
 const form = useForm({
     email: '',
@@ -37,7 +36,6 @@ function submit() {
                 <h1 class="auth-card__title">{{ t('auth.forgot.title') }}</h1>
                 <p class="auth-card__intro">{{ t('auth.forgot.intro') }}</p>
 
-                <p v-if="page.props.status" class="notice notice--success" role="status">{{ page.props.status }}</p>
 
                 <form class="form" novalidate @submit.prevent="submit">
                     <TextField id="email" v-model="form.email" :label="t('auth.email')" type="email" autocomplete="username" required autofocus :error="form.errors.email" />

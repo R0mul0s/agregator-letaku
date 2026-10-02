@@ -26,8 +26,8 @@ use Inertia\Response;
 
 class ShoppingPreferencesController extends Controller
 {
-    /** Kód stavu po uložení (lang: ui.preferences.saved). */
-    private const STATUS_SAVED = 'preferences-saved';
+    /** Kód stavu pro toast po uložení (R47, lang: ui.toast.messages). */
+    public const STATUS_SAVED = 'preferences-saved';
 
     /**
      * Zobrazí všechny obchody — sledovatelné s upřesněním, ostatní jako připravované.

@@ -223,6 +223,22 @@ return [
         'search_results' => 20,
         'per_page' => 50,
         'search_max_length' => 100,
+        // Ikona dlaždice oddělení v Hlídám (R47, DepartmentIcon.vue) podle názvu oddělení ze
+        // stromu Tesca; oddělení, které tu není, dostane ikonu „other“
+        'department_icons' => [
+            'Ovoce a zelenina' => 'produce',
+            'Mléčné, vejce a margaríny' => 'dairy',
+            'Pekárna' => 'bakery',
+            'Maso a lahůdky' => 'meat',
+            'Mražené' => 'frozen',
+            'Trvanlivé' => 'pantry',
+            'Nápoje' => 'drinks',
+            'Speciální výživa' => 'special',
+            'Úklid' => 'cleaning',
+            'Drogerie' => 'drugstore',
+            'Dítě' => 'baby',
+            'Zvíře' => 'pets',
+        ],
     ],
 
     /*

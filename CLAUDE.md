@@ -20,7 +20,7 @@ volné číslo R…). Změna chování obchodu (nový endpoint, jiné pole) pat�
 
 ## Stav
 
-Hotové jsou etapy 1–5d (PLAN.md, kap. 6):
+Hotové jsou etapy 1–5e (PLAN.md, kap. 6):
 - účty (Fortify, R12, R13); stahování akcí Kauflandu, Tesca, Lidlu a Penny (R15–R17, R25, R26)
 - Globus z REST API webu (R46): katalog akcí jednoho hypermarketu, cena s aplikací Můj Globus, bez oblečení
 - zmínky v letácích bez ceny — Lidl, Penny a Albert (R27, R36; Albert jen zmínky, ceny zatím ne)
@@ -33,6 +33,8 @@ Hotové jsou etapy 1–5d (PLAN.md, kap. 6):
   e-mailový souhrn, sbalitelné Moje slevy, stránkování Všech akcí a katalogu, úvodní stránka
   pro nepřihlášené a veřejné Všechny akce, SEO a limity požadavků; plovoucí hlavička
   s hamburgerem na telefonu a tlačítko Nahoru
+- vzhled podle zkoušení (R47): toasty po uložení, vlastní potvrzovací okno, Moje obchody s přepínači,
+  katalog v Hlídám jako dlaždice oddělení, oslovení v 5. pádě
 
 Produkce běží na `https://slevohlidka.rhsoft.cz` (první nasazení 2026-10-02, `c5d45d7`);
 postup aktualizace a nasazené verze jsou v `deploy/DEPLOYMENT.md`. Další na řadě je obchod
@@ -156,6 +158,7 @@ MariaDB 11.4 · Pest 4 · Larastan · Pint. Extrakce letáků (etapa 6): Claude 
 30. **SEO a roboti (R45):** aplikace je SPA bez SSR — titulek, popis, canonical, `robots`, OG a schema.org skládá `App\Support\Seo\SeoMeta` v `app.blade.php` na serveru. Nová veřejná stránka = doplnit ji do `SeoMeta` (jinak dostane `noindex, nofollow`), do sitemap v `CrawlerFilesController` a případně do `llms.txt`. `robots.txt` je routa, ne soubor v `public/` (statický by routu přebil) a mimo produkci zakáže vše. OG obrázek se kreslí z `resources/brand/og-image.html` (postup v hlavičce souboru).
 31. **Za proxy Websupportu** platí `trustProxies(at: '*')` — IP klienta a https z X-Forwarded-*. Limity požadavků jsou pojmenované v `App\Support\RateLimits` (`letaky.rate_limits`); měnící požadavky počítá globálně skupina web, citlivé formuláře (heslo, e-mail) mají přísnější limit — nový takový formulář patří do `SENSITIVE_ROUTES`.
 32. **Globus (R46):** ceny jsou **float v Kč** (`PriceParser::fromFloat`), akce je jen typ ceny `VKA0`, popis se bere z položky letáku podle EAN (popis katalogu je reklamní text, hlídání by chytalo cizí slova). Zboží na váhu nemá `sellUnitSizeText` — balení z `unitAmount` + `unitId`. Oblečení a obuv vyřazuje `excluded_ware_groups`. Akce nemají vlastní odkaz (detaily `…/p/` zakazuje robots.txt pro stahování a adresa není ověřená).
+33. **Zpětná vazba (R47):** uložení potvrzuje **toast** — kontroler vrátí `->with('status', self::STATUS_…)` a text je v `lang/cs/app.php` `ui.toast.messages.<kód>` (test v `TranslationsTest`); nepiš zprávy do obsahu stránky. Nevratnou akci potvrzuje `await confirmDialog({ title, message, confirmLabel })` z `resources/js/lib/confirm.js`, nikdy `window.confirm`. Oslovení jménem jde přes `App\Support\CzechVocative` (5. pád).
 
 ## Jazyk
 

@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace App\Mail;
 
 use App\Models\User;
+use App\Support\CzechVocative;
 use Carbon\CarbonImmutable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
@@ -62,7 +63,8 @@ class DigestMail extends Mailable
         $limit = config()->integer('letaky.digest.max_offers_per_item');
 
         return new Content(markdown: 'mail.digest', with: [
-            'firstName' => explode(' ', trim($this->user->name))[0],
+            // Oslovení v 5. pádě („Ahoj, Romane!“, R47)
+            'firstName' => app(CzechVocative::class)->firstName($this->user->name),
             'items' => array_map(fn (array $item): array => [
                 'name' => $item['name'],
                 'offers' => array_map(fn (array $offer): array => [

@@ -22,6 +22,8 @@
 @use 'components/avatar';
 @use 'components/user-menu';
 @use 'components/back-to-top';
+@use 'components/toast';
+@use 'components/confirm-dialog';
 @use 'pages/account';
 @use 'pages/watch';
 @use 'pages/preferences';

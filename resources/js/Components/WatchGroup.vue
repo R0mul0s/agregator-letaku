@@ -9,6 +9,7 @@
 import MentionCard from '@/Components/MentionCard.vue';
 import OfferCard from '@/Components/OfferCard.vue';
 import { formatPrice } from '@/lib/format';
+import { confirmDialog } from '@/lib/confirm';
 import { useTranslations } from '@/lib/i18n';
 import { discountPercent } from '@/lib/offer';
 import { Link, router, usePage } from '@inertiajs/vue3';
@@ -38,8 +39,13 @@ const bestDiscount = computed(() => {
 });
 
 /** Po potvrzení položku přestane hlídat; stránka zůstane na Mých slevách. */
-function remove() {
-    if (window.confirm(t('watch.delete_confirm', { name: props.item.name }))) {
+async function remove() {
+    const confirmed = await confirmDialog({
+        title: t('watch.delete_confirm_title'),
+        message: t('watch.delete_confirm', { name: props.item.name }),
+        confirmLabel: t('watch.stop'),
+    });
+    if (confirmed) {
         router.delete(props.item.deleteUrl, { preserveScroll: true });
     }
 }

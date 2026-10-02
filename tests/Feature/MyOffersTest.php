@@ -286,3 +286,9 @@ it('u prázdné skupiny řekne, jestli chodí e-mailový souhrn (R42)', function
 
     $this->get(route('home'))->assertInertia(fn (Assert $page) => $page->where('digestFrequency', 'jednou týdně'));
 });
+
+it('pozdraví křestním jménem v 5. pádě (R47)', function (): void {
+    $this->user->forceFill(['name' => 'Roman Hlaváček'])->save();
+
+    $this->get(route('home'))->assertInertia(fn (Assert $page) => $page->where('greetingName', 'Romane'));
+});
