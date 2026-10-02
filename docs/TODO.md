@@ -56,6 +56,7 @@ v [PLAN.md](PLAN.md). Větší celky se z toho stávají etapou.
 
 **Odkud:** etapa 5, R28–R30 v PLAN.md.
 
+- rozšiřovat startovní sadu katalogu (R33) — hlavně o věci, které uživatelé hlídají vlastními slovy; „Celé kuře“ potřebuje pravidlo, které odliší „kuře“ od „kuřecí“
 - seznam **nepřiřazených akcí** v katalogu (potraviny bez produktu) jako podklad pro nové produkty; později třídění přes LLM (etapa 6)
 - akce Tesca mají v e-shopu i polici stromu (`superDepartmentName`, `departmentName`; regál a police jde doplnit do dotazu) — zařadit je do kategorií rovnou, bez pravidel
 - filtr podle kategorie ve Všech akcích a procházení katalogu stromem
