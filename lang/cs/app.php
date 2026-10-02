@@ -129,6 +129,8 @@ return [
 
         'nav' => [
             'label' => 'Hlavní navigace',
+            'open' => 'Otevřít menu',
+            'close' => 'Zavřít menu',
             'home' => 'Moje slevy',
             'watch_items' => 'Hlídám',
             'preferences' => 'Obchody',
