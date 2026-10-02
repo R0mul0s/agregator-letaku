@@ -46,6 +46,11 @@ class HomeController extends Controller
             'watchItems' => array_map(fn (array $group): array => [
                 'id' => $group['watchItem']->id,
                 'name' => $group['watchItem']->name,
+                // Hlavička sbalené skupiny: nejnižší cena a akce upravit / přestat hlídat
+                'lowestPrice' => $myOffers->lowestPrice($user, array_column($group['offers'], 'offer')),
+                'fromCatalog' => $group['watchItem']->product_id !== null,
+                'editUrl' => route('watch-items.index', [WatchItemController::EDIT_PARAMETER => $group['watchItem']->id], absolute: false),
+                'deleteUrl' => route('watch-items.destroy', $group['watchItem'], absolute: false),
                 'offers' => array_map(fn (array $match): array => [
                     ...$presenter->toPage($match['offer']),
                     'matchStatus' => $match['status']->value,

@@ -20,8 +20,10 @@ const props = defineProps({
     /** Adresa našeptávače a od kolika znaků se ptá. */
     suggestUrl: { type: String, required: true },
     suggestMinLength: { type: Number, required: true },
-    /** Laravel paginator s nabídkami z OfferPresenter. */
+    /** Nabídky načteného rozsahu stránek { data (OfferPresenter), total }. */
     offers: { type: Object, required: true },
+    /** Odkazy stránkování a „Načíst další“ (OffersController::pagination, R43). */
+    pagination: { type: Object, required: true },
     filters: { type: Object, required: true },
     chains: { type: Array, required: true },
 });
@@ -75,6 +77,6 @@ function search() {
             <OfferCard v-for="offer in offers.data" :key="offer.id" :offer="offer" />
         </div>
 
-        <Pagination :paginator="offers" />
+        <Pagination :pagination="pagination" :total="offers.total" />
     </AppLayout>
 </template>

@@ -266,7 +266,8 @@ return [
             'pagination' => 'Stránkování',
             'previous' => 'Předchozí',
             'next' => 'Další',
-            'page' => 'Strana :current z :last',
+            'load_more' => 'Načíst další :count akci|Načíst další :count akce|Načíst dalších :count akcí',
+            'shown' => 'Zobrazeno :from–:to z :total',
         ],
 
         'theme' => [
@@ -332,6 +333,8 @@ return [
             'no_offers' => 'Teď v akci není.',
             'count' => ':count akce|:count akce|:count akcí',
             'edit_watch_items' => 'Upravit hlídané',
+            'expand_all' => 'Rozbalit vše',
+            'collapse_all' => 'Sbalit vše',
             'sorted_by' => 'Řazeno od :sort',
             'min_discount_note' => 'jen slevy od :percent %',
             'change_preferences' => 'Změnit',

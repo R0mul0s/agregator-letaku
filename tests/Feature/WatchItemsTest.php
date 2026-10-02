@@ -122,6 +122,21 @@ it('upraví a smaže vlastní položku', function (): void {
     expect(WatchItem::query()->count())->toBe(0);
 });
 
+it('z Mých slev přestane hlídat a vrátí se zpět; odkaz Upravit otevře úpravu v Hlídám (R43)', function (): void {
+    $item = WatchItem::factory()->for($this->user)->create(['name' => 'Vejce', 'keywords' => 'vejce']);
+
+    $this->get(route('home'))->assertInertia(fn (Assert $page) => $page
+        ->where('watchItems.0.fromCatalog', false)
+        ->where('watchItems.0.editUrl', '/hlidam?upravit='.$item->id)
+        ->where('watchItems.0.deleteUrl', '/hlidam/'.$item->id)
+        ->where('watchItems.0.lowestPrice', null));
+
+    $this->get('/hlidam?upravit='.$item->id)->assertInertia(fn (Assert $page) => $page->where('editId', $item->id));
+
+    $this->from(route('home'))->delete(route('watch-items.destroy', $item))->assertRedirect(route('home'));
+    expect(WatchItem::query()->count())->toBe(0);
+});
+
 it('cizí položku neupraví ani nesmaže', function (): void {
     $foreign = WatchItem::factory()->create(['name' => 'Cizí']);
 

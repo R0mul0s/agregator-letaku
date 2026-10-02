@@ -7,7 +7,11 @@
 @use '../abstracts/mixins' as *;
 
 .watch-group {
-    margin-bottom: var(--space-5);
+    margin-bottom: var(--space-2);
+
+    &--expanded {
+        margin-bottom: var(--space-4);
+    }
 
     // Nadpis skupiny s linkou až k okraji — odděluje hlídané položky jako oddíly letáku
     &__title {
@@ -36,6 +40,82 @@
         font-size: var(--font-size-sm);
         font-weight: 800;
         letter-spacing: normal;
+    }
+
+    // Moje slevy (R43): sbalitelná skupina — hlavička jako karta, obsah pod ní
+    &__header {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        padding: var(--space-2) var(--space-2) var(--space-2) var(--space-3);
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-card);
+    }
+
+    &--expanded &__header {
+        border-color: var(--color-accent);
+    }
+
+    &__heading {
+        flex: 1;
+        min-width: 0;
+        font-size: var(--font-size-card-title);
+    }
+
+    &__toggle {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--space-1) var(--space-2);
+        width: 100%;
+        padding: var(--space-1) 0;
+        background: none;
+        border: 0;
+        color: var(--color-text);
+        font: inherit;
+        text-align: left;
+        cursor: pointer;
+    }
+
+    &__chevron {
+        color: var(--color-accent);
+        transition: transform var(--duration-fast);
+    }
+
+    &--expanded &__chevron {
+        transform: rotate(90deg);
+    }
+
+    &__name {
+        overflow-wrap: anywhere;
+    }
+
+    &__summary {
+        color: var(--color-price);
+        font-size: var(--font-size-sm);
+        font-weight: 700;
+        letter-spacing: normal;
+    }
+
+    &__discount {
+        padding: 0 var(--space-2);
+        background: var(--gradient-brand);
+        border-radius: var(--radius-sm);
+        color: var(--color-on-brand);
+        font-size: var(--font-size-sm);
+        font-weight: 800;
+        letter-spacing: normal;
+    }
+
+    &__actions {
+        display: flex;
+        flex: none;
+    }
+
+    &__body:not([hidden]) {
+        padding-top: var(--space-3);
     }
 
     // Zmínky v letácích bez ceny pod akcemi (R27)
@@ -264,4 +344,11 @@
 // Nápověda oddílu nad formulářem
 .watch-hint {
     margin-bottom: var(--space-3);
+}
+
+// Moje slevy: „Rozbalit vše / Sbalit vše“ nad skupinami (R43)
+.watch-groups__toolbar {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: var(--space-2);
 }

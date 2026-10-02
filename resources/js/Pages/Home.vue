@@ -1,19 +1,25 @@
 <!--
     Moje slevy — úvodní pruh s maskotem a souhrnem, akce k hlídaným položkám ve sledovaných
-    obchodech (R18, R19) a zmínky v letácích bez ceny (R27).
+    obchodech (R18, R19) a zmínky v letácích bez ceny (R27). Skupiny jsou sbalené, rozbalené
+    si prohlížeč pamatuje (R43).
 
     @author Roman Hlaváček
     @created 2026-10-02
 -->
 <script setup>
 import EmptyState from '@/Components/EmptyState.vue';
-import MentionCard from '@/Components/MentionCard.vue';
-import OfferCard from '@/Components/OfferCard.vue';
+import WatchGroup from '@/Components/WatchGroup.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { useTranslations } from '@/lib/i18n';
 import { discountPercent } from '@/lib/offer';
 import { Head, Link, usePage } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { computed, nextTick, onMounted, ref } from 'vue';
+
+/** Klíč v localStorage s rozbalenými položkami — jen pohodlí prohlížeče, ne nastavení účtu. */
+const EXPANDED_STORAGE_KEY = 'slevohlidka.home.expanded';
+
+/** Kotva skupiny v adrese (odkaz z dlaždice v Hlídám): #polozka-{id}. */
+const GROUP_HASH_PATTERN = /^#polozka-(\d+)$/;
 
 const props = defineProps({
     hasFollowedChains: { type: Boolean, required: true },
@@ -36,6 +42,59 @@ const summary = computed(() => {
     const discounts = offers.map(discountPercent).filter(Boolean);
 
     return { offers: offers.length, bestDiscount: discounts.length ? Math.max(...discounts) : null };
+});
+
+/** Rozbalené skupiny (id položek); ve výchozím stavu je vše sbalené. */
+const expandedIds = ref(new Set());
+
+const allExpanded = computed(() => props.watchItems.every((item) => expandedIds.value.has(item.id)));
+
+/** Uloží rozbalené skupiny; bez přístupu k localStorage (anonymní okno) se stav jen nezapamatuje. */
+function saveExpanded() {
+    try {
+        localStorage.setItem(EXPANDED_STORAGE_KEY, JSON.stringify([...expandedIds.value]));
+    } catch {
+        // stav platí jen do zavření stránky
+    }
+}
+
+/**
+ * Rozbalí nebo sbalí jednu skupinu.
+ *
+ * @param {number} id
+ * @param {boolean} value
+ */
+function setExpanded(id, value) {
+    const next = new Set(expandedIds.value);
+    if (value) {
+        next.add(id);
+    } else {
+        next.delete(id);
+    }
+    expandedIds.value = next;
+    saveExpanded();
+}
+
+/** Rozbalí všechny skupiny, nebo — když už jsou všechny rozbalené — všechny sbalí. */
+function toggleAll() {
+    expandedIds.value = allExpanded.value ? new Set() : new Set(props.watchItems.map((item) => item.id));
+    saveExpanded();
+}
+
+onMounted(async () => {
+    try {
+        expandedIds.value = new Set(JSON.parse(localStorage.getItem(EXPANDED_STORAGE_KEY) ?? '[]'));
+    } catch {
+        expandedIds.value = new Set();
+    }
+
+    // Odkaz z Hlídám vede na konkrétní skupinu — rozbalit ji a posunout se k ní
+    const match = window.location.hash.match(GROUP_HASH_PATTERN);
+    if (match) {
+        setExpanded(Number(match[1]), true);
+        await nextTick();
+        document.getElementById(`polozka-${match[1]}`)?.scrollIntoView({ block: 'start' });
+    }
 });
 </script>
 
@@ -81,25 +140,18 @@ const summary = computed(() => {
         </EmptyState>
 
         <template v-else>
-            <!-- id: odkaz z dlaždice v Hlídám vede přímo na skupinu položky -->
-            <section v-for="item in watchItems" :id="`polozka-${item.id}`" :key="item.id" class="watch-group">
-                <h2 class="watch-group__title">
-                    {{ item.name }}
-                    <span class="watch-group__count">{{ t('home.count', { count: item.offers.length }) }}</span>
-                </h2>
-                <p v-if="!item.offers.length && !item.mentions.length" class="page__empty">{{ t('home.no_offers') }}</p>
-                <div v-if="item.offers.length" class="offer-grid">
-                    <OfferCard v-for="offer in item.offers" :key="offer.id" :offer="offer" />
-                </div>
-
-                <template v-if="item.mentions.length">
-                    <h3 class="watch-group__subtitle">{{ t('home.mentions_title') }}</h3>
-                    <p class="watch-group__hint">{{ t('home.mentions_hint') }}</p>
-                    <div class="mention-grid">
-                        <MentionCard v-for="mention in item.mentions" :key="mention.id" :mention="mention" />
-                    </div>
-                </template>
-            </section>
+            <div class="watch-groups__toolbar">
+                <button type="button" class="button button--ghost" @click="toggleAll">
+                    {{ allExpanded ? t('home.collapse_all') : t('home.expand_all') }}
+                </button>
+            </div>
+            <WatchGroup
+                v-for="item in watchItems"
+                :key="item.id"
+                :item="item"
+                :expanded="expandedIds.has(item.id)"
+                @update:expanded="(value) => setExpanded(item.id, value)"
+            />
         </template>
     </AppLayout>
 </template>

@@ -15,7 +15,6 @@ namespace App\Http\Controllers;
 use App\Domain\Catalog\CategoryPaths;
 use App\Domain\Matching\MyOffers;
 use App\Http\Requests\WatchItemRequest;
-use App\Models\Offer;
 use App\Models\Product;
 use App\Models\User;
 use App\Models\WatchItem;
@@ -27,6 +26,9 @@ use Inertia\Response;
 
 class WatchItemController extends Controller
 {
+    /** Parametr adresy Hlídám, který otevře úpravu položky (odkaz z Mých slev). */
+    public const EDIT_PARAMETER = 'upravit';
+
     /**
      * Hlídané položky s tím, co k nim teď je v akci (počet akcí, nejnižší cena, zmínky
      * v letácích — stejně jako v Mých slevách), a produkty katalogu k přidání.
@@ -46,8 +48,10 @@ class WatchItemController extends Controller
                 ...$this->itemToPage($group['watchItem']),
                 'offersCount' => count($group['offers']),
                 'mentionsCount' => count($group['mentions']),
-                'lowestPrice' => $this->lowestPrice($user, $myOffers, array_column($group['offers'], 'offer')),
+                'lowestPrice' => $myOffers->lowestPrice($user, array_column($group['offers'], 'offer')),
             ], $myOffers->forUser($user)),
+            // Odkaz „Upravit“ z Mých slev (?upravit=id) otevře úpravu položky rovnou v dlaždici
+            'editId' => $request->integer(self::EDIT_PARAMETER) ?: null,
             // Katalog nahradil šablony (R31) — produkt jde hlídat jedním klepnutím, nejvýš jednou
             'products' => Product::query()->orderBy('name')->get()->map(fn (Product $product): array => [
                 'id' => $product->id,
@@ -80,19 +84,6 @@ class WatchItemController extends Controller
     }
 
     /**
-     * Nejnižší cena, kterou uživatel za některou z akcí zaplatí (s kartou, pokud ji má);
-     * null, když žádná akce cenu nemá.
-     *
-     * @param  list<Offer>  $offers
-     */
-    private function lowestPrice(User $user, MyOffers $myOffers, array $offers): ?int
-    {
-        $prices = array_filter(array_map(fn (Offer $offer): ?int => $myOffers->userPrice($user, $offer), $offers), fn (?int $price): bool => $price !== null);
-
-        return $prices === [] ? null : min($prices);
-    }
-
-    /**
      * Založí položku.
      */
     public function store(WatchItemRequest $request): RedirectResponse
@@ -116,13 +107,13 @@ class WatchItemController extends Controller
     }
 
     /**
-     * Smaže položku.
+     * Smaže položku a vrátí se na stránku, odkud uživatel přišel (Hlídám, nebo Moje slevy).
      */
     public function destroy(WatchItem $watchItem): RedirectResponse
     {
         Gate::authorize('delete', $watchItem);
         $watchItem->delete();
 
-        return to_route('watch-items.index');
+        return back(fallback: route('watch-items.index'));
     }
 }

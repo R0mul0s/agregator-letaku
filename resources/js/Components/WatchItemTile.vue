@@ -11,18 +11,28 @@ import WatchItemForm from '@/Components/WatchItemForm.vue';
 import { formatPrice } from '@/lib/format';
 import { useTranslations } from '@/lib/i18n';
 import { Link, router, usePage } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { onMounted, ref } from 'vue';
 
 const props = defineProps({
     /** Položka z WatchItemController::index (pravidla, počty akcí, adresy). */
     item: { type: Object, required: true },
     /** Odkaz na Moje slevy — kotva vede na skupinu položky. */
     homeUrl: { type: String, required: true },
+    /** Otevřít rovnou úpravu (odkaz „Upravit“ z Mých slev, ?upravit=id). */
+    initiallyEditing: { type: Boolean, default: false },
 });
 
 const t = useTranslations();
 const page = usePage();
-const editing = ref(false);
+const editing = ref(props.initiallyEditing);
+const root = ref(null);
+
+// Úprava otevřená z odkazu — dlaždice může být až dole na stránce
+onMounted(() => {
+    if (props.initiallyEditing) {
+        root.value?.scrollIntoView({ block: 'center' });
+    }
+});
 
 /** Po potvrzení položku smaže. */
 function remove() {
@@ -33,7 +43,7 @@ function remove() {
 </script>
 
 <template>
-    <article class="card watch-tile" :class="{ 'watch-tile--editing': editing, 'watch-tile--active': item.offersCount > 0 }">
+    <article ref="root" class="card watch-tile" :class="{ 'watch-tile--editing': editing, 'watch-tile--active': item.offersCount > 0 }">
         <WatchItemForm
             v-if="editing"
             :url="item.updateUrl"

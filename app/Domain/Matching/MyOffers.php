@@ -370,6 +370,19 @@ final class MyOffers
     }
 
     /**
+     * Nejnižší cena, kterou uživatel za některou z akcí zaplatí (s kartou, pokud ji má);
+     * null, když žádná akce cenu nemá. Přehled v Hlídám a hlavička skupiny v Mých slevách.
+     *
+     * @param  list<Offer>  $offers
+     */
+    public function lowestPrice(User $user, array $offers): ?int
+    {
+        $prices = array_filter(array_map(fn (Offer $offer): ?int => $this->userPrice($user, $offer), $offers), fn (?int $price): bool => $price !== null);
+
+        return $prices === [] ? null : min($prices);
+    }
+
+    /**
      * Cena, kterou uživatel zaplatí: s kartou, pokud ji má a je nižší, jinak cena bez karty.
      */
     public function userPrice(User $user, Offer $offer): ?int

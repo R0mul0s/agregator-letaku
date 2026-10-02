@@ -122,6 +122,48 @@ it('stránkuje podle konfigurace a zachová hledání v odkazech', function (): 
 
     $this->get(route('offers', ['q' => 'vejce']))
         ->assertInertia(fn (Assert $page) => $page
-            ->where('offers.last_page', 2)
-            ->where('offers.next_page_url', fn (string $url): bool => str_contains($url, 'q=vejce') && str_contains($url, 'page=2')));
+            ->has('offers.data', 2)
+            ->where('pagination.lastPage', 2)
+            ->where('pagination.nextUrl', '/akce?q=vejce&strana=2')
+            ->where('pagination.loadMoreUrl', '/akce?q=vejce&od=1&strana=2')
+            ->where('pagination.loadMoreCount', 1)
+            ->where('pagination.previousUrl', null));
+});
+
+it('„Načíst další“ načte celý rozsah stránek z adresy a označí ho (R43)', function (): void {
+    config(['letaky.offers.per_page' => 2]);
+    Offer::factory()->count(9)->create();
+
+    $this->get('/akce?od=2&strana=3')
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('offers.data', 4)
+            ->where('pagination.from', 2)
+            ->where('pagination.to', 3)
+            ->where('pagination.shownFrom', 3)
+            ->where('pagination.shownTo', 6)
+            ->where('pagination.previousUrl', '/akce')
+            ->where('pagination.loadMoreUrl', '/akce?od=2&strana=4')
+            ->where('pagination.pages', [
+                ['number' => 1, 'url' => '/akce', 'current' => false],
+                ['number' => 2, 'url' => '/akce?strana=2', 'current' => true],
+                ['number' => 3, 'url' => '/akce?strana=3', 'current' => true],
+                ['number' => 4, 'url' => '/akce?strana=4', 'current' => false],
+                ['number' => 5, 'url' => '/akce?strana=5', 'current' => false],
+            ]));
+});
+
+it('stránku za koncem výpisu zkrátí na poslední a rozsah omezí stropem (R43)', function (): void {
+    config(['letaky.offers.per_page' => 2, 'letaky.offers.max_loaded_pages' => 2]);
+    Offer::factory()->count(9)->create();
+
+    $this->get('/akce?strana=99')
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('pagination.to', 5)
+            ->where('pagination.loadMoreUrl', null)
+            ->has('offers.data', 1));
+
+    $this->get('/akce?od=1&strana=4')
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('pagination.from', 3)
+            ->has('offers.data', 4));
 });

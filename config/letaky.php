@@ -206,6 +206,10 @@ return [
     */
     'offers' => [
         'per_page' => 50,
+        // „Načíst další“ (R43): nejvýš tolik stránek najednou; kolik čísel stránek ukázat
+        // kolem načteného rozsahu (vždy i první a poslední)
+        'max_loaded_pages' => 10,
+        'page_link_neighbours' => 1,
         'search_max_length' => 100,
         // Našeptávač hledání: od kolika znaků a kolik návrhů
         'suggest_min_length' => 2,

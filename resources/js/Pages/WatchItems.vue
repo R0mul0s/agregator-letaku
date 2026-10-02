@@ -21,6 +21,8 @@ const props = defineProps({
     watchItems: { type: Array, required: true },
     /** Produkty katalogu [{ id, name, categoryLabel, department, watched }]. */
     products: { type: Array, required: true },
+    /** Položka, jejíž úprava se má otevřít (odkaz z Mých slev), nebo null. */
+    editId: { type: Number, default: null },
 });
 
 const t = useTranslations();
@@ -93,7 +95,7 @@ async function openOwnForm(text) {
                     <span class="watch-group__count">{{ watchItems.length }}</span>
                 </h2>
                 <div class="watch-list__grid">
-                    <WatchItemTile v-for="item in watchItems" :key="item.id" :item="item" :home-url="urls.home" />
+                    <WatchItemTile v-for="item in watchItems" :key="item.id" :item="item" :home-url="urls.home" :initially-editing="item.id === editId" />
                 </div>
             </template>
         </section>

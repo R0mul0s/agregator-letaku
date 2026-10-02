@@ -34,6 +34,17 @@ final class OfferSearch
      */
     public function search(?string $text, ?Chain $chain, int $perPage): LengthAwarePaginator
     {
+        return $this->query($text, $chain)->paginate($perPage);
+    }
+
+    /**
+     * Dotaz na neskončené a obchodem nestažené nabídky odpovídající hledání, seřazený od nejdříve
+     * platných — pro výpis s vlastním stránkováním (Všechny akce načítají víc stránek najednou).
+     *
+     * @return Builder<Offer>
+     */
+    public function query(?string $text, ?Chain $chain): Builder
+    {
         return Offer::query()
             ->active()
             ->notExpired($this->calendar->today())
@@ -42,8 +53,7 @@ final class OfferSearch
             ->orderBy('valid_from')
             ->orderBy('chain')
             ->orderBy('name')
-            ->orderBy('id')
-            ->paginate($perPage);
+            ->orderBy('id');
     }
 
     /**
