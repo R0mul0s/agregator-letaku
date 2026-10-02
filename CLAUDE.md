@@ -75,11 +75,6 @@ docker compose exec app npm run build   # při změně JS, Vue nebo SCSS
 
 Testy běží proti MariaDB `agregator_test`, ne SQLite, a **nikdy nesahají na síť** (R11).
 
-**Vývojová databáze `agregator` se nemaže.** Jsou v ní účty a nastavení, které autor
-používá. `migrate:fresh`, `migrate:refresh`, `db:wipe` ani mazání tabulek se na ní
-nespouští bez výslovného souhlasu. Změna schématu = **nová migrace**, ne úprava nebo
-smazání staré (i před prvním nasazením). Od nuly se smí přestavět jen `agregator_test`.
-
 ## Produkce
 
 Sdílený hosting **Websupport** (R20), stejně jako Počasí: Apache 2.4 + PHP 8.4,

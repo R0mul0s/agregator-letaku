@@ -178,8 +178,7 @@ Eloquent model                 ← perzistence
 ## 4. Databáze
 
 ### Migrace
-- **Každá změna schématu = nová migrace.** Nikdy se neupravuje migrace, která už běžela na produkci ani na vývojové databázi.
-- **Vývojová databáze `agregator` se nemaže** (`migrate:fresh`, `migrate:refresh`, `db:wipe`) bez výslovného souhlasu autora — jsou v ní jeho účty a nastavení. Od nuly se přestavuje jen `agregator_test`.
+- **Každá změna schématu = nová migrace.** Nikdy se neupravuje migrace, která už běžela na produkci.
 - Každá migrace má funkční `down()`.
 - Sloupce s cenou mají `comment()` s jednotkou („haléře“).
 
