@@ -303,6 +303,67 @@ Publitas (Albert CZ, groupId 90263):
 
 ---
 
+## Billa (průzkum 2026-10-02 — zatím neimplementováno)
+
+Stejná platforma REWE jako Penny (Nuxt, commercetools), ale API má **celý katalog**.
+`robots.txt` jen odkazuje na sitemap (žádné Disallow), bez WAF, cookies ani zvláštních hlaviček.
+
+### Endpointy
+| Účel | Požadavek |
+|---|---|
+| Akce | `GET https://www.billa.cz/api/product-discovery/products?page={n}&pageSize=500&inPromotion=true` — 3 042 položek, 7 požadavků, ~17 s |
+| Celý katalog (kvůli akcím jen s Klubem) | totéž bez `inPromotion` — 12 184 produktů, 25 požadavků, ~28 MB |
+| Detail | `GET /api/product-discovery/products/{sku}` (`82-100073`; se slugem 404) |
+| Leták (Publitas, jako Albert R36) | `https://view.publitas.com/billa-cz/{slug}/spreads.json` (`pages[].text`); slug v `__NUXT_DATA__` stránky `/letaky-billa/velky-letak-aktualni` |
+
+`page` od 0, `pageSize` nejvýš 500 (víc = 400). Odpověď `{facets, count, offset, total, results, isTotalTruncated}`.
+
+### Pole a pasti
+- Tvar `price` skoro jako Penny: `regular.value` (haléře, int) = akční cena, `crossed` = `standard.value` = původní,
+  `discountPercentage` **záporné**, `loyalty.value` s tagem `pt-loyalclub` = cena s **BILLA Klubem** (aplikace).
+- **API nemá platnost akce.** Ukazuje stav v okamžiku dotazu; platnost odvodit z týdne letáku (středa–úterý, slug
+  `velky-letak-30-9-6-10-2026`) a spolehnout se na `withdrawn_at` (R16) při denním stahování. Víkendové a denní akce
+  („SUPER STŘEDA“, „ČTVRTEK–NEDĚLE“) přesné datum v API nemají.
+- **Akce jen s Klubem mají `inPromotion:false`** (cena jen v `price.loyalty`) — filtr je nevrátí; ~450 odhadem,
+  jen průchodem celého katalogu. `loyalty` bývá i dražší než `regular` (Bella For Teens) — brát nižší.
+- **Zboží na váhu** (jako Tesco): `weightPieceArticle` → `value` je cena odhadovaného kusu, brát
+  `perStandardizedQuantity`; `weightArticle` → `value` za kg, `perStandardizedQuantity` za 100 g (`basePriceFactor`).
+- **Vícekusové akce** (`tags` `pt-multi`): `promotionType` `PER_SET_OF` („cena 1ks při koupi 3ks“), `FROM`, `UP_TO`
+  (limit „max. 6 ks“) — R8, ne prostá sleva. `eshop-only` (22 akcí) vyřadit nebo označit.
+- Velký leták (36 stran) pro větší prodejny, malý (8 stran) pro menší; API má jednu celostátní cenu.
+- Každá varianta je v API samostatné SKU — „různé druhy“ (R9) je jen v letáku. „NAŠE CENA“ v letáku ≈ „Super cena“,
+  API u ní ale dává `crossed`.
+
+## Globus (průzkum 2026-10-02 — zatím neimplementováno)
+
+Nuxt 3 s vlastním veřejným REST API, bez klíče a bez WAF. `robots.txt` povoluje `/` včetně `/api/`; zakazuje jen
+detaily produktů `…/p/` a podstránky akční nabídky jednotlivých hypermarketů (API je nepotřebuje).
+
+### Endpointy (`B = https://www.globus.cz/api/v1/gsoa/actionOffers`)
+| Účel | Požadavek |
+|---|---|
+| **Akce s cenou v prodejně (hlavní zdroj)** | `GET {B}/houses/4005/actionProductsCatalog?page=0&pageSize=200` — 913 položek, 5 požadavků, ~19 s |
+| Položky letáku (text „různé druhy“) | `GET {B}/houses/4005/actionProducts?page=0&pageSize=200` — 1 025 položek |
+| Letáky a katalogy (PDF, JPG, platnost) | `GET {B}/houses/4005/actionOffers?page=0&pageSize=50` |
+
+`page` od 0, `pageSize` nejvýš 200. **`totalCount` nesedí** (869 vs. 913) — stránkovat do kratší stránky nebo
+`paginationShowMore:false`. 16 hypermarketů (`gsoaId` v `__NUXT_DATA__`), výchozí 4005 Čakovice; mezi prodejnami se liší
+jen krátké místní akce (Brno × Čakovice: 900 z 912 stejně) — stačí jedna prodejna.
+
+### Pole a pasti
+- `productInHouse.actualPrice` / `originalPrice` / `discountPercentage` (**float v Kč**), `priceValidFrom`/`To` s místním
+  posunem (`+02:00`) → datum v `Europe/Prague`; `bonusProgramPrice.actualPrice` = cena s aplikací **Můj Globus**
+  (`loyalty_price`, nová karta v `LoyaltyProgram`). Značka `commonBrand.name` (`brand` je null nebo nesmysl), balení
+  `sellUnitSizeText`, id `vanr`, EAN `ean[]`.
+- `priceTagId` **11** = sleva s původní cenou, **12** = akční cena bez původní (R8). `priceType` **VKP0** (řeznictví,
+  platnost do `9999-12-31`) nejsou akce — vyřadit; `ZTP0` = doprodej.
+- `actionProducts` má `originalPrice: 0` místo null a nemá balení — cenu brát z katalogu.
+- **Lahůdky:** leták cena za 100 g, katalog za kg (Eidam 11,9 × 119). `unitId` u vážených položek nespolehlivé.
+- **Krátké místní akce** jen v katalogu (jogurt 4,90 na 1.–3. 10. vs. leták 7,90) — stahovat denně, klíč `vanr` + platnost.
+- „Různé druhy“: `description` z `actionProducts` připojit podle EAN (1 009 z 1 025 spárováno) pro `VariantNote`.
+- Leták na příští týden je v `actionOffers` dřív než jeho produkty v API.
+- Odkaz na akci: `/globus/hypermarket/akcni-nabidka/p/{slug}-{vanr}` (předpoklad tvaru; odkazovat smí, stahovat ne).
+
 ## Makro (průzkum 2026-10-02 — zatím bez zdroje)
 
 Požadavek uživatele přidat Makro. Výsledek: **zdroj, který by šel použít v souladu s pravidly projektu, zatím není.**
