@@ -138,6 +138,9 @@ return [
     'offers' => [
         'per_page' => 50,
         'search_max_length' => 100,
+        // Našeptávač hledání: od kolika znaků a kolik návrhů
+        'suggest_min_length' => 2,
+        'suggest_limit' => 8,
     ],
 
     /*

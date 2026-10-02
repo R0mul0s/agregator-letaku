@@ -7,6 +7,7 @@
 <script setup>
 import OfferCard from '@/Components/OfferCard.vue';
 import Pagination from '@/Components/Pagination.vue';
+import SearchSuggest from '@/Components/SearchSuggest.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { useTranslations } from '@/lib/i18n';
 import { Head, router } from '@inertiajs/vue3';
@@ -14,6 +15,9 @@ import { reactive } from 'vue';
 
 const props = defineProps({
     searchUrl: { type: String, required: true },
+    /** Adresa našeptávače a od kolika znaků se ptá. */
+    suggestUrl: { type: String, required: true },
+    suggestMinLength: { type: Number, required: true },
     /** Laravel paginator s nabídkami z OfferPresenter. */
     offers: { type: Object, required: true },
     filters: { type: Object, required: true },
@@ -42,10 +46,17 @@ function search() {
         </header>
 
         <form class="search-form" role="search" @submit.prevent="search">
-            <div class="form-field search-form__text">
-                <label for="q" class="form-field__label">{{ t('offers.search') }}</label>
-                <input id="q" v-model="filters.q" name="q" type="search" class="form-field__input" :placeholder="t('offers.search_placeholder')" />
-            </div>
+            <SearchSuggest
+                id="q"
+                v-model="filters.q"
+                class="search-form__text"
+                :label="t('offers.search')"
+                :placeholder="t('offers.search_placeholder')"
+                :url="suggestUrl"
+                :params="{ chain: filters.chain }"
+                :min-length="suggestMinLength"
+                @select="search"
+            />
             <div class="form-field">
                 <label for="chain" class="form-field__label">{{ t('offers.chain') }}</label>
                 <select id="chain" v-model="filters.chain" name="chain" class="form-field__input" @change="search">

@@ -34,6 +34,8 @@ class OffersController extends Controller
 
         return Inertia::render('Offers', [
             'searchUrl' => route('offers', absolute: false),
+            'suggestUrl' => route('offers.suggestions', absolute: false),
+            'suggestMinLength' => config()->integer('letaky.offers.suggest_min_length'),
             'offers' => $offers,
             'filters' => [
                 'q' => $request->searchText() ?? '',

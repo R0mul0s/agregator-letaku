@@ -189,6 +189,7 @@ return [
             'maybe' => 'Možná',
             'maybe_hint' => 'Akce je na více druhů a hledanou variantu neuvádí — ověřte u obchodu.',
             'source' => 'U obchodu',
+            'suggestion_product' => 'katalog',
             'pagination' => 'Stránkování',
             'previous' => 'Předchozí',
             'next' => 'Další',
