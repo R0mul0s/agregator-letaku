@@ -32,7 +32,7 @@ it('nepřihlášenému ukáže úvodní stránku s počty, přihlášenému Moje
             ->component('Landing')
             ->where('stats.offers', 3)
             ->where('stats.products', 2)
-            ->where('stats.chains', 6)
+            ->where('stats.chains', 7)
             ->where('urls.register', '/register'));
 
     $this->actingAs(User::factory()->create())->get('/')->assertInertia(fn (Assert $page) => $page->component('Home'));

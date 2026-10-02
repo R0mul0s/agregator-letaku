@@ -29,7 +29,7 @@ Vychází z nasazení projektu Počasí na stejném účtu.
 - **Document root** subdomény nasměrovaný do `public/` (WebAdmin → Web → Služby → Upravit)
 - **Odchozí HTTPS** k obchodům (prodejny.kaufland.cz, xapi.tesco.com, api.prod.retail.tesco.com,
   www.lidl.cz, endpoints.leaflets.schwarz, www.penny.cz, files.rewe.co.at, www.albert.cz,
-  letaky.albert.cz, www.globus.cz) — Websupport ho povoluje
+  letaky.albert.cz, www.globus.cz, www.billa.cz) — Websupport ho povoluje
 - `mod_rewrite` a `mod_headers` — na HTTPS přesměrovává a bezpečnostní hlavičky nastavuje
   `public/.htaccess` (TLS končí na proxy hostingu, schéma je v `X-Forwarded-Proto`)
 
@@ -112,6 +112,7 @@ pole *Opakovat* je zápis cronu (`minuta hodina den měsíc den_v_týdnu`). URL 
 | Slevohlídka – Penny | `30 5,13 * * *` | `…/cron/import-offers?chain=penny&token=…` (~25 s) |
 | Slevohlídka – Albert | `40 5,13 * * *` | `…/cron/import-offers?chain=albert&token=…` |
 | Slevohlídka – Globus | `50 5,13 * * *` | `…/cron/import-offers?chain=globus&token=…` (~25 s) |
+| Slevohlídka – Billa | `0 6,14 * * *` | `…/cron/import-offers?chain=billa&token=…` (~50 s; celý katalog, po ranní výměně akcí) |
 | Slevohlídka – kategorie | `0 4 1 * *` | `…/cron/import-categories?token=…` — strom kategorií (stačí občas) |
 | Slevohlídka – souhrn | `30 6 * * *` | `…/cron/send-digests?token=…` — e-mailové souhrny nových akcí (R42), po ranním stažení |
 
@@ -191,7 +192,7 @@ změně odpovědi obchodu (`SourceResponseChanged`) i neplatném klíči Tesca.
 ### Aktualizace z `c5d45d7` (2026-10-02, druhé nasazení)
 
 Účet s avatarem, předvolby Mých slev, e-mailový souhrn, nové Hlídám, stránkování, úvodní
-stránka, SEO a limity požadavků (R39–R45) a nový obchod Globus (R46). `composer.lock` se nezměnil.
+stránka, SEO a limity požadavků (R39–R45) nové obchody Globus (R46) a Billa (R48) a úpravy vzhledu (R47). `composer.lock` se nezměnil.
 
 1. **Záloha databáze** (phpMyAdmin → Exportovat, viz *Záloha databáze*).
 2. **SQL:** v phpMyAdminu spusť `deploy/migrations-2026-10-02-ucet.sql` — přidá sloupce do
@@ -210,17 +211,19 @@ stránka, SEO a limity požadavků (R39–R45) a nový obchod Globus (R46). `com
    smaž — jinak tam zůstanou staré assety (neškodí, jen zabírají místo).
 6. **Cron** ve WebAdminu přidej:
    - `30 6 * * *` → `https://slevohlidka.rhsoft.cz/cron/send-digests?token=<LETAKY_CRON_TOKEN>` (souhrny e-mailem),
-   - `50 5,13 * * *` → `https://slevohlidka.rhsoft.cz/cron/import-offers?chain=globus&token=<LETAKY_CRON_TOKEN>`
-     a **hned ho jednou zavolej ručně** — `/health/imports` jinak vrací 503, dokud Globus nemá
-     úspěšné stažení.
+   - `50 5,13 * * *` → `https://slevohlidka.rhsoft.cz/cron/import-offers?chain=globus&token=<LETAKY_CRON_TOKEN>`,
+   - `0 6,14 * * *` → `https://slevohlidka.rhsoft.cz/cron/import-offers?chain=billa&token=<LETAKY_CRON_TOKEN>`,
+   - **oba hned jednou zavolej ručně** — `/health/imports` jinak vrací 503, dokud nový obchod nemá
+     úspěšné stažení. Billa trvá ~50 s (ověř, že se vejde do limitu požadavku, O8).
 7. **Ověř** (kroky 1–8 v *7) Ověř*), navíc:
    - `version.txt?v=…` vrací commit balíčku (vypíše ho `build-upload.ps1` na konci),
    - úvodní stránka bez přihlášení, `/akce` bez přihlášení,
    - v účtu nahrání profilového obrázku (zapisuje do `storage/app/private/avatars`),
    - zapomenuté heslo → e-mail dorazí s českým předmětem,
    - `/cron/send-digests?token=…` vrací `Souhrny — odesláno: N`,
-   - `/cron/import-offers?chain=globus&token=…` vrací `Globus — uloženo nabídek: ~650`, ve výběru obchodu
-     na `/akce` je Globus s logem a v nastavení obchodů karta Můj Globus.
+   - `/cron/import-offers?chain=globus&token=…` vrací `Globus — uloženo nabídek: ~650`, `chain=billa`
+     `Billa — uloženo nabídek: ~3400`; ve výběru obchodu na `/akce` jsou oba s logem, v Mých obchodech
+     karty Můj Globus a BILLA Klub.
 8. **Search Console** a odeslání sitemap (*Vyhledávače*).
 9. Zapiš verzi do *Nasazené verze* a datum ke skriptu v *Historii SQL skriptů*.
 

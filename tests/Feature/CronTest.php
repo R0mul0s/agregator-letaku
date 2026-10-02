@@ -49,7 +49,7 @@ it('stáhne akce zvoleného obchodu a vrátí souhrn jako text', function (): vo
 
 it('obchod je povinný a musí mít zdroj; chyba zdroje je 500', function (): void {
     $this->get(route('cron.import-offers', ['token' => CRON_TOKEN]))->assertRedirect();
-    $this->getJson(route('cron.import-offers', ['chain' => 'billa', 'token' => CRON_TOKEN]))->assertUnprocessable();
+    $this->getJson(route('cron.import-offers', ['chain' => 'makro', 'token' => CRON_TOKEN]))->assertUnprocessable();
 
     Http::fake(['https://prodejny.kaufland.cz/*' => Http::response('<html></html>')]);
     $this->get(route('cron.import-offers', ['chain' => 'kaufland', 'token' => CRON_TOKEN]))

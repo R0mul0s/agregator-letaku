@@ -16,19 +16,19 @@ declare(strict_types=1);
 return [
 
     'meta' => [
-        'description' => 'Slevohlídka — rychlý lovec slev. Hlídá akce z letáků obchodů Kaufland, Tesco, Albert, Lidl, Penny a Globus.',
+        'description' => 'Slevohlídka — rychlý lovec slev. Hlídá akce z letáků obchodů Kaufland, Tesco, Albert, Lidl, Penny, Globus a Billa.',
     ],
 
     // Hlavička HTML pro vyhledávače a sdílení (R45, App\Support\Seo\SeoMeta) — jen server, ne Vue
     'seo' => [
         'pages' => [
             'home' => [
-                'title' => 'Slevohlídka — akce z letáků Kaufland, Tesco, Albert, Lidl, Penny a Globus',
-                'description' => 'Slevohlídka každý den projde letáky a e-shopy Kauflandu, Tesca, Albertu, Lidlu, Penny a Globusu a ukáže, kde je to, co kupujete, právě ve slevě a nejlevněji za kilo nebo litr. Zdarma.',
+                'title' => 'Slevohlídka — akce z letáků Kaufland, Tesco, Albert, Lidl, Penny, Globus a Billa',
+                'description' => 'Slevohlídka každý den projde letáky a e-shopy Kauflandu, Tesca, Albertu, Lidlu, Penny, Globusu a Billy a ukáže, kde je to, co kupujete, právě ve slevě a nejlevněji za kilo nebo litr. Zdarma.',
             ],
             'offers' => [
                 'title' => 'Všechny akce z letáků · Slevohlídka',
-                'description' => 'Aktuální akce z letáků a e-shopů Kauflandu, Tesca, Lidlu, Penny a Globusu na jednom místě — s cenou za kilo nebo litr a cenou s věrnostní kartou.',
+                'description' => 'Aktuální akce z letáků a e-shopů Kauflandu, Tesca, Lidlu, Penny, Globusu a Billy na jednom místě — s cenou za kilo nebo litr a cenou s věrnostní kartou.',
             ],
             'offers_chain' => [
                 'title' => 'Akce :chain z letáku · Slevohlídka',
@@ -36,11 +36,11 @@ return [
             ],
             'default' => [
                 'title' => 'Slevohlídka',
-                'description' => 'Slevohlídka — rychlý lovec slev. Hlídá akce z letáků obchodů Kaufland, Tesco, Albert, Lidl, Penny a Globus.',
+                'description' => 'Slevohlídka — rychlý lovec slev. Hlídá akce z letáků obchodů Kaufland, Tesco, Albert, Lidl, Penny, Globus a Billa.',
             ],
         ],
         'og_image_alt' => 'Slevohlídka — rychlý lovec slev. Maskot s nákupním košíkem a cenovkou.',
-        'organization_description' => 'Slevohlídka hlídá akce z letáků obchodů Kaufland, Tesco, Albert, Lidl, Penny a Globus.',
+        'organization_description' => 'Slevohlídka hlídá akce z letáků obchodů Kaufland, Tesco, Albert, Lidl, Penny, Globus a Billa.',
     ],
 
     // App\Enums\Chain
@@ -51,6 +51,7 @@ return [
         'lidl' => 'Lidl',
         'penny' => 'Penny',
         'globus' => 'Globus',
+        'billa' => 'Billa',
     ],
 
     // App\Enums\StoreFormat
@@ -75,7 +76,7 @@ return [
 
     // llms.txt (R45) — popis webu pro jazykové modely
     'llms' => [
-        'summary' => 'Slevohlídka je česká webová aplikace, která každý den stahuje akční nabídky z letáků a e-shopů obchodů Kaufland, Tesco, Albert, Lidl, Penny a Globus a ukazuje je přehledně na jednom místě.',
+        'summary' => 'Slevohlídka je česká webová aplikace, která každý den stahuje akční nabídky z letáků a e-shopů obchodů Kaufland, Tesco, Albert, Lidl, Penny, Globus a Billa a ukazuje je přehledně na jednom místě.',
         'about' => 'Přihlášený uživatel si vybere obchody, věrnostní karty a položky, které chce hlídat (produkt z katalogu nebo vlastní slova). Slevohlídka mu pak ukáže jen akce na tyto položky, seřazené podle ceny za kilogram, litr nebo kus, a volitelně pošle e-mailový souhrn nových akcí. Přehled všech aktuálních akcí je veřejný.',
         'pages_title' => 'Veřejné stránky',
         'home' => 'Úvodní stránka',
@@ -281,6 +282,7 @@ return [
             'lidl_plus' => 'Lidl Plus',
             'penny_karta' => 'PENNY karta',
             'muj_globus' => 'Můj Globus',
+            'billa_klub' => 'BILLA Klub',
         ],
 
         // App\Enums\PackageUnit::unitPriceKey()
@@ -378,7 +380,7 @@ return [
             'title' => 'Slevohlídka — rychlý lovec slev',
             'eyebrow' => 'Rychlý lovec slev',
             'headline' => 'Slevy z letáků na to, co opravdu kupujete',
-            'lead' => 'Slevohlídka každý den projde letáky a e-shopy Kauflandu, Tesca, Albertu, Lidlu, Penny a Globusu. Řeknete jí, co kupujete — a ona vám ukáže, kde je to právě ve slevě a kde nejlevněji za kilo nebo litr.',
+            'lead' => 'Slevohlídka každý den projde letáky a e-shopy Kauflandu, Tesca, Albertu, Lidlu, Penny, Globusu a Billy. Řeknete jí, co kupujete — a ona vám ukáže, kde je to právě ve slevě a kde nejlevněji za kilo nebo litr.',
             'register' => 'Začít zdarma',
             'browse' => 'Prohlédnout akce',
             'login_hint' => 'Už máte účet?',

@@ -303,36 +303,55 @@ Publitas (Albert CZ, groupId 90263):
 
 ---
 
-## Billa (průzkum 2026-10-02 — zatím neimplementováno)
+## Billa
 
-Stejná platforma REWE jako Penny (Nuxt, commercetools), ale API má **celý katalog**.
+**Cesta:** product-discovery API webu (stejná platforma REWE jako Penny, Nuxt a commercetools) s **celým katalogem**,
+bez LLM — implementováno (R48, `app/Domain/Sources/Billa`). Náročnost nízká až střední (bez platnosti akcí).
 `robots.txt` jen odkazuje na sitemap (žádné Disallow), bez WAF, cookies ani zvláštních hlaviček.
 
 ### Endpointy
 | Účel | Požadavek |
 |---|---|
-| Akce | `GET https://www.billa.cz/api/product-discovery/products?page={n}&pageSize=500&inPromotion=true` — 3 042 položek, 7 požadavků, ~17 s |
-| Celý katalog (kvůli akcím jen s Klubem) | totéž bez `inPromotion` — 12 184 produktů, 25 požadavků, ~28 MB |
-| Detail | `GET /api/product-discovery/products/{sku}` (`82-100073`; se slugem 404) |
-| Leták (Publitas, jako Albert R36) | `https://view.publitas.com/billa-cz/{slug}/spreads.json` (`pages[].text`); slug v `__NUXT_DATA__` stránky `/letaky-billa/velky-letak-aktualni` |
+| **Celý katalog (hlavní zdroj)** | `GET https://www.billa.cz/api/product-discovery/products?page={n}&pageSize=500` — 12 184 produktů, 25 požadavků po ~1,2 MB, ~2 s každý |
+| Jen akce (nepoužívá se) | totéž s `&inPromotion=true` — 3 042 položek, ale **bez akcí jen s BILLA Klubem** |
+| Detail (nepoužívá se) | `GET /api/product-discovery/products/{sku}` (`82-100073`; se slugem 404) — platnost akce také nemá |
+| Leták (Publitas, jako Albert R36) — zatím ne | `https://view.publitas.com/billa-cz/{slug}/spreads.json` (`pages[].text`) |
 
-`page` od 0, `pageSize` nejvýš 500 (víc = 400). Odpověď `{facets, count, offset, total, results, isTotalTruncated}`.
+`page` od 0, `pageSize` nejvýš 500 (víc = 400). Odpověď `{facets, count, offset, total, results, isTotalTruncated}`;
+stránkuje se do `total`. Celé stažení lokálně ~47 s (pauza `LETAKY_BILLA_REQUEST_DELAY_MS`, výchozí 1 s).
+Detail produktu na webu: `https://www.billa.cz/produkt/{slug}` (`/produkty/` i `/products/` vrací 404).
+
+### Převod (`BillaParser`)
+- **Akce** = štítek `pt-aktion` nebo `pt-multi` v `price.regular.tags` (`promotion_tags`); `pt-abverkauf` (doprodej) ne.
+  Ceny v haléřích (int).
+- `standard.value` (= `crossed`) vyšší než `regular.value` = **sleva** s původní cenou, `discountPercentage` je
+  **záporné**. Jinak akční cena (1 položka: Savo s `crossed` nižším než akční cena).
+- **Akce jen s BILLA Klubem** (~370): `regular.tags` prázdné a `price.loyalty` se štítkem `pt-loyalclub` nižší než
+  `regular.value` → `LoyaltyOnly`, `regular` je běžná cena. Filtr `inPromotion` je nevrátí — proto celý katalog.
+  U akce se štítkem `pt-aktion` bývá `loyalty` stejná nebo dražší (Bella For Teens) — bere se jen nižší.
+- **Akce na množství** (`pt-multi` a `promotionQuantity` ≥ 2): `PER_SET_OF` („cena 1ks při koupi 3ks“) a `FROM`
+  („od 2 ks“) → `Multibuy`, cena = běžná cena kusu (`standard.value`), výhodná cena kusu v textu akce
+  („cena 1ks při koupi 3ks: 9,93 Kč“) — jako Tesco a Lidl. `pt-multi` s `promotionQuantity` 0,001 u váženého zboží
+  je obyčejná akce.
+- **Zboží na váhu** (jako Tesco): `weightPieceArticle` → `value` je cena odhadovaného kusu (pomeranč 9,87 Kč),
+  bere se `perStandardizedQuantity` (za kg) i u `standard`; `weightArticle` → `value` za kg, `amount` 1000 g.
+- Balení `amount` + `volumeLabelShort` („0.7“ „l“ → 0,7 l). `descriptionShort` je vždy stejný jako název, popis se
+  neukládá. Značka `brand.name`, kategorie `category`, obrázek `images[0]`.
+- Odznak `eshop-only` (~25) = akce jen v e-shopu → `online_only` (Billa má `has_eshop`, uživatel je může skrýt).
+
+### Platnost — API ji nemá
+- API ukazuje stav v okamžiku dotazu. Platnost akce je **akční týden Billy, který obsahuje dnešek**: středa–úterý
+  (`week_start_iso_day` = 3), stejně jako leták („Platí od středy 30. 9. do úterý 6. 10. 2026“ na `/akcni-letaky`).
+  Zdroj „akce z webu“ má ID `web-{středa}`.
+- Co Billa ukončí dřív (víkendové a denní akce „SUPER STŘEDA“, „ČTVRTEK–NEDĚLE“), z API zmizí a import to označí
+  jako stažené (R16). Akce delší než týden dostane každý týden nový řádek. Proto denní stahování a cron až po
+  ranní výměně akcí (6:00) — ve středu brzy ráno by API mohlo ještě ukazovat minulý týden **(předpoklad)**.
 
 ### Pole a pasti
-- Tvar `price` skoro jako Penny: `regular.value` (haléře, int) = akční cena, `crossed` = `standard.value` = původní,
-  `discountPercentage` **záporné**, `loyalty.value` s tagem `pt-loyalclub` = cena s **BILLA Klubem** (aplikace).
-- **API nemá platnost akce.** Ukazuje stav v okamžiku dotazu; platnost odvodit z týdne letáku (středa–úterý, slug
-  `velky-letak-30-9-6-10-2026`) a spolehnout se na `withdrawn_at` (R16) při denním stahování. Víkendové a denní akce
-  („SUPER STŘEDA“, „ČTVRTEK–NEDĚLE“) přesné datum v API nemají.
-- **Akce jen s Klubem mají `inPromotion:false`** (cena jen v `price.loyalty`) — filtr je nevrátí; ~450 odhadem,
-  jen průchodem celého katalogu. `loyalty` bývá i dražší než `regular` (Bella For Teens) — brát nižší.
-- **Zboží na váhu** (jako Tesco): `weightPieceArticle` → `value` je cena odhadovaného kusu, brát
-  `perStandardizedQuantity`; `weightArticle` → `value` za kg, `perStandardizedQuantity` za 100 g (`basePriceFactor`).
-- **Vícekusové akce** (`tags` `pt-multi`): `promotionType` `PER_SET_OF` („cena 1ks při koupi 3ks“), `FROM`, `UP_TO`
-  (limit „max. 6 ks“) — R8, ne prostá sleva. `eshop-only` (22 akcí) vyřadit nebo označit.
 - Velký leták (36 stran) pro větší prodejny, malý (8 stran) pro menší; API má jednu celostátní cenu.
 - Každá varianta je v API samostatné SKU — „různé druhy“ (R9) je jen v letáku. „NAŠE CENA“ v letáku ≈ „Super cena“,
   API u ní ale dává `crossed`.
+- `lowestPrice` = nejnižší cena za 30 dní (neukládá se, jen v `raw`).
 
 ## Globus
 

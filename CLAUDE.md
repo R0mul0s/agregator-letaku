@@ -1,7 +1,7 @@
 # Slevohlídka (agregátor letáků)
 
 Webová aplikace **Slevohlídka** („Rychlý lovec slev“, R34), která hlídá akční nabídky z letáků obchodů **Kaufland, Tesco,
-Albert, Lidl, Penny a Globus**. Uživatel si vybere prodejny a hlídané položky (konkrétní
+Albert, Lidl, Penny, Globus a Billa**. Uživatel si vybere prodejny a hlídané položky (konkrétní
 produkt nebo kategorii) a vidí, kde a za kolik jsou ve slevě. Osobní projekt,
 zatím jen pro vlastní použití.
 
@@ -20,9 +20,10 @@ volné číslo R…). Změna chování obchodu (nový endpoint, jiné pole) pat�
 
 ## Stav
 
-Hotové jsou etapy 1–5e (PLAN.md, kap. 6):
+Hotové jsou etapy 1–5f (PLAN.md, kap. 6):
 - účty (Fortify, R12, R13); stahování akcí Kauflandu, Tesca, Lidlu a Penny (R15–R17, R25, R26)
 - Globus z REST API webu (R46): katalog akcí jednoho hypermarketu, cena s aplikací Můj Globus, bez oblečení
+- Billa z API celého katalogu (R48): akce i akce jen s BILLA Klubem, platnost = akční týden st–út
 - zmínky v letácích bez ceny — Lidl, Penny a Albert (R27, R36; Albert jen zmínky, ceny zatím ne)
 - Všechny akce (`/akce`) s našeptávačem a výběrem obchodu s logy; Moje obchody (`/obchody`),
   Hlídám (`/hlidam`, produkt z katalogu klepnutím, nebo vlastní slova) a Moje slevy (`/`)
@@ -37,8 +38,7 @@ Hotové jsou etapy 1–5e (PLAN.md, kap. 6):
   katalog v Hlídám jako dlaždice oddělení, oslovení v 5. pádě
 
 Produkce běží na `https://slevohlidka.rhsoft.cz` (první nasazení 2026-10-02, `c5d45d7`);
-postup aktualizace a nasazené verze jsou v `deploy/DEPLOYMENT.md`. Další na řadě je obchod
-**Billa** — průzkum zdroje dat je v ZDROJE_DAT.md (bez LLM přes JSON API, ale bez platnosti akcí), Makro
+postup aktualizace a nasazené verze jsou v `deploy/DEPLOYMENT.md`. Sleduje se 7 obchodů; Makro
 zatím nejde (ochrana proti robotům). Etapa 6 (LLM) jen když bude potřeba.
 Co z dřívějších rozhodnutí platí a co ne, je v tabulce na začátku PLAN.md.
 
@@ -76,7 +76,7 @@ Stažení nabídek od obchodů (skutečné požadavky, šetrně s pauzami; Tesco
 potřebuje `TESCO_API_KEY` v `.env`, viz ZDROJE_DAT.md):
 ```bash
 docker compose exec app php artisan letaky:import-offers            # všechny obchody se zdrojem
-docker compose exec app php artisan letaky:import-offers kaufland   # jen vybrané (kaufland, tesco, albert, lidl, penny, globus)
+docker compose exec app php artisan letaky:import-offers kaufland   # jen vybrané (kaufland, tesco, albert, lidl, penny, globus, billa)
 docker compose exec app php artisan letaky:import-categories        # strom kategorií katalogu (Tesco, R28)
 docker compose exec app php artisan letaky:admin email@example.com  # správa katalogu /katalog (R29), --revoke odebere
 docker compose exec app php artisan letaky:send-digests             # e-mailové souhrny nových akcí (R42), do Mailpitu
@@ -159,6 +159,7 @@ MariaDB 11.4 · Pest 4 · Larastan · Pint. Extrakce letáků (etapa 6): Claude 
 31. **Za proxy Websupportu** platí `trustProxies(at: '*')` — IP klienta a https z X-Forwarded-*. Limity požadavků jsou pojmenované v `App\Support\RateLimits` (`letaky.rate_limits`); měnící požadavky počítá globálně skupina web, citlivé formuláře (heslo, e-mail) mají přísnější limit — nový takový formulář patří do `SENSITIVE_ROUTES`.
 32. **Globus (R46):** ceny jsou **float v Kč** (`PriceParser::fromFloat`), akce je jen typ ceny `VKA0`, popis se bere z položky letáku podle EAN (popis katalogu je reklamní text, hlídání by chytalo cizí slova). Zboží na váhu nemá `sellUnitSizeText` — balení z `unitAmount` + `unitId`. Oblečení a obuv vyřazuje `excluded_ware_groups`. Akce nemají vlastní odkaz (detaily `…/p/` zakazuje robots.txt pro stahování a adresa není ověřená).
 33. **Zpětná vazba (R47):** uložení potvrzuje **toast** — kontroler vrátí `->with('status', self::STATUS_…)` a text je v `lang/cs/app.php` `ui.toast.messages.<kód>` (test v `TranslationsTest`); nepiš zprávy do obsahu stránky. Nevratnou akci potvrzuje `await confirmDialog({ title, message, confirmLabel })` z `resources/js/lib/confirm.js`, nikdy `window.confirm`. Oslovení jménem jde přes `App\Support\CzechVocative` (5. pád).
+34. **Billa (R48):** API nemá platnost akcí — platnost je akční týden st–út obsahující dnešek (`week_start_iso_day`), dřívější konec řeší R16. Stahuje se **celý katalog**, ne `inPromotion` (ten nevrací akce jen s BILLA Klubem). U `weightPieceArticle` je `value` cena odhadovaného kusu — bere se `perStandardizedQuantity`. Akce na množství má běžnou cenu kusu a výhodnou v `promotion_text`.
 
 ## Jazyk
 

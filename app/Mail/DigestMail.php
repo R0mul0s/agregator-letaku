@@ -15,6 +15,7 @@ namespace App\Mail;
 
 use App\Models\User;
 use App\Support\CzechVocative;
+use App\Support\PriceFormatter;
 use Carbon\CarbonImmutable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
@@ -22,20 +23,8 @@ use Illuminate\Mail\Mailables\Envelope;
 
 class DigestMail extends Mailable
 {
-    /** Haléřů v koruně (ceny jsou v haléřích, R7). */
-    private const HALERS_PER_CROWN = 100;
-
-    private const PRICE_DECIMALS = 2;
-
-    private const CURRENCY = 'Kč';
-
-    /** Nezlomitelná mezera — částka a měna ani tisíce se nerozdělí na dva řádky. */
-    private const NO_BREAK_SPACE = "\u{00A0}";
-
-    private const THOUSANDS_SEPARATOR = self::NO_BREAK_SPACE;
-
     /** Formát data konce platnosti v e-mailu („8. 10.“). */
-    private const DATE_FORMAT = 'j.'.self::NO_BREAK_SPACE.'n.';
+    private const DATE_FORMAT = 'j.'.PriceFormatter::NO_BREAK_SPACE.'n.';
 
     /**
      * @param  list<array{name: string, offers: list<array{name: string, chain: string, price: int|null, discountPercent: int|null, validTo: CarbonImmutable}>}>  $groups  Hlídané položky s novými akcemi
@@ -61,6 +50,7 @@ class DigestMail extends Mailable
     public function content(): Content
     {
         $limit = config()->integer('letaky.digest.max_offers_per_item');
+        $prices = app(PriceFormatter::class);
 
         return new Content(markdown: 'mail.digest', with: [
             // Oslovení v 5. pádě („Ahoj, Romane!“, R47)
@@ -70,7 +60,7 @@ class DigestMail extends Mailable
                 'offers' => array_map(fn (array $offer): array => [
                     'name' => $offer['name'],
                     'chain' => $offer['chain'],
-                    'price' => $offer['price'] === null ? null : $this->formatPrice($offer['price']),
+                    'price' => $offer['price'] === null ? null : $prices->format($offer['price']),
                     'discountPercent' => $offer['discountPercent'],
                     'validTo' => $offer['validTo']->format(self::DATE_FORMAT),
                 ], array_slice($item['offers'], 0, $limit)),
@@ -81,14 +71,5 @@ class DigestMail extends Mailable
             'homeUrl' => route('home'),
             'accountUrl' => route('account').'#souhrn',
         ]);
-    }
-
-    /**
-     * Cena v haléřích jako „39,90 Kč“ — stejně jako formatPrice() na webu. Nezávisí na datech
-     * ICU (vývojový kontejner má jen angličtinu a Intl by vrátil „CZK 39.90“).
-     */
-    private function formatPrice(int $halers): string
-    {
-        return number_format($halers / self::HALERS_PER_CROWN, self::PRICE_DECIMALS, ',', self::THOUSANDS_SEPARATOR).self::NO_BREAK_SPACE.self::CURRENCY;
     }
 }

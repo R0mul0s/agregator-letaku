@@ -93,7 +93,7 @@ it('filtruje podle obchodu', function (): void {
 });
 
 it('odmítne neznámý obchod', function (): void {
-    $this->get(route('offers', ['chain' => 'billa']))->assertSessionHasErrors('chain');
+    $this->get(route('offers', ['chain' => 'makro']))->assertSessionHasErrors('chain');
 });
 
 it('pošle ceny v haléřích, cenu za jednotku a názvy z lang', function (): void {

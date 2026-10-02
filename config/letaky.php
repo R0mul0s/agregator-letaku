@@ -14,6 +14,7 @@
 declare(strict_types=1);
 
 use App\Domain\Sources\Albert\AlbertOfferSource;
+use App\Domain\Sources\Billa\BillaOfferSource;
 use App\Domain\Sources\Globus\GlobusOfferSource;
 use App\Domain\Sources\Kaufland\KauflandOfferSource;
 use App\Domain\Sources\Lidl\LidlOfferSource;
@@ -127,6 +128,29 @@ return [
             'excluded_ware_groups' => ['654', '661', '675', '700', '701', '706', '707', '710'],
             'ware_group_prefix_length' => 3,
             'offers_page_url' => 'https://www.globus.cz/globus/hypermarket/akcni-nabidka',
+        ],
+        'billa' => [
+            // Product-discovery API jako Penny, ale s celým katalogem (R48); akce vybere parser
+            'offers_source' => BillaOfferSource::class,
+            'has_store_formats' => false,
+            // Část akcí platí jen v e-shopu (odznak eshop-only) — uživatel je může skrýt (R19)
+            'has_eshop' => true,
+            'base_url' => 'https://www.billa.cz',
+            'products_api_path' => '/api/product-discovery/products',
+            'product_url_path' => '/produkt/',
+            // Nejvíc, co API dovolí (víc = 400)
+            'page_size' => 500,
+            // Štítky akce u price.regular; pt-abverkauf (doprodej) akce není
+            'promotion_tags' => ['pt-aktion', 'pt-multi'],
+            'loyalty_tag' => 'pt-loyalclub',
+            'eshop_only_badge' => 'eshop-only',
+            // Akce na množství od tolika kusů; „pt-multi“ s 0,001 kg u váženého zboží je obyčejná akce
+            'multibuy_min_quantity' => 2,
+            // API nemá platnost akcí — akční týden jako leták: středa (ISO 3) až úterý
+            'week_start_iso_day' => 3,
+            'offers_page_url' => 'https://www.billa.cz/akcni-letaky',
+            // ~25 stránek po ~1 MB — pauza kratší než výchozí, ať stažení nepřesáhne limit hostingu (O8)
+            'request_delay_ms' => (int) env('LETAKY_BILLA_REQUEST_DELAY_MS', 1000),
         ],
         'albert' => [
             // Jen zmínky v letácích bez ceny (R27, R36): text stránek z prohlížeče Publitas

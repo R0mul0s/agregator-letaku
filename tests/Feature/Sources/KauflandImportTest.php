@@ -212,7 +212,7 @@ it('chybovou odpověď obchodu zapíše jako neúspěšné stažení', function 
 });
 
 it('odmítne neznámý obchod', function (): void {
-    $this->artisan('letaky:import-offers', ['chain' => ['billa']])->assertExitCode(2);
+    $this->artisan('letaky:import-offers', ['chain' => ['makro']])->assertExitCode(2);
 
     expect(ScrapeRun::query()->count())->toBe(0);
 });

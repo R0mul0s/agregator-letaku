@@ -20,6 +20,7 @@ enum LoyaltyProgram: string
     case LidlPlus = 'lidl_plus';
     case PennyKarta = 'penny_karta';
     case MujGlobus = 'muj_globus';
+    case BillaKlub = 'billa_klub';
 
     /**
      * Obchod, ke kterému program patří.
@@ -33,6 +34,7 @@ enum LoyaltyProgram: string
             self::LidlPlus => Chain::Lidl,
             self::PennyKarta => Chain::Penny,
             self::MujGlobus => Chain::Globus,
+            self::BillaKlub => Chain::Billa,
         };
     }
 

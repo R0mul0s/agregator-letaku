@@ -20,6 +20,7 @@ enum Chain: string
     case Lidl = 'lidl';
     case Penny = 'penny';
     case Globus = 'globus';
+    case Billa = 'billa';
 
     /**
      * Název obchodu pro zobrazení (lang/cs/app.php, skupina chains).
