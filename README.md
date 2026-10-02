@@ -14,9 +14,9 @@ kde a za kolik je to právě ve slevě, včetně cen s věrnostní kartou a ceny
 | **Instrukce pro AI agenty** | [CLAUDE.md](CLAUDE.md) |
 | **Správce** | Roman Hlaváček |
 
-> **Stav:** hotové jsou účty (etapa 1), stahování nabídek Kauflandu a Tesca s přehledem
-> všech akcí (etapa 2) a hlídání vlastních položek (etapa 3). Lidl a Penny přibudou
-> v etapě 4 ([PLAN.md, sekce 6](docs/PLAN.md#6-etapy)).
+> **Stav:** hotové jsou účty (etapa 1), stahování nabídek Kauflandu, Tesca, Lidlu a Penny
+> s přehledem všech akcí (etapy 2 a 4) a hlídání vlastních položek (etapa 3). Další je
+> katalog produktů ([PLAN.md, sekce 6](docs/PLAN.md#6-etapy)); Albert čeká na LLM.
 
 ## Jak se to používá
 
@@ -58,7 +58,7 @@ docker compose exec app npm run build
 # volitelně vývojový uživatel test@example.com / password
 docker compose exec app php artisan db:seed
 
-# nabídky od obchodů (Tesco trvá kolem minuty)
+# nabídky od obchodů (všechny obchody ~1,5 minuty)
 docker compose exec app php artisan letaky:import-offers
 ```
 
@@ -83,6 +83,7 @@ volume (`docker compose down -v`).
 |---|---|---|
 | `TESCO_API_KEY` | pro Tesco | veřejný klíč e-shopu Tesco (`mangoApiKey` v HTML `nakup.itesco.cz`); bez něj stažení Tesca skončí chybou |
 | `LETAKY_REQUEST_DELAY_MS` | ne (1500) | pauza mezi požadavky na stejný obchod |
+| `LETAKY_LIDL_REQUEST_DELAY_MS`, `LETAKY_PENNY_REQUEST_DELAY_MS` | ne (500) | kratší pauza pro Lidl a Penny — desítky malých stránek (R25) |
 | `LETAKY_USER_AGENT` | ne | User-Agent požadavků na obchody |
 | `LETAKY_DISPLAY_TIMEZONE` | ne (`Europe/Prague`) | zóna pro „místní datum“ platnosti akcí |
 
@@ -97,7 +98,7 @@ docker compose exec app npm run dev      # assety: watch s HMR
 docker compose exec app npm run build    # assety: produkční build
 
 # stažení nabídek (bez argumentu všechny obchody se zdrojem)
-docker compose exec app php artisan letaky:import-offers [kaufland] [tesco]
+docker compose exec app php artisan letaky:import-offers [kaufland] [tesco] [lidl] [penny]
 ```
 
 ## Struktura repozitáře
@@ -110,7 +111,7 @@ app/
   Domain/Matching/         hlídané položky: pravidla, párování, Moje slevy
   Domain/Offers/           jednotný tvar nabídek (Data), parsery cen a balení (Parsing),
                            import (Actions), hledání, cena za jednotku, místní kalendář
-  Domain/Sources/<Obchod>/ stažení a převod nabídky jednoho obchodu (Kaufland, Tesco)
+  Domain/Sources/<Obchod>/ stažení a převod nabídky jednoho obchodu (Kaufland, Tesco, Lidl, Penny)
   Domain/Sources/          rozhraní zdrojů, registr, HTTP klient s pauzami
   Enums/                   Chain, StoreFormat, OfferType, LoyaltyProgram, PackageUnit…
   Http/                    tenké kontrolery, Form Requesty, sdílená data Inertie

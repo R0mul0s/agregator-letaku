@@ -14,6 +14,8 @@
 declare(strict_types=1);
 
 use App\Domain\Sources\Kaufland\KauflandOfferSource;
+use App\Domain\Sources\Lidl\LidlOfferSource;
+use App\Domain\Sources\Penny\PennyOfferSource;
 use App\Domain\Sources\Tesco\TescoOfferSource;
 
 return [
@@ -62,6 +64,36 @@ return [
             'has_eshop' => false,
             // Web kamenných prodejen — www.kaufland.cz je marketplace za Cloudflare
             'offers_url' => 'https://prodejny.kaufland.cz/nabidka/prehled.html',
+        ],
+        'lidl' => [
+            'offers_source' => LidlOfferSource::class,
+            'has_store_formats' => false,
+            'has_eshop' => false,
+            'base_url' => 'https://www.lidl.cz',
+            // Úvodní stránka odkazuje na kampaně týdne (/c/{slug}/a{id}), na nich jsou akce
+            'campaign_index_path' => '/',
+            // Trvalé ceny, ne akce (R8)
+            'excluded_campaigns' => ['ceny-v-klidu'],
+            // Akce kamenných prodejen — nepotravinové zboží (móda, dílna…) se zatím nesleduje
+            'categories' => ['Food'],
+            // Kampaní je ~40 malých stránek — kratší pauza, ať stažení nepřesáhne limit hostingu (O8)
+            'request_delay_ms' => (int) env('LETAKY_LIDL_REQUEST_DELAY_MS', 500),
+        ],
+        'penny' => [
+            'offers_source' => PennyOfferSource::class,
+            'has_store_formats' => false,
+            'has_eshop' => false,
+            'base_url' => 'https://www.penny.cz',
+            'products_api_path' => '/api/product-discovery/products',
+            'product_url_path' => '/products/',
+            'page_size' => 100,
+            // Stránka s odkazem na leták (…/PennyIntLeaflet/CZ/DD_MM_YYYY/)
+            'leaflets_page_path' => '/nabidky/letaky',
+            'leaflet_base_url' => 'https://files.rewe.co.at/PennyIntLeaflet/CZ/',
+            // Vektorová vrstva stránky letáku (číslo stránky od 1)
+            'leaflet_page_svg_path' => 'files/assets/common/page-vectorlayers/%04d.svg',
+            // Leták má ~40 stránek — kratší pauza, ať stažení nepřesáhne limit hostingu (O8)
+            'request_delay_ms' => (int) env('LETAKY_PENNY_REQUEST_DELAY_MS', 500),
         ],
         'tesco' => [
             'offers_source' => TescoOfferSource::class,

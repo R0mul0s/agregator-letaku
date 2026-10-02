@@ -20,10 +20,10 @@ volné číslo R…). Změna chování obchodu (nový endpoint, jiné pole) pat�
 
 ## Stav
 
-Hotové jsou etapy 1–3: kostra aplikace s účty (Fortify, R12, R13), stahování
-nabídek Kauflandu a Tesca (R15–R17), přehled všech akcí na `/akce` a hlídání:
-Moje obchody (`/obchody`), Hlídám (`/hlidam`) a Moje slevy (`/`, R18, R19).
-Další je etapa 4: Lidl a Penny (viz PLAN.md, kap. 6).
+Hotové jsou etapy 1–4: kostra aplikace s účty (Fortify, R12, R13), stahování
+nabídek Kauflandu, Tesca, Lidlu a Penny (R15–R17, R25, R26), přehled všech akcí
+na `/akce` a hlídání: Moje obchody (`/obchody`), Hlídám (`/hlidam`) a Moje slevy
+(`/`, R18, R19). Další je etapa 5: katalog produktů (R24, viz PLAN.md, kap. 6–7).
 
 Vývojový uživatel ze seederu: `test@example.com` / `password`
 (`docker compose exec app php artisan db:seed`). E-maily (obnova hesla) se lokálně
@@ -115,6 +115,8 @@ MariaDB 11.4 · Pest 4 · Larastan · Pint. Extrakce letáků (etapa 6): Claude 
 19. **Párování hlídaných položek hledá začátek slova** v textu normalizovaném `TextNormalizer` (bez diakritiky, interpunkce = mezera). `WatchItemMatcher` a předvýběr kandidátů v `MyOffers` musí hledat ve stejných sloupcích (`name`, `brand`, `description`). Nový obrat pro „různé druhy“ patří do `VariantNote`, jinak varianta nedá stav „možná“.
 20. **Akce jen s kartou se v Mých slevách ukáže jen uživateli s tou kartou** (R19) — `LoyaltyProgram::chain()` páruje kartu s obchodem; nový obchod s kartou ji tam potřebuje.
 21. **Šablony hlídaných položek** jsou v `config/letaky.php` (`watch.templates`), jejich názvy v `lang` (`ui.watch.templates`) — test hlídá, že žádný nechybí.
+22. **Leták Penny: glyfy fontu** — `Ǻ` = „,90“, U+E00A U+E009 = „90“, červené U+E00F/E010/E011 = přeškrtávací čára (ne číslice). Přiřazení ceny k dlaždici musí projít kontrolou ceny za jednotku (R26); pravidla neuvolňovat bez porovnání výsledku na celém letáku.
+23. **Pauza mezi požadavky je podle zdroje** (`request_delay_ms` u Lidlu a Penny, jinak `letaky.http`); stránka letáku bez textové vrstvy vrací 404 — `SourceHttp::request(allowNotFound: true)`.
 
 ## Jazyk
 

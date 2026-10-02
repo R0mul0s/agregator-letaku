@@ -32,6 +32,9 @@ final class PackageParser
     /** Úvod údaje o ceně za jednotku u zboží na váhu („cena za 1 kg“). */
     private const PRICE_PER_PREFIX = '/^cena\s+za\s+/iu';
 
+    /** Samotné „kus“ bez počtu (Lidl u ovoce a zeleniny) = 1 kus. */
+    private const SINGLE_PIECE_PATTERN = '/^(kus|ks)$/iu';
+
     /**
      * Jednotka textu => [jednotka balení, násobek na základní jednotku].
      *
@@ -57,6 +60,10 @@ final class PackageParser
 
         if ($text === '' || preg_match(self::AMBIGUOUS_PATTERN, $text) === 1) {
             return null;
+        }
+
+        if (preg_match(self::SINGLE_PIECE_PATTERN, $text) === 1) {
+            return new PackageSize(1, PackageUnit::Piece);
         }
 
         if (preg_match(self::SIZE_PATTERN, $text, $matches, PREG_OFFSET_CAPTURE) !== 1 || $matches[0][1] !== 0) {

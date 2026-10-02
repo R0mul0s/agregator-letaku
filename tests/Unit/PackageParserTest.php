@@ -28,6 +28,7 @@ it('přečte balení z údaje Kauflandu', function (string $text, float $quantit
     'kusy' => ['20 kusů', 20.0, PackageUnit::Piece],
     'kus' => ['1 kus', 1.0, PackageUnit::Piece],
     'cena za kilogram' => ['cena za 1 kg', 1000.0, PackageUnit::Gram],
+    'kus bez počtu (Lidl)' => ['kus', 1.0, PackageUnit::Piece],
 ]);
 
 it('nejednoznačné balení nepřečte', function (?string $text): void {

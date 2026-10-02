@@ -17,8 +17,12 @@ namespace App\Domain\Sources;
 
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Client\PendingRequest;
+use Illuminate\Http\Client\RequestException;
+use Illuminate\Http\Client\Response as ClientResponse;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Sleep;
+use Symfony\Component\HttpFoundation\Response;
+use Throwable;
 
 final class SourceHttp
 {
@@ -27,24 +31,38 @@ final class SourceHttp
     /**
      * Připravený požadavek; před ním počká, aby mezi požadavky byla nastavená pauza.
      * Chybová odpověď (4xx, 5xx) po vyčerpání opakování vyhodí RequestException.
+     *
+     * @param  int|null  $delayMs  Pauza pro zdroj s mnoha malými požadavky (Lidl); null = výchozí z konfigurace
+     * @param  bool  $allowNotFound  404 není chyba ani důvod opakovat (stránka letáku bez textové vrstvy)
      */
-    public function request(): PendingRequest
+    public function request(?int $delayMs = null, bool $allowNotFound = false): PendingRequest
     {
-        $this->waitForTurn();
+        $this->waitForTurn($delayMs ?? config()->integer('letaky.http.request_delay_ms'));
 
-        return Http::withUserAgent(config()->string('letaky.http.user_agent'))
-            ->timeout(config()->integer('letaky.http.timeout_seconds'))
-            ->retry(config()->integer('letaky.http.retries'), config()->integer('letaky.http.retry_delay_ms'))
-            ->throw();
+        $request = Http::withUserAgent(config()->string('letaky.http.user_agent'))
+            ->timeout(config()->integer('letaky.http.timeout_seconds'));
+
+        if (! $allowNotFound) {
+            return $request
+                ->retry(config()->integer('letaky.http.retries'), config()->integer('letaky.http.retry_delay_ms'))
+                ->throw();
+        }
+
+        return $request
+            ->retry(
+                config()->integer('letaky.http.retries'),
+                config()->integer('letaky.http.retry_delay_ms'),
+                fn (Throwable $error): bool => ! $error instanceof RequestException || $error->response->status() !== Response::HTTP_NOT_FOUND,
+                throw: false,
+            )
+            ->throwIf(fn (ClientResponse $response): bool => $response->status() !== Response::HTTP_NOT_FOUND);
     }
 
     /**
      * Počká zbytek pauzy od posledního požadavku.
      */
-    private function waitForTurn(): void
+    private function waitForTurn(int $delayMs): void
     {
-        $delayMs = config()->integer('letaky.http.request_delay_ms');
-
         if ($this->lastRequestAt !== null && $delayMs > 0) {
             $elapsedMs = (int) $this->lastRequestAt->diffInMilliseconds(CarbonImmutable::now(), absolute: true);
 

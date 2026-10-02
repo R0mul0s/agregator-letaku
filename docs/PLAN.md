@@ -57,8 +57,8 @@ v [ZDROJE_DAT.md](ZDROJE_DAT.md). Přehled:
 |---|---|---|---|---|
 | **Kaufland** | JSON v HTML `prodejny.kaufland.cz/nabidka/prehled.html` (`window.SSR`) | API letáků Schwarz (PDF s textem) | 100 % | nízká |
 | **Tesco** | GraphQL e-shopu `xapi.tesco.com` (akce a Clubcard) | GraphQL letáků (seznam produktů v letáku bez cen) | ~100 % | nízká až střední |
-| **Lidl** | JSON v HTML kampaňových stránek `lidl.cz/c/…` (`data-grid-data`) | API letáků Schwarz + PDF s textovou vrstvou → LLM | ~1/3 | střední |
-| **Penny** | JSON API `penny.cz/api/product-discovery` | vektorová vrstva letáku FlippingBook (SVG) → parser nebo LLM | malá (33 položek týdně) | střední až vysoká |
+| **Lidl** | JSON v HTML kampaňových stránek `lidl.cz/c/…` (`data-grid-data`) — hotovo, ~140 potravin týdně | API letáků Schwarz + PDF s textovou vrstvou → LLM | ~1/3 | střední |
+| **Penny** | JSON API `penny.cz/api/product-discovery` + parser vektorové vrstvy letáku (R26) — hotovo, ~320 akcí týdně | LLM pro neověřené dlaždice letáku | API 33 položek, s letákem ~55 % cen letáku | střední až vysoká |
 | **Albert** | jen leták: GraphQL `getLeaflets` + Publitas (obrázky stránek) → vision LLM | PDF s textovou vrstvou jako kontrola | 0 % | střední |
 
 Ověřeno na všech obchodech: **nikde není potřeba headless prohlížeč ani obcházení
@@ -175,7 +175,9 @@ GET / ──▶ MyOffers::forUser
 ```
 
 Doba stažení (2. 10. 2026): Kaufland ~2 s (1 požadavek, příští týden +1),
-Tesco ~45 s (seznam letáků, 2 letáky, 26 stránek akcí po 200 s pauzou 1,5 s).
+Tesco ~45 s (seznam letáků, 2 letáky, 26 stránek akcí po 200 s pauzou 1,5 s),
+Lidl ~30 s (~40 kampaní s pauzou 0,5 s), Penny ~23 s (API + ~37 stran letáku s pauzou 0,5 s).
+Všechny obchody najednou ~1,5 minuty — na hostingu poběží každý obchod samostatně (O8).
 
 Etapa 6 přidá extrakci letáků:
 
@@ -197,7 +199,7 @@ z artisan příkazu i z kontroleru.
 | 1 | **Kostra:** Laravel 13, Docker, Pint, Larastan, Pest, SCSS tokeny, layout; přihlášení a registrace (Fortify) | hotovo 2026-10-02 |
 | 2 | **Kaufland a Tesco:** zdroje, normalizace, `offers`, `leaflets`, `scrape_runs`, artisan příkaz importu; přehled všech nabídek s hledáním (`/akce`); stažené nabídky (R16) | hotovo 2026-10-02 |
 | 3 | **Hlídání:** výběr obchodů s upřesněním a věrnostních karet (`/obchody`), hlídané položky se slovy, variantou a vyloučením a šablonami (`/hlidam`), Moje slevy seřazené podle ceny za jednotku (`/`) | hotovo 2026-10-02 |
-| 4 | **Lidl a Penny bez LLM** (R23): Lidl `data-grid-data` z kampaňových stránek, Penny product-discovery API a parser vektorové vrstvy letáku | |
+| 4 | **Lidl a Penny bez LLM** (R23, R25, R26): Lidl `data-grid-data` z kampaní (potraviny), Penny product-discovery API a parser vektorové vrstvy letáku ověřený cenou za jednotku | hotovo 2026-10-02 |
 | 5 | **Katalog produktů** ([O3](#7-otevřené-otázky), návrh v kap. 7): sdílené produkty se štítky a pravidly, automatické přiřazení nabídek při importu, výběr produktu v Hlídám | |
 | 6 | **LLM** (R23), jen pokud bude potřeba: Albert (obrázky stránek), zbytek letáku Lidlu, třídění nepřiřazených nabídek | |
 | 7 | **Nasazení na Websupport** (R20): cron URL pro stahování, SQL skripty migrací, build a nahrání přes FTP, DEPLOYMENT.md, ověření O8 | |
@@ -215,7 +217,7 @@ z artisan příkazu i z kontroleru.
 | O5 | **„Různé druhy“:** jde konkrétní variantu dohledat? Hotspoty letáku Tesco obsahují jednotlivé varianty (COCA-COLA ZERO 1,5l), Albert má katalog `productSearch`. U Kauflandu a Penny zřejmě ne | zatím stačí stav „Možná“ (R18); zpřesnění v [TODO.md](TODO.md) |
 | O6 | **Zveřejnění aplikace:** před zpřístupněním dalším lidem právně posoudit. Podmínky Tesco výslovně zakazují užití obsahu pro jinou než osobní potřebu, VOP Albert zakazují stahování obsahu e-shopu a aplikace; dále autorský zákon a právo pořizovatele databáze. Viz [R5](#8-log-rozhodnutí) | odloženo do zveřejnění |
 | O7 | Obrázky produktů: zobrazovat odkazem na CDN obchodu, nebo vůbec? | rozhodnuto (R22): odkazem |
-| O8 | **Jak dlouho smí na Websupportu běžet PHP požadavek** (`max_execution_time`, timeout proxy)? Stažení Tesca trvá ~45 s (26 stránek s pauzou 1,5 s). Ověřit při nasazení; když nestačí, kratší pauza nebo stažení po částech | ověřit při nasazení |
+| O8 | **Jak dlouho smí na Websupportu běžet PHP požadavek** (`max_execution_time`, timeout proxy)? Stažení trvá Tesco ~45 s, Lidl ~30 s, Penny ~23 s, Kaufland ~2 s — cron URL proto po obchodech. Ověřit při nasazení; když nestačí, kratší pauza nebo stažení po částech | ověřit při nasazení |
 
 ### Katalog produktů (k O3, R24)
 
@@ -267,3 +269,5 @@ obrázku, Tesco vůbec. Produkt je proto úroveň „co hledám“, ne čárový
 | R22 | 2026-10-02 | **Obrázky produktů se zobrazují odkazem na CDN obchodu** (O7), nestahují se ani neukládají (R5). `referrerpolicy="no-referrer"`, líné načítání | Rozhodnutí uživatele. Fotka rozliší varianty, které názvy pletou (Coca-Cola Zero × Zero Zero). CDN Tesca (Akamai) blokuje jen „HeadlessChrome“ — běžný prohlížeč obrázky dostane; snímky obrazovky v testech potřebují běžný User-Agent. Produkční CSP musí povolit `img-src` pro CDN obchodů. |
 | R23 | 2026-10-02 | **LLM zatím ne** (O2). Etapa 4 (Lidl, Penny) jen ze strukturovaných dat a bez LLM: Lidl JSON z webu, Penny API a **parser vektorové vrstvy letáku Penny** (text s pozicemi, deterministicky). LLM se rozhodne u Albertu, který jinou cestu nemá. Na sdíleném hostingu jde — je to jen HTTPS volání API, žádný model neběží u nás; stránky letáku by se zpracovávaly po dávkách v cron URL a výsledek ukládal, aby se stránka neposílala dvakrát | Bez LLM: Kaufland a Tesco úplně, Lidl ~1/3 letáku, Penny API malý výběr + SVG parser většinu letáku, Albert nic. `pdftotext` na hostingu není; PDF Lidlu by šlo jen čistě PHP knihovnou se stejným problémem s pořadím sloupců jako v průzkumu. |
 | R24 | 2026-10-02 | **Katalog produktů** (O3): sdílené produkty se štítky a pravidly, nabídky se k nim přiřazují automaticky při importu a jde to ručně opravit; hlídaná položka vybírá produkt z katalogu, vlastní slova zůstávají jako možnost. Návrh v kap. 7, etapa 5 | Rozhodnutí uživatele („produkty otagované tím, pod čím budou dohledatelné“). Ruční značení každé nabídky nejde (~6 000 týdně); pravidla psaná každým uživatelem zvlášť se opakují. |
+| R25 | 2026-10-02 | **Lidl: všechny kampaně z úvodní stránky, ukládají se jen potraviny** (`category: Food`). Pauza mezi požadavky na Lidl a Penny 0,5 s (`request_delay_ms` u zdroje), jinde 1,5 s | Kampaně (~40) nejdou podle adresy rozlišit na potravinové a nepotravinové. Aplikace hlídá potraviny; nepotravinové akce jsou v TODO. Kratší pauza drží stažení pod půl minuty kvůli limitu hostingu (O8) — stránky jsou malé a CDN ani při ní neblokovala. |
+| R26 | 2026-10-02 | **Leták Penny bez LLM: dlaždice se přijme, jen když ji ověří cena za jednotku** — cena přepočtená na balení musí dát uvedenou cenu za jednotku (balení 1 kg / 1 l / 1 ks bez ní jen přímo nad cenou). Neověřitelné dlaždice a dlaždice s PENNY kartou se neuloží; položka, kterou nese API (stejná cena a balení), se nezdvojí | Rozvržení stránek se liší a pevné okno kolem ceny přiřazovalo názvy sousedních dlaždic. Kontrola ceny za jednotku dá ~300 akcí z ~560 cen bez chybného přiřazení, mj. polotučné mléko, které je jen v letáku. Chybějící akce je lepší než akce se špatnou cenou. Zbytek může doplnit LLM nad tokeny stránky (etapa 6). |

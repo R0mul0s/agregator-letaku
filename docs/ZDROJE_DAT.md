@@ -176,7 +176,14 @@ Implementace: `app/Domain/Sources/Tesco/TescoParser.php` a `TescoOfferSource.php
 - Týdně jsou zhruba 4 potravinové letáky × 50–60 stran.
 
 ### Pole a pasti
-- Potraviny na příští týden jsou často **jen v letáku**, web je zatím nemá.
+Implementace: `app/Domain/Sources/Lidl/` — kampaně z úvodní stránky, jen kategorie `Food` (R23).
+
+- **Kampaně nejdou podle adresy rozlišit** na potravinové a nepotravinové (móda, dílna). Stahují se všechny odkazy `/c/…/a{id}` z úvodní stránky (2. 10. 2026: ~40 stránek, s pauzou 0,5 s ~30 s) a ukládají se jen potraviny. „Ceny v klidu“ úvodní stránka neodkazuje, vyloučení v konfiguraci je pojistka.
+- **Lidl Plus:** cena s aplikací je `lidlPlus[0].price.price`; cenu bez aplikace uvádí jen `prefix` („29,90 Kč bez Lidl Plus“) a jen někdy. Bez ní je běžná cena `oldPrice` a akce platí jen s aplikací.
+- `discountText`: „-25%“ sleva, „1+1 zdarma“ / „3+1 zdarma“ akce na více kusů (`price` je cena za kus při koupi více kusů, `oldPrice` za jeden), „Super cena“ a „Ušetřete* xx %“ nejsou slevy.
+- `basePrice.text` míchá balení a cenu za jednotku: „210 g, 100 g = 28,52 Kč“, „500 g - balení,1 kg = 49,80 Kč“, „195 g, 100 g = 13,90 Kč/PP“, ale i jen „1 kg = 64,95 Kč“ (balení neuvedeno — nesmí se číst jako 1 kg).
+- Položky „Pouze v prodejnách“ (víkendová vína, prosecco) nemají `storeStartDate` — převezmou platnost ostatních akcí stránky.
+- Potraviny na příští týden jsou často **jen v letáku**, web je zatím nemá (2. 10.: vejce 30 ks a Coca-Cola Zero na 8. 10. jen v PDF).
 - **„Ušetřete* xx %“ je úspora na ceně za jednotku** (větší balení), ne sleva oproti původní ceně ([R8](PLAN.md#8-log-rozhodnutí)).
 - „Rozšířená nabídka“ znamená jen ve vybraných prodejnách. Limity „Max. N balení na nákup“ jsou jen v letáku.
 - Úterní nabídka po skončení zmizí z webu (404).
@@ -209,11 +216,26 @@ U cen s kartou je navíc `"loyalty":{"value":2490,"tags":["SO"]}` a `regular` pa
 ### Leták (FlippingBook na files.rewe.co.at)
 - URL letáku: `https://files.rewe.co.at/PennyIntLeaflet/CZ/{DD_MM_YYYY}/`. Odkaz se dá vyčíst ze stránky `https://www.penny.cz/nabidky/letaky` (hledat `PennyIntLeaflet/CZ/`).
 - **Nejlepší zdroj je vektorová vrstva stránek:** `…/files/assets/common/page-vectorlayers/0001.svg` až `00NN.svg`. Obsahuje `<svg:text transform="matrix(a b c d e f)">` s `<svg:tspan x="…" y="…" fill="…">`, tedy každý token se souřadnicemi, velikostí a barvou. Název, gramáž, cena, přeškrtnutá cena a % jdou spárovat podle pozice, nebo se tokeny s pozicemi předají LLM (levnější než vision).
-- **Vlastní glyfy ve fontu cen:** `Ǻ` = „,90“ (`24Ǻ` = 24,90), malý glyf z Private Use Area za čárkou = „90“. Odvozeno shodou s API, nedokumentováno a mezi vydáními se může změnit. Validovat (sleva % musí odpovídat poměru cen).
+- **Vlastní glyfy ve fontu cen** (odvozeno shodou s API 2. 10. 2026, nedokumentováno):
+  - velká cena „24Ǻ“: `Ǻ` (U+01FA) = „,90“ — 560 výskytů, jiné haléře se v letáku neobjevily (výjimečně `Ƿ`, `ɏ` — přeskočí se)
+  - malá cena „49“ „,“+U+E00A+U+E009 = „49,90“; U+E00A = „9“, U+E009 = „0“
+  - červený glyf U+E010 / U+E011 / U+E00F za malou cenou je **přeškrtávací čára** pro 1- / 2- / 3místnou cenu, ne číslice — podle ní se pozná přeškrtnutá (původní) cena
+- Index letáku (`…/{DD_MM_YYYY}/`) odkazuje na stránky `href="./2/"` … `./37/` → počet stran. **Některé strany vektorovou vrstvu nemají** (2. 10.: strany 9 a 33, jen obrázek) → 404, přeskočí se.
 - PDF (`…/files/assets/common/downloads/{DD_MM_YYYY}.pdf`) má kvůli fontu rozbité ceny, nepoužívat.
 - Obrázky stran jsou jen pozadí bez textu.
 
+### Parser letáku (bez LLM, R23)
+Implementace: `app/Domain/Sources/Penny/PennyLeafletParser.php`, podrobný postup v jeho popisu.
+
+- Rozvržení dlaždic se liší stránku od stránky (název nad cenou, vedle ní, bílý na barevném pruhu), pevné okno kolem ceny nefunguje.
+- **Přiřazení ceny k dlaždici je ověřené cenou za jednotku**, kterou leták u potravin uvádí: „250 g“ + „100 g 5,16 Kč“ sedí jen k 12,90 Kč. Sousední dlaždice se tak nespletou. Blok textu bez ceny za jednotku se přijme jen u balení 1 kg / 1 l / 1 ks přímo nad cenou.
+- Výsledek 2. 10. 2026: **~300 ověřených akcí z ~560 cen** (35 stran). Zbytek (hlavně dlaždice bez ceny za jednotku, s PENNY kartou, kombinace) se neuloží — raději chybějící akce než špatná cena. Dlaždice s PENNY kartou nese API.
+- Položka letáku, kterou nese i API (stejná cena, stejné balení, společné slovo názvu), se neuloží podruhé. Samotná shoda slov nestačí — „Karlova Koruna“ je u desítek položek.
+- Externí ID akce z letáku je otisk názvu, balení a ceny (`letak-…`), leták kód zboží nemá.
+
 ### Pole a pasti
+- Adresa produktu na webu: `https://www.penny.cz/products/{slug}` (`/produkty/` vrací 404).
+- API: `price.loyalty` bez štítku `pt-aktion` u `regular` = akce jen s PENNY kartou, `regular` je běžná cena.
 - API pokrývá jen malou část letáku: polotučné mléko v akci bylo **jen v letáku**.
 - Víkendové akce mají platnost jen v textu stránky („platí od pátku 2. 10. do neděle 4. 10.“).
 - „Jedinečná nabídka“ bez přeškrtnuté ceny není sleva. `lowestPrice` = nejnižší cena za 30 dní.

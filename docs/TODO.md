@@ -44,6 +44,9 @@ v [PLAN.md](PLAN.md). Větší celky se z toho stávají etapou.
 
 **Odkud:** etapa 2, R15–R17 v PLAN.md.
 
+- **Lidl: zbytek letáku** (R23, R25) — potraviny jen v PDF (2. 10.: vejce a Coca-Cola Zero na příští týden); text PDF nebo obrázky stránek přes LLM
+- **Lidl: nepotravinové akce** (R25) — dnes se ukládají jen `category: Food`
+- **Penny: neověřené dlaždice letáku** (R26) — ~260 cen z ~560 bez ověření cenou za jednotku; tokeny stránky s polohami předat LLM
 - **Tesco „Super ceny“ z letáku** (R17): položky letáku bez akce v e-shopu chybí — doplnit z obrázků stránek letáku (vision LLM, etapa 6)
 - **plánované spouštění** importů cron URL na Websupportu (R20, etapa 7) — dnes jen ručně artisan příkazem
 - **řazení výsledků hledání** podle shody nebo slevy — dnes podle začátku platnosti, takže dlouhodobé akce e-shopu jsou nahoře
