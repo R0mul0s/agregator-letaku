@@ -42,6 +42,27 @@ final class CategoryPaths
     }
 
     /**
+     * Oddělení (první úroveň cesty) kategorie; null pro produkt bez kategorie.
+     */
+    public function department(?int $categoryId): ?string
+    {
+        $label = $this->label($categoryId);
+
+        return $label === null ? null : explode(self::SEPARATOR, $label)[0];
+    }
+
+    /**
+     * Poslední úroveň cesty kategorie („Kolové nápoje bez cukru“); null bez kategorie.
+     */
+    public function name(?int $categoryId): ?string
+    {
+        $label = $this->label($categoryId);
+        $parts = $label === null ? [] : explode(self::SEPARATOR, $label);
+
+        return $parts === [] ? null : $parts[count($parts) - 1];
+    }
+
+    /**
      * Sestaví popisky průchodem stromu do hloubky.
      *
      * @return array<int, string>

@@ -51,6 +51,9 @@ it('ukáže produkty s cestou kategorie a počtem přiřazených akcí', functio
         ->where('products.0.categoryLabel', 'Mléčné, vejce a margaríny › Máslo')
         ->where('products.0.matchCount', 2)
         ->where('products.0.maybeCount', 0)
+        ->where('products.0.department', 'Mléčné, vejce a margaríny')
+        ->where('products.0.categoryName', 'Máslo')
+        ->where('products.0.watchersCount', 0)
         // Regál a police „Máslo › Máslo“ mají stejný popisek — ve výběru jen jednou
         ->has('categories', 2)
         ->where('categories.1.label', 'Mléčné, vejce a margaríny › Máslo'));

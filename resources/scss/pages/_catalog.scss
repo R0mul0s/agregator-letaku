@@ -1,24 +1,8 @@
 // _catalog.scss
-// Katalog produktů pro admina (R29) — seznam produktů, detail a výběr kategorie.
+// Katalog produktů pro admina (R29) — tabulka produktů, detail a výběr kategorie.
 //
 // @author Roman Hlaváček
 // @created 2026-10-02
-
-.catalog-product {
-    &__category {
-        color: var(--color-text-muted);
-        font-size: var(--font-size-sm);
-    }
-
-    &__counts {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: var(--space-2);
-        margin-top: var(--space-1);
-        font-size: var(--font-size-sm);
-    }
-}
 
 .catalog-back {
     display: inline-block;
@@ -39,5 +23,57 @@
     &__selected {
         font-size: var(--font-size-sm);
         font-weight: 600;
+    }
+}
+
+// Nástroje nad tabulkou katalogu — hledání, oddělení, počet
+.catalog-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: var(--space-3);
+    margin-bottom: var(--space-3);
+
+    &__search {
+        flex: 1 1 var(--search-text-min-width);
+    }
+
+    &__count {
+        margin-left: auto;
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+    }
+}
+
+.catalog-new {
+    margin-bottom: var(--space-4);
+}
+
+// Kategorie v tabulce: oddělení malým písmem nad poslední úrovní
+.catalog-category {
+    display: flex;
+    flex-direction: column;
+
+    &__department {
+        color: var(--color-text-muted);
+        font-size: var(--font-size-xs);
+    }
+}
+
+// Pravidla produktu v tabulce
+.catalog-rule {
+    font-family: var(--font-family-mono);
+    font-size: var(--font-size-xs);
+
+    &--variant {
+        margin-left: var(--space-1);
+        color: var(--color-warning-text);
+    }
+
+    &--exclude {
+        margin-left: var(--space-1);
+        color: var(--color-text-muted);
+        font-family: inherit;
+        cursor: help;
     }
 }

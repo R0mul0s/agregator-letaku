@@ -44,7 +44,8 @@ class CatalogController extends Controller
     ) {}
 
     /**
-     * Seznam produktů s počtem přiřazených neskončených nabídek a formulář nového produktu.
+     * Tabulka produktů (oddělení, kategorie, slova, počet přiřazených neskončených nabídek
+     * a hlídajících uživatelů) a formulář nového produktu.
      */
     public function index(): Response
     {
@@ -52,6 +53,7 @@ class CatalogController extends Controller
             ->withCount([
                 'assignments as match_count' => fn (Builder $query) => $this->currentAssignments($query, MatchStatus::Match),
                 'assignments as maybe_count' => fn (Builder $query) => $this->currentAssignments($query, MatchStatus::Maybe),
+                'watchItems as watchers_count',
             ])
             ->orderBy('name')
             ->get();
@@ -63,6 +65,7 @@ class CatalogController extends Controller
                 ...$this->productData($product),
                 'matchCount' => (int) $product->getAttribute('match_count'),
                 'maybeCount' => (int) $product->getAttribute('maybe_count'),
+                'watchersCount' => (int) $product->getAttribute('watchers_count'),
                 'showUrl' => route('catalog.show', $product, absolute: false),
             ]),
         ]);
@@ -215,6 +218,9 @@ class CatalogController extends Controller
             'name' => $product->name,
             'categoryId' => $product->category_id,
             'categoryLabel' => $this->categories->label($product->category_id),
+            // Do tabulky katalogu: oddělení (první úroveň) a kategorie (poslední úroveň)
+            'department' => $this->categories->department($product->category_id),
+            'categoryName' => $this->categories->name($product->category_id),
             'keywords' => $product->keywords,
             'variantKeywords' => $product->variant_keywords,
             'excludeKeywords' => $product->exclude_keywords,
