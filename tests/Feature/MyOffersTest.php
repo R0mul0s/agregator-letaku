@@ -15,6 +15,7 @@ use App\Domain\Catalog\Actions\CorrectAssignment;
 use App\Enums\Chain;
 use App\Enums\LeafletKind;
 use App\Enums\LoyaltyProgram;
+use App\Enums\OffersSort;
 use App\Enums\OfferType;
 use App\Enums\PackageUnit;
 use App\Enums\StoreFormat;
@@ -160,6 +161,32 @@ it('řadí od nejnižší ceny za jednotku, akce na více kusů a možné shody 
     $this->get(route('home'))->assertInertia(fn (Assert $page) => $page
         ->where('watchItems.0.offers.0.matchStatus', 'match')
         ->where('watchItems.0.offers.3.matchStatus', 'maybe'));
+});
+
+it('řadí podle předvolby uživatele: od nejvyšší slevy nebo od konce platnosti (R41)', function (): void {
+    follow(Chain::Kaufland);
+    watch('Máslo', ['keywords' => 'máslo']);
+    Offer::factory()->create(['name' => 'Máslo malá sleva', 'discount_percent' => 10, 'valid_to' => '2026-10-04']);
+    Offer::factory()->create(['name' => 'Máslo velká sleva', 'discount_percent' => 40, 'valid_to' => '2026-10-08']);
+    Offer::factory()->create(['name' => 'Máslo akční cena', 'discount_percent' => null, 'original_price' => null, 'offer_type' => OfferType::PromoPrice, 'valid_to' => '2026-10-03']);
+
+    $this->user->forceFill(['offers_sort' => OffersSort::Discount])->save();
+    expect(myOffers()['Máslo'])->toBe(['Máslo velká sleva', 'Máslo malá sleva', 'Máslo akční cena']);
+
+    $this->user->forceFill(['offers_sort' => OffersSort::EndingSoon])->save();
+    expect(myOffers()['Máslo'])->toBe(['Máslo akční cena', 'Máslo malá sleva', 'Máslo velká sleva']);
+});
+
+it('s minimální slevou ukáže jen akce, které ji splní — i dopočtenou z původní ceny (R41)', function (): void {
+    follow(Chain::Kaufland);
+    watch('Máslo', ['keywords' => 'máslo']);
+    Offer::factory()->create(['name' => 'Máslo 10 %', 'discount_percent' => 10]);
+    Offer::factory()->create(['name' => 'Máslo dopočtená', 'discount_percent' => null, 'price' => 2000, 'original_price' => 4000]);
+    Offer::factory()->create(['name' => 'Máslo akční cena', 'discount_percent' => null, 'original_price' => null, 'offer_type' => OfferType::PromoPrice]);
+
+    $this->user->forceFill(['min_discount_percent' => 30])->save();
+
+    expect(myOffers()['Máslo'])->toBe(['Máslo dopočtená']);
 });
 
 /**

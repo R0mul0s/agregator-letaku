@@ -185,6 +185,13 @@ return [
             'multibuy' => 'Akce na více kusů',
         ],
 
+        // App\Enums\OffersSort — řazení v Mých slevách (R41)
+        'offers_sort' => [
+            'unit_price' => 'nejnižší ceny za jednotku',
+            'discount' => 'nejvyšší slevy',
+            'ending_soon' => 'konce platnosti',
+        ],
+
         // App\Enums\LoyaltyProgram
         'loyalty_programs' => [
             'kaufland_card' => 'Kaufland Card',
@@ -226,7 +233,7 @@ return [
             'online_only' => 'Jen e-shop',
             'maybe' => 'Možná',
             'maybe_hint' => 'Akce je na více druhů a hledanou variantu neuvádí — ověřte u obchodu.',
-            'source' => 'U obchodu',
+            'source' => 'Do obchodu',
             'suggestion_product' => 'katalog',
             'pagination' => 'Stránkování',
             'previous' => 'Předchozí',
@@ -297,6 +304,9 @@ return [
             'no_offers' => 'Teď v akci není.',
             'count' => ':count akce|:count akce|:count akcí',
             'edit_watch_items' => 'Upravit hlídané',
+            'sorted_by' => 'Řazeno od :sort',
+            'min_discount_note' => 'jen slevy od :percent %',
+            'change_preferences' => 'Změnit',
             'mentions_title' => 'V letáku, ale bez ceny',
             'mentions_hint' => 'Leták obsahuje slova položky, cenu z něj ale přečíst neumíme — podívejte se na stránku letáku.',
             'mention_maybe_hint' => 'Stránka hledanou variantu neuvádí — ověřte v letáku.',
@@ -316,6 +326,13 @@ return [
             'current_password' => 'Současné heslo',
             'new_password' => 'Nové heslo',
             'save' => 'Uložit',
+            'offers_title' => 'Moje slevy',
+            'offers_hint' => 'Jak řadit akce u každé hlídané položky a které ukazovat.',
+            'offers_sort' => 'Řadit od',
+            'min_discount' => 'Ukazovat',
+            'min_discount_all' => 'Všechny akce',
+            'min_discount_option' => 'Jen slevy od :percent %',
+            'min_discount_hint' => 'Akční ceny bez uvedené původní ceny a akce na více kusů slevu v procentech nemají — s hranicí se neukážou.',
             'avatar' => 'Profilový obrázek',
             'avatar_hint' => 'Obrázek se ořízne na čtverec. Bez obrázku se ukazují iniciály.',
             'avatar_upload' => 'Nahrát obrázek',
@@ -341,6 +358,7 @@ return [
                 'password-updated' => 'Heslo je změněné.',
                 'avatar-updated' => 'Profilový obrázek je uložený.',
                 'other-devices-logged-out' => 'Ostatní zařízení jsou odhlášená.',
+                'offers-preferences-saved' => 'Předvolby Mých slev jsou uložené.',
             ],
         ],
     ],

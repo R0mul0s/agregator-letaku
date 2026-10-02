@@ -62,6 +62,9 @@ class Offer extends Model
     /** @use HasFactory<OfferFactory> */
     use HasFactory;
 
+    /** Převod podílu na procenta slevy. */
+    private const PERCENT = 100;
+
     /** @var list<string> */
     protected $fillable = [
         'chain',
@@ -159,5 +162,22 @@ class Offer extends Model
     public function scopeNotExpired(Builder $query, CarbonImmutable $localToday): void
     {
         $query->whereDate('valid_to', '>=', $localToday->toDateString());
+    }
+
+    /**
+     * Sleva v procentech: od obchodu, jinak dopočtená z původní ceny; jen u typu „sleva“ (R8).
+     * Stejný výpočet jako discountPercent() v resources/js/lib/offer.js.
+     */
+    public function effectiveDiscountPercent(): ?int
+    {
+        if ($this->discount_percent !== null && $this->discount_percent > 0) {
+            return $this->discount_percent;
+        }
+
+        if ($this->offer_type !== OfferType::Discount || $this->price === null || $this->original_price === null || $this->original_price <= $this->price) {
+            return null;
+        }
+
+        return (int) round((1 - $this->price / $this->original_price) * self::PERCENT);
     }
 }

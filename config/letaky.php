@@ -154,6 +154,8 @@ return [
             'max_kilobytes' => 512,
             'mimes' => ['webp', 'png', 'jpg'],
         ],
+        // Nabídka hranic minimální slevy v Mých slevách (R41), v procentech
+        'min_discount_options' => [10, 20, 30, 50],
     ],
 
     'cron' => [

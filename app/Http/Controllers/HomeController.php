@@ -36,6 +36,12 @@ class HomeController extends Controller
             'urls' => [
                 'preferences' => route('preferences', absolute: false),
                 'watchItems' => route('watch-items.index', absolute: false),
+                'offersPreferences' => route('account', absolute: false).'#moje-slevy',
+            ],
+            // Předvolby řazení a minimální slevy (R41) — stránka je ukazuje u souhrnu
+            'offersPreferences' => [
+                'sortLabel' => $user->offers_sort->label(),
+                'minDiscountPercent' => $user->min_discount_percent,
             ],
             'watchItems' => array_map(fn (array $group): array => [
                 'id' => $group['watchItem']->id,

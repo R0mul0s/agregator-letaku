@@ -1,6 +1,6 @@
 <!--
-    Můj účet (R12, R40) — profilový obrázek, jméno a e-mail, heslo (Fortify),
-    přihlášená zařízení a zrušení účtu.
+    Můj účet (R12, R40, R41) — profilový obrázek, jméno a e-mail, heslo (Fortify),
+    předvolby Mých slev, přihlášená zařízení a zrušení účtu.
 
     @author Roman Hlaváček
     @created 2026-10-02
@@ -21,6 +21,7 @@ const STATUS_SECTIONS = {
     'profile-information-updated': 'profile',
     'password-updated': 'password',
     'other-devices-logged-out': 'devices',
+    'offers-preferences-saved': 'offers',
 };
 
 const props = defineProps({
@@ -31,6 +32,8 @@ const props = defineProps({
     avatar: { type: Object, required: true },
     /** Přihlášení na zařízeních [{ device, ipAddress, lastActiveAt, current }]. */
     sessions: { type: Array, required: true },
+    /** Předvolby Mých slev { sort, minDiscountPercent, sortOptions, minDiscountOptions } (R41). */
+    offersPreferences: { type: Object, required: true },
 });
 
 const t = useTranslations();
@@ -54,6 +57,11 @@ const passwordForm = useForm({
     current_password: '',
     password: '',
     password_confirmation: '',
+});
+
+const offersForm = useForm({
+    offers_sort: props.offersPreferences.sort,
+    min_discount_percent: props.offersPreferences.minDiscountPercent,
 });
 
 const devicesForm = useForm({ password: '' });
@@ -118,6 +126,14 @@ async function uploadAvatar(event) {
 /** Odebere obrázek — ukážou se iniciály. */
 function removeAvatar() {
     router.delete(props.urls.avatarDelete, { preserveScroll: true });
+}
+
+/** Uloží řazení a minimální slevu Mých slev. */
+function updateOffersPreferences() {
+    offersForm.put(props.urls.offersPreferences, {
+        errorBag: props.errorBags.offersPreferences,
+        preserveScroll: true,
+    });
 }
 
 /** Odhlásí ostatní zařízení po zadání hesla. */
@@ -221,10 +237,41 @@ function deleteAccount() {
                 </form>
             </section>
 
+            <section id="moje-slevy" class="card">
+                <h2 class="card__title">{{ t('account.offers_title') }}</h2>
+                <p v-if="statusFor('offers')" class="notice notice--success" role="status">{{ statusFor('offers') }}</p>
+                <p class="card__intro">{{ t('account.offers_hint') }}</p>
+
+                <form class="form" novalidate @submit.prevent="updateOffersPreferences">
+                    <div class="form-field">
+                        <label for="offers_sort" class="form-field__label">{{ t('account.offers_sort') }}</label>
+                        <select id="offers_sort" v-model="offersForm.offers_sort" class="form-field__input">
+                            <option v-for="option in offersPreferences.sortOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
+                        </select>
+                        <p v-if="offersForm.errors.offers_sort" class="form-field__error" role="alert">{{ offersForm.errors.offers_sort }}</p>
+                    </div>
+                    <div class="form-field">
+                        <label for="min_discount_percent" class="form-field__label">{{ t('account.min_discount') }}</label>
+                        <select id="min_discount_percent" v-model="offersForm.min_discount_percent" class="form-field__input" aria-describedby="min_discount_hint">
+                            <option :value="null">{{ t('account.min_discount_all') }}</option>
+                            <option v-for="percent in offersPreferences.minDiscountOptions" :key="percent" :value="percent">
+                                {{ t('account.min_discount_option', { percent }) }}
+                            </option>
+                        </select>
+                        <p id="min_discount_hint" class="form-field__hint">{{ t('account.min_discount_hint') }}</p>
+                        <p v-if="offersForm.errors.min_discount_percent" class="form-field__error" role="alert">{{ offersForm.errors.min_discount_percent }}</p>
+                    </div>
+
+                    <div class="form__actions">
+                        <button type="submit" class="button button--primary" :disabled="offersForm.processing">{{ t('account.save') }}</button>
+                    </div>
+                </form>
+            </section>
+
             <section class="card">
                 <h2 class="card__title">{{ t('account.devices') }}</h2>
                 <p v-if="statusFor('devices')" class="notice notice--success" role="status">{{ statusFor('devices') }}</p>
-                <p class="form-field__hint">{{ t('account.devices_hint') }}</p>
+                <p class="card__intro">{{ t('account.devices_hint') }}</p>
 
                 <ul v-if="sessions.length" class="device-list">
                     <li v-for="(session, index) in sessions" :key="index" class="device-list__item">
@@ -257,7 +304,7 @@ function deleteAccount() {
 
             <section class="card card--danger">
                 <h2 class="card__title">{{ t('account.delete_title') }}</h2>
-                <p class="form-field__hint">{{ t('account.delete_hint') }}</p>
+                <p class="card__intro">{{ t('account.delete_hint') }}</p>
 
                 <form class="form" novalidate @submit.prevent="deleteAccount">
                     <TextField

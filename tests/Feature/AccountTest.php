@@ -14,8 +14,10 @@ declare(strict_types=1);
 use App\Actions\Fortify\UpdateUserPassword;
 use App\Actions\Fortify\UpdateUserProfileInformation;
 use App\Domain\Account\UserSessions;
+use App\Enums\OffersSort;
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\AvatarController;
+use App\Http\Requests\OffersPreferencesRequest;
 use App\Models\User;
 use App\Models\WatchItem;
 use Carbon\CarbonImmutable;
@@ -192,4 +194,21 @@ it('zruší účet jen se správným heslem i s hlídanými položkami a obrázk
     expect(User::query()->whereKey($user->id)->exists())->toBeFalse()
         ->and(WatchItem::query()->where('user_id', $user->id)->exists())->toBeFalse();
     Storage::disk('local')->assertMissing('avatars/obrazek.png');
+});
+
+it('uloží předvolby Mých slev a nepovolenou hodnotu odmítne (R41)', function (): void {
+    $user = User::factory()->create();
+    $this->actingAs($user)->from(route('account'));
+
+    $this->put(route('account.offers-preferences'), ['offers_sort' => 'discount', 'min_discount_percent' => 30])
+        ->assertSessionHas('status', AccountController::STATUS_OFFERS_PREFERENCES_SAVED);
+    expect($user->fresh())
+        ->offers_sort->toBe(OffersSort::Discount)
+        ->min_discount_percent->toBe(30);
+
+    $this->put(route('account.offers-preferences'), ['offers_sort' => 'unit_price', 'min_discount_percent' => null]);
+    expect($user->fresh()?->min_discount_percent)->toBeNull();
+
+    $this->put(route('account.offers-preferences'), ['offers_sort' => 'nahodne', 'min_discount_percent' => 33])
+        ->assertSessionHasErrorsIn(OffersPreferencesRequest::ERROR_BAG, ['offers_sort', 'min_discount_percent']);
 });

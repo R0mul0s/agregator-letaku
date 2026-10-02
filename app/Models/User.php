@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Enums\LoyaltyProgram;
+use App\Enums\OffersSort;
 use Carbon\CarbonImmutable;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Casts\AsEnumCollection;
@@ -32,6 +33,8 @@ use Illuminate\Support\Collection;
  * @property string $password
  * @property Collection<int, LoyaltyProgram>|null $loyalty_programs
  * @property bool $is_admin Smí spravovat katalog produktů (R29); nastavuje se příkazem, ne formulářem
+ * @property OffersSort $offers_sort Řazení akcí v Mých slevách (R41)
+ * @property int|null $min_discount_percent Moje slevy jen se slevou aspoň tolik %, null = všechny (R41)
  * @property string|null $remember_token
  * @property CarbonImmutable $created_at
  * @property CarbonImmutable $updated_at
@@ -57,6 +60,8 @@ class User extends Authenticatable
     protected $attributes = [
         'is_admin' => false,
         'avatar_path' => null,
+        'offers_sort' => 'unit_price',
+        'min_discount_percent' => null,
     ];
 
     /** @var list<string> */
@@ -77,6 +82,8 @@ class User extends Authenticatable
             'password' => 'hashed',
             'loyalty_programs' => AsEnumCollection::of(LoyaltyProgram::class),
             'is_admin' => 'boolean',
+            'offers_sort' => OffersSort::class,
+            'min_discount_percent' => 'integer',
             'created_at' => 'immutable_datetime',
             'updated_at' => 'immutable_datetime',
         ];

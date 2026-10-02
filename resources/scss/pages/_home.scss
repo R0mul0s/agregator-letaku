@@ -50,6 +50,13 @@
         color: var(--color-text-muted);
     }
 
+    // Řazení a minimální sleva (R41) s odkazem na změnu
+    &__preferences {
+        margin-top: var(--space-1);
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+    }
+
     &__stats {
         display: flex;
         flex-wrap: wrap;

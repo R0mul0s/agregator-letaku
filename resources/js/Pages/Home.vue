@@ -18,6 +18,8 @@ import { computed } from 'vue';
 const props = defineProps({
     hasFollowedChains: { type: Boolean, required: true },
     urls: { type: Object, required: true },
+    /** Předvolby uživatele { sortLabel, minDiscountPercent } (R41). */
+    offersPreferences: { type: Object, required: true },
     /** Hlídané položky s nabídkami od nejnižší ceny za jednotku a zmínkami v letácích (App\Domain\Matching\MyOffers). */
     watchItems: { type: Array, required: true },
 });
@@ -47,6 +49,12 @@ const summary = computed(() => {
             <div class="home-hero__body">
                 <h1 class="home-hero__title">{{ firstName ? t('home.hello', { name: firstName }) : t('home.title') }}</h1>
                 <p class="home-hero__text">{{ t('home.hero_text') }}</p>
+                <p v-if="watchItems.length" class="home-hero__preferences">
+                    {{ t('home.sorted_by', { sort: offersPreferences.sortLabel }) }}<template v-if="offersPreferences.minDiscountPercent"
+                        >, {{ t('home.min_discount_note', { percent: offersPreferences.minDiscountPercent }) }}</template
+                    >
+                    · <Link :href="urls.offersPreferences" class="link">{{ t('home.change_preferences') }}</Link>
+                </p>
                 <ul v-if="watchItems.length" class="home-hero__stats">
                     <li class="home-hero__stat">
                         <strong class="home-hero__stat-value">{{ watchItems.length }}</strong>

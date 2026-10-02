@@ -16,6 +16,8 @@ namespace App\Http\Controllers;
 use App\Actions\Fortify\UpdateUserPassword;
 use App\Actions\Fortify\UpdateUserProfileInformation;
 use App\Domain\Account\UserSessions;
+use App\Enums\OffersSort;
+use App\Http\Requests\OffersPreferencesRequest;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -35,6 +37,9 @@ class AccountController extends Controller
     /** Kód stavu po odhlášení ostatních zařízení (Account.vue). */
     public const STATUS_DEVICES_LOGGED_OUT = 'other-devices-logged-out';
 
+    /** Kód stavu po uložení předvoleb Mých slev (Account.vue). */
+    public const STATUS_OFFERS_PREFERENCES_SAVED = 'offers-preferences-saved';
+
     /**
      * Zobrazí formuláře účtu; názvy sad chyb musí sedět s akcemi Fortify.
      */
@@ -46,6 +51,7 @@ class AccountController extends Controller
                 'password' => route('user-password.update', absolute: false),
                 'avatar' => route('account.avatar.update', absolute: false),
                 'avatarDelete' => route('account.avatar.destroy', absolute: false),
+                'offersPreferences' => route('account.offers-preferences', absolute: false),
                 'logoutOtherDevices' => route('account.devices.logout', absolute: false),
                 'delete' => route('account.destroy', absolute: false),
             ],
@@ -54,13 +60,33 @@ class AccountController extends Controller
                 'password' => UpdateUserPassword::ERROR_BAG,
                 'devices' => self::ERROR_BAG_DEVICES,
                 'delete' => self::ERROR_BAG_DELETE,
+                'offersPreferences' => OffersPreferencesRequest::ERROR_BAG,
             ],
             'avatar' => [
                 'sizePx' => config()->integer('letaky.account.avatar.size_px'),
                 'maxKilobytes' => config()->integer('letaky.account.avatar.max_kilobytes'),
             ],
             'sessions' => $sessions->forUser($this->user($request), $request->session()->getId()),
+            'offersPreferences' => [
+                'sort' => $this->user($request)->offers_sort->value,
+                'minDiscountPercent' => $this->user($request)->min_discount_percent,
+                'sortOptions' => array_map(
+                    fn (OffersSort $sort): array => ['value' => $sort->value, 'label' => $sort->label()],
+                    OffersSort::cases(),
+                ),
+                'minDiscountOptions' => config()->array('letaky.account.min_discount_options'),
+            ],
         ]);
+    }
+
+    /**
+     * Uloží předvolby Mých slev (R41).
+     */
+    public function updateOffersPreferences(OffersPreferencesRequest $request): RedirectResponse
+    {
+        $this->user($request)->forceFill($request->preferences())->save();
+
+        return back()->with('status', self::STATUS_OFFERS_PREFERENCES_SAVED);
     }
 
     /**

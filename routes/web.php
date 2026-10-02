@@ -44,6 +44,7 @@ Route::middleware('auth')->group(function (): void {
 
     Route::get('/ucet', [AccountController::class, 'show'])->name('account');
     Route::delete('/ucet', [AccountController::class, 'destroy'])->name('account.destroy');
+    Route::put('/ucet/moje-slevy', [AccountController::class, 'updateOffersPreferences'])->name('account.offers-preferences');
     Route::delete('/ucet/zarizeni', [AccountController::class, 'logoutOtherDevices'])->name('account.devices.logout');
     Route::get('/ucet/obrazek', [AvatarController::class, 'show'])->name('account.avatar');
     Route::post('/ucet/obrazek', [AvatarController::class, 'update'])->name('account.avatar.update');

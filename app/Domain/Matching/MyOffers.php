@@ -24,6 +24,7 @@ use App\Domain\Offers\LocalCalendar;
 use App\Domain\Offers\UnitPrice;
 use App\Enums\LeafletKind;
 use App\Enums\MatchStatus;
+use App\Enums\OffersSort;
 use App\Enums\OfferType;
 use App\Models\FollowedChain;
 use App\Models\Leaflet;
@@ -123,17 +124,31 @@ final class MyOffers
     }
 
     /**
-     * Vynechá akce jen s kartou, kterou uživatel nemá, a seřadí zbytek (sortKey).
+     * Vynechá akce jen s kartou, kterou uživatel nemá, a akce pod jeho minimální slevou (R41);
+     * zbytek seřadí podle jeho předvolby (sortKey).
      *
      * @param  list<array{offer: Offer, status: MatchStatus}>  $matches
      * @return list<array{offer: Offer, status: MatchStatus}>
      */
     private function availableSorted(User $user, array $matches): array
     {
-        $available = array_values(array_filter($matches, fn (array $match): bool => $this->isAvailableTo($user, $match['offer'])));
+        $available = array_values(array_filter(
+            $matches,
+            fn (array $match): bool => $this->isAvailableTo($user, $match['offer']) && $this->meetsMinDiscount($user, $match['offer']),
+        ));
         usort($available, fn (array $a, array $b): int => $this->sortKey($user, $a) <=> $this->sortKey($user, $b));
 
         return $available;
+    }
+
+    /**
+     * Splní akce minimální slevu uživatele? Bez nastavené hranice ano; akce bez známé slevy
+     * (akční cena, akce na více kusů) hranici nesplní.
+     */
+    private function meetsMinDiscount(User $user, Offer $offer): bool
+    {
+        return $user->min_discount_percent === null
+            || ($offer->effectiveDiscountPercent() ?? 0) >= $user->min_discount_percent;
     }
 
     /**
@@ -186,18 +201,26 @@ final class MyOffers
     }
 
     /**
-     * Pořadí nabídky: shody před „možná“, akce s cenou před akcemi na více kusů (ty mají
-     * jen běžnou cenu, jejich cena za jednotku slevu neukazuje), pak od nejnižší ceny.
+     * Pořadí nabídky: shody před „možná“, pak podle předvolby uživatele (R41) — od nejnižší
+     * ceny za jednotku (akce na více kusů na konec: mají jen běžnou cenu, jejich cena za
+     * jednotku slevu neukazuje), od nejvyšší slevy, nebo od nejbližšího konce platnosti.
+     * Při shodě rozhoduje cena za jednotku.
      *
      * @param  array{offer: Offer, status: MatchStatus}  $match
-     * @return array{bool, bool, int, int}
+     * @return list<bool|int|string>
      */
     private function sortKey(User $user, array $match): array
     {
+        $offer = $match['offer'];
+
         return [
             $match['status'] === MatchStatus::Maybe,
-            $match['offer']->offer_type === OfferType::Multibuy,
-            ...$this->sortPrice($user, $match['offer']),
+            ...match ($user->offers_sort) {
+                OffersSort::UnitPrice => [$offer->offer_type === OfferType::Multibuy],
+                OffersSort::Discount => [-($offer->effectiveDiscountPercent() ?? 0)],
+                OffersSort::EndingSoon => [$offer->valid_to->toDateString()],
+            },
+            ...$this->sortPrice($user, $offer),
         ];
     }
 

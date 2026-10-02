@@ -18,6 +18,13 @@
         font-size: var(--font-size-card-title);
     }
 
+    // Úvodní věta pod nadpisem karty (co oddíl dělá)
+    &__intro {
+        margin-bottom: var(--space-3);
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+    }
+
     // Oddíl s nevratnou akcí (zrušení účtu)
     &--danger {
         border-color: var(--color-danger);
