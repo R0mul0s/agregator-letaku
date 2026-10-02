@@ -203,8 +203,10 @@ stránka, SEO a limity požadavků (R39–R45). `composer.lock` se nezměnil.
 4. **Smaž na hostingu `public/robots.txt`** — `robots.txt` teď generuje aplikace a statický
    soubor by ho přebil.
 5. **Nahraj `deploy/upload/` přes FTP** bez složky `vendor/` (nezměnila se), ale
-   **s `bootstrap/cache/packages.php`**. Složku `public/build/` na hostingu nejdřív smaž —
-   jinak tam zůstanou staré assety (neškodí, jen zabírají místo).
+   **s `bootstrap/cache/packages.php`** a **s podsložkou `vendor/composer/`** (pár set kB):
+   optimalizovaný autoloader v ní má seznam tříd aplikace a nové třídy by jinak dohledával
+   podle jmenného prostoru (funguje, ale pomaleji). Složku `public/build/` na hostingu nejdřív
+   smaž — jinak tam zůstanou staré assety (neškodí, jen zabírají místo).
 6. **Cron** ve WebAdminu přidej: `30 6 * * *` →
    `https://slevohlidka.rhsoft.cz/cron/send-digests?token=<LETAKY_CRON_TOKEN>` (souhrny e-mailem).
 7. **Ověř** (kroky 1–8 v *7) Ověř*), navíc:

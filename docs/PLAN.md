@@ -20,7 +20,7 @@ Zbytek letáku zatím pokrývají zmínky bez ceny ([R27](#8-log-rozhodnutí)), 
 bude potřeba ([R23](#8-log-rozhodnutí)).
 
 - **Vývoj:** `http://localhost:54720` (Docker, viz [CLAUDE.md](../CLAUDE.md))
-- **Produkce:** sdílený hosting Websupport, `https://slevohlidka.rhsoft.cz`, zatím nenasazeno ([R20, R38](#8-log-rozhodnutí), [DEPLOYMENT.md](../deploy/DEPLOYMENT.md))
+- **Produkce:** sdílený hosting Websupport, `https://slevohlidka.rhsoft.cz`, nasazeno 2026-10-02 ([R20, R38](#8-log-rozhodnutí), [DEPLOYMENT.md](../deploy/DEPLOYMENT.md))
 - **Repozitář:** [github.com/R0mul0s/agregator-letaku](https://github.com/R0mul0s/agregator-letaku), osobní projekt
 - **Pravidla pro psaní kódu:** [CODING_GUIDELINES.md](CODING_GUIDELINES.md)
 - **Zdroje dat jednotlivých obchodů (endpointy, pole, pasti):** [ZDROJE_DAT.md](ZDROJE_DAT.md)
@@ -262,7 +262,7 @@ z artisan příkazu i z kontroleru.
 | 5b | **Dolaďování podle zkoušení** (R32–R37): loga obchodů a výběr obchodu s logy, našeptávač ve Všech akcích, Hlídám s katalogem klepnutím (produkt jen jednou), odkazy Kauflandu na dlaždici, název Slevohlídka a vzhled podle loga, Albert jako zmínky z textu stránek Publitas, katalog 164 produktů a tabulka katalogu | hotovo 2026-10-02 |
 | 5c | **Přívětivost podle zkoušení** (R39–R44): přehledné Hlídám, Obchody v mřížce, menu účtu s avatarem, přihlášená zařízení a zrušení účtu, předvolby Mých slev, e-mailový souhrn, sbalitelné Moje slevy, stránkování Všech akcí a katalogu, úvodní stránka a veřejné Všechny akce | hotovo 2026-10-02 |
 | 6 | **LLM** (R23), jen pokud bude potřeba: Albert (obrázky stránek), zbytek letáku Lidlu, třídění nepřiřazených nabídek | |
-| 7 | **Nasazení na Websupport** (R20, R38): cron URL pro stahování, hlídání stažení (`/health/imports`), HTTPS a bezpečnostní hlavičky v `public/.htaccess`, SQL skripty schématu a katalogu, build balíčku, [deploy/DEPLOYMENT.md](../deploy/DEPLOYMENT.md), ověření O8 | balíček připraven 2026-10-02, nenasazeno |
+| 7 | **Nasazení na Websupport** (R20, R38): cron URL pro stahování, hlídání stažení (`/health/imports`), HTTPS a bezpečnostní hlavičky v `public/.htaccess`, SQL skripty schématu a katalogu, build balíčku, [deploy/DEPLOYMENT.md](../deploy/DEPLOYMENT.md), ověření O8 | nasazeno 2026-10-02 (první verze); aktualizace s R39–R45 připravená |
 
 ---
 

@@ -20,7 +20,7 @@ volné číslo R…). Změna chování obchodu (nový endpoint, jiné pole) pat�
 
 ## Stav
 
-Hotové jsou etapy 1–5b (PLAN.md, kap. 6):
+Hotové jsou etapy 1–5c (PLAN.md, kap. 6):
 - účty (Fortify, R12, R13); stahování akcí Kauflandu, Tesca, Lidlu a Penny (R15–R17, R25, R26)
 - zmínky v letácích bez ceny — Lidl, Penny a Albert (R27, R36; Albert jen zmínky, ceny zatím ne)
 - Všechny akce (`/akce`) s našeptávačem a výběrem obchodu s logy; Moje obchody (`/obchody`),
@@ -28,9 +28,15 @@ Hotové jsou etapy 1–5b (PLAN.md, kap. 6):
 - katalog produktů (R24, R28–R31, R37): strom kategorií z Tesca, 164 produktů, tabulka pro
   admina (`/katalog`) s přiřazováním akcí a ručními opravami
 - název Slevohlídka a vzhled podle loga (R34, R35), loga obchodů (R32)
+- přívětivost (R39–R45): Hlídám s našeptávačem, menu účtu s avatarem, předvolby Mých slev,
+  e-mailový souhrn, sbalitelné Moje slevy, stránkování Všech akcí a katalogu, úvodní stránka
+  pro nepřihlášené a veřejné Všechny akce, SEO a limity požadavků; plovoucí hlavička
+  s hamburgerem na telefonu a tlačítko Nahoru
 
-Další je etapa 6 (LLM, jen když bude potřeba) nebo 7 (nasazení na Websupport — balíček
-v `deploy/` je připravený, R38).
+Produkce běží na `https://slevohlidka.rhsoft.cz` (první nasazení 2026-10-02, `c5d45d7`);
+postup aktualizace a nasazené verze jsou v `deploy/DEPLOYMENT.md`. Další na řadě jsou obchody
+**Globus a Billa** — průzkum zdroje dat je v ZDROJE_DAT.md (obě bez LLM přes JSON API), Makro
+zatím nejde (ochrana proti robotům). Etapa 6 (LLM) jen když bude potřeba.
 Co z dřívějších rozhodnutí platí a co ne, je v tabulce na začátku PLAN.md.
 
 Vývojový uživatel ze seederu: `test@example.com` / `password` (admin katalogu; seeder

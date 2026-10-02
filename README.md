@@ -19,8 +19,10 @@ kde a za kolik je to právě ve slevě, včetně cen s věrnostní kartou a ceny
 
 > **Stav:** hotové jsou účty, stahování akcí Kauflandu, Tesca, Lidlu a Penny, zmínky v letácích
 > bez ceny (Lidl, Penny, Albert), hlídání a katalog 164 produktů se stromem kategorií z Tesca
-> (etapy 1–5b, [PLAN.md, sekce 6](docs/PLAN.md#6-etapy)). Balíček pro nasazení na Websupport
-> (`slevohlidka.rhsoft.cz`) je připravený, nasazení zatím neproběhlo. Další je LLM (jen když bude potřeba).
+> (etapy 1–5b), účet s avatarem, předvolby a e-mailový souhrn, úvodní stránka s veřejnými akcemi,
+> SEO a limity požadavků (etapa 5c, [PLAN.md, sekce 6](docs/PLAN.md#6-etapy)). Běží na
+> [slevohlidka.rhsoft.cz](https://slevohlidka.rhsoft.cz) (Websupport, [deploy/DEPLOYMENT.md](deploy/DEPLOYMENT.md)).
+> Další obchody na řadě: Globus a Billa (průzkum v [ZDROJE_DAT.md](docs/ZDROJE_DAT.md)).
 
 ## Jak se to používá
 
