@@ -1,12 +1,14 @@
 <!--
-    Společné rozvržení stránek — hlavička s navigací a menu účtu (nepřihlášený přihlášení,
+    Společné rozvržení stránek — plovoucí hlavička s navigací a menu účtu (nepřihlášený přihlášení,
     registraci a přepínač vzhledu), obsah. Na telefonu je navigace pod tlačítkem menu
     (hamburger); nepřihlášený má v hlavičce jen Registraci, přihlášení a vzhled jsou v menu (R44).
+    Vpravo dole tlačítko Nahoru.
 
     @author Roman Hlaváček
     @created 2026-10-02
 -->
 <script setup>
+import BackToTop from '@/Components/BackToTop.vue';
 import ThemeSwitch from '@/Components/ThemeSwitch.vue';
 import UserMenu from '@/Components/UserMenu.vue';
 import { useTranslations } from '@/lib/i18n';
@@ -125,4 +127,6 @@ onBeforeUnmount(() => {
     <main id="main" class="page" tabindex="-1">
         <slot />
     </main>
+
+    <BackToTop />
 </template>

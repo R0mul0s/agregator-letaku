@@ -12,6 +12,11 @@
     box-sizing: border-box;
 }
 
+// Kotvy (#polozka-…, scrollIntoView) se posunou pod plovoucí hlavičku, ne za ni
+html {
+    scroll-padding-top: var(--header-scroll-offset);
+}
+
 body {
     margin: 0;
     background: var(--color-bg);

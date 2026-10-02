@@ -7,8 +7,11 @@
 @use '../abstracts/mixins' as *;
 @use '../abstracts/variables' as *;
 
+// Plovoucí hlavička — při posouvání zůstává nahoře (i s rozbaleným menu na telefonu)
 .app-header {
-    position: relative;
+    position: sticky;
+    z-index: var(--z-header);
+    top: 0;
     background: var(--color-surface);
     border-bottom: 1px solid var(--color-border);
 

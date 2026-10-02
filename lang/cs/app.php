@@ -126,6 +126,7 @@ return [
             'tagline' => 'Rychlý lovec slev',
         ],
         'skip_to_content' => 'Přeskočit na obsah',
+        'back_to_top' => 'Nahoru na začátek stránky',
 
         'nav' => [
             'label' => 'Hlavní navigace',

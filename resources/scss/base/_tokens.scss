@@ -140,6 +140,13 @@
     --landing-streak-short: 1.75rem;
     --icon-size: 1.125rem;
     --z-dropdown: 20;
+    // Plovoucí hlavička nad obsahem i jeho rozbalovacími seznamy, tlačítko nahoru nad vším
+    --z-header: 30;
+    --z-back-to-top: 40;
+    // O kolik méně posunout na kotvu (#polozka-…) — výška plovoucí hlavičky s rezervou
+    --header-scroll-offset: 6rem;
+    --back-to-top-size: 3rem;
+    --back-to-top-offset: 1.25rem;
     --chain-logo-height: 1.5rem;
     --chain-logo-height-large: 2.25rem;
     // Vodoznak loga v kartě: přesahuje roh, ať je vidět jen část (jako velká čísla na rozcestnících)
