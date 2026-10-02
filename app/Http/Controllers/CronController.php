@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Domain\Catalog\Actions\ImportCategories;
+use App\Domain\Digest\Actions\SendDigests;
 use App\Domain\Offers\Actions\ImportChainOffers;
 use App\Http\Requests\CronRequest;
 use Illuminate\Http\Response;
@@ -59,6 +60,24 @@ class CronController extends Controller
         }
 
         return $this->text(__('app.import.categories_done', ['count' => $count]));
+    }
+
+    /**
+     * Pošle e-mailové souhrny nových akcí (R42) — jednou denně po ranním stažení.
+     */
+    public function sendDigests(CronRequest $request, SendDigests $send): Response
+    {
+        $this->extendTimeLimit();
+
+        try {
+            $count = $send();
+        } catch (Throwable $error) {
+            report($error);
+
+            return $this->text(__('app.digest.failed', ['error' => $error->getMessage()]), Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+
+        return $this->text(__('app.digest.done', ['count' => $count]));
     }
 
     /**

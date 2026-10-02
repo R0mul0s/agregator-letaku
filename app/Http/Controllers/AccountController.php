@@ -16,7 +16,9 @@ namespace App\Http\Controllers;
 use App\Actions\Fortify\UpdateUserPassword;
 use App\Actions\Fortify\UpdateUserProfileInformation;
 use App\Domain\Account\UserSessions;
+use App\Enums\DigestFrequency;
 use App\Enums\OffersSort;
+use App\Http\Requests\DigestRequest;
 use App\Http\Requests\OffersPreferencesRequest;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
@@ -40,6 +42,9 @@ class AccountController extends Controller
     /** Kód stavu po uložení předvoleb Mých slev (Account.vue). */
     public const STATUS_OFFERS_PREFERENCES_SAVED = 'offers-preferences-saved';
 
+    /** Kód stavu po uložení nastavení souhrnu (Account.vue). */
+    public const STATUS_DIGEST_SAVED = 'digest-saved';
+
     /**
      * Zobrazí formuláře účtu; názvy sad chyb musí sedět s akcemi Fortify.
      */
@@ -52,6 +57,7 @@ class AccountController extends Controller
                 'avatar' => route('account.avatar.update', absolute: false),
                 'avatarDelete' => route('account.avatar.destroy', absolute: false),
                 'offersPreferences' => route('account.offers-preferences', absolute: false),
+                'digest' => route('account.digest', absolute: false),
                 'logoutOtherDevices' => route('account.devices.logout', absolute: false),
                 'delete' => route('account.destroy', absolute: false),
             ],
@@ -61,6 +67,7 @@ class AccountController extends Controller
                 'devices' => self::ERROR_BAG_DEVICES,
                 'delete' => self::ERROR_BAG_DELETE,
                 'offersPreferences' => OffersPreferencesRequest::ERROR_BAG,
+                'digest' => DigestRequest::ERROR_BAG,
             ],
             'avatar' => [
                 'sizePx' => config()->integer('letaky.account.avatar.size_px'),
@@ -76,6 +83,13 @@ class AccountController extends Controller
                 ),
                 'minDiscountOptions' => config()->array('letaky.account.min_discount_options'),
             ],
+            'digest' => [
+                'frequency' => $this->user($request)->digest_frequency->value,
+                'options' => array_map(
+                    fn (DigestFrequency $frequency): array => ['value' => $frequency->value, 'label' => $frequency->label()],
+                    DigestFrequency::cases(),
+                ),
+            ],
         ]);
     }
 
@@ -87,6 +101,24 @@ class AccountController extends Controller
         $this->user($request)->forceFill($request->preferences())->save();
 
         return back()->with('status', self::STATUS_OFFERS_PREFERENCES_SAVED);
+    }
+
+    /**
+     * Uloží četnost e-mailového souhrnu (R42). Po zapnutí přijde první souhrn s přehledem
+     * všech aktuálních akcí, ne jen těch od dávno vypnutého souhrnu.
+     */
+    public function updateDigest(DigestRequest $request): RedirectResponse
+    {
+        $user = $this->user($request);
+        $frequency = $request->frequency();
+        $switchedOn = $user->digest_frequency === DigestFrequency::Off && $frequency !== DigestFrequency::Off;
+
+        $user->forceFill([
+            'digest_frequency' => $frequency,
+            'digest_sent_at' => $switchedOn ? null : $user->digest_sent_at,
+        ])->save();
+
+        return back()->with('status', self::STATUS_DIGEST_SAVED);
     }
 
     /**

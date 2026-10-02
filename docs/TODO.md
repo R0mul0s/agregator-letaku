@@ -14,11 +14,11 @@ v [PLAN.md](PLAN.md). Větší celky se z toho stávají etapou.
 
 ## Upozornění
 
-**Odkud:** zadání 2026-10-02. Výstupem je zatím webový seznam.
+**Odkud:** zadání 2026-10-02. E-mailový souhrn denně / týdně je hotový (R42).
 
-- e-mail (případně Telegram), když se hlídaná položka objeví v akci
-- souhrn jednou týdně po vydání nových letáků
-- k tomu tabulka `watch_matches` (co už uživatel viděl / dostal), dnes se shody počítají při zobrazení (R19)
+- okamžitý e-mail (případně Telegram), když se hlídaná položka objeví v akci — dnes jen souhrn jednou denně
+- zmínky v letácích bez ceny (R27) v souhrnu — dnes jen akce s cenou
+- tabulka `watch_matches` (co už uživatel viděl / dostal), pokud nebude stačit čas posledního souhrnu a `offers.created_at`
 
 ## Hlídání — rozšíření
 

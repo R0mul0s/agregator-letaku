@@ -35,8 +35,8 @@ Co z dřívějších rozhodnutí platí a co ne, je v tabulce na začátku PLAN.
 
 Vývojový uživatel ze seederu: `test@example.com` / `password` (admin katalogu; seeder
 založí i výchozí produkty)
-(`docker compose exec app php artisan db:seed`). E-maily (obnova hesla) se lokálně
-jen zapisují do `storage/logs/laravel.log`.
+(`docker compose exec app php artisan db:seed`). E-maily (obnova hesla, souhrn akcí) lokálně
+zachytává Mailpit (http://localhost:54723).
 
 ## Prostředí
 
@@ -51,6 +51,7 @@ docker compose up -d
 | Aplikace | http://localhost:54720 |
 | MariaDB | localhost:54721 (`agregator` / `agregator`), testy v `agregator_test` |
 | Vite dev server | http://localhost:54722 (jen při `npm run dev`) |
+| Mailpit | http://localhost:54723 — odchozí e-maily (obnova hesla, souhrn R42) |
 
 Porty nekolidují s Počasím (54710–54712) ani s Píchačkami (54687–54690).
 
@@ -69,6 +70,7 @@ docker compose exec app php artisan letaky:import-offers            # všechny o
 docker compose exec app php artisan letaky:import-offers kaufland   # jen vybrané (kaufland, tesco, albert, lidl, penny)
 docker compose exec app php artisan letaky:import-categories        # strom kategorií katalogu (Tesco, R28)
 docker compose exec app php artisan letaky:admin email@example.com  # správa katalogu /katalog (R29), --revoke odebere
+docker compose exec app php artisan letaky:send-digests             # e-mailové souhrny nových akcí (R42), do Mailpitu
 ```
 Výsledek každého stažení je v tabulce `scrape_runs`.
 
@@ -97,7 +99,7 @@ powershell -ExecutionPolicy Bypass -File deploy\build-upload.ps1   # jen z commi
 
 - **Žádná fronta, scheduler ani démon** — nic nesmí implementovat `ShouldQueue`.
   Stahování spouští cron WebAdminu: `/cron/import-offers?chain=…&token=…` po obchodech
-  a `/cron/import-categories?token=…` (`CronController`, token `LETAKY_CRON_TOKEN`,
+  a `/cron/import-categories?token=…`, souhrny `/cron/send-digests?token=…` (`CronController`, token `LETAKY_CRON_TOKEN`,
   bez tokenu 404). Každá úloha je Action volatelná z artisan příkazu i z kontroleru.
 - **`/health/imports`** vrací 503, když obchod nemá úspěšné stažení za 26 h (UptimeRobot).
 - **Každá migrace potřebuje SQL skript** `deploy/migrations-<datum>-<popis>.sql`
@@ -144,6 +146,7 @@ MariaDB 11.4 · Pest 4 · Larastan · Pint. Extrakce letáků (etapa 6): Claude 
 26. **Vzhled (R34, R35):** barvy loga jsou tokeny `--color-brand` / `--color-brand-dark` jen pro název v hlavičce; tlačítka a odkazy mají ztmavený akcent kvůli kontrastu (WCAG AA). Loga obchodů jsou v `public/images/chains` a zobrazují se přes `ChainLogo` / `ChainWatermark` ze sdílených dat `chainInfo` — sdílený prop se nesmí jmenovat stejně jako prop stránky (`chains` na Všech akcích ho přepsal). Prázdný stav = `EmptyState` s maskotem. Ikony a logo jsou vygenerované z `resources/brand/slevohlidka-logo.png`.
 27. **Pravidla katalogu jsou začátky slov** — krátká slova chytají i jiná („rum“ → „Rump steak“, „sůl“ → „sultánky“). Nový produkt v `database/seeders/data/catalog-products.php` vždy ověřit na ostrých akcích a doplnit vyloučená slova.
 28. **Profilový obrázek (R40)** je na disku `local`, ne v `public` — na hostingu nejde `storage:link`. Posílá ho `AvatarController`, ořez a zmenšení dělá prohlížeč (`resources/js/lib/image.js`), server jen validuje. V testech `pngOfSize()` místo `UploadedFile::fake()->image()` (kontejner nemá GD).
+29. **E-maily (R42)** mají vlastní téma `resources/views/vendor/mail/html/themes/slevohlidka.css` (barvy webu natvrdo — e-mailové klienty neumí CSS proměnné, Laravel styly vkládá inline). Ceny v e-mailu neformátovat přes `Number`/Intl — kontejner má ICU jen s angličtinou („CZK 39.90“). Veřejná vlastnost mailable přepíše stejnojmennou proměnnou šablony. Lokálně vše zachytí Mailpit.
 
 ## Jazyk
 

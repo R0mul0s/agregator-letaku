@@ -1,6 +1,6 @@
 <!--
     Můj účet (R12, R40, R41) — profilový obrázek, jméno a e-mail, heslo (Fortify),
-    předvolby Mých slev, přihlášená zařízení a zrušení účtu.
+    předvolby Mých slev, e-mailový souhrn (R42), přihlášená zařízení a zrušení účtu.
 
     @author Roman Hlaváček
     @created 2026-10-02
@@ -22,6 +22,7 @@ const STATUS_SECTIONS = {
     'password-updated': 'password',
     'other-devices-logged-out': 'devices',
     'offers-preferences-saved': 'offers',
+    'digest-saved': 'digest',
 };
 
 const props = defineProps({
@@ -34,6 +35,8 @@ const props = defineProps({
     sessions: { type: Array, required: true },
     /** Předvolby Mých slev { sort, minDiscountPercent, sortOptions, minDiscountOptions } (R41). */
     offersPreferences: { type: Object, required: true },
+    /** E-mailový souhrn { frequency, options } (R42). */
+    digest: { type: Object, required: true },
 });
 
 const t = useTranslations();
@@ -63,6 +66,8 @@ const offersForm = useForm({
     offers_sort: props.offersPreferences.sort,
     min_discount_percent: props.offersPreferences.minDiscountPercent,
 });
+
+const digestForm = useForm({ digest_frequency: props.digest.frequency });
 
 const devicesForm = useForm({ password: '' });
 const deleteForm = useForm({ password: '' });
@@ -132,6 +137,14 @@ function removeAvatar() {
 function updateOffersPreferences() {
     offersForm.put(props.urls.offersPreferences, {
         errorBag: props.errorBags.offersPreferences,
+        preserveScroll: true,
+    });
+}
+
+/** Uloží četnost e-mailového souhrnu. */
+function updateDigest() {
+    digestForm.put(props.urls.digest, {
+        errorBag: props.errorBags.digest,
         preserveScroll: true,
     });
 }
@@ -264,6 +277,27 @@ function deleteAccount() {
 
                     <div class="form__actions">
                         <button type="submit" class="button button--primary" :disabled="offersForm.processing">{{ t('account.save') }}</button>
+                    </div>
+                </form>
+            </section>
+
+            <section id="souhrn" class="card">
+                <h2 class="card__title">{{ t('account.digest_title') }}</h2>
+                <p v-if="statusFor('digest')" class="notice notice--success" role="status">{{ statusFor('digest') }}</p>
+                <p class="card__intro">{{ t('account.digest_hint', { email: user.email }) }}</p>
+
+                <form class="form" novalidate @submit.prevent="updateDigest">
+                    <fieldset class="form-field digest-options">
+                        <legend class="form-field__label">{{ t('account.digest_frequency') }}</legend>
+                        <label v-for="option in digest.options" :key="option.value" class="form-checkbox">
+                            <input v-model="digestForm.digest_frequency" type="radio" name="digest_frequency" :value="option.value" class="form-checkbox__input" />
+                            <span>{{ option.label }}</span>
+                        </label>
+                        <p v-if="digestForm.errors.digest_frequency" class="form-field__error" role="alert">{{ digestForm.errors.digest_frequency }}</p>
+                    </fieldset>
+
+                    <div class="form__actions">
+                        <button type="submit" class="button button--primary" :disabled="digestForm.processing">{{ t('account.save') }}</button>
                     </div>
                 </form>
             </section>

@@ -3,6 +3,7 @@
 # Aplikace:        http://localhost:54720
 # MariaDB:         localhost:54721 (agregator / agregator)
 # Vite dev server: http://localhost:54722 (jen při `npm run dev`)
+# Mailpit:         http://localhost:54723 (odchozí e-maily)
 #
 # Porty nekolidují s Počasím (54710–54712) ani s Píchačkami (54687–54690).
 #
@@ -68,6 +69,16 @@ services:
             interval: 5s
             timeout: 5s
             retries: 20
+        networks:
+            - letaky
+
+    # Zachytává odchozí e-maily (obnova hesla, souhrn akcí R42) — nic neodejde ven.
+    # Aplikace posílá na mailpit:1025, schránka je na http://localhost:54723
+    mailpit:
+        image: axllent/mailpit:latest
+        container_name: letaky-mailpit
+        ports:
+            - "127.0.0.1:54723:8025"
         networks:
             - letaky
 

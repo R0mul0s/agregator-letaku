@@ -43,6 +43,27 @@ return [
         'categories_failed' => 'Kategorie — chyba: :error',
     ],
 
+    // Společné pro všechny e-maily (resources/views/vendor/mail)
+    'mail' => [
+        'footer' => 'Slevohlídka — rychlý lovec slev',
+    ],
+
+    // E-mailový souhrn nových akcí (R42, App\Mail\DigestMail)
+    'digest' => [
+        'subject' => 'Slevohlídka: :count nová akce na hlídané zboží|Slevohlídka: :count nové akce na hlídané zboží|Slevohlídka: :count nových akcí na hlídané zboží',
+        'greeting' => 'Ahoj, :name!',
+        'intro' => 'Od posledního souhrnu Slevohlídka ulovila tyhle akce ve vašich obchodech:',
+        'no_price' => 'cena v letáku',
+        'valid_to' => 'do :date',
+        'more' => 'a :count další akce v Mých slevách|a :count další akce v Mých slevách|a :count dalších akcí v Mých slevách',
+        'count' => ':count nová|:count nové|:count nových',
+        'button' => 'Otevřít Moje slevy',
+        'footer' => 'Souhrn chodí :frequency.',
+        'settings_link' => 'Změnit nebo vypnout',
+        'done' => 'Souhrny — odesláno: :count',
+        'failed' => 'Souhrny — chyba: :error',
+    ],
+
     // Hlídání stahování (/health/imports) — prostý text pro monitoring
     'health' => [
         'ok' => ':chain — OK, naposledy :at',
@@ -192,6 +213,13 @@ return [
             'ending_soon' => 'konce platnosti',
         ],
 
+        // App\Enums\DigestFrequency — e-mailový souhrn (R42)
+        'digest_frequency' => [
+            'off' => 'Neposílat',
+            'daily' => 'Denně',
+            'weekly' => 'Jednou týdně',
+        ],
+
         // App\Enums\LoyaltyProgram
         'loyalty_programs' => [
             'kaufland_card' => 'Kaufland Card',
@@ -333,6 +361,9 @@ return [
             'min_discount_all' => 'Všechny akce',
             'min_discount_option' => 'Jen slevy od :percent %',
             'min_discount_hint' => 'Akční ceny bez uvedené původní ceny a akce na více kusů slevu v procentech nemají — s hranicí se neukážou.',
+            'digest_title' => 'E-mailový souhrn',
+            'digest_hint' => 'Ráno po stažení letáků pošleme na :email nové akce na hlídané zboží — jen když nějaké přibudou. První souhrn ukáže všechny aktuální akce.',
+            'digest_frequency' => 'Posílat',
             'avatar' => 'Profilový obrázek',
             'avatar_hint' => 'Obrázek se ořízne na čtverec. Bez obrázku se ukazují iniciály.',
             'avatar_upload' => 'Nahrát obrázek',
@@ -359,6 +390,7 @@ return [
                 'avatar-updated' => 'Profilový obrázek je uložený.',
                 'other-devices-logged-out' => 'Ostatní zařízení jsou odhlášená.',
                 'offers-preferences-saved' => 'Předvolby Mých slev jsou uložené.',
+                'digest-saved' => 'Nastavení souhrnu je uložené.',
             ],
         ],
     ],

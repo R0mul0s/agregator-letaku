@@ -158,6 +158,19 @@ return [
         'min_discount_options' => [10, 20, 30, 50],
     ],
 
+    /*
+    | E-mailový souhrn nových akcí (R42). Cron ho volá jednou denně po ranním stažení;
+    | interval je o pár hodin kratší než den / týden, aby posun cronu souhrn nepřeskočil.
+    */
+    'digest' => [
+        'interval_hours' => [
+            'daily' => 20,
+            'weekly' => 164,
+        ],
+        // Kolik akcí jedné hlídané položky e-mail vypíše (zbytek odkaz na Moje slevy)
+        'max_offers_per_item' => 5,
+    ],
+
     'cron' => [
         'token' => env('LETAKY_CRON_TOKEN'),
         // Limit běhu jednoho volání — stažení Tesca trvá ~45 s; hosting ho může omezit i tak (O8)

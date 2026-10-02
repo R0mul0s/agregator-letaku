@@ -66,3 +66,13 @@
         font-size: var(--font-size-sm);
     }
 }
+
+// Volba četnosti souhrnu (R42) — přepínače pod sebou, bez rámečku fieldsetu
+.digest-options {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    margin: 0;
+    padding: 0;
+    border: 0;
+}

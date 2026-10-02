@@ -25,6 +25,7 @@ use Illuminate\Support\Facades\Route;
 // Cron WebAdminu umí jen zavolat URL (R20, R38) — chráněné tokenem, bez něj 404
 Route::get('/cron/import-offers', [CronController::class, 'importOffers'])->name('cron.import-offers');
 Route::get('/cron/import-categories', [CronController::class, 'importCategories'])->name('cron.import-categories');
+Route::get('/cron/send-digests', [CronController::class, 'sendDigests'])->name('cron.send-digests');
 
 // Monitoring stahování (UptimeRobot) — veřejné, jen stav
 Route::get('/health/imports', HealthImportsController::class)->name('health.imports');
@@ -44,6 +45,7 @@ Route::middleware('auth')->group(function (): void {
 
     Route::get('/ucet', [AccountController::class, 'show'])->name('account');
     Route::delete('/ucet', [AccountController::class, 'destroy'])->name('account.destroy');
+    Route::put('/ucet/souhrn', [AccountController::class, 'updateDigest'])->name('account.digest');
     Route::put('/ucet/moje-slevy', [AccountController::class, 'updateOffersPreferences'])->name('account.offers-preferences');
     Route::delete('/ucet/zarizeni', [AccountController::class, 'logoutOtherDevices'])->name('account.devices.logout');
     Route::get('/ucet/obrazek', [AvatarController::class, 'show'])->name('account.avatar');

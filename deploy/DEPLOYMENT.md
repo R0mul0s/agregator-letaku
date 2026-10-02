@@ -112,8 +112,9 @@ pole *Opakovat* je zápis cronu (`minuta hodina den měsíc den_v_týdnu`). URL 
 | Slevohlídka – Penny | `30 5,13 * * *` | `…/cron/import-offers?chain=penny&token=…` (~25 s) |
 | Slevohlídka – Albert | `40 5,13 * * *` | `…/cron/import-offers?chain=albert&token=…` |
 | Slevohlídka – kategorie | `0 4 1 * *` | `…/cron/import-categories?token=…` — strom kategorií (stačí občas) |
+| Slevohlídka – souhrn | `30 6 * * *` | `…/cron/send-digests?token=…` — e-mailové souhrny nových akcí (R42), po ranním stažení |
 
-Hned po nasazení zavolej všech šest URL ručně v prohlížeči (kategorie první), ať se nečeká
+Hned po nasazení zavolej URL stažení ručně v prohlížeči (kategorie první), ať se nečeká
 na ranní běh. *Posílat výsledky e-mailem* stačí zapnout na první dny, pak hlídá `/health/imports`.
 
 Odpověď je prostý text, např. `Tesco — uloženo nabídek: 5139` (200), při chybě
@@ -192,7 +193,7 @@ a ruční opravy katalogu. Před každým SQL skriptem a jinak aspoň jednou mě
 |---|---|---|
 | `migrations-2026-10-02-init.sql` | výchozí schéma — všechny tabulky k 2026-10-02 a záznamy v `migrations` | |
 | `data-2026-10-02-katalog.sql` | strom kategorií e-shopu Tesco (1 728) a 164 produktů katalogu (R28, R37), `REPLACE` — opakovatelný; až po init | |
-| `migrations-2026-10-02-ucet.sql` | nastavení účtu: `users.avatar_path` (R40), `users.offers_sort` a `min_discount_percent` (R41); opakovatelný, pustit **před** nahráním kódu | |
+| `migrations-2026-10-02-ucet.sql` | nastavení účtu: `users.avatar_path` (R40), `users.offers_sort` a `min_discount_percent` (R41), `users.digest_frequency` a `digest_sent_at` (R42); opakovatelný, pustit **před** nahráním kódu | |
 
 ## Nasazené verze
 

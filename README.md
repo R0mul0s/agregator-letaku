@@ -71,7 +71,7 @@ docker compose exec app php artisan letaky:import-offers
 ```
 
 Pak otevři http://localhost:54720 a zaregistruj se (nebo se přihlas vývojovým uživatelem).
-E-maily (odkaz na obnovu hesla) se lokálně jen zapisují do `storage/logs/laravel.log`.
+Odchozí e-maily (obnova hesla, souhrn akcí) lokálně zachytává Mailpit (http://localhost:54723), nic neodejde ven.
 
 ### Služby
 
@@ -80,6 +80,7 @@ E-maily (odkaz na obnovu hesla) se lokálně jen zapisují do `storage/logs/lara
 | Aplikace | http://localhost:54720 |
 | MariaDB | localhost:54721 (`agregator` / `agregator`) |
 | Vite dev server | http://localhost:54722 (při `npm run dev`) |
+| Mailpit | http://localhost:54723 (odchozí e-maily) |
 
 Databáze pro testy `agregator_test` vzniká automaticky, ale **jen při prvním
 startu nad prázdným volume** (`docker/mariadb/init.sql`). Když chybí, smaž
@@ -114,6 +115,9 @@ docker compose exec app php artisan letaky:import-categories
 
 # správa katalogu pro účet (--revoke odebere)
 docker compose exec app php artisan letaky:admin email@example.com
+
+# e-mailové souhrny nových akcí těm, kterým je čas (R42); lokálně do Mailpitu
+docker compose exec app php artisan letaky:send-digests
 ```
 
 ## Struktura repozitáře

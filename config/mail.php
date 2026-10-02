@@ -115,4 +115,15 @@ return [
         'name' => env('MAIL_FROM_NAME', env('APP_NAME', 'Laravel')),
     ],
 
+    /*
+    | Markdown e-maily (souhrn akcí R42, obnova hesla): vlastní téma a hlavička s logem
+    | ve stylu webu — resources/views/vendor/mail/html.
+    */
+    'markdown' => [
+        'theme' => 'slevohlidka',
+        'paths' => [
+            resource_path('views/vendor/mail'),
+        ],
+    ],
+
 ];

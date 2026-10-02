@@ -1,4 +1,4 @@
--- Slevohlídka — nastavení účtu: profilový obrázek (R40), předvolby Mých slev (R41).
+-- Slevohlídka — nastavení účtu: profilový obrázek (R40), předvolby Mých slev (R41), e-mailový souhrn (R42).
 -- Opakovatelný (IF NOT EXISTS). Pustit PŘED nahráním kódu.
 --
 -- @author Roman Hlaváček
@@ -19,3 +19,12 @@ ALTER TABLE `users`
 INSERT INTO `migrations` (`migration`, `batch`)
 SELECT '2026_10_02_235100_add_offers_preferences_to_users_table', 2 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM `migrations` WHERE `migration` = '2026_10_02_235100_add_offers_preferences_to_users_table');
+
+-- E-mailový souhrn nových akcí (R42)
+ALTER TABLE `users`
+    ADD COLUMN IF NOT EXISTS `digest_frequency` varchar(10) NOT NULL DEFAULT 'off' COMMENT 'App\\Enums\\DigestFrequency' AFTER `min_discount_percent`,
+    ADD COLUMN IF NOT EXISTS `digest_sent_at` timestamp NULL DEFAULT NULL COMMENT 'UTC, poslední odeslaný souhrn; akce nalezené později jsou „nové“' AFTER `digest_frequency`;
+
+INSERT INTO `migrations` (`migration`, `batch`)
+SELECT '2026_10_02_235200_add_digest_to_users_table', 2 FROM DUAL
+WHERE NOT EXISTS (SELECT 1 FROM `migrations` WHERE `migration` = '2026_10_02_235200_add_digest_to_users_table');
