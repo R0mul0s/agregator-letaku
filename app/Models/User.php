@@ -27,6 +27,7 @@ use Illuminate\Support\Collection;
  * @property int $id
  * @property string $name
  * @property string $email
+ * @property string|null $avatar_path Profilový obrázek na disku local (R40); null = iniciály
  * @property CarbonImmutable|null $email_verified_at
  * @property string $password
  * @property Collection<int, LoyaltyProgram>|null $loyalty_programs
@@ -55,6 +56,7 @@ class User extends Authenticatable
      */
     protected $attributes = [
         'is_admin' => false,
+        'avatar_path' => null,
     ];
 
     /** @var list<string> */
@@ -98,6 +100,17 @@ class User extends Authenticatable
     public function watchItems(): HasMany
     {
         return $this->hasMany(WatchItem::class);
+    }
+
+    /**
+     * Adresa profilového obrázku, null bez obrázku (ukážou se iniciály). Název souboru
+     * je při každém nahrání nový — parametr v obrázek v cache prohlížeče obnoví.
+     */
+    public function avatarUrl(): ?string
+    {
+        return $this->avatar_path === null
+            ? null
+            : route('account.avatar', ['v' => pathinfo($this->avatar_path, PATHINFO_FILENAME)], absolute: false);
     }
 
     /**

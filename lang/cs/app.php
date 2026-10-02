@@ -72,7 +72,6 @@ return [
             'watch_items' => 'Hlídám',
             'preferences' => 'Obchody',
             'offers' => 'Všechny akce',
-            'account' => 'Účet',
             'catalog' => 'Katalog',
         ],
 
@@ -305,17 +304,43 @@ return [
             'mention_leaflet' => 'Akční leták',
         ],
 
+        // Menu pod avatarem vpravo nahoře (UserMenu.vue, R40)
+        'user_menu' => [
+            'label' => 'Účet a nastavení',
+        ],
+
         'account' => [
-            'title' => 'Účet',
+            'title' => 'Můj účet',
             'profile' => 'Osobní údaje',
             'password' => 'Změna hesla',
             'current_password' => 'Současné heslo',
             'new_password' => 'Nové heslo',
             'save' => 'Uložit',
-            // Kódy stavu, které Fortify vrací po uložení
+            'avatar' => 'Profilový obrázek',
+            'avatar_hint' => 'Obrázek se ořízne na čtverec. Bez obrázku se ukazují iniciály.',
+            'avatar_upload' => 'Nahrát obrázek',
+            'avatar_change' => 'Změnit obrázek',
+            'avatar_remove' => 'Odebrat',
+            'avatar_unreadable' => 'Obrázek se nepodařilo načíst — zkuste JPG nebo PNG.',
+            'devices' => 'Přihlášená zařízení',
+            'devices_hint' => 'Kde jste teď přihlášeni. Když jste se přihlásili na cizím počítači, odhlaste ostatní zařízení.',
+            'devices_empty' => 'Seznam přihlášení teď není k dispozici.',
+            'this_device' => 'Toto zařízení',
+            'last_active' => 'naposledy :at',
+            'confirm_password' => 'Heslo pro potvrzení',
+            'logout_others' => 'Odhlásit ostatní zařízení',
+            'unknown_device' => 'Neznámé zařízení',
+            'delete_title' => 'Zrušení účtu',
+            'delete_hint' => 'Smaže účet, hlídané položky i nastavení obchodů. Nejde to vrátit.',
+            'delete_submit' => 'Zrušit účet',
+            'delete_confirm' => 'Opravdu zrušit účet? Hlídané položky a nastavení se smažou a nepůjdou vrátit.',
+            'deleted' => 'Účet je zrušený. Díky, že jste Slevohlídku vyzkoušeli.',
+            // Kódy stavu po uložení (Fortify a AccountController / AvatarController)
             'status' => [
                 'profile-information-updated' => 'Osobní údaje jsou uložené.',
                 'password-updated' => 'Heslo je změněné.',
+                'avatar-updated' => 'Profilový obrázek je uložený.',
+                'other-devices-logged-out' => 'Ostatní zařízení jsou odhlášená.',
             ],
         ],
     ],

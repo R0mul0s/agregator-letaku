@@ -1,5 +1,5 @@
 // _account.scss
-// Stránka účtu — formuláře vedle sebe na širokém displeji.
+// Můj účet — oddíly vedle sebe na širokém displeji, profilový obrázek, přihlášená zařízení.
 //
 // @author Roman Hlaváček
 // @created 2026-10-02
@@ -9,4 +9,60 @@
     grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--account-column-min-width)), 1fr));
     align-items: start;
     gap: var(--space-4);
+}
+
+// Profilový obrázek s tlačítky vedle (R40)
+.account-avatar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+
+    &__body {
+        flex: 1;
+        min-width: var(--account-avatar-body-min-width);
+    }
+
+    &__title {
+        margin: 0;
+        font-weight: 700;
+    }
+
+    &__actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-2);
+        margin-top: var(--space-2);
+    }
+}
+
+.device-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    margin: var(--space-3) 0;
+    padding: 0;
+    list-style: none;
+
+    &__item {
+        display: flex;
+        flex-direction: column;
+        padding: var(--space-2) var(--space-3);
+        background: var(--color-bg);
+        border-radius: var(--radius-sm);
+    }
+
+    &__name {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--space-2);
+        font-weight: 600;
+    }
+
+    &__meta {
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+    }
 }

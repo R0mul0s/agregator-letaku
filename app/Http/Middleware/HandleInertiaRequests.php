@@ -32,7 +32,6 @@ class HandleInertiaRequests extends Middleware
         'watch-items.index' => 'watch_items',
         'preferences' => 'preferences',
         'offers' => 'offers',
-        'account' => 'account',
     ];
 
     /** Položky navigace navíc pro admina (R29). */
@@ -67,8 +66,12 @@ class HandleInertiaRequests extends Middleware
                 'user' => $user instanceof User ? [
                     'name' => $user->name,
                     'email' => $user->email,
+                    'avatarUrl' => $user->avatarUrl(),
                 ] : null,
                 'logoutUrl' => route('logout', absolute: false),
+                // Účet je v menu pod avatarem vpravo nahoře (R40), ne v hlavní navigaci
+                'accountUrl' => route('account', absolute: false),
+                'accountActive' => $request->routeIs('account'),
             ],
             // Zpráva Fortify po akci: přeložený text (odkaz na obnovu hesla odeslán)
             // nebo kód (profile-information-updated, password-updated)

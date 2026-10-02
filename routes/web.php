@@ -11,6 +11,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\AvatarController;
 use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\CronController;
 use App\Http\Controllers\HealthImportsController;
@@ -41,7 +42,12 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/obchody', [ShoppingPreferencesController::class, 'show'])->name('preferences');
     Route::put('/obchody', [ShoppingPreferencesController::class, 'update'])->name('preferences.update');
 
-    Route::get('/ucet', AccountController::class)->name('account');
+    Route::get('/ucet', [AccountController::class, 'show'])->name('account');
+    Route::delete('/ucet', [AccountController::class, 'destroy'])->name('account.destroy');
+    Route::delete('/ucet/zarizeni', [AccountController::class, 'logoutOtherDevices'])->name('account.devices.logout');
+    Route::get('/ucet/obrazek', [AvatarController::class, 'show'])->name('account.avatar');
+    Route::post('/ucet/obrazek', [AvatarController::class, 'update'])->name('account.avatar.update');
+    Route::delete('/ucet/obrazek', [AvatarController::class, 'destroy'])->name('account.avatar.destroy');
 
     // Katalog produktů spravuje admin (R29)
     Route::middleware('can:manage-catalog')->prefix('katalog')->name('catalog.')->group(function (): void {

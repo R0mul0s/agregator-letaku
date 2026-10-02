@@ -1,0 +1,108 @@
+// _user-menu.scss
+// Menu účtu vpravo nahoře (R40) — avatar a rozbalovací panel s účtem, vzhledem a odhlášením.
+//
+// @author Roman Hlaváček
+// @created 2026-10-02
+
+.user-menu {
+    position: relative;
+
+    &__toggle {
+        display: inline-flex;
+        padding: var(--avatar-ring-width);
+        background: none;
+        border: var(--avatar-ring-width) solid transparent;
+        border-radius: 50%;
+        cursor: pointer;
+
+        &:hover,
+        &[aria-expanded='true'] {
+            border-color: var(--color-border);
+        }
+
+        // Na stránce účtu je avatar „aktivní položkou“ navigace
+        &--active {
+            border-color: var(--color-accent);
+        }
+    }
+
+    &__panel {
+        position: absolute;
+        z-index: var(--z-dropdown);
+        top: calc(100% + var(--space-2));
+        right: 0;
+        display: flex;
+        flex-direction: column;
+        width: var(--user-menu-width);
+        padding: var(--space-2);
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-card-hover);
+    }
+
+    &__identity {
+        display: flex;
+        flex-direction: column;
+        padding: var(--space-2) var(--space-3) var(--space-3);
+        border-bottom: 1px solid var(--color-border);
+    }
+
+    &__name {
+        overflow-wrap: anywhere;
+    }
+
+    &__email {
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+        overflow-wrap: anywhere;
+    }
+
+    &__item {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        width: 100%;
+        margin-top: var(--space-1);
+        padding: var(--space-2) var(--space-3);
+        background: none;
+        border: 0;
+        border-radius: var(--radius-sm);
+        color: var(--color-text);
+        font: inherit;
+        text-align: left;
+        text-decoration: none;
+        cursor: pointer;
+
+        &:hover {
+            background: var(--color-accent-soft);
+        }
+    }
+
+    &__icon {
+        width: var(--icon-size);
+        height: var(--icon-size);
+        fill: none;
+        stroke: var(--color-text-muted);
+        stroke-width: var(--svg-stroke-icon);
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+
+    // Přepínač vzhledu na vlastním řádku mezi oddělovači
+    &__theme {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-2);
+        margin-top: var(--space-1);
+        padding: var(--space-2) var(--space-3);
+        border-top: 1px solid var(--color-border);
+        border-bottom: 1px solid var(--color-border);
+    }
+
+    &__theme-label {
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+    }
+}

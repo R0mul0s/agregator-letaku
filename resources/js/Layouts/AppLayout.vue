@@ -1,11 +1,12 @@
 <!--
-    Společné rozvržení stránek — hlavička s navigací, přepínačem vzhledu a odhlášením, obsah.
+    Společné rozvržení stránek — hlavička s navigací a menu účtu (nepřihlášený jen přepínač vzhledu), obsah.
 
     @author Roman Hlaváček
     @created 2026-10-02
 -->
 <script setup>
 import ThemeSwitch from '@/Components/ThemeSwitch.vue';
+import UserMenu from '@/Components/UserMenu.vue';
 import { useTranslations } from '@/lib/i18n';
 import { Link, usePage } from '@inertiajs/vue3';
 
@@ -40,16 +41,9 @@ const page = usePage();
                 </Link>
             </nav>
             <div class="app-header__actions">
-                <ThemeSwitch />
-                <Link
-                    v-if="page.props.auth.user"
-                    :href="page.props.auth.logoutUrl"
-                    method="post"
-                    as="button"
-                    class="button button--ghost"
-                >
-                    {{ t('auth.logout') }}
-                </Link>
+                <!-- Přihlášený má vzhled i odhlášení v menu pod avatarem (R40) -->
+                <UserMenu v-if="page.props.auth.user" />
+                <ThemeSwitch v-else />
             </div>
         </div>
     </header>

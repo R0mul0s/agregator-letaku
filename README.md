@@ -122,6 +122,7 @@ docker compose exec app php artisan letaky:admin email@example.com
 app/
   Actions/Fortify/         registrace, obnova a změna hesla, úprava profilu (R12)
   Console/Commands/        artisan importy (obálky nad akcemi)
+  Domain/Account/          účet: přihlášená zařízení (session v DB), název zařízení z User-Agentu
   Domain/Catalog/          katalog produktů: kategorie (strom Tesca), přiřazení akcí, ruční opravy
   Domain/Chains/           sledované obchody a jejich možnosti, uložení nastavení
   Domain/Matching/         hlídané položky: pravidla, párování, Moje slevy

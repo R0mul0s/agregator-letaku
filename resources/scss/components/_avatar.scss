@@ -1,0 +1,33 @@
+// _avatar.scss
+// Avatar uživatele (R40) — kulatý obrázek, nebo iniciály na červeném přechodu loga.
+//
+// @author Roman Hlaváček
+// @created 2026-10-02
+
+.avatar {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: var(--avatar-size);
+    height: var(--avatar-size);
+    overflow: hidden;
+    background: var(--gradient-brand);
+    border-radius: 50%;
+    color: var(--color-on-brand);
+    font-size: var(--avatar-font-size);
+    font-weight: 800;
+    line-height: 1;
+
+    &--large {
+        width: var(--avatar-size-large);
+        height: var(--avatar-size-large);
+        font-size: var(--avatar-font-size-large);
+    }
+
+    &__image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+}

@@ -143,6 +143,19 @@ return [
     | Token: docker compose exec app php -r "echo bin2hex(random_bytes(24));"
     | Prázdný token cron URL vypíná (odpovídají 404).
     */
+    /*
+    | Účet uživatele (R40). Profilový obrázek ořízne a zmenší prohlížeč na čtverec
+    | size_px (hosting nemusí mít knihovnu na úpravu obrázků), server ho jen ověří.
+    */
+    'account' => [
+        'avatar' => [
+            'directory' => 'avatars',
+            'size_px' => 256,
+            'max_kilobytes' => 512,
+            'mimes' => ['webp', 'png', 'jpg'],
+        ],
+    ],
+
     'cron' => [
         'token' => env('LETAKY_CRON_TOKEN'),
         // Limit běhu jednoho volání — stažení Tesca trvá ~45 s; hosting ho může omezit i tak (O8)

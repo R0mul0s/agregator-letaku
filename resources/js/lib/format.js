@@ -82,3 +82,17 @@ export function formatDate(date, locale) {
         new Date(`${date}T00:00:00Z`),
     );
 }
+
+/**
+ * Okamžik (ISO 8601 v UTC) jako místní datum a čas: „2. 10. 20:15“.
+ *
+ * @param {string} isoDateTime
+ * @param {string} locale
+ * @param {string} timeZone Zóna zobrazení (sdílená vlastnost `timezone`)
+ * @returns {string}
+ */
+export function formatDateTime(isoDateTime, locale, timeZone) {
+    return cachedFormatter(Intl.DateTimeFormat, locale, { day: 'numeric', month: 'numeric', hour: '2-digit', minute: '2-digit', timeZone }).format(
+        new Date(isoDateTime),
+    );
+}

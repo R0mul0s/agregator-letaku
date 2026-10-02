@@ -192,6 +192,7 @@ a ruční opravy katalogu. Před každým SQL skriptem a jinak aspoň jednou mě
 |---|---|---|
 | `migrations-2026-10-02-init.sql` | výchozí schéma — všechny tabulky k 2026-10-02 a záznamy v `migrations` | |
 | `data-2026-10-02-katalog.sql` | strom kategorií e-shopu Tesco (1 728) a 164 produktů katalogu (R28, R37), `REPLACE` — opakovatelný; až po init | |
+| `migrations-2026-10-02-ucet.sql` | nastavení účtu (R40): `users.avatar_path`; opakovatelný, pustit **před** nahráním kódu | |
 
 ## Nasazené verze
 

@@ -40,7 +40,17 @@
         }
     }
 
-    // Méně výrazná akce v hlavičce (odhlášení)
+    // Nevratná akce (zrušení účtu)
+    &--danger {
+        background: var(--color-danger);
+        color: var(--color-on-accent);
+
+        &:hover:not(:disabled) {
+            box-shadow: var(--focus-ring);
+        }
+    }
+
+    // Méně výrazná akce
     &--ghost {
         background: none;
         border-color: var(--color-border);

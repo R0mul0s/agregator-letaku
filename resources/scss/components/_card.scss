@@ -17,6 +17,11 @@
         margin-bottom: var(--space-3);
         font-size: var(--font-size-card-title);
     }
+
+    // Oddíl s nevratnou akcí (zrušení účtu)
+    &--danger {
+        border-color: var(--color-danger);
+    }
 }
 
 // Přihlášení, registrace, obnova hesla — úzká karta uprostřed
