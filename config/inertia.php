@@ -18,14 +18,23 @@ return [
     | písmen — ale na Linuxu (CI) by testy stránky nenašly. Konfigurace balíčku
     | se slučuje jen na nejvyšší úrovni, proto celá sekce.
     |
-    | ensure_pages_exist: assertInertia() v testech ověří, že Vue stránka existuje.
+    | pages.ensure_pages_exist zůstává vypnuté: kontrolovalo by soubor stránky při
+    | každém požadavku, a na produkci resources/js není (balíček nese jen sestavené
+    | assety, deploy/build-upload.ps1) — každá stránka by spadla na 500.
     */
     'pages' => [
-        'ensure_pages_exist' => true,
+        'ensure_pages_exist' => false,
         'paths' => [
             resource_path('js/Pages'),
         ],
         'extensions' => ['vue'],
+    ],
+
+    /*
+    | assertInertia() v testech ověří, že Vue stránka existuje (v paths výš).
+    */
+    'testing' => [
+        'ensure_pages_exist' => true,
     ],
 
 ];
