@@ -1,5 +1,5 @@
 // _watch.scss
-// Moje slevy (skupiny podle hlídaných položek) a stránka Hlídám.
+// Moje slevy (skupiny podle hlídaných položek) a stránka Hlídám (pole přidání, dlaždice, katalog).
 //
 // @author Roman Hlaváček
 // @created 2026-10-02
@@ -51,103 +51,213 @@
     }
 }
 
-// Na širokém displeji seznam vlevo, nová položka vpravo
-.watch-layout {
-    display: grid;
-    align-items: start;
-    gap: var(--space-4);
+// Hlídám: pole „Co chcete hlídat?“ a formulář vlastních slov pod ním
+.watch-new {
+    margin-bottom: var(--space-4);
 
-    @include from-lg {
-        // minmax(0, …) — dlouhý obsah (cesty kategorií v katalogu) nesmí sloupec roztáhnout
-        grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    &__own {
+        margin-top: var(--space-4);
+        padding-top: var(--space-4);
+        border-top: 1px solid var(--color-border);
     }
 
-    &__list {
-        display: flex;
-        flex-direction: column;
-        gap: var(--space-3);
-    }
-
-    // Přidání je na mobilu nahoře — je to nejčastější akce
-    &__new {
-        display: flex;
-        flex-direction: column;
-        gap: var(--space-3);
-        order: -1;
-
-        @include from-lg {
-            order: 0;
-        }
+    &__title {
+        margin-bottom: var(--space-1);
+        font-size: var(--font-size-md);
     }
 }
 
-.watch-item {
-    &__rules {
-        display: grid;
-        grid-template-columns: auto 1fr;
-        gap: var(--space-1) var(--space-3);
-        margin: 0 0 var(--space-2);
-    }
-
+.watch-add {
     &__label {
-        color: var(--color-text-muted);
+        display: block;
+        margin-bottom: var(--space-2);
+        font-size: var(--font-size-card-title);
+        font-weight: var(--font-weight-heading);
     }
 
-    &__value {
-        margin: 0;
-    }
-}
-
-// Katalog v Hlídám (R31) — produkty jako řádky, klepnutím se začnou hlídat
-.watch-catalog {
-    &__filter {
+    &__input {
         width: 100%;
-        margin: var(--space-3) 0 var(--space-2);
-    }
-
-    &__list {
-        display: flex;
-        flex-direction: column;
-        gap: var(--space-1);
-        max-height: var(--watch-catalog-max-height);
-        margin: 0;
-        padding: 0;
-        overflow-y: auto;
-        list-style: none;
-    }
-
-    &__product {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: baseline;
-        justify-content: space-between;
-        gap: var(--space-1) var(--space-2);
-        width: 100%;
-        padding: var(--space-2) var(--space-3);
-        background: var(--color-bg);
-        border: 1px solid var(--color-border);
-        border-radius: var(--radius-sm);
-        color: var(--color-text);
-        text-align: left;
-        cursor: pointer;
-
-        &:hover:not(:disabled) {
-            border-color: var(--color-accent);
-        }
-
-        &--watched {
-            cursor: default;
-            opacity: var(--opacity-disabled);
-        }
-    }
-
-    &__name {
-        font-weight: 600;
     }
 
     &__category {
         color: var(--color-text-muted);
         font-size: var(--font-size-xs);
+        text-align: right;
+    }
+
+    // Poslední volba „Hlídat … vlastními slovy“ oddělená od produktů
+    &__own {
+        color: var(--color-accent-strong);
+        font-weight: 700;
+    }
+}
+
+// Hlídané položky jako dlaždice v mřížce
+.watch-list {
+    margin-bottom: var(--space-4);
+
+    &__title {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        margin-bottom: var(--space-3);
+        font-size: var(--font-size-card-title);
+    }
+
+    &__grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--watch-tile-min-width)), 1fr));
+        align-items: start;
+        gap: var(--space-3);
+    }
+}
+
+.watch-tile {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    padding: var(--space-3);
+
+    // Položka s akcí má levý okraj v akcentu — na první pohled je vidět, co je ve slevě
+    &--active {
+        border-left: var(--watch-tile-accent-width) solid var(--color-accent);
+    }
+
+    // Formulář úpravy potřebuje víc místa než dlaždice
+    &--editing {
+        grid-column: 1 / -1;
+    }
+
+    &__header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: var(--space-2);
+    }
+
+    &__name {
+        font-size: var(--font-size-md);
+        overflow-wrap: anywhere;
+    }
+
+    &__actions {
+        display: flex;
+        flex: none;
+        margin: calc(-1 * var(--space-1)) calc(-1 * var(--space-1)) 0 0;
+    }
+
+    &__source {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--space-1) var(--space-2);
+        margin: 0;
+    }
+
+    &__keywords {
+        color: var(--color-text-muted);
+        font-size: var(--font-size-xs);
+        overflow-wrap: anywhere;
+    }
+
+    &__status {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-1) var(--space-2);
+        margin: 0;
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+
+        &--offers {
+            color: var(--color-price);
+            text-decoration: none;
+
+            &:hover {
+                text-decoration: underline;
+            }
+        }
+    }
+
+    &__mentions {
+        margin: 0;
+        color: var(--color-text-muted);
+        font-size: var(--font-size-xs);
+    }
+}
+
+// Katalog k procházení — sbalený, produkty jako čipy, filtr podle oddělení
+.watch-browse {
+    padding: var(--space-3) var(--space-4);
+
+    &__summary {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        font-size: var(--font-size-card-title);
+        font-weight: var(--font-weight-heading);
+        list-style: none;
+        cursor: pointer;
+
+        // Vlastní šipka místo výchozího trojúhelníku (flex ho schová), po otevření dolů
+        &::before {
+            content: '▸';
+            color: var(--color-accent);
+            transition: transform var(--duration-fast);
+        }
+
+        &::-webkit-details-marker {
+            display: none;
+        }
+    }
+
+    &[open] &__summary::before {
+        transform: rotate(90deg);
+    }
+
+    &__count {
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+        font-weight: 400;
+    }
+
+    &__departments {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-2);
+        margin: var(--space-3) 0;
+    }
+
+    &__products {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-2);
+        margin: 0;
+        padding: var(--space-3) 0 0;
+        border-top: 1px solid var(--color-border);
+        list-style: none;
+    }
+
+    &__product {
+        display: inline-flex;
+        gap: var(--space-1);
+        padding: var(--space-1) var(--space-3);
+        background: var(--color-bg);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-pill);
+        color: var(--color-text);
+        font: inherit;
+        font-size: var(--font-size-sm);
+        cursor: pointer;
+
+        &:hover:not(:disabled) {
+            border-color: var(--color-accent);
+            color: var(--color-accent-strong);
+        }
+
+        &:disabled {
+            cursor: default;
+            opacity: var(--opacity-disabled);
+        }
     }
 }
 

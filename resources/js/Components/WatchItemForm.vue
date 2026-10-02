@@ -1,6 +1,6 @@
 <!--
     Formulář hlídané položky s vlastními slovy (R18) — nová i úprava. Produkt z katalogu
-    se přidává klepnutím v seznamu katalogu (R31), formulář nepotřebuje.
+    se přidává z našeptávače nebo katalogu v Hlídám (R31), formulář nepotřebuje.
 
     @author Roman Hlaváček
     @created 2026-10-02
@@ -19,6 +19,8 @@ const props = defineProps({
     /** Výchozí hodnoty (úprava). */
     item: { type: Object, default: () => ({}) },
     submitLabel: { type: String, required: true },
+    /** Tlačítko Zrušit i u nové položky (úprava ho má vždy). */
+    cancelable: { type: Boolean, default: false },
 });
 
 const emit = defineEmits(['saved', 'cancel']);
@@ -76,7 +78,7 @@ function submit() {
 
         <div class="form__actions">
             <button type="submit" class="button button--primary" :disabled="form.processing">{{ submitLabel }}</button>
-            <button v-if="method !== 'post'" type="button" class="button button--ghost" @click="emit('cancel')">{{ t('watch.cancel') }}</button>
+            <button v-if="cancelable || method !== 'post'" type="button" class="button button--ghost" @click="emit('cancel')">{{ t('watch.cancel') }}</button>
         </div>
     </form>
 </template>

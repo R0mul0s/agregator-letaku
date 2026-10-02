@@ -60,5 +60,11 @@
         &--active {
             background: var(--color-accent-soft);
         }
+
+        // Návrh, který nejde zvolit (produkt už hlídaný)
+        &--disabled {
+            cursor: default;
+            opacity: var(--opacity-disabled);
+        }
     }
 }

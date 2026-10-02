@@ -60,8 +60,8 @@ function remove() {
             <p v-if="product.categoryLabel" class="page__subtitle">{{ product.categoryLabel }}</p>
         </header>
 
-        <div class="watch-layout">
-            <section class="watch-layout__list">
+        <div class="catalog-detail">
+            <section class="catalog-detail__offers">
                 <h2 class="watch-group__title">
                     {{ t('catalog.assigned') }}
                     <span class="watch-group__count">{{ t('home.count', { count: assigned.length }) }}</span>
@@ -99,7 +99,7 @@ function remove() {
                 </div>
             </section>
 
-            <section class="card watch-layout__new">
+            <section class="card catalog-detail__rules">
                 <h2 class="card__title">{{ t('catalog.edit_title') }}</h2>
                 <p class="form-field__hint">{{ t('catalog.edit_hint') }}</p>
                 <ProductForm :url="product.updateUrl" method="put" :product="product" :categories="categories" :submit-label="t('catalog.save')" />

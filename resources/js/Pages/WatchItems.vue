@@ -1,44 +1,47 @@
 <!--
-    Hlídám — seznam hlídaných položek, přidání produktu z katalogu jedním klepnutím (R31)
-    a vlastní hledání slovy pro věci, které v katalogu nejsou (R18).
+    Hlídám — jedno pole „Co chcete hlídat?“ (produkt z katalogu, nebo vlastní slova), přehled
+    hlídaných položek s tím, co je teď v akci, a katalog k procházení podle oddělení (R18, R31).
 
     @author Roman Hlaváček
     @created 2026-10-02
 -->
 <script setup>
 import EmptyState from '@/Components/EmptyState.vue';
+import WatchAdd from '@/Components/WatchAdd.vue';
 import WatchItemForm from '@/Components/WatchItemForm.vue';
+import WatchItemTile from '@/Components/WatchItemTile.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { useTranslations } from '@/lib/i18n';
-import { normalizeSearch } from '@/lib/search';
 import { Head, router, usePage } from '@inertiajs/vue3';
-import { computed, ref } from 'vue';
+import { computed, nextTick, ref } from 'vue';
 
 const props = defineProps({
     urls: { type: Object, required: true },
+    /** Hlídané položky s počtem akcí, nejnižší cenou a zmínkami (WatchItemController::index). */
     watchItems: { type: Array, required: true },
-    /** Produkty katalogu [{ id, name, categoryLabel, watched }]. */
+    /** Produkty katalogu [{ id, name, categoryLabel, department, watched }]. */
     products: { type: Array, required: true },
 });
 
 const t = useTranslations();
 const page = usePage();
 
-/** Položka, kterou uživatel právě upravuje (id), nebo null. */
-const editingId = ref(null);
+/** Formulář vlastních slov: null = zavřený, jinak výchozí hodnoty ({ name, keywords }). */
+const ownForm = ref(null);
+/** Při každém otevření nový formulář — výchozí hodnoty se berou jen při vytvoření. */
+const ownFormKey = ref(0);
+const ownFormElement = ref(null);
 
-/** Filtr seznamu katalogu. */
-const catalogFilter = ref('');
+/** Zvolené oddělení v katalogu; '' = všechna. */
+const department = ref('');
 
-/** Produkty katalogu, jejichž název nebo kategorie obsahuje všechna slova filtru. */
-const filteredProducts = computed(() => {
-    const words = normalizeSearch(catalogFilter.value).split(/\s+/).filter(Boolean);
+/** Oddělení katalogu podle abecedy (produkty bez kategorie jsou jen ve „Vše“). */
+const departments = computed(() => [...new Set(props.products.map((product) => product.department).filter(Boolean))].sort((a, b) => a.localeCompare(b, page.props.locale)));
 
-    return props.products.filter((product) => words.every((word) => normalizeSearch(`${product.name} ${product.categoryLabel ?? ''}`).includes(word)));
-});
+const browsedProducts = computed(() => (department.value ? props.products.filter((product) => product.department === department.value) : props.products));
 
 /** Chyba při přidání produktu (už hlídaný, limit položek). */
-const catalogError = computed(() => page.props.errors?.product_id ?? page.props.errors?.name ?? null);
+const addError = computed(() => (ownForm.value ? null : (page.props.errors?.product_id ?? page.props.errors?.name ?? null)));
 
 /**
  * Začne hlídat produkt z katalogu.
@@ -50,14 +53,15 @@ function watchProduct(product) {
 }
 
 /**
- * Po potvrzení smaže položku.
+ * Otevře formulář vlastních slov s napsaným textem jako názvem i hledanými slovy.
  *
- * @param {object} item
+ * @param {string} text
  */
-function remove(item) {
-    if (window.confirm(t('watch.delete_confirm', { name: item.name }))) {
-        router.delete(item.deleteUrl, { preserveScroll: true });
-    }
+async function openOwnForm(text) {
+    ownForm.value = { name: text, keywords: text.toLocaleLowerCase(page.props.locale) };
+    ownFormKey.value++;
+    await nextTick();
+    ownFormElement.value?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 </script>
 
@@ -70,81 +74,59 @@ function remove(item) {
             <p class="page__subtitle">{{ t('watch.intro') }}</p>
         </header>
 
-        <div class="watch-layout">
-            <section class="watch-layout__list">
-                <EmptyState v-if="!watchItems.length" :text="t('watch.empty')" />
-                <article v-for="item in watchItems" :key="item.id" class="card watch-item">
-                    <WatchItemForm
-                        v-if="editingId === item.id"
-                        :url="item.updateUrl"
-                        method="put"
-                        :item="item"
-                        :submit-label="t('watch.save')"
-                        @saved="editingId = null"
-                        @cancel="editingId = null"
-                    />
-                    <template v-else>
-                        <h2 class="card__title">{{ item.name }}</h2>
-                        <dl v-if="item.productId" class="watch-item__rules">
-                            <dt class="watch-item__label">{{ t('watch.from_catalog') }}</dt>
-                            <dd class="watch-item__value">{{ item.productName }}</dd>
-                        </dl>
-                        <dl v-else class="watch-item__rules">
-                            <dt class="watch-item__label">{{ t('watch.keywords') }}</dt>
-                            <dd class="watch-item__value">{{ item.keywords }}</dd>
-                            <template v-if="item.variantKeywords">
-                                <dt class="watch-item__label">{{ t('watch.variant_keywords') }}</dt>
-                                <dd class="watch-item__value">{{ item.variantKeywords }}</dd>
-                            </template>
-                            <template v-if="item.excludeKeywords">
-                                <dt class="watch-item__label">{{ t('watch.exclude_keywords') }}</dt>
-                                <dd class="watch-item__value">{{ item.excludeKeywords }}</dd>
-                            </template>
-                        </dl>
-                        <div class="form__actions">
-                            <button v-if="!item.productId" type="button" class="button button--ghost" @click="editingId = item.id">{{ t('watch.edit') }}</button>
-                            <button type="button" class="button button--ghost" @click="remove(item)">{{ item.productId ? t('watch.stop') : t('watch.delete') }}</button>
-                        </div>
-                    </template>
-                </article>
-            </section>
+        <section class="card watch-new">
+            <WatchAdd :products="products" @product="watchProduct" @own="openOwnForm" />
+            <p v-if="addError" class="form-field__error" role="alert">{{ addError }}</p>
 
-            <div class="watch-layout__new">
-                <section class="card watch-catalog">
-                    <h2 class="card__title">{{ t('watch.catalog_title') }}</h2>
-                    <p class="form-field__hint">{{ t('watch.catalog_hint') }}</p>
-                    <input
-                        v-model="catalogFilter"
-                        type="search"
-                        class="form-field__input watch-catalog__filter"
-                        :placeholder="t('watch.catalog_filter')"
-                        :aria-label="t('watch.catalog_filter')"
-                    />
-                    <p v-if="catalogError" class="form-field__error" role="alert">{{ catalogError }}</p>
-                    <ul class="watch-catalog__list">
-                        <li v-for="product in filteredProducts" :key="product.id">
-                            <button
-                                type="button"
-                                class="watch-catalog__product"
-                                :class="{ 'watch-catalog__product--watched': product.watched }"
-                                :disabled="product.watched"
-                                @click="watchProduct(product)"
-                            >
-                                <span class="watch-catalog__name">{{ product.name }}</span>
-                                <span v-if="product.watched" class="tag tag--accent">✓ {{ t('watch.watching') }}</span>
-                                <span v-else-if="product.categoryLabel" class="watch-catalog__category">{{ product.categoryLabel }}</span>
-                            </button>
-                        </li>
-                    </ul>
-                    <p v-if="!filteredProducts.length" class="page__empty">{{ t('watch.catalog_empty') }}</p>
-                </section>
-
-                <section class="card">
-                    <h2 class="card__title">{{ t('watch.own_title') }}</h2>
-                    <p class="form-field__hint watch-hint">{{ t('watch.own_hint') }}</p>
-                    <WatchItemForm :url="urls.store" :submit-label="t('watch.add')" />
-                </section>
+            <div v-if="ownForm" ref="ownFormElement" class="watch-new__own">
+                <h2 class="watch-new__title">{{ t('watch.own_title') }}</h2>
+                <p class="form-field__hint watch-hint">{{ t('watch.own_hint') }}</p>
+                <WatchItemForm :key="ownFormKey" :url="urls.store" :item="ownForm" :submit-label="t('watch.add')" cancelable @saved="ownForm = null" @cancel="ownForm = null" />
             </div>
-        </div>
+        </section>
+
+        <section class="watch-list" :aria-labelledby="watchItems.length ? 'watch-list-title' : undefined">
+            <EmptyState v-if="!watchItems.length" :text="t('watch.empty')" />
+            <template v-else>
+                <h2 id="watch-list-title" class="watch-list__title">
+                    {{ t('watch.list_title') }}
+                    <span class="watch-group__count">{{ watchItems.length }}</span>
+                </h2>
+                <div class="watch-list__grid">
+                    <WatchItemTile v-for="item in watchItems" :key="item.id" :item="item" :home-url="urls.home" />
+                </div>
+            </template>
+        </section>
+
+        <details class="card watch-browse">
+            <summary class="watch-browse__summary">
+                {{ t('watch.browse_title') }}
+                <span class="watch-browse__count">{{ t('watch.browse_count', { count: products.length }) }}</span>
+            </summary>
+
+            <div class="watch-browse__departments" role="group" :aria-label="t('catalog.department')">
+                <button type="button" class="chip" :aria-pressed="department === ''" @click="department = ''">{{ t('watch.all_departments') }}</button>
+                <button v-for="name in departments" :key="name" type="button" class="chip" :aria-pressed="department === name" @click="department = name">
+                    {{ name }}
+                </button>
+            </div>
+
+            <ul class="watch-browse__products">
+                <li v-for="product in browsedProducts" :key="product.id">
+                    <button
+                        type="button"
+                        class="watch-browse__product"
+                        :disabled="product.watched"
+                        :title="product.categoryLabel ?? undefined"
+                        @click="watchProduct(product)"
+                    >
+                        <span v-if="product.watched" aria-hidden="true">✓</span>
+                        <span v-else aria-hidden="true">+</span>
+                        {{ product.name }}
+                        <span v-if="product.watched" class="visually-hidden">({{ t('watch.watching') }})</span>
+                    </button>
+                </li>
+            </ul>
+        </details>
     </AppLayout>
 </template>

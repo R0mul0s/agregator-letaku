@@ -60,3 +60,77 @@
         text-decoration: none;
     }
 }
+
+// Tlačítko, které vypadá jako odkaz (akce uvnitř textu nápovědy)
+.link-button {
+    padding: 0;
+    background: none;
+    border: 0;
+    color: var(--color-accent-strong);
+    font: inherit;
+    text-decoration: underline;
+    cursor: pointer;
+
+    &:hover {
+        text-decoration: none;
+    }
+}
+
+// Malé tlačítko jen s ikonou (upravit, smazat); popisek nese visually-hidden text
+.icon-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--icon-button-size);
+    height: var(--icon-button-size);
+    padding: 0;
+    background: none;
+    border: 0;
+    border-radius: var(--radius-sm);
+    color: var(--color-text-muted);
+    cursor: pointer;
+
+    &:hover {
+        background: var(--color-accent-soft);
+        color: var(--color-text);
+    }
+
+    &--danger:hover {
+        background: var(--color-danger-soft);
+        color: var(--color-danger);
+    }
+
+    &__icon {
+        width: var(--icon-size);
+        height: var(--icon-size);
+        fill: none;
+        stroke: currentcolor;
+        stroke-width: var(--svg-stroke-icon);
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+}
+
+// Přepínací čip filtru (oddělení katalogu); zvolený má aria-pressed="true"
+.chip {
+    padding: var(--space-1) var(--space-3);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-pill);
+    color: var(--color-text-muted);
+    font: inherit;
+    font-size: var(--font-size-sm);
+    cursor: pointer;
+
+    &:hover {
+        border-color: var(--color-accent);
+        color: var(--color-text);
+    }
+
+    &[aria-pressed='true'] {
+        background: var(--color-accent-soft);
+        border-color: var(--color-accent);
+        color: var(--color-accent-strong);
+        font-weight: 700;
+    }
+}

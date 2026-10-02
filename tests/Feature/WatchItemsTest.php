@@ -10,6 +10,10 @@
 
 declare(strict_types=1);
 
+use App\Enums\Chain;
+use App\Enums\LoyaltyProgram;
+use App\Models\FollowedChain;
+use App\Models\Offer;
 use App\Models\Product;
 use App\Models\User;
 use App\Models\WatchItem;
@@ -36,6 +40,24 @@ it('ukáže jen vlastní položky a produkty katalogu', function (): void {
             ->where('watchItems.1.name', 'Moje vejce')
             ->where('watchItems.1.productId', null)
             ->where('products.0.name', 'Máslo'));
+});
+
+it('u položky ukáže počet aktuálních akcí a nejnižší cenu, kterou uživatel zaplatí', function (): void {
+    $this->travelTo('2026-10-02 10:00:00');
+    FollowedChain::query()->create(['user_id' => $this->user->id, 'chain' => Chain::Tesco, 'include_online_only' => true]);
+    $this->user->update(['loyalty_programs' => [LoyaltyProgram::Clubcard]]);
+    WatchItem::factory()->for($this->user)->create(['name' => 'Mléko', 'keywords' => 'mléko']);
+    WatchItem::factory()->for($this->user)->create(['name' => 'Vejce', 'keywords' => 'vejce']);
+    Offer::factory()->create(['name' => 'Mléko polotučné', 'chain' => Chain::Tesco, 'price' => 1990]);
+    Offer::factory()->create(['name' => 'Mléko s Clubcard', 'chain' => Chain::Tesco, 'price' => 2490, 'loyalty_price' => 1490, 'loyalty_program' => LoyaltyProgram::Clubcard]);
+
+    $this->get(route('watch-items.index'))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('watchItems.0.name', 'Mléko')
+            ->where('watchItems.0.offersCount', 2)
+            ->where('watchItems.0.lowestPrice', 1490)
+            ->where('watchItems.1.offersCount', 0)
+            ->where('watchItems.1.lowestPrice', null));
 });
 
 it('přidá položku z katalogu bez vlastních slov', function (): void {

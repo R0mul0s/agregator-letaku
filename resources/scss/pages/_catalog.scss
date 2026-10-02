@@ -4,6 +4,8 @@
 // @author Roman Hlaváček
 // @created 2026-10-02
 
+@use '../abstracts/mixins' as *;
+
 .catalog-back {
     display: inline-block;
     margin-bottom: var(--space-2);
@@ -75,5 +77,31 @@
         color: var(--color-text-muted);
         font-family: inherit;
         cursor: help;
+    }
+}
+
+// Detail produktu: akce vlevo, pravidla produktu vpravo (na mobilu pravidla nahoře)
+.catalog-detail {
+    display: grid;
+    align-items: start;
+    gap: var(--space-4);
+
+    @include from-lg {
+        // minmax(0, …) — dlouhý obsah (cesty kategorií) nesmí sloupec roztáhnout
+        grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    }
+
+    &__offers {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-3);
+    }
+
+    &__rules {
+        order: -1;
+
+        @include from-lg {
+            order: 0;
+        }
     }
 }

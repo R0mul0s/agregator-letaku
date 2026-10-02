@@ -73,7 +73,8 @@ const summary = computed(() => {
         </EmptyState>
 
         <template v-else>
-            <section v-for="item in watchItems" :key="item.id" class="watch-group">
+            <!-- id: odkaz z dlaždice v Hlídám vede přímo na skupinu položky -->
+            <section v-for="item in watchItems" :id="`polozka-${item.id}`" :key="item.id" class="watch-group">
                 <h2 class="watch-group__title">
                     {{ item.name }}
                     <span class="watch-group__count">{{ t('home.count', { count: item.offers.length }) }}</span>
