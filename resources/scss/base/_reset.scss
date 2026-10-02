@@ -17,6 +17,39 @@ html {
     scroll-padding-top: var(--header-scroll-offset);
 }
 
+// Posuvník v barvách webu. Chromium a Safari kreslí podle ::-webkit-scrollbar (zaoblený jezdec
+// s proužkem dráhy kolem); scrollbar-color by ho v Chromiu přebil, proto jen tam, kde
+// ::-webkit-scrollbar není (Firefox)
+::-webkit-scrollbar {
+    width: var(--scrollbar-size);
+    height: var(--scrollbar-size);
+}
+
+::-webkit-scrollbar-track {
+    background: var(--color-scrollbar-track);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--color-scrollbar-thumb);
+    background-clip: padding-box;
+    border: var(--scrollbar-thumb-inset) solid transparent;
+    border-radius: var(--radius-pill);
+
+    &:hover {
+        background-color: var(--color-scrollbar-thumb-hover);
+    }
+}
+
+::-webkit-scrollbar-corner {
+    background: var(--color-scrollbar-track);
+}
+
+@supports not selector(::-webkit-scrollbar) {
+    html {
+        scrollbar-color: var(--color-scrollbar-thumb) var(--color-scrollbar-track);
+    }
+}
+
 body {
     margin: 0;
     background: var(--color-bg);

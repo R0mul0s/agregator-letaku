@@ -420,6 +420,7 @@ return [
             'no_watch_items' => 'Zatím nic nehlídáte.',
             'no_watch_items_link' => 'Přidat hlídanou položku',
             'no_offers' => 'Teď v akci není.',
+            'no_offers_hint' => 'Hlídáme dál — jakmile bude v akci, objeví se tady.',
             'count' => ':count akce|:count akce|:count akcí',
             'edit_watch_items' => 'Upravit hlídané',
             'expand_all' => 'Rozbalit vše',

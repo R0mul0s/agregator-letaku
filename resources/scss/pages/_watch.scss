@@ -33,7 +33,8 @@
 
     // Počet akcí jako červený štítek
     &__count {
-        padding: 0 var(--space-2);
+        @include badge-text;
+
         background: var(--color-accent-soft);
         border-radius: var(--radius-pill);
         color: var(--color-accent-strong);
@@ -100,7 +101,8 @@
     }
 
     &__discount {
-        padding: 0 var(--space-2);
+        @include badge-text;
+
         background: var(--gradient-brand);
         border-radius: var(--radius-sm);
         color: var(--color-on-brand);
@@ -116,6 +118,49 @@
 
     &__body:not([hidden]) {
         padding-top: var(--space-3);
+    }
+
+    // Položka bez akcí i zmínek: ikona oka a věta, že se hlídá dál
+    &__empty {
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+        padding: var(--space-3);
+        background: var(--color-surface);
+        border: 2px dashed var(--color-border);
+        border-radius: var(--radius-md);
+    }
+
+    &__empty-icon {
+        display: inline-flex;
+        flex: none;
+        align-items: center;
+        justify-content: center;
+        width: var(--empty-inline-icon-box-size);
+        height: var(--empty-inline-icon-box-size);
+        background: var(--color-accent-soft);
+        border-radius: var(--radius-pill);
+        color: var(--color-accent-strong);
+
+        svg {
+            width: var(--icon-size);
+            height: var(--icon-size);
+            fill: none;
+            stroke: currentcolor;
+            stroke-width: var(--svg-stroke-icon);
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+    }
+
+    &__empty-title {
+        display: block;
+        color: var(--color-text);
+    }
+
+    &__empty-hint {
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
     }
 
     // Zmínky v letácích bez ceny pod akcemi (R27)

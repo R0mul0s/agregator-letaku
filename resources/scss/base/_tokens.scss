@@ -36,6 +36,10 @@
     --color-danger-soft: #fff0f0;
     --color-warning-soft: #fff4e0;
     --color-warning-text: #9a5b00;
+    // Posuvník: jezdec v tlumené červené z loga, při najetí akcent; dráha v barvě podkladu
+    --color-scrollbar-thumb: #eba4a7;
+    --color-scrollbar-thumb-hover: var(--color-accent);
+    --color-scrollbar-track: var(--color-bg);
 
     // Podklad loga obchodu — loga počítají se světlým pozadím i v tmavém režimu
     --color-logo-bg: #ffffff;
@@ -178,6 +182,13 @@
     // Jedoucí logo v hlavičce úvodní stránky na telefonu — menší rozsah než košík v hlavním pruhu
     --header-logo-drive-distance: 0.2rem;
     --header-logo-bump-height: 0.125rem;
+    // Posuvník stránky a rolovacích oblastí; jezdec má kolem sebe proužek dráhy
+    --scrollbar-size: 0.75rem;
+    --scrollbar-thumb-inset: 3px;
+    // Štítky v hlavičce skupiny Mých slev: odsazení textu oříznutého na výšku verzálek
+    --badge-padding-y: 0.375em;
+    // Ikona prázdné skupiny Mých slev
+    --empty-inline-icon-box-size: 2.5rem;
 
     @include dark {
         color-scheme: dark;
@@ -196,6 +207,7 @@
         --color-accent-soft: #3a1c1f;
         --color-on-accent: #16181d;
         --color-border: #2e323b;
+        --color-scrollbar-thumb: #6b3236;
         --color-focus: #4dabf7;
         --color-success: #51cf66;
         --color-success-soft: #13301b;

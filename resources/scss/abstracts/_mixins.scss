@@ -45,3 +45,15 @@
         @content;
     }
 }
+
+/// Štítek s krátkým textem (číslo, „−25 %“) svisle uprostřed. Písmo nechává pod účařím místo
+/// pro dotažnice a nad verzálkami pro diakritiku, takže číslice by seděly výš; text-box ořízne
+/// řádek na výšku verzálek a odsazení je pak nahoře i dole stejné. Bez podpory zůstane řádek.
+@mixin badge-text {
+    padding: 0 var(--space-2);
+
+    @supports (text-box: trim-both cap alphabetic) {
+        padding: var(--badge-padding-y) var(--space-2);
+        text-box: trim-both cap alphabetic;
+    }
+}

@@ -75,7 +75,16 @@ function remove() {
         <!-- Karty se vykreslí až po rozbalení — sbalené skupiny nenačítají obrázky -->
         <div :id="bodyId" class="watch-group__body" :hidden="!expanded">
             <template v-if="expanded">
-                <p v-if="!item.offers.length && !item.mentions.length" class="page__empty">{{ t('home.no_offers') }}</p>
+                <div v-if="!item.offers.length && !item.mentions.length" class="watch-group__empty">
+                    <span class="watch-group__empty-icon" aria-hidden="true">
+                        <!-- Oko — Slevohlídka hlídá dál -->
+                        <svg viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" /><circle cx="12" cy="12" r="3" /></svg>
+                    </span>
+                    <p>
+                        <strong class="watch-group__empty-title">{{ t('home.no_offers') }}</strong>
+                        <span class="watch-group__empty-hint">{{ t('home.no_offers_hint') }}</span>
+                    </p>
+                </div>
                 <div v-if="item.offers.length" class="offer-grid">
                     <OfferCard v-for="offer in item.offers" :key="offer.id" :offer="offer" />
                 </div>
