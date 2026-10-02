@@ -13,13 +13,14 @@ kde a za kolik je to právě ve slevě, včetně cen s věrnostní kartou a ceny
 | **Zdroje dat obchodů** | [docs/ZDROJE_DAT.md](docs/ZDROJE_DAT.md) |
 | **Pravidla pro psaní kódu** | [docs/CODING_GUIDELINES.md](docs/CODING_GUIDELINES.md) |
 | **Odložené úkoly** | [docs/TODO.md](docs/TODO.md) |
+| **Nasazení (Websupport)** | [deploy/DEPLOYMENT.md](deploy/DEPLOYMENT.md) |
 | **Instrukce pro AI agenty** | [CLAUDE.md](CLAUDE.md) |
 | **Správce** | Roman Hlaváček |
 
 > **Stav:** hotové jsou účty, stahování akcí Kauflandu, Tesca, Lidlu a Penny, zmínky v letácích
 > bez ceny (Lidl, Penny, Albert), hlídání a katalog 164 produktů se stromem kategorií z Tesca
-> (etapy 1–5b, [PLAN.md, sekce 6](docs/PLAN.md#6-etapy)). Další je LLM (jen když bude potřeba)
-> a nasazení na Websupport.
+> (etapy 1–5b, [PLAN.md, sekce 6](docs/PLAN.md#6-etapy)). Balíček pro nasazení na Websupport
+> (`slevohlidka.rhsoft.cz`) je připravený, nasazení zatím neproběhlo. Další je LLM (jen když bude potřeba).
 
 ## Jak se to používá
 
@@ -92,6 +93,7 @@ volume (`docker compose down -v`).
 | `LETAKY_REQUEST_DELAY_MS` | ne (1500) | pauza mezi požadavky na stejný obchod |
 | `LETAKY_LIDL_REQUEST_DELAY_MS`, `LETAKY_PENNY_REQUEST_DELAY_MS`, `LETAKY_ALBERT_REQUEST_DELAY_MS` | ne (500) | kratší pauza pro Lidl, Penny a Albert — desítky malých stránek (R25) |
 | `LETAKY_USER_AGENT` | ne | User-Agent požadavků na obchody |
+| `LETAKY_CRON_TOKEN` | na produkci | token cron URL `/cron/import-offers?chain=…&token=…` (R38); prázdný = cron URL vrací 404 |
 | `LETAKY_DISPLAY_TIMEZONE` | ne (`Europe/Prague`) | zóna pro „místní datum“ platnosti akcí |
 
 Adresy zdrojů obchodů a ostatní konstanty jsou v `config/letaky.php`.
@@ -134,6 +136,7 @@ app/
   Policies/                oprávnění k hlídaným položkám (jen vlastník)
 config/letaky.php          zdroje obchodů a konstanty aplikace
 database/seeders/data/     produkty katalogu (catalog-products.php)
+deploy/                    nasazení na Websupport: build balíčku, .env, SQL skripty (DEPLOYMENT.md)
 public/images/             loga obchodů (chains/) a ikony Slevohlídky (brand/)
 resources/brand/           zdrojové logo Slevohlídky
 config/fortify.php         zapnuté funkce účtu (R13)

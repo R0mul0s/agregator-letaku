@@ -12,12 +12,21 @@ declare(strict_types=1);
 
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\CatalogController;
+use App\Http\Controllers\CronController;
+use App\Http\Controllers\HealthImportsController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\OffersController;
 use App\Http\Controllers\OfferSuggestionsController;
 use App\Http\Controllers\ShoppingPreferencesController;
 use App\Http\Controllers\WatchItemController;
 use Illuminate\Support\Facades\Route;
+
+// Cron WebAdminu umí jen zavolat URL (R20, R38) — chráněné tokenem, bez něj 404
+Route::get('/cron/import-offers', [CronController::class, 'importOffers'])->name('cron.import-offers');
+Route::get('/cron/import-categories', [CronController::class, 'importCategories'])->name('cron.import-categories');
+
+// Monitoring stahování (UptimeRobot) — veřejné, jen stav
+Route::get('/health/imports', HealthImportsController::class)->name('health.imports');
 
 Route::middleware('auth')->group(function (): void {
     Route::get('/', HomeController::class)->name('home');

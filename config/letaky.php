@@ -139,6 +139,25 @@ return [
     ],
 
     /*
+    | Cron URL pro produkci (R20, R38) — WebAdmin Websupportu umí jen zavolat URL.
+    | Token: docker compose exec app php -r "echo bin2hex(random_bytes(24));"
+    | Prázdný token cron URL vypíná (odpovídají 404).
+    */
+    'cron' => [
+        'token' => env('LETAKY_CRON_TOKEN'),
+        // Limit běhu jednoho volání — stažení Tesca trvá ~45 s; hosting ho může omezit i tak (O8)
+        'time_limit_seconds' => 180,
+    ],
+
+    /*
+    | Hlídání stahování (/health/imports): obchod bez úspěšného stažení za tuto dobu = výpadek.
+    | Cron stahuje jednou až dvakrát denně, rezerva na jeden vynechaný běh.
+    */
+    'health' => [
+        'max_import_age_hours' => 26,
+    ],
+
+    /*
     | Kategorie katalogu = strom e-shopu Tesco (R28). Oddělení s marketingovými výběry
     | („Top výběr“, „Novinky“) a nepotravinové zboží se nepřebírají.
     */

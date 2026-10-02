@@ -1,0 +1,5 @@
+# Neverzovat sestavený balíček ani produkční .env.
+# SQL skripty se změnami schématu (migrations-*.sql) a daty (data-*.sql) se verzují.
+upload/
+*.zip
+.env.production

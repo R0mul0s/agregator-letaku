@@ -1,0 +1,34 @@
+# =============================================================================
+#  FALLBACK root .htaccess — POUŽÍT JEN když NELZE nastavit document root na
+#  podsložku `public/`. Nahraj do KOŘENE aplikace na hostingu jako `.htaccess`.
+#
+#  Preferovaná (čistá) varianta je vždy: docroot domény → `.../public`.
+#  Tenhle fallback nechá soubory aplikace v kořeni webu, proto zároveň blokuje
+#  přímý přístup k citlivým souborům a složkám.
+#
+#  @author Roman Hlaváček
+#  @created 2026-10-02
+# =============================================================================
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # --- Bezpečnost: nikdy neservíruj citlivé soubory a složky z kořene -------
+    RewriteRule ^\.env - [F,L]
+    RewriteRule ^\.git - [F,L]
+    RewriteRule ^(composer\.(json|lock)|package(-lock)?\.json|artisan|phpstan\.neon|vite\.config\.js|compose\.ya?ml) - [F,L]
+    RewriteRule ^(app|bootstrap|config|database|lang|resources|routes|storage|vendor|tests|deploy|docs|docker)/ - [F,L]
+
+    # --- Vše ostatní směruj do public/ (lookahead brání smyčce) ---------------
+    RewriteRule ^((?!public/).*)$ public/$1 [L]
+</IfModule>
+
+# --- Pojistka bez mod_rewrite ------------------------------------------------
+# Bez mod_rewrite by se pravidla výš tiše přeskočila a kořen aplikace (.env,
+# vendor, storage…) by byl dostupný celý. Tohle platí i tak: soubory podle jména
+# (mod_authz_core je v Apache 2.4 vždy), složky přes mod_alias.
+<FilesMatch "^(\.|composer\.(json|lock)$|package(-lock)?\.json$|artisan$|phpstan\.neon$|vite\.config\.js$|compose\.ya?ml$)">
+    Require all denied
+</FilesMatch>
+<IfModule mod_alias.c>
+    RedirectMatch 403 ^/(app|bootstrap|config|database|lang|resources|routes|storage|vendor|tests|deploy|docs|docker)(/|$)
+</IfModule>

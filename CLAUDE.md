@@ -29,7 +29,8 @@ Hotové jsou etapy 1–5b (PLAN.md, kap. 6):
   admina (`/katalog`) s přiřazováním akcí a ručními opravami
 - název Slevohlídka a vzhled podle loga (R34, R35), loga obchodů (R32)
 
-Další je etapa 6 (LLM, jen když bude potřeba) nebo 7 (nasazení na Websupport).
+Další je etapa 6 (LLM, jen když bude potřeba) nebo 7 (nasazení na Websupport — balíček
+v `deploy/` je připravený, R38).
 Co z dřívějších rozhodnutí platí a co ne, je v tabulce na začátku PLAN.md.
 
 Vývojový uživatel ze seederu: `test@example.com` / `password` (admin katalogu; seeder
@@ -86,14 +87,25 @@ Testy běží proti MariaDB `agregator_test`, ne SQLite, a **nikdy nesahají na 
 ## Produkce
 
 Sdílený hosting **Websupport** (R20), stejně jako Počasí: Apache 2.4 + PHP 8.4,
-MariaDB 11.4. **Není tam SSH ani composer** — nic z `php artisan` se na produkci nespustí.
-Nasazení zatím neproběhlo (etapa 7). Už teď z toho plyne:
+MariaDB 11.4, `https://slevohlidka.rhsoft.cz`. **Není tam SSH ani composer** — nic
+z `php artisan` se na produkci nespustí. Balíček je připravený (R38), nasazení zatím
+neproběhlo — postup v **[deploy/DEPLOYMENT.md](deploy/DEPLOYMENT.md)**:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File deploy\build-upload.ps1   # jen z commitnutého stavu
+```
 
 - **Žádná fronta, scheduler ani démon** — nic nesmí implementovat `ShouldQueue`.
-  Stahování bude spouštět cron WebAdminu voláním URL s tokenem; každá úloha je Action
-  volatelná z artisan příkazu i z kontroleru.
-- **Každá migrace bude potřebovat SQL skript** `deploy/migrations-<datum>-<popis>.sql`
-  (od prvního nasazení; první skript pokryje všechny dosavadní migrace).
+  Stahování spouští cron WebAdminu: `/cron/import-offers?chain=…&token=…` po obchodech
+  a `/cron/import-categories?token=…` (`CronController`, token `LETAKY_CRON_TOKEN`,
+  bez tokenu 404). Každá úloha je Action volatelná z artisan příkazu i z kontroleru.
+- **`/health/imports`** vrací 503, když obchod nemá úspěšné stažení za 26 h (UptimeRobot).
+- **Každá migrace potřebuje SQL skript** `deploy/migrations-<datum>-<popis>.sql`
+  (opakovatelný, včetně zápisu do `migrations`) ve stejném commitu jako migrace a řádek
+  v tabulce *Historie SQL skriptů* v DEPLOYMENT.md. Výchozí schéma je
+  `migrations-2026-10-02-init.sql`, katalog `data-2026-10-02-katalog.sql`.
+- **Bezpečnostní hlavičky a HTTPS** jsou v `public/.htaccess` (CSP: skripty jen vlastní,
+  obrázky `https:` kvůli CDN obchodů). Nový externí zdroj ve stránce = úprava CSP.
 - **Dlouhé požadavky:** stažení Tesca trvá ~45 s; limit hostingu se ověří při nasazení (O8).
 - Nepřidávej závislost, kterou hosting nemá (Redis, fronta, binárky jako `pdftotext`).
 

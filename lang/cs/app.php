@@ -43,6 +43,13 @@ return [
         'categories_failed' => 'Kategorie — chyba: :error',
     ],
 
+    // Hlídání stahování (/health/imports) — prostý text pro monitoring
+    'health' => [
+        'ok' => ':chain — OK, naposledy :at',
+        'outage' => ':chain — VÝPADEK: poslední úspěšné stažení :at',
+        'never' => 'nikdy',
+    ],
+
     'admin' => [
         'unknown_user' => 'Účet s e-mailem :email neexistuje.',
         'granted' => ':email teď spravuje katalog produktů.',

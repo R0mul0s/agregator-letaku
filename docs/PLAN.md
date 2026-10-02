@@ -20,7 +20,7 @@ Zbytek letáku zatím pokrývají zmínky bez ceny ([R27](#8-log-rozhodnutí)), 
 bude potřeba ([R23](#8-log-rozhodnutí)).
 
 - **Vývoj:** `http://localhost:54720` (Docker, viz [CLAUDE.md](../CLAUDE.md))
-- **Produkce:** sdílený hosting Websupport, zatím nenasazeno ([R20](#8-log-rozhodnutí))
+- **Produkce:** sdílený hosting Websupport, `https://slevohlidka.rhsoft.cz`, zatím nenasazeno ([R20, R38](#8-log-rozhodnutí), [DEPLOYMENT.md](../deploy/DEPLOYMENT.md))
 - **Repozitář:** [github.com/R0mul0s/agregator-letaku](https://github.com/R0mul0s/agregator-letaku), osobní projekt
 - **Pravidla pro psaní kódu:** [CODING_GUIDELINES.md](CODING_GUIDELINES.md)
 - **Zdroje dat jednotlivých obchodů (endpointy, pole, pasti):** [ZDROJE_DAT.md](ZDROJE_DAT.md)
@@ -41,7 +41,7 @@ Log rozhodnutí (kap. 8) se nepřepisuje — starší rozhodnutí nahrazují nov
 | Název **Slevohlídka**, motto „Rychlý lovec slev“, barvy a motivy z loga (R34, R35): písmo Nunito, cenovky slev, maskot v prázdných stavech, vodoznak loga obchodu v kartách | Pracovní název Agregátor letáků; vzhled v růžové barvě cenovky |
 | Hledání ve Všech akcích s našeptávačem; výběr obchodu s logy (R32) | — |
 | Odkaz akce Kauflandu vede na kategorii a textovým fragmentem na dlaždici (detail akce nemá vlastní adresu) | Odkaz na celý přehled nabídky |
-| Produkce Websupport, cron URL, SQL skripty migrací, bez fronty (R20) | GitHub CI (R14 — zatím ne) |
+| Produkce Websupport, cron URL, SQL skripty migrací, bez fronty (R20); balíček v `deploy/` pro `slevohlidka.rhsoft.cz`, cron po obchodech, `/health/imports` pro UptimeRobot (R38) | GitHub CI (R14 — zatím ne); jedna cron URL pro všechny obchody (O8) |
 
 ---
 
@@ -227,6 +227,10 @@ Tesco ~45 s (seznam letáků, 2 letáky, 26 stránek akcí po 200 s pauzou 1,5 s
 Lidl ~30 s (~40 kampaní s pauzou 0,5 s), Penny ~23 s (API + ~37 stran letáku s pauzou 0,5 s).
 Všechny obchody najednou ~1,5 minuty — na hostingu poběží každý obchod samostatně (O8).
 
+Na produkci každý obchod stahuje vlastní cron URL `/cron/import-offers?chain=…&token=…`
+(R38, postup v [deploy/DEPLOYMENT.md](../deploy/DEPLOYMENT.md)); `/health/imports` vrací 503,
+když některý obchod nemá úspěšné stažení za posledních 26 hodin.
+
 Etapa 6 přidá extrakci letáků:
 
 ```
@@ -252,7 +256,7 @@ z artisan příkazu i z kontroleru.
 | 5 | **Katalog produktů** ([O3](#7-otevřené-otázky), R24, R28–R31, návrh v kap. 7): 5a strom kategorií z e-shopu Tesco (`categories`, `letaky:import-categories`); 5b produkty se slovy a správa katalogu pro admina (`/katalog`, `letaky:admin`), přiřazení nabídek při importu s ručními opravami (`offer_product`); 5c hlídaná položka z katalogu nebo s vlastními slovy, šablony nahradí produkty | hotovo 2026-10-02 |
 | 5b | **Dolaďování podle zkoušení** (R32–R37): loga obchodů a výběr obchodu s logy, našeptávač ve Všech akcích, Hlídám s katalogem klepnutím (produkt jen jednou), odkazy Kauflandu na dlaždici, název Slevohlídka a vzhled podle loga, Albert jako zmínky z textu stránek Publitas, katalog 164 produktů a tabulka katalogu | hotovo 2026-10-02 |
 | 6 | **LLM** (R23), jen pokud bude potřeba: Albert (obrázky stránek), zbytek letáku Lidlu, třídění nepřiřazených nabídek | |
-| 7 | **Nasazení na Websupport** (R20): cron URL pro stahování, SQL skripty migrací, build a nahrání přes FTP, DEPLOYMENT.md, ověření O8 | |
+| 7 | **Nasazení na Websupport** (R20, R38): cron URL pro stahování, hlídání stažení (`/health/imports`), HTTPS a bezpečnostní hlavičky v `public/.htaccess`, SQL skripty schématu a katalogu, build balíčku, [deploy/DEPLOYMENT.md](../deploy/DEPLOYMENT.md), ověření O8 | balíček připraven 2026-10-02, nenasazeno |
 
 ---
 
@@ -336,3 +340,4 @@ obrázku, Tesco vůbec. Produkt je proto úroveň „co hledám“, ne čárový
 | R35 | 2026-10-02 | **Vizuální styl „rychlý lovec slev“** podle loga: písmo Nunito (zaoblené jako nápis v logu; `@fontsource-variable/nunito`, bez CDN), nadpisy stránek s „rychlostními čárkami“ z loga, červená linka pod hlavičkou, sleva v kartě jako nakloněná červená cenovka přes obrázek, cena velká v barvě slev, fotky na bílém poli i v tmavém režimu, karty a tlačítka se při najetí nadzvednou (vypnuto při `prefers-reduced-motion`). Moje slevy mají úvodní pruh s maskotem, pozdravem a souhrnem (hlídané položky, počet akcí, nejvyšší sleva); prázdné stavy mají maskota (`EmptyState`); přihlášení a registrace mají vedle formuláře červený panel s maskotem, mottem a přednostmi (`AuthShowcase`); karty akcí a zmínek mají v pozadí velké šedé logo obchodu jako vodoznak uříznutý rohem (`ChainWatermark`) | Požadavek uživatele („je to takové suché“). Motivy jsou převzaté z loga (cenovka s %, čárky pohybu, maskot), ne vymyšlené navíc. Bílý text na červené: cenovka má velký tučný text (≥ 18,66 px, stačí 3 : 1), panel s běžným textem má tmavší přechod #d91f29 → #a5121b (kontrast ≥ 5 : 1). |
 | R36 | 2026-10-02 | **Albert: zmínky v letácích z textu stránek Publitas.** `spreads.json` prohlížeče letáku má u každé stránky pole `text` (text stránky v pořadí čtení; z něj prohlížeč skládá i alt obrázku). Ukládá se do `leaflet_pages` jako u Lidlu a Penny, s náhledem stránky (`at200`) a odkazem `…/page/{n}`. Jen hlavní letáky hypermarketů a supermarketů (`isDefault`), lokální varianty („…_frenstat“) ne. Technický název z GraphQL („Albert - 40HM_akcni_letak“) se neukládá; zmínka ukáže „Akční leták“ a štítek typu prodejny (hypermarket / supermarket) — ten mají zmínky všech obchodů s odlišnými letáky. Zdroj bez nabídek je v pořádku, pokud má stránky — chybou je až prázdno ve všem | Nález uživatele (alt obrázků stránek). Albert tím přestává být „Připravujeme“ a funguje bez LLM aspoň na úrovni „je to v letáku“. Ceny jsou v textu rozsekané („31“ „90“, „3490“ = 34,90) a bez polohy na stránce je k produktu spolehlivě přiřadit nejde — další krok (TODO, případně vision LLM v etapě 6). |
 | R37 | 2026-10-02 | **Katalog rozšířený na 164 produktů** podle toho, co se v akcích skutečně objevuje: nejčastější druhová slova v názvech 6 245 akcí napříč obchody (jogurt, pivo, víno, káva, šampon, krmivo, čistič…). Každé pravidlo ověřené na ostrých akcích, vyloučená slova ze skutečných chybných shod. Kategorie = oddělení Tesca, kam patří většina akcí produktu (u zavádějících ručně). Data v `database/seeders/data/catalog-products.php`, ne v kódu seederu. 2. 10. 2026 pokrývá katalog 3 239 aktuálních akcí (~52 %). Ve výběru kategorie se regál a police se stejným názvem ukazují jen jednou | Požadavek uživatele („předvyplnit katalog z nabídek“). Generovat produkty automaticky ze slov by dalo šum (značky, příchutě), proto návrh ze statistiky a ruční ověření. Slova se hledají jako začátek slova — u krátkých slov („rum“, „med“, „sůl“) je vyloučení nutné („Rump steak“, „meduňka“, „sultánky“). |
+| R38 | 2026-10-02 | **Nasazovací balíček jako u Počasí** pro `slevohlidka.rhsoft.cz` (postup v `deploy/DEPLOYMENT.md`). (1) **Cron URL po obchodech:** `/cron/import-offers?chain=…&token=…` a `/cron/import-categories?token=…`, token v `LETAKY_CRON_TOKEN` (porovnání `hash_equals`; špatný, chybějící nebo nenastavený token = 404), odpověď prostý text 200 / 500, `set_time_limit` 180 s. (2) **`/health/imports`** (veřejná, bez tokenu): 503, když některý obchod se zdrojem nemá úspěšné stažení za 26 h — pro UptimeRobot. (3) **`public/.htaccess`:** přesměrování na HTTPS podle `X-Forwarded-Proto`, CSP (`img-src https:` kvůli CDN obchodů, R22), HSTS jen na HTTPS, `immutable` cache hashovaných assetů. (4) **SQL skripty:** `migrations-2026-10-02-init.sql` (schéma všech 10 migrací a záznamy v `migrations`), `data-2026-10-02-katalog.sql` (kategorie a produkty katalogu, `REPLACE`, opakovatelný). Účet admina se nastaví `UPDATE users SET is_admin = 1` v phpMyAdminu. (5) `build-upload.ps1` balí jen commitnutý stav, verzi zapíše do `public/version.txt` | Požadavek uživatele („balíček jako v Počasí“). Na hostingu nejde artisan (R20), proto katalog jako SQL místo seederu. Stažení všech obchodů najednou (~1,5 min) by se nemuselo vejít do limitu požadavku (O8) — po obchodech je nejdelší Tesco ~45 s. Bez hlídání by výpadek cronu nebo změna API obchodu zůstaly bez povšimnutí, aplikace by jen ukazovala stále méně akcí. |
