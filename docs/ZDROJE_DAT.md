@@ -334,35 +334,57 @@ Stejná platforma REWE jako Penny (Nuxt, commercetools), ale API má **celý kat
 - Každá varianta je v API samostatné SKU — „různé druhy“ (R9) je jen v letáku. „NAŠE CENA“ v letáku ≈ „Super cena“,
   API u ní ale dává `crossed`.
 
-## Globus (průzkum 2026-10-02 — zatím neimplementováno)
+## Globus
 
-Nuxt 3 s vlastním veřejným REST API, bez klíče a bez WAF. `robots.txt` povoluje `/` včetně `/api/`; zakazuje jen
+**Cesta:** veřejné REST API webu (Nuxt 3), bez klíče a bez WAF — implementováno (R46,
+`app/Domain/Sources/Globus`), bez LLM. Náročnost nízká. `robots.txt` povoluje `/` včetně `/api/`; zakazuje jen
 detaily produktů `…/p/` a podstránky akční nabídky jednotlivých hypermarketů (API je nepotřebuje).
 
 ### Endpointy (`B = https://www.globus.cz/api/v1/gsoa/actionOffers`)
 | Účel | Požadavek |
 |---|---|
-| **Akce s cenou v prodejně (hlavní zdroj)** | `GET {B}/houses/4005/actionProductsCatalog?page=0&pageSize=200` — 913 položek, 5 požadavků, ~19 s |
-| Položky letáku (text „různé druhy“) | `GET {B}/houses/4005/actionProducts?page=0&pageSize=200` — 1 025 položek |
-| Letáky a katalogy (PDF, JPG, platnost) | `GET {B}/houses/4005/actionOffers?page=0&pageSize=50` |
+| **Akce s cenou v prodejně (hlavní zdroj)** | `GET {B}/houses/4005/actionProductsCatalog?page=0&pageSize=200` — 913 položek, 5 požadavků |
+| Položky letáku (popis „různé druhy“) | `GET {B}/houses/4005/actionProducts?page=0&pageSize=200` — 1 025 položek, 6 požadavků |
+| Letáky a katalogy (PDF, JPG, platnost) — nepoužívá se | `GET {B}/houses/4005/actionOffers?page=0&pageSize=50` |
 
-`page` od 0, `pageSize` nejvýš 200. **`totalCount` nesedí** (869 vs. 913) — stránkovat do kratší stránky nebo
-`paginationShowMore:false`. 16 hypermarketů (`gsoaId` v `__NUXT_DATA__`), výchozí 4005 Čakovice; mezi prodejnami se liší
-jen krátké místní akce (Brno × Čakovice: 900 z 912 stejně) — stačí jedna prodejna.
+`page` od 0, `pageSize` nejvýš 200. Katalog: **`totalCount` nesedí** (869 vs. 913) — stránkuje se, dokud
+`paginationShowMore` je `true`. Položky letáku `paginationShowMore` nemají — stránkuje se do kratší stránky. Celé
+stažení ~11 požadavků, ~23 s. 16 hypermarketů (`gsoaId` v `__NUXT_DATA__`), stahuje se 4005 Čakovice
+(`letaky.sources.globus.house_id`); mezi prodejnami se liší jen krátké místní akce (Brno × Čakovice: 900 z 912
+stejně).
+
+### Převod (`GlobusParser`)
+- `productInHouse.actualPrice` / `originalPrice` / `discountPercentage` jsou **float v Kč**. S původní cenou
+  (`priceTagId` 11) = sleva, bez ní (`priceTagId` 12) = akční cena (R8).
+- `bonusProgramPrice.actualPrice` = cena s aplikací **Můj Globus** (`LoyaltyProgram::MujGlobus`) — jen když je nižší
+  než běžná (u Milko Tolštejn je stejná). Akce bez původní ceny s cenou v aplikaci zůstává akční cenou, ne „jen
+  s kartou“: `priceTagId` 12 značí akční cenovku, nevíme, že je běžná.
+- `priceValidFrom`/`To` mají místní posun (`2026-10-06T23:59:59.000+02:00`) → místní datum.
+- **Jen `priceType` VKA0** (`action_price_types`). VKP0 jsou ceny pultu a spotřebičů s platností do `9999-12-31`,
+  ZTP0 doprodej — nejsou to akce z letáku.
+- **Vyřazené skupiny zboží** (`excluded_ware_groups`, první 3 znaky `warengroup`): oblečení, obuv, bytový textil,
+  kabelky (~210 akcí z módního katalogu). Potraviny, drogerie, krmiva a domácí potřeby zůstávají. `productCategories`
+  a `placements` k filtrování nejdou — třetina položek je má prázdné.
+- Značka `commonBrand.name` (`brand` je null nebo nesmysl), id `vanr`, obrázek `imgThumbnail`, kategorie
+  `placements[0].category` (bez diakritiky, často chybí).
+- **Balení** `sellUnitSizeText`; zboží na váhu ho nemá (null nebo prázdné) — pak `unitAmount` + `unitId` (`1 kg`,
+  cena je za kg). `unitId` `KS` s `unitAmount` 97 u čokolády 97 g je nesmysl, proto jen pro g/kg/ml/l. „40 dávek“,
+  „111 praní“ balení nedají (cena za jednotku chybí).
+- **Popis z letáku:** `description` katalogu je dlouhý reklamní text (Milka: „…z alpského mléka“) — hlídání „mléko“
+  by ho chytalo. Místo něj se bere krátký `description` položky letáku se stejným EAN („různé druhy“,
+  „- dámská\n- různé barvy“ → „dámská, různé barvy“), z něj `VariantNote`. Spárovalo se všech 913 položek katalogu.
+  Katalog má na „různé druhy“ jen jednu zástupnou variantu (Milka Bubbly kokosová), proto na popisu záleží.
+- Akce mají různou platnost (týden, 14 dní, měsíc, katalogy do prosince) — vše je v jednom průběžném zdroji
+  `akcni-nabidka` (`LeafletKind::Web`, bez platnosti). Odkaz zdroje: `https://www.globus.cz/globus/hypermarket/akcni-nabidka`.
+  Akce vlastní odkaz nemá — adresa detailu `…/p/{slug}-{vanr}` není ověřená a API slug nevrací.
 
 ### Pole a pasti
-- `productInHouse.actualPrice` / `originalPrice` / `discountPercentage` (**float v Kč**), `priceValidFrom`/`To` s místním
-  posunem (`+02:00`) → datum v `Europe/Prague`; `bonusProgramPrice.actualPrice` = cena s aplikací **Můj Globus**
-  (`loyalty_price`, nová karta v `LoyaltyProgram`). Značka `commonBrand.name` (`brand` je null nebo nesmysl), balení
-  `sellUnitSizeText`, id `vanr`, EAN `ean[]`.
-- `priceTagId` **11** = sleva s původní cenou, **12** = akční cena bez původní (R8). `priceType` **VKP0** (řeznictví,
-  platnost do `9999-12-31`) nejsou akce — vyřadit; `ZTP0` = doprodej.
-- `actionProducts` má `originalPrice: 0` místo null a nemá balení — cenu brát z katalogu.
-- **Lahůdky:** leták cena za 100 g, katalog za kg (Eidam 11,9 × 119). `unitId` u vážených položek nespolehlivé.
-- **Krátké místní akce** jen v katalogu (jogurt 4,90 na 1.–3. 10. vs. leták 7,90) — stahovat denně, klíč `vanr` + platnost.
-- „Různé druhy“: `description` z `actionProducts` připojit podle EAN (1 009 z 1 025 spárováno) pro `VariantNote`.
+- `actionProducts` má `originalPrice: 0` místo null a nemá balení — cena se bere z katalogu.
+- **Lahůdky:** leták cena za 100 g, katalog za kg (Eidam 11,9 × 119) — katalog je jednotný.
+- **Krátké místní akce** jsou jen v katalogu (jogurt 4,90 na 1.–3. 10. vs. leták 7,90) — proto denní stahování;
+  klíč nabídky `vanr` + platnost.
+- `raw` neukládá `description`, `contains`, `allergens`, `nutritionValues`, `storage` a `regulatedName` (dlouhé texty).
 - Leták na příští týden je v `actionOffers` dřív než jeho produkty v API.
-- Odkaz na akci: `/globus/hypermarket/akcni-nabidka/p/{slug}-{vanr}` (předpoklad tvaru; odkazovat smí, stahovat ne).
 
 ## Makro (průzkum 2026-10-02 — zatím bez zdroje)
 

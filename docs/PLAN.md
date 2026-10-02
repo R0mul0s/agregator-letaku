@@ -33,7 +33,7 @@ Log rozhodnutí (kap. 8) se nepřepisuje — starší rozhodnutí nahrazují nov
 |---|---|
 | Obchody se sledují celé, u Tesca (a Albertu) podle **typu prodejny** HM / SM (R19, R21) | Výběr **konkrétních prodejen** a seznamy prodejen (R3 → R21), výběr prodejen Kauflandu (R19 → R21) |
 | Kaufland: jedna výchozí varianta nabídky pro všechny prodejny (R15) | Stahování nabídky Kauflandu po prodejnách (R3 → R15, R21) |
-| Bez LLM: Kaufland, Tesco, Lidl (kampaně na webu), Penny (API + parser SVG letáku) (R23, R25, R26) | LLM jako hlavní cesta pro letáky (R6 → R23); LLM jen v etapě 6, pokud bude potřeba |
+| Bez LLM: Kaufland, Tesco, Lidl (kampaně na webu), Penny (API + parser SVG letáku), Globus (REST API webu) (R23, R25, R26, R46) | LLM jako hlavní cesta pro letáky (R6 → R23); LLM jen v etapě 6, pokud bude potřeba |
 | **Zmínky v letácích bez ceny** — Lidl, Penny a Albert (R27, R36) | Vyhledávací API letáků Lidlu (zakázané v robots.txt) |
 | Hlídaná položka = slova + varianta + vyloučení (R18); katalog produktů (R24, R28–R31) — kategorie ze stromu Tesca, produkty spravuje admin, přiřazení nabídek se ukládá s ručními opravami; hlídaná položka = produkt z katalogu, nebo vlastní slova | Dva oddělené typy hlídání produkt / kategorie (R9 → R18; tři stavy shody platí dál); vymýšlení vlastních kategorií (→ R28); šablony hlídaných položek v konfiguraci (→ produkty katalogu, R31) |
 | Obrázky produktů odkazem na CDN obchodu (R22); loga obchodů jako soubory aplikace (R32) | Ukládání obrázků |
@@ -45,6 +45,7 @@ Log rozhodnutí (kap. 8) se nepřepisuje — starší rozhodnutí nahrazují nov
 | Moje slevy: sbalitelné skupiny s přehledem, akcemi upravit / přestat hlídat a „Rozbalit vše“ (R43) | Všechny akce všech položek rozbalené pod sebou |
 | Účet v menu pod avatarem (vlastní obrázek nebo iniciály), přihlášená zařízení s odhlášením ostatních, zrušení účtu (R40); řazení a minimální sleva v Mých slevách jako předvolba účtu (R41); e-mailový souhrn nových akcí denně / týdně (R42) | Položka „Účet“ v hlavní navigaci, přepínač vzhledu a odhlášení přímo v hlavičce |
 | Hlídám: jedno pole s našeptávačem katalogu a volbou vlastních slov, dlaždice položek s počtem akcí a nejnižší cenou, sbalený katalog podle oddělení (R39) | Seznam katalogu a formulář vlastních slov stále rozbalené vedle seznamu položek (R31 → R39) |
+| Globus z REST API webu: jeden hypermarket, jen akce VKA0, bez oblečení a obuvi, cena s aplikací Můj Globus (R46) | Globus jen jako budoucí průzkum; Makro bez zdroje (ochrana proti robotům) |
 | Odkaz akce Kauflandu vede na kategorii a textovým fragmentem na dlaždici (detail akce nemá vlastní adresu) | Odkaz na celý přehled nabídky |
 | Produkce Websupport, cron URL, SQL skripty migrací, bez fronty (R20); balíček v `deploy/` pro `slevohlidka.rhsoft.cz`, cron po obchodech, `/health/imports` pro UptimeRobot (R38) | GitHub CI (R14 — zatím ne); jedna cron URL pro všechny obchody (O8) |
 
@@ -53,7 +54,7 @@ Log rozhodnutí (kap. 8) se nepřepisuje — starší rozhodnutí nahrazují nov
 ## 1. Rozsah a cíl
 
 ### Co systém dělá
-- Jednou až dvakrát denně stáhne aktuální akční nabídku z obchodů **Kaufland, Tesco, Albert, Lidl a Penny**, včetně příštího týdne, pokud už je zveřejněný.
+- Jednou až dvakrát denně stáhne aktuální akční nabídku z obchodů **Kaufland, Tesco, Albert, Lidl, Penny a Globus**, včetně příštího týdne, pokud už je zveřejněný.
 - Nabídky převede do jednotného tvaru: obchod, název, balení, cena, původní cena, cena s kartou nebo aplikací, cena za jednotku, platnost od–do a typ akce ([R7](#8-log-rozhodnutí), [R8](#8-log-rozhodnutí)).
 - Uživatel si založí účet, vybere **obchody** (u Tesca typ prodejny, akce jen z e-shopu) a věrnostní programy, které používá ([R19](#8-log-rozhodnutí), [R21](#8-log-rozhodnutí)).
 - Uživatel zadá **hlídané položky**, buď konkrétní produkt, nebo kategorii bez ohledu na značku ([R18](#8-log-rozhodnutí)).
@@ -89,6 +90,7 @@ v [ZDROJE_DAT.md](ZDROJE_DAT.md). Přehled:
 | **Lidl** | JSON v HTML kampaňových stránek `lidl.cz/c/…` (`data-grid-data`) — hotovo, ~140 potravin týdně | API letáků Schwarz + PDF s textovou vrstvou → LLM | ~1/3 | střední |
 | **Penny** | JSON API `penny.cz/api/product-discovery` + parser vektorové vrstvy letáku (R26) — hotovo, ~320 akcí týdně | LLM pro neověřené dlaždice letáku | API 33 položek, s letákem ~55 % cen letáku | střední až vysoká |
 | **Albert** | GraphQL `getLeaflets` + Publitas `spreads.json` — **text stránek letáku** (R36): zatím zmínky bez ceny (R27) | ceny z textu stránek nebo vision LLM | 0 % s cenou, celý leták jako zmínky | střední |
+| **Globus** | REST API webu `globus.cz/api/v1/gsoa/actionOffers` — katalog akcí hypermarketu s cenou, platností a cenou Můj Globus, popis z položek letáku (R46) — hotovo, ~650 akcí bez oblečení | — | ~100 % | nízká |
 
 Ověřeno na všech obchodech: **nikde není potřeba headless prohlížeč ani obcházení
 ochrany proti botům**. Stačí HTTP klient Laravelu.
@@ -102,6 +104,7 @@ ochrany proti botům**. Stačí HTTP klient Laravelu.
 | Albert | podle formátu + lokální varianty | leták HM / SM, `getLeaflets` vrací seznam prodejen letáku |
 | Lidl | celostátně, „Rozšířená nabídka“ jen ve vybraných prodejnách | příznak u položky |
 | Penny | celostátně | — |
+| Globus | jen krátké místní akce (Brno × Čakovice: 900 z 912 stejně) | stahuje se jeden hypermarket (4005 Čakovice) |
 
 ---
 
@@ -229,7 +232,7 @@ GET / ──▶ MyOffers::forUser
 
 Doba stažení (2. 10. 2026): Kaufland ~2 s (1 požadavek, příští týden +1),
 Tesco ~45 s (seznam letáků, 2 letáky, 26 stránek akcí po 200 s pauzou 1,5 s),
-Lidl ~30 s (~40 kampaní s pauzou 0,5 s), Penny ~23 s (API + ~37 stran letáku s pauzou 0,5 s).
+Lidl ~30 s (~40 kampaní s pauzou 0,5 s), Penny ~23 s (API + ~37 stran letáku s pauzou 0,5 s), Globus ~23 s (11 stránek API po 200 s pauzou 1,5 s).
 Všechny obchody najednou ~1,5 minuty — na hostingu poběží každý obchod samostatně (O8).
 
 Na produkci každý obchod stahuje vlastní cron URL `/cron/import-offers?chain=…&token=…`
@@ -261,8 +264,9 @@ z artisan příkazu i z kontroleru.
 | 5 | **Katalog produktů** ([O3](#7-otevřené-otázky), R24, R28–R31, návrh v kap. 7): 5a strom kategorií z e-shopu Tesco (`categories`, `letaky:import-categories`); 5b produkty se slovy a správa katalogu pro admina (`/katalog`, `letaky:admin`), přiřazení nabídek při importu s ručními opravami (`offer_product`); 5c hlídaná položka z katalogu nebo s vlastními slovy, šablony nahradí produkty | hotovo 2026-10-02 |
 | 5b | **Dolaďování podle zkoušení** (R32–R37): loga obchodů a výběr obchodu s logy, našeptávač ve Všech akcích, Hlídám s katalogem klepnutím (produkt jen jednou), odkazy Kauflandu na dlaždici, název Slevohlídka a vzhled podle loga, Albert jako zmínky z textu stránek Publitas, katalog 164 produktů a tabulka katalogu | hotovo 2026-10-02 |
 | 5c | **Přívětivost podle zkoušení** (R39–R44): přehledné Hlídám, Obchody v mřížce, menu účtu s avatarem, přihlášená zařízení a zrušení účtu, předvolby Mých slev, e-mailový souhrn, sbalitelné Moje slevy, stránkování Všech akcí a katalogu, úvodní stránka a veřejné Všechny akce | hotovo 2026-10-02 |
+| 5d | **Globus** (R46): zdroj z REST API webu (katalog akcí jednoho hypermarketu, popis „různé druhy“ z položek letáku podle EAN), aplikace Můj Globus, bez oblečení a obuvi | hotovo 2026-10-02 |
 | 6 | **LLM** (R23), jen pokud bude potřeba: Albert (obrázky stránek), zbytek letáku Lidlu, třídění nepřiřazených nabídek | |
-| 7 | **Nasazení na Websupport** (R20, R38): cron URL pro stahování, hlídání stažení (`/health/imports`), HTTPS a bezpečnostní hlavičky v `public/.htaccess`, SQL skripty schématu a katalogu, build balíčku, [deploy/DEPLOYMENT.md](../deploy/DEPLOYMENT.md), ověření O8 | nasazeno 2026-10-02 (první verze); aktualizace s R39–R45 připravená |
+| 7 | **Nasazení na Websupport** (R20, R38): cron URL pro stahování, hlídání stažení (`/health/imports`), HTTPS a bezpečnostní hlavičky v `public/.htaccess`, SQL skripty schématu a katalogu, build balíčku, [deploy/DEPLOYMENT.md](../deploy/DEPLOYMENT.md), ověření O8 | nasazeno 2026-10-02 (první verze); aktualizace s R39–R46 připravená |
 
 ---
 
@@ -277,7 +281,7 @@ z artisan příkazu i z kontroleru.
 | O5 | **„Různé druhy“:** jde konkrétní variantu dohledat? Hotspoty letáku Tesco obsahují jednotlivé varianty (COCA-COLA ZERO 1,5l), Albert má katalog `productSearch`. U Kauflandu a Penny zřejmě ne | zatím stačí stav „Možná“ (R18); zpřesnění v [TODO.md](TODO.md) |
 | O6 | **Zveřejnění aplikace:** před zpřístupněním dalším lidem právně posoudit. Podmínky Tesco výslovně zakazují užití obsahu pro jinou než osobní potřebu, VOP Albert zakazují stahování obsahu e-shopu a aplikace; dále autorský zákon a právo pořizovatele databáze. Viz [R5](#8-log-rozhodnutí) | odloženo do zveřejnění |
 | O7 | Obrázky produktů: zobrazovat odkazem na CDN obchodu, nebo vůbec? | rozhodnuto (R22): odkazem |
-| O8 | **Jak dlouho smí na Websupportu běžet PHP požadavek** (`max_execution_time`, timeout proxy)? Stažení trvá Tesco ~45 s, Lidl ~30 s, Penny ~23 s, Kaufland ~2 s — cron URL proto po obchodech. Ověřit při nasazení; když nestačí, kratší pauza nebo stažení po částech | ověřit při nasazení |
+| O8 | **Jak dlouho smí na Websupportu běžet PHP požadavek** (`max_execution_time`, timeout proxy)? Stažení trvá Tesco ~45 s, Lidl ~30 s, Penny ~23 s, Globus ~23 s, Kaufland ~2 s — cron URL proto po obchodech. Ověřit při nasazení; když nestačí, kratší pauza nebo stažení po částech | ověřit při nasazení |
 
 ### Katalog produktů (k O3, R24)
 
@@ -354,3 +358,4 @@ obrázku, Tesco vůbec. Produkt je proto úroveň „co hledám“, ne čárový
 | R43 | 2026-10-02 | **Moje slevy: skupiny hlídaných položek ve výchozím stavu sbalené.** Hlavička skupiny ukazuje počet akcí, nejnižší cenu, kterou uživatel zaplatí (`MyOffers::lowestPrice`, sdílené s Hlídám), a nejvyšší slevu; má akce „Upravit“ (vlastní slova → Hlídám s otevřenou úpravou, `?upravit=id`) a „Přestat hlídat“ (návrat zpět na Moje slevy). „Rozbalit vše / Sbalit vše“; rozbalené skupiny si pamatuje prohlížeč (localStorage), odkaz `#polozka-{id}` skupinu rozbalí. Karty se vykreslí až po rozbalení. **Všechny akce: čísla stránek i „Načíst další“** — načtený rozsah je v adrese (`?od=1&strana=3`, `OffersRequest::FROM_PAGE` / `PAGE`), nejvýš `letaky.offers.max_loaded_pages` stránek najednou (delší rozsah se zkrátí zepředu); odkazy staví server (`PaginationLinks`, `PageWindow`, parametry `HasPageWindow`). Stejně stránkuje **tabulka katalogu** — hledání (název, slova, cesta kategorie bez diakritiky), oddělení a řazení dělá server (`CatalogIndexRequest`: `q`, `oddeleni`, `razeni`, `smer`); podle kategorie řadí PHP nad ID vyfiltrovaných produktů, protože cesta kategorie v databázi není | Podnět uživatele (rozbalovací skupiny s nastavením přímo v Mých slevách; stránkování jako na jeho vzoru e-shopu, s rozsahem v adrese). Sbalený přehled se vejde na obrazovku i s desítkami položek. Rozsah v adrese přežije obnovení stránky i návrat zpět; strop chrání před adresou, která by vynutila tisíce karet. |
 | R44 | 2026-10-02 | **Úvodní stránka pro nepřihlášené a veřejné Všechny akce.** Na `/` nepřihlášený vidí úvodní stránku (`LandingController`, `Landing.vue`): co Slevohlídka umí a co přinese registrace, živé počty (aktuální akce, obchody, produkty katalogu), tři kroky, šest akcí s nejvyšší slevou z různých obchodů (`letaky.landing`) a výzvu k registraci; přihlášený má na stejné adrese Moje slevy. `/akce` a našeptávač jsou veřejné, nepřihlášený má v navigaci jen Všechny akce, v hlavičce Přihlásit / Registrace (přepínač vzhledu až od středního displeje) a nad výpisem výzvu k registraci. Ostatní stránky dál vyžadují přihlášení | Požadavek uživatele (landing stránka s grafikou, Všechny akce bez přihlášení). Ukázka skutečných akcí přesvědčí víc než popis. Při zveřejnění patří k právnímu posouzení (O6) — veřejný výpis akcí je víc než osobní použití. |
 | R45 | 2026-10-02 | **SEO, roboti, bezpečnost a limity požadavků.** (1) **Hlavička HTML ze serveru** (`App\Support\Seo\SeoMeta` v `app.blade.php`): titulek, popis, `robots`, canonical, Open Graph a X/Twitter karta s obrázkem 1200 × 630 (`public/images/brand/og-image.png`, zdroj `resources/brand/og-image.html`). Indexuje se jen úvodní stránka a Všechny akce (i podle obchodu, se stránkou v canonical, bez rozsahu `od`); hledání `noindex, follow`, přihlášení a registrace `noindex, follow`, vše za přihlášením `noindex, nofollow`. **schema.org** jen na indexovaných stránkách: Organization a WebSite se SearchAction (`/akce?q=`); akce záměrně ne jako Product/Offer — nejsme prodejce. (2) **`/robots.txt`, `/sitemap.xml`, `/llms.txt` z rout** (`CrawlerFilesController`): doména z `APP_URL`, mimo produkci `Disallow: /`; sitemap a llms.txt jen obchody s aktuálními akcemi (Albert má jen zmínky); přihlášení a registrace v robots.txt zakázané nejsou, aby robot viděl jejich `noindex`. (3) **`trustProxies(at: '*')`** jako Počasí: TLS končí na proxy Websupportu — bez toho mají všichni IP proxy a absolutní adresy `http://`. (4) **Limity požadavků** (`App\Support\RateLimits`, `letaky.rate_limits`): veřejné stránky 120/min a našeptávač 60/min podle IP, cron 20/min (hádání tokenu), všechny POST/PUT/DELETE 60/min podle uživatele nebo IP, registrace, obnova hesla a formuláře s heslem 5/min podle IP; přihlášení má vlastní limit Fortify. (5) **Hlavičky:** Permissions-Policy, Cross-Origin-Opener-Policy, bez X-Powered-By (`.htaccess` i dev nginx) | Požadavek uživatele (audit schema.org, SEO, OG, hlavička, bezpečnost, rate limiting, llms.txt, robots.txt, sitemap.xml). SPA bez SSR (hosting nemá Node) — co má vidět robot bez JavaScriptu nebo náhled odkazu, musí být v šabloně. Fortify registraci ani obnovu hesla neomezuje. |
+| R46 | 2026-10-02 | **Globus jako šestý obchod, z REST API webu bez LLM.** Zdroj `GlobusOfferSource` stahuje katalog akcí jednoho hypermarketu (`actionProductsCatalog`, 4005 Čakovice — prodejny se liší jen pár krátkými místními akcemi) a k němu položky letáku (`actionProducts`) kvůli krátkému popisu („různé druhy“), spárované podle EAN; reklamní popis katalogu se nepoužívá. Ukládá se jen typ ceny VKA0 (ne pult VKP0 ani doprodej ZTP0) a bez oblečení, obuvi, bytového textilu a kabelek (`excluded_ware_groups`). Cena s aplikací **Můj Globus** je `loyalty_price` (nová karta `LoyaltyProgram::MujGlobus`), jen když je nižší než běžná; akce bez původní ceny je akční cena, ne „jen s kartou“. Všechny akce jsou v jednom průběžném zdroji `akcni-nabidka` — mají různou platnost (týden až měsíc). Popis v [ZDROJE_DAT.md](ZDROJE_DAT.md#globus) | Čisté veřejné API s cenou i platností (průzkum 2026-10-02); módní katalog (~210 akcí) by zahltil Všechny akce, aplikace je o nákupu potravin a drogerie (jako Lidl jen potraviny, R25). Billa až potom — API nemá platnost akcí |

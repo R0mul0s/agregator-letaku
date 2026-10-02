@@ -2,7 +2,7 @@
 
 # Slevohlídka — rychlý lovec slev
 
-Hlídání akčních nabídek z letáků obchodů **Kaufland, Tesco, Albert, Lidl a Penny**.
+Hlídání akčních nabídek z letáků obchodů **Kaufland, Tesco, Albert, Lidl, Penny a Globus**.
 Vybereš si prodejny a zadáš, co tě zajímá: konkrétní produkt („Coca-Cola Zero“)
 nebo kategorii bez ohledu na značku („vejce“, „polotučné mléko“). Aplikace ukáže,
 kde a za kolik je to právě ve slevě, včetně cen s věrnostní kartou a ceny za jednotku.
@@ -17,12 +17,12 @@ kde a za kolik je to právě ve slevě, včetně cen s věrnostní kartou a ceny
 | **Instrukce pro AI agenty** | [CLAUDE.md](CLAUDE.md) |
 | **Správce** | Roman Hlaváček |
 
-> **Stav:** hotové jsou účty, stahování akcí Kauflandu, Tesca, Lidlu a Penny, zmínky v letácích
+> **Stav:** hotové jsou účty, stahování akcí Kauflandu, Tesca, Lidlu, Penny a Globusu, zmínky v letácích
 > bez ceny (Lidl, Penny, Albert), hlídání a katalog 164 produktů se stromem kategorií z Tesca
 > (etapy 1–5b), účet s avatarem, předvolby a e-mailový souhrn, úvodní stránka s veřejnými akcemi,
 > SEO a limity požadavků (etapa 5c, [PLAN.md, sekce 6](docs/PLAN.md#6-etapy)). Běží na
 > [slevohlidka.rhsoft.cz](https://slevohlidka.rhsoft.cz) (Websupport, [deploy/DEPLOYMENT.md](deploy/DEPLOYMENT.md)).
-> Další obchody na řadě: Globus a Billa (průzkum v [ZDROJE_DAT.md](docs/ZDROJE_DAT.md)).
+> Další obchod na řadě: Billa (průzkum v [ZDROJE_DAT.md](docs/ZDROJE_DAT.md)).
 
 ## Jak se to používá
 
@@ -34,7 +34,7 @@ kde a za kolik je to právě ve slevě, včetně cen s věrnostní kartou a ceny
 
 ## Jak to funguje
 
-1. Jednou až dvakrát denně se stáhne akční nabídka všech obchodů. Kaufland, Tesco a částečně Lidl a Penny mají strukturovaná data; z letáků Lidlu, Penny a Albertu se ukládá text stránek pro zmínky bez ceny. LLM zatím ne (R23).
+1. Jednou až dvakrát denně se stáhne akční nabídka všech obchodů. Kaufland, Tesco, Globus a částečně Lidl a Penny mají strukturovaná data; z letáků Lidlu, Penny a Albertu se ukládá text stránek pro zmínky bez ceny. LLM zatím ne (R23).
 2. Nabídky se převedou do jednotného tvaru: cena v haléřích, původní cena, cena s kartou, cena za jednotku, platnost a typ akce.
 3. Hlídané položky uživatele se spárují s nabídkami ve vybraných prodejnách. Výsledek je **shoda**, nebo **možná** u položek typu „různé druhy“.
 
@@ -110,7 +110,7 @@ docker compose exec app npm run dev      # assety: watch s HMR
 docker compose exec app npm run build    # assety: produkční build
 
 # stažení nabídek (bez argumentu všechny obchody se zdrojem)
-docker compose exec app php artisan letaky:import-offers [kaufland] [tesco] [albert] [lidl] [penny]
+docker compose exec app php artisan letaky:import-offers [kaufland] [tesco] [albert] [lidl] [penny] [globus]
 
 # strom kategorií katalogu z e-shopu Tesco (stačí občas)
 docker compose exec app php artisan letaky:import-categories
@@ -134,7 +134,7 @@ app/
   Domain/Matching/         hlídané položky: pravidla, párování, Moje slevy
   Domain/Offers/           jednotný tvar nabídek (Data), parsery cen a balení (Parsing),
                            import (Actions), hledání, cena za jednotku, místní kalendář
-  Domain/Sources/<Obchod>/ stažení a převod nabídky jednoho obchodu (Kaufland, Tesco, Albert, Lidl, Penny)
+  Domain/Sources/<Obchod>/ stažení a převod nabídky jednoho obchodu (Kaufland, Tesco, Albert, Lidl, Penny, Globus)
   Domain/Sources/          rozhraní zdrojů, registr, HTTP klient s pauzami
   Enums/                   Chain, StoreFormat, OfferType, LoyaltyProgram, PackageUnit…
   Http/                    tenké kontrolery, Form Requesty, sdílená data Inertie

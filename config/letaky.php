@@ -14,6 +14,7 @@
 declare(strict_types=1);
 
 use App\Domain\Sources\Albert\AlbertOfferSource;
+use App\Domain\Sources\Globus\GlobusOfferSource;
 use App\Domain\Sources\Kaufland\KauflandOfferSource;
 use App\Domain\Sources\Lidl\LidlOfferSource;
 use App\Domain\Sources\Penny\PennyOfferSource;
@@ -105,6 +106,27 @@ return [
             'leaflet_page_svg_path' => 'files/assets/common/page-vectorlayers/%04d.svg',
             // Leták má ~40 stránek — kratší pauza, ať stažení nepřesáhne limit hostingu (O8)
             'request_delay_ms' => (int) env('LETAKY_PENNY_REQUEST_DELAY_MS', 500),
+        ],
+        'globus' => [
+            // Veřejné REST API webu (R46): akce s cenou v prodejně a k nim položky letáku
+            'offers_source' => GlobusOfferSource::class,
+            'has_store_formats' => false,
+            'has_eshop' => false,
+            'api_url' => 'https://www.globus.cz/api/v1/gsoa/actionOffers/houses/%d/',
+            'catalog_path' => 'actionProductsCatalog',
+            'leaflet_items_path' => 'actionProducts',
+            // Hypermarkety se liší jen pár krátkými místními akcemi — stačí jeden (4005 = Praha Čakovice)
+            'house_id' => 4005,
+            // Nejvíc, co API dovolí
+            'page_size' => 200,
+            // Typ ceny akce; VKP0 (pult, platnost do 9999) ani ZTP0 (doprodej) akce z letáku nejsou
+            'action_price_types' => ['VKA0'],
+            // Skupiny zboží (první 3 znaky `warengroup`), které se nesledují: oblečení (700, 701, 707),
+            // obuv (710), bytový textil (654, 661, 706), kabelky a kufry (675). Potraviny, drogerie, krmiva
+            // a domácí potřeby zůstávají.
+            'excluded_ware_groups' => ['654', '661', '675', '700', '701', '706', '707', '710'],
+            'ware_group_prefix_length' => 3,
+            'offers_page_url' => 'https://www.globus.cz/globus/hypermarket/akcni-nabidka',
         ],
         'albert' => [
             // Jen zmínky v letácích bez ceny (R27, R36): text stránek z prohlížeče Publitas

@@ -38,7 +38,7 @@ v [PLAN.md](PLAN.md). Větší celky se z toho stávají etapou.
 
 ## Další obchody
 
-- **Billa** a **Globus** — průzkum 2026-10-02: obě jdou bez LLM přes veřejné JSON API, popis v [ZDROJE_DAT.md](ZDROJE_DAT.md). Billa nemá v API platnost akcí a akce jen s Klubem vyžadují průchod celým katalogem; Globus má čisté API s platností.
+- **Billa** — průzkum 2026-10-02: jde bez LLM přes veřejné JSON API, popis v [ZDROJE_DAT.md](ZDROJE_DAT.md). API nemá platnost akcí a akce jen s Klubem vyžadují průchod celým katalogem. (Globus hotový, R46.)
 - Norma, Coop, Rossmann, dm. Každý potřebuje vlastní průzkum zdroje dat jako v [ZDROJE_DAT.md](ZDROJE_DAT.md).
 - **Makro** — průzkum 2026-10-02: makro.cz je za ochranou proti robotům (403 i `robots.txt`), jinde jen agregátory (R1). Čeká na oficiální přístup, viz [ZDROJE_DAT.md](ZDROJE_DAT.md#makro-průzkum-2026-10-02--zatím-bez-zdroje).
 

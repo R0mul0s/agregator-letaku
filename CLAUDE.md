@@ -1,7 +1,7 @@
 # Slevohlídka (agregátor letáků)
 
 Webová aplikace **Slevohlídka** („Rychlý lovec slev“, R34), která hlídá akční nabídky z letáků obchodů **Kaufland, Tesco,
-Albert, Lidl a Penny**. Uživatel si vybere prodejny a hlídané položky (konkrétní
+Albert, Lidl, Penny a Globus**. Uživatel si vybere prodejny a hlídané položky (konkrétní
 produkt nebo kategorii) a vidí, kde a za kolik jsou ve slevě. Osobní projekt,
 zatím jen pro vlastní použití.
 
@@ -20,8 +20,9 @@ volné číslo R…). Změna chování obchodu (nový endpoint, jiné pole) pat�
 
 ## Stav
 
-Hotové jsou etapy 1–5c (PLAN.md, kap. 6):
+Hotové jsou etapy 1–5d (PLAN.md, kap. 6):
 - účty (Fortify, R12, R13); stahování akcí Kauflandu, Tesca, Lidlu a Penny (R15–R17, R25, R26)
+- Globus z REST API webu (R46): katalog akcí jednoho hypermarketu, cena s aplikací Můj Globus, bez oblečení
 - zmínky v letácích bez ceny — Lidl, Penny a Albert (R27, R36; Albert jen zmínky, ceny zatím ne)
 - Všechny akce (`/akce`) s našeptávačem a výběrem obchodu s logy; Moje obchody (`/obchody`),
   Hlídám (`/hlidam`, produkt z katalogu klepnutím, nebo vlastní slova) a Moje slevy (`/`)
@@ -34,8 +35,8 @@ Hotové jsou etapy 1–5c (PLAN.md, kap. 6):
   s hamburgerem na telefonu a tlačítko Nahoru
 
 Produkce běží na `https://slevohlidka.rhsoft.cz` (první nasazení 2026-10-02, `c5d45d7`);
-postup aktualizace a nasazené verze jsou v `deploy/DEPLOYMENT.md`. Další na řadě jsou obchody
-**Globus a Billa** — průzkum zdroje dat je v ZDROJE_DAT.md (obě bez LLM přes JSON API), Makro
+postup aktualizace a nasazené verze jsou v `deploy/DEPLOYMENT.md`. Další na řadě je obchod
+**Billa** — průzkum zdroje dat je v ZDROJE_DAT.md (bez LLM přes JSON API, ale bez platnosti akcí), Makro
 zatím nejde (ochrana proti robotům). Etapa 6 (LLM) jen když bude potřeba.
 Co z dřívějších rozhodnutí platí a co ne, je v tabulce na začátku PLAN.md.
 
@@ -73,7 +74,7 @@ Stažení nabídek od obchodů (skutečné požadavky, šetrně s pauzami; Tesco
 potřebuje `TESCO_API_KEY` v `.env`, viz ZDROJE_DAT.md):
 ```bash
 docker compose exec app php artisan letaky:import-offers            # všechny obchody se zdrojem
-docker compose exec app php artisan letaky:import-offers kaufland   # jen vybrané (kaufland, tesco, albert, lidl, penny)
+docker compose exec app php artisan letaky:import-offers kaufland   # jen vybrané (kaufland, tesco, albert, lidl, penny, globus)
 docker compose exec app php artisan letaky:import-categories        # strom kategorií katalogu (Tesco, R28)
 docker compose exec app php artisan letaky:admin email@example.com  # správa katalogu /katalog (R29), --revoke odebere
 docker compose exec app php artisan letaky:send-digests             # e-mailové souhrny nových akcí (R42), do Mailpitu
@@ -96,8 +97,7 @@ Testy běží proti MariaDB `agregator_test`, ne SQLite, a **nikdy nesahají na 
 
 Sdílený hosting **Websupport** (R20), stejně jako Počasí: Apache 2.4 + PHP 8.4,
 MariaDB 11.4, `https://slevohlidka.rhsoft.cz`. **Není tam SSH ani composer** — nic
-z `php artisan` se na produkci nespustí. Balíček je připravený (R38), nasazení zatím
-neproběhlo — postup v **[deploy/DEPLOYMENT.md](deploy/DEPLOYMENT.md)**:
+z `php artisan` se na produkci nespustí. Nasazeno 2026-10-02 (R38) — postup aktualizace a nasazené verze v **[deploy/DEPLOYMENT.md](deploy/DEPLOYMENT.md)**:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File deploy\build-upload.ps1   # jen z commitnutého stavu
@@ -128,7 +128,7 @@ MariaDB 11.4 · Pest 4 · Larastan · Pint. Extrakce letáků (etapa 6): Claude 
 2. **Platnost je místní datum.** Tesco a Albert posílají UTC (`2026-09-29T22:00Z` = 30. 9.), Lidl unix timestamp. Převod na `Europe/Prague` proběhne ve zdroji, před uložením.
 3. **Akce ≠ sleva** (R8). Kaufland `smallPrice`/`specialItems` („AKCE! pouze“), Tesco „Super cena“, Penny „Jedinečná nabídka“, Lidl „Ceny v klidu“ a „Ušetřete %“ (úspora na ceně za jednotku) nejsou slevy oproti původní ceně.
 4. **Tesco Clubcard: cena s kartou je jen v textu `description`.** `afterDiscount` je u Clubcard akcí běžná cena.
-5. **Cena s kartou nebo aplikací má všech 5 obchodů**, vždy jako `loyalty_price` vedle běžné ceny, nikdy místo ní.
+5. **Cena s kartou nebo aplikací mají všechny obchody**, vždy jako `loyalty_price` vedle běžné ceny, nikdy místo ní.
 6. **„Různé druhy“ / „vybrané druhy“** neříká, jestli akce platí i na konkrétní variantu. Párování má stav **možná** (R9), ne shodu.
 7. **Duplicity:** Kaufland má stejnou položku ve více kategoriích (dedup podle `klNr` a platnosti), Lidl a Penny mají položku na webu i v letáku, Tesco v letáku i v e-shopu.
 8. **Varianty nabídky:** Albert a Tesco mají odlišné letáky pro hypermarket a supermarket, Kaufland se mírně liší po prodejnách (cookie `x-aem-variant`). Nabídka bez prodejny nebo formátu platí pro celý obchod.
@@ -155,6 +155,7 @@ MariaDB 11.4 · Pest 4 · Larastan · Pint. Extrakce letáků (etapa 6): Claude 
 29. **E-maily (R42)** mají vlastní téma `resources/views/vendor/mail/html/themes/slevohlidka.css` (barvy webu natvrdo — e-mailové klienty neumí CSS proměnné, Laravel styly vkládá inline). Ceny v e-mailu neformátovat přes `Number`/Intl — kontejner má ICU jen s angličtinou („CZK 39.90“). Veřejná vlastnost mailable přepíše stejnojmennou proměnnou šablony. Lokálně vše zachytí Mailpit.
 30. **SEO a roboti (R45):** aplikace je SPA bez SSR — titulek, popis, canonical, `robots`, OG a schema.org skládá `App\Support\Seo\SeoMeta` v `app.blade.php` na serveru. Nová veřejná stránka = doplnit ji do `SeoMeta` (jinak dostane `noindex, nofollow`), do sitemap v `CrawlerFilesController` a případně do `llms.txt`. `robots.txt` je routa, ne soubor v `public/` (statický by routu přebil) a mimo produkci zakáže vše. OG obrázek se kreslí z `resources/brand/og-image.html` (postup v hlavičce souboru).
 31. **Za proxy Websupportu** platí `trustProxies(at: '*')` — IP klienta a https z X-Forwarded-*. Limity požadavků jsou pojmenované v `App\Support\RateLimits` (`letaky.rate_limits`); měnící požadavky počítá globálně skupina web, citlivé formuláře (heslo, e-mail) mají přísnější limit — nový takový formulář patří do `SENSITIVE_ROUTES`.
+32. **Globus (R46):** ceny jsou **float v Kč** (`PriceParser::fromFloat`), akce je jen typ ceny `VKA0`, popis se bere z položky letáku podle EAN (popis katalogu je reklamní text, hlídání by chytalo cizí slova). Zboží na váhu nemá `sellUnitSizeText` — balení z `unitAmount` + `unitId`. Oblečení a obuv vyřazuje `excluded_ware_groups`. Akce nemají vlastní odkaz (detaily `…/p/` zakazuje robots.txt pro stahování a adresa není ověřená).
 
 ## Jazyk
 
