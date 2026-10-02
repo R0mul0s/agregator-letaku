@@ -78,6 +78,11 @@ return [
             'categories' => ['Food'],
             // Kampaní je ~40 malých stránek — kratší pauza, ať stažení nepřesáhne limit hostingu (O8)
             'request_delay_ms' => (int) env('LETAKY_LIDL_REQUEST_DELAY_MS', 500),
+            // Letáky pro zmínky bez ceny (R27): seznam letáků, jen potravinové, API letáků Schwarz
+            'leaflets_page_path' => '/c/akcni-letak/s10008644',
+            'leaflet_slug_prefixes' => ['akcni-letak-od-'],
+            'flyer_api_url' => 'https://endpoints.leaflets.schwarz/v4/flyer',
+            'flyer_page_path' => '/l/cs/letak/%s/view/flyer/page/%d',
         ],
         'penny' => [
             'offers_source' => PennyOfferSource::class,
@@ -117,6 +122,14 @@ return [
     'offers' => [
         'per_page' => 50,
         'search_max_length' => 100,
+    ],
+
+    /*
+    | Zmínky v letácích bez ceny (R27). Stránky s receptem vyjmenovávají suroviny („vejce“,
+    | „máslo“), které v akci nejsou — poznají se podle těchto frází (bez ohledu na diakritiku).
+    */
+    'mentions' => [
+        'excluded_page_phrases' => ['postup přípravy', 'nákupní seznam', 'recept na'],
     ],
 
     /*

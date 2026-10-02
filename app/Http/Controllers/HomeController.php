@@ -13,6 +13,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Domain\Matching\MyOffers;
+use App\Domain\Offers\MentionPresenter;
 use App\Domain\Offers\OfferPresenter;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -22,9 +23,10 @@ use Inertia\Response;
 class HomeController extends Controller
 {
     /**
-     * Zobrazí slevy po hlídaných položkách, s cenou, kterou uživatel zaplatí.
+     * Zobrazí slevy po hlídaných položkách, s cenou, kterou uživatel zaplatí, a zmínky
+     * v letácích bez ceny (R27).
      */
-    public function __invoke(Request $request, MyOffers $myOffers, OfferPresenter $presenter): Response
+    public function __invoke(Request $request, MyOffers $myOffers, OfferPresenter $presenter, MentionPresenter $mentionPresenter): Response
     {
         /** @var User $user */
         $user = $request->user();
@@ -42,6 +44,10 @@ class HomeController extends Controller
                     ...$presenter->toPage($match['offer']),
                     'matchStatus' => $match['status']->value,
                 ], $group['offers']),
+                'mentions' => array_map(
+                    fn (array $mention): array => $mentionPresenter->toPage($mention['page'], $mention['status']),
+                    $group['mentions'],
+                ),
             ], $myOffers->forUser($user)),
         ]);
     }

@@ -1,0 +1,45 @@
+<?php
+
+/**
+ * Zmínka v letáku bez ceny (R27) připravená pro stránku — obchod, leták, platnost a odkaz na stránku.
+ *
+ * @author Roman Hlaváček
+ *
+ * @created 2026-10-02
+ */
+
+declare(strict_types=1);
+
+namespace App\Domain\Offers;
+
+use App\Enums\MatchStatus;
+use App\Models\LeafletPage;
+
+final class MentionPresenter
+{
+    private const DATE_FORMAT = 'Y-m-d';
+
+    /**
+     * Data jedné zmínky pro Vue.
+     *
+     * @return array<string, mixed>
+     */
+    public function toPage(LeafletPage $page, MatchStatus $status): array
+    {
+        $leaflet = $page->leaflet;
+
+        return [
+            'id' => $page->id,
+            'chain' => $leaflet->chain->value,
+            'chainName' => $leaflet->chain->label(),
+            'leafletTitle' => $leaflet->title,
+            'pageNumber' => $page->number,
+            'validFrom' => $leaflet->valid_from?->format(self::DATE_FORMAT),
+            'validTo' => $leaflet->valid_to?->format(self::DATE_FORMAT),
+            'matchStatus' => $status->value,
+            // Náhled stránky z CDN obchodu, nestahuje se (R22)
+            'imageUrl' => $page->image_url,
+            'pageUrl' => $page->page_url ?? $leaflet->source_url,
+        ];
+    }
+}

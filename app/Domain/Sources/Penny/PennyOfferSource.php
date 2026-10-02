@@ -18,6 +18,7 @@ namespace App\Domain\Sources\Penny;
 
 use App\Domain\Matching\TextNormalizer;
 use App\Domain\Offers\Data\LeafletData;
+use App\Domain\Offers\Data\LeafletPageData;
 use App\Domain\Offers\Data\OfferData;
 use App\Domain\Offers\Data\SourceBatch;
 use App\Domain\Sources\Exceptions\SourceResponseChanged;
@@ -69,11 +70,11 @@ final class PennyOfferSource implements OfferSource
         $batches = $apiOffers === [] ? [] : [new SourceBatch($this->apiLeaflet($apiOffers), $apiOffers)];
 
         foreach ($this->leafletFolders() as $folder) {
-            [$leaflet, $offers] = $this->leafletOffers($folder);
+            [$leaflet, $offers, $pages] = $this->leafletOffers($folder);
             $batches[] = new SourceBatch($leaflet, array_values(array_filter(
                 $offers,
                 fn (OfferData $offer): bool => ! $this->isInApi($offer, $apiOffers),
-            )));
+            )), $pages);
         }
 
         return $batches;
@@ -147,9 +148,9 @@ final class PennyOfferSource implements OfferSource
     }
 
     /**
-     * Leták a jeho ověřené akce ze všech stránek.
+     * Leták, jeho ověřené akce ze všech stránek a text stránek pro zmínky bez ceny (R27).
      *
-     * @return array{LeafletData, list<OfferData>}
+     * @return array{LeafletData, list<OfferData>, list<LeafletPageData>}
      *
      * @throws SourceResponseChanged
      */
@@ -182,14 +183,20 @@ final class PennyOfferSource implements OfferSource
         }
 
         $offers = [];
+        $pageTexts = [];
         foreach ($pages as $page => $tokens) {
             $validity = $this->leaflet->pageValidity($tokens) ?? $default;
             array_push($offers, ...$this->leaflet->offers($tokens, $validity, $page, $baseUrl.$page.'/'));
+            $text = $this->leaflet->pageText($tokens);
+            if ($text !== null) {
+                $pageTexts[] = new LeafletPageData(number: $page, text: $text, pageUrl: $baseUrl.$page.'/');
+            }
         }
 
         return [
             new LeafletData(kind: LeafletKind::Leaflet, externalId: $folder, validFrom: $default[0], validTo: $default[1], sourceUrl: $baseUrl),
             $offers,
+            $pageTexts,
         ];
     }
 

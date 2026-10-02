@@ -1,0 +1,44 @@
+// _mention-card.scss
+// Zmínka v letáku bez ceny (R27) — menší karta s náhledem stránky vedle textu.
+//
+// @author Roman Hlaváček
+// @created 2026-10-02
+
+.mention-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--offer-card-min-width)), 1fr));
+    gap: var(--space-3);
+}
+
+.mention-card {
+    display: flex;
+    gap: var(--space-3);
+    padding: var(--space-3);
+    background: var(--color-surface);
+    border: 1px dashed var(--color-border);
+    border-radius: var(--radius-md);
+
+    &__image {
+        flex: none;
+        align-self: flex-start;
+        width: var(--mention-image-width);
+        height: auto;
+        border-radius: var(--radius-sm);
+    }
+
+    &__body {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-1);
+        min-width: 0;
+    }
+
+    &__title {
+        font-weight: 600;
+    }
+
+    &__meta {
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+    }
+}

@@ -23,7 +23,10 @@ declare(strict_types=1);
 
 namespace App\Domain\Sources\Lidl;
 
+use App\Domain\Offers\Data\LeafletData;
+use App\Domain\Offers\Data\LeafletPageData;
 use App\Domain\Offers\Data\OfferData;
+use App\Domain\Offers\Data\SourceBatch;
 use App\Domain\Offers\LocalCalendar;
 use App\Domain\Offers\Parsing\PackageParser;
 use App\Domain\Offers\Parsing\PriceParser;
@@ -31,6 +34,7 @@ use App\Domain\Offers\Parsing\Text;
 use App\Domain\Offers\Parsing\VariantNote;
 use App\Domain\Sources\Exceptions\SourceResponseChanged;
 use App\Enums\Chain;
+use App\Enums\LeafletKind;
 use App\Enums\LoyaltyProgram;
 use App\Enums\OfferType;
 use Carbon\CarbonImmutable;
@@ -39,6 +43,9 @@ final class LidlParser
 {
     /** Odkaz na kampaň v HTML úvodní stránky. */
     private const CAMPAIGN_LINK_PATTERN = '#href="(/c/(?:[a-z0-9-]+/)*([a-z0-9-]+)/a(\d+))"#';
+
+    /** Odkaz na leták na stránce „Akční leták“. */
+    private const LEAFLET_LINK_PATTERN = '#/l/cs/letak/([a-z0-9-]+)/ar/0#';
 
     /** JSON dlaždice produktu v atributu (s HTML entitami). */
     private const GRID_DATA_PATTERN = '/data-grid-data="([^"]*)"/';
@@ -82,6 +89,75 @@ final class LidlParser
         }
 
         return $campaigns === [] ? throw SourceResponseChanged::because(Chain::Lidl, 'úvodní stránka neodkazuje na žádnou kampaň') : $campaigns;
+    }
+
+    /**
+     * Slugy letáků ze stránky „Akční leták“ (`/l/cs/letak/{slug}/ar/0`) s povolenou předponou.
+     *
+     * @param  list<string>  $prefixes  Potravinové letáky („akcni-letak-od-“), ne spotřební zboží
+     * @return list<string>
+     */
+    public function leafletSlugs(string $html, array $prefixes): array
+    {
+        preg_match_all(self::LEAFLET_LINK_PATTERN, $html, $matches);
+
+        return array_values(array_filter(
+            array_unique($matches[1]),
+            fn (string $slug): bool => array_any($prefixes, fn (string $prefix): bool => str_starts_with($slug, $prefix)),
+        ));
+    }
+
+    /**
+     * Leták z API letáků Schwarz: zdroj a text stránek pro zmínky bez ceny (R27). Potravinové
+     * letáky nemají produkty — jen `keyWords` (slova stránky bez pořadí a bez vazby na ceny)
+     * a `altText` (popis stránky větou).
+     *
+     * @param  array<mixed>  $response
+     *
+     * @throws SourceResponseChanged
+     */
+    public function flyer(array $response, string $slug, string $pageUrlPattern): SourceBatch
+    {
+        $flyer = is_array($response['flyer'] ?? null) ? $response['flyer'] : [];
+        $start = $flyer['offerStartDate'] ?? null;
+        $end = $flyer['offerEndDate'] ?? null;
+        $pages = $flyer['pages'] ?? null;
+
+        if (! is_string($start) || ! is_string($end) || ! is_array($pages)) {
+            throw SourceResponseChanged::because(Chain::Lidl, "leták {$slug} bez platnosti nebo stránek");
+        }
+
+        $pageData = [];
+        foreach ($pages as $page) {
+            $text = is_array($page) ? Text::join(
+                is_string($page['keyWords'] ?? null) ? $page['keyWords'] : null,
+                is_string($page['altText'] ?? null) ? $page['altText'] : null,
+            ) : null;
+            if ($text !== null && is_int($page['number'] ?? null)) {
+                $pageData[] = new LeafletPageData(
+                    number: $page['number'],
+                    text: $text,
+                    imageUrl: is_string($page['thumbnail'] ?? null) ? $page['thumbnail'] : null,
+                    pageUrl: sprintf($pageUrlPattern, $slug, $page['number']),
+                );
+            }
+        }
+
+        return new SourceBatch(
+            new LeafletData(
+                kind: LeafletKind::Leaflet,
+                externalId: $slug,
+                title: Text::join(
+                    is_string($flyer['name'] ?? null) ? $flyer['name'] : null,
+                    is_string($flyer['title'] ?? null) ? $flyer['title'] : null,
+                ),
+                validFrom: $this->calendar->date($start),
+                validTo: $this->calendar->date($end),
+                sourceUrl: is_string($flyer['flyerUrlAbsolute'] ?? null) ? $flyer['flyerUrlAbsolute'] : null,
+            ),
+            offers: [],
+            pages: $pageData,
+        );
     }
 
     /**

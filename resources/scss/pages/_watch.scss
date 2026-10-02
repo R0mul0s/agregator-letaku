@@ -23,6 +23,18 @@
         font-size: var(--font-size-sm);
         font-weight: 400;
     }
+
+    // Zmínky v letácích bez ceny pod akcemi (R27)
+    &__subtitle {
+        margin: var(--space-4) 0 var(--space-1);
+        font-size: var(--font-size-md);
+    }
+
+    &__hint {
+        margin-bottom: var(--space-3);
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+    }
 }
 
 // Na širokém displeji seznam vlevo, nová položka vpravo

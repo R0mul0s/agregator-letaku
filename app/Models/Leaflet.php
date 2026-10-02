@@ -73,6 +73,16 @@ class Leaflet extends Model
     }
 
     /**
+     * Stránky letáku s textem (R27).
+     *
+     * @return HasMany<LeafletPage, $this>
+     */
+    public function pages(): HasMany
+    {
+        return $this->hasMany(LeafletPage::class);
+    }
+
+    /**
      * Nabídky z tohoto zdroje.
      *
      * @return HasMany<Offer, $this>

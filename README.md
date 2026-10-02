@@ -22,11 +22,11 @@ kde a za kolik je to právě ve slevě, včetně cen s věrnostní kartou a ceny
 
 1. **Obchody** — zaškrtni obchody, karty a aplikace, které máš; u Tesca typ prodejny (hypermarket / supermarket).
 2. **Hlídám** — přidej, co hlídáš: hledaná slova, případně variantu („zero“) a slova k vyloučení. Pro vejce, mléko, máslo a Coca-Colu Zero jsou šablony.
-3. **Moje slevy** — akce k hlídaným položkám od nejnižší ceny za kg / l / ks. Souhrnné akce („různé druhy“) bez hledané varianty jsou označené **Možná**.
+3. **Moje slevy** — akce k hlídaným položkám od nejnižší ceny za kg / l / ks. Souhrnné akce („různé druhy“) bez hledané varianty jsou označené **Možná**. Pod akcemi jsou **zmínky v letácích bez ceny** (Lidl, Penny) s odkazem na stránku letáku.
 
 ## Jak to funguje
 
-1. Jednou až dvakrát denně se stáhne akční nabídka všech obchodů. Kaufland, Tesco a částečně Lidl a Penny mají strukturovaná data, zbytek letáků se vytěží přes LLM.
+1. Jednou až dvakrát denně se stáhne akční nabídka všech obchodů. Kaufland, Tesco a částečně Lidl a Penny mají strukturovaná data; ze zbytku letáků Lidlu a Penny se ukládá text stránek pro zmínky bez ceny. LLM zatím ne (R23).
 2. Nabídky se převedou do jednotného tvaru: cena v haléřích, původní cena, cena s kartou, cena za jednotku, platnost a typ akce.
 3. Hlídané položky uživatele se spárují s nabídkami ve vybraných prodejnách. Výsledek je **shoda**, nebo **možná** u položek typu „různé druhy“.
 

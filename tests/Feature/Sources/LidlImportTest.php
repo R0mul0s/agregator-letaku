@@ -23,14 +23,19 @@ use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 
 /**
- * Falešné odpovědi lidl.cz: úvodní stránka a kampaně podle cesty.
+ * Falešné odpovědi lidl.cz: úvodní stránka, kampaně podle cesty, stránka letáků a API letáků.
  */
 function fakeLidl(): void
 {
     Http::fake(function (Request $request) {
         $path = parse_url($request->url(), PHP_URL_PATH);
 
+        if ($path === '/v4/flyer') {
+            return Http::response(responseFixture('lidl/flyer-'.$request['flyer_identifier'].'-2026-10-02.json'));
+        }
+
         return Http::response(responseFixture(match ($path) {
+            '/c/akcni-letak/s10008644' => 'lidl/letaky-2026-10-02.html',
             '/' => 'lidl/home-2026-10-02.html',
             '/c/ctvrtecni-nabidka/a10103788' => 'lidl/ctvrtecni-nabidka-2026-10-02.html',
             '/c/1-1-zdarma/a10103790' => 'lidl/1-1-zdarma-2026-10-02.html',
@@ -60,11 +65,11 @@ it('stáhne kampaně z úvodní stránky a uloží jen potraviny', function (): 
     // 7 + 2 + 3 potravin; kampaň s módou nemá potraviny, zdroj z ní nevznikne
     expect(Offer::query()->count())->toBe(12)
         ->and(ScrapeRun::query()->sole()->status)->toBe(ScrapeStatus::Succeeded)
-        ->and(Leaflet::query()->pluck('external_id')->sort()->values()->all())->toBe(['a10103788', 'a10103790', 'a10103791'])
-        ->and(Leaflet::query()->first()?->kind)->toBe(LeafletKind::Web);
+        ->and(Leaflet::query()->where('kind', LeafletKind::Web)->pluck('external_id')->sort()->values()->all())->toBe(['a10103788', 'a10103790', 'a10103791']);
 
     // úvodní stránka + 4 kampaně (čtvrteční je na úvodní stránce dvakrát, stáhne se jednou)
-    Http::assertSentCount(5);
+    // + stránka letáků + 1 potravinový leták
+    Http::assertSentCount(7);
 });
 
 it('vyloučenou kampaň nestáhne', function (): void {
@@ -136,6 +141,30 @@ it('údaj jen s cenou za jednotku nepovažuje za balení', function (): void {
     // „1 kg = 64,95 Kč“ — balení neuvádí; „195 g, 100 g = 13,90 Kč/PP“ — balení 195 g
     expect(lidlOffer('10054191'))->package_text->toBeNull()->quantity->toBeNull()
         ->and(lidlOffer('10007489'))->package_text->toBe('195 g')->quantity->toBe(195.0);
+});
+
+it('uloží text stránek potravinových letáků pro zmínky bez ceny (R27)', function (): void {
+    fakeLidl();
+
+    $this->artisan('letaky:import-offers', ['chain' => ['lidl']])->assertSuccessful();
+
+    $leaflet = Leaflet::query()->where('kind', LeafletKind::Leaflet)->sole();
+    expect($leaflet)
+        ->external_id->toBe('akcni-letak-od-ctvrtka-8-10-11-10-2026')
+        ->title->toBe('Akční leták OD ČTVRTKA 8. 10. - 11. 10. 2026')
+        ->and($leaflet->valid_from?->toDateString())->toBe('2026-10-08')
+        ->and($leaflet->valid_to?->toDateString())->toBe('2026-10-11')
+        ->and($leaflet->offers()->count())->toBe(0)
+        ->and($leaflet->pages()->pluck('number')->all())->toBe([1, 10, 18, 28, 49]);
+
+    // keyWords i altText stránky, odkaz na stránku v prohlížeči letáku
+    expect($leaflet->pages()->where('number', 1)->sole())
+        ->text->toContain('Vejce')->toContain('Akční nabídka potravin v Lidlu')
+        ->page_url->toBe('https://www.lidl.cz/l/cs/letak/akcni-letak-od-ctvrtka-8-10-11-10-2026/view/flyer/page/1')
+        ->image_url->toStartWith('https://imgproxy.leaflets.schwarz/');
+
+    // Spotřební zboží a hity týdne nejsou potravinové letáky
+    Http::assertNotSent(fn (Request $request): bool => in_array($request['flyer_identifier'] ?? null, ['spotrebni-zbozi-5-10-11-10-2026', 'hity-tydne-se-slevou-az-2000-kc-5-10-11-10-2026'], true));
 });
 
 it('položce bez data dá platnost ostatních akcí kampaně', function (): void {

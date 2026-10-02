@@ -18,6 +18,7 @@ declare(strict_types=1);
 namespace App\Domain\Offers\Actions;
 
 use App\Domain\Offers\Data\LeafletData;
+use App\Domain\Offers\Data\LeafletPageData;
 use App\Domain\Offers\Data\OfferData;
 use App\Domain\Offers\Data\SourceBatch;
 use App\Domain\Offers\Exceptions\SourceReturnedNoOffers;
@@ -25,6 +26,7 @@ use App\Domain\Offers\LocalCalendar;
 use App\Domain\Sources\SourceRegistry;
 use App\Enums\Chain;
 use App\Models\Leaflet;
+use App\Models\LeafletPage;
 use App\Models\Offer;
 use App\Models\ScrapeRun;
 use Carbon\CarbonImmutable;
@@ -109,7 +111,32 @@ final class ImportChainOffers
             Offer::query()->upsert($chunk, self::UNIQUE_BY, self::UPDATED_COLUMNS);
         }
 
+        $this->storePages($leaflet, $batch->pages);
+
         return array_fill_keys(array_keys($rows), true);
+    }
+
+    /**
+     * Uloží text stránek letáku pro zmínky bez ceny (R27); stránka se stejným číslem se přepíše.
+     *
+     * @param  list<LeafletPageData>  $pages
+     */
+    private function storePages(Leaflet $leaflet, array $pages): void
+    {
+        $now = CarbonImmutable::now();
+        $rows = array_map(fn (LeafletPageData $page): array => [
+            'leaflet_id' => $leaflet->id,
+            'number' => $page->number,
+            'text' => $page->text,
+            'image_url' => $page->imageUrl,
+            'page_url' => $page->pageUrl,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ], $pages);
+
+        foreach (array_chunk($rows, self::UPSERT_CHUNK) as $chunk) {
+            LeafletPage::query()->upsert($chunk, ['leaflet_id', 'number'], ['text', 'image_url', 'page_url', 'updated_at']);
+        }
     }
 
     /**

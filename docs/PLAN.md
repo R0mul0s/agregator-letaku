@@ -7,18 +7,33 @@
 # Agregátor letáků — plán projektu
 
 Webová aplikace, která hlídá akční nabídky z letáků českých obchodů. Uživatel si
-zvolí prodejny, zadá, co ho zajímá („Coca-Cola Zero“, „vejce“, „polotučné mléko“),
-a aplikace mu ukáže, kde a za kolik je to právě ve slevě.
+zvolí obchody (u Tesca typ prodejny), zadá, co ho zajímá („Coca-Cola Zero“, „vejce“,
+„polotučné mléko“), a aplikace mu ukáže, kde a za kolik je to právě ve slevě.
 
 Obchody letáky publikují hlavně jako PDF nebo flipbooky v JS prohlížečích. Průzkum
 2026-10-02 ale ukázal, že u většiny z nich jde akční nabídku získat i strukturovaně.
-Zbytek vytěžíme z letáku pomocí LLM ([R6](#8-log-rozhodnutí)).
+Zbytek letáku zatím pokrývají zmínky bez ceny ([R27](#8-log-rozhodnutí)), LLM jen pokud
+bude potřeba ([R23](#8-log-rozhodnutí)).
 
 - **Vývoj:** `http://localhost:54720` (Docker, viz [CLAUDE.md](../CLAUDE.md))
 - **Produkce:** sdílený hosting Websupport, zatím nenasazeno ([R20](#8-log-rozhodnutí))
 - **Repozitář:** [github.com/R0mul0s/agregator-letaku](https://github.com/R0mul0s/agregator-letaku), osobní projekt
 - **Pravidla pro psaní kódu:** [CODING_GUIDELINES.md](CODING_GUIDELINES.md)
 - **Zdroje dat jednotlivých obchodů (endpointy, pole, pasti):** [ZDROJE_DAT.md](ZDROJE_DAT.md)
+
+### Co platí a co ne (stav k 2. 10. 2026)
+
+Log rozhodnutí (kap. 8) se nepřepisuje — starší rozhodnutí nahrazují novější. Tady je výsledek:
+
+| Platí | Neplatí (čím nahrazeno) |
+|---|---|
+| Obchody se sledují celé, u Tesca (a Albertu) podle **typu prodejny** HM / SM (R19, R21) | Výběr **konkrétních prodejen** a seznamy prodejen (R3 → R21), výběr prodejen Kauflandu (R19 → R21) |
+| Kaufland: jedna výchozí varianta nabídky pro všechny prodejny (R15) | Stahování nabídky Kauflandu po prodejnách (R3 → R15, R21) |
+| Bez LLM: Kaufland, Tesco, Lidl (kampaně na webu), Penny (API + parser SVG letáku) (R23, R25, R26) | LLM jako hlavní cesta pro letáky (R6 → R23); LLM jen v etapě 6, pokud bude potřeba |
+| **Zmínky v letácích bez ceny** — Lidl a Penny (R27) | Vyhledávací API letáků Lidlu (zakázané v robots.txt) |
+| Hlídaná položka = slova + varianta + vyloučení (R18); katalog produktů je další etapa (R24) | Dva oddělené typy hlídání produkt / kategorie (R9 → R18; tři stavy shody platí dál) |
+| Obrázky odkazem na CDN obchodu (R22) | Ukládání obrázků |
+| Produkce Websupport, cron URL, SQL skripty migrací, bez fronty (R20) | GitHub CI (R14 — zatím ne) |
 
 ---
 
@@ -27,9 +42,10 @@ Zbytek vytěžíme z letáku pomocí LLM ([R6](#8-log-rozhodnutí)).
 ### Co systém dělá
 - Jednou až dvakrát denně stáhne aktuální akční nabídku z obchodů **Kaufland, Tesco, Albert, Lidl a Penny**, včetně příštího týdne, pokud už je zveřejněný.
 - Nabídky převede do jednotného tvaru: obchod, název, balení, cena, původní cena, cena s kartou nebo aplikací, cena za jednotku, platnost od–do a typ akce ([R7](#8-log-rozhodnutí), [R8](#8-log-rozhodnutí)).
-- Uživatel si založí účet, vybere **konkrétní prodejny** ([R3](#8-log-rozhodnutí)) a věrnostní programy, které používá.
-- Uživatel zadá **hlídané položky**, buď konkrétní produkt, nebo kategorii bez ohledu na značku ([R9](#8-log-rozhodnutí)).
-- Zobrazí **seznam aktuálních slev** k hlídaným položkám ve vybraných prodejnách, porovnatelný podle ceny za jednotku.
+- Uživatel si založí účet, vybere **obchody** (u Tesca typ prodejny, akce jen z e-shopu) a věrnostní programy, které používá ([R19](#8-log-rozhodnutí), [R21](#8-log-rozhodnutí)).
+- Uživatel zadá **hlídané položky**, buď konkrétní produkt, nebo kategorii bez ohledu na značku ([R18](#8-log-rozhodnutí)).
+- Zobrazí **seznam aktuálních slev** k hlídaným položkám ve sledovaných obchodech, porovnatelný podle ceny za jednotku.
+- Ukáže i **zmínky v letácích bez ceny** — položka je na stránce letáku, ale cenu z něj neumíme přečíst ([R27](#8-log-rozhodnutí)).
 - Nabídky archivuje, takže zůstává historie cen i po zmizení letáku ([R10](#8-log-rozhodnutí)).
 
 ### Co systém nedělá
@@ -136,6 +152,15 @@ Klíč je `chain` + `external_id` + `valid_from` + `valid_to`. Cena za jednotku 
 do sloupce, ale při zobrazení z ceny a množství (`UnitPrice`). Přibudou `category_id`
 (etapa 5) a `purchase_limit` (až ho bude některý zdroj dodávat: Lidl, Penny, Albert).
 
+### `leaflet_pages`: text stránek letáku (R27)
+| Sloupec | Význam |
+|---|---|
+| `leaflet_id`, `number` | leták (`kind = leaflet`) a číslo stránky od 1; klíč |
+| `text` | slova stránky — Lidl `keyWords` + `altText` z API letáků, Penny text vektorové vrstvy |
+| `image_url`, `page_url` | náhled stránky na CDN obchodu (Lidl), odkaz na stránku v prohlížeči letáku |
+
+Stránka se při dalším stažení přepíše. Slouží jen pro zmínky bez ceny v Mých slevách.
+
 ### Uživatelé a hlídání (etapa 3)
 - `users`: účty (Fortify); `loyalty_programs` = JSON seznam karet a aplikací, které uživatel má ([R19](#8-log-rozhodnutí))
 - `followed_chains`: sledované obchody — `chain`, `store_format` (null = všechny typy prodejen), `include_online_only` ([R19](#8-log-rozhodnutí))
@@ -170,8 +195,11 @@ GET / ──▶ MyOffers::forUser
              │  akce jen z e-shopu), které obsahují první slovo některé hlídané položky (SQL LIKE)
              ├─ WatchItemMatcher: všechna slova, vyloučení, varianta → shoda / možná (R18, R9)
              ├─ akce jen s kartou, kterou uživatel nemá, vynechá (R19)
-             └─ řazení: shody, pak akce s cenou od nejnižší ceny za jednotku (s kartou, pokud ji má),
-                akce na více kusů, nakonec „možná“
+             ├─ řazení: shody, pak akce s cenou od nejnižší ceny za jednotku (s kartou, pokud ji má),
+             │  akce na více kusů, nakonec „možná“
+             └─ zmínky bez ceny (R27): stránky neskončených letáků sledovaných obchodů (SQL LIKE),
+                bez stránek s receptem, celá slova bez vyloučení, chybí varianta → „možná“;
+                leták, kde má obchod k položce akci s cenou ve stejném období, se přeskočí
 ```
 
 Doba stažení (2. 10. 2026): Kaufland ~2 s (1 požadavek, příští týden +1),
@@ -200,6 +228,7 @@ z artisan příkazu i z kontroleru.
 | 2 | **Kaufland a Tesco:** zdroje, normalizace, `offers`, `leaflets`, `scrape_runs`, artisan příkaz importu; přehled všech nabídek s hledáním (`/akce`); stažené nabídky (R16) | hotovo 2026-10-02 |
 | 3 | **Hlídání:** výběr obchodů s upřesněním a věrnostních karet (`/obchody`), hlídané položky se slovy, variantou a vyloučením a šablonami (`/hlidam`), Moje slevy seřazené podle ceny za jednotku (`/`) | hotovo 2026-10-02 |
 | 4 | **Lidl a Penny bez LLM** (R23, R25, R26): Lidl `data-grid-data` z kampaní (potraviny), Penny product-discovery API a parser vektorové vrstvy letáku ověřený cenou za jednotku | hotovo 2026-10-02 |
+| 4b | **Zmínky v letácích bez ceny** (R27): text stránek letáků Lidl (API letáků Schwarz) a Penny (vektorová vrstva), sekce „V letáku, ale bez ceny“ v Mých slevách | hotovo 2026-10-02 |
 | 5 | **Katalog produktů** ([O3](#7-otevřené-otázky), návrh v kap. 7): sdílené produkty se štítky a pravidly, automatické přiřazení nabídek při importu, výběr produktu v Hlídám | |
 | 6 | **LLM** (R23), jen pokud bude potřeba: Albert (obrázky stránek), zbytek letáku Lidlu, třídění nepřiřazených nabídek | |
 | 7 | **Nasazení na Websupport** (R20): cron URL pro stahování, SQL skripty migrací, build a nahrání přes FTP, DEPLOYMENT.md, ověření O8 | |
@@ -247,13 +276,13 @@ obrázku, Tesco vůbec. Produkt je proto úroveň „co hledám“, ne čárový
 |---|---|---|---|
 | R1 | 2026-10-02 | **Data přímo od obchodů**, ne z agregátorů (kupi.cz, akcniceny.cz) | Agregátory nemají veřejné API a jejich podmínky stahování zakazují. Průzkum ukázal, že u obchodů jde data získat přímo a bez obcházení ochran. |
 | R2 | 2026-10-02 | **Stack jako Počasí:** PHP 8.4, Laravel 13, Inertia + Vue 3, SCSS (BEM a tokeny), MariaDB 11.4, Pest, Larastan, Pint, vývoj v Dockeru. Osobní projekt na GitHubu `R0mul0s` | Ověřený stack z vlastních projektů, stejná pravidla a nástroje. |
-| R3 | 2026-10-02 | Uživatel si volí **konkrétní prodejny**. Data se stahují jen pro prodejny, které má aspoň jeden uživatel vybrané (Kaufland). U obchodů s celostátní nabídkou platí nabídka pro všechny prodejny, u Tesco a Albert podle formátu HM / SM | Nabídka Kauflandu se liší po prodejnách, ale stahovat všech 149 by bylo ~110 tisíc řádků týdně skoro bez rozdílu. Albert a Tesco mají odlišné letáky pro hypermarkety a supermarkety. |
+| R3 | 2026-10-02 | **Neplatí — nahrazeno R15 a R21.** Uživatel si volí **konkrétní prodejny**. Data se stahují jen pro prodejny, které má aspoň jeden uživatel vybrané (Kaufland). U obchodů s celostátní nabídkou platí nabídka pro všechny prodejny, u Tesco a Albert podle formátu HM / SM | Nabídka Kauflandu se liší po prodejnách, ale stahovat všech 149 by bylo ~110 tisíc řádků týdně skoro bez rozdílu. Albert a Tesco mají odlišné letáky pro hypermarkety a supermarkety. |
 | R4 | 2026-10-02 | **Akce e-shopu Tesco se zobrazují** s příznakem `online_only` | E-shop má ~5 100 akcí a leták ~1 200 produktů. Část akcí (Coca-Cola Zero 0,5 l s Clubcard) je jen online, a i ta informace je pro uživatele užitečná. |
 | R5 | 2026-10-02 | **Právní stránka se ve fázi osobního použití neřeší.** I tak se ukládají jen fakta (název, cena, platnost) s odkazem na zdroj. Letáky, PDF ani fotky se nepřebírají a stahuje se šetrně (1–2× denně, pauzy mezi požadavky, respektuje robots.txt) | Aplikace je zatím jen pro autora. Kdyby se zveřejnila, je to otázka O6. Ukládat jen fakta je správně i tak a usnadní to pozdější zveřejnění. |
-| R6 | 2026-10-02 | **Nejdřív strukturovaná data, extrakce letáků přes LLM až v etapě 6.** Pořadí zdrojů podle obchodů je v kapitole 2 | Kaufland a Tesco pokryjí 100 % letáku čistým JSON. Lidl a Penny pokryjí strukturovaně jen část, Albert nic. Vision LLM nad obrázkem stránky byl v průzkumu spolehlivější než parsování textu PDF (rozházené sloupce, ceny bez desetinné čárky, vlastní fonty). |
+| R6 | 2026-10-02 | **Upřesněno R23 (LLM zatím ne).** **Nejdřív strukturovaná data, extrakce letáků přes LLM až v etapě 6.** Pořadí zdrojů podle obchodů je v kapitole 2 | Kaufland a Tesco pokryjí 100 % letáku čistým JSON. Lidl a Penny pokryjí strukturovaně jen část, Albert nic. Vision LLM nad obrázkem stránky byl v průzkumu spolehlivější než parsování textu PDF (rozházené sloupce, ceny bez desetinné čárky, vlastní fonty). |
 | R7 | 2026-10-02 | **Ceny jako celé číslo v haléřích**, platnost jako **místní datum** (`DATE`, Europe/Prague), časy běhů v UTC | Žádné chyby zaokrouhlení float. Penny posílá ceny v haléřích přímo. Akce platí po dnech, ale Albert a Tesco posílají UTC (`22:00Z` = půlnoc), takže převod musí proběhnout na hranici systému. |
 | R8 | 2026-10-02 | **Typ akce a cena s kartou jsou samostatné atributy.** „Sleva“ je jen nabídka s původní cenou | Spousta položek v letáku nejsou slevy: Kaufland „AKCE! pouze“, Tesco „Super cena“ (shodná s běžnou), Penny „Jedinečná nabídka“, Lidl „Ušetřete %“ (úspora na ceně za jednotku). Ceny s kartou nebo aplikací mají všech 5 obchodů a uživatel kartu mít nemusí. |
-| R9 | 2026-10-02 | **Dva typy hlídání:** konkrétní produkt (text a značka) a kategorie (bez značky). Výsledek párování má **tři stavy: shoda / možná / ne** | Souhrnné položky („Coca-Cola/Fanta/Sprite různé druhy“) Zero zahrnovat mohou, ale nemusí. Zamlčet je by bylo stejně špatně jako tvrdit shodu. Kategorie potřebuje vylučovací pravidla (vaječné těstoviny, mléčná čokoláda). |
+| R9 | 2026-10-02 | **Typy hlídání nahrazeny R18; tři stavy shody platí.** **Dva typy hlídání:** konkrétní produkt (text a značka) a kategorie (bez značky). Výsledek párování má **tři stavy: shoda / možná / ne** | Souhrnné položky („Coca-Cola/Fanta/Sprite různé druhy“) Zero zahrnovat mohou, ale nemusí. Zamlčet je by bylo stejně špatně jako tvrdit shodu. Kategorie potřebuje vylučovací pravidla (vaječné těstoviny, mléčná čokoláda). |
 | R10 | 2026-10-02 | **Nabídky ani letáky se nemažou**, zůstávají jako historie | Penny a Albert staré letáky z webu mažou. Historie umožní porovnat, jestli je „akce“ opravdu levnější než obvykle. |
 | R11 | 2026-10-02 | **Testy nikdy nesahají na síť.** Odpovědi obchodů jsou fixtures v `tests/Fixtures/<obchod>/` uložené ze skutečných odpovědí | Neveřejná API se mění a testy musí být deterministické. Fixture zároveň dokumentuje tvar dat k danému datu. |
 | R12 | 2026-10-02 | **Přihlášení přes Laravel Fortify** s vlastními Vue stránkami, ne starter kit | Starter kity Laravelu stojí na Tailwindu, což je v rozporu s pravidly stylování (SCSS a BEM). Fortify dodá backend (registrace, přihlášení, reset hesla, throttle) bez UI. |
@@ -263,7 +292,7 @@ obrázku, Tesco vůbec. Produkt je proto úroveň „co hledám“, ne čárový
 | R16 | 2026-10-02 | **Nabídka, kterou obchod stáhne nebo změní před koncem platnosti, se označí `withdrawn_at`** a z výpisů zmizí; nemaže se (R10). Pozná se tak, že v novém úplném stažení obchodu chybí (`scrape_run_id` není poslední stažení). Když se znovu objeví, označení zmizí | Kaufland během 2. 10. 2026 zkrátil akci na vejce z 6. 10. na 2. 10. Ranní záznam by bez toho dál tvrdil, že akce platí do 6. 10. Funguje jen proto, že každý zdroj stahuje celou nabídku obchodu najednou. |
 | R17 | 2026-10-02 | **Tesco: ceny z akcí e-shopu, leták jen určuje, kde akce platí.** Produkt e-shopu se páruje s produktem letáku podle **posledních 8 číslic ID** (leták `2001019279706` = e-shop `219279706`) a překryvu platnosti. V letáku HM i SM = všechny prodejny, v jednom = jeho formát, v žádném = jen online (R4). Katalog (CAT) se nesleduje. Položky letáku bez akce v e-shopu („Super cena“ za běžnou cenu) chybí | Ceny jsou jen v e-shopu, PDF letáku má poškozenou textovou vrstvu. Pravidlo 8 číslic ověřené na celém letáku 2. 10. 2026: HM 880 z 1 210 produktů, SM 237 z 277, žádná kolize v 5 139 produktech e-shopu; nespárované jsou hlavně „Super ceny“ a zboží bez akce online. „Super ceny“ by šly doplnit vision LLM (etapa 6). |
 | R18 | 2026-10-02 | **Hlídaná položka = název + hledaná slova + varianta + vyloučení**, místo dvou typů produkt / kategorie. Slova se hledají v názvu, značce a popisu nabídky jako **začátek slova**, bez diakritiky a velikosti písmen; všechna musí být v nabídce, alternativy přes „\|“ („mléko polotučné\|1,5“). Chybí-li varianta („zero“) u nabídky „různé druhy“, je shoda **možná** (R9). Kterékoli vyloučené slovo nabídku vyřadí. Šablony (vejce, polotučné mléko, máslo, Coca-Cola Zero) v `config/letaky.php` předvyplní formulář | Rozhodnutí uživatele. Jeden zápis pokryje produkt („coca cola“ + „zero“) i kategorii („vejce“ bez značky) a funguje hned, bez kategorizace (etapa 5). Začátek slova kvůli českým koncovkám („vejce“ najde „vejcem“) — proto ale „máslo“ najde i „máslová dýně“; šablony mají vyloučení ze skutečných nabídek 2. 10. 2026 („máslov“, „ruské“, „lipánek“, „maggi“). Obchody „polotučné“ často nepíšou, proto alternativa „1,5“. |
-| R19 | 2026-10-02 | **Sledují se obchody s upřesněním:** u Tesca typ prodejny (nabídka bez typu platí všude) a akce jen z e-shopu, u Kauflandu výběr prodejen; k tomu karty a aplikace, které uživatel má. **Akce jen s kartou, kterou uživatel nemá, se v Mých slevách neukáže**; s kartou se řadí podle ceny s kartou. Shody se počítají při zobrazení, neukládají se | Rozhodnutí uživatele („obchody + upřesnění“) — seznam prodejen zatím má jen Kaufland. Akce jen s kartou bez karty není akce. Nabídek je tisíce a hlídaných položek jednotky: SQL předvybere kandidáty podle prvního slova, pravidla se vyhodnotí v PHP za desítky milisekund; tabulka shod by se musela přepočítávat po každém importu i úpravě položky. Bude potřeba až pro upozornění. |
+| R19 | 2026-10-02 | **Výběr prodejen Kauflandu zrušen R21, zbytek platí.** **Sledují se obchody s upřesněním:** u Tesca typ prodejny (nabídka bez typu platí všude) a akce jen z e-shopu, u Kauflandu výběr prodejen; k tomu karty a aplikace, které uživatel má. **Akce jen s kartou, kterou uživatel nemá, se v Mých slevách neukáže**; s kartou se řadí podle ceny s kartou. Shody se počítají při zobrazení, neukládají se | Rozhodnutí uživatele („obchody + upřesnění“) — seznam prodejen zatím má jen Kaufland. Akce jen s kartou bez karty není akce. Nabídek je tisíce a hlídaných položek jednotky: SQL předvybere kandidáty podle prvního slova, pravidla se vyhodnotí v PHP za desítky milisekund; tabulka shod by se musela přepočítávat po každém importu i úpravě položky. Bude potřeba až pro upozornění. |
 | R20 | 2026-10-02 | **Produkce na sdíleném hostingu Websupport** (O1), stejně jako Počasí: Apache + PHP 8.4, MariaDB 11.4, bez SSH, composeru, fronty a scheduleru; cron ve WebAdminu umí jen zavolat URL. Z toho: (1) stahování spouští **cron URL s tokenem** (`/cron/…?token=`), Actions jsou na to připravené; (2) **každá migrace potřebuje SQL skript** v `deploy/` — před prvním nasazením jeden úvodní skript za všechny dosavadní migrace; (3) fronta zůstává `sync`, nic `ShouldQueue`; (4) nasazení balíčkem přes FTP jako Počasí; (5) e-maily (obnova hesla) přes SMTP Websupportu | Rozhodnutí uživatele. Hosting už provozuje Počasí — známé omezení i postup nasazení. Dlouhé úlohy (Tesco ~45 s, případné LLM) se musí vejít do jednoho požadavku nebo se rozdělit (O8). |
 | R21 | 2026-10-02 | **Seznamy prodejen nejsou potřeba** (O4). Nabídka se rozlišuje jen tam, kde obchod má odlišné letáky — podle **typu prodejny** (Tesco a Albert HM / SM, R19). Výběr prodejen Kauflandu i stahování seznamu prodejen (tabulky `stores`, `store_user`, příkaz `letaky:import-stores`) se zrušily — nic neovlivňovaly (R15) | Rozhodnutí uživatele: jde jen o to, jestli mají prodejny rozdílné letáky. Kód zůstává v historii gitu (`5b2a82d`). |
 | R22 | 2026-10-02 | **Obrázky produktů se zobrazují odkazem na CDN obchodu** (O7), nestahují se ani neukládají (R5). `referrerpolicy="no-referrer"`, líné načítání | Rozhodnutí uživatele. Fotka rozliší varianty, které názvy pletou (Coca-Cola Zero × Zero Zero). CDN Tesca (Akamai) blokuje jen „HeadlessChrome“ — běžný prohlížeč obrázky dostane; snímky obrazovky v testech potřebují běžný User-Agent. Produkční CSP musí povolit `img-src` pro CDN obchodů. |
@@ -271,3 +300,4 @@ obrázku, Tesco vůbec. Produkt je proto úroveň „co hledám“, ne čárový
 | R24 | 2026-10-02 | **Katalog produktů** (O3): sdílené produkty se štítky a pravidly, nabídky se k nim přiřazují automaticky při importu a jde to ručně opravit; hlídaná položka vybírá produkt z katalogu, vlastní slova zůstávají jako možnost. Návrh v kap. 7, etapa 5 | Rozhodnutí uživatele („produkty otagované tím, pod čím budou dohledatelné“). Ruční značení každé nabídky nejde (~6 000 týdně); pravidla psaná každým uživatelem zvlášť se opakují. |
 | R25 | 2026-10-02 | **Lidl: všechny kampaně z úvodní stránky, ukládají se jen potraviny** (`category: Food`). Pauza mezi požadavky na Lidl a Penny 0,5 s (`request_delay_ms` u zdroje), jinde 1,5 s | Kampaně (~40) nejdou podle adresy rozlišit na potravinové a nepotravinové. Aplikace hlídá potraviny; nepotravinové akce jsou v TODO. Kratší pauza drží stažení pod půl minuty kvůli limitu hostingu (O8) — stránky jsou malé a CDN ani při ní neblokovala. |
 | R26 | 2026-10-02 | **Leták Penny bez LLM: dlaždice se přijme, jen když ji ověří cena za jednotku** — cena přepočtená na balení musí dát uvedenou cenu za jednotku (balení 1 kg / 1 l / 1 ks bez ní jen přímo nad cenou). Neověřitelné dlaždice a dlaždice s PENNY kartou se neuloží; položka, kterou nese API (stejná cena a balení), se nezdvojí | Rozvržení stránek se liší a pevné okno kolem ceny přiřazovalo názvy sousedních dlaždic. Kontrola ceny za jednotku dá ~300 akcí z ~560 cen bez chybného přiřazení, mj. polotučné mléko, které je jen v letáku. Chybějící akce je lepší než akce se špatnou cenou. Zbytek může doplnit LLM nad tokeny stránky (etapa 6). |
+| R27 | 2026-10-02 | **Zmínky v letácích bez ceny.** Ukládá se text stránek letáků (`leaflet_pages`): Lidl z API letáků Schwarz (`keyWords` + `altText` stránky, jen potravinové letáky „akcni-letak-od-…“), Penny z vektorové vrstvy. Moje slevy k položce ukážou i stránky letáku, které ji zmiňují: hledají se **celá slova** (ne začátky), **bez vyloučených slov**, chybí-li varianta, je zmínka „možná“. Stránky s receptem („postup přípravy“, „nákupní seznam“, „recept na“ — `letaky.mentions.excluded_page_phrases`) se přeskočí. Leták, ve kterém má obchod k položce akci s cenou ve stejném období, zmínku nemá | Rozhodnutí uživatele: „když nebudeme mít cenu, budeme alespoň vědět, že je tam nějaká Milka“. Lidl má na webu jen ~1/3 letáku a vyhledávání v letáku prohledává jen `keyWords` (slova stránky bez pořadí, bez vazby na ceny) — cenu z nich přiřadit nejde. Stránka je směs desítek produktů: vyloučené slovo by vyřadilo celou stránku kvůli jinému produktu a začátek slova by „máslo“ našel v „Dýně máslová“. Recepty vyjmenovávají vejce a máslo, které v akci nejsou (Lidl 8. 10. 2026, str. 18 a 49). |

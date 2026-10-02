@@ -83,3 +83,40 @@ it('chybějící variantu u souhrnné nabídky označí jako možnou shodu', fun
 it('bez hledaných slov nenajde nic', function (): void {
     expect(matchOffer(['keywords' => ' | '], ['name' => 'Cokoliv']))->toBeNull();
 });
+
+/**
+ * Stav zmínky pravidel na stránce letáku (R27).
+ *
+ * @param  array<string, string|null>  $rule
+ */
+function mentionOnPage(array $rule, string $pageText): ?MatchStatus
+{
+    $normalizer = new TextNormalizer;
+    $item = (new WatchItem)->forceFill([
+        'keywords' => $rule['keywords'],
+        'variant_keywords' => $rule['variant'] ?? null,
+        'exclude_keywords' => $rule['exclude'] ?? null,
+    ]);
+
+    return (new WatchItemMatcher($normalizer))->mention(WatchRule::fromWatchItem($item, $normalizer), $normalizer->normalize($pageText));
+}
+
+it('zmínku na stránce letáku hledá jen jako celé slovo', function (): void {
+    // Skutečné stránky Lidlu 8. 10. 2026 (keyWords)
+    expect(mentionOnPage(['keywords' => 'máslo'], 'Velkopopovický Kozel 05 2997 Máslo 9960 Super'))->toBe(MatchStatus::Match)
+        ->and(mentionOnPage(['keywords' => 'máslo'], 'Dýně Máslová -28% Sweet Dumpling'))->toBeNull();
+});
+
+it('vyloučená slova u zmínky nepoužije — stránka je směs produktů', function (): void {
+    $rule = ['keywords' => 'vejce', 'exclude' => 'toust'];
+
+    expect(mentionOnPage($rule, 'Vejce 39% Řízky Toustový chléb'))->toBe(MatchStatus::Match);
+});
+
+it('zmínku bez varianty označí jako možnou', function (): void {
+    $rule = ['keywords' => 'coca cola', 'variant' => 'zero'];
+
+    expect(mentionOnPage($rule, 'Cappy Pulpy Pomeranč Coca-Cola 175 1709 -14%'))->toBe(MatchStatus::Maybe)
+        ->and(mentionOnPage($rule, 'Lidl Plus 28% Coca-Cola Zero 175 1427'))->toBe(MatchStatus::Match)
+        ->and(mentionOnPage($rule, 'Kinder Bueno Mini'))->toBeNull();
+});

@@ -204,6 +204,10 @@ return [
             'no_offers' => 'Teď v akci není.',
             'count' => ':count akce|:count akce|:count akcí',
             'edit_watch_items' => 'Upravit hlídané',
+            'mentions_title' => 'V letáku, ale bez ceny',
+            'mentions_hint' => 'Leták obsahuje slova položky, cenu z něj ale přečíst neumíme — podívejte se na stránku letáku.',
+            'mention_maybe_hint' => 'Stránka hledanou variantu neuvádí — ověřte v letáku.',
+            'mention_page' => 'Stránka :page',
         ],
 
         'account' => [

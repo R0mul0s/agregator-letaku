@@ -51,14 +51,32 @@ final class WatchItemMatcher
     }
 
     /**
+     * Stav zmínky na stránce letáku (R27); null = stránka položku nezmiňuje.
+     *
+     * Stránka je směs desítek produktů, proto se hledají jen celá slova („máslo“ nenajde
+     * „Dýně máslová“) a vyloučená slova se nepoužijí — vyřadila by celou stránku kvůli
+     * jinému produktu. Bez varianty („Coca-Cola“ bez „Zero“) je zmínka „možná“.
+     *
+     * @param  string  $text  Text stránky z TextNormalizer::normalize
+     */
+    public function mention(WatchRule $rule, string $text): ?MatchStatus
+    {
+        if ($rule->keywords === [] || ! $this->containsAll($text, $rule->keywords, wholeWords: true)) {
+            return null;
+        }
+
+        return $this->containsAll($text, $rule->variant, wholeWords: true) ? MatchStatus::Match : MatchStatus::Maybe;
+    }
+
+    /**
      * Obsahuje text každé slovo (aspoň jednu jeho alternativu)?
      *
      * @param  list<list<string>>  $terms
      */
-    private function containsAll(string $text, array $terms): bool
+    private function containsAll(string $text, array $terms, bool $wholeWords = false): bool
     {
         foreach ($terms as $alternatives) {
-            $found = array_filter($alternatives, fn (string $word): bool => $this->containsWord($text, $word));
+            $found = array_filter($alternatives, fn (string $word): bool => $this->containsWord($text, $word, $wholeWords));
             if ($found === []) {
                 return false;
             }
@@ -68,10 +86,11 @@ final class WatchItemMatcher
     }
 
     /**
-     * Začíná v textu některé slovo hledaným slovem? Text má mezery na krajích (TextNormalizer).
+     * Začíná v textu některé slovo hledaným slovem (případně je jím celé)? Text má mezery
+     * na krajích (TextNormalizer).
      */
-    private function containsWord(string $text, string $word): bool
+    private function containsWord(string $text, string $word, bool $wholeWords = false): bool
     {
-        return str_contains($text, ' '.$word);
+        return str_contains($text, $wholeWords ? ' '.$word.' ' : ' '.$word);
     }
 }

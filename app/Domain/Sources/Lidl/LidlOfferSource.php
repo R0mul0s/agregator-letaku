@@ -6,6 +6,7 @@
  * Z úvodní stránky vezme odkazy na kampaně a stáhne každou z nich; kampaň je zdroj
  * nabídek (leaflets, druh web). Pokrývá zhruba třetinu letáku — zbytek je jen v PDF (R23).
  * Kampaně bez potravin (móda, dílna) se stáhnou, ale nic z nich neuloží.
+ * K tomu potravinové letáky jako zdroje bez nabídek, jen s textem stránek pro zmínky bez ceny (R27).
  *
  * @author Roman Hlaváček
  *
@@ -57,6 +58,29 @@ final class LidlOfferSource implements OfferSource
             if ($offers !== []) {
                 $batches[] = new SourceBatch($this->leaflet($campaignId, $baseUrl.$path, $offers), $offers);
             }
+        }
+
+        return [...$batches, ...$this->leafletPages($baseUrl)];
+    }
+
+    /**
+     * Potravinové letáky s textem stránek pro zmínky bez ceny (R27).
+     *
+     * @return list<SourceBatch>
+     */
+    private function leafletPages(string $baseUrl): array
+    {
+        $slugs = $this->parser->leafletSlugs(
+            $this->download($baseUrl.config()->string('letaky.sources.lidl.leaflets_page_path')),
+            $this->stringList('letaky.sources.lidl.leaflet_slug_prefixes'),
+        );
+
+        $batches = [];
+        foreach ($slugs as $slug) {
+            $response = $this->http->request(config()->integer('letaky.sources.lidl.request_delay_ms'))
+                ->get(config()->string('letaky.sources.lidl.flyer_api_url'), ['flyer_identifier' => $slug, 'region_id' => 0, 'region_code' => 0])
+                ->json();
+            $batches[] = $this->parser->flyer(is_array($response) ? $response : [], $slug, $baseUrl.config()->string('letaky.sources.lidl.flyer_page_path'));
         }
 
         return $batches;

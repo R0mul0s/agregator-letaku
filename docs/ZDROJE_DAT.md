@@ -147,7 +147,7 @@ Implementace: `app/Domain/Sources/Tesco/TescoParser.php` a `TescoOfferSource.php
 
 ## Lidl
 
-**Cesta:** JSON z kampaňových stránek webu (~1/3 letáku) a k tomu leták (PDF s textovou vrstvou → LLM). Náročnost střední.
+**Cesta:** JSON z kampaňových stránek webu (~1/3 letáku) a text stránek letáku z API letáků pro zmínky bez ceny (R27); ceny ze zbytku letáku jen přes LLM. Náročnost střední.
 
 ### Web lidl.cz
 - Kampaně najdeš na homepage v sekcích `data-id="…-Current_Sales_Week"` a `…-Next_Sales_Week`. Dlaždice mají `href="/c/ctvrtecni-nabidka/a10103788"` a `subheadline="V prodejnách od 1. 10."`.
@@ -174,6 +174,9 @@ Implementace: `app/Domain/Sources/Tesco/TescoParser.php` a `TescoOfferSource.php
 - **Potravinové letáky mají `products` prázdné.** Produkty mají jen nepotravinové letáky.
 - PDF (25–34 MB) má použitelnou textovou vrstvu (`pdftotext -layout`), ale sloupce se míchají. Přiřazení ceny a Lidl Plus k produktu proto spolehlivě zvládne až LLM, případně vision nad obrázkem stránky.
 - Týdně jsou zhruba 4 potravinové letáky × 50–60 stran.
+- **Vyhledávání v prohlížeči letáku** (`…/view/search/page/1`) prohledává jen `keyWords` stránek — žádný seznam produktů s cenami v JS není.
+- **Zmínky bez ceny (R27, implementováno):** `LidlOfferSource::leafletPages` vezme ze stránky letáků slugy s předponou `akcni-letak-od-` (bez „spotrebni-zbozi“, „hity-tydne“, „…cen-v-klidu…“), pro každý stáhne detail a uloží stránky do `leaflet_pages`: `keyWords` + `altText` (popis stránky větou), náhled `thumbnail` (400 px), odkaz `/l/cs/letak/{slug}/view/flyer/page/{n}`. Leták je zdroj `kind = leaflet` bez nabídek. Název = `name` + `title` („Akční leták OD ČTVRTKA 8. 10. - 11. 10. 2026“), platnost `offerStartDate` / `offerEndDate` (místní data).
+- **Pasti `keyWords`:** slova bez pořadí, s velkými počátečními písmeny, čísla bez čárky („05“ = 0,5 l, „2997“ = 29,97); stránky s receptem vyjmenovávají suroviny („Vejce“, „Máslo“ — 8. 10. str. 18 a 49) a poznají se podle „Postup přípravy“, „Nákupní seznam“ nebo `altText` „Recept na…“. Coca-Cola bez „Zero“ na str. 28 je jen „možná“.
 
 ### Pole a pasti
 Implementace: `app/Domain/Sources/Lidl/` — kampaně z úvodní stránky, jen kategorie `Food` (R23).
@@ -232,6 +235,7 @@ Implementace: `app/Domain/Sources/Penny/PennyLeafletParser.php`, podrobný postu
 - Výsledek 2. 10. 2026: **~300 ověřených akcí z ~560 cen** (35 stran). Zbytek (hlavně dlaždice bez ceny za jednotku, s PENNY kartou, kombinace) se neuloží — raději chybějící akce než špatná cena. Dlaždice s PENNY kartou nese API.
 - Položka letáku, kterou nese i API (stejná cena, stejné balení, společné slovo názvu), se neuloží podruhé. Samotná shoda slov nestačí — „Karlova Koruna“ je u desítek položek.
 - Externí ID akce z letáku je otisk názvu, balení a ceny (`letak-…`), leták kód zboží nemá.
+- **Text stránek pro zmínky bez ceny (R27):** `PennyLeafletParser::pageText` spojí tokeny shora dolů a zleva doprava; ukládá se do `leaflet_pages` s odkazem `…/{DD_MM_YYYY}/{n}/`, bez náhledu. Zmínka se ukáže jen tam, kde k položce Penny v tom období nemá akci s cenou.
 
 ### Pole a pasti
 - Adresa produktu na webu: `https://www.penny.cz/products/{slug}` (`/produkty/` vrací 404).

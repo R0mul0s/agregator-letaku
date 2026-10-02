@@ -67,6 +67,18 @@ it('uloží akce z API i z letáku a stránku letáku bez textu přeskočí', fu
         ->and(Offer::query()->whereHas('leaflet', fn ($q) => $q->where('kind', LeafletKind::Leaflet))->count())->toBe(15);
 });
 
+it('uloží text stránek letáku s textovou vrstvou pro zmínky bez ceny (R27)', function (): void {
+    fakePenny();
+
+    $this->artisan('letaky:import-offers', ['chain' => ['penny']]);
+
+    $pages = Leaflet::query()->where('kind', LeafletKind::Leaflet)->sole()->pages()->orderBy('number')->get();
+    expect($pages->pluck('number')->all())->toBe([1, 2, 3])
+        ->and($pages[2]->page_url)->toBe(PENNY_LEAFLET_URL.'3/')
+        ->and($pages[2]->image_url)->toBeNull()
+        ->and($pages[2]->text)->toContain('MLÉKO* instantní, polotučné');
+});
+
 it('cenu s PENNY kartou z API uloží vedle běžné ceny', function (): void {
     fakePenny();
 

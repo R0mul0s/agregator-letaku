@@ -11,11 +11,14 @@
 declare(strict_types=1);
 
 use App\Enums\Chain;
+use App\Enums\LeafletKind;
 use App\Enums\LoyaltyProgram;
 use App\Enums\OfferType;
 use App\Enums\PackageUnit;
 use App\Enums\StoreFormat;
 use App\Models\FollowedChain;
+use App\Models\Leaflet;
+use App\Models\LeafletPage;
 use App\Models\Offer;
 use App\Models\User;
 use App\Models\WatchItem;
@@ -154,4 +157,78 @@ it('řadí od nejnižší ceny za jednotku, akce na více kusů a možné shody 
     $this->get(route('home'))->assertInertia(fn (Assert $page) => $page
         ->where('watchItems.0.offers.0.matchStatus', 'match')
         ->where('watchItems.0.offers.3.matchStatus', 'maybe'));
+});
+
+/**
+ * Zmínky v letácích bez ceny na stránce podle hlídaných položek: „obchod leták s.číslo stav“.
+ *
+ * @return array<string, list<string>>
+ */
+function myMentions(): array
+{
+    $groups = [];
+    test()->get(route('home'))
+        ->assertOk()
+        ->assertInertia(function (Assert $page) use (&$groups): void {
+            foreach ($page->toArray()['props']['watchItems'] as $item) {
+                $groups[$item['name']] = array_map(
+                    fn (array $mention): string => "{$mention['chain']} {$mention['leafletTitle']} s.{$mention['pageNumber']} {$mention['matchStatus']}",
+                    $item['mentions'],
+                );
+            }
+        });
+
+    return $groups;
+}
+
+/**
+ * Stránka letáku obchodu s textem.
+ *
+ * @param  array<string, mixed>  $leaflet
+ */
+function leafletPage(string $text, int $number = 1, array $leaflet = []): LeafletPage
+{
+    return LeafletPage::factory()->create([
+        'text' => $text,
+        'number' => $number,
+        'leaflet_id' => Leaflet::factory()->create([
+            'chain' => Chain::Lidl,
+            'kind' => LeafletKind::Leaflet,
+            'title' => 'Leták',
+            'valid_from' => '2026-10-08',
+            'valid_to' => '2026-10-11',
+            ...$leaflet,
+        ]),
+    ]);
+}
+
+it('ukáže zmínky v letácích sledovaných obchodů bez stránek s receptem (R27)', function (): void {
+    follow(Chain::Lidl);
+    watch('Vejce');
+    watch('Coca-Cola Zero', ['keywords' => 'coca cola', 'variant_keywords' => 'zero']);
+    $page = leafletPage('Okurka Salátová Vejce 39% Řízky', 1);
+    leafletPage('Rozšířená Nabídka Coca-Cola 175 1709 -14%', 28, ['external_id' => 'jiny']);
+    leafletPage('Telecí Řízek Postup Přípravy Vyklepneme Vejce', 49, ['external_id' => 'recept']);
+    leafletPage('Vejce z Penny', 2, ['chain' => Chain::Penny, 'external_id' => 'penny']);
+    leafletPage('Vejce skončená', 3, ['external_id' => 'stary', 'valid_from' => '2026-09-24', 'valid_to' => '2026-10-01']);
+
+    expect(myMentions())->toBe([
+        'Coca-Cola Zero' => ['lidl Leták s.28 maybe'],
+        'Vejce' => ['lidl Leták s.1 match'],
+    ]);
+
+    $this->get(route('home'))->assertInertia(fn (Assert $inertia) => $inertia
+        ->where('watchItems.1.mentions.0.pageUrl', $page->page_url)
+        ->where('watchItems.1.mentions.0.imageUrl', $page->image_url)
+        ->where('watchItems.1.mentions.0.validFrom', '2026-10-08'));
+});
+
+it('zmínku vynechá, když má obchod ve stejném období akci s cenou', function (): void {
+    follow(Chain::Lidl);
+    watch('Vejce');
+    leafletPage('Vejce 39%', 1);
+    leafletPage('Vejce 20 ks', 5, ['external_id' => 'pristi', 'valid_from' => '2026-10-15', 'valid_to' => '2026-10-18']);
+    Offer::factory()->create(['name' => 'Čerstvá vejce', 'chain' => Chain::Lidl, 'valid_from' => '2026-10-08', 'valid_to' => '2026-10-10']);
+
+    expect(myMentions())->toBe(['Vejce' => ['lidl Leták s.5 match']]);
 });

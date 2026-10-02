@@ -23,7 +23,9 @@ volné číslo R…). Změna chování obchodu (nový endpoint, jiné pole) pat�
 Hotové jsou etapy 1–4: kostra aplikace s účty (Fortify, R12, R13), stahování
 nabídek Kauflandu, Tesca, Lidlu a Penny (R15–R17, R25, R26), přehled všech akcí
 na `/akce` a hlídání: Moje obchody (`/obchody`), Hlídám (`/hlidam`) a Moje slevy
-(`/`, R18, R19). Další je etapa 5: katalog produktů (R24, viz PLAN.md, kap. 6–7).
+(`/`, R18, R19). K tomu zmínky v letácích Lidlu a Penny bez ceny (etapa 4b, R27).
+Další je etapa 5: katalog produktů (R24, viz PLAN.md, kap. 6–7). Co z dřívějších
+rozhodnutí platí a co ne, je v tabulce na začátku PLAN.md.
 
 Vývojový uživatel ze seederu: `test@example.com` / `password`
 (`docker compose exec app php artisan db:seed`). E-maily (obnova hesla) se lokálně
@@ -116,7 +118,8 @@ MariaDB 11.4 · Pest 4 · Larastan · Pint. Extrakce letáků (etapa 6): Claude 
 20. **Akce jen s kartou se v Mých slevách ukáže jen uživateli s tou kartou** (R19) — `LoyaltyProgram::chain()` páruje kartu s obchodem; nový obchod s kartou ji tam potřebuje.
 21. **Šablony hlídaných položek** jsou v `config/letaky.php` (`watch.templates`), jejich názvy v `lang` (`ui.watch.templates`) — test hlídá, že žádný nechybí.
 22. **Leták Penny: glyfy fontu** — `Ǻ` = „,90“, U+E00A U+E009 = „90“, červené U+E00F/E010/E011 = přeškrtávací čára (ne číslice). Přiřazení ceny k dlaždici musí projít kontrolou ceny za jednotku (R26); pravidla neuvolňovat bez porovnání výsledku na celém letáku.
-23. **Pauza mezi požadavky je podle zdroje** (`request_delay_ms` u Lidlu a Penny, jinak `letaky.http`); stránka letáku bez textové vrstvy vrací 404 — `SourceHttp::request(allowNotFound: true)`.
+23. **Pauza mezi požadavky je podle zdroje** (`request_delay_ms` u Lidlu a Penny, jinak `letaky.http`); stránka letáku bez textové vrstvy vrací 404 — `SourceHttp::request(allowNotFound: true)`. V testech musí být nulová i pauza zdroje (`LETAKY_LIDL_…`, `LETAKY_PENNY_REQUEST_DELAY_MS` v `phpunit.xml`), jinak test spí.
+24. **Zmínky v letácích bez ceny (R27)** se párují jinak než akce: `WatchItemMatcher::mention` hledá **celá slova** a **bez vyloučených slov** (stránka je směs produktů). Stránky s receptem vyřadí fráze `letaky.mentions.excluded_page_phrases`. Zmínka se nezobrazí, když má obchod k položce ve stejném období akci s cenou. Text stránek je v `leaflet_pages` (Lidl `keyWords` + `altText`, Penny text SVG); zdroj je přidává do `SourceBatch::$pages`.
 
 ## Jazyk
 

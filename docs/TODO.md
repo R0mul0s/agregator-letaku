@@ -44,7 +44,8 @@ v [PLAN.md](PLAN.md). Větší celky se z toho stávají etapou.
 
 **Odkud:** etapa 2, R15–R17 v PLAN.md.
 
-- **Lidl: zbytek letáku** (R23, R25) — potraviny jen v PDF (2. 10.: vejce a Coca-Cola Zero na příští týden); text PDF nebo obrázky stránek přes LLM
+- **Lidl: ceny ze zbytku letáku** (R23, R25) — potraviny jen v letáku dnes ukazujeme jako zmínky bez ceny (R27); cenu by dal až text PDF nebo obrázek stránky přes LLM
+- **Zmínky bez ceny (R27):** u zmínky ukázat, které slovo ji našlo; víc frází pro stránky bez akcí (recepty, soutěže); zmínky i pro Kaufland (`keyWords` v API letáků Schwarz) a Tesco (seznam produktů letáku)
 - **Lidl: nepotravinové akce** (R25) — dnes se ukládají jen `category: Food`
 - **Penny: neověřené dlaždice letáku** (R26) — ~260 cen z ~560 bez ověření cenou za jednotku; tokeny stránky s polohami předat LLM
 - **Tesco „Super ceny“ z letáku** (R17): položky letáku bez akce v e-shopu chybí — doplnit z obrázků stránek letáku (vision LLM, etapa 6)

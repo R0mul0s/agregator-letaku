@@ -150,6 +150,19 @@ final class PennyLeafletParser
     }
 
     /**
+     * Text stránky pro zmínky bez ceny (R27) — kusy textu shora dolů a zleva doprava;
+     * null pro stránku bez textu.
+     *
+     * @param  list<SvgToken>  $tokens
+     */
+    public function pageText(array $tokens): ?string
+    {
+        usort($tokens, fn (SvgToken $a, SvgToken $b): int => [$b->y, $a->x] <=> [$a->y, $b->x]);
+
+        return Text::join(...array_map(fn (SvgToken $token): string => $token->text, $tokens));
+    }
+
+    /**
      * Ověřené nabídky stránky.
      *
      * @param  list<SvgToken>  $tokens

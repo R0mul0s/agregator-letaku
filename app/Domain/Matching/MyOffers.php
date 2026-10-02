@@ -7,6 +7,9 @@
  * jednotky, tabulka shod zatím není potřeba (R19). Kandidáty předvybere databáze
  * podle prvního slova položek, přesná pravidla pak vyhodnotí WatchItemMatcher.
  *
+ * K tomu zmínky na stránkách letáků bez ceny (R27): položka je v letáku, ale cenu k ní
+ * neznáme. Zmínka se vynechá, když stejný obchod má k položce akci s cenou ve stejném období.
+ *
  * @author Roman Hlaváček
  *
  * @created 2026-10-02
@@ -18,9 +21,12 @@ namespace App\Domain\Matching;
 
 use App\Domain\Offers\LocalCalendar;
 use App\Domain\Offers\UnitPrice;
+use App\Enums\LeafletKind;
 use App\Enums\MatchStatus;
 use App\Enums\OfferType;
 use App\Models\FollowedChain;
+use App\Models\Leaflet;
+use App\Models\LeafletPage;
 use App\Models\Offer;
 use App\Models\User;
 use App\Models\WatchItem;
@@ -40,9 +46,10 @@ final class MyOffers
 
     /**
      * Pro každou hlídanou položku nabídky seřazené od nejnižší ceny za jednotku,
-     * shody před „možná“. Ceny s kartou počítá jen u karet, které uživatel má.
+     * shody před „možná“. Ceny s kartou počítá jen u karet, které uživatel má. K tomu zmínky
+     * v letácích bez ceny.
      *
-     * @return list<array{watchItem: WatchItem, offers: list<array{offer: Offer, status: MatchStatus}>}>
+     * @return list<array{watchItem: WatchItem, offers: list<array{offer: Offer, status: MatchStatus}>, mentions: list<array{page: LeafletPage, status: MatchStatus}>}>
      */
     public function forUser(User $user): array
     {
@@ -54,13 +61,18 @@ final class MyOffers
             $rules[$item->id] = WatchRule::fromWatchItem($item, $this->normalizer);
         }
 
-        $candidates = $followed->isEmpty() || $rules === []
-            ? new Collection
-            : $this->candidates($followed, $rules);
+        $searchable = ! $followed->isEmpty() && $rules !== [];
+        $candidates = $searchable ? $this->candidates($followed, $rules) : new Collection;
+        $pages = $searchable ? $this->candidatePages($followed, $rules) : [];
 
         $groups = [];
         foreach ($watchItems as $item) {
-            $groups[] = ['watchItem' => $item, 'offers' => $this->matches($user, $rules[$item->id], $candidates)];
+            $offers = $this->matches($user, $rules[$item->id], $candidates);
+            $groups[] = [
+                'watchItem' => $item,
+                'offers' => $offers,
+                'mentions' => $this->mentions($rules[$item->id], $pages, array_column($offers, 'offer')),
+            ];
         }
 
         return $groups;
@@ -85,6 +97,39 @@ final class MyOffers
         usort($matches, fn (array $a, array $b): int => $this->sortKey($user, $a) <=> $this->sortKey($user, $b));
 
         return $matches;
+    }
+
+    /**
+     * Zmínky položky na stránkách letáků, od nejbližšího letáku a po stránkách. Leták, ve kterém
+     * má obchod k položce akci s cenou, se přeskočí — zmínka by jen opakovala tutéž akci.
+     *
+     * @param  list<array{page: LeafletPage, text: string}>  $pages
+     * @param  list<Offer>  $offers  Akce s cenou k položce
+     * @return list<array{page: LeafletPage, status: MatchStatus}>
+     */
+    private function mentions(WatchRule $rule, array $pages, array $offers): array
+    {
+        $mentions = [];
+        foreach ($pages as ['page' => $page, 'text' => $text]) {
+            $status = $this->matcher->mention($rule, $text);
+            if ($status !== null && ! $this->hasPricedOffer($page->leaflet, $offers)) {
+                $mentions[] = ['page' => $page, 'status' => $status];
+            }
+        }
+
+        return $mentions;
+    }
+
+    /**
+     * Má obchod letáku k položce akci s cenou, která platí v období letáku?
+     *
+     * @param  list<Offer>  $offers
+     */
+    private function hasPricedOffer(Leaflet $leaflet, array $offers): bool
+    {
+        return array_any($offers, fn (Offer $offer): bool => $offer->chain === $leaflet->chain
+            && ($leaflet->valid_to === null || $offer->valid_from <= $leaflet->valid_to)
+            && ($leaflet->valid_from === null || $offer->valid_to >= $leaflet->valid_from));
     }
 
     /**
@@ -113,8 +158,6 @@ final class MyOffers
      */
     private function candidates(Collection $followed, array $rules): Collection
     {
-        $firstWords = array_unique(array_merge(...array_map(fn (WatchRule $rule): array => $rule->keywords[0] ?? [], array_values($rules))));
-
         return Offer::query()
             ->active()
             ->notExpired($this->calendar->today())
@@ -123,14 +166,84 @@ final class MyOffers
                     $query->orWhere(fn (Builder $query) => $this->whereFollowed($query, $chain));
                 }
             })
-            ->where(function (Builder $query) use ($firstWords): void {
-                foreach ($firstWords as $word) {
+            ->where(function (Builder $query) use ($rules): void {
+                foreach ($this->firstWords($rules) as $word) {
                     foreach (self::SEARCHED_COLUMNS as $column) {
                         $query->orWhere($column, 'like', '%'.addcslashes($word, '%_\\').'%');
                     }
                 }
             })
             ->get();
+    }
+
+    /**
+     * Stránky neskončených letáků sledovaných obchodů, které obsahují aspoň jednu alternativu
+     * prvního slova některé položky; s normalizovaným textem a bez stránek s receptem.
+     *
+     * @param  Collection<int, FollowedChain>  $followed
+     * @param  array<int, WatchRule>  $rules
+     * @return list<array{page: LeafletPage, text: string}>
+     */
+    private function candidatePages(Collection $followed, array $rules): array
+    {
+        $excluded = array_map(
+            fn (mixed $phrase): string => $this->normalizer->normalize((string) $phrase),
+            config()->array('letaky.mentions.excluded_page_phrases'),
+        );
+
+        $pages = LeafletPage::query()
+            ->with('leaflet')
+            ->whereHas('leaflet', function (Builder $query) use ($followed): void {
+                $query->where('kind', LeafletKind::Leaflet)
+                    ->whereDate('valid_to', '>=', $this->calendar->today()->toDateString())
+                    ->where(function (Builder $query) use ($followed): void {
+                        foreach ($followed as $chain) {
+                            $query->orWhere(fn (Builder $query) => $this->whereLeafletFollowed($query, $chain));
+                        }
+                    });
+            })
+            ->where(function (Builder $query) use ($rules): void {
+                foreach ($this->firstWords($rules) as $word) {
+                    $query->orWhere('text', 'like', '%'.addcslashes($word, '%_\\').'%');
+                }
+            })
+            ->get()
+            ->sortBy(fn (LeafletPage $page): array => [$page->leaflet->valid_from?->toDateString(), $page->leaflet_id, $page->number]);
+
+        $result = [];
+        foreach ($pages as $page) {
+            $text = $this->normalizer->normalize($page->text);
+            if (! array_any($excluded, fn (string $phrase): bool => str_contains($text, $phrase))) {
+                $result[] = ['page' => $page, 'text' => $text];
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Letáky jednoho sledovaného obchodu podle typu prodejny (leták bez typu platí všude).
+     *
+     * @param  Builder<Leaflet>  $query
+     */
+    private function whereLeafletFollowed(Builder $query, FollowedChain $chain): void
+    {
+        $query->where('chain', $chain->chain);
+
+        if ($chain->store_format !== null) {
+            $query->where(fn (Builder $query) => $query->whereNull('format')->orWhere('format', $chain->store_format));
+        }
+    }
+
+    /**
+     * Alternativy prvního slova všech položek — pro předvýběr v databázi.
+     *
+     * @param  array<int, WatchRule>  $rules
+     * @return list<string>
+     */
+    private function firstWords(array $rules): array
+    {
+        return array_values(array_unique(array_merge(...array_map(fn (WatchRule $rule): array => $rule->keywords[0] ?? [], array_values($rules)))));
     }
 
     /**

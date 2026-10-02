@@ -16,9 +16,11 @@ final readonly class SourceBatch
 {
     /**
      * @param  list<OfferData>  $offers
+     * @param  list<LeafletPageData>  $pages  Text stránek letáku pro zmínky bez ceny (R27)
      */
     public function __construct(
         public LeafletData $leaflet,
         public array $offers,
+        public array $pages = [],
     ) {}
 }
