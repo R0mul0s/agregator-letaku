@@ -168,6 +168,9 @@
     --theme-icon-size: 1.125rem;
     // Kompaktní tlačítka v hlavičce nepřihlášeného na mobilu (logo + 3 odkazy v řádku)
     --header-compact-control-size: 2.25rem;
+    // Jedoucí logo v hlavičce úvodní stránky na telefonu — menší rozsah než košík v hlavním pruhu
+    --header-logo-drive-distance: 0.2rem;
+    --header-logo-bump-height: 0.125rem;
 
     @include dark {
         color-scheme: dark;

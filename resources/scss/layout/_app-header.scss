@@ -5,6 +5,7 @@
 // @created 2026-10-02
 
 @use '../abstracts/mixins' as *;
+@use '../abstracts/variables' as *;
 
 .app-header {
     position: relative;
@@ -143,6 +144,24 @@
         // Přihlášení a registrace nepřihlášeného (R44) — text tlačítka se nezalamuje
         .button {
             white-space: nowrap;
+        }
+    }
+
+    // Úvodní stránka na telefonu: logo „jede“ jako košík v hlavním pruhu, který je na mobilu
+    // skrytý (keyframes landing-* v pages/_landing.scss). Na desktopu a při omezení pohybu stojí.
+    &--animated-logo &__brand {
+        --landing-drive-distance: var(--header-logo-drive-distance);
+        --landing-bump-height: var(--header-logo-bump-height);
+
+        @media (max-width: $breakpoint-md - 1px) and (prefers-reduced-motion: no-preference) {
+            animation: landing-drive var(--landing-drive-duration) ease-in-out infinite;
+        }
+    }
+
+    &--animated-logo &__logo {
+        @media (max-width: $breakpoint-md - 1px) and (prefers-reduced-motion: no-preference) {
+            animation: landing-bump var(--landing-bump-duration) ease-in-out infinite;
+            transform-origin: 50% 85%;
         }
     }
 

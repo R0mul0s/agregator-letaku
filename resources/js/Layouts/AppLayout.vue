@@ -17,7 +17,8 @@ const page = usePage();
 <template>
     <a href="#main" class="skip-link">{{ t('skip_to_content') }}</a>
     <!-- Nepřihlášený má na mobilu navigaci i přihlášení v jednom řádku s logem (R44) -->
-    <header class="app-header" :class="{ 'app-header--guest': !page.props.auth.user }">
+    <!-- Na úvodní stránce logo na telefonu jede jako košík v hlavním pruhu (ten je na mobilu skrytý) -->
+    <header class="app-header" :class="{ 'app-header--guest': !page.props.auth.user, 'app-header--animated-logo': page.component === 'Landing' }">
         <div class="app-header__inner">
             <Link href="/" class="app-header__brand">
                 <img src="/images/brand/logo-mark.png" alt="" class="app-header__logo" />
