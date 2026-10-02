@@ -99,17 +99,22 @@ a vyplň místa `<…>`:
 
 ## 6) Cron: stahování akcí
 
-Ve WebAdminu založ cron s voláním URL — **každý obchod zvlášť** (všechny najednou trvají
-~1,5 minuty a nemusí se vejít do limitu požadavku, O8). Dvakrát denně, s odstupem:
+WebAdmin → Cron → *Vytvořit CRON úkol*, **každý obchod zvlášť** (všechny najednou trvají
+~1,5 minuty a nemusí se vejít do limitu požadavku, O8). Typ **Návštěva na URL adresy (wget)**,
+pole *Opakovat* je zápis cronu (`minuta hodina den měsíc den_v_týdnu`). URL vždy s `https://`
+(HTTP by se přesměrovalo). Dvakrát denně, s odstupem 10 minut:
 
-| Čas | URL |
-|---|---|
-| 5:00 a 13:00 | `https://slevohlidka.rhsoft.cz/cron/import-offers?chain=kaufland&token=<LETAKY_CRON_TOKEN>` |
-| 5:10 a 13:10 | `…/cron/import-offers?chain=tesco&token=…` (~45 s, nejdelší) |
-| 5:20 a 13:20 | `…/cron/import-offers?chain=lidl&token=…` (~30 s) |
-| 5:30 a 13:30 | `…/cron/import-offers?chain=penny&token=…` (~25 s) |
-| 5:40 a 13:40 | `…/cron/import-offers?chain=albert&token=…` |
-| 1. den v měsíci 4:00 | `…/cron/import-categories?token=…` — strom kategorií (stačí občas) |
+| Poznámka | Opakovat | URL |
+|---|---|---|
+| Slevohlídka – Kaufland | `0 5,13 * * *` | `https://slevohlidka.rhsoft.cz/cron/import-offers?chain=kaufland&token=<LETAKY_CRON_TOKEN>` |
+| Slevohlídka – Tesco | `10 5,13 * * *` | `…/cron/import-offers?chain=tesco&token=…` (~45 s, nejdelší) |
+| Slevohlídka – Lidl | `20 5,13 * * *` | `…/cron/import-offers?chain=lidl&token=…` (~30 s) |
+| Slevohlídka – Penny | `30 5,13 * * *` | `…/cron/import-offers?chain=penny&token=…` (~25 s) |
+| Slevohlídka – Albert | `40 5,13 * * *` | `…/cron/import-offers?chain=albert&token=…` |
+| Slevohlídka – kategorie | `0 4 1 * *` | `…/cron/import-categories?token=…` — strom kategorií (stačí občas) |
+
+Hned po nasazení zavolej všech šest URL ručně v prohlížeči (kategorie první), ať se nečeká
+na ranní běh. *Posílat výsledky e-mailem* stačí zapnout na první dny, pak hlídá `/health/imports`.
 
 Odpověď je prostý text, např. `Tesco — uloženo nabídek: 5139` (200), při chybě
 `Tesco — chyba: …` (500); každé stažení je i v tabulce `scrape_runs`. Špatný nebo
@@ -119,6 +124,8 @@ a z výpisů zmizí (R16).
 **Limit požadavku (O8):** cron URL si prodlouží `max_execution_time` na 180 s
 (`letaky.cron.time_limit_seconds`); timeout proxy hostingu to ale přebít může. Když Tesco
 v `scrape_runs` končí bez dokončení nebo cron hlásí timeout, ověř limit u Websupportu.
+Záložní řešení: cron typu **Spuštění PHP 8.4 souboru** běží v CLI bez limitu požadavku
+i proxy — potřeboval by malý PHP skript, který stažení spustí (zatím neexistuje).
 
 ## 7) Ověř
 
