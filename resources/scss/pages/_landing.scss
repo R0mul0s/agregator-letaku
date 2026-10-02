@@ -89,13 +89,59 @@
         }
     }
 
-    &__mascot {
+    // Bílý kruh jako „okno“, ve kterém košík jede — čárky rychlosti se na jeho okraji ořízne
+    &__circle {
+        position: relative;
         width: var(--landing-mascot-size);
-        height: auto;
-        padding: var(--space-4);
+        height: var(--landing-mascot-size);
+        overflow: hidden;
         background: var(--color-logo-bg);
         border-radius: 50%;
         box-shadow: var(--shadow-card-hover);
+    }
+
+    // Jízda: pomalé popojíždění dopředu a zpět…
+    &__drive {
+        position: absolute;
+        inset: var(--space-4);
+        animation: landing-drive var(--landing-drive-duration) ease-in-out infinite;
+    }
+
+    // …a poskakování na hrbolech s náklonem dopředu
+    &__mascot {
+        display: block;
+        width: 100%;
+        height: auto;
+        animation: landing-bump var(--landing-bump-duration) ease-in-out infinite;
+        transform-origin: 50% 85%;
+    }
+
+    // Čárky rychlosti ubíhající za košíkem (zprava doleva, každá s jiným zpožděním)
+    &__streak {
+        position: absolute;
+        left: var(--landing-streak-left);
+        height: var(--landing-streak-thickness);
+        background: var(--color-brand);
+        border-radius: var(--radius-pill);
+        opacity: 0;
+        animation: landing-streak var(--landing-streak-duration) linear infinite;
+
+        &:nth-child(1) {
+            top: 44%;
+            width: var(--landing-streak-long);
+        }
+
+        &:nth-child(2) {
+            top: 54%;
+            width: var(--landing-streak-medium);
+            animation-delay: calc(var(--landing-streak-duration) / -3);
+        }
+
+        &:nth-child(3) {
+            top: 64%;
+            width: var(--landing-streak-short);
+            animation-delay: calc(var(--landing-streak-duration) / -1.5);
+        }
     }
 
     &__sticker {
@@ -110,6 +156,75 @@
         font-size: var(--font-size-lg);
         font-weight: 900;
         transform: rotate(var(--sticker-rotation));
+        animation: landing-sticker var(--landing-drive-duration) ease-in-out infinite;
+    }
+
+    // Kdo si v systému vypnul animace, uvidí logo stát
+    @media (prefers-reduced-motion: reduce) {
+        &__drive,
+        &__mascot,
+        &__streak,
+        &__sticker {
+            animation: none;
+        }
+
+        &__streak {
+            display: none;
+        }
+    }
+}
+
+@keyframes landing-drive {
+    0%,
+    100% {
+        transform: translateX(calc(-1 * var(--landing-drive-distance)));
+    }
+
+    50% {
+        transform: translateX(var(--landing-drive-distance));
+    }
+}
+
+@keyframes landing-bump {
+    0%,
+    100% {
+        transform: translateY(0) rotate(0);
+    }
+
+    30% {
+        transform: translateY(calc(-1 * var(--landing-bump-height))) rotate(calc(-1 * var(--landing-bump-tilt)));
+    }
+
+    60% {
+        transform: translateY(0) rotate(var(--landing-bump-tilt));
+    }
+}
+
+@keyframes landing-streak {
+    0% {
+        opacity: 0;
+        transform: translateX(var(--landing-streak-travel));
+    }
+
+    20%,
+    70% {
+        opacity: 0.85;
+    }
+
+    100% {
+        opacity: 0;
+        transform: translateX(calc(-1 * var(--landing-streak-travel)));
+    }
+}
+
+@keyframes landing-sticker {
+    0%,
+    100% {
+        transform: rotate(var(--sticker-rotation));
+    }
+
+    50% {
+        transform: rotate(calc(var(--sticker-rotation) * 1.8)) translateY(calc(-1 * var(--landing-bump-height)));
     }
 }
 

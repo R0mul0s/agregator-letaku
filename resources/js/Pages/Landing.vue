@@ -67,8 +67,16 @@ function formatNumber(value) {
                     <li v-for="chain in chains" :key="chain"><ChainLogo :chain="chain" large /></li>
                 </ul>
             </div>
+            <!-- Košík „jede“: poskakuje, za ním ubíhají čárky rychlosti (jen CSS, při omezení pohybu stojí) -->
             <div class="landing-hero__art" aria-hidden="true">
-                <img src="/images/brand/icon-512.png" alt="" class="landing-hero__mascot" />
+                <div class="landing-hero__circle">
+                    <span class="landing-hero__streak"></span>
+                    <span class="landing-hero__streak"></span>
+                    <span class="landing-hero__streak"></span>
+                    <div class="landing-hero__drive">
+                        <img src="/images/brand/icon-512.png" alt="" class="landing-hero__mascot" />
+                    </div>
+                </div>
                 <span class="landing-hero__sticker">−50 %</span>
             </div>
         </section>

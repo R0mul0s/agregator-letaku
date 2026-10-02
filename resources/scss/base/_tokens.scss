@@ -125,6 +125,19 @@
     --landing-icon-box-size: 3rem;
     --landing-icon-size: 1.5rem;
     --landing-step-size: 2.75rem;
+    // Animace košíku v hlavním pruhu (R44): jízda, hrboly, čárky rychlosti
+    --landing-drive-duration: 3.2s;
+    --landing-drive-distance: 0.6rem;
+    --landing-bump-duration: 0.45s;
+    --landing-bump-height: 0.25rem;
+    --landing-bump-tilt: 1.5deg;
+    --landing-streak-duration: 0.9s;
+    --landing-streak-travel: 2.5rem;
+    --landing-streak-left: 8%;
+    --landing-streak-thickness: 0.4rem;
+    --landing-streak-long: 3.5rem;
+    --landing-streak-medium: 2.5rem;
+    --landing-streak-short: 1.75rem;
     --icon-size: 1.125rem;
     --z-dropdown: 20;
     --chain-logo-height: 1.5rem;
