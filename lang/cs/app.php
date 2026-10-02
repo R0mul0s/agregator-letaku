@@ -39,6 +39,8 @@ return [
         'offers_done' => ':chain — uloženo nabídek: :count',
         'failed' => ':chain — chyba: :error',
         'unknown_chain' => 'Neznámý obchod nebo obchod bez zdroje „:chain“. Dostupné: :available',
+        'categories_done' => 'Kategorie — uloženo: :count',
+        'categories_failed' => 'Kategorie — chyba: :error',
     ],
 
     'ui' => [

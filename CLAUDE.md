@@ -60,6 +60,7 @@ potřebuje `TESCO_API_KEY` v `.env`, viz ZDROJE_DAT.md):
 ```bash
 docker compose exec app php artisan letaky:import-offers            # všechny obchody se zdrojem
 docker compose exec app php artisan letaky:import-offers kaufland   # jen vybrané
+docker compose exec app php artisan letaky:import-categories        # strom kategorií katalogu (Tesco, R28)
 ```
 Výsledek každého stažení je v tabulce `scrape_runs`.
 

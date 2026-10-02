@@ -108,6 +108,15 @@ Výpis všech akcí (stránkování po 200, ~5 100 produktů, 26 požadavků):
 ```
 Vyhledávání: `search(query:, page:, count:)` se stejnými poli.
 
+**Strom kategorií** (kategorie katalogu, [R28](PLAN.md#8-log-rozhodnutí); `TescoCategorySource`):
+`query { taxonomy { id name children { id name children { id name children { id name } } } } }`.
+Čtyři úrovně: oddělení › sekce › regál › police (2. 10. 2026: 15 › 137 › 745 › 1 340, hlubší
+úroveň není). `id` je `b;` + base64 zakódované cesty názvů („Mléčné, vejce a margaríny|Mléko, …“),
+nejdelší 350 znaků — přejmenování uzlu u Tesca tedy znamená nové ID. Nejnižší úroveň bývá skoro
+produkt („Polotučné mléko“, „Máslo“), jinde jen balení („Malá balení“ / „Velká balení“) a regál
+s policí mívají stejný název („Máslo › Máslo“). Oddělení „Top výběr“ a „Novinky“ jsou marketingové
+výběry, ne kategorie.
+
 ```json
 {"id":"211037571","title":"Tesco Mléko UHT polotučné 1,5% 1l",
  "price":{"actual":21.9,"unitPrice":21.9,"unitOfMeasure":"l"},

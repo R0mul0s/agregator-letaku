@@ -99,6 +99,9 @@ docker compose exec app npm run build    # assety: produkční build
 
 # stažení nabídek (bez argumentu všechny obchody se zdrojem)
 docker compose exec app php artisan letaky:import-offers [kaufland] [tesco] [lidl] [penny]
+
+# strom kategorií katalogu z e-shopu Tesco (stačí občas)
+docker compose exec app php artisan letaky:import-categories
 ```
 
 ## Struktura repozitáře

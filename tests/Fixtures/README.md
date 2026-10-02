@@ -23,6 +23,7 @@ s novým datem.
 | `penny/products-2026-10-02.json` | `www.penny.cz/api/product-discovery/products` | celá odpověď (33 položek) |
 | `penny/letaky-…`, `penny/leaflet-index-…` | stránka letáků, index letáku | odkaz na leták; odkazy na stránky 2–4 |
 | `penny/page-0001-…`, `page-0004-…`, `page-0030-…` | `…/page-vectorlayers/NNNN.svg` | skutečné strany 1 (titulní, položky z API), 4 (mléčné výrobky) a 30 (víkend, mléko 9,90) **bez vložených písem** (`<svg:style>`) — text a polohy beze změny |
+| `tesco/taxonomy-2026-10-02.json` | xapi `taxonomy` | 60 uzlů stromu kategorií: celé větve mléka, másla a vajec, limonády a kolové nápoje, k tomu vyloučená oddělení „Top výběr“ a „Domov a zábava“ |
 | `tesco/promotions-page1-2026-10-02.json`, `page2-…` | xapi `promotionType("all")` | 9 produktů po 5 na stránku: sleva jen v letáku HM (kuřecí řízky na váhu), sleva v HM i SM (vejce, mandarinky na váhu, okurka za kus), Clubcard v obou letácích (mléko), Clubcard na váhu jen online (česnek), Clubcard jen online (Coca-Cola Zero 0,5 l), „3 za cenu 2“ (pomazánka), „Super cena“ s původní cenou (káva) |
 
 Fixtures vygeneroval jednorázový skript z odpovědí uložených při průzkumu. Položky jsou

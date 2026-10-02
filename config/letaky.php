@@ -117,6 +117,14 @@ return [
     ],
 
     /*
+    | Kategorie katalogu = strom e-shopu Tesco (R28). Oddělení s marketingovými výběry
+    | („Top výběr“, „Novinky“) a nepotravinové zboží se nepřebírají.
+    */
+    'categories' => [
+        'excluded_roots' => ['Top výběr', 'Novinky', 'Domov a zábava'],
+    ],
+
+    /*
     | Přehled nabídek.
     */
     'offers' => [
