@@ -146,6 +146,55 @@
         }
     }
 
+    // Nepřihlášený (R44): na mobilu logo, Všechny akce, Přihlásit a Registrace v jednom řádku —
+    // navigace nemá vlastní řádek a tlačítka jsou kompaktní, ať se vejdou na šířku telefonu
+    &--guest &__inner {
+        flex-wrap: nowrap;
+        gap: var(--space-1);
+
+        @include from-md {
+            gap: var(--space-2);
+        }
+    }
+
+    &--guest &__nav {
+        flex: 1 1 auto;
+        flex-wrap: nowrap;
+        order: 0;
+        justify-content: flex-end;
+    }
+
+    &--guest &__link {
+        padding-inline: var(--space-1);
+        font-size: var(--font-size-sm);
+        white-space: nowrap;
+
+        @include from-md {
+            padding-inline: var(--space-3);
+            font-size: inherit;
+        }
+    }
+
+    &--guest &__actions {
+        gap: var(--space-1);
+
+        @include from-md {
+            gap: var(--space-2);
+        }
+
+        .button {
+            min-height: var(--header-compact-control-size);
+            padding: var(--space-1) var(--space-2);
+            font-size: var(--font-size-sm);
+
+            @include from-md {
+                min-height: var(--control-size);
+                padding: var(--space-2) var(--space-3);
+                font-size: inherit;
+            }
+        }
+    }
+
     // Dvě třídy — .theme-switch níž v souboru by jinak display přepsal
     &__actions &__guest-theme {
         display: none;

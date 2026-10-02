@@ -16,7 +16,8 @@ const page = usePage();
 
 <template>
     <a href="#main" class="skip-link">{{ t('skip_to_content') }}</a>
-    <header class="app-header">
+    <!-- Nepřihlášený má na mobilu navigaci i přihlášení v jednom řádku s logem (R44) -->
+    <header class="app-header" :class="{ 'app-header--guest': !page.props.auth.user }">
         <div class="app-header__inner">
             <Link href="/" class="app-header__brand">
                 <img src="/images/brand/logo-mark.png" alt="" class="app-header__logo" />

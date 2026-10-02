@@ -162,10 +162,12 @@
     --control-size: 2.5rem;
     --checkbox-size: 1.125rem;
     --logo-size: 3rem;
-    --logo-size-mobile: 2.5rem;
+    --logo-size-mobile: 3rem;
     --logo-mark-padding: 0.125rem;
     --theme-button-size: 2rem;
     --theme-icon-size: 1.125rem;
+    // Kompaktní tlačítka v hlavičce nepřihlášeného na mobilu (logo + 3 odkazy v řádku)
+    --header-compact-control-size: 2.25rem;
 
     @include dark {
         color-scheme: dark;
