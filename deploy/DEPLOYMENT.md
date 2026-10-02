@@ -144,6 +144,23 @@ curl -si "https://slevohlidka.rhsoft.cz/cron/import-offers?chain=kaufland&token=
 4. `/health/imports` po prvních stáženích vrací **200** a u každého obchodu `OK`.
 5. Cron URL se špatným tokenem vrací **404**.
 6. Asset z `/build/assets/` má `Cache-Control: … immutable`.
+7. Soubory pro roboty (R45) — `APP_ENV=production`, jinak `robots.txt` zakáže celý web:
+   ```bash
+   curl -s "https://slevohlidka.rhsoft.cz/robots.txt"     # Allow: /, Disallow soukromých cest, Sitemap: https://…
+   curl -s "https://slevohlidka.rhsoft.cz/sitemap.xml"    # adresy s https:// (jinak nefunguje trustProxies)
+   curl -s "https://slevohlidka.rhsoft.cz/llms.txt"
+   curl -s "https://slevohlidka.rhsoft.cz/" | grep -E 'canonical|og:image'   # https://, ne http://
+   ```
+8. Náhled odkazu: sdílet adresu v chatu, nebo ověřit v [opengraph.xyz](https://www.opengraph.xyz).
+
+## Vyhledávače (jednou po prvním nasazení)
+
+1. [Google Search Console](https://search.google.com/search-console): přidat vlastnost
+   `https://slevohlidka.rhsoft.cz/` (ověření DNS záznamem TXT ve WebAdminu), odeslat
+   `https://slevohlidka.rhsoft.cz/sitemap.xml`.
+2. [Bing Webmaster Tools](https://www.bing.com/webmasters): import ze Search Console.
+3. Kontrola strukturovaných dat: [Rich Results Test](https://search.google.com/test/rich-results)
+   na úvodní stránku (Organization, WebSite).
 
 ## Monitoring: hlídání stahování
 

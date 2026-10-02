@@ -213,6 +213,18 @@ return [
     ],
 
     /*
+    | Omezení počtu požadavků za minutu (R45, App\Support\RateLimits). Běžný uživatel se
+    | k limitům nepřiblíží; brání hádání hesel a tokenu cronu a zahlcení našeptávače.
+    */
+    'rate_limits' => [
+        'public_per_minute' => 120,
+        'suggestions_per_minute' => 60,
+        'cron_per_minute' => 20,
+        'writes_per_minute' => 60,
+        'sensitive_writes_per_minute' => 5,
+    ],
+
+    /*
     | Stránkování s „Načíst další“ (R43) — Všechny akce i katalog: nejvýš tolik stránek
     | najednou; kolik čísel stránek ukázat kolem načteného rozsahu (vždy i první a poslední).
     */

@@ -19,6 +19,30 @@ return [
         'description' => 'Slevohlídka — rychlý lovec slev. Hlídá akce z letáků obchodů Kaufland, Tesco, Albert, Lidl a Penny.',
     ],
 
+    // Hlavička HTML pro vyhledávače a sdílení (R45, App\Support\Seo\SeoMeta) — jen server, ne Vue
+    'seo' => [
+        'pages' => [
+            'home' => [
+                'title' => 'Slevohlídka — akce z letáků Kaufland, Tesco, Albert, Lidl a Penny',
+                'description' => 'Slevohlídka každý den projde letáky a e-shopy Kauflandu, Tesca, Albertu, Lidlu a Penny a ukáže, kde je to, co kupujete, právě ve slevě a nejlevněji za kilo nebo litr. Zdarma.',
+            ],
+            'offers' => [
+                'title' => 'Všechny akce z letáků · Slevohlídka',
+                'description' => 'Aktuální akce z letáků a e-shopů Kauflandu, Tesca, Lidlu a Penny na jednom místě — s cenou za kilo nebo litr a cenou s věrnostní kartou.',
+            ],
+            'offers_chain' => [
+                'title' => 'Akce :chain z letáku · Slevohlídka',
+                'description' => 'Aktuální akce :chain z letáku a e-shopu — s cenou za kilo nebo litr a cenou s věrnostní kartou. Přehled od Slevohlídky.',
+            ],
+            'default' => [
+                'title' => 'Slevohlídka',
+                'description' => 'Slevohlídka — rychlý lovec slev. Hlídá akce z letáků obchodů Kaufland, Tesco, Albert, Lidl a Penny.',
+            ],
+        ],
+        'og_image_alt' => 'Slevohlídka — rychlý lovec slev. Maskot s nákupním košíkem a cenovkou.',
+        'organization_description' => 'Slevohlídka hlídá akce z letáků obchodů Kaufland, Tesco, Albert, Lidl a Penny.',
+    ],
+
     // App\Enums\Chain
     'chains' => [
         'kaufland' => 'Kaufland',
@@ -46,6 +70,22 @@ return [
     // Společné pro všechny e-maily (resources/views/vendor/mail)
     'mail' => [
         'footer' => 'Slevohlídka — rychlý lovec slev',
+    ],
+
+    // llms.txt (R45) — popis webu pro jazykové modely
+    'llms' => [
+        'summary' => 'Slevohlídka je česká webová aplikace, která každý den stahuje akční nabídky z letáků a e-shopů obchodů Kaufland, Tesco, Albert, Lidl a Penny a ukazuje je přehledně na jednom místě.',
+        'about' => 'Přihlášený uživatel si vybere obchody, věrnostní karty a položky, které chce hlídat (produkt z katalogu nebo vlastní slova). Slevohlídka mu pak ukáže jen akce na tyto položky, seřazené podle ceny za kilogram, litr nebo kus, a volitelně pošle e-mailový souhrn nových akcí. Přehled všech aktuálních akcí je veřejný.',
+        'pages_title' => 'Veřejné stránky',
+        'home' => 'Úvodní stránka',
+        'home_description' => 'co Slevohlídka umí a ukázka akcí s nejvyšší slevou',
+        'offers' => 'Všechny akce',
+        'offers_description' => 'aktuální akce všech obchodů s hledáním, filtrem obchodu, cenou za jednotku a cenou s věrnostní kartou',
+        'chain' => 'Akce :chain',
+        'notes_title' => 'Poznámky k datům',
+        'note_prices' => 'Ceny jsou v českých korunách včetně DPH, převzaté z letáků a e-shopů obchodů; závazná je vždy cena v obchodě.',
+        'note_validity' => 'U každé akce je uvedena platnost (místní datum, Europe/Prague) a odkaz na zdroj u obchodu.',
+        'note_private' => 'Hlídané položky, nastavení a účty uživatelů jsou soukromé a nejsou veřejně dostupné.',
     ],
 
     // E-mailový souhrn nových akcí (R42, App\Mail\DigestMail)

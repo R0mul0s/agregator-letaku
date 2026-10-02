@@ -13,8 +13,9 @@ import { createApp, h } from 'vue';
 const APP_NAME = document.querySelector('meta[name="application-name"]')?.content ?? '';
 
 createInertiaApp({
-    // „Účet · Slevohlídka"; stránka bez titulku dostane jen název aplikace
-    title: (title) => (title && APP_NAME ? `${title} · ${APP_NAME}` : title || APP_NAME),
+    // „Účet · Slevohlídka"; stránka bez titulku dostane jen název aplikace, titulek
+    // s názvem aplikace (úvodní stránka) se nezdvojí
+    title: (title) => (title && APP_NAME && !title.includes(APP_NAME) ? `${title} · ${APP_NAME}` : title || APP_NAME),
     // Stránky se načítají líně — každá má vlastní chunk.
     resolve: (name) => {
         const pages = import.meta.glob('./Pages/**/*.vue');

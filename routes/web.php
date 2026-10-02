@@ -13,6 +13,7 @@ declare(strict_types=1);
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\AvatarController;
 use App\Http\Controllers\CatalogController;
+use App\Http\Controllers\CrawlerFilesController;
 use App\Http\Controllers\CronController;
 use App\Http\Controllers\HealthImportsController;
 use App\Http\Controllers\HomeController;
@@ -20,20 +21,34 @@ use App\Http\Controllers\OffersController;
 use App\Http\Controllers\OfferSuggestionsController;
 use App\Http\Controllers\ShoppingPreferencesController;
 use App\Http\Controllers\WatchItemController;
+use App\Support\RateLimits;
 use Illuminate\Support\Facades\Route;
 
-// Cron WebAdminu umí jen zavolat URL (R20, R38) — chráněné tokenem, bez něj 404
-Route::get('/cron/import-offers', [CronController::class, 'importOffers'])->name('cron.import-offers');
-Route::get('/cron/import-categories', [CronController::class, 'importCategories'])->name('cron.import-categories');
-Route::get('/cron/send-digests', [CronController::class, 'sendDigests'])->name('cron.send-digests');
+// Cron WebAdminu umí jen zavolat URL (R20, R38) — chráněné tokenem, bez něj 404;
+// limit požadavků brání zkoušení tokenu (R45)
+Route::middleware('throttle:'.RateLimits::CRON)->group(function (): void {
+    Route::get('/cron/import-offers', [CronController::class, 'importOffers'])->name('cron.import-offers');
+    Route::get('/cron/import-categories', [CronController::class, 'importCategories'])->name('cron.import-categories');
+    Route::get('/cron/send-digests', [CronController::class, 'sendDigests'])->name('cron.send-digests');
+});
 
-// Monitoring stahování (UptimeRobot) — veřejné, jen stav
-Route::get('/health/imports', HealthImportsController::class)->name('health.imports');
+Route::middleware('throttle:'.RateLimits::PUBLIC)->group(function (): void {
+    // Soubory pro roboty (R45) — z rout kvůli doméně z APP_URL a zákazu indexace mimo produkci
+    Route::get('/robots.txt', [CrawlerFilesController::class, 'robots'])->name('robots');
+    Route::get('/sitemap.xml', [CrawlerFilesController::class, 'sitemap'])->name('sitemap');
+    Route::get('/llms.txt', [CrawlerFilesController::class, 'llms'])->name('llms');
 
-// Veřejné (R44): úvodní stránka pro nepřihlášené (přihlášený tu má Moje slevy) a Všechny akce
-Route::get('/', HomeController::class)->name('home');
-Route::get('/akce', OffersController::class)->name('offers');
-Route::get('/akce/naseptavac', OfferSuggestionsController::class)->name('offers.suggestions');
+    // Monitoring stahování (UptimeRobot) — veřejné, jen stav
+    Route::get('/health/imports', HealthImportsController::class)->name('health.imports');
+
+    // Veřejné (R44): úvodní stránka pro nepřihlášené (přihlášený tu má Moje slevy) a Všechny akce
+    Route::get('/', HomeController::class)->name('home');
+    Route::get('/akce', OffersController::class)->name('offers');
+});
+
+Route::get('/akce/naseptavac', OfferSuggestionsController::class)
+    ->middleware('throttle:'.RateLimits::SUGGESTIONS)
+    ->name('offers.suggestions');
 
 Route::middleware('auth')->group(function (): void {
     Route::get('/hlidam', [WatchItemController::class, 'index'])->name('watch-items.index');

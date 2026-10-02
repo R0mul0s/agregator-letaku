@@ -139,6 +139,7 @@ app/
   Models/                  User, Leaflet, LeafletPage, Offer, ScrapeRun, FollowedChain, WatchItem,
                            Category, Product, OfferProduct, OfferProductExclusion
   Policies/                oprávnění k hlídaným položkám (jen vlastník)
+  Support/                 stránkování (Pagination), SEO hlavička (Seo), limity požadavků (RateLimits)
 config/letaky.php          zdroje obchodů a konstanty aplikace
 database/seeders/data/     produkty katalogu (catalog-products.php)
 deploy/                    nasazení na Websupport: build balíčku, .env, SQL skripty (DEPLOYMENT.md)

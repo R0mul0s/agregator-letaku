@@ -1,0 +1,106 @@
+<!doctype html>
+<!--
+    Zdroj obrázku pro sdílení odkazu (Open Graph, R45) — public/images/brand/og-image.png, 1200 × 630.
+    Vykreslení (headless Edge, z rootu repa):
+      msedge --headless=new --hide-scrollbars --window-size=1200,630 \
+        --screenshot=public/images/brand/og-image.png resources/brand/og-image.html
+    Barvy odpovídají tokenům v resources/scss/base/_tokens.scss (světlý režim).
+
+    @author Roman Hlaváček
+    @created 2026-10-02
+-->
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<style>
+    @font-face {
+        font-family: 'Nunito';
+        src: url('../../node_modules/@fontsource-variable/nunito/files/nunito-latin-ext-wght-normal.woff2') format('woff2-variations');
+        font-weight: 200 1000;
+        unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+    @font-face {
+        font-family: 'Nunito';
+        src: url('../../node_modules/@fontsource-variable/nunito/files/nunito-latin-wght-normal.woff2') format('woff2-variations');
+        font-weight: 200 1000;
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+    html, body { margin: 0; }
+    .og {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        box-sizing: border-box;
+        width: 1200px;
+        height: 630px;
+        padding: 64px 80px 80px;
+        overflow: hidden;
+        background: linear-gradient(120deg, #fdecec 0%, #ffffff 70%);
+        font-family: 'Nunito', system-ui, sans-serif;
+        color: #1f222a;
+    }
+    .og::after {
+        content: '';
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        height: 16px;
+        background: linear-gradient(135deg, #f42630 0%, #c00010 100%);
+    }
+    .og__text { max-width: 640px; }
+    .og__lines {
+        width: 64px;
+        height: 36px;
+        margin-bottom: 24px;
+        background:
+            linear-gradient(#f42630, #f42630) left top / 100% 9px no-repeat,
+            linear-gradient(#f42630, #f42630) left center / 70% 9px no-repeat,
+            linear-gradient(#f42630, #f42630) left bottom / 40% 9px no-repeat;
+    }
+    .og__name { margin: 0; font-size: 104px; font-weight: 900; letter-spacing: -0.03em; line-height: 1; }
+    .og__name span { color: #f42630; }
+    .og__tagline { margin: 16px 0 0; font-size: 44px; font-weight: 800; }
+    .og__chains { margin: 32px 0 0; color: #5c6370; font-size: 30px; font-weight: 600; line-height: 1.35; }
+    .og__art { position: relative; }
+    .og__mascot {
+        width: 330px;
+        height: 330px;
+        padding: 36px;
+        box-sizing: border-box;
+        background: #ffffff;
+        border-radius: 50%;
+        box-shadow: 0 2px 4px rgb(31 34 42 / 8%), 0 18px 40px rgb(31 34 42 / 14%);
+        object-fit: contain;
+    }
+    .og__sticker {
+        position: absolute;
+        top: 18px;
+        right: -26px;
+        padding: 8px 20px;
+        background: linear-gradient(135deg, #f42630 0%, #c00010 100%);
+        border-radius: 12px;
+        color: #ffffff;
+        font-size: 48px;
+        font-weight: 900;
+        transform: rotate(-6deg);
+        box-shadow: 0 12px 28px rgb(31 34 42 / 18%);
+    }
+</style>
+</head>
+<body>
+<div class="og">
+    <div class="og__text">
+        <div class="og__lines"></div>
+        <p class="og__name"><span>Slevo</span>hlídka</p>
+        <p class="og__tagline">Rychlý lovec slev</p>
+        <p class="og__chains">Akce z letáků Kaufland, Tesco, Albert, Lidl a Penny — na to, co opravdu kupujete.</p>
+    </div>
+    <div class="og__art">
+        <img class="og__mascot" src="../../public/images/brand/icon-512.png" alt="">
+        <span class="og__sticker">−50 %</span>
+    </div>
+</div>
+</body>
+</html>

@@ -13,6 +13,7 @@ declare(strict_types=1);
 namespace App\Providers;
 
 use App\Models\User;
+use App\Support\RateLimits;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
@@ -42,5 +43,8 @@ class AppServiceProvider extends ServiceProvider
 
         // Katalog produktů spravuje jen admin (R29)
         Gate::define('manage-catalog', fn (User $user): bool => $user->is_admin);
+
+        // Omezení počtu požadavků (R45)
+        RateLimits::register();
     }
 }
