@@ -260,7 +260,7 @@ Implementace: `app/Domain/Sources/Penny/PennyLeafletParser.php`, podrobný postu
 
 ## Albert
 
-**Cesta:** jen leták. Metadata z GraphQL, obrázky stránek z Publitas a extrakce přes vision LLM. Náročnost střední.
+**Cesta:** jen leták. Metadata z GraphQL, **text stránek z Publitas** (`spreads.json`, R36) — zatím zmínky bez ceny; ceny případně z textu nebo vision LLM. Náročnost střední.
 
 Albert nemá HTML výpis akcí a e-shop už neprovozuje. Katalog `productSearch`
 v GraphQL má `potentialPromotions` vždy prázdné, takže **není zdrojem akcí**.
@@ -285,10 +285,12 @@ Publitas (Albert CZ, groupId 90263):
 | Účel | URL |
 |---|---|
 | Metadata | `https://letaky.albert.cz/{slug}/data.json` |
-| Obrázky stránek | `https://letaky.albert.cz/{slug}/spreads.json` (až 1816×3173, varianty `at1600`, `at2000`, `at2400`) |
+| Stránky | `https://letaky.albert.cz/{slug}/spreads.json` — pole dvoustran, u každé stránky `number`, **`text`** (text stránky v pořadí čtení) a `images` (`at200` 151×263 … `at2400` 1818×3169, cesty relativní k `https://letaky.albert.cz`) |
+| Stránka v prohlížeči | `https://letaky.albert.cz/{slug}/page/{n}` |
 | Hotspoty | `https://letaky.albert.cz/{slug}/page/{n}/hotspots_data.json` (jen pár externích odkazů, **žádné produkty**) |
 
 ### Pole a pasti
+- **Text stránek (R36, implementováno):** `AlbertOfferSource` stáhne hlavní letáky HM a SM (`isDefault`, lokální varianty ne) a text stránek uloží pro zmínky bez ceny. Text obsahuje názvy, balení i ceny, ale ceny jsou rozsekané („-34 %“ „31“ „90“, „3490“ = 34,90, „48,90/“ = původní cena) a pořadí bloků neodpovídá dlaždicím; titulní strana opakuje obsah další strany a některé strany jsou v letáku dvakrát.
 - Platnost je v UTC a ve formátu `DD/MM/YYYY HH:MM:SS` (`22:00` = půlnoc místního času).
 - **Hypermarket a supermarket mají odlišné letáky** (`40hm_akcni_letak`, `40sm_akcni_letak`). Existují i lokální varianty (`40sm_akcni_letak_frenstat`, `isDefault=false`) a výjimky prodejen.
 - **Dvojí cena:** s aplikací Můj Albert (modrá cenovka) a „BEZ APLIKACE xx,xx“.

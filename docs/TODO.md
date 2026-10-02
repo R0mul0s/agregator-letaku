@@ -44,6 +44,7 @@ v [PLAN.md](PLAN.md). Větší celky se z toho stávají etapou.
 
 **Odkud:** etapa 2, R15–R17 v PLAN.md.
 
+- **Albert: ceny z textu stránek** (R36) — text Publitas má názvy, balení i ceny, ale ceny rozsekané („31“ „90“) a bez polohy; zkusit párování podle pořadí bloků, nebo vision LLM nad obrázkem stránky (etapa 6)
 - **Lidl: ceny ze zbytku letáku** (R23, R25) — potraviny jen v letáku dnes ukazujeme jako zmínky bez ceny (R27); cenu by dal až text PDF nebo obrázek stránky přes LLM
 - **Zmínky bez ceny (R27):** u zmínky ukázat, které slovo ji našlo; víc frází pro stránky bez akcí (recepty, soutěže); zmínky i pro Kaufland (`keyWords` v API letáků Schwarz) a Tesco (seznam produktů letáku)
 - **Lidl: nepotravinové akce** (R25) — dnes se ukládají jen `category: Food`

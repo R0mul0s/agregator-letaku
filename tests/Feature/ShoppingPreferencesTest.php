@@ -22,6 +22,9 @@ beforeEach(function (): void {
 });
 
 it('ukáže všechny obchody, sledovatelné jen ty se zdrojem nabídek', function (): void {
+    // Obchod bez zdroje nabídek (dnes mají zdroj všechny — Albert jen zmínky, R36)
+    config(['letaky.sources.albert.offers_source' => null]);
+
     $this->get(route('preferences'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
@@ -69,6 +72,8 @@ it('po zrušení sledování obchod odebere', function (): void {
 });
 
 it('nedovolí sledovat obchod bez zdroje nabídek', function (): void {
+    config(['letaky.sources.albert.offers_source' => null]);
+
     $this->put(route('preferences.update'), [
         'chains' => [['chain' => 'albert', 'store_format' => null, 'include_online_only' => true]],
         'loyalty_programs' => [],

@@ -18,7 +18,7 @@ kde a za kolik je to právě ve slevě, včetně cen s věrnostní kartou a ceny
 
 > **Stav:** hotové jsou účty (etapa 1), stahování nabídek Kauflandu, Tesca, Lidlu a Penny
 > s přehledem všech akcí (etapy 2 a 4), hlídání (etapa 3) a katalog produktů se stromem
-> kategorií z Tesca (etapa 5, [PLAN.md, sekce 6](docs/PLAN.md#6-etapy)). Albert čeká na LLM.
+> kategorií z Tesca (etapa 5, [PLAN.md, sekce 6](docs/PLAN.md#6-etapy)). Albert má zatím zmínky v letácích bez ceny.
 
 ## Jak se to používá
 

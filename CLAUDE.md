@@ -21,7 +21,7 @@ volné číslo R…). Změna chování obchodu (nový endpoint, jiné pole) pat�
 ## Stav
 
 Hotové jsou etapy 1–4: kostra aplikace s účty (Fortify, R12, R13), stahování
-nabídek Kauflandu, Tesca, Lidlu a Penny (R15–R17, R25, R26), přehled všech akcí
+nabídek Kauflandu, Tesca, Lidlu a Penny (R15–R17, R25, R26), Albert zatím jen zmínky (R36), přehled všech akcí
 na `/akce` a hlídání: Moje obchody (`/obchody`), Hlídám (`/hlidam`) a Moje slevy
 (`/`, R18, R19). K tomu zmínky v letácích Lidlu a Penny bez ceny (etapa 4b, R27).
 Hotová je i etapa 5, katalog produktů (R24, R28–R31): strom kategorií z Tesca, katalog
@@ -124,7 +124,7 @@ MariaDB 11.4 · Pest 4 · Larastan · Pint. Extrakce letáků (etapa 6): Claude 
 21. **Šablony hlídaných položek už nejsou** (R31) — nahradil je katalog; výchozí produkty zakládá `CatalogSeeder`. Hlídaná položka z katalogu má `keywords` null a pravidla bere z produktu (`WatchRule::fromWatchItem` potřebuje načtenou relaci `product`). Při smazání produktu se jeho pravidla zkopírují do položek, které ho hlídají.
 22. **Leták Penny: glyfy fontu** — `Ǻ` = „,90“, U+E00A U+E009 = „90“, červené U+E00F/E010/E011 = přeškrtávací čára (ne číslice). Přiřazení ceny k dlaždici musí projít kontrolou ceny za jednotku (R26); pravidla neuvolňovat bez porovnání výsledku na celém letáku.
 23. **Pauza mezi požadavky je podle zdroje** (`request_delay_ms` u Lidlu a Penny, jinak `letaky.http`); stránka letáku bez textové vrstvy vrací 404 — `SourceHttp::request(allowNotFound: true)`. V testech musí být nulová i pauza zdroje (`LETAKY_LIDL_…`, `LETAKY_PENNY_REQUEST_DELAY_MS` v `phpunit.xml`), jinak test spí.
-24. **Zmínky v letácích bez ceny (R27)** se párují jinak než akce: `WatchItemMatcher::mention` hledá **celá slova** a **bez vyloučených slov** (stránka je směs produktů). Stránky s receptem vyřadí fráze `letaky.mentions.excluded_page_phrases`. Zmínka se nezobrazí, když má obchod k položce ve stejném období akci s cenou. Text stránek je v `leaflet_pages` (Lidl `keyWords` + `altText`, Penny text SVG); zdroj je přidává do `SourceBatch::$pages`.
+24. **Zmínky v letácích bez ceny (R27)** se párují jinak než akce: `WatchItemMatcher::mention` hledá **celá slova** a **bez vyloučených slov** (stránka je směs produktů). Stránky s receptem vyřadí fráze `letaky.mentions.excluded_page_phrases`. Zmínka se nezobrazí, když má obchod k položce ve stejném období akci s cenou. Text stránek je v `leaflet_pages` (Lidl `keyWords` + `altText`, Penny text SVG, Albert `text` ze `spreads.json` Publitas); zdroj je přidává do `SourceBatch::$pages`. Zdroj jen se stránkami (Albert) nabídky mít nemusí — `SourceReturnedNoOffers` padá až při prázdnu ve všem.
 25. **Katalog produktů (R28–R30):** přiřazení nabídek k produktům (`offer_product`) přepočítává `AssignProducts` — po importu obchodu (`forChain`, uvnitř transakce importu) a po uložení produktu (`forProduct`). Ruční řádky (`is_manual`) a vyřazení (`offer_product_exclusions`) přepočet nesmí změnit. Pravidla produktu = pravidla hlídané položky (`WatchRule::fromProduct`, `WatchItemMatcher::matchText` nad jednou normalizovaným textem). Předvýběr v SQL jen přes `OfferPrefilter` (stejné sloupce jako `WatchItemMatcher::offerText`). Kategorie se nemažou, `source_id` je zakódovaná cesta názvů u Tesca.
 
 ## Jazyk

@@ -13,6 +13,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Sources\Albert\AlbertOfferSource;
 use App\Domain\Sources\Kaufland\KauflandOfferSource;
 use App\Domain\Sources\Lidl\LidlOfferSource;
 use App\Domain\Sources\Penny\PennyOfferSource;
@@ -104,6 +105,22 @@ return [
             'leaflet_page_svg_path' => 'files/assets/common/page-vectorlayers/%04d.svg',
             // Leták má ~40 stránek — kratší pauza, ať stažení nepřesáhne limit hostingu (O8)
             'request_delay_ms' => (int) env('LETAKY_PENNY_REQUEST_DELAY_MS', 500),
+        ],
+        'albert' => [
+            // Jen zmínky v letácích bez ceny (R27, R36): text stránek z prohlížeče Publitas
+            'offers_source' => AlbertOfferSource::class,
+            'has_store_formats' => true,
+            'has_eshop' => false,
+            'api_url' => 'https://www.albert.cz/api/v1/',
+            // locationType v GraphQL => formát prodejny (App\Enums\StoreFormat)
+            'location_types' => ['HYPERMARKET' => 'hypermarket', 'SUPERMARKET' => 'supermarket'],
+            // Soubory prohlížeče letáku (viewUrl z GraphQL + cesta)
+            'spreads_path' => 'spreads.json',
+            'page_path' => 'page/%d',
+            'page_image_base_url' => 'https://letaky.albert.cz',
+            // Náhled stránky (151 × 263 px) — stačí na kartu zmínky
+            'page_image_size' => 'at200',
+            'request_delay_ms' => (int) env('LETAKY_ALBERT_REQUEST_DELAY_MS', 500),
         ],
         'tesco' => [
             'offers_source' => TescoOfferSource::class,
