@@ -33,5 +33,7 @@
 {{ __('app.digest.button') }}
 </x-mail::button>
 
-{{ __('app.digest.footer', ['frequency' => mb_strtolower($frequency)]) }} [{{ __('app.digest.settings_link') }}]({{ $accountUrl }})
+{{ __('app.digest.footer', ['frequency' => mb_strtolower($frequency)]) }}
+
+[{{ __('app.digest.unsubscribe_link') }}]({{ $unsubscribeUrl }}) · [{{ __('app.digest.settings_link') }}]({{ $accountUrl }})
 </x-mail::message>

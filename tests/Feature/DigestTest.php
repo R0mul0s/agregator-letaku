@@ -10,9 +10,11 @@
 
 declare(strict_types=1);
 
+use App\Domain\Account\MailingSubscriptions;
 use App\Domain\Digest\Actions\SendDigests;
 use App\Enums\Chain;
 use App\Enums\DigestFrequency;
+use App\Enums\MailingList;
 use App\Http\Controllers\AccountController;
 use App\Http\Requests\DigestRequest;
 use App\Mail\DigestMail;
@@ -113,4 +115,28 @@ it('uloží četnost souhrnu; po zapnutí přijde první souhrn znovu celý', fu
 
     $this->put(route('account.digest'), ['digest_frequency' => 'kazdou-hodinu'])
         ->assertSessionHasErrorsIn(DigestRequest::ERROR_BAG, 'digest_frequency');
+});
+
+it('na neověřenou adresu souhrn nepošle (R51)', function (): void {
+    $this->user->forceFill(['email_verified_at' => null])->save();
+    Offer::factory()->create(['name' => 'Máslo 250 g']);
+
+    expect(app(SendDigests::class)())->toBe(0);
+    Mail::assertNothingSent();
+});
+
+it('e-mail má odhlášení jedním klepnutím v patičce i v hlavičkách (R51)', function (): void {
+    Offer::factory()->create(['name' => 'Máslo 250 g']);
+    app(SendDigests::class)();
+    $unsubscribeUrl = app(MailingSubscriptions::class)->unsubscribeUrl($this->user, MailingList::Digest);
+
+    Mail::assertSent(DigestMail::class, function (DigestMail $mail) use ($unsubscribeUrl): bool {
+        $mail->assertSeeInHtml(e($unsubscribeUrl), escape: false);
+        $mail->assertSeeInHtml(config('letaky.operator.name'));
+
+        return $mail->headers()->text === [
+            'List-Unsubscribe' => '<'.$unsubscribeUrl.'>',
+            'List-Unsubscribe-Post' => 'List-Unsubscribe=One-Click',
+        ];
+    });
 });

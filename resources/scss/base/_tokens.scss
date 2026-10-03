@@ -53,6 +53,15 @@
     --color-logo-bg: #ffffff;
     // Podklad maskota v hlavičce — ve světlém režimu není potřeba
     --color-logo-mark-bg: transparent;
+    // Patička (R51): tmavá antracitová jako logo v obou režimech
+    --color-footer-bg: #1f222a;
+    --color-footer-text: #eceef2;
+    --color-footer-muted: #a3a9b4;
+    --color-footer-heading: #ffffff;
+    --color-footer-brand: #ff4a52;
+    --color-footer-link-hover: #ff858a;
+    --color-footer-border: rgb(255 255 255 / 12%);
+    --color-footer-logo-bg: #eceef2;
 
     --space-1: 0.25rem;
     --space-2: 0.5rem;
@@ -105,6 +114,16 @@
     --letter-spacing-brand: -0.02em;
 
     --content-max-width: 72rem;
+    // Šířka řádku dlouhého textu (právní stránky, R51) — čitelnost
+    --legal-max-width: 48rem;
+    --legal-toc-width: 16rem;
+    --legal-accent-width: 4px;
+    --footer-logo-size: 2.5rem;
+    --footer-brand-column: minmax(0, 1.6fr);
+    --footer-about-max-width: 22rem;
+    --footer-disclaimer-max-width: 40rem;
+    --cookie-text-max-width: 44rem;
+    --cookie-dialog-max-width: 36rem;
     --auth-card-max-width: 28rem;
     --auth-showcase-max-width: 60rem;
     --auth-mascot-size: 10rem;
@@ -167,6 +186,8 @@
     // Plovoucí hlavička nad obsahem i jeho rozbalovacími seznamy, tlačítko nahoru nad vším
     --z-header: 30;
     --z-back-to-top: 40;
+    // Lišta souhlasu s cookies (R52) nad tlačítkem Nahoru, pod toastem
+    --z-cookie-bar: 45;
     --z-toast: 50;
     // O kolik méně posunout na kotvu (#polozka-…) — výška plovoucí hlavičky s rezervou
     --header-scroll-offset: 6rem;
@@ -241,6 +262,7 @@
         --color-brand-dark: #eceef2;
         --color-price: #ff858a;
         --color-logo-mark-bg: #eceef2;
+        --color-footer-bg: #0f1115;
         --watermark-opacity: 0.1;
         --color-accent: #ff5c63;
         --color-accent-strong: #ff858a;

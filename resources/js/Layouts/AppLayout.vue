@@ -2,14 +2,18 @@
     Společné rozvržení stránek — plovoucí hlavička s navigací a menu účtu (nepřihlášený přihlášení,
     registraci a přepínač vzhledu), obsah. Na telefonu je navigace pod tlačítkem menu
     (hamburger); nepřihlášený má v hlavičce jen Registraci, přihlášení a vzhled jsou v menu (R44).
-    Vpravo dole tlačítko Nahoru.
+    Vpravo dole tlačítko Nahoru. Pod hlavičkou lišta pro neověřený e-mail, dole patička
+    s provozovatelem a právními stránkami (R51), lišta souhlasu s cookies (R52).
 
     @author Roman Hlaváček
     @created 2026-10-02
 -->
 <script setup>
+import AppFooter from '@/Components/AppFooter.vue';
 import BackToTop from '@/Components/BackToTop.vue';
 import ConfirmDialog from '@/Components/ConfirmDialog.vue';
+import CookieConsent from '@/Components/CookieConsent.vue';
+import EmailVerificationBar from '@/Components/EmailVerificationBar.vue';
 import StoresDialog from '@/Components/StoresDialog.vue';
 import Toaster from '@/Components/Toaster.vue';
 import ThemeSwitch from '@/Components/ThemeSwitch.vue';
@@ -126,13 +130,18 @@ onBeforeUnmount(() => {
         </div>
     </header>
 
+    <EmailVerificationBar v-if="page.props.auth.user && !page.props.auth.user.emailVerified" />
+
     <!-- tabindex -1: po odkazu „Přeskočit na obsah" dostane fokus i hlavní obsah -->
     <main id="main" class="page" tabindex="-1">
         <slot />
     </main>
 
+    <AppFooter />
+
     <BackToTop />
     <Toaster />
     <ConfirmDialog />
+    <CookieConsent />
     <StoresDialog />
 </template>

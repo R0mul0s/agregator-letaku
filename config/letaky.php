@@ -44,6 +44,45 @@ return [
     ],
 
     /*
+    | Provozovatel (R51) — patička webu a e-mailů, podmínky a zásady (resources/legal).
+    | Podnikatel musí mít na webu jméno, IČO a sídlo (§ 435 OZ) — všechny jsou v podmínkách
+    | a zásadách; patička webu ukazuje jméno a sídlo, IČO ne. Chybějící údaj ukážou právní
+    | stránky jako „[doplnit]“, patička ho vynechá.
+    */
+    'operator' => [
+        'name' => 'Roman Hlaváček',
+        'company_id' => '88688143',
+        // Sídlo po řádcích — patička je vypíše pod sebou, texty a e-maily spojí čárkou (App\Support\Operator)
+        'address' => ['Rodov 133', '503 03 Smiřice'],
+        'email' => 'roman.hlavacek@rhsoft.cz',
+    ],
+
+    /*
+    | Podmínky užití a zásady zpracování osobních údajů (R51): Markdown v resources/legal.
+    | Verze podmínek se ukládá k uživateli při registraci (users.terms_version), verze textu
+    | souhlasu s obchodními sděleními k souhlasu (users.marketing_consent_version) — při
+    | podstatné změně textu zvýšit. Datum účinnosti null = na stránce se neukáže.
+    */
+    'legal' => [
+        'directory' => 'legal',
+        'terms_version' => 1,
+        'marketing_consent_version' => 1,
+        'effective_from' => null,
+    ],
+
+    /*
+    | Souhlas s cookies a Google Analytics 4 (R52). GA se načte jen na produkci a jen po souhlasu
+    | s analytickými cookies (resources/js/lib/consent.js); jiné ID nebo prázdné (vypnuto)
+    | jde nastavit v .env. Verze souhlasu: při změně kategorií nebo nástrojů zvýšit — všichni
+    | se pak vyberou znovu. Platnost volby 6 měsíců, pak se lišta ukáže znovu (doporučení ÚOOÚ).
+    */
+    'cookie_consent' => [
+        'google_measurement_id' => env('LETAKY_GA_MEASUREMENT_ID', 'G-BM3CZ7M4PD'),
+        'version' => 1,
+        'max_age_days' => 180,
+    ],
+
+    /*
     | Přihlášení (R12) — pokusy za minutu pro dvojici e-mail + IP.
     */
     'auth' => [

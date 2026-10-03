@@ -1,0 +1,123 @@
+// _cookie-consent.scss
+// Souhlas s cookies (CookieConsent.vue, R52) — lišta dole přes celou šířku a okno s kategoriemi.
+//
+// @author Roman Hlaváček
+// @created 2026-10-03
+
+@use '../abstracts/mixins' as *;
+
+.cookie-bar {
+    position: fixed;
+    z-index: var(--z-cookie-bar);
+    right: 0;
+    bottom: 0;
+    left: 0;
+    padding: var(--space-3);
+    pointer-events: none;
+
+    &__inner {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-3);
+        max-width: var(--content-max-width);
+        margin: 0 auto;
+        padding: var(--space-4);
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-toast);
+        pointer-events: auto;
+
+        @include from-lg {
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+            gap: var(--space-4);
+        }
+    }
+
+    &__title {
+        margin-bottom: var(--space-1);
+        color: var(--color-text);
+        font-size: var(--font-size-card-title);
+    }
+
+    &__text {
+        max-width: var(--cookie-text-max-width);
+        color: var(--color-text-muted);
+    }
+
+    &__actions {
+        display: flex;
+        flex: none;
+        flex-wrap: wrap;
+        gap: var(--space-2);
+    }
+}
+
+.cookie-dialog {
+    @include dialog-surface(var(--cookie-dialog-max-width));
+
+    &__title {
+        margin-bottom: var(--space-2);
+        font-size: var(--font-size-card-title);
+    }
+
+    &__intro {
+        color: var(--color-text-muted);
+    }
+
+    &__categories {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-2);
+        margin: var(--space-4) 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    &__category {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-3);
+        padding: var(--space-3);
+        background: var(--color-bg);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-md);
+    }
+
+    &__category-text {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-1);
+    }
+
+    label.cookie-dialog__category-text {
+        cursor: pointer;
+    }
+
+    &__category-title {
+        font-size: var(--font-size-md);
+        font-weight: 800;
+    }
+
+    &__category-description {
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+    }
+
+    &__always {
+        flex: none;
+        color: var(--color-success);
+        font-size: var(--font-size-sm);
+        font-weight: 700;
+    }
+
+    &__actions {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: var(--space-2);
+    }
+}

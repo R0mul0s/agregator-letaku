@@ -240,6 +240,7 @@ resources/scss/
 ## 7. Texty a lokalizace
 
 - Všechny texty jsou v `lang/cs/app.php`: PHP (`__('app.…')`) i Vue (skupina `app.ui`).
+- **Výjimka: právní texty** (podmínky užití, zásady zpracování osobních údajů) jsou Markdown v `resources/legal` ([R51](PLAN.md#8-log-rozhodnutí)) — dlouhý text se tak dá číst, porovnávat mezi verzemi a dát právníkovi. Údaje provozovatele se doplňují z `letaky.operator`, nepíšou se do textu.
 - Placeholdery `:name`, plurály přes `trans_choice()` (čeština má tři tvary).
 - Chybějící klíč se zobrazí jako holý text, a to je **bug**.
 - Názvy obchodů, typů akcí a věrnostních programů jsou v `lang`, ne v enumu.
@@ -283,6 +284,8 @@ CI (GitHub Actions) zatím není, ruční kontroly jsou jediná pojistka ([R14](
 - Tajemství (API klíče obchodů a LLM) jsou v `.env`, nikdy v repu. `.env.example` má prázdné hodnoty.
 - CSRF všude. Případná cron URL je chráněná tokenem z `.env` a rate limitem.
 - **Obsah od obchodu je nedůvěryhodný vstup**: ve Vue jen textová interpolace, nikdy `v-html`. Totéž platí pro text od LLM.
+- `v-html` jen pro vlastní právní texty převedené na serveru se zahozeným HTML (`LegalDocuments`, R51).
+- **E-maily jen na ověřenou adresu** (R51). Hromadný e-mail má odhlášení jedním klepnutím bez přihlášení (podepsaná adresa, `List-Unsubscribe`); obchodní sdělení jen se souhlasem (`User::hasMarketingConsent`).
 - Neveřejná rozhraní obchodů, která vyžadují přihlášení (`UNAUTHENTICATED`), se neobcházejí.
 
 ---

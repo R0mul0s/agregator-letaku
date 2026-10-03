@@ -1,5 +1,6 @@
 <!--
-    Zaškrtávací pole formuláře s popiskem.
+    Zaškrtávací pole formuláře s popiskem. Popisek s odkazy (souhlas s podmínkami, R51) jde
+    předat slotem místo textu; chyba validace se ukáže pod polem.
 
     @author Roman Hlaváček
     @created 2026-10-02
@@ -8,15 +9,31 @@
 defineProps({
     /** Atribut id i name pole — odpovídá klíči ve formuláři. */
     id: { type: String, required: true },
-    label: { type: String, required: true },
+    /** Text popisku; bez něj popisek dodá výchozí slot. */
+    label: { type: String, default: '' },
+    /** Chyba validace pole. */
+    error: { type: String, default: null },
 });
 
 const model = defineModel({ type: Boolean, default: false });
 </script>
 
 <template>
-    <label :for="id" class="form-checkbox">
-        <input :id="id" v-model="model" :name="id" type="checkbox" class="form-checkbox__input" />
-        <span>{{ label }}</span>
-    </label>
+    <div class="form-checkbox-field">
+        <label :for="id" class="form-checkbox">
+            <input
+                :id="id"
+                v-model="model"
+                :name="id"
+                type="checkbox"
+                class="form-checkbox__input"
+                :aria-invalid="error ? 'true' : undefined"
+                :aria-describedby="error ? `${id}_error` : undefined"
+            />
+            <span>
+                <slot>{{ label }}</slot>
+            </span>
+        </label>
+        <p v-if="error" :id="`${id}_error`" class="form-field__error" role="alert">{{ error }}</p>
+    </div>
 </template>

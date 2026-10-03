@@ -15,10 +15,12 @@ namespace App\Http\Controllers;
 
 use App\Actions\Fortify\UpdateUserPassword;
 use App\Actions\Fortify\UpdateUserProfileInformation;
+use App\Domain\Account\MailingSubscriptions;
 use App\Domain\Account\UserSessions;
 use App\Enums\DigestFrequency;
 use App\Enums\OffersSort;
 use App\Http\Requests\DigestRequest;
+use App\Http\Requests\MarketingRequest;
 use App\Http\Requests\OffersPreferencesRequest;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
@@ -45,6 +47,9 @@ class AccountController extends Controller
     /** Kód stavu po uložení nastavení souhrnu — toast (R47, lang: ui.toast.messages). */
     public const STATUS_DIGEST_SAVED = 'digest-saved';
 
+    /** Kód stavu po uložení souhlasu s obchodními sděleními — toast (R47, R51). */
+    public const STATUS_MARKETING_SAVED = 'marketing-saved';
+
     /**
      * Zobrazí formuláře účtu; názvy sad chyb musí sedět s akcemi Fortify.
      */
@@ -58,6 +63,8 @@ class AccountController extends Controller
                 'avatarDelete' => route('account.avatar.destroy', absolute: false),
                 'offersPreferences' => route('account.offers-preferences', absolute: false),
                 'digest' => route('account.digest', absolute: false),
+                'marketing' => route('account.marketing', absolute: false),
+                'privacy' => route('legal.privacy', absolute: false),
                 'logoutOtherDevices' => route('account.devices.logout', absolute: false),
                 'delete' => route('account.destroy', absolute: false),
             ],
@@ -68,6 +75,7 @@ class AccountController extends Controller
                 'delete' => self::ERROR_BAG_DELETE,
                 'offersPreferences' => OffersPreferencesRequest::ERROR_BAG,
                 'digest' => DigestRequest::ERROR_BAG,
+                'marketing' => MarketingRequest::ERROR_BAG,
             ],
             'avatar' => [
                 'sizePx' => config()->integer('letaky.account.avatar.size_px'),
@@ -90,7 +98,18 @@ class AccountController extends Controller
                     DigestFrequency::cases(),
                 ),
             ],
+            'marketingConsent' => $this->user($request)->hasMarketingConsent(),
         ]);
+    }
+
+    /**
+     * Udělí nebo odvolá souhlas s obchodními sděleními (R51).
+     */
+    public function updateMarketing(MarketingRequest $request, MailingSubscriptions $subscriptions): RedirectResponse
+    {
+        $subscriptions->setMarketingConsent($this->user($request), $request->consent());
+
+        return back()->with('status', self::STATUS_MARKETING_SAVED);
     }
 
     /**

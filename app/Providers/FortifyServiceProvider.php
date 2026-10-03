@@ -16,23 +16,26 @@ use App\Actions\Fortify\CreateNewUser;
 use App\Actions\Fortify\ResetUserPassword;
 use App\Actions\Fortify\UpdateUserPassword;
 use App\Actions\Fortify\UpdateUserProfileInformation;
+use App\Http\Responses\VerifyEmailResponse;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
+use Laravel\Fortify\Contracts\VerifyEmailResponse as VerifyEmailResponseContract;
 use Laravel\Fortify\Fortify;
 
 class FortifyServiceProvider extends ServiceProvider
 {
     /**
-     * Registrace služeb — Fortify nic navíc nepotřebuje.
+     * Vlastní odpověď po ověření e-mailu — toast místo parametru ?verified=1 (R51).
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(VerifyEmailResponseContract::class, VerifyEmailResponse::class);
     }
 
     /**
@@ -73,8 +76,13 @@ class FortifyServiceProvider extends ServiceProvider
             'urls' => [
                 'submit' => route('register.store', absolute: false),
                 'login' => route('login', absolute: false),
+                'terms' => route('legal.terms', absolute: false),
+                'privacy' => route('legal.privacy', absolute: false),
             ],
         ]));
+
+        // Výzvu k ověření e-mailu (R51) ukazuje lišta v rozvržení, samostatná stránka není potřeba
+        Fortify::verifyEmailView(fn (): RedirectResponse => to_route('home'));
 
         Fortify::requestPasswordResetLinkView(fn (): Response => Inertia::render('Auth/ForgotPassword', [
             'urls' => [

@@ -1,11 +1,13 @@
 <!--
     Můj účet (R12, R40, R41) — profilový obrázek, jméno a e-mail, heslo (Fortify),
-    předvolby Mých slev, e-mailový souhrn (R42), přihlášená zařízení a zrušení účtu.
+    předvolby Mých slev, e-mailový souhrn (R42), novinky a nabídky (souhlas, R51),
+    přihlášená zařízení a zrušení účtu.
 
     @author Roman Hlaváček
     @created 2026-10-02
 -->
 <script setup>
+import CheckboxField from '@/Components/CheckboxField.vue';
 import TextField from '@/Components/TextField.vue';
 import UserAvatar from '@/Components/UserAvatar.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
@@ -13,7 +15,7 @@ import { formatDateTime } from '@/lib/format';
 import { confirmDialog } from '@/lib/confirm';
 import { useTranslations } from '@/lib/i18n';
 import { squareImage } from '@/lib/image';
-import { Head, router, useForm, usePage } from '@inertiajs/vue3';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 
 const props = defineProps({
@@ -28,6 +30,8 @@ const props = defineProps({
     offersPreferences: { type: Object, required: true },
     /** E-mailový souhrn { frequency, options } (R42). */
     digest: { type: Object, required: true },
+    /** Souhlas s obchodními sděleními (R51). */
+    marketingConsent: { type: Boolean, required: true },
 });
 
 const t = useTranslations();
@@ -52,6 +56,7 @@ const offersForm = useForm({
 });
 
 const digestForm = useForm({ digest_frequency: props.digest.frequency });
+const marketingForm = useForm({ marketing: props.marketingConsent });
 
 const devicesForm = useForm({ password: '' });
 const deleteForm = useForm({ password: '' });
@@ -129,6 +134,14 @@ function updateOffersPreferences() {
 function updateDigest() {
     digestForm.put(props.urls.digest, {
         errorBag: props.errorBags.digest,
+        preserveScroll: true,
+    });
+}
+
+/** Uloží souhlas s novinkami a nabídkami. */
+function updateMarketing() {
+    marketingForm.put(props.urls.marketing, {
+        errorBag: props.errorBags.marketing,
         preserveScroll: true,
     });
 }
@@ -270,6 +283,7 @@ async function deleteAccount() {
             <section id="souhrn" class="card">
                 <h2 class="card__title">{{ t('account.digest_title') }}</h2>
                 <p class="card__intro">{{ t('account.digest_hint', { email: user.email }) }}</p>
+                <p v-if="!user.emailVerified" class="form-field__hint">{{ t('account.digest_unverified') }}</p>
 
                 <form class="form" novalidate @submit.prevent="updateDigest">
                     <fieldset class="form-field digest-options">
@@ -283,6 +297,22 @@ async function deleteAccount() {
 
                     <div class="form__actions">
                         <button type="submit" class="button button--primary" :disabled="digestForm.processing">{{ t('account.save') }}</button>
+                    </div>
+                </form>
+            </section>
+
+            <section id="novinky" class="card">
+                <h2 class="card__title">{{ t('account.marketing_title') }}</h2>
+                <p class="card__intro">
+                    {{ t('account.marketing_hint') }}
+                    <Link :href="urls.privacy" class="link">{{ t('account.privacy_link') }}</Link>
+                </p>
+
+                <form class="form" novalidate @submit.prevent="updateMarketing">
+                    <CheckboxField id="marketing" v-model="marketingForm.marketing" :label="t('account.marketing_label')" :error="marketingForm.errors.marketing" />
+
+                    <div class="form__actions">
+                        <button type="submit" class="button button--primary" :disabled="marketingForm.processing">{{ t('account.save') }}</button>
                     </div>
                 </form>
             </section>

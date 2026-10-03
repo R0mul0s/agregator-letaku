@@ -11,11 +11,14 @@
 declare(strict_types=1);
 
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Responses\ErrorToast;
 use App\Support\RateLimits;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Request;
 use Illuminate\Routing\Middleware\ThrottleRequests;
+use Symfony\Component\HttpFoundation\Response;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -30,6 +33,10 @@ return Application::configure(basePath: dirname(__DIR__))
             HandleInertiaRequests::class,
         ]);
 
+        // Odhlášení z e-mailů jedním klepnutím (R51) posílá poštovní klient bez CSRF tokenu;
+        // routu chrání podpis adresy
+        $middleware->validateCsrfTokens(except: ['odhlaseni/*']);
+
         // TLS končí na proxy Websupportu (R38): IP klienta a https z X-Forwarded-* hlaviček.
         // Bez toho má každý návštěvník IP proxy (jeden společný limit požadavků)
         // a absolutní adresy (canonical, og:url, sitemap) vycházejí s http://
@@ -40,5 +47,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->redirectUsersTo(fn (): string => route('home'));
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        // Výchozí chování stačí — JSON dostane, kdo ho žádá (Accept); API routy nejsou.
+        // Chybové stránky jsou české Blade šablony (resources/views/errors). Vypršelá relace
+        // a limit požadavků u formuláře Inertie skončí toastem místo stránky (R51).
+        $exceptions->respond(fn (Response $response, Throwable $exception, Request $request): Response => ErrorToast::respond($response, $request));
     })->create();

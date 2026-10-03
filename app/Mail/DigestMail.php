@@ -3,6 +3,8 @@
 /**
  * E-mail se souhrnem nových akcí hlídaných položek (R42) — Markdown šablona
  * resources/views/mail/digest.blade.php, styly dodá Laravel (inline do HTML e-mailu).
+ * Odhlášení jedním klepnutím (R51): odkaz v patičce a hlavičky List-Unsubscribe
+ * a List-Unsubscribe-Post (RFC 8058, vyžaduje je Gmail i Yahoo).
  *
  * @author Roman Hlaváček
  *
@@ -13,6 +15,8 @@ declare(strict_types=1);
 
 namespace App\Mail;
 
+use App\Domain\Account\MailingSubscriptions;
+use App\Enums\MailingList;
 use App\Models\User;
 use App\Support\CzechVocative;
 use App\Support\PriceFormatter;
@@ -20,6 +24,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
+use Illuminate\Mail\Mailables\Headers;
 
 class DigestMail extends Mailable
 {
@@ -42,6 +47,17 @@ class DigestMail extends Mailable
         $count = array_sum(array_map(fn (array $item): int => count($item['offers']), $this->groups));
 
         return new Envelope(subject: trans_choice('app.digest.subject', $count, ['count' => $count]));
+    }
+
+    /**
+     * Hlavičky pro odhlášení přímo z poštovního klienta (RFC 2369, RFC 8058).
+     */
+    public function headers(): Headers
+    {
+        return new Headers(text: [
+            'List-Unsubscribe' => '<'.$this->unsubscribeUrl().'>',
+            'List-Unsubscribe-Post' => 'List-Unsubscribe=One-Click',
+        ]);
     }
 
     /**
@@ -70,6 +86,15 @@ class DigestMail extends Mailable
             'frequency' => $this->user->digest_frequency->label(),
             'homeUrl' => route('home'),
             'accountUrl' => route('account').'#souhrn',
+            'unsubscribeUrl' => $this->unsubscribeUrl(),
         ]);
+    }
+
+    /**
+     * Podepsaná adresa odhlášení souhrnu bez přihlášení.
+     */
+    private function unsubscribeUrl(): string
+    {
+        return app(MailingSubscriptions::class)->unsubscribeUrl($this->user, MailingList::Digest);
     }
 }

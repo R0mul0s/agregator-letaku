@@ -17,9 +17,11 @@ use App\Http\Controllers\CrawlerFilesController;
 use App\Http\Controllers\CronController;
 use App\Http\Controllers\HealthImportsController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\LegalController;
 use App\Http\Controllers\OffersController;
 use App\Http\Controllers\OfferSuggestionsController;
 use App\Http\Controllers\ShoppingPreferencesController;
+use App\Http\Controllers\UnsubscribeController;
 use App\Http\Controllers\WatchItemController;
 use App\Support\RateLimits;
 use Illuminate\Support\Facades\Route;
@@ -45,6 +47,16 @@ Route::middleware('throttle:'.RateLimits::PUBLIC)->group(function (): void {
     // Veřejné (R44): úvodní stránka pro nepřihlášené (přihlášený tu má Moje slevy) a Všechny akce
     Route::get('/', HomeController::class)->name('home');
     Route::get('/akce', OffersController::class)->name('offers');
+
+    // Právní stránky (R51)
+    Route::get('/podminky', [LegalController::class, 'terms'])->name('legal.terms');
+    Route::get('/ochrana-udaju', [LegalController::class, 'privacy'])->name('legal.privacy');
+
+    // Odhlášení z e-mailů bez přihlášení (R51) — podepsaný odkaz; POST i od poštovního klienta (bez CSRF, bootstrap/app.php)
+    Route::middleware('signed')->group(function (): void {
+        Route::get('/odhlaseni/{user}/{list}', [UnsubscribeController::class, 'show'])->name('unsubscribe');
+        Route::post('/odhlaseni/{user}/{list}', [UnsubscribeController::class, 'store'])->name('unsubscribe.store');
+    });
 });
 
 Route::get('/akce/naseptavac', OfferSuggestionsController::class)
@@ -63,6 +75,7 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/ucet', [AccountController::class, 'show'])->name('account');
     Route::delete('/ucet', [AccountController::class, 'destroy'])->name('account.destroy');
     Route::put('/ucet/souhrn', [AccountController::class, 'updateDigest'])->name('account.digest');
+    Route::put('/ucet/novinky', [AccountController::class, 'updateMarketing'])->name('account.marketing');
     Route::put('/ucet/moje-slevy', [AccountController::class, 'updateOffersPreferences'])->name('account.offers-preferences');
     Route::delete('/ucet/zarizeni', [AccountController::class, 'logoutOtherDevices'])->name('account.devices.logout');
     Route::get('/ucet/obrazek', [AvatarController::class, 'show'])->name('account.avatar');

@@ -1,0 +1,207 @@
+// _legal.scss
+// Právní stránky (Legal.vue, R51) — vlevo lepivý obsah kapitol se zvýrazněnou aktuální
+// kapitolou, vpravo text z Markdownu (odstavce, seznamy, tabulky) s kapitolami oddělenými
+// linkou. Na telefonu obsah nahoře jako rozbalovací blok. Stránka odhlášení z e-mailů.
+//
+// @author Roman Hlaváček
+// @created 2026-10-03
+
+@use '../abstracts/mixins' as *;
+
+.legal {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-4);
+
+    @include from-lg {
+        grid-template-columns: var(--legal-toc-width) minmax(0, var(--legal-max-width));
+        gap: var(--space-5);
+        align-items: start;
+    }
+
+    &__effective {
+        margin-bottom: var(--space-4);
+        padding: var(--space-3) var(--space-4);
+        background: var(--color-surface);
+        border-left: var(--legal-accent-width) solid var(--color-accent);
+        border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    }
+
+    // Obsah vykreslený z Markdownu — prvky bez vlastních tříd
+    &__body {
+        // Kapitoly oddělené linkou; nadpis se při skoku z obsahu neschová pod hlavičku
+        h2 {
+            margin: var(--space-5) 0 var(--space-3);
+            padding-top: var(--space-5);
+            border-top: 1px solid var(--color-border);
+            font-size: var(--font-size-card-title);
+            scroll-margin-top: var(--header-scroll-offset);
+
+            &:first-of-type {
+                margin-top: var(--space-4);
+            }
+        }
+
+        h3 {
+            margin: var(--space-4) 0 var(--space-2);
+            font-size: var(--font-size-md);
+        }
+
+        p,
+        ul,
+        ol,
+        table {
+            margin-bottom: var(--space-3);
+        }
+
+        ul,
+        ol {
+            padding-left: var(--space-4);
+        }
+
+        li + li {
+            margin-top: var(--space-1);
+        }
+
+        a {
+            color: var(--color-accent-strong);
+            text-decoration: underline;
+        }
+
+        table {
+            display: block;
+            overflow-x: auto;
+            border-collapse: collapse;
+            font-size: var(--font-size-sm);
+        }
+
+        th,
+        td {
+            padding: var(--space-2);
+            border: 1px solid var(--color-border);
+            text-align: left;
+            vertical-align: top;
+        }
+
+        th {
+            background: var(--color-surface);
+        }
+
+        code {
+            font-family: var(--font-family-mono);
+        }
+    }
+}
+
+// Obsah kapitol
+.legal-toc {
+    @include from-lg {
+        position: sticky;
+        top: var(--header-scroll-offset);
+        max-height: calc(100vh - var(--header-scroll-offset) - var(--space-4));
+        overflow-y: auto;
+        padding-left: var(--space-3);
+        border-left: 2px solid var(--color-border);
+    }
+
+    // Telefon a tablet: tlačítko „Obsah“ rozbalí seznam
+    &__toggle {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        padding: var(--space-2) var(--space-3);
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-md);
+        color: var(--color-text);
+        font: inherit;
+        font-weight: 800;
+        cursor: pointer;
+
+        &[aria-expanded='true'] .legal-toc__chevron {
+            transform: rotate(180deg);
+        }
+
+        @include from-lg {
+            display: none;
+        }
+    }
+
+    &__chevron {
+        width: var(--icon-size);
+        height: var(--icon-size);
+        fill: none;
+        stroke: currentcolor;
+        stroke-width: var(--svg-stroke-icon);
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        transition: transform var(--duration-fast);
+    }
+
+    &__title {
+        display: none;
+        margin-bottom: var(--space-2);
+        color: var(--color-text-muted);
+        font-size: var(--font-size-xs);
+        font-weight: 800;
+        letter-spacing: var(--letter-spacing-caps);
+        text-transform: uppercase;
+
+        @include from-lg {
+            display: block;
+        }
+    }
+
+    &__list {
+        display: none;
+        flex-direction: column;
+        gap: var(--space-1);
+        margin: var(--space-2) 0 0;
+        padding: 0;
+        list-style: none;
+
+        &--open {
+            display: flex;
+        }
+
+        @include from-lg {
+            display: flex;
+            margin: 0;
+        }
+    }
+
+    &__link {
+        display: block;
+        padding: var(--space-1) var(--space-2);
+        border-radius: var(--radius-sm);
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+        text-decoration: none;
+        transition:
+            color var(--duration-fast),
+            background-color var(--duration-fast);
+
+        &:hover {
+            color: var(--color-text);
+        }
+
+        // Kapitola, ve které čtenář je
+        &--active {
+            background: var(--color-accent-soft);
+            color: var(--color-accent-strong);
+            font-weight: 700;
+        }
+    }
+}
+
+.unsubscribe {
+    max-width: var(--legal-max-width);
+
+    &__actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-2);
+        margin-top: var(--space-3);
+    }
+}

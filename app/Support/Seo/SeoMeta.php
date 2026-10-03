@@ -5,7 +5,8 @@
  * Open Graph a schema.org. Aplikace je SPA bez SSR (hosting nemá Node, R20) — co má
  * vidět robot bez JavaScriptu nebo náhled odkazu, musí být v šabloně ze serveru.
  *
- * Indexovat se smí jen veřejné stránky: úvodní stránka a Všechny akce (bez hledání).
+ * Indexovat se smí jen veřejné stránky: úvodní stránka, Všechny akce (bez hledání)
+ * a právní stránky (R51).
  * Přihlášení a registrace „noindex, follow“, vše za přihlášením „noindex, nofollow“.
  *
  * @author Roman Hlaváček
@@ -55,6 +56,8 @@ final class SeoMeta
             $routeName === 'home' && $request->user() === null => 'home',
             $routeName === 'offers' && $chain !== null => 'offers_chain',
             $routeName === 'offers' => 'offers',
+            $routeName === 'legal.terms' => 'terms',
+            $routeName === 'legal.privacy' => 'privacy',
             default => 'default',
         };
         $robots = $this->robots($routeName, $page, $request);
@@ -93,6 +96,9 @@ final class SeoMeta
     {
         if ($page === 'home' || $page === 'offers_chain' || $page === 'offers') {
             return $request->filled('q') ? self::NOINDEX_FOLLOW : self::INDEX;
+        }
+        if ($page === 'terms' || $page === 'privacy') {
+            return self::INDEX;
         }
 
         return in_array($routeName, self::AUTH_ROUTES, true) ? self::NOINDEX_FOLLOW : self::NOINDEX;
@@ -137,6 +143,8 @@ final class SeoMeta
                 'url' => $home,
                 'logo' => asset(self::LOGO_PATH),
                 'description' => __('app.seo.organization_description'),
+                // Kontakt na provozovatele (R51)
+                'email' => config('letaky.operator.email'),
             ],
             [
                 '@context' => 'https://schema.org',

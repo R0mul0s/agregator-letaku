@@ -1,11 +1,13 @@
 <!--
-    Registrace nového účtu (Fortify, R12).
+    Registrace nového účtu (Fortify, R12) se souhlasem s podmínkami a dobrovolným
+    souhlasem s obchodními sděleními (R51).
 
     @author Roman Hlaváček
     @created 2026-10-02
 -->
 <script setup>
 import AuthShowcase from '@/Components/AuthShowcase.vue';
+import CheckboxField from '@/Components/CheckboxField.vue';
 import TextField from '@/Components/TextField.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { useTranslations } from '@/lib/i18n';
@@ -22,6 +24,8 @@ const form = useForm({
     email: '',
     password: '',
     password_confirmation: '',
+    terms: false,
+    marketing: false,
 });
 
 /** Odešle registraci; hesla se po odeslání vždy vymažou. */
@@ -53,6 +57,14 @@ function submit() {
                         required
                         :error="form.errors.password_confirmation"
                     />
+
+                    <CheckboxField id="terms" v-model="form.terms" :error="form.errors.terms">
+                        {{ t('auth.register.terms_before') }}
+                        <a :href="urls.terms" class="link" target="_blank" rel="noopener">{{ t('auth.register.terms_link') }}</a>.
+                        {{ t('auth.register.privacy_before') }}
+                        <a :href="urls.privacy" class="link" target="_blank" rel="noopener">{{ t('auth.register.privacy_link') }}</a>.
+                    </CheckboxField>
+                    <CheckboxField id="marketing" v-model="form.marketing" :label="t('auth.register.marketing')" :error="form.errors.marketing" />
 
                     <div class="form__actions">
                         <button type="submit" class="button button--primary" :disabled="form.processing">{{ t('auth.register.submit') }}</button>

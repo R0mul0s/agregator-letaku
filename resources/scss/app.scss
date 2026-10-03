@@ -8,10 +8,12 @@
 @use 'base/reset';
 @use 'layout/app-header';
 @use 'layout/page';
+@use 'layout/app-footer';
 @use 'components/button';
 @use 'components/form';
 @use 'components/card';
 @use 'components/notice';
+@use 'components/verify-bar';
 @use 'components/tag';
 @use 'components/chain';
 @use 'components/offer-card';
@@ -24,6 +26,7 @@
 @use 'components/back-to-top';
 @use 'components/toast';
 @use 'components/confirm-dialog';
+@use 'components/cookie-consent';
 @use 'components/stores-dialog';
 @use 'pages/account';
 @use 'pages/watch';
@@ -31,3 +34,4 @@
 @use 'pages/catalog';
 @use 'pages/home';
 @use 'pages/landing';
+@use 'pages/legal';

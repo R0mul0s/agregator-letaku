@@ -1,8 +1,8 @@
 <?php
 
 /**
- * Uživatel aplikace — účet přes Fortify (R12), sledované obchody, karty
- * a hlídané položky (R18, R19).
+ * Uživatel aplikace — účet přes Fortify (R12) s ověřeným e-mailem (R51), sledované obchody,
+ * karty a hlídané položky (R18, R19), souhlasy s podmínkami a obchodními sděleními (R51).
  *
  * @author Roman Hlaváček
  *
@@ -18,6 +18,7 @@ use App\Enums\LoyaltyProgram;
 use App\Enums\OffersSort;
 use Carbon\CarbonImmutable;
 use Database\Factories\UserFactory;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Casts\AsEnumCollection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -38,11 +39,16 @@ use Illuminate\Support\Collection;
  * @property int|null $min_discount_percent Moje slevy jen se slevou aspoň tolik %, null = všechny (R41)
  * @property DigestFrequency $digest_frequency Jak často posílat e-mailový souhrn (R42)
  * @property CarbonImmutable|null $digest_sent_at Poslední odeslaný souhrn (UTC)
+ * @property CarbonImmutable|null $terms_accepted_at Přijetí podmínek užití (R51)
+ * @property int|null $terms_version Verze přijatých podmínek (letaky.legal.terms_version)
+ * @property CarbonImmutable|null $marketing_consent_at Souhlas s obchodními sděleními (R51); null = bez souhlasu
+ * @property int|null $marketing_consent_version Verze textu souhlasu (letaky.legal.marketing_consent_version)
+ * @property CarbonImmutable|null $marketing_consent_withdrawn_at Poslední odvolání souhlasu
  * @property string|null $remember_token
  * @property CarbonImmutable $created_at
  * @property CarbonImmutable $updated_at
  */
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
@@ -67,6 +73,11 @@ class User extends Authenticatable
         'min_discount_percent' => null,
         'digest_frequency' => 'off',
         'digest_sent_at' => null,
+        'terms_accepted_at' => null,
+        'terms_version' => null,
+        'marketing_consent_at' => null,
+        'marketing_consent_version' => null,
+        'marketing_consent_withdrawn_at' => null,
     ];
 
     /** @var list<string> */
@@ -91,6 +102,11 @@ class User extends Authenticatable
             'min_discount_percent' => 'integer',
             'digest_frequency' => DigestFrequency::class,
             'digest_sent_at' => 'immutable_datetime',
+            'terms_accepted_at' => 'immutable_datetime',
+            'terms_version' => 'integer',
+            'marketing_consent_at' => 'immutable_datetime',
+            'marketing_consent_version' => 'integer',
+            'marketing_consent_withdrawn_at' => 'immutable_datetime',
             'created_at' => 'immutable_datetime',
             'updated_at' => 'immutable_datetime',
         ];
@@ -125,6 +141,14 @@ class User extends Authenticatable
         return $this->avatar_path === null
             ? null
             : route('account.avatar', ['v' => pathinfo($this->avatar_path, PATHINFO_FILENAME)], absolute: false);
+    }
+
+    /**
+     * Souhlasí uživatel se zasíláním obchodních sdělení (R51)?
+     */
+    public function hasMarketingConsent(): bool
+    {
+        return $this->marketing_consent_at !== null;
     }
 
     /**

@@ -117,3 +117,21 @@
         accent-color: var(--color-accent);
     }
 }
+
+// Zaškrtávací pole s chybou (CheckboxField.vue) — víceřádkový popisek (souhlasy, R51)
+// zarovnaný k políčku nahoře, ne na střed
+.form-checkbox-field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+
+    .form-checkbox {
+        align-items: flex-start;
+    }
+
+    .form-checkbox__input {
+        flex: none;
+        // Políčko na střed prvního řádku popisku
+        margin-top: calc((1em * var(--line-height-base) - var(--checkbox-size)) / 2);
+    }
+}

@@ -44,12 +44,14 @@ return [
     'views' => true,
 
     /*
-    | Dvoufázové ověření, passkeys a ověření e-mailu záměrně vypnuté — aplikace
-    | je zatím jen pro vlastní použití (R5), stačí heslo s omezením pokusů.
+    | Ověření e-mailu (R51): bez něj by šlo zaregistrovat cizí adresu a posílat na ni
+    | souhrny. Aplikace jde používat i před ověřením, e-maily ale chodí jen na ověřenou
+    | adresu. Dvoufázové ověření a passkeys vypnuté — stačí heslo s omezením pokusů.
     */
     'features' => [
         Features::registration(),
         Features::resetPasswords(),
+        Features::emailVerification(),
         Features::updateProfileInformation(),
         Features::updatePasswords(),
     ],

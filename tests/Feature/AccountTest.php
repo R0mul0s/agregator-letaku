@@ -22,9 +22,11 @@ use App\Models\User;
 use App\Models\WatchItem;
 use Carbon\CarbonImmutable;
 use Database\Factories\UserFactory;
+use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -41,7 +43,8 @@ it('zobrazí účet s adresami formulářů a názvy sad chyb', function (): voi
             ->where('errorBags.password', UpdateUserPassword::ERROR_BAG));
 });
 
-it('uloží jméno a e-mail', function (): void {
+it('uloží jméno a e-mail; novou adresu musí uživatel znovu potvrdit (R51)', function (): void {
+    Notification::fake();
     $user = User::factory()->create();
 
     $this->actingAs($user)
@@ -52,7 +55,40 @@ it('uloží jméno a e-mail', function (): void {
 
     expect($user->fresh())
         ->name->toBe('Nové jméno')
-        ->email->toBe('nove@example.com');
+        ->email->toBe('nove@example.com')
+        ->email_verified_at->toBeNull();
+    Notification::assertSentTo($user, VerifyEmail::class);
+});
+
+it('při uložení stejného e-mailu (jen jinak velkými písmeny) ověření nezruší', function (): void {
+    Notification::fake();
+    $user = User::factory()->create(['email' => 'roman@example.com']);
+
+    $this->actingAs($user)
+        ->put(route('user-profile-information.update'), ['name' => 'Roman', 'email' => 'Roman@example.com']);
+
+    expect($user->fresh()?->email_verified_at)->not->toBeNull();
+    Notification::assertNothingSent();
+});
+
+it('udělí a odvolá souhlas s obchodními sděleními s časem a verzí textu (R51)', function (): void {
+    $this->travelTo('2026-10-03 10:00:00');
+    $user = User::factory()->create();
+    $this->actingAs($user)->from(route('account'));
+
+    $this->put(route('account.marketing'), ['marketing' => true])
+        ->assertSessionHas('status', AccountController::STATUS_MARKETING_SAVED);
+    expect($user->fresh())
+        ->marketing_consent_at->toDateTimeString()->toBe('2026-10-03 10:00:00')
+        ->marketing_consent_version->toBe(config('letaky.legal.marketing_consent_version'));
+
+    $this->travelTo('2026-10-05 08:00:00');
+    $this->put(route('account.marketing'), ['marketing' => false]);
+    expect($user->fresh())
+        ->marketing_consent_at->toBeNull()
+        ->marketing_consent_withdrawn_at->toDateTimeString()->toBe('2026-10-05 08:00:00');
+
+    $this->get(route('account'))->assertInertia(fn (Assert $page) => $page->where('marketingConsent', false));
 });
 
 it('nezmění heslo se špatným současným heslem a chybu dá do vlastní sady', function (): void {

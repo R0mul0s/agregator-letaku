@@ -30,7 +30,7 @@ class CrawlerFilesController extends Controller
      */
     private const DISALLOWED_PATHS = [
         '/hlidam', '/obchody', '/ucet', '/katalog', '/akce/naseptavac',
-        '/cron/', '/health/', '/up',
+        '/cron/', '/health/', '/up', '/odhlaseni/', '/email/',
     ];
 
     /** Jak dlouho smí odpověď ležet v cache (sekundy) — obsah se mění jen se staženými akcemi. */
@@ -56,7 +56,7 @@ class CrawlerFilesController extends Controller
     }
 
     /**
-     * sitemap.xml: úvodní stránka, Všechny akce a akce jednotlivých obchodů. Datum změny
+     * sitemap.xml: úvodní stránka, Všechny akce, akce jednotlivých obchodů a právní stránky (R51). Datum změny
      * je poslední úspěšné stažení akcí.
      */
     public function sitemap(): Response
@@ -66,6 +66,8 @@ class CrawlerFilesController extends Controller
             SeoMeta::homeUrl(),
             route('offers'),
             ...array_map(fn (Chain $chain): string => route('offers', ['chain' => $chain->value]), $this->chainsWithCurrentOffers()),
+            route('legal.terms'),
+            route('legal.privacy'),
         ];
 
         return response()

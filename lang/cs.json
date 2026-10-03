@@ -8,5 +8,9 @@
     "Regards,": "S pozdravem",
     "If you're having trouble clicking the \":actionText\" button, copy and paste the URL below\ninto your web browser:": "Pokud tlačítko „:actionText“ nefunguje, zkopírujte do prohlížeče tuto adresu:",
     "All rights reserved.": "Všechna práva vyhrazena.",
-    "Whoops!": "Jejda!"
+    "Whoops!": "Jejda!",
+    "Verify your email address": "Potvrďte e-mail pro Slevohlídku",
+    "Please click the button below to verify your email address.": "Klepnutím na tlačítko potvrďte, že tahle e-mailová adresa patří vám.",
+    "Verify Email Address": "Potvrdit e-mail",
+    "If you did not create an account, no further action is required.": "Pokud jste si účet nezakládali, nemusíte nic dělat — bez potvrzení vám nic posílat nebudeme."
 }

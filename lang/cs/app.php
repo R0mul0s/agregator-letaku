@@ -34,6 +34,14 @@ return [
                 'title' => 'Akce :chain z letáku · Slevohlídka',
                 'description' => 'Aktuální akce :chain z letáku a e-shopu — s cenou za kilo nebo litr a cenou s věrnostní kartou. Přehled od Slevohlídky.',
             ],
+            'terms' => [
+                'title' => 'Podmínky užití · Slevohlídka',
+                'description' => 'Podmínky užití služby Slevohlídka — co služba dělá, správnost cen, uživatelský účet a e-maily.',
+            ],
+            'privacy' => [
+                'title' => 'Zásady zpracování osobních údajů · Slevohlídka',
+                'description' => 'Jaké osobní údaje Slevohlídka zpracovává, proč a jak dlouho, cookies a vaše práva.',
+            ],
             'default' => [
                 'title' => 'Slevohlídka',
                 'description' => 'Slevohlídka — rychlý lovec slev. Hlídá akce z letáků obchodů Kaufland, Tesco, Albert, Lidl, Penny, Globus a Billa.',
@@ -73,6 +81,27 @@ return [
     // Společné pro všechny e-maily (resources/views/vendor/mail)
     'mail' => [
         'footer' => 'Slevohlídka — rychlý lovec slev',
+        'company_id' => 'IČO :id',
+    ],
+
+    // Právní stránky (R51, resources/legal) — titulky; chybějící údaj provozovatele v textu
+    'legal' => [
+        'terms' => 'Podmínky užití',
+        'privacy' => 'Zásady zpracování osobních údajů',
+        'missing' => '[doplnit]',
+    ],
+
+    // České chybové stránky (R51, resources/views/errors) — podle kódu, jinak obecné 4xx / 5xx
+    'errors' => [
+        'home' => 'Zpět na úvodní stránku',
+        '403' => ['title' => 'Sem nemáte přístup', 'text' => 'Na tuhle stránku nemáte oprávnění.'],
+        '404' => ['title' => 'Stránka nenalezena', 'text' => 'Tahle stránka neexistuje nebo už zmizela — jako akce z minulého týdne.'],
+        '419' => ['title' => 'Platnost stránky vypršela', 'text' => 'Stránka byla otevřená příliš dlouho. Načtěte ji znovu a zkuste to ještě jednou.'],
+        '429' => ['title' => 'Příliš mnoho požadavků', 'text' => 'Zpomalte prosím — za chvíli to půjde znovu.'],
+        '500' => ['title' => 'Něco se pokazilo', 'text' => 'Na naší straně nastala chyba. Zkuste to prosím za chvíli.'],
+        '503' => ['title' => 'Probíhá údržba', 'text' => 'Slevohlídka se právě aktualizuje. Za pár minut bude zpět.'],
+        '4xx' => ['title' => 'Stránku nejde zobrazit', 'text' => 'Požadavek se nepodařilo zpracovat.'],
+        '5xx' => ['title' => 'Něco se pokazilo', 'text' => 'Na naší straně nastala chyba. Zkuste to prosím za chvíli.'],
     ],
 
     // llms.txt (R45) — popis webu pro jazykové modely
@@ -89,6 +118,9 @@ return [
         'note_prices' => 'Ceny jsou v českých korunách včetně DPH, převzaté z letáků a e-shopů obchodů; závazná je vždy cena v obchodě.',
         'note_validity' => 'U každé akce je uvedena platnost (místní datum, Europe/Prague) a odkaz na zdroj u obchodu.',
         'note_private' => 'Hlídané položky, nastavení a účty uživatelů jsou soukromé a nejsou veřejně dostupné.',
+        'note_contact' => 'Kontakt na provozovatele: :email',
+        'terms' => 'Podmínky užití',
+        'privacy' => 'Zásady zpracování osobních údajů',
     ],
 
     // E-mailový souhrn nových akcí (R42, App\Mail\DigestMail)
@@ -101,8 +133,9 @@ return [
         'more' => 'a :count další akce v Mých slevách|a :count další akce v Mých slevách|a :count dalších akcí v Mých slevách',
         'count' => ':count nová|:count nové|:count nových',
         'button' => 'Otevřít Moje slevy',
-        'footer' => 'Souhrn chodí :frequency.',
-        'settings_link' => 'Změnit nebo vypnout',
+        'footer' => 'Tento e-mail dostáváte, protože máte ve Slevohlídce zapnutý souhrn akcí — chodí :frequency.',
+        'unsubscribe_link' => 'Vypnout souhrn',
+        'settings_link' => 'Nastavení účtu',
         'done' => 'Souhrny — odesláno: :count',
         'failed' => 'Souhrny — chyba: :error',
     ],
@@ -378,6 +411,19 @@ return [
                 'submit' => 'Zaregistrovat se',
                 'has_account' => 'Už máte účet?',
                 'login' => 'Přihlaste se',
+                // Souhlasy (R51): podmínky povinné, obchodní sdělení dobrovolná a nezaškrtnutá
+                'terms_before' => 'Souhlasím s',
+                'terms_link' => 'podmínkami užití',
+                'privacy_before' => 'Jak zacházíme s vašimi údaji, popisují',
+                'privacy_link' => 'zásady zpracování osobních údajů',
+                'terms_required' => 'Bez souhlasu s podmínkami užití účet založit nejde.',
+                'marketing' => 'Chci dostávat e-mailem novinky o Slevohlídce a vybrané nabídky partnerů. Souhlas můžu kdykoli odvolat v účtu nebo odkazem v každém e-mailu.',
+            ],
+
+            // Lišta pro neověřený e-mail (R51, EmailVerificationBar.vue)
+            'verify' => [
+                'text' => 'Potvrďte prosím e-mail :email odkazem, který jsme vám poslali. Do té doby vám nepošleme souhrn akcí.',
+                'resend' => 'Poslat odkaz znovu',
             ],
 
             'forgot' => [
@@ -416,7 +462,7 @@ return [
                 'cards' => ['title' => 'S vaší kartou', 'text' => 'Clubcard, Lidl Plus, Kaufland Card… Akce jen s kartou uvidíte, jen když kartu máte.'],
                 'mentions' => ['title' => 'I to, co je v letáku bez ceny', 'text' => 'Když leták zmíní, co hlídáte, ale cenu z něj přečíst nejde, dostanete odkaz přímo na stránku letáku.'],
                 'digest' => ['title' => 'Souhrn e-mailem', 'text' => 'Ráno po vydání letáků přijde souhrn nových akcí — denně nebo jednou týdně, jen když je co hlásit.'],
-                'free' => ['title' => 'Zdarma a bez reklam', 'text' => 'Žádné bannery ani sledování. Jen akce z letáků, seřazené tak, aby se daly porovnat.'],
+                'free' => ['title' => 'Zdarma a bez reklam', 'text' => 'Žádné reklamní bannery, měření návštěvnosti jen s vaším souhlasem. Jen akce z letáků, seřazené tak, aby se daly porovnat.'],
             ],
             'steps_title' => 'Jak to funguje',
             'steps' => [
@@ -488,6 +534,11 @@ return [
             'digest_title' => 'E-mailový souhrn',
             'digest_hint' => 'Ráno po stažení letáků pošleme na :email nové akce na hlídané zboží — jen když nějaké přibudou. První souhrn ukáže všechny aktuální akce.',
             'digest_frequency' => 'Posílat',
+            'digest_unverified' => 'Souhrn začne chodit, až potvrdíte e-mail.',
+            'marketing_title' => 'Novinky a nabídky',
+            'marketing_hint' => 'Občas vám pošleme novinky o Slevohlídce a vybrané nabídky partnerů. Váš e-mail nikomu nepředáme.',
+            'marketing_label' => 'Chci dostávat novinky a nabídky e-mailem',
+            'privacy_link' => 'Zásady zpracování osobních údajů',
             'avatar' => 'Profilový obrázek',
             'avatar_hint' => 'Obrázek se ořízne na čtverec. Bez obrázku se ukazují iniciály.',
             'avatar_upload' => 'Nahrát obrázek',
@@ -510,6 +561,61 @@ return [
             'deleted' => 'Účet je zrušený. Díky, že jste Slevohlídku vyzkoušeli.',
         ],
 
+        // Patička (R51, AppFooter.vue) — upozornění, provozovatel, odkazy
+        'footer' => [
+            'about' => 'Každý den projde letáky a e-shopy sedmi obchodů a ukáže, kde je to, co kupujete, právě ve slevě — a kde nejlevněji za kilo nebo litr.',
+            'nav_title' => 'Slevohlídka',
+            'info_title' => 'Informace',
+            'operator_title' => 'Provozovatel',
+            'disclaimer' => 'Slevohlídka není oficiálním webem žádného obchodu. Názvy a loga obchodů jsou ochranné známky jejich vlastníků. Ceny jsou orientační, závazná je vždy cena v obchodě.',
+            'copyright' => '© :year Slevohlídka',
+            'terms' => 'Podmínky užití',
+            'privacy' => 'Ochrana osobních údajů',
+            'contact' => 'Kontakt',
+            'cookies' => 'Nastavení cookies',
+        ],
+
+        // Souhlas s cookies (R52, CookieConsent.vue) — odmítnout stejně snadno jako přijmout
+        'cookies' => [
+            'title' => 'Cookies na Slevohlídce',
+            'intro' => 'Nezbytné cookies potřebujeme, aby web fungoval. S vaším souhlasem použijeme i analytické cookies (Google Analytics), abychom věděli, co lidé na webu používají, a marketingové pro měření reklamy. Souhlas můžete kdykoli změnit v patičce.',
+            'more' => 'Více o cookies',
+            'settings' => 'Nastavení',
+            'accept_all' => 'Přijmout vše',
+            'reject_all' => 'Odmítnout vše',
+            'save' => 'Uložit výběr',
+            'settings_title' => 'Nastavení cookies',
+            'settings_intro' => 'Vyberte, které cookies smíme použít. Nezbytné jsou zapnuté vždy, ostatní jen s vaším souhlasem.',
+            'always_on' => 'Vždy zapnuté',
+            'necessary_title' => 'Nezbytné',
+            'necessary_text' => 'Přihlášení, ochrana formulářů, vaše volba cookies a vzhled webu. Bez nich web nefunguje.',
+            'analytics_title' => 'Analytické',
+            'analytics_text' => 'Google Analytics — statistiky návštěvnosti (které stránky se čtou, z jakého zařízení), podle kterých Slevohlídku zlepšujeme.',
+            'marketing_title' => 'Marketingové',
+            'marketing_text' => 'Dovolí Googlu použít data z návštěvy pro měření a cílení reklamy. Reklamu zatím nezobrazujeme.',
+        ],
+
+        // Právní stránky (R51, Legal.vue)
+        'legal' => [
+            'effective_from' => 'Účinné od :date',
+            'toc' => 'Obsah',
+        ],
+
+        // E-maily, ze kterých se jde odhlásit (R51, App\Enums\MailingList)
+        'mailing_lists' => [
+            'souhrn' => 'souhrn akcí',
+            'novinky' => 'novinky a nabídky',
+        ],
+
+        // Odhlášení z e-mailů bez přihlášení (R51, Unsubscribe.vue)
+        'unsubscribe' => [
+            'title' => 'Odhlášení z e-mailů',
+            'confirm' => 'Opravdu už nechcete dostávat :list na :email?',
+            'submit' => 'Odhlásit',
+            'done' => 'Na :email už :list neposíláme. Zapnout ho můžete kdykoli znovu v nastavení účtu.',
+            'home' => 'Na úvodní stránku',
+        ],
+
         // Potvrzovací okno nevratné akce (R47, ConfirmDialog.vue) — „Zpět“, ne „Zrušit“: vedle
         // „Zrušit účet“ by bylo matoucí
         'confirm' => [
@@ -528,6 +634,15 @@ return [
                 'other-devices-logged-out' => 'Ostatní zařízení jsou odhlášená.',
                 'offers-preferences-saved' => 'Předvolby Mých slev jsou uložené.',
                 'digest-saved' => 'Nastavení souhrnu je uložené.',
+                'marketing-saved' => 'Nastavení novinek je uložené.',
+                // Ověření e-mailu (R51, Fortify a VerifyEmailResponse)
+                'verification-link-sent' => 'Odkaz pro potvrzení e-mailu je na cestě.',
+                'email-verified' => 'E-mail je potvrzený. Díky!',
+                // UnsubscribeController (R51)
+                'unsubscribed' => 'Hotovo, e-maily už vám posílat nebudeme.',
+                // Chyby u formuláře (R51, ErrorToast)
+                'session-expired' => 'Stránka byla otevřená příliš dlouho. Zkuste to prosím znovu.',
+                'too-many-requests' => 'Příliš mnoho pokusů. Zkuste to prosím za chvíli.',
                 // ShoppingPreferencesController
                 'preferences-saved' => 'Nastavení obchodů je uložené.',
                 // WatchItemController

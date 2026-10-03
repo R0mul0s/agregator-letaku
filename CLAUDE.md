@@ -2,8 +2,8 @@
 
 Webová aplikace **Slevohlídka** („Rychlý lovec slev“, R34), která hlídá akční nabídky z letáků obchodů **Kaufland, Tesco,
 Albert, Lidl, Penny, Globus a Billa**. Uživatel si vybere prodejny a hlídané položky (konkrétní
-produkt nebo kategorii) a vidí, kde a za kolik jsou ve slevě. Osobní projekt,
-zatím jen pro vlastní použití.
+produkt nebo kategorii) a vidí, kde a za kolik jsou ve slevě. Osobní projekt
+Romana Hlaváčka (IČO), připravuje se zveřejnění pro cizí uživatele (R51, [docs/ZVEREJNENI.md](docs/ZVEREJNENI.md)).
 
 ## Dokumentace
 
@@ -13,6 +13,7 @@ Před prací na projektu si přečti:
 - **[docs/ZDROJE_DAT.md](docs/ZDROJE_DAT.md)**: jak se stahují data jednotlivých obchodů (endpointy, struktura odpovědí, pasti)
 - **[docs/CODING_GUIDELINES.md](docs/CODING_GUIDELINES.md)**: závazná pravidla pro psaní kódu
 - **[docs/TODO.md](docs/TODO.md)**: odložené úkoly a nápady
+- **[docs/ZVEREJNENI.md](docs/ZVEREJNENI.md)**: checklist zveřejnění (právní, organizační a technické body)
 
 Všechno je závazné. Když se rozhodnutí změní, **aktualizuj příslušný dokument
 ve stejném commitu** jako kód. Nové rozhodnutí patří do logu v PLAN.md (další
@@ -38,6 +39,9 @@ Hotové jsou etapy 1–5g (PLAN.md, kap. 6):
   katalog v Hlídám jako dlaždice oddělení, oslovení v 5. pádě
 - Kaufland po prodejnách (R49): akce všech 149 prodejen, výběr více prodejen v Mých obchodech, štítek „Jen Trutnov“
   s oknem seznamu prodejen
+- příprava na zveřejnění (R51): podmínky a zásady (`/podminky`, `/ochrana-udaju`), patička s provozovatelem, souhlasy
+  při registraci, ověření e-mailu, odhlášení z e-mailů jedním klepnutím, české chybové stránky;
+  lišta souhlasu s cookies a Google Analytics až po souhlasu (R52)
 
 Produkce běží na `https://slevohlidka.rhsoft.cz` (nasazeno 2026-10-02, naposledy `ae88b48` 2026-10-03);
 postup aktualizace a nasazené verze jsou v `deploy/DEPLOYMENT.md`. Sleduje se 7 obchodů; Makro
@@ -165,6 +169,8 @@ MariaDB 11.4 · Pest 4 · Larastan · Pint. Extrakce letáků (etapa 6): Claude 
 34. **Billa (R48):** API nemá platnost akcí — platnost je akční týden st–út obsahující dnešek (`week_start_iso_day`), dřívější konec řeší R16. Stahuje se **celý katalog**, ne `inPromotion` (ten nevrací akce jen s BILLA Klubem). U `weightPieceArticle` je `value` cena odhadovaného kusu — bere se `perStandardizedQuantity`. Akce na množství má běžnou cenu kusu a výhodnou v `promotion_text`.
 35. **Kaufland po prodejnách (R49):** akce bez řádků v `offer_stores` platí ve **všech** prodejnách — řádky má jen akce s omezením. Seznamy akcí prodejen (`stores.offer_keys`) plní `letaky:import-stores` / `/cron/import-stores` a import nabídek je čte (`StoreOfferLists`, jen mladší 36 h); bez nich stáhne jen výchozí nabídku. Nový dotaz na akce pro uživatele musí brát `followed_chains.store_codes` (`Offer::availableInStores`, v `MyOffers::whereFollowed`) a načíst `->with('stores')`, jinak `OfferPresenter` štítek prodejen vynechá. Kódy prodejen jsou jedinečné napříč obchody (`User::selectedStoreCodes`).
 36. **Krmivo pro zvířata (R50):** `WatchItemMatcher` vynechá krmivo (`PetFood::isPetOffer` — kategorie obchodu nebo slova a značky z `letaky.pet_food`) u hlídání, které není o zvířatech (`PetFood::isPetRule`). Nový obchod s kategorií krmiva → doplnit ji do `letaky.pet_food.categories`; nové slovo ověřit na všech akcích (dvojznačná: „podestýlk“, „dog“). `AssignProducts` musí načítat `source_category`.
+37. **Zveřejnění (R51):** údaje provozovatele jsou v `letaky.operator` — do textů se doplňují (`{operator}`, `{company_id}`… v `resources/legal/*.md`), nikdy se nepíšou natvrdo. Kapitoly jsou nadpisy `##` — z nich vzniká obsah stránky a id pro odkazy (`/ochrana-udaju#5-cookies-a-uloziste-v-prohlizeci`), přejmenování nadpisu změní odkaz. Podstatná změna podmínek = zvýšit `letaky.legal.terms_version`, změna textu souhlasu s obchodními sděleními = `marketing_consent_version`. **Každý e-mail jen na ověřenou adresu** (`whereNotNull('email_verified_at')`) a hromadný s odhlášením jedním klepnutím (`MailingSubscriptions::unsubscribeUrl` + hlavičky jako `DigestMail::headers`); obchodní sdělení jen uživatelům s `hasMarketingConsent()`. Nová cookie, localStorage nebo příjemce údajů = upravit `resources/legal/privacy.md` (tabulky cookies podle kategorií). Chybové stránky jsou Blade (`resources/views/errors/page.blade.php`), nový kód s vlastní šablonou Laravelu potřebuje vlastní soubor `errors/<kód>.blade.php`, jinak vyhraje anglická.
+38. **Cookies a Google Analytics (R52):** GA4 se načte **jen na produkci a až po souhlasu** s analytickými cookies (`resources/js/lib/consent.js`, sdílený prop `cookieConsent`, ID v `letaky.cookie_consent`). Nic, co ukládá cookies nebo posílá data třetí straně (pixel, reklamní síť, mapa, video), se nesmí načíst před souhlasem — patří do kategorie v `CookieConsent.vue` a za `consentState`. Nový nástroj nebo kategorie = zvýšit `letaky.cookie_consent.version` (všichni se vyberou znovu), doplnit CSP v `public/.htaccess` a tabulku v `resources/legal/privacy.md`. Inline skript CSP nedovolí. Kořen aplikace má třídu `app-root` (přidá `app.js`) — nestylovat `body > div`, chytá i prvky rozšíření prohlížeče.
 
 ## Jazyk
 

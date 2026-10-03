@@ -12,13 +12,17 @@ declare(strict_types=1);
 
 use App\Enums\Chain;
 use App\Enums\LoyaltyProgram;
+use App\Enums\MailingList;
 use App\Enums\OfferType;
 use App\Enums\StoreFormat;
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\AvatarController;
 use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\ShoppingPreferencesController;
+use App\Http\Controllers\UnsubscribeController;
 use App\Http\Controllers\WatchItemController;
+use App\Http\Responses\ErrorToast;
+use App\Http\Responses\VerifyEmailResponse;
 
 it('má název pro každý obchod', function (Chain $chain): void {
     expect(trans()->has('app.chains.'.$chain->value))->toBeTrue();
@@ -46,6 +50,11 @@ it('má text toastu pro každý kód stavu po uložení (R47)', function (string
     AccountController::STATUS_DEVICES_LOGGED_OUT,
     AccountController::STATUS_OFFERS_PREFERENCES_SAVED,
     AccountController::STATUS_DIGEST_SAVED,
+    AccountController::STATUS_MARKETING_SAVED,
+    UnsubscribeController::STATUS_UNSUBSCRIBED,
+    VerifyEmailResponse::STATUS_VERIFIED,
+    'verification-link-sent',
+    ...array_values(ErrorToast::STATUSES),
     AvatarController::STATUS_UPDATED,
     ShoppingPreferencesController::STATUS_SAVED,
     WatchItemController::STATUS_ADDED,
@@ -55,3 +64,7 @@ it('má text toastu pro každý kód stavu po uložení (R47)', function (string
     CatalogController::STATUS_PRODUCT_DELETED,
     CatalogController::STATUS_ASSIGNMENT_CHANGED,
 ]);
+
+it('má název pro každý druh e-mailů k odhlášení (R51)', function (MailingList $list): void {
+    expect(trans()->has('app.ui.mailing_lists.'.$list->value))->toBeTrue();
+})->with(MailingList::cases());

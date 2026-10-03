@@ -14,6 +14,7 @@ namespace App\Http\Middleware;
 
 use App\Enums\Chain;
 use App\Models\User;
+use App\Support\Operator;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -72,7 +73,10 @@ class HandleInertiaRequests extends Middleware
                     'name' => $user->name,
                     'email' => $user->email,
                     'avatarUrl' => $user->avatarUrl(),
+                    // Neověřený e-mail: lišta s výzvou a novým odkazem (R51)
+                    'emailVerified' => $user->hasVerifiedEmail(),
                 ] : null,
+                'verificationSendUrl' => route('verification.send', absolute: false),
                 'logoutUrl' => route('logout', absolute: false),
                 // Nepřihlášený má v hlavičce přihlášení a registraci (R44)
                 'loginUrl' => route('login', absolute: false),
@@ -80,6 +84,22 @@ class HandleInertiaRequests extends Middleware
                 // Účet je v menu pod avatarem vpravo nahoře (R40), ne v hlavní navigaci
                 'accountUrl' => route('account', absolute: false),
                 'accountActive' => $request->routeIs('account'),
+            ],
+            // Patička (R51): provozovatel, kontakt a právní stránky — název se nesmí krýt s propem stránky
+            'siteFooter' => fn (): array => [
+                'operator' => config('letaky.operator.name'),
+                // Sídlo pod sebou po řádcích; IČO je jen v podmínkách a zásadách (§ 435 OZ stačí tam)
+                'addressLines' => app(Operator::class)->addressLines(),
+                'email' => config('letaky.operator.email'),
+                'termsUrl' => route('legal.terms', absolute: false),
+                'privacyUrl' => route('legal.privacy', absolute: false),
+            ],
+            // Souhlas s cookies a Google Analytics (R52) — měření jen na produkci, jinde bez ID
+            'cookieConsent' => fn (): array => [
+                'measurementId' => app()->isProduction() ? config('letaky.cookie_consent.google_measurement_id') : null,
+                'version' => config()->integer('letaky.cookie_consent.version'),
+                'maxAgeDays' => config()->integer('letaky.cookie_consent.max_age_days'),
+                'privacyUrl' => route('legal.privacy', absolute: false),
             ],
             // Zpráva Fortify po akci: přeložený text (odkaz na obnovu hesla odeslán)
             // nebo kód (profile-information-updated, password-updated)

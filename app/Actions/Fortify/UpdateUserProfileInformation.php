@@ -24,7 +24,8 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
     public const ERROR_BAG = 'updateProfileInformation';
 
     /**
-     * Ověří a uloží jméno a e-mail. Ověření e-mailu aplikace nepoužívá (config/fortify.php).
+     * Ověří a uloží jméno a e-mail. Nová adresa se musí znovu ověřit (R51) — do té doby
+     * na ni nechodí souhrny, jinak by šlo posílat e-maily na cizí adresu.
      *
      * @param  array<string, string>  $input
      *
@@ -37,9 +38,16 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique(User::class)->ignore($user->id)],
         ])->validateWithBag(self::ERROR_BAG);
 
+        $emailChanged = mb_strtolower($input['email']) !== mb_strtolower($user->email);
+
         $user->forceFill([
             'name' => $input['name'],
             'email' => $input['email'],
+            'email_verified_at' => $emailChanged ? null : $user->email_verified_at,
         ])->save();
+
+        if ($emailChanged) {
+            $user->sendEmailVerificationNotification();
+        }
     }
 }

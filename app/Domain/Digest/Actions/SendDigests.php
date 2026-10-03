@@ -37,8 +37,10 @@ final class SendDigests
         $now = CarbonImmutable::now();
         $sent = 0;
 
+        // Jen na ověřenou adresu (R51) — jinak by šlo souhrny posílat na cizí e-mail
         User::query()
             ->where('digest_frequency', '!=', DigestFrequency::Off->value)
+            ->whereNotNull('email_verified_at')
             ->orderBy('id')
             ->each(function (User $user) use ($now, &$sent): void {
                 try {

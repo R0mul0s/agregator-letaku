@@ -17,9 +17,12 @@
 @foreach ($chains as $chain)
 - [{{ __('app.llms.chain', ['chain' => $chain['name']]) }}]({{ $chain['url'] }})
 @endforeach
+- [{{ __('app.llms.terms') }}]({{ route('legal.terms') }})
+- [{{ __('app.llms.privacy') }}]({{ route('legal.privacy') }})
 
 ## {{ __('app.llms.notes_title') }}
 
 - {{ __('app.llms.note_prices') }}
 - {{ __('app.llms.note_validity') }}
 - {{ __('app.llms.note_private') }}
+- {{ __('app.llms.note_contact', ['email' => config('letaky.operator.email')]) }}
