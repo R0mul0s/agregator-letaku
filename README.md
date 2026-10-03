@@ -26,7 +26,7 @@ kde a za kolik je to právě ve slevě, včetně cen s věrnostní kartou a ceny
 
 ## Jak se to používá
 
-1. **Obchody** — zaškrtni obchody, karty a aplikace, které máš; u Tesca a Albertu typ prodejny (hypermarket / supermarket).
+1. **Obchody** — zaškrtni obchody, karty a aplikace, které máš; u Tesca a Albertu typ prodejny (hypermarket / supermarket), u Kauflandu své prodejny (pultové maso a ryby se po prodejnách liší).
 2. **Hlídám** — vyber produkt z katalogu (rychlý výběr jedním klepnutím), nebo zadej vlastní hledaná slova, případně variantu („zero“) a slova k vyloučení.
 3. **Moje slevy** — akce k hlídaným položkám od nejnižší ceny za kg / l / ks. Souhrnné akce („různé druhy“) bez hledané varianty jsou označené **Možná**. Pod akcemi jsou **zmínky v letácích bez ceny** (Lidl, Penny, Albert) s náhledem a odkazem na stránku letáku.
 4. **Všechny akce** — hledání s našeptávačem (produkty katalogu a názvy akcí) a filtr obchodu.
@@ -96,6 +96,7 @@ volume (`docker compose down -v`).
 | `LETAKY_REQUEST_DELAY_MS` | ne (1500) | pauza mezi požadavky na stejný obchod |
 | `LETAKY_LIDL_REQUEST_DELAY_MS`, `LETAKY_PENNY_REQUEST_DELAY_MS`, `LETAKY_ALBERT_REQUEST_DELAY_MS` | ne (500) | kratší pauza pro Lidl, Penny a Albert — desítky malých stránek (R25) |
 | `LETAKY_BILLA_REQUEST_DELAY_MS` | ne (1000) | pauza mezi stránkami katalogu Billy (25 stránek, R48) |
+| `LETAKY_KAUFLAND_STORES_DELAY_MS`, `LETAKY_KAUFLAND_STORE_PAGE_DELAY_MS` | ne (300, 1000) | pauza mezi seznamy akcí 149 prodejen Kauflandu a před stránkou prodejny (R49) |
 | `LETAKY_USER_AGENT` | ne | User-Agent požadavků na obchody |
 | `LETAKY_CRON_TOKEN` | na produkci | token cron URL `/cron/import-offers?chain=…&token=…` (R38); prázdný = cron URL vrací 404 |
 | `LETAKY_DISPLAY_TIMEZONE` | ne (`Europe/Prague`) | zóna pro „místní datum“ platnosti akcí |
@@ -112,6 +113,9 @@ docker compose exec app npm run build    # assety: produkční build
 
 # stažení nabídek (bez argumentu všechny obchody se zdrojem)
 docker compose exec app php artisan letaky:import-offers [kaufland] [tesco] [albert] [lidl] [penny] [globus] [billa]
+
+# prodejny Kauflandu a akce každé z nich (R49) — před stažením Kauflandu
+docker compose exec app php artisan letaky:import-stores kaufland
 
 # strom kategorií katalogu z e-shopu Tesco (stačí občas)
 docker compose exec app php artisan letaky:import-categories

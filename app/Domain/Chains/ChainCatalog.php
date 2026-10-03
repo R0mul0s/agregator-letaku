@@ -15,6 +15,7 @@ namespace App\Domain\Chains;
 use App\Domain\Sources\SourceRegistry;
 use App\Enums\Chain;
 use App\Enums\LoyaltyProgram;
+use App\Models\Store;
 
 final class ChainCatalog
 {
@@ -44,6 +45,23 @@ final class ChainCatalog
     public function hasEshop(Chain $chain): bool
     {
         return config("letaky.sources.{$chain->value}.has_eshop") === true;
+    }
+
+    /**
+     * Prodejny obchodu k výběru (R49), podle města a názvu; prázdné u obchodu, jehož akce
+     * se po prodejnách neliší.
+     *
+     * @return list<array{code: string, name: string, city: string}>
+     */
+    public function stores(Chain $chain): array
+    {
+        if (config("letaky.sources.{$chain->value}.stores_source") === null) {
+            return [];
+        }
+
+        return array_values(Store::query()->where('chain', $chain)->orderBy('city')->orderBy('name')->get(['code', 'name', 'city'])
+            ->map(fn (Store $store): array => ['code' => $store->code, 'name' => $store->name, 'city' => $store->city])
+            ->all());
     }
 
     /**

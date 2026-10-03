@@ -36,6 +36,7 @@ final class UpdateShoppingPreferences
                 $user->followedChains()->updateOrCreate(['chain' => $data->chain], [
                     'store_format' => $data->storeFormat,
                     'include_online_only' => $data->includeOnlineOnly,
+                    'store_codes' => $data->storeCodes === [] ? null : $data->storeCodes,
                 ]);
             }
 

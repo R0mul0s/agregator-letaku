@@ -20,7 +20,7 @@ volné číslo R…). Změna chování obchodu (nový endpoint, jiné pole) pat�
 
 ## Stav
 
-Hotové jsou etapy 1–5f (PLAN.md, kap. 6):
+Hotové jsou etapy 1–5g (PLAN.md, kap. 6):
 - účty (Fortify, R12, R13); stahování akcí Kauflandu, Tesca, Lidlu a Penny (R15–R17, R25, R26)
 - Globus z REST API webu (R46): katalog akcí jednoho hypermarketu, cena s aplikací Můj Globus, bez oblečení
 - Billa z API celého katalogu (R48): akce i akce jen s BILLA Klubem, platnost = akční týden st–út
@@ -36,6 +36,7 @@ Hotové jsou etapy 1–5f (PLAN.md, kap. 6):
   s hamburgerem na telefonu a tlačítko Nahoru
 - vzhled podle zkoušení (R47): toasty po uložení, vlastní potvrzovací okno, Moje obchody s přepínači,
   katalog v Hlídám jako dlaždice oddělení, oslovení v 5. pádě
+- Kaufland po prodejnách (R49): akce všech 149 prodejen, výběr více prodejen v Mých obchodech, štítek „Jen Trutnov“
 
 Produkce běží na `https://slevohlidka.rhsoft.cz` (nasazeno 2026-10-02, naposledy `20ef035`);
 postup aktualizace a nasazené verze jsou v `deploy/DEPLOYMENT.md`. Sleduje se 7 obchodů; Makro
@@ -77,6 +78,7 @@ potřebuje `TESCO_API_KEY` v `.env`, viz ZDROJE_DAT.md):
 ```bash
 docker compose exec app php artisan letaky:import-offers            # všechny obchody se zdrojem
 docker compose exec app php artisan letaky:import-offers kaufland   # jen vybrané (kaufland, tesco, albert, lidl, penny, globus, billa)
+docker compose exec app php artisan letaky:import-stores kaufland     # prodejny Kauflandu a jejich akce (R49), před import-offers
 docker compose exec app php artisan letaky:import-categories        # strom kategorií katalogu (Tesco, R28)
 docker compose exec app php artisan letaky:admin email@example.com  # správa katalogu /katalog (R29), --revoke odebere
 docker compose exec app php artisan letaky:send-digests             # e-mailové souhrny nových akcí (R42), do Mailpitu
@@ -107,7 +109,7 @@ powershell -ExecutionPolicy Bypass -File deploy\build-upload.ps1   # jen z commi
 
 - **Žádná fronta, scheduler ani démon** — nic nesmí implementovat `ShouldQueue`.
   Stahování spouští cron WebAdminu: `/cron/import-offers?chain=…&token=…` po obchodech
-  a `/cron/import-categories?token=…`, souhrny `/cron/send-digests?token=…` (`CronController`, token `LETAKY_CRON_TOKEN`,
+  a `/cron/import-categories?token=…`, prodejny Kauflandu `/cron/import-stores?chain=kaufland&token=…` (R49), souhrny `/cron/send-digests?token=…` (`CronController`, token `LETAKY_CRON_TOKEN`,
   bez tokenu 404). Každá úloha je Action volatelná z artisan příkazu i z kontroleru.
 - **`/health/imports`** vrací 503, když obchod nemá úspěšné stažení za 26 h (UptimeRobot).
 - **Každá migrace potřebuje SQL skript** `deploy/migrations-<datum>-<popis>.sql`
@@ -133,7 +135,7 @@ MariaDB 11.4 · Pest 4 · Larastan · Pint. Extrakce letáků (etapa 6): Claude 
 5. **Cena s kartou nebo aplikací mají všechny obchody**, vždy jako `loyalty_price` vedle běžné ceny, nikdy místo ní.
 6. **„Různé druhy“ / „vybrané druhy“** neříká, jestli akce platí i na konkrétní variantu. Párování má stav **možná** (R9), ne shodu.
 7. **Duplicity:** Kaufland má stejnou položku ve více kategoriích (dedup podle `klNr` a platnosti), Lidl a Penny mají položku na webu i v letáku, Tesco v letáku i v e-shopu.
-8. **Varianty nabídky:** Albert a Tesco mají odlišné letáky pro hypermarket a supermarket, Kaufland se mírně liší po prodejnách (cookie `x-aem-variant`). Nabídka bez prodejny nebo formátu platí pro celý obchod.
+8. **Varianty nabídky:** Albert a Tesco mají odlišné letáky pro hypermarket a supermarket, Kaufland se mírně liší po prodejnách (cookie `x-aem-variant`, R49 — viz 35). Nabídka bez prodejny nebo formátu platí pro celý obchod.
 9. **Uvnitř letáku se liší platnost.** Víkendové akce (pá–ne) a „Start týdne“ mají kratší platnost než leták. Brát platnost položky, ne letáku.
 10. **Neveřejná API se mění bez varování.** Neočekávaný tvar odpovědi = `SourceResponseChanged`, nula položek = `SourceReturnedNoOffers`, obojí skončí v `scrape_runs`. Oprava začíná porovnáním s ZDROJE_DAT.md a novou fixture.
 11. **Testy nesahají na síť** (R11). Fixtures jsou zkrácené skutečné odpovědi v `tests/Fixtures/<obchod>/` (popis v `tests/Fixtures/README.md`), nevymýšlet vlastní tvar dat.
@@ -160,6 +162,7 @@ MariaDB 11.4 · Pest 4 · Larastan · Pint. Extrakce letáků (etapa 6): Claude 
 32. **Globus (R46):** ceny jsou **float v Kč** (`PriceParser::fromFloat`), akce je jen typ ceny `VKA0`, popis se bere z položky letáku podle EAN (popis katalogu je reklamní text, hlídání by chytalo cizí slova). Zboží na váhu nemá `sellUnitSizeText` — balení z `unitAmount` + `unitId`. Oblečení a obuv vyřazuje `excluded_ware_groups`. Akce nemají vlastní odkaz (detaily `…/p/` zakazuje robots.txt pro stahování a adresa není ověřená).
 33. **Zpětná vazba (R47):** uložení potvrzuje **toast** — kontroler vrátí `->with('status', self::STATUS_…)` a text je v `lang/cs/app.php` `ui.toast.messages.<kód>` (test v `TranslationsTest`); nepiš zprávy do obsahu stránky. Nevratnou akci potvrzuje `await confirmDialog({ title, message, confirmLabel })` z `resources/js/lib/confirm.js`, nikdy `window.confirm`. Oslovení jménem jde přes `App\Support\CzechVocative` (5. pád).
 34. **Billa (R48):** API nemá platnost akcí — platnost je akční týden st–út obsahující dnešek (`week_start_iso_day`), dřívější konec řeší R16. Stahuje se **celý katalog**, ne `inPromotion` (ten nevrací akce jen s BILLA Klubem). U `weightPieceArticle` je `value` cena odhadovaného kusu — bere se `perStandardizedQuantity`. Akce na množství má běžnou cenu kusu a výhodnou v `promotion_text`.
+35. **Kaufland po prodejnách (R49):** akce bez řádků v `offer_stores` platí ve **všech** prodejnách — řádky má jen akce s omezením. Seznamy akcí prodejen (`stores.offer_keys`) plní `letaky:import-stores` / `/cron/import-stores` a import nabídek je čte (`StoreOfferLists`, jen mladší 36 h); bez nich stáhne jen výchozí nabídku. Nový dotaz na akce pro uživatele musí brát `followed_chains.store_codes` (`Offer::availableInStores`, v `MyOffers::whereFollowed`) a načíst `->with('stores')`, jinak `OfferPresenter` štítek prodejen vynechá. Kódy prodejen jsou jedinečné napříč obchody (`User::selectedStoreCodes`).
 
 ## Jazyk
 

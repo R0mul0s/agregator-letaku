@@ -13,17 +13,27 @@ declare(strict_types=1);
 namespace App\Domain\Offers;
 
 use App\Models\Offer;
+use App\Models\OfferStore;
+use App\Models\Store;
 
 final class OfferPresenter
 {
     private const DATE_FORMAT = 'Y-m-d';
 
+    /** Bez vybraných prodejen se prodejny akce vypíšou jménem, jen když jich je nejvýš tolik. */
+    private const MAX_LISTED_STORES = 3;
+
+    /** @var array<string, string>|null Názvy prodejen podle kódu, načtené při prvním použití */
+    private ?array $storeNames = null;
+
     /**
      * Data jedné nabídky pro Vue.
      *
+     * @param  list<string>  $selectedStoreCodes  Prodejny vybrané uživatelem (R49) — u akce, která
+     *                                            neplatí všude, se vypíšou ty z nich, kde platí
      * @return array<string, mixed>
      */
-    public function toPage(Offer $offer): array
+    public function toPage(Offer $offer, array $selectedStoreCodes = []): array
     {
         return [
             'id' => $offer->id,
@@ -53,6 +63,50 @@ final class OfferPresenter
             'sourceUrl' => $offer->source_url,
             // Odkaz na CDN obchodu — obrázek se nestahuje ani neukládá (R22)
             'imageUrl' => $offer->image_url,
+            'stores' => $this->stores($offer, $selectedStoreCodes),
         ];
+    }
+
+    /**
+     * Kde akce platí, když neplatí ve všech prodejnách (R49): `names` = prodejny ke zobrazení,
+     * `count` = počet všech prodejen akce, `elsewhere` = není v žádné vybrané prodejně. Null =
+     * platí všude, nebo ve všech vybraných prodejnách (pak to uživatele nezajímá), nebo
+     * prodejny nejsou načtené.
+     *
+     * @param  list<string>  $selectedStoreCodes
+     * @return array{names: list<string>, count: int, elsewhere: bool}|null
+     */
+    private function stores(Offer $offer, array $selectedStoreCodes): ?array
+    {
+        if (! $offer->relationLoaded('stores') || $offer->stores->isEmpty()) {
+            return null;
+        }
+
+        $codes = array_values($offer->stores->map(fn (OfferStore $store): string => $store->store_code)->all());
+        if ($selectedStoreCodes !== []) {
+            $mine = array_values(array_intersect($codes, $selectedStoreCodes));
+            if (count($mine) === count($selectedStoreCodes)) {
+                return null;
+            }
+
+            return ['names' => $this->storeNames($mine), 'count' => count($codes), 'elsewhere' => $mine === []];
+        }
+
+        return ['names' => count($codes) <= self::MAX_LISTED_STORES ? $this->storeNames($codes) : [], 'count' => count($codes), 'elsewhere' => false];
+    }
+
+    /**
+     * Názvy prodejen podle kódů, abecedně; neznámý kód se vynechá.
+     *
+     * @param  list<string>  $codes
+     * @return list<string>
+     */
+    private function storeNames(array $codes): array
+    {
+        $this->storeNames ??= Store::query()->pluck('name', 'code')->all();
+        $names = array_values(array_filter(array_map(fn (string $code): ?string => $this->storeNames[$code] ?? null, $codes)));
+        sort($names);
+
+        return $names;
     }
 }

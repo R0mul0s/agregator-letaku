@@ -31,6 +31,8 @@ class OffersController extends Controller
     public function __invoke(OffersRequest $request, OfferSearch $search, OfferPresenter $presenter): Response
     {
         $query = $search->query($request->searchText(), $request->chain());
+        // Přihlášený uvidí u akce, která neplatí všude, ve kterých jeho prodejnách platí (R49)
+        $storeCodes = $request->user()?->selectedStoreCodes() ?? [];
         $total = $query->count();
         $window = $request->pageWindow(config()->integer('letaky.offers.per_page'));
         $window = $window->within($window->lastPage($total));
@@ -46,7 +48,7 @@ class OffersController extends Controller
             'suggestMinLength' => config()->integer('letaky.offers.suggest_min_length'),
             'offers' => [
                 'data' => $query->offset($window->offset())->limit($window->limit())->get()
-                    ->map(fn (Offer $offer): array => $presenter->toPage($offer))
+                    ->map(fn (Offer $offer): array => $presenter->toPage($offer, $storeCodes))
                     ->all(),
                 'total' => $total,
             ],

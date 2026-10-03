@@ -14,7 +14,10 @@ import { usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 
 const props = defineProps({
-    /** Nabídka z App\Domain\Offers\OfferPresenter; v Mých slevách navíc matchStatus (match / maybe). */
+    /**
+     * Nabídka z App\Domain\Offers\OfferPresenter; v Mých slevách navíc matchStatus (match / maybe).
+     * `stores` = { names, count } u akce, která neplatí ve všech prodejnách (R49), jinak null.
+     */
     offer: { type: Object, required: true },
 });
 
@@ -24,6 +27,22 @@ const locale = computed(() => page.props.locale);
 
 /** Sleva v procentech na cenovku přes obrázek. */
 const discount = computed(() => discountPercent(props.offer));
+
+/**
+ * Štítek akce, která neplatí ve všech prodejnách (R49): vybrané prodejny, kde platí;
+ * není-li v žádné vybrané, tak to; bez výběru názvy (pár prodejen) nebo počet.
+ */
+const storesLabel = computed(() => {
+    const stores = props.offer.stores;
+    if (!stores) {
+        return null;
+    }
+    if (stores.names.length) {
+        return t('offers.only_in_stores', { stores: stores.names.join(', ') });
+    }
+
+    return stores.elsewhere ? t('offers.not_in_my_stores') : t('offers.only_in_count', { count: stores.count });
+});
 
 /** Akce platí jen s kartou — hlavní cena je cena s kartou, běžná cena vedle. */
 const isLoyaltyOnly = computed(() => props.offer.offerType === 'loyalty_only');
@@ -68,6 +87,8 @@ function unitPriceLabel(halers) {
             <span v-if="offer.matchStatus === 'maybe'" class="tag tag--warning" :title="t('offers.maybe_hint')">{{ t('offers.maybe') }}</span>
             <span v-if="offer.storeFormatName" class="tag">{{ offer.storeFormatName }}</span>
             <span v-if="offer.onlineOnly" class="tag tag--warning">{{ t('offers.online_only') }}</span>
+            <!-- Akce jen v některých prodejnách (R49): vybrané prodejny, kde platí, jinak počet -->
+            <span v-if="offer.stores" class="tag tag--warning" :title="t('offers.only_in_title')">{{ storesLabel }}</span>
             <span class="tag" :class="{ 'tag--accent': offer.offerType === 'discount' }">{{ t(`offer_types.${offer.offerType}`) }}</span>
         </div>
 

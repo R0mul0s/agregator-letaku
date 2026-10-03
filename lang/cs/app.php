@@ -67,6 +67,7 @@ return [
         'unknown_chain' => 'Neznámý obchod nebo obchod bez zdroje „:chain“. Dostupné: :available',
         'categories_done' => 'Kategorie — uloženo: :count',
         'categories_failed' => 'Kategorie — chyba: :error',
+        'stores_done' => ':chain — prodejen: :stores, seznamů akcí: :lists',
     ],
 
     // Společné pro všechny e-maily (resources/views/vendor/mail)
@@ -247,6 +248,14 @@ return [
             'store_format' => 'Typ prodejny',
             'all_formats' => 'Všechny',
             'include_online_only' => 'Akce jen z e-shopu',
+            // Výběr prodejen (R49, StoreSelect.vue)
+            'stores' => 'Moje prodejny',
+            'stores_hint' => 'Pultové maso, ryby a pár dalších akcí se liší po prodejnách. Bez výběru uvidíte akce všech prodejen.',
+            'stores_search' => 'Hledat prodejnu nebo město',
+            'stores_all' => 'Všechny prodejny',
+            'stores_remove' => 'Odebrat prodejnu :store',
+            'stores_none_found' => 'Žádná prodejna neodpovídá.',
+            'stores_max' => 'Vybrat jde nejvýš :count prodejen.',
             'loyalty' => 'Mám :program',
             'save' => 'Uložit',
             'unsaved' => 'Máte neuložené změny.',
@@ -315,6 +324,11 @@ return [
             'unit_price' => ':price / :unit',
             'valid' => 'Platí :from – :to',
             'online_only' => 'Jen e-shop',
+            // Akce, která neplatí ve všech prodejnách (R49)
+            'only_in_stores' => 'Jen :stores',
+            'only_in_count' => 'Jen v :count prodejně|Jen ve :count prodejnách|Jen v :count prodejnách',
+            'only_in_title' => 'Akce platí jen v některých prodejnách obchodu',
+            'not_in_my_stores' => 'Není ve vašich prodejnách',
             'maybe' => 'Možná',
             'maybe_hint' => 'Akce je na více druhů a hledanou variantu neuvádí — ověřte u obchodu.',
             'source' => 'Do obchodu',

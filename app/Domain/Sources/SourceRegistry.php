@@ -34,6 +34,32 @@ final class SourceRegistry
     }
 
     /**
+     * Obchody, které mají zdroj prodejen (akce se liší po prodejnách, R49).
+     *
+     * @return list<Chain>
+     */
+    public function chainsWithStores(): array
+    {
+        return array_values(array_filter(
+            Chain::cases(),
+            fn (Chain $chain): bool => config("letaky.sources.{$chain->value}.stores_source") !== null,
+        ));
+    }
+
+    /**
+     * Zdroj prodejen obchodu.
+     *
+     * @throws SourceNotImplemented
+     */
+    public function stores(Chain $chain): StoreSource
+    {
+        $class = config("letaky.sources.{$chain->value}.stores_source");
+        $source = is_string($class) && class_exists($class) ? $this->container->make($class) : null;
+
+        return $source instanceof StoreSource ? $source : throw SourceNotImplemented::for($chain);
+    }
+
+    /**
      * Zdroj nabídek obchodu — vždy nová instance (vlastní odstup mezi požadavky).
      *
      * @throws SourceNotImplemented

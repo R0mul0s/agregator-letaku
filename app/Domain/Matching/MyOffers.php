@@ -163,7 +163,7 @@ final class MyOffers
         return OfferProduct::query()
             ->whereIn('product_id', $productIds)
             ->whereHas('offer', fn (Builder $query) => $this->whereCurrentFollowed($query, $followed))
-            ->with('offer')
+            ->with('offer.stores')
             ->get();
     }
 
@@ -237,6 +237,7 @@ final class MyOffers
         return Offer::query()
             ->tap(fn (Builder $query) => $this->whereCurrentFollowed($query, $followed))
             ->tap(fn (Builder $query) => OfferPrefilter::containingAny($query, $this->firstWords($rules)))
+            ->with('stores')
             ->get();
     }
 
@@ -328,8 +329,8 @@ final class MyOffers
     }
 
     /**
-     * Nabídky jednoho sledovaného obchodu: typ prodejny (nabídka bez typu platí všude)
-     * a akce jen z e-shopu podle volby uživatele.
+     * Nabídky jednoho sledovaného obchodu: typ prodejny (nabídka bez typu platí všude),
+     * akce jen z e-shopu a vybrané prodejny (R49; akce bez prodejen platí všude) podle volby uživatele.
      *
      * @param  Builder<Offer>  $query
      */
@@ -343,6 +344,10 @@ final class MyOffers
 
         if (! $chain->include_online_only) {
             $query->where('online_only', false);
+        }
+
+        if ($chain->store_codes !== null && $chain->store_codes !== []) {
+            $query->availableInStores($chain->store_codes);
         }
     }
 

@@ -34,7 +34,7 @@ mají samostatný web **prodejny.kaufland.cz** (AEM, Fastly), který nic nebloku
 | Nabídka týdne | `GET https://prodejny.kaufland.cz/nabidka/prehled.html?kloffer-week=current` (`=next` pro příští týden) |
 | Volba prodejny | cookie `x-aem-variant=CZ3300`; bez cookie výchozí CZ3300 |
 | Seznam prodejen | `GET https://prodejny.kaufland.cz/.klstorefinder.json` (149 prodejen) |
-| Položky platné v prodejně | `GET https://prodejny.kaufland.cz/.kloffers.storeName=CZ3300.json` (jen `dateFrom`, `dateTo`, `klNr`) |
+| Položky platné v prodejně | `GET https://prodejny.kaufland.cz/.kloffers.storeName=CZ3300.json` (jen `dateFrom`, `dateTo`, `klNr`; ~40 kB) — stejné akce jako stránka nabídky s cookie té prodejny |
 | Leták (záloha) | `GET https://endpoints.leaflets.schwarz/v4/flyer?flyer_identifier=CZ_cs_KDZ_3300_CZ40-LFT&region_id=3300`; vrací `pdfUrl` (PDF s textovou vrstvou), stránky a `keyWords` (OCR slova bez struktury), `products` je prázdné |
 
 Identifikátory letáků: `CZ_cs_KDZ_{prodejna}_CZ{týden}-LFT` (potraviny), `CZ_cs_Hyper1_{prodejna}_CZ{týden}-CL1` (nepotraviny).
@@ -61,6 +61,15 @@ Nabídka s Kaufland Card:
 "formattedPrice":"29,90","formattedOldPrice":"42,90","discount":30,
 "loyaltyFormattedPrice":"24,90","loyaltyDiscount":41,"loyaltyFormattedBasePrice":"(=100 ml 9,96/4,98)"
 ```
+
+### Po prodejnách (R49)
+Implementace: `KauflandStoreSource` (seznam prodejen a jejich akcí), `KauflandOfferSource` (stránky prodejen a prodejny akce).
+
+- Průzkum 3. 10. 2026 (všech 149 prodejen): **646 akcí je všude stejných** i cenou, **70 jen v některých**, každá prodejna jich má 8–22. Polovina je pultové maso „K-Mistři od fochu“ (`klNr` `630…`; Vrchlabí vepřová pečeně a kližka, Trutnov krkovice a čevapčiči), dál ryby z pultu (losos, pstruh — jen prodejny s rybím pultem, `slf` obsahuje `Fish`) a jednotlivé položky. Vzniká **74 různých kombinací** — nejde o regiony.
+- Seznam prodejny má jen `klNr` a platnost; detail (název, cena) je jen na stránce nabídky s cookie `x-aem-variant={kód}` (~2,5 MB). Výchozí stránka (bez cookie) je CZ3300 Praha-Vypich. Na detail všech akcí všech prodejen stačilo **24 stránek** navíc (výběr: vždy prodejna s nejvíc chybějícími akcemi).
+- Klíč akce ze seznamu (`klNr|dateFrom|dateTo`) je stejný jako klíč nabídky (`OfferData::key()`).
+- Seznam prodejen `.klstorefinder.json`: `n` kód, `cn` „Kaufland Trutnov“ (ukládá se bez „Kaufland “), `t` město, `slf` vybavení prodejny (`Meat`, `Fish`…).
+- Seznamy a stránky jsou z jiné doby (cron prodejen běží dřív než stažení nabídky) — akce, kterou žádný seznam nezná, platí všude.
 
 ### Pole a pasti
 Implementace: `app/Domain/Sources/Kaufland/KauflandOfferParser.php`.

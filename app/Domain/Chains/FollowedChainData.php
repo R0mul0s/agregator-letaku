@@ -19,10 +19,12 @@ final readonly class FollowedChainData
 {
     /**
      * @param  StoreFormat|null  $storeFormat  null = všechny typy prodejen
+     * @param  list<string>  $storeCodes  Vybrané prodejny (R49); prázdné = všechny
      */
     public function __construct(
         public Chain $chain,
         public ?StoreFormat $storeFormat = null,
         public bool $includeOnlineOnly = true,
+        public array $storeCodes = [],
     ) {}
 }

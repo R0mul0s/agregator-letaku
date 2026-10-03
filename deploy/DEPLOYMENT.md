@@ -106,6 +106,7 @@ pole *Opakovat* je zápis cronu (`minuta hodina den měsíc den_v_týdnu`). URL 
 
 | Poznámka | Opakovat | URL |
 |---|---|---|
+| Slevohlídka – Kaufland prodejny | `45 4,12 * * *` | `https://slevohlidka.rhsoft.cz/cron/import-stores?chain=kaufland&token=<LETAKY_CRON_TOKEN>` (~1,5 min; seznam prodejen a jejich akcí, R49 — před stažením Kauflandu) |
 | Slevohlídka – Kaufland | `0 5,13 * * *` | `https://slevohlidka.rhsoft.cz/cron/import-offers?chain=kaufland&token=<LETAKY_CRON_TOKEN>` |
 | Slevohlídka – Tesco | `10 5,13 * * *` | `…/cron/import-offers?chain=tesco&token=…` (~45 s, nejdelší) |
 | Slevohlídka – Lidl | `20 5,13 * * *` | `…/cron/import-offers?chain=lidl&token=…` (~30 s) |
@@ -227,6 +228,17 @@ stránka, SEO a limity požadavků (R39–R45), nové obchody Globus (R46) a Bil
 8. **Search Console** a odeslání sitemap (*Vyhledávače*).
 9. Zapiš verzi do *Nasazené verze* a datum ke skriptu v *Historii SQL skriptů*.
 
+### Aktualizace z `20ef035` (třetí nasazení)
+
+Kaufland po prodejnách (R49). `composer.lock` se nezměnil.
+
+1. **Záloha databáze**.
+2. **SQL:** v phpMyAdminu spusť `deploy/migrations-2026-10-03-prodejny.sql` (tabulky `stores`, `offer_stores`, sloupec `followed_chains.store_codes`). Opakovatelný, stará verze kódu s ním běží dál.
+3. **Nahraj `deploy/upload/`** jako minule: bez `vendor/`, ale s `vendor/composer/` a `bootstrap/cache/packages.php`; `public/build/` nejdřív smaž.
+4. **Cron** přidej `45 4,12 * * *` → `https://slevohlidka.rhsoft.cz/cron/import-stores?chain=kaufland&token=<LETAKY_CRON_TOKEN>` a **hned ho zavolej ručně** (~1,5 min, odpověď `Kaufland — prodejen: 149, seznamů akcí: 149`), potom ručně i `/cron/import-offers?chain=kaufland&token=…` (~50 s, místo ~2 s — stahuje i stránky prodejen). Ověř, že se oba vejdou do limitu požadavku (O8).
+5. **Ověř:** v Mých obchodech u Kauflandu výběr prodejen, na `/akce?chain=kaufland&q=K-Mistři` štítky „Jen …“ / „Jen v N prodejnách“.
+6. Zapiš verzi do *Nasazené verze* a datum ke skriptu v *Historii SQL skriptů*.
+
 **Každá nová migrace potřebuje SQL skript** `deploy/migrations-<datum>-<popis>.sql`
 (opakovatelný: `CREATE TABLE IF NOT EXISTS`, `ADD COLUMN IF NOT EXISTS`) včetně zápisu do
 tabulky `migrations` — ve stejném commitu jako migrace. Nové produkty katalogu jdou na
@@ -250,6 +262,7 @@ a ruční opravy katalogu. Před každým SQL skriptem a jinak aspoň jednou mě
 |---|---|---|
 | `migrations-2026-10-02-init.sql` | výchozí schéma — všechny tabulky k 2026-10-02 a záznamy v `migrations` | 2026-10-02 |
 | `data-2026-10-02-katalog.sql` | strom kategorií e-shopu Tesco (1 728) a 164 produktů katalogu (R28, R37), `REPLACE` — opakovatelný; až po init | 2026-10-02 |
+| `migrations-2026-10-03-prodejny.sql` | prodejny Kauflandu (R49): tabulky `stores` a `offer_stores`, `followed_chains.store_codes`; opakovatelný, pustit **před** nahráním kódu | |
 | `migrations-2026-10-02-ucet.sql` | nastavení účtu: `users.avatar_path` (R40), `users.offers_sort` a `min_discount_percent` (R41), `users.digest_frequency` a `digest_sent_at` (R42); opakovatelný, pustit **před** nahráním kódu | 2026-10-02 |
 
 ## Nasazené verze

@@ -52,7 +52,11 @@ class ShoppingPreferencesController extends Controller
                 'hasEshop' => $catalog->hasEshop($chain),
                 'loyaltyProgram' => $catalog->loyaltyProgram($chain)?->value,
                 'loyaltyProgramName' => $catalog->loyaltyProgram($chain)?->label(),
+                // Prodejny k výběru (R49) — jen obchod, jehož akce se liší po prodejnách
+                'stores' => $catalog->stores($chain),
+                'storeCodes' => $followed->get($chain->value)->store_codes ?? [],
             ], Chain::cases()),
+            'maxSelectedStores' => config()->integer('letaky.stores.max_selected'),
             'storeFormats' => array_map(fn (StoreFormat $format): array => [
                 'value' => $format->value,
                 'name' => $format->label(),

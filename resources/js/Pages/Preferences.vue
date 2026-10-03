@@ -8,6 +8,7 @@
 -->
 <script setup>
 import ChainLogo from '@/Components/ChainLogo.vue';
+import StoreSelect from '@/Components/StoreSelect.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { useTranslations } from '@/lib/i18n';
 import { Head, useForm } from '@inertiajs/vue3';
@@ -19,6 +20,8 @@ const props = defineProps({
     chains: { type: Array, required: true },
     storeFormats: { type: Array, required: true },
     loyaltyPrograms: { type: Array, required: true },
+    /** Nejvíc vybraných prodejen u obchodu (R49). */
+    maxSelectedStores: { type: Number, required: true },
 });
 
 const t = useTranslations();
@@ -28,7 +31,12 @@ const chainSettings = ref(
     Object.fromEntries(
         props.chains.map((chain) => [
             chain.value,
-            { followed: chain.followed, storeFormat: chain.storeFormat ?? '', includeOnlineOnly: chain.includeOnlineOnly },
+            {
+                followed: chain.followed,
+                storeFormat: chain.storeFormat ?? '',
+                includeOnlineOnly: chain.includeOnlineOnly,
+                storeCodes: [...chain.storeCodes],
+            },
         ]),
     ),
 );
@@ -58,6 +66,7 @@ function submit() {
                     chain: chain.value,
                     store_format: chainSettings.value[chain.value].storeFormat || null,
                     include_online_only: chainSettings.value[chain.value].includeOnlineOnly,
+                    store_codes: chain.stores.length ? chainSettings.value[chain.value].storeCodes : [],
                 })),
         }))
         .put(props.urls.update, { preserveScroll: true });
@@ -104,13 +113,19 @@ function submit() {
                         </label>
                     </div>
 
-                    <div v-if="chain.available && chainSettings[chain.value].followed && (chain.hasStoreFormats || chain.hasEshop || chain.loyaltyProgram)" class="chain-card__settings">
+                    <div v-if="chain.available && chainSettings[chain.value].followed && (chain.hasStoreFormats || chain.hasEshop || chain.loyaltyProgram || chain.stores.length)" class="chain-card__settings">
                         <div v-if="chain.hasStoreFormats" class="chain-card__setting">
                             <label :for="`format-${chain.value}`" class="chain-card__setting-label">{{ t('preferences.store_format') }}</label>
                             <select :id="`format-${chain.value}`" v-model="chainSettings[chain.value].storeFormat" class="form-field__input chain-card__select">
                                 <option value="">{{ t('preferences.all_formats') }}</option>
                                 <option v-for="format in storeFormats" :key="format.value" :value="format.value">{{ format.name }}</option>
                             </select>
+                        </div>
+
+                        <div v-if="chain.stores.length" class="chain-card__setting chain-card__setting--block">
+                            <span class="chain-card__setting-label">{{ t('preferences.stores') }}</span>
+                            <p class="form-field__hint">{{ t('preferences.stores_hint') }}</p>
+                            <StoreSelect v-model="chainSettings[chain.value].storeCodes" :stores="chain.stores" :max="maxSelectedStores" />
                         </div>
 
                         <label v-if="chain.hasEshop" class="chain-card__setting">

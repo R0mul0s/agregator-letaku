@@ -34,6 +34,9 @@ class UpdateShoppingPreferencesRequest extends FormRequest
             'chains.*.chain' => ['required', 'distinct', Rule::in(array_map(fn (Chain $chain): string => $chain->value, $catalog->available()))],
             'chains.*.store_format' => ['nullable', Rule::enum(StoreFormat::class)],
             'chains.*.include_online_only' => ['required', 'boolean'],
+            // Vybrané prodejny (R49) — kódy existujících prodejen; u obchodu bez prodejen nic
+            'chains.*.store_codes' => ['sometimes', 'array', 'max:'.config()->integer('letaky.stores.max_selected')],
+            'chains.*.store_codes.*' => ['distinct', 'string', Rule::exists('stores', 'code')],
             'loyalty_programs' => ['present', 'array'],
             'loyalty_programs.*' => ['distinct', Rule::enum(LoyaltyProgram::class)],
         ];
@@ -50,6 +53,7 @@ class UpdateShoppingPreferencesRequest extends FormRequest
             Chain::from($chain['chain']),
             isset($chain['store_format']) ? StoreFormat::from($chain['store_format']) : null,
             (bool) $chain['include_online_only'],
+            array_values(array_map(strval(...), $chain['store_codes'] ?? [])),
         ), $this->validated('chains')));
     }
 

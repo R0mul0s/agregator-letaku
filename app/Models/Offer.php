@@ -145,6 +145,30 @@ class Offer extends Model
     }
 
     /**
+     * Prodejny, ve kterých nabídka platí (R49); žádná = všechny prodejny obchodu.
+     *
+     * @return HasMany<OfferStore, $this>
+     */
+    public function stores(): HasMany
+    {
+        return $this->hasMany(OfferStore::class);
+    }
+
+    /**
+     * Nabídky, které platí aspoň v jedné z prodejen (R49): bez omezení na prodejny, nebo
+     * s některou z nich.
+     *
+     * @param  Builder<self>  $query
+     * @param  list<string>  $storeCodes
+     */
+    public function scopeAvailableInStores(Builder $query, array $storeCodes): void
+    {
+        $query->where(fn (Builder $available) => $available
+            ->whereDoesntHave('stores')
+            ->orWhereHas('stores', fn (Builder $stores) => $stores->whereIn('store_code', $storeCodes)));
+    }
+
+    /**
      * Nabídky, které obchod nestáhl před koncem platnosti (R16).
      *
      * @param  Builder<self>  $query

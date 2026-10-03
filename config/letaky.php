@@ -17,6 +17,7 @@ use App\Domain\Sources\Albert\AlbertOfferSource;
 use App\Domain\Sources\Billa\BillaOfferSource;
 use App\Domain\Sources\Globus\GlobusOfferSource;
 use App\Domain\Sources\Kaufland\KauflandOfferSource;
+use App\Domain\Sources\Kaufland\KauflandStoreSource;
 use App\Domain\Sources\Lidl\LidlOfferSource;
 use App\Domain\Sources\Penny\PennyOfferSource;
 use App\Domain\Sources\Tesco\TescoOfferSource;
@@ -72,6 +73,23 @@ return [
             'has_eshop' => false,
             // Web kamenných prodejen — www.kaufland.cz je marketplace za Cloudflare
             'offers_url' => 'https://prodejny.kaufland.cz/nabidka/prehled.html',
+            // Prodejny a akce po prodejnách (R49): seznam prodejen a akce každé z nich (jen klNr a platnost)
+            'stores_source' => KauflandStoreSource::class,
+            'stores_url' => 'https://prodejny.kaufland.cz/.klstorefinder.json',
+            'store_offers_base_url' => 'https://prodejny.kaufland.cz/',
+            'store_offers_path' => '.kloffers.storeName=%s.json',
+            'store_name_prefix' => 'Kaufland ',
+            // 149 malých souborů (~40 kB) — kratší pauza, ať se stažení vejde do limitu hostingu (O8)
+            'store_offers_delay_ms' => (int) env('LETAKY_KAUFLAND_STORES_DELAY_MS', 300),
+            // Stránka nabídky konkrétní prodejny se volí cookie
+            'store_cookie' => 'x-aem-variant',
+            // Kolik stránek prodejen nejvýš stáhnout navíc k výchozí, aby měly detail všechny akce
+            // všech prodejen (3. 10. 2026 jich stačilo 24)
+            'max_store_pages' => 40,
+            // Pauza před stránkou prodejny (~2,5 MB) — 24 stránek se musí vejít do limitu hostingu (O8)
+            'store_page_delay_ms' => (int) env('LETAKY_KAUFLAND_STORE_PAGE_DELAY_MS', 1000),
+            // Seznam akcí prodejny starší než tohle se při určení prodejen akce nebere v úvahu
+            'store_offers_max_age_hours' => 36,
         ],
         'lidl' => [
             'offers_source' => LidlOfferSource::class,
@@ -237,6 +255,13 @@ return [
     */
     'categories' => [
         'excluded_roots' => ['Top výběr', 'Novinky', 'Domov a zábava'],
+    ],
+
+    /*
+    | Prodejny (R49): kolik si jich uživatel u obchodu nejvýš vybere.
+    */
+    'stores' => [
+        'max_selected' => 10,
     ],
 
     /*

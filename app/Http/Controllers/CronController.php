@@ -14,10 +14,14 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Domain\Catalog\Actions\ImportCategories;
+use App\Domain\Chains\Actions\ImportStores;
 use App\Domain\Digest\Actions\SendDigests;
 use App\Domain\Offers\Actions\ImportChainOffers;
+use App\Domain\Sources\SourceRegistry;
+use App\Enums\Chain;
 use App\Http\Requests\CronRequest;
 use Illuminate\Http\Response;
+use Illuminate\Validation\Rule;
 use Throwable;
 
 class CronController extends Controller
@@ -42,6 +46,27 @@ class CronController extends Controller
         }
 
         return $this->text(__('app.import.offers_done', ['chain' => $chain->label(), 'count' => $run->offers_count]));
+    }
+
+    /**
+     * Stáhne prodejny obchodu a akce platné v každé z nich (`?chain=kaufland`, R49) — před
+     * stažením akcí obchodu, ať import ví, v kterých prodejnách akce platí.
+     */
+    public function importStores(CronRequest $request, ImportStores $import, SourceRegistry $sources): Response
+    {
+        $request->validate(['chain' => ['required', Rule::in(array_map(fn (Chain $chain): string => $chain->value, $sources->chainsWithStores()))]]);
+        $chain = $request->chain();
+        $this->extendTimeLimit();
+
+        try {
+            $result = $import($chain);
+        } catch (Throwable $error) {
+            report($error);
+
+            return $this->text(__('app.import.failed', ['chain' => $chain->label(), 'error' => $error->getMessage()]), Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+
+        return $this->text(__('app.import.stores_done', ['chain' => $chain->label(), ...$result]));
     }
 
     /**

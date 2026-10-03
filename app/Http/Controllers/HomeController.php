@@ -37,6 +37,9 @@ class HomeController extends Controller
             return $landing->show();
         }
 
+        // Vybrané prodejny (R49) — u akce, která neplatí všude, se vypíšou ty, kde platí
+        $storeCodes = $user->selectedStoreCodes();
+
         return Inertia::render('Home', [
             'hasFollowedChains' => $user->followedChains()->exists(),
             // Pozdrav „Ahoj, Romane!“ — křestní jméno v 5. pádě (R47)
@@ -63,7 +66,7 @@ class HomeController extends Controller
                 'editUrl' => route('watch-items.index', [WatchItemController::EDIT_PARAMETER => $group['watchItem']->id], absolute: false),
                 'deleteUrl' => route('watch-items.destroy', $group['watchItem'], absolute: false),
                 'offers' => array_map(fn (array $match): array => [
-                    ...$presenter->toPage($match['offer']),
+                    ...$presenter->toPage($match['offer'], $storeCodes),
                     'matchStatus' => $match['status']->value,
                 ], $group['offers']),
                 'mentions' => array_map(

@@ -97,6 +97,6 @@ class LandingController extends Controller
      */
     private function currentOffers(): Builder
     {
-        return Offer::query()->active()->notExpired($this->calendar->today());
+        return Offer::query()->active()->notExpired($this->calendar->today())->with('stores');
     }
 }

@@ -13,6 +13,7 @@ declare(strict_types=1);
 use App\Enums\Chain;
 use App\Enums\LoyaltyProgram;
 use App\Enums\StoreFormat;
+use App\Models\Store;
 use App\Models\User;
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -80,4 +81,49 @@ it('nedovolí sledovat obchod bez zdroje nabídek', function (): void {
     ])->assertSessionHasErrors('chains.0.chain');
 
     expect($this->user->followedChains()->count())->toBe(0);
+});
+
+it('u Kauflandu nabídne prodejny k výběru a uloží vybrané (R49)', function (): void {
+    Store::query()->create(['chain' => Chain::Kaufland, 'code' => 'CZ4400', 'name' => 'Trutnov', 'city' => 'Trutnov']);
+    Store::query()->create(['chain' => Chain::Kaufland, 'code' => 'CZ1550', 'name' => 'Vrchlabí', 'city' => 'Vrchlabí']);
+
+    $this->get(route('preferences'))->assertInertia(fn (Assert $page) => $page
+        ->where('chains.0.stores', [
+            ['code' => 'CZ4400', 'name' => 'Trutnov', 'city' => 'Trutnov'],
+            ['code' => 'CZ1550', 'name' => 'Vrchlabí', 'city' => 'Vrchlabí'],
+        ])
+        ->where('chains.0.storeCodes', [])
+        ->where('chains.1.stores', [])
+        ->where('maxSelectedStores', 10));
+
+    $this->put(route('preferences.update'), [
+        'chains' => [['chain' => 'kaufland', 'store_format' => null, 'include_online_only' => true, 'store_codes' => ['CZ4400', 'CZ1550']]],
+        'loyalty_programs' => [],
+    ])->assertSessionHasNoErrors();
+
+    expect($this->user->followedChains()->sole()->store_codes)->toBe(['CZ4400', 'CZ1550'])
+        ->and($this->user->selectedStoreCodes())->toBe(['CZ4400', 'CZ1550']);
+
+    // Žádná vybraná prodejna = všechny
+    $this->put(route('preferences.update'), [
+        'chains' => [['chain' => 'kaufland', 'store_format' => null, 'include_online_only' => true, 'store_codes' => []]],
+        'loyalty_programs' => [],
+    ]);
+    expect($this->user->followedChains()->sole()->store_codes)->toBeNull();
+});
+
+it('neuloží prodejnu, která neexistuje, ani víc prodejen, než je limit', function (): void {
+    config(['letaky.stores.max_selected' => 1]);
+    Store::query()->create(['chain' => Chain::Kaufland, 'code' => 'CZ4400', 'name' => 'Trutnov', 'city' => 'Trutnov']);
+    Store::query()->create(['chain' => Chain::Kaufland, 'code' => 'CZ1550', 'name' => 'Vrchlabí', 'city' => 'Vrchlabí']);
+
+    $this->put(route('preferences.update'), [
+        'chains' => [['chain' => 'kaufland', 'store_format' => null, 'include_online_only' => true, 'store_codes' => ['CZ0000']]],
+        'loyalty_programs' => [],
+    ])->assertSessionHasErrors('chains.0.store_codes.0');
+
+    $this->put(route('preferences.update'), [
+        'chains' => [['chain' => 'kaufland', 'store_format' => null, 'include_online_only' => true, 'store_codes' => ['CZ4400', 'CZ1550']]],
+        'loyalty_programs' => [],
+    ])->assertSessionHasErrors('chains.0.store_codes');
 });

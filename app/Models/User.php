@@ -134,4 +134,19 @@ class User extends Authenticatable
     {
         return $this->loyalty_programs?->contains($program) ?? false;
     }
+
+    /**
+     * Prodejny vybrané u sledovaných obchodů (R49) — kódy jsou jedinečné napříč obchody.
+     *
+     * @return list<string>
+     */
+    public function selectedStoreCodes(): array
+    {
+        $codes = [];
+        foreach ($this->followedChains()->get(['store_codes']) as $chain) {
+            array_push($codes, ...($chain->store_codes ?? []));
+        }
+
+        return $codes;
+    }
 }

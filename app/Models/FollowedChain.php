@@ -24,6 +24,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property Chain $chain
  * @property StoreFormat|null $store_format
  * @property bool $include_online_only
+ * @property list<string>|null $store_codes Vybrané prodejny (R49); null = všechny
  * @property CarbonImmutable $created_at
  * @property CarbonImmutable $updated_at
  */
@@ -35,6 +36,17 @@ class FollowedChain extends Model
         'chain',
         'store_format',
         'include_online_only',
+        'store_codes',
+    ];
+
+    /**
+     * Výchozí hodnoty sloupců — přísný režim modelů (shouldBeStrict) jinak u nově založeného
+     * záznamu hlásí chybějící atribut.
+     *
+     * @var array<string, mixed>
+     */
+    protected $attributes = [
+        'store_codes' => null,
     ];
 
     /**
@@ -48,6 +60,7 @@ class FollowedChain extends Model
             'chain' => Chain::class,
             'store_format' => StoreFormat::class,
             'include_online_only' => 'boolean',
+            'store_codes' => 'array',
             'created_at' => 'immutable_datetime',
             'updated_at' => 'immutable_datetime',
         ];

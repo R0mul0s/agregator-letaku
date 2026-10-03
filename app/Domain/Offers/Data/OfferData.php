@@ -26,6 +26,7 @@ final readonly class OfferData
      * @param  CarbonImmutable  $validFrom  Místní datum (R7)
      * @param  CarbonImmutable  $validTo  Místní datum včetně (R7)
      * @param  array<string, mixed>  $raw  Původní položka od obchodu
+     * @param  list<string>|null  $storeCodes  Prodejny, ve kterých akce platí (R49); null = všechny
      */
     public function __construct(
         public string $externalId,
@@ -50,6 +51,7 @@ final readonly class OfferData
         public ?string $sourceCategory = null,
         public ?string $imageUrl = null,
         public ?string $sourceUrl = null,
+        public ?array $storeCodes = null,
     ) {}
 
     /**
@@ -80,7 +82,18 @@ final readonly class OfferData
             sourceCategory: $this->sourceCategory,
             imageUrl: $this->imageUrl,
             sourceUrl: $this->sourceUrl,
+            storeCodes: $this->storeCodes,
         );
+    }
+
+    /**
+     * Kopie s prodejnami, ve kterých akce platí (R49); null = všechny prodejny.
+     *
+     * @param  list<string>|null  $storeCodes
+     */
+    public function withStoreCodes(?array $storeCodes): self
+    {
+        return new self(...[...get_object_vars($this), 'storeCodes' => $storeCodes]);
     }
 
     /**

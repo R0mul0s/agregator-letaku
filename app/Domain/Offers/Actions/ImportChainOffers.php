@@ -30,6 +30,7 @@ use App\Enums\Chain;
 use App\Models\Leaflet;
 use App\Models\LeafletPage;
 use App\Models\Offer;
+use App\Models\OfferStore;
 use App\Models\ScrapeRun;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
@@ -80,6 +81,7 @@ final class ImportChainOffers
                     throw SourceReturnedNoOffers::for($chain);
                 }
 
+                $this->storeAvailability($run, $stored);
                 $withdrawn = $this->markWithdrawn($chain, $run);
                 $this->assignProducts->forChain($chain);
 
@@ -100,7 +102,7 @@ final class ImportChainOffers
      * Uloží zdroj a jeho nabídky; nabídku, kterou už uložila dřívější dávka, přeskočí.
      *
      * @param  list<string>  $alreadyStored  Klíče nabídek z dřívějších dávek
-     * @return array<string, true> Klíče uložených nabídek
+     * @return array<string, list<string>|null> Klíče uložených nabídek => prodejny, kde platí (R49)
      */
     private function storeBatch(Chain $chain, SourceBatch $batch, ScrapeRun $run, array $alreadyStored): array
     {
@@ -108,9 +110,11 @@ final class ImportChainOffers
         $skip = array_fill_keys($alreadyStored, true);
 
         $rows = [];
+        $storeCodes = [];
         foreach ($batch->offers as $offer) {
-            if (! isset($skip[$offer->key()])) {
-                $rows[$offer->key()] ??= $this->row($chain, $leaflet, $run, $offer);
+            if (! isset($skip[$offer->key()]) && ! isset($rows[$offer->key()])) {
+                $rows[$offer->key()] = $this->row($chain, $leaflet, $run, $offer);
+                $storeCodes[$offer->key()] = $offer->storeCodes;
             }
         }
 
@@ -120,7 +124,35 @@ final class ImportChainOffers
 
         $this->storePages($leaflet, $batch->pages);
 
-        return array_fill_keys(array_keys($rows), true);
+        return $storeCodes;
+    }
+
+    /**
+     * Prodejny, ve kterých nabídky z tohoto stažení platí (R49): předchozí stav se nahradí,
+     * řádky dostanou jen nabídky, které neplatí všude.
+     *
+     * @param  array<string, list<string>|null>  $stored  Klíč nabídky => prodejny, null = všude
+     */
+    private function storeAvailability(ScrapeRun $run, array $stored): void
+    {
+        OfferStore::query()->whereIn('offer_id', Offer::query()->select('id')->where('scrape_run_id', $run->id))->delete();
+
+        $restricted = array_filter($stored, fn (?array $codes): bool => $codes !== null);
+        if ($restricted === []) {
+            return;
+        }
+
+        $rows = [];
+        foreach (Offer::query()->where('scrape_run_id', $run->id)->get(['id', 'external_id', 'valid_from', 'valid_to']) as $offer) {
+            $key = $offer->external_id.'|'.$offer->valid_from->toDateString().'|'.$offer->valid_to->toDateString();
+            foreach ($restricted[$key] ?? [] as $code) {
+                $rows[] = ['offer_id' => $offer->id, 'store_code' => $code];
+            }
+        }
+
+        foreach (array_chunk($rows, self::UPSERT_CHUNK) as $chunk) {
+            OfferStore::query()->insert($chunk);
+        }
     }
 
     /**

@@ -50,6 +50,7 @@ final class OfferSearch
             ->notExpired($this->calendar->today())
             ->when($chain, fn (Builder $query, Chain $chain) => $query->where('chain', $chain))
             ->when($text, fn (Builder $query, string $text) => $this->whereText($query, $text))
+            ->with('stores')
             ->orderBy('valid_from')
             ->orderBy('chain')
             ->orderBy('name')
