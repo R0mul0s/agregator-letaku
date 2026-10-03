@@ -10,6 +10,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Matching\PetFood;
 use App\Domain\Matching\TextNormalizer;
 use App\Domain\Matching\WatchItemMatcher;
 use App\Domain\Matching\WatchRule;
@@ -38,7 +39,7 @@ function matchOffer(array $rule, array $offer): ?MatchStatus
         'variant_note' => $offer['variant_note'] ?? null,
     ]);
 
-    return (new WatchItemMatcher($normalizer))->match(WatchRule::fromWatchItem($item, $normalizer), $model);
+    return (new WatchItemMatcher($normalizer, new PetFood))->match(WatchRule::fromWatchItem($item, $normalizer), $model);
 }
 
 it('najde slovo bez ohledu na diakritiku, velikost písmen a koncovku', function (string $name): void {
@@ -98,7 +99,7 @@ function mentionOnPage(array $rule, string $pageText): ?MatchStatus
         'exclude_keywords' => $rule['exclude'] ?? null,
     ]);
 
-    return (new WatchItemMatcher($normalizer))->mention(WatchRule::fromWatchItem($item, $normalizer), $normalizer->normalize($pageText));
+    return (new WatchItemMatcher($normalizer, new PetFood))->mention(WatchRule::fromWatchItem($item, $normalizer), $normalizer->normalize($pageText));
 }
 
 it('zmínku na stránce letáku hledá jen jako celé slovo', function (): void {

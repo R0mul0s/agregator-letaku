@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace App\Domain\Catalog\Actions;
 
 use App\Domain\Matching\OfferPrefilter;
+use App\Domain\Matching\PetFood;
 use App\Domain\Matching\TextNormalizer;
 use App\Domain\Matching\WatchItemMatcher;
 use App\Domain\Matching\WatchRule;
@@ -36,12 +37,13 @@ final class AssignProducts
     private const INSERT_CHUNK = 500;
 
     /** Sloupce nabídky, které párování potřebuje (bez velkého `raw`). */
-    private const OFFER_COLUMNS = ['id', 'name', 'brand', 'description', 'variant_note'];
+    private const OFFER_COLUMNS = ['id', 'name', 'brand', 'description', 'variant_note', 'source_category'];
 
     public function __construct(
         private readonly TextNormalizer $normalizer,
         private readonly WatchItemMatcher $matcher,
         private readonly LocalCalendar $calendar,
+        private readonly PetFood $petFood,
     ) {}
 
     /**
@@ -94,8 +96,9 @@ final class AssignProducts
         $rows = [];
         foreach ($offers as $offer) {
             $text = $this->matcher->offerText($offer);
+            $isPetFood = $this->petFood->isPetOffer($offer->source_category, $text);
             foreach ($rules as $productId => $rule) {
-                $status = isset($skip[$offer->id.':'.$productId]) ? null : $this->matcher->matchText($rule, $text, $offer->variant_note !== null);
+                $status = isset($skip[$offer->id.':'.$productId]) ? null : $this->matcher->matchText($rule, $text, $offer->variant_note !== null, $isPetFood);
                 if ($status !== null) {
                     $rows[] = [
                         'offer_id' => $offer->id,

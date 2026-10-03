@@ -20,14 +20,19 @@ use App\Models\Offer;
 
 final class WatchItemMatcher
 {
-    public function __construct(private readonly TextNormalizer $normalizer) {}
+    public function __construct(
+        private readonly TextNormalizer $normalizer,
+        private readonly PetFood $petFood,
+    ) {}
 
     /**
      * Stav shody nabídky s pravidly; null = nabídka nepatří.
      */
     public function match(WatchRule $rule, Offer $offer): ?MatchStatus
     {
-        return $this->matchText($rule, $this->offerText($offer), $offer->variant_note !== null);
+        $text = $this->offerText($offer);
+
+        return $this->matchText($rule, $text, $offer->variant_note !== null, $this->petFood->isPetOffer($offer->source_category, $text));
     }
 
     /**
@@ -43,10 +48,11 @@ final class WatchItemMatcher
      * proti více pravidlům, kde se text normalizuje jen jednou.
      *
      * @param  bool  $hasVariantNote  Nabídka je souhrnná („různé druhy“)
+     * @param  bool  $isPetFood  Nabídka je krmivo pro zvířata (R50) — patří jen k hlídání o zvířatech
      */
-    public function matchText(WatchRule $rule, string $text, bool $hasVariantNote): ?MatchStatus
+    public function matchText(WatchRule $rule, string $text, bool $hasVariantNote, bool $isPetFood = false): ?MatchStatus
     {
-        if ($rule->keywords === []) {
+        if ($rule->keywords === [] || ($isPetFood && ! $this->petFood->isPetRule($rule))) {
             return null;
         }
 

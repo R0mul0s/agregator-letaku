@@ -306,3 +306,25 @@ it('najde akci i podle slova se spojovníkem nebo tečkou (předvýběr v datab�
         'K-Mistři' => ['K-Mistři od fochu Vepřová pečeně'],
     ]);
 });
+
+it('krmivo pro zvířata ukáže jen u hlídání o zvířatech (R50)', function (): void {
+    follow(Chain::Tesco);
+    watch('Hovězí', ['keywords' => 'hovězí']);
+    watch('Krmivo pro psy', ['keywords' => 'psy|pedigree']);
+    Offer::factory()->create(['name' => 'Hovězí zadní plec', 'chain' => Chain::Tesco]);
+    // Krmivo poznané podle kategorie obchodu i podle textu
+    Offer::factory()->create(['name' => 'Friskies Selections hovězí v želé 12 x 85g', 'chain' => Chain::Tesco, 'source_category' => 'Pro kočky']);
+    Offer::factory()->create(['name' => 'Pedigree kapsička s hovězím', 'chain' => Chain::Tesco]);
+    Offer::factory()->create(['name' => 'Konzerva pro psy s hovězím', 'chain' => Chain::Tesco]);
+
+    // Pořadí řídí cena (náhodná z factory) — porovnává se bez pořadí
+    $groups = array_map(function (array $names): array {
+        sort($names);
+
+        return $names;
+    }, myOffers());
+    expect($groups)->toBe([
+        'Hovězí' => ['Hovězí zadní plec'],
+        'Krmivo pro psy' => ['Konzerva pro psy s hovězím', 'Pedigree kapsička s hovězím'],
+    ]);
+});

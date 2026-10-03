@@ -332,6 +332,34 @@ return [
     ],
 
     /*
+    | Krmivo pro zvířata (R50, App\Domain\Matching\PetFood). Hlídání „hovězí“ by jinak našlo
+    | „Friskies hovězí v želé“ — krmivo se ukáže jen u hlídání, které je samo o zvířatech.
+    | Krmivo pozná kategorie obchodu, nebo začátek slova v textu akce (bez diakritiky; mezera
+    | na konci = celé slovo). Pozor na dvojznačná slova: „podestýlk“ (vejce z podestýlky),
+    | „dog“ (Bull Dog sprej) — ověřeno na všech akcích 3. 10. 2026.
+    */
+    'pet_food' => [
+        'categories' => [
+            'Pro kočky', 'Pro psy', 'Pro hlodavce', 'Pro ptáky',                  // Tesco
+            'Krmivo pro kocky', 'Krmivo pro psy', 'Hlodavci, ptaci, akvaristika',   // Globus
+            'Konzervy a kapsičky', 'Suché krmivo', 'Pamlsky a jiné',                // Billa (Mazlíčci)
+        ],
+        'offer_words' => [
+            'pro psy', 'pro psa', 'pro pejsk', 'pro kocky', 'pro kocku', 'pro kocicky', 'pro kotata',
+            'pro stenata', 'pro hlodavce', 'pro ptaky', 'pro morcata', 'krmivo', 'granule', 'pamlsek',
+            'pamlsky', 'stelivo', 'friskies', 'cesar ', 'felix ', 'whiskas', 'pedigree', 'sheba', 'kitekat',
+            'purina', 'dreamies', 'perfect fit', 'darling', 'chappi', 'frolic', 'adventuros', 'akinu',
+            'meat care', 'vitakraft', 'catsan', 'gourmet gold',
+        ],
+        // Hlídání je o zvířatech, když některé hledané slovo začíná takhle
+        'rule_words' => [
+            'krmiv', 'granul', 'pamlsk', 'kock', 'kocic', 'kotat', 'pes', 'psi', 'psy', 'pejsk', 'stenat',
+            'hlodav', 'ptac', 'ptak', 'steliv', 'friskies', 'cesar', 'felix', 'whiskas', 'pedigree', 'sheba',
+            'kitekat', 'purina', 'dreamies', 'darling', 'chappi', 'frolic', 'vitakraft', 'brit',
+        ],
+    ],
+
+    /*
     | Zmínky v letácích bez ceny (R27). Stránky s receptem vyjmenovávají suroviny („vejce“,
     | „máslo“), které v akci nejsou — poznají se podle těchto frází (bez ohledu na diakritiku).
     */
