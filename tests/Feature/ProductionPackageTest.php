@@ -16,3 +16,9 @@ it('vykreslí stránku i bez zdrojových souborů Vue (resources/js na produkci 
 
     $this->get('/login')->assertOk();
 });
+
+it('balíček nese právní texty, které aplikace čte za běhu (R51)', function (): void {
+    $script = (string) file_get_contents(base_path('deploy/build-upload.ps1'));
+
+    expect($script)->toContain("'resources\\".config('letaky.legal.directory')."'");
+});

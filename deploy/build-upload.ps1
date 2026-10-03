@@ -64,8 +64,9 @@ if (Test-Path $upload) { Remove-Item $upload -Recurse -Force }
 # Co na hostingu potřebuje běžící aplikace. Seznam povoleného místo seznamu
 # zakázaného — nový pracovní soubor v repu se tak na hosting nedostane omylem.
 # database\ kvůli migracím a seederům (data katalogu) — artisan se na hostingu
-# nespouští, ale composer autoload na ně odkazuje.
-$appDirs = @('app', 'bootstrap', 'config', 'database', 'lang', 'public', 'resources\views', 'routes')
+# nespouští, ale composer autoload na ně odkazuje. resources\legal = podmínky
+# a zásady (R51), aplikace je čte za běhu.
+$appDirs = @('app', 'bootstrap', 'config', 'database', 'lang', 'public', 'resources\views', 'resources\legal', 'routes')
 $appFiles = @('artisan', 'composer.json', 'composer.lock')
 # Soubory, které vznikají lokálně a nahrát se nesmí (hot = běžící Vite dev server,
 # _preview* = pomocné stránky pro snímky obrazovky).
@@ -110,6 +111,11 @@ $storageFiles = Get-ChildItem "$upload\storage" -Recurse -File | Where-Object Na
 if ($storageFiles) { throw "Ve storage balíčku jsou soubory navíc: $($storageFiles.FullName -join ', ')" }
 if (-not (Test-Path "$upload\public\build\manifest.json")) {
     throw 'V balíčku chybí public\build\manifest.json — build assetů neproběhl.'
+}
+foreach ($legal in @('terms.md', 'privacy.md')) {
+    if (-not (Test-Path "$upload\resources\legal\$legal")) {
+        throw "V balíčku chybí resources\legal\$legal — právní stránky by na hostingu spadly (R51)."
+    }
 }
 
 # Verze pro ověření po nasazení: https://slevohlidka.rhsoft.cz/version.txt?v=… (proxy
