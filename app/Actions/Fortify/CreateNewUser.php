@@ -15,6 +15,7 @@ declare(strict_types=1);
 namespace App\Actions\Fortify;
 
 use App\Domain\Account\MailingSubscriptions;
+use App\Domain\Account\RegistrationGuard;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Hash;
@@ -27,10 +28,14 @@ class CreateNewUser implements CreatesNewUsers
 {
     use PasswordValidationRules;
 
-    public function __construct(private readonly MailingSubscriptions $subscriptions) {}
+    public function __construct(
+        private readonly MailingSubscriptions $subscriptions,
+        private readonly RegistrationGuard $guard,
+    ) {}
 
     /**
-     * Ověří údaje z registračního formuláře a založí uživatele.
+     * Ověří údaje z registračního formuláře a založí uživatele. Odeslání, které nevypadá
+     * jako od člověka (R53), skončí obecnou chybou ještě před validací polí.
      *
      * @param  array<string, mixed>  $input
      *
@@ -38,6 +43,10 @@ class CreateNewUser implements CreatesNewUsers
      */
     public function create(array $input): User
     {
+        if (! $this->guard->passes($input)) {
+            throw ValidationException::withMessages([RegistrationGuard::TOKEN_FIELD => __('app.ui.auth.register.bot_check')]);
+        }
+
         $data = Validator::make($input, [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique(User::class)],

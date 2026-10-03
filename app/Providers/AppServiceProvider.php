@@ -17,6 +17,7 @@ use App\Support\RateLimits;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Validation\Rules\Password;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -46,5 +47,19 @@ class AppServiceProvider extends ServiceProvider
 
         // Omezení počtu požadavků (R45)
         RateLimits::register();
+
+        // Síla hesla (R53) — Password::default() v registraci, změně a obnově hesla
+        Password::defaults(fn (): Password => $this->passwordRule());
+    }
+
+    /**
+     * Pravidlo nového hesla: nejmenší délka a (mimo testy) kontrola proti únikům Have I Been
+     * Pwned. Když služba neodpoví, Laravel heslo propustí — výpadek nezablokuje registraci.
+     */
+    private function passwordRule(): Password
+    {
+        $rule = Password::min(config()->integer('letaky.auth.password.min_length'));
+
+        return config()->boolean('letaky.auth.password.uncompromised') ? $rule->uncompromised() : $rule;
     }
 }

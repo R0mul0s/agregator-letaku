@@ -39,7 +39,8 @@
         {{-- Barva lišty prohlížeče na mobilu podle režimu systému (= --color-bg v _tokens.scss) --}}
         <meta name="theme-color" content="{{ config('letaky.theme_colors.light') }}" media="(prefers-color-scheme: light)">
         <meta name="theme-color" content="{{ config('letaky.theme_colors.dark') }}" media="(prefers-color-scheme: dark)">
-        {{-- Ikony z loga Slevohlídky (public/images/brand, vygenerované z slevohlidka-logo.png) --}}
+        {{-- Ikony z loga Slevohlídky (public/images/brand, vygenerované z slevohlidka-logo.png).
+             public/favicon.ico (R53) je icon-32.png v obalu ICO — prohlížeče se na něj ptají samy --}}
         <link rel="icon" href="/images/brand/icon-32.png" sizes="32x32" type="image/png">
         <link rel="icon" href="/images/brand/icon-192.png" sizes="192x192" type="image/png">
         <link rel="apple-touch-icon" href="/images/brand/apple-touch-icon.png">

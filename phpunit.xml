@@ -36,6 +36,7 @@
         <env name="LETAKY_KAUFLAND_STORES_DELAY_MS" value="0"/>
         <env name="LETAKY_KAUFLAND_STORE_PAGE_DELAY_MS" value="0"/>
         <env name="TESCO_API_KEY" value="test-api-key"/>
+        <env name="LETAKY_PASSWORD_UNCOMPROMISED" value="false"/>
         <env name="MAIL_MAILER" value="array"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>

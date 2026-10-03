@@ -116,6 +116,7 @@ pole *Opakovat* je zápis cronu (`minuta hodina den měsíc den_v_týdnu`). URL 
 | Slevohlídka – Billa | `0 6,14 * * *` | `…/cron/import-offers?chain=billa&token=…` (~50 s; celý katalog, po ranní výměně akcí) |
 | Slevohlídka – kategorie | `0 4 1 * *` | `…/cron/import-categories?token=…` — strom kategorií (stačí občas) |
 | Slevohlídka – souhrn | `30 6 * * *` | `…/cron/send-digests?token=…` — e-mailové souhrny nových akcí (R42), po ranním stažení |
+| Slevohlídka – úklid | `15 3 * * *` | `…/cron/prune-sessions?token=…` — smaže vypršelé relace (IP, prohlížeč) a propadlé odkazy na obnovu hesla (R53; zásady slibují průběžné mazání) |
 
 Hned po nasazení zavolej URL stažení ručně v prohlížeči (kategorie první), ať se nečeká
 na ranní běh. *Posílat výsledky e-mailem* stačí zapnout na první dny, pak hlídá `/health/imports`.
@@ -174,6 +175,16 @@ jinak **503**. Na každém řádku jeden obchod, např. `Tesco — VÝPADEK: pos
 V [UptimeRobot](https://uptimerobot.com) (zdarma, stejně jako Počasí): *Add New Monitor* → HTTP(s),
 URL `/health/imports`, interval 1 hodina, upozornění e-mailem. Ozve se při výpadku cronu,
 změně odpovědi obchodu (`SourceResponseChanged`) i neplatném klíči Tesca.
+
+## Limit odesílání e-mailů
+
+Websupport (ochrana proti spamu, ověřeno 2026-10-03): **300 e-mailů za hodinu z jedné
+schránky, 2 000 za hodinu z celé domény**; počítá se každý příjemce. Po překročení jde
+60 minut odeslat nic a zprávy z té doby se nedoručí. Limit se netýká schránek u Websupportu.
+
+Souhrny (`/cron/send-digests`) jdou všem najednou — při víc než ~250 uživatelích se
+zapnutým souhrnem je potřeba posílat po dávkách (docs/ZVEREJNENI.md, kap. 2). Uživatel,
+kterému se souhrn neodeslal, ho dostane při dalším běhu (`digest_sent_at` se neuloží).
 
 ---
 

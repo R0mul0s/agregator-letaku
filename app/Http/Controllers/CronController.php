@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Domain\Account\Actions\PruneExpiredSessions;
 use App\Domain\Catalog\Actions\ImportCategories;
 use App\Domain\Chains\Actions\ImportStores;
 use App\Domain\Digest\Actions\SendDigests;
@@ -103,6 +104,14 @@ class CronController extends Controller
         }
 
         return $this->text(__('app.digest.done', ['count' => $count]));
+    }
+
+    /**
+     * Úklid vypršelých relací a odkazů pro obnovu hesla (R53), jednou denně.
+     */
+    public function pruneSessions(CronRequest $request, PruneExpiredSessions $prune): Response
+    {
+        return $this->text(__('app.maintenance.sessions_pruned', ['count' => $prune()]));
     }
 
     /**

@@ -1,6 +1,6 @@
 <!--
     Registrace nového účtu (Fortify, R12) se souhlasem s podmínkami a dobrovolným
-    souhlasem s obchodními sděleními (R51).
+    souhlasem s obchodními sděleními (R51), ochrana proti botům skrytým polem a časem (R53).
 
     @author Roman Hlaváček
     @created 2026-10-02
@@ -15,6 +15,8 @@ import { Head, Link, useForm } from '@inertiajs/vue3';
 
 const props = defineProps({
     urls: { type: Object, required: true },
+    /** Ochrana proti botům (R53): { tokenField, token, trapField }. */
+    guard: { type: Object, required: true },
 });
 
 const t = useTranslations();
@@ -26,6 +28,9 @@ const form = useForm({
     password_confirmation: '',
     terms: false,
     marketing: false,
+    // Podepsaný čas načtení formuláře a skryté pole pro roboty (R53)
+    [props.guard.tokenField]: props.guard.token,
+    [props.guard.trapField]: '',
 });
 
 /** Odešle registraci; hesla se po odeslání vždy vymažou. */
@@ -66,9 +71,16 @@ function submit() {
                     </CheckboxField>
                     <CheckboxField id="marketing" v-model="form.marketing" :label="t('auth.register.marketing')" :error="form.errors.marketing" />
 
+                    <!-- Skryté pole: člověk ho nevidí ani do něj neskočí tabulátorem, robot ho vyplní (R53) -->
+                    <div class="form__trap" aria-hidden="true">
+                        <label :for="guard.trapField">{{ t('auth.register.trap') }}</label>
+                        <input :id="guard.trapField" v-model="form[guard.trapField]" :name="guard.trapField" type="text" tabindex="-1" autocomplete="off" />
+                    </div>
+
                     <div class="form__actions">
                         <button type="submit" class="button button--primary" :disabled="form.processing">{{ t('auth.register.submit') }}</button>
                     </div>
+                    <p v-if="form.errors[guard.tokenField]" class="form-field__error" role="alert">{{ form.errors[guard.tokenField] }}</p>
                 </form>
 
                 <p class="auth-card__footer">

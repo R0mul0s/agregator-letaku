@@ -279,7 +279,7 @@ CI (GitHub Actions) zatím není, ruční kontroly jsou jediná pojistka ([R14](
 
 ## 10. Bezpečnost
 
-- **Přihlášení přes Fortify** ([R12](PLAN.md#8-log-rozhodnutí), [R13](PLAN.md#8-log-rozhodnutí)): hesla hashovaná, limit pokusů o přihlášení na dvojici e-mail + IP, odeslání odkazu na obnovu hesla omezuje Laravel (jednou za minutu).
+- **Přihlášení přes Fortify** ([R12](PLAN.md#8-log-rozhodnutí), [R13](PLAN.md#8-log-rozhodnutí)): hesla hashovaná, limit pokusů o přihlášení na dvojici e-mail + IP a na samotnou IP (R53), hesla kontrolovaná proti únikům (Have I Been Pwned), registrace chráněná skrytým polem a časem vyplnění, odeslání odkazu na obnovu hesla omezuje Laravel (jednou za minutu).
 - **Uživatel vidí a mění jen svá data.** Hlídané položky a sledované obchody přes Policy a vazby na uživatele.
 - Tajemství (API klíče obchodů a LLM) jsou v `.env`, nikdy v repu. `.env.example` má prázdné hodnoty.
 - CSRF všude. Případná cron URL je chráněná tokenem z `.env` a rate limitem.

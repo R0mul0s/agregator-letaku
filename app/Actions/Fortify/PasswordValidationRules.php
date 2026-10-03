@@ -18,7 +18,8 @@ use Illuminate\Validation\Rules\Password;
 trait PasswordValidationRules
 {
     /**
-     * Pravidla validace nového hesla — výchozí síla hesla Laravelu a potvrzení.
+     * Pravidla validace nového hesla — síla hesla z AppServiceProvider (délka, kontrola
+     * proti únikům, R53) a potvrzení.
      *
      * @return array<int, Rule|array<mixed>|string>
      */

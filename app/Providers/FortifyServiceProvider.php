@@ -16,6 +16,7 @@ use App\Actions\Fortify\CreateNewUser;
 use App\Actions\Fortify\ResetUserPassword;
 use App\Actions\Fortify\UpdateUserPassword;
 use App\Actions\Fortify\UpdateUserProfileInformation;
+use App\Domain\Account\RegistrationGuard;
 use App\Http\Responses\VerifyEmailResponse;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\RedirectResponse;
@@ -50,11 +51,15 @@ class FortifyServiceProvider extends ServiceProvider
 
         $this->registerViews();
 
-        // Klíč e-mail + IP: hádání hesla k jednomu účtu z jedné adresy, ostatní uživatele neomezí
-        RateLimiter::for('login', function (Request $request): Limit {
+        // Dva limity (R53): e-mail + IP proti hádání hesla k jednomu účtu (ostatní uživatele
+        // neomezí) a samotná IP proti zkoušení uniklých přihlašovacích údajů přes různé e-maily
+        RateLimiter::for('login', function (Request $request): array {
             $throttleKey = Str::transliterate(Str::lower($request->string(Fortify::username())->toString()).'|'.$request->ip());
 
-            return Limit::perMinute(config()->integer('letaky.auth.login_attempts_per_minute'))->by($throttleKey);
+            return [
+                Limit::perMinute(config()->integer('letaky.auth.login_attempts_per_minute'))->by($throttleKey),
+                Limit::perMinute(config()->integer('letaky.auth.login_attempts_per_minute_per_ip'))->by('ip|'.$request->ip()),
+            ];
         });
     }
 
@@ -78,6 +83,12 @@ class FortifyServiceProvider extends ServiceProvider
                 'login' => route('login', absolute: false),
                 'terms' => route('legal.terms', absolute: false),
                 'privacy' => route('legal.privacy', absolute: false),
+            ],
+            // Ochrana proti botům (R53): podepsaný čas načtení a název skrytého pole
+            'guard' => [
+                'tokenField' => RegistrationGuard::TOKEN_FIELD,
+                'token' => app(RegistrationGuard::class)->token(),
+                'trapField' => RegistrationGuard::TRAP_FIELD,
             ],
         ]));
 

@@ -41,7 +41,8 @@ Hotové jsou etapy 1–5g (PLAN.md, kap. 6):
   s oknem seznamu prodejen
 - příprava na zveřejnění (R51): podmínky a zásady (`/podminky`, `/ochrana-udaju`), patička s provozovatelem, souhlasy
   při registraci, ověření e-mailu, odhlášení z e-mailů jedním klepnutím, české chybové stránky;
-  lišta souhlasu s cookies a Google Analytics až po souhlasu (R52)
+  lišta souhlasu s cookies a Google Analytics až po souhlasu (R52); ochrana registrace proti botům,
+  kontrola uniklých hesel, limit přihlášení na IP a denní úklid relací (R53)
 
 Produkce běží na `https://slevohlidka.rhsoft.cz` (nasazeno 2026-10-02, naposledy `aed786f` 2026-10-03);
 postup aktualizace a nasazené verze jsou v `deploy/DEPLOYMENT.md`. Sleduje se 7 obchodů; Makro
@@ -87,6 +88,7 @@ docker compose exec app php artisan letaky:import-stores kaufland     # prodejny
 docker compose exec app php artisan letaky:import-categories        # strom kategorií katalogu (Tesco, R28)
 docker compose exec app php artisan letaky:admin email@example.com  # správa katalogu /katalog (R29), --revoke odebere
 docker compose exec app php artisan letaky:send-digests             # e-mailové souhrny nových akcí (R42), do Mailpitu
+docker compose exec app php artisan letaky:prune-sessions           # úklid vypršelých relací a odkazů na obnovu hesla (R53)
 ```
 Výsledek každého stažení je v tabulce `scrape_runs`.
 
@@ -114,7 +116,7 @@ powershell -ExecutionPolicy Bypass -File deploy\build-upload.ps1   # jen z commi
 
 - **Žádná fronta, scheduler ani démon** — nic nesmí implementovat `ShouldQueue`.
   Stahování spouští cron WebAdminu: `/cron/import-offers?chain=…&token=…` po obchodech
-  a `/cron/import-categories?token=…`, prodejny Kauflandu `/cron/import-stores?chain=kaufland&token=…` (R49), souhrny `/cron/send-digests?token=…` (`CronController`, token `LETAKY_CRON_TOKEN`,
+  a `/cron/import-categories?token=…`, prodejny Kauflandu `/cron/import-stores?chain=kaufland&token=…` (R49), souhrny `/cron/send-digests?token=…`, úklid `/cron/prune-sessions?token=…` (R53) (`CronController`, token `LETAKY_CRON_TOKEN`,
   bez tokenu 404). Každá úloha je Action volatelná z artisan příkazu i z kontroleru.
 - **`/health/imports`** vrací 503, když obchod nemá úspěšné stažení za 26 h (UptimeRobot).
 - **Každá migrace potřebuje SQL skript** `deploy/migrations-<datum>-<popis>.sql`
@@ -171,6 +173,7 @@ MariaDB 11.4 · Pest 4 · Larastan · Pint. Extrakce letáků (etapa 6): Claude 
 36. **Krmivo pro zvířata (R50):** `WatchItemMatcher` vynechá krmivo (`PetFood::isPetOffer` — kategorie obchodu nebo slova a značky z `letaky.pet_food`) u hlídání, které není o zvířatech (`PetFood::isPetRule`). Nový obchod s kategorií krmiva → doplnit ji do `letaky.pet_food.categories`; nové slovo ověřit na všech akcích (dvojznačná: „podestýlk“, „dog“). `AssignProducts` musí načítat `source_category`.
 37. **Zveřejnění (R51):** údaje provozovatele jsou v `letaky.operator` — do textů se doplňují (`{operator}`, `{company_id}`… v `resources/legal/*.md`), nikdy se nepíšou natvrdo. Kapitoly jsou nadpisy `##` — z nich vzniká obsah stránky a id pro odkazy (`/ochrana-udaju#5-cookies-a-uloziste-v-prohlizeci`), přejmenování nadpisu změní odkaz. Podstatná změna podmínek = zvýšit `letaky.legal.terms_version`, změna textu souhlasu s obchodními sděleními = `marketing_consent_version`. **Každý e-mail jen na ověřenou adresu** (`whereNotNull('email_verified_at')`) a hromadný s odhlášením jedním klepnutím (`MailingSubscriptions::unsubscribeUrl` + hlavičky jako `DigestMail::headers`); obchodní sdělení jen uživatelům s `hasMarketingConsent()`. Nová cookie, localStorage nebo příjemce údajů = upravit `resources/legal/privacy.md` (tabulky cookies podle kategorií). Chybové stránky jsou Blade (`resources/views/errors/page.blade.php`), nový kód s vlastní šablonou Laravelu potřebuje vlastní soubor `errors/<kód>.blade.php`, jinak vyhraje anglická.
 38. **Cookies a Google Analytics (R52):** GA4 se načte **jen na produkci a až po souhlasu** s analytickými cookies (`resources/js/lib/consent.js`, sdílený prop `cookieConsent`, ID v `letaky.cookie_consent`). Nic, co ukládá cookies nebo posílá data třetí straně (pixel, reklamní síť, mapa, video), se nesmí načíst před souhlasem — patří do kategorie v `CookieConsent.vue` a za `consentState`. Nový nástroj nebo kategorie = zvýšit `letaky.cookie_consent.version` (všichni se vyberou znovu), doplnit CSP v `public/.htaccess` a tabulku v `resources/legal/privacy.md`. Inline skript CSP nedovolí. Kořen aplikace má třídu `app-root` (přidá `app.js`) — nestylovat `body > div`, chytá i prvky rozšíření prohlížeče.
+39. **Ochrana účtů (R53):** registrace bez captchy — skryté pole a podepsaný čas načtení (`RegistrationGuard`); test registrace musí poslat data z `registrationInput()` v `RegistrationTest` (token „vyplněný“ před 30 s), jinak skončí chybou `bot_check`. Hesla kontroluje Have I Been Pwned přes `Password::defaults()` — v testech vypnuto (`LETAKY_PASSWORD_UNCOMPROMISED=false` v `phpunit.xml`), test úniku musí volat `Http::fake`. Přihlášení má dva limity (e-mail + IP a samotná IP). Websupport pustí **300 e-mailů za hodinu ze schránky** — hromadné e-maily (souhrny) nad tento počet po dávkách.
 
 ## Jazyk
 

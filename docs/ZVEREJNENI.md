@@ -10,7 +10,7 @@ Slevohlídka byla dělaná pro vlastní použití (R5). Tenhle dokument sepisuje
 chybí ke spuštění pro veřejnost. Vychází z průzkumu kódu ze 3. 10. 2026.
 Technická a GDPR část je hotová v [R51](PLAN.md#8-log-rozhodnutí): podmínky a zásady
 (`resources/legal`), patička, souhlasy při registraci, ověření e-mailu, odhlášení
-z e-mailů jedním klepnutím, české chybové stránky. Hotové body se odsud mažou
+z e-mailů jedním klepnutím, české chybové stránky; ochrana účtů a úklid v [R53](PLAN.md#8-log-rozhodnutí). Hotové body se odsud mažou
 a popisují v [PLAN.md](PLAN.md).
 
 Značení: **[R]** = rozhodne nebo zařídí Roman, **[K]** = kód.
@@ -28,8 +28,6 @@ Značení: **[R]** = rozhodne nebo zařídí Roman, **[K]** = kód.
   přesměrování 301 ze subdomény, `APP_URL`, Search Console.
 - [ ] **[R] SPF, DKIM a DMARC** pro odesílací doménu (DNS). Bez nich souhrny i odkazy
   na ověření e-mailu padají do spamu.
-- [ ] **[R] Limit odeslaných e-mailů** schránky Websupportu (za hodinu a den) — zapsat
-  do DEPLOYMENT.md, podle něj dávkovat souhrny (kap. 2).
 - [ ] **[R] Zpracovatelská smlouva s Websupportem** — ověřit, že je součástí jejich VOP,
   a přesný název společnosti v zásadách (`resources/legal/privacy.md`, kap. 4).
 - [ ] **[R] Záznamy o činnostech zpracování** (čl. 30 GDPR) — jednostránkový interní
@@ -37,7 +35,6 @@ Značení: **[R]** = rozhodne nebo zařídí Roman, **[K]** = kód.
 - [ ] **[R] Přečíst a schválit** `resources/legal/terms.md` a `privacy.md` (zálohy „nejdéle
   6 měsíců“ musí odpovídat skutečnosti), pak nastavit `letaky.legal.effective_from`
   na den spuštění.
-- [ ] **[R] Nasadit:** SQL `deploy/migrations-2026-10-03-souhlasy.sql` před nahráním kódu.
 - [ ] **[R] Google Analytics — nastavení služby** (R52): Správce → Uchovávání dat na **14 měsíců**
   (zásady to tak uvádějí, výchozí jsou 2 měsíce); přijmout dodatek o zpracování dat (Správce →
   Nastavení účtu); Google signály zapnout jen pokud bude reklama. Po nasazení ověřit v Realtime,
@@ -45,24 +42,14 @@ Značení: **[R]** = rozhodne nebo zařídí Roman, **[K]** = kód.
 
 ## 2. Doporučené před spuštěním
 
-- [ ] **[K] Ochrana registrace proti botům:** honeypot a časová kontrola formuláře
-  (bez externí captchy — nepotřebuje cookies ani změnu CSP).
-- [ ] **[K] Silnější hesla:** `Password::defaults()` v `AppServiceProvider` s `uncompromised()`
-  (dotaz na Have I Been Pwned — k-anonymita, posílá se jen začátek otisku; doplnit
-  do zásad jako příjemce není nutné, nejde o osobní údaj).
 - [ ] **[K] Souhrny po dávkách:** dnes jdou všem v jednom požadavku cronu (limit 180 s).
-  Omezit počet na jedno volání podle limitu e-mailů a cron volat vícekrát.
-- [ ] **[K] Limit na IP přes různé e-maily** u přihlášení (proti zkoušení uniklých hesel).
+  Websupport povolí **300 e-mailů za hodinu ze schránky** (2 000 z domény, DEPLOYMENT.md) —
+  nad ~250 uživatelů se souhrnem omezit počet na jedno volání a cron volat po hodinách.
 - [ ] **[R] O8 — změřit limit délky požadavku** na hostingu, zapsat do PLAN.md.
 - [ ] **[R]+[K] Monitoring:** UptimeRobot i na `/up`. Upozornění na chyby e-mailem
   (log kanál `mail` nebo denní souhrn chyb). Do `/health/imports` přidat import prodejen.
 - [ ] **[R] Zálohy:** doplnit `offer_product` a avatary (`storage/app/private/avatars`
   přes FTP), ověřit automatické zálohy Websupportu, dobu uchování zapsat do zásad.
-- [ ] **[K] Mazání vypršelých session** — dnes je maže jen loterie Laravelu. Zásady slibují
-  průběžné mazání po vypršení: přidat úklid do cronu (např. k `send-digests`).
-- [ ] **[K] `public/favicon.ico`** — dnes každý požadavek prohlížeče skončí 404 přes Laravel.
-- [ ] **[K] Přepsat texty „osobní projekt“:** User-Agent stahování
-  v `config/letaky.php` („osobni projekt“) a README.
 
 ## 3. Po spuštění / podle potřeby
 

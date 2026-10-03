@@ -33,6 +33,7 @@ Route::middleware('throttle:'.RateLimits::CRON)->group(function (): void {
     Route::get('/cron/import-stores', [CronController::class, 'importStores'])->name('cron.import-stores');
     Route::get('/cron/import-categories', [CronController::class, 'importCategories'])->name('cron.import-categories');
     Route::get('/cron/send-digests', [CronController::class, 'sendDigests'])->name('cron.send-digests');
+    Route::get('/cron/prune-sessions', [CronController::class, 'pruneSessions'])->name('cron.prune-sessions');
 });
 
 Route::middleware('throttle:'.RateLimits::PUBLIC)->group(function (): void {

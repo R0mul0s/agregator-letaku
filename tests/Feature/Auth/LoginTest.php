@@ -74,3 +74,15 @@ it('pošle přihlášeného z přihlašovací stránky na seznam slev', function
         ->get(route('login'))
         ->assertRedirect(route('home'));
 });
+
+it('omezí pokusy o přihlášení z jedné IP i přes různé e-maily (R53)', function (): void {
+    config(['letaky.auth.login_attempts_per_minute_per_ip' => 3]);
+
+    foreach (range(1, 3) as $attempt) {
+        $this->post(route('login.store'), ['email' => "nekdo{$attempt}@example.com", 'password' => 'spatne-heslo'])
+            ->assertSessionHasErrors('email');
+    }
+
+    $this->post(route('login.store'), ['email' => 'dalsi@example.com', 'password' => 'spatne-heslo'])
+        ->assertTooManyRequests();
+});

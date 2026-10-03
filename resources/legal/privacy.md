@@ -171,6 +171,9 @@ nejpozději do měsíce.
 Komunikace je šifrovaná (HTTPS), hesla jsou uložená jen jako otisk (bcrypt), profilový
 obrázek vidíte jen vy. Přihlášení a citlivé formuláře mají omezený počet pokusů.
 
+Nové heslo ověřuji proti databázi uniklých hesel služby Have I Been Pwned. Služba dostane
+jen prvních pět znaků otisku hesla, ne heslo ani váš e-mail, takže z dotazu nic nezjistí.
+
 ## 8. Věk
 
 Služba je určena osobám od 15 let.

@@ -123,6 +123,11 @@ return [
         'privacy' => 'Zásady zpracování osobních údajů',
     ],
 
+    // Úklid osobních údajů po vypršení (R53, PruneExpiredSessions)
+    'maintenance' => [
+        'sessions_pruned' => 'Úklid — smazáno vypršelých relací: :count',
+    ],
+
     // E-mailový souhrn nových akcí (R42, App\Mail\DigestMail)
     'digest' => [
         'subject' => 'Slevohlídka: :count nová akce na hlídané zboží|Slevohlídka: :count nové akce na hlídané zboží|Slevohlídka: :count nových akcí na hlídané zboží',
@@ -417,6 +422,9 @@ return [
                 'privacy_before' => 'Jak zacházíme s vašimi údaji, popisují',
                 'privacy_link' => 'zásady zpracování osobních údajů',
                 'terms_required' => 'Bez souhlasu s podmínkami užití účet založit nejde.',
+                // Ochrana proti botům (R53): skryté pole a chyba podezřelého odeslání
+                'trap' => 'Nevyplňujte',
+                'bot_check' => 'Registraci se nepodařilo ověřit. Načtěte prosím stránku znovu a zkuste to ještě jednou.',
                 'marketing' => 'Chci dostávat e-mailem novinky o Slevohlídce a vybrané nabídky partnerů. Souhlas můžu kdykoli odvolat v účtu nebo odkazem v každém e-mailu.',
             ],
 

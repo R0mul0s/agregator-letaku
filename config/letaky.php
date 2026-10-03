@@ -83,17 +83,32 @@ return [
     ],
 
     /*
-    | Přihlášení (R12) — pokusy za minutu pro dvojici e-mail + IP.
+    | Přihlášení a registrace (R12, R53).
+    | - Pokusy o přihlášení za minutu: pro dvojici e-mail + IP (hádání hesla k jednomu účtu)
+    |   a pro samotnou IP (zkoušení uniklých přihlašovacích údajů přes různé e-maily).
+    | - Heslo: nejmenší délka a kontrola proti únikům Have I Been Pwned — posílá se jen
+    |   prvních 5 znaků SHA-1 otisku hesla (k-anonymita). V testech vypnutá (testy nesmí na síť).
+    | - Registrace proti botům: skryté pole (vyplní jen robot) a podepsaný čas načtení
+    |   formuláře — rychlejší odeslání, než zvládne člověk, nebo příliš starý formulář neprojde.
     */
     'auth' => [
         'login_attempts_per_minute' => 5,
+        'login_attempts_per_minute_per_ip' => 20,
+        'password' => [
+            'min_length' => 8,
+            'uncompromised' => (bool) env('LETAKY_PASSWORD_UNCOMPROMISED', true),
+        ],
+        'registration' => [
+            'min_seconds' => 3,
+            'max_age_minutes' => 120,
+        ],
     ],
 
     /*
-    | Stahování od obchodů — šetrně a s identifikovatelným User-Agentem (R5).
+    | Stahování od obchodů — šetrně a s identifikovatelným User-Agentem (R5, R53).
     */
     'http' => [
-        'user_agent' => env('LETAKY_USER_AGENT', 'AgregatorLetaku/0.1 (osobni projekt; +https://github.com/R0mul0s/agregator-letaku)'),
+        'user_agent' => env('LETAKY_USER_AGENT', 'Slevohlidka/1.0 (+https://slevohlidka.rhsoft.cz)'),
         'timeout_seconds' => 30,
         'retries' => 2,
         'retry_delay_ms' => 2000,
