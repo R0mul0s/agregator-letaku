@@ -292,3 +292,17 @@ it('pozdraví křestním jménem v 5. pádě (R47)', function (): void {
 
     $this->get(route('home'))->assertInertia(fn (Assert $page) => $page->where('greetingName', 'Romane'));
 });
+
+it('najde akci i podle slova se spojovníkem nebo tečkou (předvýběr v databázi hledá část slova)', function (): void {
+    follow(Chain::Kaufland);
+    watch('K-Mistři', ['keywords' => 'K-Mistři']);
+    watch('Dr. Oetker', ['keywords' => 'Dr.Oetker']);
+    Offer::factory()->create(['name' => 'K-Mistři od fochu Vepřová pečeně', 'chain' => Chain::Kaufland]);
+    Offer::factory()->create(['name' => 'Dr.Oetker Ristorante pizza', 'chain' => Chain::Kaufland]);
+    Offer::factory()->create(['name' => 'Mistrovská klobása', 'chain' => Chain::Kaufland]);
+
+    expect(myOffers())->toBe([
+        'Dr. Oetker' => ['Dr.Oetker Ristorante pizza'],
+        'K-Mistři' => ['K-Mistři od fochu Vepřová pečeně'],
+    ]);
+});

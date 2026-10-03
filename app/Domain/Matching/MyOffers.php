@@ -286,7 +286,7 @@ final class MyOffers
             })
             ->where(function (Builder $query) use ($rules): void {
                 foreach ($this->firstWords($rules) as $word) {
-                    $query->orWhere('text', 'like', '%'.addcslashes($word, '%_\\').'%');
+                    $query->orWhere('text', 'like', OfferPrefilter::likePattern($word));
                 }
             })
             ->get()

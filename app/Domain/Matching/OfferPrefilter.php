@@ -33,9 +33,22 @@ final class OfferPrefilter
         $query->where(function (Builder $query) use ($words): void {
             foreach ($words as $word) {
                 foreach (self::SEARCHED_COLUMNS as $column) {
-                    $query->orWhere($column, 'like', '%'.addcslashes($word, '%_\\').'%');
+                    $query->orWhere($column, 'like', self::likePattern($word));
                 }
             }
         });
+    }
+
+    /**
+     * Vzor LIKE pro normalizované slovo. Interpunkce se při normalizaci mění na mezeru
+     * („K-Mistři“ → „k mistri“), v databázi ale zůstává („K-Mistři“) — hledá se proto jen
+     * nejdelší část slova; zbytek ověří WatchItemMatcher.
+     */
+    public static function likePattern(string $word): string
+    {
+        $parts = explode(' ', $word);
+        usort($parts, fn (string $a, string $b): int => mb_strlen($b) <=> mb_strlen($a));
+
+        return '%'.addcslashes($parts[0], '%_\\').'%';
     }
 }
