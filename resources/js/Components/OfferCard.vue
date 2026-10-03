@@ -10,6 +10,7 @@ import ChainWatermark from '@/Components/ChainWatermark.vue';
 import { formatDate, formatPackage, formatPrice } from '@/lib/format';
 import { useTranslations } from '@/lib/i18n';
 import { discountPercent } from '@/lib/offer';
+import { showStoresDialog } from '@/lib/storesDialog';
 import { usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 
@@ -88,7 +89,11 @@ function unitPriceLabel(halers) {
             <span v-if="offer.storeFormatName" class="tag">{{ offer.storeFormatName }}</span>
             <span v-if="offer.onlineOnly" class="tag tag--warning">{{ t('offers.online_only') }}</span>
             <!-- Akce jen v některých prodejnách (R49): vybrané prodejny, kde platí, jinak počet -->
-            <span v-if="offer.stores" class="tag tag--warning" :title="t('offers.only_in_title')">{{ storesLabel }}</span>
+            <button v-if="offer.stores" type="button" class="tag tag--warning tag--info" :title="t('offers.only_in_title')" @click="showStoresDialog(offer)">
+                {{ storesLabel }}
+                <!-- „i“ v kroužku: klepnutím seznam prodejen -->
+                <svg class="tag__icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 11v5M12 7.5h.01" /></svg>
+            </button>
             <span class="tag" :class="{ 'tag--accent': offer.offerType === 'discount' }">{{ t(`offer_types.${offer.offerType}`) }}</span>
         </div>
 

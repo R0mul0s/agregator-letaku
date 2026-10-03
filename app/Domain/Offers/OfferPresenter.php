@@ -69,12 +69,13 @@ final class OfferPresenter
 
     /**
      * Kde akce platí, když neplatí ve všech prodejnách (R49): `names` = prodejny ke zobrazení,
-     * `count` = počet všech prodejen akce, `elsewhere` = není v žádné vybrané prodejně. Null =
-     * platí všude, nebo ve všech vybraných prodejnách (pak to uživatele nezajímá), nebo
-     * prodejny nejsou načtené.
+     * `count` = počet všech prodejen akce, `elsewhere` = není v žádné vybrané prodejně,
+     * `list` = všechny prodejny akce pro okno se seznamem (`selected` = vybraná uživatelem).
+     * Null = platí všude, nebo ve všech vybraných prodejnách (pak to uživatele nezajímá),
+     * nebo prodejny nejsou načtené.
      *
      * @param  list<string>  $selectedStoreCodes
-     * @return array{names: list<string>, count: int, elsewhere: bool}|null
+     * @return array{names: list<string>, count: int, elsewhere: bool, list: list<array{name: string, selected: bool}>}|null
      */
     private function stores(Offer $offer, array $selectedStoreCodes): ?array
     {
@@ -83,16 +84,37 @@ final class OfferPresenter
         }
 
         $codes = array_values($offer->stores->map(fn (OfferStore $store): string => $store->store_code)->all());
+        $list = $this->storeList($codes, $selectedStoreCodes);
         if ($selectedStoreCodes !== []) {
             $mine = array_values(array_intersect($codes, $selectedStoreCodes));
             if (count($mine) === count($selectedStoreCodes)) {
                 return null;
             }
 
-            return ['names' => $this->storeNames($mine), 'count' => count($codes), 'elsewhere' => $mine === []];
+            return ['names' => $this->storeNames($mine), 'count' => count($codes), 'elsewhere' => $mine === [], 'list' => $list];
         }
 
-        return ['names' => count($codes) <= self::MAX_LISTED_STORES ? $this->storeNames($codes) : [], 'count' => count($codes), 'elsewhere' => false];
+        return ['names' => count($codes) <= self::MAX_LISTED_STORES ? $this->storeNames($codes) : [], 'count' => count($codes), 'elsewhere' => false, 'list' => $list];
+    }
+
+    /**
+     * Prodejny akce pro okno se seznamem; řadí frontend (české řazení podle prohlížeče).
+     *
+     * @param  list<string>  $codes
+     * @param  list<string>  $selectedStoreCodes
+     * @return list<array{name: string, selected: bool}>
+     */
+    private function storeList(array $codes, array $selectedStoreCodes): array
+    {
+        $this->storeNames ??= Store::query()->pluck('name', 'code')->all();
+        $list = [];
+        foreach ($codes as $code) {
+            if (isset($this->storeNames[$code])) {
+                $list[] = ['name' => $this->storeNames[$code], 'selected' => in_array($code, $selectedStoreCodes, true)];
+            }
+        }
+
+        return $list;
     }
 
     /**

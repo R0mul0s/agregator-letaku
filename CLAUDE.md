@@ -37,8 +37,9 @@ Hotové jsou etapy 1–5g (PLAN.md, kap. 6):
 - vzhled podle zkoušení (R47): toasty po uložení, vlastní potvrzovací okno, Moje obchody s přepínači,
   katalog v Hlídám jako dlaždice oddělení, oslovení v 5. pádě
 - Kaufland po prodejnách (R49): akce všech 149 prodejen, výběr více prodejen v Mých obchodech, štítek „Jen Trutnov“
+  s oknem seznamu prodejen
 
-Produkce běží na `https://slevohlidka.rhsoft.cz` (nasazeno 2026-10-02, naposledy `20ef035`);
+Produkce běží na `https://slevohlidka.rhsoft.cz` (nasazeno 2026-10-02, naposledy `ae88b48` 2026-10-03);
 postup aktualizace a nasazené verze jsou v `deploy/DEPLOYMENT.md`. Sleduje se 7 obchodů; Makro
 zatím nejde (ochrana proti robotům). Etapa 6 (LLM) jen když bude potřeba.
 Co z dřívějších rozhodnutí platí a co ne, je v tabulce na začátku PLAN.md.

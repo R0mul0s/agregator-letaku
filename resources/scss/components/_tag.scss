@@ -42,3 +42,25 @@
         }
     }
 }
+
+// Štítek jako tlačítko s ikonou „i“ — otevře podrobnosti (seznam prodejen akce, R49)
+.tag--info {
+    gap: var(--space-1);
+    font-family: inherit;
+    cursor: pointer;
+
+    &:hover,
+    &:focus-visible {
+        border-color: currentcolor;
+    }
+}
+
+.tag__icon {
+    flex: none;
+    width: var(--icon-size-sm);
+    height: var(--icon-size-sm);
+    fill: none;
+    stroke: currentcolor;
+    stroke-width: var(--svg-stroke-icon);
+    stroke-linecap: round;
+}

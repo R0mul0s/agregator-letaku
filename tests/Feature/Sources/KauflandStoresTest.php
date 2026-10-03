@@ -141,8 +141,8 @@ it('Moje slevy ukážou jen akce vybraných prodejen a u akce prodejny, kde plat
                 'K-Mistři od fochu Vepřová pečeně bez kosti pultový prodej',
                 'K-Mistři od fochu Vepřové čevapčiči',
             ])
-            ->and($pork['K-Mistři od fochu Vepřová krkovice bez kosti pultový prodej']['stores'])->toBe(['names' => ['Trutnov'], 'count' => 1, 'elsewhere' => false])
-            ->and($pork['K-Mistři od fochu Vepřová pečeně bez kosti pultový prodej']['stores'])->toBe(['names' => ['Vrchlabí'], 'count' => 2, 'elsewhere' => false]);
+            ->and($pork['K-Mistři od fochu Vepřová krkovice bez kosti pultový prodej']['stores'])->toMatchArray(['names' => ['Trutnov'], 'count' => 1, 'elsewhere' => false, 'list' => [['name' => 'Trutnov', 'selected' => true]]])
+            ->and($pork['K-Mistři od fochu Vepřová pečeně bez kosti pultový prodej']['stores'])->toMatchArray(['names' => ['Vrchlabí'], 'count' => 2, 'elsewhere' => false]);
     });
 });
 
@@ -152,7 +152,7 @@ it('Všechny akce u akce jen v některých prodejnách ukážou kde platí', fun
     $this->artisan('letaky:import-offers', ['chain' => ['kaufland']]);
 
     $this->get(route('offers', ['q' => 'losos']))->assertInertia(fn (Assert $page) => $page
-        ->where('offers.data.0.stores', ['names' => ['Praha-Vypich'], 'count' => 1, 'elsewhere' => false]));
+        ->where('offers.data.0.stores', ['names' => ['Praha-Vypich'], 'count' => 1, 'elsewhere' => false, 'list' => [['name' => 'Praha-Vypich', 'selected' => false]]]));
     $this->get(route('offers', ['q' => 'vejce']))->assertInertia(fn (Assert $page) => $page
         ->where('offers.data.0.stores', null));
 
@@ -160,5 +160,5 @@ it('Všechny akce u akce jen v některých prodejnách ukážou kde platí', fun
     $user = User::factory()->create();
     FollowedChain::query()->create(['user_id' => $user->id, 'chain' => Chain::Kaufland, 'include_online_only' => true, 'store_codes' => ['CZ4400']]);
     $this->actingAs($user)->get(route('offers', ['q' => 'losos']))->assertInertia(fn (Assert $page) => $page
-        ->where('offers.data.0.stores', ['names' => [], 'count' => 1, 'elsewhere' => true]));
+        ->where('offers.data.0.stores', ['names' => [], 'count' => 1, 'elsewhere' => true, 'list' => [['name' => 'Praha-Vypich', 'selected' => false]]]));
 });

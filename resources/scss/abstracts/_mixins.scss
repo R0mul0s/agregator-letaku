@@ -57,3 +57,34 @@
         text-box: trim-both cap alphabetic;
     }
 }
+
+/// Okno nad ztmaveným pozadím (nativní <dialog>, R47) — karta uprostřed, náběh zespodu.
+/// Animace confirm-dialog-in / confirm-backdrop-in jsou v components/_confirm-dialog.scss.
+@mixin dialog-surface($max-width) {
+    width: min(calc(100% - 2 * var(--space-3)), #{$max-width});
+    padding: var(--space-4);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-toast);
+    color: var(--color-text);
+
+    &::backdrop {
+        background: var(--color-backdrop);
+    }
+
+    &[open] {
+        animation: confirm-dialog-in var(--duration-toast) ease-out;
+    }
+
+    &[open]::backdrop {
+        animation: confirm-backdrop-in var(--duration-toast) ease-out;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        &[open],
+        &[open]::backdrop {
+            animation: none;
+        }
+    }
+}

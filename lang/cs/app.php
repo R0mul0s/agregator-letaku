@@ -327,8 +327,12 @@ return [
             // Akce, která neplatí ve všech prodejnách (R49)
             'only_in_stores' => 'Jen :stores',
             'only_in_count' => 'Jen v :count prodejně|Jen ve :count prodejnách|Jen v :count prodejnách',
-            'only_in_title' => 'Akce platí jen v některých prodejnách obchodu',
+            'only_in_title' => 'Akce platí jen v některých prodejnách — klepnutím jejich seznam',
             'not_in_my_stores' => 'Není ve vašich prodejnách',
+            'stores_dialog_title' => 'Kde akce platí',
+            'stores_dialog_count' => ':chain — :count prodejna|:chain — :count prodejny|:chain — :count prodejen',
+            'stores_dialog_mine' => 'vaše prodejna',
+            'stores_dialog_close' => 'Zavřít',
             'maybe' => 'Možná',
             'maybe_hint' => 'Akce je na více druhů a hledanou variantu neuvádí — ověřte u obchodu.',
             'source' => 'Do obchodu',

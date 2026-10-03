@@ -10,6 +10,7 @@
 <script setup>
 import BackToTop from '@/Components/BackToTop.vue';
 import ConfirmDialog from '@/Components/ConfirmDialog.vue';
+import StoresDialog from '@/Components/StoresDialog.vue';
 import Toaster from '@/Components/Toaster.vue';
 import ThemeSwitch from '@/Components/ThemeSwitch.vue';
 import UserMenu from '@/Components/UserMenu.vue';
@@ -133,4 +134,5 @@ onBeforeUnmount(() => {
     <BackToTop />
     <Toaster />
     <ConfirmDialog />
+    <StoresDialog />
 </template>

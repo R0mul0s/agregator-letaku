@@ -1,0 +1,104 @@
+// _stores-dialog.scss
+// Okno „Kde akce platí“ (StoresDialog.vue, R49) — seznam prodejen ve sloupcích, vybrané s fajfkou.
+//
+// @author Roman Hlaváček
+// @created 2026-10-03
+
+@use '../abstracts/mixins' as *;
+
+.stores-dialog {
+    @include dialog-surface(var(--stores-dialog-max-width));
+
+    max-height: min(var(--stores-dialog-max-height), calc(100dvh - 2 * var(--space-3)));
+    overflow-y: auto;
+
+    &__header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: var(--space-3);
+        margin-bottom: var(--space-3);
+    }
+
+    &__title {
+        font-size: var(--font-size-card-title);
+    }
+
+    &__offer {
+        margin-top: var(--space-1);
+        font-weight: 700;
+    }
+
+    &__count {
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+    }
+
+    &__close {
+        display: inline-flex;
+        flex: none;
+        align-items: center;
+        justify-content: center;
+        width: var(--icon-button-size);
+        height: var(--icon-button-size);
+        padding: 0;
+        background: none;
+        border: 0;
+        border-radius: 50%;
+        color: var(--color-text-muted);
+        cursor: pointer;
+
+        &:hover,
+        &:focus-visible {
+            background: var(--color-bg);
+            color: var(--color-text);
+        }
+
+        svg {
+            width: var(--icon-size);
+            height: var(--icon-size);
+            fill: none;
+            stroke: currentcolor;
+            stroke-width: var(--svg-stroke-icon);
+            stroke-linecap: round;
+        }
+    }
+
+    &__search {
+        width: 100%;
+        margin-bottom: var(--space-3);
+    }
+
+    // Na telefonu jeden sloupec, jinak podle šířky
+    &__list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(var(--stores-dialog-column-min-width), 1fr));
+        gap: var(--space-1) var(--space-3);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    &__store {
+        display: flex;
+        align-items: center;
+        gap: var(--space-1);
+        font-size: var(--font-size-sm);
+
+        &--selected {
+            color: var(--color-accent-strong);
+            font-weight: 800;
+        }
+    }
+
+    &__check {
+        flex: none;
+        width: var(--icon-size-sm);
+        height: var(--icon-size-sm);
+        fill: none;
+        stroke: currentcolor;
+        stroke-width: var(--svg-stroke-icon);
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+}
