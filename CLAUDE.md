@@ -43,7 +43,7 @@ Hotové jsou etapy 1–5g (PLAN.md, kap. 6):
   při registraci, ověření e-mailu, odhlášení z e-mailů jedním klepnutím, české chybové stránky;
   lišta souhlasu s cookies a Google Analytics až po souhlasu (R52)
 
-Produkce běží na `https://slevohlidka.rhsoft.cz` (nasazeno 2026-10-02, naposledy `ae88b48` 2026-10-03);
+Produkce běží na `https://slevohlidka.rhsoft.cz` (nasazeno 2026-10-02, naposledy `aed786f` 2026-10-03);
 postup aktualizace a nasazené verze jsou v `deploy/DEPLOYMENT.md`. Sleduje se 7 obchodů; Makro
 zatím nejde (ochrana proti robotům). Etapa 6 (LLM) jen když bude potřeba.
 Co z dřívějších rozhodnutí platí a co ne, je v tabulce na začátku PLAN.md.
