@@ -549,9 +549,19 @@
     margin-bottom: var(--space-3);
 }
 
-// Moje slevy: „Rozbalit vše / Sbalit vše“ nad skupinami (R43)
+// Moje slevy: výběr obchodu (R55) a „Rozbalit vše / Sbalit vše“ nad skupinami (R43)
 .watch-groups__toolbar {
     display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
     justify-content: flex-end;
+    gap: var(--space-3);
     margin-bottom: var(--space-2);
+}
+
+// Výběr obchodu vlevo v šířce seznamu obchodů, tlačítko vpravo
+.watch-groups__chain {
+    flex: 0 1 var(--chain-select-min-width);
+    margin-right: auto;
+    margin-bottom: 0;
 }

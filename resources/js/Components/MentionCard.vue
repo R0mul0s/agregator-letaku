@@ -7,10 +7,11 @@
 <script setup>
 import ChainLogo from '@/Components/ChainLogo.vue';
 import ChainWatermark from '@/Components/ChainWatermark.vue';
+import InfoIcon from '@/Components/InfoIcon.vue';
 import { formatDate } from '@/lib/format';
 import { useTranslations } from '@/lib/i18n';
 import { usePage } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { computed, ref, useId } from 'vue';
 
 defineProps({
     /** Zmínka z App\Domain\Offers\MentionPresenter. */
@@ -20,6 +21,10 @@ defineProps({
 const t = useTranslations();
 const page = usePage();
 const locale = computed(() => page.props.locale);
+
+/** Vysvětlení štítku „Možná“ pod štítky — otevírá se klepnutím (R55). */
+const maybeHintOpen = ref(false);
+const maybeHintId = useId();
 </script>
 
 <template>
@@ -31,8 +36,20 @@ const locale = computed(() => page.props.locale);
             <div class="offer-card__badges">
                 <ChainLogo :chain="mention.chain" />
                 <span v-if="mention.storeFormatName" class="tag">{{ mention.storeFormatName }}</span>
-                <span v-if="mention.matchStatus === 'maybe'" class="tag tag--warning" :title="t('home.mention_maybe_hint')">{{ t('offers.maybe') }}</span>
+                <!-- Vysvětlení klepnutím — title se na dotykovém displeji neukáže (R55) -->
+                <button
+                    v-if="mention.matchStatus === 'maybe'"
+                    type="button"
+                    class="tag tag--warning tag--info"
+                    :aria-expanded="maybeHintOpen ? 'true' : 'false'"
+                    :aria-controls="maybeHintId"
+                    @click="maybeHintOpen = !maybeHintOpen"
+                >
+                    {{ t('offers.maybe') }}
+                    <InfoIcon />
+                </button>
             </div>
+            <p v-if="mention.matchStatus === 'maybe'" :id="maybeHintId" class="offer-card__hint" :hidden="!maybeHintOpen">{{ t('home.mention_maybe_hint') }}</p>
             <p class="mention-card__title">{{ mention.leafletTitle || t('home.mention_leaflet') }}</p>
             <p v-if="mention.validFrom && mention.validTo" class="mention-card__meta">
                 {{ t('offers.valid', { from: formatDate(mention.validFrom, locale), to: formatDate(mention.validTo, locale) }) }}

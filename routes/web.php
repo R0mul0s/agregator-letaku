@@ -18,6 +18,7 @@ use App\Http\Controllers\CronController;
 use App\Http\Controllers\HealthImportsController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LegalController;
+use App\Http\Controllers\ManifestController;
 use App\Http\Controllers\OffersController;
 use App\Http\Controllers\OfferSuggestionsController;
 use App\Http\Controllers\ShoppingPreferencesController;
@@ -41,6 +42,9 @@ Route::middleware('throttle:'.RateLimits::PUBLIC)->group(function (): void {
     Route::get('/robots.txt', [CrawlerFilesController::class, 'robots'])->name('robots');
     Route::get('/sitemap.xml', [CrawlerFilesController::class, 'sitemap'])->name('sitemap');
     Route::get('/llms.txt', [CrawlerFilesController::class, 'llms'])->name('llms');
+
+    // Manifest pro přidání na plochu telefonu (R55)
+    Route::get('/manifest.webmanifest', ManifestController::class)->name('manifest');
 
     // Monitoring stahování (UptimeRobot) — veřejné, jen stav
     Route::get('/health/imports', HealthImportsController::class)->name('health.imports');

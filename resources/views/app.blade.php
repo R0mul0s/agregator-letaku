@@ -44,6 +44,8 @@
         <link rel="icon" href="/images/brand/icon-32.png" sizes="32x32" type="image/png">
         <link rel="icon" href="/images/brand/icon-192.png" sizes="192x192" type="image/png">
         <link rel="apple-touch-icon" href="/images/brand/apple-touch-icon.png">
+        {{-- Přidání na plochu telefonu (R55, ManifestController) --}}
+        <link rel="manifest" href="{{ route('manifest', absolute: false) }}">
         {{-- schema.org pro vyhledávače — datový blok, ne skript (CSP ho nespouští) --}}
         @foreach ($seo['jsonLd'] as $data)
             <script type="application/ld+json">{!! json_encode($data, $jsonLdFlags) !!}</script>

@@ -12,6 +12,10 @@
 declare(strict_types=1);
 
 use App\Domain\Account\RegistrationGuard;
+use App\Domain\Chains\ChainCatalog;
+use App\Enums\Chain;
+use App\Http\Responses\RegisterResponse;
+use App\Models\FollowedChain;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Notifications\VerifyEmail;
@@ -64,7 +68,8 @@ it('zaregistruje uživatele, přihlásí ho, e-mail uloží malými písmeny a p
     $this->travelTo('2026-10-03 10:00:00');
 
     $this->post(route('register.store'), registrationInput(['email' => 'Roman@Example.com']))
-        ->assertRedirect('/');
+        ->assertRedirect(route('watch-items.index'))
+        ->assertSessionHas('status', RegisterResponse::STATUS_REGISTERED);
 
     $user = User::query()->sole();
     expect($user)
@@ -75,6 +80,15 @@ it('zaregistruje uživatele, přihlásí ho, e-mail uloží malými písmeny a p
         ->hasMarketingConsent()->toBeFalse();
     $this->assertAuthenticatedAs($user);
     Notification::assertSentTo($user, VerifyEmail::class);
+});
+
+it('nový účet sleduje všechny obchody se zdrojem, bez upřesnění (R55)', function (): void {
+    $this->post(route('register.store'), registrationInput());
+
+    $followed = User::query()->sole()->followedChains()->get();
+    expect($followed->map(fn (FollowedChain $chain): string => $chain->chain->value)->sort()->values()->all())
+        ->toBe(collect(app(ChainCatalog::class)->available())->map(fn (Chain $chain): string => $chain->value)->sort()->values()->all())
+        ->and($followed->every(fn (FollowedChain $chain): bool => $chain->store_format === null && $chain->include_online_only))->toBeTrue();
 });
 
 it('bez souhlasu s podmínkami účet nezaloží (R51)', function (): void {

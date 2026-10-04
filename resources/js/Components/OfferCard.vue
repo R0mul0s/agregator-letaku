@@ -7,12 +7,13 @@
 <script setup>
 import ChainLogo from '@/Components/ChainLogo.vue';
 import ChainWatermark from '@/Components/ChainWatermark.vue';
+import InfoIcon from '@/Components/InfoIcon.vue';
 import { formatDate, formatPackage, formatPrice } from '@/lib/format';
 import { useTranslations } from '@/lib/i18n';
 import { discountPercent } from '@/lib/offer';
 import { showStoresDialog } from '@/lib/storesDialog';
 import { usePage } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { computed, ref, useId } from 'vue';
 
 const props = defineProps({
     /**
@@ -25,6 +26,10 @@ const props = defineProps({
 const t = useTranslations();
 const page = usePage();
 const locale = computed(() => page.props.locale);
+
+/** Vysvětlení štítku „Možná“ pod štítky — otevírá se klepnutím (R55). */
+const maybeHintOpen = ref(false);
+const maybeHintId = useId();
 
 /** Sleva v procentech na cenovku přes obrázek. */
 const discount = computed(() => discountPercent(props.offer));
@@ -85,17 +90,29 @@ function unitPriceLabel(halers) {
         <ChainWatermark :chain="offer.chain" />
         <div class="offer-card__badges">
             <ChainLogo :chain="offer.chain" />
-            <span v-if="offer.matchStatus === 'maybe'" class="tag tag--warning" :title="t('offers.maybe_hint')">{{ t('offers.maybe') }}</span>
+            <!-- Vysvětlení klepnutím — title se na dotykovém displeji neukáže (R55) -->
+            <button
+                v-if="offer.matchStatus === 'maybe'"
+                type="button"
+                class="tag tag--warning tag--info"
+                :aria-expanded="maybeHintOpen ? 'true' : 'false'"
+                :aria-controls="maybeHintId"
+                @click="maybeHintOpen = !maybeHintOpen"
+            >
+                {{ t('offers.maybe') }}
+                <InfoIcon />
+            </button>
             <span v-if="offer.storeFormatName" class="tag">{{ offer.storeFormatName }}</span>
             <span v-if="offer.onlineOnly" class="tag tag--warning">{{ t('offers.online_only') }}</span>
             <!-- Akce jen v některých prodejnách (R49): vybrané prodejny, kde platí, jinak počet -->
             <button v-if="offer.stores" type="button" class="tag tag--warning tag--info" :title="t('offers.only_in_title')" @click="showStoresDialog(offer)">
                 {{ storesLabel }}
-                <!-- „i“ v kroužku: klepnutím seznam prodejen -->
-                <svg class="tag__icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 11v5M12 7.5h.01" /></svg>
+                <!-- Klepnutím seznam prodejen -->
+                <InfoIcon />
             </button>
             <span class="tag" :class="{ 'tag--accent': offer.offerType === 'discount' }">{{ t(`offer_types.${offer.offerType}`) }}</span>
         </div>
+        <p v-if="offer.matchStatus === 'maybe'" :id="maybeHintId" class="offer-card__hint" :hidden="!maybeHintOpen">{{ t('offers.maybe_hint') }}</p>
 
         <!-- Obrázek z CDN obchodu, nestahuje se k nám (R22); název nese nadpis, obrázek je dekorativní.
              Sleva jako červená cenovka přes obrázek (motiv z loga); čtečka ji má i u ceny. -->

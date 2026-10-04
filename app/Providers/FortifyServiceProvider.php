@@ -17,6 +17,7 @@ use App\Actions\Fortify\ResetUserPassword;
 use App\Actions\Fortify\UpdateUserPassword;
 use App\Actions\Fortify\UpdateUserProfileInformation;
 use App\Domain\Account\RegistrationGuard;
+use App\Http\Responses\RegisterResponse;
 use App\Http\Responses\VerifyEmailResponse;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\RedirectResponse;
@@ -26,17 +27,20 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
+use Laravel\Fortify\Contracts\RegisterResponse as RegisterResponseContract;
 use Laravel\Fortify\Contracts\VerifyEmailResponse as VerifyEmailResponseContract;
 use Laravel\Fortify\Fortify;
 
 class FortifyServiceProvider extends ServiceProvider
 {
     /**
-     * Vlastní odpověď po ověření e-mailu — toast místo parametru ?verified=1 (R51).
+     * Vlastní odpovědi: po ověření e-mailu toast místo parametru ?verified=1 (R51),
+     * po registraci rovnou do Hlídám (R55).
      */
     public function register(): void
     {
         $this->app->singleton(VerifyEmailResponseContract::class, VerifyEmailResponse::class);
+        $this->app->singleton(RegisterResponseContract::class, RegisterResponse::class);
     }
 
     /**

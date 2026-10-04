@@ -22,6 +22,7 @@ use App\Http\Controllers\ShoppingPreferencesController;
 use App\Http\Controllers\UnsubscribeController;
 use App\Http\Controllers\WatchItemController;
 use App\Http\Responses\ErrorToast;
+use App\Http\Responses\RegisterResponse;
 use App\Http\Responses\VerifyEmailResponse;
 
 it('má název pro každý obchod', function (Chain $chain): void {
@@ -53,6 +54,7 @@ it('má text toastu pro každý kód stavu po uložení (R47)', function (string
     AccountController::STATUS_MARKETING_SAVED,
     UnsubscribeController::STATUS_UNSUBSCRIBED,
     VerifyEmailResponse::STATUS_VERIFIED,
+    RegisterResponse::STATUS_REGISTERED,
     'verification-link-sent',
     ...array_values(ErrorToast::STATUSES),
     AvatarController::STATUS_UPDATED,

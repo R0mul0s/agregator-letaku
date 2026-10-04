@@ -110,3 +110,18 @@ it('omezí zkoušení tokenu cronu', function (): void {
     $this->get('/cron/send-digests?token=b')->assertNotFound();
     $this->get('/cron/send-digests?token=c')->assertStatus(429);
 });
+
+it('manifest pro plochu telefonu má název, barvu webu a existující ikony (R55)', function (): void {
+    $response = $this->get(route('manifest'))
+        ->assertOk()
+        ->assertHeader('Content-Type', 'application/manifest+json')
+        ->assertJsonPath('short_name', 'Slevohlídka')
+        ->assertJsonPath('display', 'standalone')
+        ->assertJsonPath('theme_color', config('letaky.theme_colors.light'));
+
+    foreach ($response->json('icons') as $icon) {
+        expect(public_path($icon['src']))->toBeFile();
+    }
+
+    $this->get(route('home'))->assertSee('<link rel="manifest" href="/manifest.webmanifest">', escape: false);
+});

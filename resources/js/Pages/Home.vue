@@ -1,18 +1,20 @@
 <!--
     Moje slevy — úvodní pruh s maskotem a souhrnem, akce k hlídaným položkám ve sledovaných
     obchodech (R18, R19) a zmínky v letácích bez ceny (R27). Skupiny jsou sbalené, rozbalené
-    si prohlížeč pamatuje (R43).
+    si prohlížeč pamatuje (R43). Výběr obchodu ukáže jen jeho akce, rozbalené — „co z mého
+    seznamu je teď v Lidlu“, když člověk stojí v obchodě (R55).
 
     @author Roman Hlaváček
     @created 2026-10-02
 -->
 <script setup>
+import ChainSelect from '@/Components/ChainSelect.vue';
 import EmptyState from '@/Components/EmptyState.vue';
 import WatchGroup from '@/Components/WatchGroup.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { useTranslations } from '@/lib/i18n';
 import { discountPercent } from '@/lib/offer';
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, usePage } from '@inertiajs/vue3';
 import { computed, nextTick, onMounted, ref } from 'vue';
 
 /** Klíč v localStorage s rozbalenými položkami — jen pohodlí prohlížeče, ne nastavení účtu. */
@@ -35,6 +37,7 @@ const props = defineProps({
 });
 
 const t = useTranslations();
+const page = usePage();
 
 /** Souhrn do úvodního pruhu: počet akcí a nejvyšší sleva napříč hlídanými položkami. */
 const summary = computed(() => {
@@ -44,10 +47,51 @@ const summary = computed(() => {
     return { offers: offers.length, bestDiscount: discounts.length ? Math.max(...discounts) : null };
 });
 
+/** Vybraný obchod (R55); '' = všechny. Nepamatuje se — po návratu na stránku je zase vše. */
+const chainFilter = ref('');
+
+/** Obchody s akcí nebo zmínkou u některé položky, v pořadí výčtu obchodů (sdílené chainInfo). */
+const filterChains = computed(() => {
+    const present = new Set(props.watchItems.flatMap((item) => [...item.offers, ...item.mentions]).map((entry) => entry.chain));
+
+    return Object.keys(page.props.chainInfo).filter((chain) => present.has(chain));
+});
+
+/** Položky k zobrazení: po výběru obchodu jen ty s jeho akcemi nebo zmínkami, a jen ty. */
+const visibleItems = computed(() => {
+    if (!chainFilter.value) {
+        return props.watchItems;
+    }
+
+    const inChain = (entry) => entry.chain === chainFilter.value;
+
+    return props.watchItems
+        .map((item) => ({ ...item, offers: item.offers.filter(inChain), mentions: item.mentions.filter(inChain) }))
+        .filter((item) => item.offers.length || item.mentions.length);
+});
+
 /** Rozbalené skupiny (id položek); ve výchozím stavu je vše sbalené. */
 const expandedIds = ref(new Set());
 
-const allExpanded = computed(() => props.watchItems.every((item) => expandedIds.value.has(item.id)));
+/** Po výběru obchodu jsou skupiny rozbalené; sbalené klepnutím (bez zapamatování). */
+const filterCollapsedIds = ref(new Set());
+
+/**
+ * Je skupina rozbalená? Po výběru obchodu ano, dokud ji uživatel nesbalí.
+ *
+ * @param {number} id
+ * @returns {boolean}
+ */
+function isExpanded(id) {
+    return chainFilter.value ? !filterCollapsedIds.value.has(id) : expandedIds.value.has(id);
+}
+
+const allExpanded = computed(() => visibleItems.value.every((item) => isExpanded(item.id)));
+
+/** Nový výběr obchodu začne se vším rozbaleným. */
+function onChainChange() {
+    filterCollapsedIds.value = new Set();
+}
 
 /** Uloží rozbalené skupiny; bez přístupu k localStorage (anonymní okno) se stav jen nezapamatuje. */
 function saveExpanded() {
@@ -65,6 +109,18 @@ function saveExpanded() {
  * @param {boolean} value
  */
 function setExpanded(id, value) {
+    if (chainFilter.value) {
+        const collapsed = new Set(filterCollapsedIds.value);
+        if (value) {
+            collapsed.delete(id);
+        } else {
+            collapsed.add(id);
+        }
+        filterCollapsedIds.value = collapsed;
+
+        return;
+    }
+
     const next = new Set(expandedIds.value);
     if (value) {
         next.add(id);
@@ -77,6 +133,12 @@ function setExpanded(id, value) {
 
 /** Rozbalí všechny skupiny, nebo — když už jsou všechny rozbalené — všechny sbalí. */
 function toggleAll() {
+    if (chainFilter.value) {
+        filterCollapsedIds.value = allExpanded.value ? new Set(visibleItems.value.map((item) => item.id)) : new Set();
+
+        return;
+    }
+
     expandedIds.value = allExpanded.value ? new Set() : new Set(props.watchItems.map((item) => item.id));
     saveExpanded();
 }
@@ -149,17 +211,28 @@ onMounted(async () => {
 
         <template v-else>
             <div class="watch-groups__toolbar">
+                <!-- Jen když je z čeho vybírat — u jednoho obchodu by výběr nic neměnil -->
+                <ChainSelect
+                    v-if="filterChains.length > 1"
+                    id="home-chain"
+                    v-model="chainFilter"
+                    class="watch-groups__chain"
+                    :label="t('home.chain_filter')"
+                    :chains="filterChains"
+                    :all-label="t('offers.all_chains')"
+                    @change="onChainChange"
+                />
                 <button type="button" class="button button--ghost" @click="toggleAll">
                     {{ allExpanded ? t('home.collapse_all') : t('home.expand_all') }}
                 </button>
             </div>
             <WatchGroup
-                v-for="item in watchItems"
+                v-for="item in visibleItems"
                 :key="item.id"
                 :item="item"
                 :digest-frequency="digestFrequency"
                 :digest-url="urls.digest"
-                :expanded="expandedIds.has(item.id)"
+                :expanded="isExpanded(item.id)"
                 @update:expanded="(value) => setExpanded(item.id, value)"
             />
         </template>

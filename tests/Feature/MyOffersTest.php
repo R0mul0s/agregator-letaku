@@ -141,6 +141,11 @@ it('akci jen s kartou ukáže, jen když uživatel kartu má, a řadí podle cen
     $this->user->update(['loyalty_programs' => [LoyaltyProgram::Clubcard]]);
 
     expect(myOffers()['Mléko'])->toBe(['Mléko s Clubcard', 'Mléko sleva']);
+
+    // Cena, kterou uživatel zaplatí — z ní stránka počítá nejnižší cenu skupiny (R55)
+    $this->get(route('home'))->assertInertia(fn (Assert $page) => $page
+        ->where('watchItems.0.offers.0.userPrice', 890)
+        ->where('watchItems.0.offers.1.userPrice', 1290));
 });
 
 it('řadí od nejnižší ceny za jednotku, akce na více kusů a možné shody na konec', function (): void {

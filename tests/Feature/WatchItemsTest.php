@@ -141,7 +141,7 @@ it('z Mých slev přestane hlídat a vrátí se zpět; odkaz Upravit otevře úp
         ->where('watchItems.0.fromCatalog', false)
         ->where('watchItems.0.editUrl', '/hlidam?upravit='.$item->id)
         ->where('watchItems.0.deleteUrl', '/hlidam/'.$item->id)
-        ->where('watchItems.0.lowestPrice', null));
+        ->where('watchItems.0.offers', []));
 
     $this->get('/hlidam?upravit='.$item->id)->assertInertia(fn (Assert $page) => $page->where('editId', $item->id));
 

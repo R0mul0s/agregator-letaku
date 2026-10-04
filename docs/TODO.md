@@ -77,4 +77,8 @@ v [PLAN.md](PLAN.md). Větší celky se z toho stávají etapou.
 
 ## Zobrazení
 
-- aplikace na plochu telefonu (manifest), jako u Počasí — ikony 192 a 512 px z loga už jsou v `public/images/brand`
+- manifest je hotový (R55); service worker až s upozorněními (web push, offline)
+- „Jsem v obchodě“ (R55): kompaktní řádkový režim karet (cena, obchod, cena za jednotku) — velké karty s obrázkem znamenají v obchodě hodně posouvání
+- „Hlídat tohle“ přímo z karty ve Všech akcích (i pro nepřihlášené — uložit lokálně, po registraci převést)
+- nákupní seznam s odškrtáváním, seřazený podle obchodu (z revize 4. 10. 2026)
+- spodní lišta záložek na telefonu místo hamburgeru (Moje slevy / Hlídám / Akce)

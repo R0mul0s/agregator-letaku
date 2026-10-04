@@ -16,6 +16,7 @@ namespace App\Actions\Fortify;
 
 use App\Domain\Account\MailingSubscriptions;
 use App\Domain\Account\RegistrationGuard;
+use App\Domain\Chains\ChainCatalog;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Hash;
@@ -31,6 +32,7 @@ class CreateNewUser implements CreatesNewUsers
     public function __construct(
         private readonly MailingSubscriptions $subscriptions,
         private readonly RegistrationGuard $guard,
+        private readonly ChainCatalog $chains,
     ) {}
 
     /**
@@ -65,6 +67,12 @@ class CreateNewUser implements CreatesNewUsers
             'terms_version' => config()->integer('letaky.legal.terms_version'),
         ])->save();
         $this->subscriptions->setMarketingConsent($user, (bool) ($data['marketing'] ?? false));
+
+        // Nový účet sleduje všechny obchody (R55) — k první užitečné informaci stačí přidat
+        // hlídanou položku; upřesnění (typ prodejny, prodejny, karty) přijde až podle potřeby
+        foreach ($this->chains->available() as $chain) {
+            $user->followedChains()->create(['chain' => $chain, 'store_format' => null, 'include_online_only' => true]);
+        }
 
         return $user;
     }

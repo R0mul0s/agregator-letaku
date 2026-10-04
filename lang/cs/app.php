@@ -510,6 +510,7 @@ return [
             'no_offers_digest_link' => 'Zapnout v účtu',
             'count' => ':count akce|:count akce|:count akcí',
             'edit_watch_items' => 'Upravit hlídané',
+            'chain_filter' => 'Jsem v obchodě',
             'expand_all' => 'Rozbalit vše',
             'collapse_all' => 'Sbalit vše',
             'sorted_by' => 'Řazeno od :sort',
@@ -656,6 +657,8 @@ return [
                 'too-many-requests' => 'Příliš mnoho pokusů. Zkuste to prosím za chvíli.',
                 // ShoppingPreferencesController
                 'preferences-saved' => 'Nastavení obchodů je uložené.',
+                // RegisterResponse (R55)
+                'registered' => 'Vítejte! Sledujeme pro vás všechny obchody — teď vyberte, co hlídat.',
                 // WatchItemController
                 'watch-item-added' => 'Položka je mezi hlídanými.',
                 'watch-item-updated' => 'Hlídaná položka je uložená.',

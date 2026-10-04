@@ -94,34 +94,55 @@
         }
     }
 
+    // Na telefonu se obsah rozpadne do mřížky pruhu (R55): vedle košíku jen pozdrav, předvolby
+    // a souhrn pod ním přes celou šířku — akce jsou pak vidět už na první obrazovce
     &__body {
-        display: flex;
-        flex-direction: column;
-        gap: var(--space-1);
+        display: contents;
+
+        @include from-md {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-1);
+        }
     }
 
     &__title {
         font-size: var(--font-size-lg);
     }
 
+    // Úvodní věta je jen ozdoba — na telefonu by odsunula akce pod okraj obrazovky
     &__text {
+        display: none;
         color: var(--color-text-muted);
+
+        @include from-md {
+            display: block;
+        }
     }
 
     // Řazení a minimální sleva (R41) s odkazem na změnu
     &__preferences {
-        margin-top: var(--space-1);
+        grid-column: 1 / -1;
         color: var(--color-text-muted);
         font-size: var(--font-size-sm);
+
+        @include from-md {
+            margin-top: var(--space-1);
+        }
     }
 
     &__stats {
         display: flex;
         flex-wrap: wrap;
+        grid-column: 1 / -1;
         gap: var(--space-2);
-        margin: var(--space-2) 0 0;
+        margin: 0;
         padding: 0;
         list-style: none;
+
+        @include from-md {
+            margin-top: var(--space-2);
+        }
     }
 
     // Souhrn jako „cenovky“ — číslo tučně, popisek vedle
