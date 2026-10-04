@@ -101,6 +101,16 @@ it('bez hledaných slov položku nepřidá a chybu napíše česky', function ()
     expect(WatchItem::query()->count())->toBe(0);
 });
 
+it('položku jen s krátkými slovy nepřidá — pustila by do předvýběru skoro všechny akce (R54)', function (): void {
+    $this->post(route('watch-items.store'), ['name' => 'Nic', 'keywords' => 'a 7'])
+        ->assertSessionHasErrors(['keywords' => 'Aspoň jedno hledané slovo musí mít 2 znaky nebo víc (jedno písmeno najde skoro všechno).']);
+
+    $this->post(route('watch-items.store'), ['name' => 'Mléko', 'keywords' => 'a mléko'])
+        ->assertSessionHasNoErrors();
+
+    expect(WatchItem::query()->sole()->name)->toBe('Mléko');
+});
+
 it('nad limit položku nepřidá', function (): void {
     config(['letaky.watch.max_items_per_user' => 1]);
     WatchItem::factory()->for($this->user)->create();

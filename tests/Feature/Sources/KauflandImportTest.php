@@ -191,6 +191,25 @@ it('nabídku, která v novém stažení chybí, označí jako staženou obchodem
     expect(kauflandOffer('00153062')->withdrawn_at)->toBeNull();
 });
 
+it('když v novém stažení chybí podezřele mnoho akcí, žádnou neoznačí jako staženou (R54)', function (): void {
+    // 1 z 8 neskončených akcí je nad touto hranicí
+    config(['letaky.import.max_withdrawn_share' => 0.1]);
+    $full = responseFixture('kaufland/prehled-2026-10-02.html');
+    Http::fakeSequence(KAUFLAND_OFFERS_URL)
+        ->push($full)
+        ->push(str_replace('"klNr":"00153062"', '"klNr":"99999999"', $full));
+
+    $this->artisan('letaky:import-offers', ['chain' => ['kaufland']]);
+    $this->artisan('letaky:import-offers', ['chain' => ['kaufland']])->assertSuccessful();
+
+    expect(kauflandOffer('00153062')->withdrawn_at)->toBeNull()
+        ->and(kauflandOffer('99999999')->exists)->toBeTrue()
+        ->and(ScrapeRun::query()->latest('id')->first())
+        ->status->toBe(ScrapeStatus::Partial)
+        ->withdrawn_count->toBe(0)
+        ->error->toContain('chybí 1 z 8 neskončených akcí');
+});
+
 it('neočekávanou odpověď zapíše jako neúspěšné stažení a skončí chybou', function (): void {
     Http::fake([KAUFLAND_OFFERS_URL => Http::response('<html><body>Údržba</body></html>')]);
 

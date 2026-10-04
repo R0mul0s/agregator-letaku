@@ -140,3 +140,32 @@ it('e-mail má odhlášení jedním klepnutím v patičce i v hlavičkách (R51)
         ];
     });
 });
+
+it('jedno volání zpracuje jen dávku uživatelů, od nejdéle čekajících (R54)', function (): void {
+    config(['letaky.digest.users_per_run' => 1]);
+    $other = User::factory()->create();
+    $other->forceFill(['digest_frequency' => DigestFrequency::Daily])->save();
+    FollowedChain::query()->create(['user_id' => $other->id, 'chain' => Chain::Kaufland, 'include_online_only' => true]);
+    WatchItem::factory()->for($other)->create(['name' => 'Máslo', 'keywords' => 'máslo']);
+    Offer::factory()->create(['name' => 'Máslo 250 g']);
+
+    expect(app(SendDigests::class)())->toBe(1);
+    Mail::assertSent(DigestMail::class, fn (DigestMail $mail): bool => $mail->hasTo($this->user->email));
+
+    expect(app(SendDigests::class)())->toBe(1);
+    Mail::assertSent(DigestMail::class, fn (DigestMail $mail): bool => $mail->hasTo($other->email));
+
+    expect(app(SendDigests::class)())->toBe(0);
+});
+
+it('uživatele bez nových akcí zapíše jako zpracovaného, aby nezabíral dávku (R54)', function (): void {
+    expect(app(SendDigests::class)())->toBe(0)
+        ->and($this->user->fresh()?->digest_sent_at?->toDateTimeString())->toBe('2026-10-02 06:30:00');
+
+    // Akce, která přibyla po zpracování, přijde v dalším souhrnu
+    $this->travelTo('2026-10-02 12:00:00');
+    Offer::factory()->create(['name' => 'Máslo 250 g']);
+    $this->travelTo('2026-10-03 06:30:00');
+
+    expect(app(SendDigests::class)())->toBe(1);
+});

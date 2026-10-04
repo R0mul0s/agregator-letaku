@@ -49,7 +49,7 @@ it('uloží jméno a e-mail; novou adresu musí uživatel znovu potvrdit (R51)',
 
     $this->actingAs($user)
         ->from(route('account'))
-        ->put(route('user-profile-information.update'), ['name' => 'Nové jméno', 'email' => 'nove@example.com'])
+        ->put(route('user-profile-information.update'), ['name' => 'Nové jméno', 'email' => 'nove@example.com', 'current_password' => UserFactory::PASSWORD])
         ->assertRedirect(route('account'))
         ->assertSessionHas('status', 'profile-information-updated');
 
@@ -58,6 +58,31 @@ it('uloží jméno a e-mail; novou adresu musí uživatel znovu potvrdit (R51)',
         ->email->toBe('nove@example.com')
         ->email_verified_at->toBeNull();
     Notification::assertSentTo($user, VerifyEmail::class);
+});
+
+it('e-mail bez správného hesla nezmění a ověřovací e-mail nepošle (R54)', function (?string $password): void {
+    Notification::fake();
+    $user = User::factory()->create(['email' => 'roman@example.com']);
+
+    $this->actingAs($user)
+        ->put(route('user-profile-information.update'), array_filter(['name' => 'Roman', 'email' => 'cizi@example.com', 'current_password' => $password]))
+        ->assertSessionHasErrorsIn(UpdateUserProfileInformation::ERROR_BAG, ['current_password']);
+
+    expect($user->fresh()?->email)->toBe('roman@example.com');
+    Notification::assertNothingSent();
+})->with([
+    'bez hesla' => [null],
+    'špatné heslo' => ['spatne-heslo'],
+]);
+
+it('samotné jméno změní bez hesla', function (): void {
+    $user = User::factory()->create(['email' => 'roman@example.com']);
+
+    $this->actingAs($user)
+        ->put(route('user-profile-information.update'), ['name' => 'Nové jméno', 'email' => 'roman@example.com'])
+        ->assertSessionHasNoErrors();
+
+    expect($user->fresh()?->name)->toBe('Nové jméno');
 });
 
 it('při uložení stejného e-mailu (jen jinak velkými písmeny) ověření nezruší', function (): void {

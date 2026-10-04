@@ -43,6 +43,8 @@ final class RateLimits
         'password.email',
         'password.update',
         'user-password.update',
+        // Změna e-mailu ověřuje heslo a posílá ověřovací e-mail na novou adresu (R54)
+        'user-profile-information.update',
         'account.destroy',
         'account.devices.logout',
     ];

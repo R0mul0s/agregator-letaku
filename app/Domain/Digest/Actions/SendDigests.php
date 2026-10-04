@@ -1,10 +1,15 @@
 <?php
 
 /**
- * E-mailový souhrn nových akcí hlídaných položek (R42). Volá ho cron jednou denně po ranním
- * stažení akcí; uživatel dostane souhrn podle své volby (denně / týdně), jen když od minulého
- * souhrnu přibyly akce. Akce jsou stejné jako v Mých slevách (MyOffers — sledované obchody,
- * karty, minimální sleva), „nová“ = obchod ji poprvé nabídl po posledním souhrnu (`created_at`).
+ * E-mailový souhrn nových akcí hlídaných položek (R42). Cron ho volá po ranním stažení akcí;
+ * uživatel dostane souhrn podle své volby (denně / týdně), jen když od minulého souhrnu
+ * přibyly akce. Akce jsou stejné jako v Mých slevách (MyOffers — sledované obchody, karty,
+ * minimální sleva), „nová“ = obchod ji poprvé nabídl po posledním souhrnu (`created_at`).
+ *
+ * Po dávkách (R54): jedno volání zpracuje nejvýš `letaky.digest.users_per_run` uživatelů,
+ * od nejdéle čekajících — vejde se do limitu požadavku na hostingu i do limitu 300 e-mailů
+ * za hodinu. Kdo nové akce nemá, je zpracovaný taky (`digest_sent_at`), jinak by dávku
+ * zabíral při každém volání a na další by nedošlo. Cron se proto volá několikrát dopoledne.
  *
  * @author Roman Hlaváček
  *
@@ -21,6 +26,7 @@ use App\Mail\DigestMail;
 use App\Models\Offer;
 use App\Models\User;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Mail;
 use Throwable;
 
@@ -29,49 +35,68 @@ final class SendDigests
     public function __construct(private readonly MyOffers $myOffers) {}
 
     /**
-     * Pošle souhrny všem, kterým je čas; vrátí počet odeslaných. Chyba u jednoho uživatele
-     * (např. odmítnutá adresa) se zapíše do logu a ostatní dostanou souhrn dál.
+     * Pošle souhrny jedné dávce uživatelů, kterým je čas; vrátí počet odeslaných. Chyba
+     * u jednoho uživatele (např. odmítnutá adresa) se zapíše do logu, uživatel zůstane
+     * nezpracovaný na další volání a ostatní dostanou souhrn dál.
      */
     public function __invoke(): int
     {
         $now = CarbonImmutable::now();
         $sent = 0;
 
-        // Jen na ověřenou adresu (R51) — jinak by šlo souhrny posílat na cizí e-mail
-        User::query()
-            ->where('digest_frequency', '!=', DigestFrequency::Off->value)
+        // Jen na ověřenou adresu (R51) — jinak by šlo souhrny posílat na cizí e-mail.
+        // Nejdřív kdo souhrn ještě nedostal (null je v MariaDB při řazení vzestupně první).
+        $users = User::query()
             ->whereNotNull('email_verified_at')
+            ->where(fn (Builder $query) => $this->whereDue($query, $now))
+            ->orderBy('digest_sent_at')
             ->orderBy('id')
-            ->each(function (User $user) use ($now, &$sent): void {
-                try {
-                    if ($this->isDue($user, $now) && $this->sendTo($user, $now)) {
-                        $sent++;
-                    }
-                } catch (Throwable $error) {
-                    report($error);
+            ->limit(config()->integer('letaky.digest.users_per_run'))
+            ->get();
+
+        foreach ($users as $user) {
+            try {
+                if ($this->sendTo($user)) {
+                    $sent++;
                 }
-            });
+                $user->forceFill(['digest_sent_at' => $now])->save();
+            } catch (Throwable $error) {
+                report($error);
+            }
+        }
 
         return $sent;
     }
 
     /**
-     * Uplynul od posledního souhrnu interval zvolené četnosti? První souhrn je hned.
+     * Uživatelé se zapnutým souhrnem, kterým od posledního uplynul interval zvolené četnosti.
+     * První souhrn je hned.
+     *
+     * @param  Builder<User>  $query
      */
-    private function isDue(User $user, CarbonImmutable $now): bool
+    private function whereDue(Builder $query, CarbonImmutable $now): void
     {
-        $hours = $user->digest_frequency->intervalHours();
+        foreach (DigestFrequency::cases() as $frequency) {
+            $hours = $frequency->intervalHours();
+            if ($hours === null) {
+                continue;
+            }
 
-        return $hours !== null && ($user->digest_sent_at === null || $user->digest_sent_at->addHours($hours) <= $now);
+            $query->orWhere(fn (Builder $query) => $query
+                ->where('digest_frequency', $frequency->value)
+                ->where(fn (Builder $query) => $query
+                    ->whereNull('digest_sent_at')
+                    ->orWhere('digest_sent_at', '<=', $now->subHours($hours))));
+        }
     }
 
     /**
-     * Pošle uživateli souhrn, pokud má nové akce; pak si zapamatuje čas odeslání.
+     * Pošle uživateli souhrn, pokud má nové akce.
      */
-    private function sendTo(User $user, CarbonImmutable $now): bool
+    private function sendTo(User $user): bool
     {
         $items = [];
-        foreach ($this->myOffers->forUser($user) as $group) {
+        foreach ($this->myOffers->forUser($user, withMentions: false) as $group) {
             $new = array_values(array_filter(
                 array_column($group['offers'], 'offer'),
                 fn (Offer $offer): bool => $user->digest_sent_at === null || $offer->created_at > $user->digest_sent_at,
@@ -95,7 +120,6 @@ final class SendDigests
         }
 
         Mail::to($user)->send(new DigestMail($user, $items));
-        $user->forceFill(['digest_sent_at' => $now])->save();
 
         return true;
     }

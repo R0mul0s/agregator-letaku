@@ -93,6 +93,21 @@ class ScrapeRun extends Model
     }
 
     /**
+     * Označí stažení za částečné (R54): nabídky se uložily, chybějící se ale neoznačily
+     * jako stažené, protože jich bylo podezřele mnoho. Důvod se uloží jako chyba.
+     */
+    public function succeedPartially(int $offersCount, Throwable $warning): void
+    {
+        $this->update([
+            'status' => ScrapeStatus::Partial,
+            'offers_count' => $offersCount,
+            'withdrawn_count' => 0,
+            'error' => $warning::class.': '.$warning->getMessage(),
+            'finished_at' => CarbonImmutable::now(),
+        ]);
+    }
+
+    /**
      * Označí stažení za neúspěšné a uloží popis chyby.
      */
     public function fail(Throwable $error): void

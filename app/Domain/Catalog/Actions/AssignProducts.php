@@ -66,7 +66,7 @@ final class AssignProducts
     {
         $rule = WatchRule::fromProduct($product, $this->normalizer);
         $offers = $this->currentOffers();
-        OfferPrefilter::containingAny($offers, $rule->firstWord());
+        OfferPrefilter::containingAny($offers, $rule->prefilterTerm());
 
         $this->assign($offers, new Collection([$product]), $this->currentOffers());
     }

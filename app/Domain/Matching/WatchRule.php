@@ -67,13 +67,46 @@ final readonly class WatchRule
     }
 
     /**
-     * Alternativy prvního slova — podle nich databáze předvybírá kandidáty.
+     * Alternativy slova, podle kterého databáze předvybírá kandidáty (OfferPrefilter). Nabídka
+     * musí obsahovat všechna slova, stačí tedy kterékoli — bere se to, jehož nejkratší
+     * alternativa je nejdelší, protože pustí nejméně kandidátů (R54).
      *
      * @return list<string>
      */
-    public function firstWord(): array
+    public function prefilterTerm(): array
     {
-        return $this->keywords[0] ?? [];
+        $best = [];
+        $bestLength = -1;
+        foreach ($this->keywords as $alternatives) {
+            $length = self::searchedLength($alternatives);
+            if ($length > $bestLength) {
+                $best = $alternatives;
+                $bestLength = $length;
+            }
+        }
+
+        return $best;
+    }
+
+    /**
+     * Kolik znaků hledá předvýběr u slova z prefilterTerm (u nejkratší alternativy); 0 bez slov.
+     * Příliš krátké slovo („a“) by pustilo skoro všechny nabídky — validace ho nepustí (R54).
+     */
+    public function prefilterLength(): int
+    {
+        return self::searchedLength($this->prefilterTerm());
+    }
+
+    /**
+     * Délka nejkratší hledané části mezi alternativami slova; 0 bez alternativ.
+     *
+     * @param  list<string>  $alternatives
+     */
+    private static function searchedLength(array $alternatives): int
+    {
+        $lengths = array_map(fn (string $word): int => mb_strlen(OfferPrefilter::searchedPart($word)), $alternatives);
+
+        return $lengths === [] ? 0 : min($lengths);
     }
 
     /**

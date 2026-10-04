@@ -115,7 +115,7 @@ pole *Opakovat* je zápis cronu (`minuta hodina den měsíc den_v_týdnu`). URL 
 | Slevohlídka – Globus | `50 5,13 * * *` | `…/cron/import-offers?chain=globus&token=…` (~25 s) |
 | Slevohlídka – Billa | `0 6,14 * * *` | `…/cron/import-offers?chain=billa&token=…` (~50 s; celý katalog, po ranní výměně akcí) |
 | Slevohlídka – kategorie | `0 4 1 * *` | `…/cron/import-categories?token=…` — strom kategorií (stačí občas) |
-| Slevohlídka – souhrn | `30 6 * * *` | `…/cron/send-digests?token=…` — e-mailové souhrny nových akcí (R42), po ranním stažení |
+| Slevohlídka – souhrn | `30 7-11 * * *` | `…/cron/send-digests?token=…` — e-mailové souhrny nových akcí (R42), po ranním stažení; jedno volání = dávka 100 uživatelů (R54), proto každou hodinu dopoledne |
 | Slevohlídka – úklid | `15 3 * * *` | `…/cron/prune-sessions?token=…` — smaže vypršelé relace (IP, prohlížeč) a propadlé odkazy na obnovu hesla (R53; zásady slibují průběžné mazání) |
 
 Hned po nasazení zavolej URL stažení ručně v prohlížeči (kategorie první), ať se nečeká
@@ -124,7 +124,9 @@ na ranní běh. *Posílat výsledky e-mailem* stačí zapnout na první dny, pak
 Odpověď je prostý text, např. `Tesco — uloženo nabídek: 5139` (200), při chybě
 `Tesco — chyba: …` (500); každé stažení je i v tabulce `scrape_runs`. Špatný nebo
 chybějící token vrací **404**. Akce, které obchod mezi dvěma staženími stáhl, se označí
-a z výpisů zmizí (R16).
+a z výpisů zmizí (R16). Když jich chybí víc než 40 % neskončených (rozbitý parser, chybějící
+leták), neoznačí se žádná a odpověď je `Lidl — uloženo nabídek: …, ale chybějící akce se neoznačily
+jako stažené (…)` (200, stav `partial` v `scrape_runs`, R54) — zdroj je potřeba prověřit.
 
 **Limit požadavku (O8):** cron URL si prodlouží `max_execution_time` na 180 s
 (`letaky.cron.time_limit_seconds`); timeout proxy hostingu to ale přebít může. Když Tesco
@@ -174,7 +176,8 @@ jinak **503**. Na každém řádku jeden obchod, např. `Tesco — VÝPADEK: pos
 
 V [UptimeRobot](https://uptimerobot.com) (zdarma, stejně jako Počasí): *Add New Monitor* → HTTP(s),
 URL `/health/imports`, interval 1 hodina, upozornění e-mailem. Ozve se při výpadku cronu,
-změně odpovědi obchodu (`SourceResponseChanged`) i neplatném klíči Tesca.
+změně odpovědi obchodu (`SourceResponseChanged`) i neplatném klíči Tesca. Částečné stažení (`partial`, R54)
+se za úspěch nepočítá — když trvá 26 hodin, obchod je na `/health/imports` jako výpadek.
 
 ## Limit odesílání e-mailů
 
@@ -182,9 +185,11 @@ Websupport (ochrana proti spamu, ověřeno 2026-10-03): **300 e-mailů za hodinu
 schránky, 2 000 za hodinu z celé domény**; počítá se každý příjemce. Po překročení jde
 60 minut odeslat nic a zprávy z té doby se nedoručí. Limit se netýká schránek u Websupportu.
 
-Souhrny (`/cron/send-digests`) jdou všem najednou — při víc než ~250 uživatelích se
-zapnutým souhrnem je potřeba posílat po dávkách (docs/ZVEREJNENI.md, kap. 2). Uživatel,
-kterému se souhrn neodeslal, ho dostane při dalším běhu (`digest_sent_at` se neuloží).
+Souhrny (`/cron/send-digests`) jdou po dávkách (R54): jedno volání zpracuje nejvýš
+`letaky.digest.users_per_run` (100) uživatelů, od nejdéle čekajících, takže pět volání dopoledne
+(7–11 h) stačí na 500 uživatelů denně a hodina nepřesáhne 100 e-mailů. Uživatel, kterému se souhrn
+neodeslal (chyba SMTP), ho dostane při dalším volání (`digest_sent_at` se neuloží). Při víc
+uživatelích prodloužit okno cronu, ne dávku.
 
 ---
 
@@ -249,6 +254,16 @@ Kaufland po prodejnách (R49). `composer.lock` se nezměnil.
 4. **Cron** přidej `45 4,12 * * *` → `https://slevohlidka.rhsoft.cz/cron/import-stores?chain=kaufland&token=<LETAKY_CRON_TOKEN>` a **hned ho zavolej ručně** (~1,5 min, odpověď `Kaufland — prodejen: 149, seznamů akcí: 149`), potom ručně i `/cron/import-offers?chain=kaufland&token=…` (~50 s, místo ~2 s — stahuje i stránky prodejen). Ověř, že se oba vejdou do limitu požadavku (O8).
 5. **Ověř:** v Mých obchodech u Kauflandu výběr prodejen, na `/akce?chain=kaufland&q=K-Mistři` štítky „Jen …“ / „Jen v N prodejnách“.
 6. Zapiš verzi do *Nasazené verze* a datum ke skriptu v *Historii SQL skriptů*.
+
+### Aktualizace z `b2996c0` (šesté nasazení)
+
+Opravy z revize (R54). Bez SQL skriptu (nový stav `partial` je jen hodnota v `scrape_runs.status`),
+`composer.lock` se nezměnil.
+
+1. **Nahraj `deploy/upload/`** jako minule: bez `vendor/`, ale s `vendor/composer/` a `bootstrap/cache/packages.php`; `public/build/` nejdřív smaž.
+2. **Cron souhrnu** změň z `30 6 * * *` na `30 7-11 * * *` (dávky po 100 uživatelích).
+3. **Ověř:** `/cron/send-digests?token=…` vrací `Souhrny — odesláno: N`; v Účtu se při změně e-mailu objeví pole s heslem.
+4. Zapiš verzi do *Nasazené verze*.
 
 **Každá nová migrace potřebuje SQL skript** `deploy/migrations-<datum>-<popis>.sql`
 (opakovatelný: `CREATE TABLE IF NOT EXISTS`, `ADD COLUMN IF NOT EXISTS`) včetně zápisu do

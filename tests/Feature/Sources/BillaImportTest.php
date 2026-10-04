@@ -19,6 +19,7 @@ use App\Enums\ScrapeStatus;
 use App\Models\Leaflet;
 use App\Models\Offer;
 use App\Models\ScrapeRun;
+use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 
 const BILLA_API_URL = 'https://www.billa.cz/api/product-discovery/products';
@@ -164,4 +165,45 @@ it('změněný tvar odpovědi stažení zastaví', function (): void {
     $this->artisan('letaky:import-offers', ['chain' => ['billa']])->assertFailed();
 
     expect(ScrapeRun::query()->sole()->error)->toContain('chybí total nebo results');
+});
+
+it('akce, která se stejnou cenou pokračuje do dalšího týdne, prodlouží svůj řádek (R54)', function (): void {
+    $this->travelTo('2026-10-06 10:00:00');
+    fakeBilla();
+    $this->artisan('letaky:import-offers', ['chain' => ['billa']]);
+    $campari = billaOffer('Campari');
+
+    // Středa: nový akční týden, pak čtvrtek: další stažení téhož týdne
+    $this->travelTo('2026-10-07 10:00:00');
+    $this->artisan('letaky:import-offers', ['chain' => ['billa']])->assertSuccessful();
+    $this->travelTo('2026-10-08 10:00:00');
+    $this->artisan('letaky:import-offers', ['chain' => ['billa']])->assertSuccessful();
+
+    expect(Offer::query()->where('chain', Chain::Billa)->count())->toBe(10)
+        ->and(billaOffer('Campari'))
+        ->id->toBe($campari->id)
+        ->created_at->toDateTimeString()->toBe($campari->created_at->toDateTimeString())
+        ->valid_from->toDateString()->toBe('2026-09-30')
+        ->valid_to->toDateString()->toBe('2026-10-13')
+        ->withdrawn_at->toBeNull();
+});
+
+it('akce se změněnou cenou v dalším týdnu je nová akce (R54)', function (): void {
+    // Od středy 7. 10. stojí Campari 379,90 Kč místo 399,90 Kč
+    Http::fake(function (Request $request) {
+        $page = responseFixture('billa/products-page'.$request['page'].'-2026-10-02.json');
+
+        return Http::response(now()->lessThan('2026-10-07') ? $page : str_replace('"value":39990', '"value":37990', $page));
+    });
+    $this->travelTo('2026-10-06 10:00:00');
+    $this->artisan('letaky:import-offers', ['chain' => ['billa']]);
+    $this->travelTo('2026-10-07 10:00:00');
+    $this->artisan('letaky:import-offers', ['chain' => ['billa']]);
+
+    $campari = Offer::query()->where('chain', Chain::Billa)->where('name', 'like', 'Campari%')->orderBy('valid_from')->get();
+    expect($campari)->toHaveCount(2)
+        ->and($campari[0]->valid_to->toDateString())->toBe('2026-10-06')
+        ->and($campari[1])
+        ->price->toBe(37990)
+        ->valid_from->toDateString()->toBe('2026-10-07');
 });

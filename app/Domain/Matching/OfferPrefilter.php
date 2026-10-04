@@ -46,9 +46,17 @@ final class OfferPrefilter
      */
     public static function likePattern(string $word): string
     {
+        return '%'.addcslashes(self::searchedPart($word), '%_\\').'%';
+    }
+
+    /**
+     * Část normalizovaného slova, kterou předvýběr hledá — nejdelší (viz likePattern).
+     */
+    public static function searchedPart(string $word): string
+    {
         $parts = explode(' ', $word);
         usort($parts, fn (string $a, string $b): int => mb_strlen($b) <=> mb_strlen($a));
 
-        return '%'.addcslashes($parts[0], '%_\\').'%';
+        return $parts[0];
     }
 }

@@ -38,7 +38,7 @@ use Illuminate\Support\Collection;
  * @property OffersSort $offers_sort Řazení akcí v Mých slevách (R41)
  * @property int|null $min_discount_percent Moje slevy jen se slevou aspoň tolik %, null = všechny (R41)
  * @property DigestFrequency $digest_frequency Jak často posílat e-mailový souhrn (R42)
- * @property CarbonImmutable|null $digest_sent_at Poslední odeslaný souhrn (UTC)
+ * @property CarbonImmutable|null $digest_sent_at Poslední zpracovaný souhrn (UTC), i když nebylo co poslat (R54)
  * @property CarbonImmutable|null $terms_accepted_at Přijetí podmínek užití (R51)
  * @property int|null $terms_version Verze přijatých podmínek (letaky.legal.terms_version)
  * @property CarbonImmutable|null $marketing_consent_at Souhlas s obchodními sděleními (R51); null = bez souhlasu

@@ -20,6 +20,7 @@ use App\Domain\Digest\Actions\SendDigests;
 use App\Domain\Offers\Actions\ImportChainOffers;
 use App\Domain\Sources\SourceRegistry;
 use App\Enums\Chain;
+use App\Enums\ScrapeStatus;
 use App\Http\Requests\CronRequest;
 use Illuminate\Http\Response;
 use Illuminate\Validation\Rule;
@@ -46,7 +47,10 @@ class CronController extends Controller
             return $this->text(__('app.import.failed', ['chain' => $chain->label(), 'error' => $error->getMessage()]), Response::HTTP_INTERNAL_SERVER_ERROR);
         }
 
-        return $this->text(__('app.import.offers_done', ['chain' => $chain->label(), 'count' => $run->offers_count]));
+        // Částečné stažení (R54): nabídky jsou uložené, upozorní /health/imports a log
+        return $this->text($run->status === ScrapeStatus::Partial
+            ? __('app.import.offers_partial', ['chain' => $chain->label(), 'count' => $run->offers_count, 'error' => $run->error])
+            : __('app.import.offers_done', ['chain' => $chain->label(), 'count' => $run->offers_count]));
     }
 
     /**
@@ -89,7 +93,7 @@ class CronController extends Controller
     }
 
     /**
-     * Pošle e-mailové souhrny nových akcí (R42) — jednou denně po ranním stažení.
+     * Pošle e-mailové souhrny nových akcí (R42) jedné dávce uživatelů (R54) — každou hodinu dopoledne.
      */
     public function sendDigests(CronRequest $request, SendDigests $send): Response
     {

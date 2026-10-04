@@ -10,7 +10,7 @@ Slevohlídka byla dělaná pro vlastní použití (R5). Tenhle dokument sepisuje
 chybí ke spuštění pro veřejnost. Vychází z průzkumu kódu ze 3. 10. 2026.
 Technická a GDPR část je hotová v [R51](PLAN.md#8-log-rozhodnutí): podmínky a zásady
 (`resources/legal`), patička, souhlasy při registraci, ověření e-mailu, odhlášení
-z e-mailů jedním klepnutím, české chybové stránky; ochrana účtů a úklid v [R53](PLAN.md#8-log-rozhodnutí). Hotové body se odsud mažou
+z e-mailů jedním klepnutím, české chybové stránky; ochrana účtů a úklid v [R53](PLAN.md#8-log-rozhodnutí), opravy z revize (souhrny po dávkách, pojistky importu, heslo při změně e-mailu) v [R54](PLAN.md#8-log-rozhodnutí). Hotové body se odsud mažou
 a popisují v [PLAN.md](PLAN.md).
 
 Značení: **[R]** = rozhodne nebo zařídí Roman, **[K]** = kód.
@@ -42,9 +42,6 @@ Značení: **[R]** = rozhodne nebo zařídí Roman, **[K]** = kód.
 
 ## 2. Doporučené před spuštěním
 
-- [ ] **[K] Souhrny po dávkách:** dnes jdou všem v jednom požadavku cronu (limit 180 s).
-  Websupport povolí **300 e-mailů za hodinu ze schránky** (2 000 z domény, DEPLOYMENT.md) —
-  nad ~250 uživatelů se souhrnem omezit počet na jedno volání a cron volat po hodinách.
 - [ ] **[R] O8 — změřit limit délky požadavku** na hostingu, zapsat do PLAN.md.
 - [ ] **[R]+[K] Monitoring:** UptimeRobot i na `/up`. Upozornění na chyby e-mailem
   (log kanál `mail` nebo denní souhrn chyb). Do `/health/imports` přidat import prodejen.

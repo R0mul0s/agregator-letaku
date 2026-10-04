@@ -83,3 +83,15 @@ it('hlídání stahování: 200, když mají všechny obchody čerstvé stažen�
         ->assertSeeText('Tesco — VÝPADEK: poslední úspěšné stažení 30. 9. 12:00')
         ->assertSeeText('Kaufland — OK');
 });
+
+it('hlídání stahování nepovažuje částečné stažení za úspěch (R54)', function (): void {
+    foreach (Chain::cases() as $chain) {
+        ScrapeRun::query()->create(['chain' => $chain, 'status' => ScrapeStatus::Succeeded, 'started_at' => CarbonImmutable::now()->subDays(2), 'finished_at' => CarbonImmutable::now()->subDays(2)]);
+        ScrapeRun::query()->create(['chain' => $chain, 'status' => $chain === Chain::Lidl ? ScrapeStatus::Partial : ScrapeStatus::Succeeded, 'started_at' => CarbonImmutable::now()->subHour(), 'finished_at' => CarbonImmutable::now()->subHour()]);
+    }
+
+    $this->get(route('health.imports'))
+        ->assertServiceUnavailable()
+        ->assertSeeText('Lidl — VÝPADEK')
+        ->assertSeeText('Tesco — OK');
+});

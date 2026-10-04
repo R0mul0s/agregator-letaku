@@ -30,9 +30,30 @@ final class WatchItemMatcher
      */
     public function match(WatchRule $rule, Offer $offer): ?MatchStatus
     {
+        return $this->matchPrepared($rule, $offer, $this->prepare($offer));
+    }
+
+    /**
+     * Normalizovaný text nabídky a příznak krmiva (R50) — pro párování jedné nabídky s více
+     * pravidly (matchPrepared), kde by normalizace pro každé pravidlo znovu stála nejvíc času.
+     *
+     * @return array{text: string, isPetFood: bool}
+     */
+    public function prepare(Offer $offer): array
+    {
         $text = $this->offerText($offer);
 
-        return $this->matchText($rule, $text, $offer->variant_note !== null, $this->petFood->isPetOffer($offer->source_category, $text));
+        return ['text' => $text, 'isPetFood' => $this->petFood->isPetOffer($offer->source_category, $text)];
+    }
+
+    /**
+     * Stav shody nabídky s pravidly nad výsledkem prepare.
+     *
+     * @param  array{text: string, isPetFood: bool}  $prepared
+     */
+    public function matchPrepared(WatchRule $rule, Offer $offer, array $prepared): ?MatchStatus
+    {
+        return $this->matchText($rule, $prepared['text'], $offer->variant_note !== null, $prepared['isPetFood']);
     }
 
     /**

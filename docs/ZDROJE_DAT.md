@@ -353,7 +353,9 @@ Detail produktu na webu: `https://www.billa.cz/produkt/{slug}` (`/produkty/` i `
   (`week_start_iso_day` = 3), stejně jako leták („Platí od středy 30. 9. do úterý 6. 10. 2026“ na `/akcni-letaky`).
   Zdroj „akce z webu“ má ID `web-{středa}`.
 - Co Billa ukončí dřív (víkendové a denní akce „SUPER STŘEDA“, „ČTVRTEK–NEDĚLE“), z API zmizí a import to označí
-  jako stažené (R16). Akce delší než týden dostane každý týden nový řádek. Proto denní stahování a cron až po
+  jako stažené (R16). Akce, která pokračuje do dalšího týdne se stejnou cenou (i s Klubem), prodlouží svůj řádek
+  — převezme začátek platnosti uložené akce (`extends_continuing_offers`, R54); se změnou ceny je to nová akce.
+  Bez toho by měla každý týden nový řádek a souhrn by ji poslal znovu jako novou. Stahuje se denně (kvůli dřívějším koncům), cron až po
   ranní výměně akcí (6:00) — ve středu brzy ráno by API mohlo ještě ukazovat minulý týden **(předpoklad)**.
 
 ### Pole a pasti

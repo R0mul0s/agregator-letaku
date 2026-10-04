@@ -71,6 +71,7 @@ return [
     // Artisan příkazy importu
     'import' => [
         'offers_done' => ':chain — uloženo nabídek: :count',
+        'offers_partial' => ':chain — uloženo nabídek: :count, ale chybějící akce se neoznačily jako stažené (:error)',
         'failed' => ':chain — chyba: :error',
         'unknown_chain' => 'Neznámý obchod nebo obchod bez zdroje „:chain“. Dostupné: :available',
         'categories_done' => 'Kategorie — uloženo: :count',
@@ -261,6 +262,7 @@ return [
             'exclude_keywords_hint' => 'Nepovinné. Akce s kterýmkoli z těchto slov se neukáže.',
             'product' => 'Produkt z katalogu',
             'keywords_or_product' => 'Zadejte hledaná slova, nebo vyberte produkt z katalogu.',
+            'keywords_too_short' => 'Aspoň jedno hledané slovo musí mít :min znaky nebo víc (jedno písmeno najde skoro všechno).',
             'already_watched' => 'Tenhle produkt už hlídáte.',
             'from_catalog' => 'Z katalogu',
             'add' => 'Přidat',
@@ -530,6 +532,7 @@ return [
             'profile' => 'Osobní údaje',
             'password' => 'Změna hesla',
             'current_password' => 'Současné heslo',
+            'email_change_password_hint' => 'Změnu e-mailu potvrďte heslem. Na novou adresu pošleme odkaz k ověření.',
             'new_password' => 'Nové heslo',
             'save' => 'Uložit',
             'offers_title' => 'Moje slevy',

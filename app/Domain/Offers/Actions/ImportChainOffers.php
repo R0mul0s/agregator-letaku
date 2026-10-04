@@ -3,11 +3,12 @@
 /**
  * Stáhne akční nabídku obchodu a uloží ji — zdroje (leaflets) a nabídky (offers).
  *
- * Každé stažení má záznam v scrape_runs. Nula nabídek i stránek je chyba zdroje, ne „žádné akce“
- * (CODING_GUIDELINES, sekce 3). Nabídky se nemažou (R10): opakované stažení stejnou
- * nabídku podle obchodu, ID položky a platnosti jen aktualizuje. Neskončená nabídka,
- * která v novém stažení chybí, se označí jako stažená obchodem (R16). Nakonec se nabídky
- * obchodu znovu přiřadí k produktům katalogu (R30).
+ * Každé stažení má záznam v scrape_runs. Nula nabídek je chyba zdroje, ne „žádné akce“
+ * (CODING_GUIDELINES, sekce 3); výjimkou je obchod jen se zmínkami (Albert). Nabídky se nemažou
+ * (R10): opakované stažení stejnou nabídku podle obchodu, ID položky a platnosti jen aktualizuje.
+ * Neskončená nabídka, která v novém stažení chybí, se označí jako stažená obchodem (R16) —
+ * ale ne, když jich chybí podezřele mnoho (R54). Nakonec se nabídky obchodu znovu přiřadí
+ * k produktům katalogu (R30).
  *
  * @author Roman Hlaváček
  *
@@ -24,6 +25,7 @@ use App\Domain\Offers\Data\LeafletPageData;
 use App\Domain\Offers\Data\OfferData;
 use App\Domain\Offers\Data\SourceBatch;
 use App\Domain\Offers\Exceptions\SourceReturnedNoOffers;
+use App\Domain\Offers\Exceptions\SuspiciousWithdrawal;
 use App\Domain\Offers\LocalCalendar;
 use App\Domain\Sources\SourceRegistry;
 use App\Enums\Chain;
@@ -70,14 +72,15 @@ final class ImportChainOffers
         try {
             $batches = $this->sources->offers($chain)->fetch();
 
-            [$offersCount, $withdrawnCount] = DB::transaction(function () use ($chain, $batches, $run): array {
+            [$offersCount, $withdrawn] = DB::transaction(function () use ($chain, $batches, $run): array {
                 $stored = [];
                 foreach ($batches as $batch) {
                     $stored += $this->storeBatch($chain, $batch, $run, array_keys($stored));
                 }
 
-                // Zdroj jen se zmínkami (Albert, R36) nabídky nemá — chyba je až prázdno ve všem
-                if ($stored === [] && ! array_any($batches, fn (SourceBatch $batch): bool => $batch->pages !== [])) {
+                // Zdroj jen se zmínkami (Albert, R36) nabídky nemá — u ostatních je nula chyba,
+                // i když vrátily stránky letáku (rozbitý parser Lidlu nebo Penny, R54)
+                if ($stored === [] && (! $this->isMentionsOnly($chain) || ! array_any($batches, fn (SourceBatch $batch): bool => $batch->pages !== []))) {
                     throw SourceReturnedNoOffers::for($chain);
                 }
 
@@ -88,7 +91,12 @@ final class ImportChainOffers
                 return [count($stored), $withdrawn];
             });
 
-            $run->succeed($offersCount, $withdrawnCount);
+            if ($withdrawn instanceof SuspiciousWithdrawal) {
+                $run->succeedPartially($offersCount, $withdrawn);
+                report($withdrawn);
+            } else {
+                $run->succeed($offersCount, $withdrawn);
+            }
         } catch (Throwable $error) {
             $run->fail($error);
 
@@ -111,7 +119,7 @@ final class ImportChainOffers
 
         $rows = [];
         $storeCodes = [];
-        foreach ($batch->offers as $offer) {
+        foreach ($this->continuePrevious($chain, $batch->offers) as $offer) {
             if (! isset($skip[$offer->key()]) && ! isset($rows[$offer->key()])) {
                 $rows[$offer->key()] = $this->row($chain, $leaflet, $run, $offer);
                 $storeCodes[$offer->key()] = $offer->storeCodes;
@@ -179,17 +187,94 @@ final class ImportChainOffers
     }
 
     /**
+     * Akce, která navazuje na uloženou akci se stejnou cenou, převezme její začátek platnosti,
+     * takže upsert prodlouží existující řádek místo založení nového (R54). Jinak by pokračující
+     * akce každý týden dostala nové ID — souhrn by ji poslal jako novou a ruční opravy katalogu
+     * by se ztratily. Jen u zdrojů, které platnost samy odvozují (Billa: akční týden, R48);
+     * u ostatních by se slily skutečně odlišné akce.
+     *
+     * @param  list<OfferData>  $offers
+     * @return list<OfferData>
+     */
+    private function continuePrevious(Chain $chain, array $offers): array
+    {
+        if ($offers === [] || config("letaky.sources.{$chain->value}.extends_continuing_offers") !== true) {
+            return $offers;
+        }
+
+        $previous = Offer::query()
+            ->where('chain', $chain)
+            ->active()
+            ->whereIn('external_id', array_values(array_unique(array_map(fn (OfferData $offer): string => $offer->externalId, $offers))))
+            ->get(['id', 'external_id', 'valid_from', 'valid_to', 'price', 'loyalty_price'])
+            ->groupBy('external_id');
+
+        $result = [];
+        $extended = [];
+        foreach ($offers as $offer) {
+            $row = $previous->get($offer->externalId)?->first(fn (Offer $row): bool => $this->continues($row, $offer));
+            if ($row instanceof Offer) {
+                if ($row->valid_to->toDateString() !== $offer->validTo->toDateString()) {
+                    $extended[$offer->validTo->toDateString()][] = $row->id;
+                }
+                $offer = $offer->withValidFrom($row->valid_from);
+            }
+            $result[] = $offer;
+        }
+
+        foreach ($extended as $validTo => $ids) {
+            foreach (array_chunk($ids, self::UPSERT_CHUNK) as $chunk) {
+                Offer::query()->whereIn('id', $chunk)->update(['valid_to' => $validTo]);
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Navazuje nabídka na uloženou akci? Uložená začala dřív, skončila nejdřív den před
+     * začátkem nové a nejpozději s ní a má stejnou cenu (změna ceny = nová akce).
+     */
+    private function continues(Offer $row, OfferData $offer): bool
+    {
+        return $row->valid_from->lessThan($offer->validFrom)
+            && $row->valid_to->greaterThanOrEqualTo($offer->validFrom->subDay())
+            && $row->valid_to->lessThanOrEqualTo($offer->validTo)
+            && $row->price === $offer->price
+            && $row->loyalty_price === $offer->loyaltyPrice;
+    }
+
+    /**
      * Neskončené nabídky obchodu, které v tomto stažení chyběly, označí jako stažené
      * obchodem (R16). Když se později znovu objeví, upsert označení zruší.
+     *
+     * Chybí-li víc než povolený podíl neskončených akcí, zdroj nejspíš vrátil jen část nabídky
+     * (R54) — neoznačí se nic a vrátí se důvod; akce zůstanou do konce platnosti.
      */
-    private function markWithdrawn(Chain $chain, ScrapeRun $run): int
+    private function markWithdrawn(Chain $chain, ScrapeRun $run): int|SuspiciousWithdrawal
     {
-        return Offer::query()
+        $current = Offer::query()
             ->where('chain', $chain)
-            ->where('scrape_run_id', '!=', $run->id)
-            ->whereNull('withdrawn_at')
-            ->notExpired($this->calendar->today())
-            ->update(['withdrawn_at' => CarbonImmutable::now()]);
+            ->active()
+            ->notExpired($this->calendar->today());
+        $missing = (clone $current)->where('scrape_run_id', '!=', $run->id);
+
+        $missingCount = $missing->count();
+        $currentCount = $current->count();
+        $maxShare = config()->float('letaky.import.max_withdrawn_share');
+        if ($missingCount > $currentCount * $maxShare) {
+            return SuspiciousWithdrawal::for($chain, $missingCount, $currentCount, $maxShare);
+        }
+
+        return $missing->update(['withdrawn_at' => CarbonImmutable::now()]);
+    }
+
+    /**
+     * Má obchod jen zmínky v letácích bez nabídek s cenou (Albert, R36)?
+     */
+    private function isMentionsOnly(Chain $chain): bool
+    {
+        return config("letaky.sources.{$chain->value}.mentions_only") === true;
     }
 
     /**

@@ -5,8 +5,8 @@
  *
  * Položka z katalogu (R31) bere nabídky z uloženého přiřazení k produktu (`offer_product`).
  * Položka s vlastními slovy se páruje při zobrazení — nabídek je řádově tisíce a hlídaných
- * položek jednotky (R19). Kandidáty předvybere databáze podle prvního slova položek, přesná
- * pravidla pak vyhodnotí WatchItemMatcher.
+ * položek jednotky (R19). Kandidáty předvybere databáze podle nejdelšího slova položek
+ * (WatchRule::prefilterTerm), přesná pravidla pak vyhodnotí WatchItemMatcher.
  *
  * K tomu zmínky na stránkách letáků bez ceny (R27): položka je v letáku, ale cenu k ní
  * neznáme. Zmínka se vynechá, když stejný obchod má k položce akci s cenou ve stejném období.
@@ -49,9 +49,10 @@ final class MyOffers
      * shody před „možná“. Ceny s kartou počítá jen u karet, které uživatel má. K tomu zmínky
      * v letácích bez ceny.
      *
+     * @param  bool  $withMentions  Hledat i zmínky v letácích (souhrn je nepotřebuje)
      * @return list<array{watchItem: WatchItem, offers: list<array{offer: Offer, status: MatchStatus}>, mentions: list<array{page: LeafletPage, status: MatchStatus}>}>
      */
-    public function forUser(User $user): array
+    public function forUser(User $user, bool $withMentions = true): array
     {
         $watchItems = $user->watchItems()->with('product')->orderBy('name')->get();
         $followed = $user->followedChains()->get();
@@ -70,9 +71,9 @@ final class MyOffers
         ))));
 
         $searchable = ! $followed->isEmpty() && $rules !== [];
-        $candidates = $searchable && $keywordRules !== [] ? $this->candidates($followed, $keywordRules) : new Collection;
+        $candidates = $searchable && $keywordRules !== [] ? $this->candidates($followed, $keywordRules) : [];
         $assignments = $searchable && $productIds !== [] ? $this->assignments($followed, $productIds) : new Collection;
-        $pages = $searchable ? $this->candidatePages($followed, $rules) : [];
+        $pages = $searchable && $withMentions ? $this->candidatePages($followed, $rules) : [];
 
         $groups = [];
         foreach ($watchItems as $item) {
@@ -93,14 +94,14 @@ final class MyOffers
     /**
      * Nabídky položky s vlastními slovy podle jejích pravidel.
      *
-     * @param  Collection<int, Offer>  $candidates
+     * @param  list<array{offer: Offer, prepared: array{text: string, isPetFood: bool}}>  $candidates
      * @return list<array{offer: Offer, status: MatchStatus}>
      */
-    private function matchByRule(WatchRule $rule, Collection $candidates): array
+    private function matchByRule(WatchRule $rule, array $candidates): array
     {
         $matches = [];
-        foreach ($candidates as $offer) {
-            $status = $this->matcher->match($rule, $offer);
+        foreach ($candidates as ['offer' => $offer, 'prepared' => $prepared]) {
+            $status = $this->matcher->matchPrepared($rule, $offer, $prepared);
             if ($status !== null) {
                 $matches[] = ['offer' => $offer, 'status' => $status];
             }
@@ -226,19 +227,22 @@ final class MyOffers
 
     /**
      * Neskončené nabídky sledovaných obchodů podle jejich upřesnění, které obsahují
-     * aspoň jednu alternativu prvního slova některé položky.
+     * aspoň jednu alternativu slova pro předvýběr některé položky; s textem pro párování,
+     * normalizovaným jednou pro všechny položky (R54).
      *
      * @param  Collection<int, FollowedChain>  $followed
      * @param  array<int, WatchRule>  $rules
-     * @return Collection<int, Offer>
+     * @return list<array{offer: Offer, prepared: array{text: string, isPetFood: bool}}>
      */
-    private function candidates(Collection $followed, array $rules): Collection
+    private function candidates(Collection $followed, array $rules): array
     {
-        return Offer::query()
+        $offers = Offer::query()
             ->tap(fn (Builder $query) => $this->whereCurrentFollowed($query, $followed))
-            ->tap(fn (Builder $query) => OfferPrefilter::containingAny($query, $this->firstWords($rules)))
+            ->tap(fn (Builder $query) => OfferPrefilter::containingAny($query, $this->prefilterWords($rules)))
             ->with('stores')
             ->get();
+
+        return array_map(fn (Offer $offer): array => ['offer' => $offer, 'prepared' => $this->matcher->prepare($offer)], array_values($offers->all()));
     }
 
     /**
@@ -260,7 +264,7 @@ final class MyOffers
 
     /**
      * Stránky neskončených letáků sledovaných obchodů, které obsahují aspoň jednu alternativu
-     * prvního slova některé položky; s normalizovaným textem a bez stránek s receptem.
+     * slova pro předvýběr některé položky; s normalizovaným textem a bez stránek s receptem.
      *
      * @param  Collection<int, FollowedChain>  $followed
      * @param  array<int, WatchRule>  $rules
@@ -285,7 +289,7 @@ final class MyOffers
                     });
             })
             ->where(function (Builder $query) use ($rules): void {
-                foreach ($this->firstWords($rules) as $word) {
+                foreach ($this->prefilterWords($rules) as $word) {
                     $query->orWhere('text', 'like', OfferPrefilter::likePattern($word));
                 }
             })
@@ -318,14 +322,14 @@ final class MyOffers
     }
 
     /**
-     * Alternativy prvního slova všech položek — pro předvýběr v databázi.
+     * Slova všech položek pro předvýběr v databázi (WatchRule::prefilterTerm).
      *
      * @param  array<int, WatchRule>  $rules
      * @return list<string>
      */
-    private function firstWords(array $rules): array
+    private function prefilterWords(array $rules): array
     {
-        return array_values(array_unique(array_merge(...array_map(fn (WatchRule $rule): array => $rule->keywords[0] ?? [], array_values($rules)))));
+        return array_values(array_unique(array_merge(...array_map(fn (WatchRule $rule): array => $rule->prefilterTerm(), array_values($rules)))));
     }
 
     /**

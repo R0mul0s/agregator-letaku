@@ -42,7 +42,11 @@ const user = computed(() => page.props.auth.user);
 const profileForm = useForm({
     name: page.props.auth.user.name,
     email: page.props.auth.user.email,
+    current_password: '',
 });
+
+/** Změna e-mailu chce současné heslo (R54) — pole se ukáže, až když se adresa liší. */
+const emailChanged = computed(() => profileForm.email.trim().toLowerCase() !== user.value.email.toLowerCase());
 
 const passwordForm = useForm({
     current_password: '',
@@ -65,11 +69,12 @@ const avatarInput = ref(null);
 const avatarError = ref(null);
 const avatarUploading = ref(false);
 
-/** Uloží jméno a e-mail. */
+/** Uloží jméno a e-mail; heslo se po odeslání vždy vymaže. */
 function updateProfile() {
     profileForm.put(props.urls.profile, {
         errorBag: props.errorBags.profile,
         preserveScroll: true,
+        onFinish: () => profileForm.reset('current_password'),
     });
 }
 
@@ -205,6 +210,17 @@ async function deleteAccount() {
                 <form class="form" novalidate @submit.prevent="updateProfile">
                     <TextField id="name" v-model="profileForm.name" :label="t('auth.name')" autocomplete="name" required :error="profileForm.errors.name" />
                     <TextField id="email" v-model="profileForm.email" :label="t('auth.email')" type="email" autocomplete="email" required :error="profileForm.errors.email" />
+                    <TextField
+                        v-if="emailChanged"
+                        id="profile_current_password"
+                        v-model="profileForm.current_password"
+                        :label="t('account.current_password')"
+                        :hint="t('account.email_change_password_hint')"
+                        type="password"
+                        autocomplete="current-password"
+                        required
+                        :error="profileForm.errors.current_password"
+                    />
 
                     <div class="form__actions">
                         <button type="submit" class="button button--primary" :disabled="profileForm.processing">{{ t('account.save') }}</button>

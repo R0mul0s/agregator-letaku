@@ -97,6 +97,14 @@ final readonly class OfferData
     }
 
     /**
+     * Kopie s jiným začátkem platnosti — akce navazující na uloženou akci (R54).
+     */
+    public function withValidFrom(CarbonImmutable $validFrom): self
+    {
+        return new self(...[...get_object_vars($this), 'validFrom' => $validFrom]);
+    }
+
+    /**
      * Klíč pro deduplikaci — odpovídá unikátnímu indexu tabulky offers (bez obchodu, ten má celá dávka společný).
      */
     public function key(): string

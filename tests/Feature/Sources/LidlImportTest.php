@@ -24,24 +24,28 @@ use Illuminate\Support\Facades\Http;
 
 /**
  * Falešné odpovědi lidl.cz: úvodní stránka, kampaně podle cesty, stránka letáků a API letáků.
+ *
+ * @param  bool  $withoutTiles  Kampaně bez dlaždic akcí — jako když Lidl změní HTML (R54)
  */
-function fakeLidl(): void
+function fakeLidl(bool $withoutTiles = false): void
 {
-    Http::fake(function (Request $request) {
+    Http::fake(function (Request $request) use ($withoutTiles) {
         $path = parse_url($request->url(), PHP_URL_PATH);
 
         if ($path === '/v4/flyer') {
             return Http::response(responseFixture('lidl/flyer-'.$request['flyer_identifier'].'-2026-10-02.json'));
         }
 
-        return Http::response(responseFixture(match ($path) {
+        $html = responseFixture(match ($path) {
             '/c/akcni-letak/s10008644' => 'lidl/letaky-2026-10-02.html',
             '/' => 'lidl/home-2026-10-02.html',
             '/c/ctvrtecni-nabidka/a10103788' => 'lidl/ctvrtecni-nabidka-2026-10-02.html',
             '/c/1-1-zdarma/a10103790' => 'lidl/1-1-zdarma-2026-10-02.html',
             '/c/vikendova-nabidka/a10103791' => 'lidl/vikendova-nabidka-2026-10-02.html',
             '/c/vdechni-latkam-zivot/a10103311' => 'lidl/vdechni-latkam-zivot-2026-10-02.html',
-        }));
+        });
+
+        return Http::response($withoutTiles ? str_replace('data-grid-data', 'data-changed', $html) : $html);
     });
 }
 
@@ -175,4 +179,15 @@ it('položce bez data dá platnost ostatních akcí kampaně', function (): void
     $tokaji = lidlOffer('10028498');
     expect($tokaji->valid_from->toDateString())->toBe('2026-10-02')
         ->and($tokaji->valid_to->toDateString())->toBe('2026-10-04');
+});
+
+it('bez akcí skončí chybou, i když leták vrátil stránky (R54)', function (): void {
+    fakeLidl(withoutTiles: true);
+
+    $this->artisan('letaky:import-offers', ['chain' => ['lidl']])->assertFailed();
+
+    expect(ScrapeRun::query()->sole())
+        ->status->toBe(ScrapeStatus::Failed)
+        ->error->toContain('nevrátil žádnou nabídku')
+        ->and(Leaflet::query()->count())->toBe(0);
 });

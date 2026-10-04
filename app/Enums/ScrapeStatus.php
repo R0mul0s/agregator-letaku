@@ -16,5 +16,8 @@ enum ScrapeStatus: string
 {
     case Running = 'running';
     case Succeeded = 'succeeded';
+    // Nabídky uložené, chybějící akce se ale neoznačily jako stažené — zdroj vrátil
+    // podezřele málo (R54). Pro hlídání stahování (/health/imports) to není úspěch.
+    case Partial = 'partial';
     case Failed = 'failed';
 }

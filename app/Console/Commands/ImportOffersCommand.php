@@ -15,6 +15,7 @@ namespace App\Console\Commands;
 use App\Console\Commands\Concerns\SelectsChains;
 use App\Domain\Offers\Actions\ImportChainOffers;
 use App\Domain\Sources\SourceRegistry;
+use App\Enums\ScrapeStatus;
 use Illuminate\Console\Command;
 use Throwable;
 
@@ -43,7 +44,11 @@ class ImportOffersCommand extends Command
         foreach ($chains as $chain) {
             try {
                 $run = $import($chain);
-                $this->info(__('app.import.offers_done', ['chain' => $chain->label(), 'count' => $run->offers_count]));
+                if ($run->status === ScrapeStatus::Partial) {
+                    $this->warn(__('app.import.offers_partial', ['chain' => $chain->label(), 'count' => $run->offers_count, 'error' => $run->error]));
+                } else {
+                    $this->info(__('app.import.offers_done', ['chain' => $chain->label(), 'count' => $run->offers_count]));
+                }
             } catch (Throwable $error) {
                 report($error);
                 $this->error(__('app.import.failed', ['chain' => $chain->label(), 'error' => $error->getMessage()]));

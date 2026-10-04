@@ -220,6 +220,9 @@ return [
             'multibuy_min_quantity' => 2,
             // API nemá platnost akcí — akční týden jako leták: středa (ISO 3) až úterý
             'week_start_iso_day' => 3,
+            // Platnost odvozujeme sami: akce, která se stejnou cenou pokračuje do dalšího týdne,
+            // prodlouží svůj řádek, místo aby vznikla „nová“ (R54, ImportChainOffers::continuePrevious)
+            'extends_continuing_offers' => true,
             'offers_page_url' => 'https://www.billa.cz/akcni-letaky',
             // ~25 stránek po ~1 MB — pauza kratší než výchozí, ať stažení nepřesáhne limit hostingu (O8)
             'request_delay_ms' => (int) env('LETAKY_BILLA_REQUEST_DELAY_MS', 1000),
@@ -227,6 +230,8 @@ return [
         'albert' => [
             // Jen zmínky v letácích bez ceny (R27, R36): text stránek z prohlížeče Publitas
             'offers_source' => AlbertOfferSource::class,
+            // Stažení bez akcí s cenou není chyba, stačí stránky letáku (u ostatních obchodů je, R54)
+            'mentions_only' => true,
             'has_store_formats' => true,
             'has_eshop' => false,
             'api_url' => 'https://www.albert.cz/api/v1/',
@@ -277,16 +282,30 @@ return [
     ],
 
     /*
-    | E-mailový souhrn nových akcí (R42). Cron ho volá jednou denně po ranním stažení;
-    | interval je o pár hodin kratší než den / týden, aby posun cronu souhrn nepřeskočil.
+    | E-mailový souhrn nových akcí (R42). Cron ho volá po ranním stažení, každou hodinu
+    | dopoledne (R54) — jedno volání zpracuje dávku uživatelů; interval je o pár hodin kratší
+    | než den / týden, aby posun cronu souhrn nepřeskočil.
     */
     'digest' => [
+        // Uživatelů na jedno volání: vejde se do limitu běhu (~1 s na e-mail) i do limitu
+        // Websupportu 300 e-mailů za hodinu ze schránky
+        'users_per_run' => 100,
         'interval_hours' => [
             'daily' => 20,
             'weekly' => 164,
         ],
         // Kolik akcí jedné hlídané položky e-mail vypíše (zbytek odkaz na Moje slevy)
         'max_offers_per_item' => 5,
+    ],
+
+    /*
+    | Import akcí (ImportChainOffers). Chybí-li v novém stažení víc než tento podíl neskončených
+    | akcí obchodu, zdroj nejspíš vrátil jen část nabídky — chybějící se neoznačí jako stažené
+    | (R16) a stažení skončí jako částečné (R54). Běžně chybí jednotky procent; Globus po vyřazení
+    | oblečení 24 %, výpadek jednoho ze dvou letáků Penny kolem 50 %.
+    */
+    'import' => [
+        'max_withdrawn_share' => 0.4,
     ],
 
     'cron' => [
@@ -429,6 +448,9 @@ return [
         'max_items_per_user' => 50,
         'name_max_length' => 100,
         'keywords_max_length' => 255,
+        // Nejdelší hledané slovo aspoň takhle dlouhé — jedno písmeno nebo číslice by pustily
+        // do předvýběru skoro všechny nabídky (R54, App\Rules\SearchableKeywords); „wc“ projde
+        'min_search_word_length' => 2,
     ],
 
 ];
