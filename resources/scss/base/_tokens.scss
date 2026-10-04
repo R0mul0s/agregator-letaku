@@ -134,7 +134,9 @@
     --auth-deal-image-size: 3.5rem;
     --auth-deal-tilt: 1deg;
     --auth-step-size: 1.25rem;
-    --account-column-min-width: 20rem;
+    // Můj účet (R63): navigace sekcí vlevo a sloupec nadpisu sekce
+    --account-nav-width: 11rem;
+    --account-section-header-width: 14rem;
     // Karta obchodu v Mých obchodech — tři v řádku do šířky obsahu (69rem bez odsazení)
     --chain-card-min-width: 20rem;
     --chain-card-select-min-width: 8rem;

@@ -1,14 +1,161 @@
 // _account.scss
-// Můj účet — oddíly vedle sebe na širokém displeji, profilový obrázek, přihlášená zařízení.
+// Můj účet (R63) — sekce pod sebou s navigací vlevo; v sekci nadpis s vysvětlením vlevo
+// a pole vpravo, na užším displeji pod sebou. Profilový obrázek, volby souhrnu, zařízení.
 //
 // @author Roman Hlaváček
 // @created 2026-10-02
 
+@use '../abstracts/mixins' as *;
+
 .account {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--account-column-min-width)), 1fr));
-    align-items: start;
     gap: var(--space-4);
+
+    @include from-lg {
+        grid-template-columns: var(--account-nav-width) minmax(0, 1fr);
+        align-items: start;
+    }
+
+    &__sections {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-4);
+    }
+}
+
+// Navigace sekcí: na telefonu řada odkazů, na počítači sloupec, který jede se stránkou
+.account-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1);
+
+    @include from-lg {
+        position: sticky;
+        top: var(--header-scroll-offset);
+        flex-direction: column;
+    }
+
+    &__link {
+        padding: var(--space-1) var(--space-3);
+        border-radius: var(--radius-pill);
+        color: var(--color-text-muted);
+        font-weight: 600;
+        text-decoration: none;
+
+        &:hover,
+        &:focus-visible {
+            background: var(--color-surface);
+            color: var(--color-accent-strong);
+        }
+    }
+}
+
+// Sekce: nadpis s vysvětlením vlevo, obsah vpravo (na širokém displeji)
+.account-section {
+    display: grid;
+    gap: var(--space-3) var(--space-5);
+
+    @include from-md {
+        grid-template-columns: var(--account-section-header-width) minmax(0, 1fr);
+    }
+
+    &__title {
+        font-size: var(--font-size-card-title);
+    }
+
+    &__hint {
+        margin-top: var(--space-1);
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+    }
+
+    // „Změny se ukládají hned“ — u sekcí bez tlačítka Uložit
+    &__autosave {
+        margin-top: var(--space-2);
+        color: var(--color-success-text);
+        font-size: var(--font-size-xs);
+        font-weight: 700;
+    }
+
+    &__body {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-3);
+        min-width: 0;
+    }
+
+    // Druhá část sekce (novinky pod souhrnem, zařízení pod heslem) oddělená čarou
+    &__part {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-2);
+        padding-top: var(--space-3);
+        border-top: 1px solid var(--color-border);
+    }
+
+    &__subtitle {
+        margin: 0;
+        padding: 0;
+        font-size: var(--font-size-md);
+        font-weight: 800;
+    }
+
+    &__warning {
+        color: var(--color-warning-text);
+        font-size: var(--font-size-sm);
+        font-weight: 600;
+    }
+
+    // Samostatné tlačítko v obsahu sekce — ve sloupci by se roztáhlo přes celou šířku
+    &__action {
+        align-self: flex-start;
+    }
+
+    // Pole s heslem po klepnutí na „Odhlásit ostatní zařízení…“ / „Zrušit účet…“
+    &__confirm {
+        max-width: var(--auth-card-max-width);
+    }
+}
+
+// Volby četnosti souhrnu jako dlaždice s vysvětlením; vybraná zvýrazněná
+.account-choice {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    margin: 0;
+    padding: 0;
+    border: 0;
+
+    &__option {
+        display: flex;
+        align-items: flex-start;
+        gap: var(--space-2);
+        padding: var(--space-2) var(--space-3);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-md);
+        cursor: pointer;
+
+        &--selected {
+            border-color: var(--color-accent);
+            background: var(--color-accent-soft);
+        }
+
+        .form-checkbox__input {
+            flex: none;
+            margin-top: calc((1em * var(--line-height-base) - var(--checkbox-size)) / 2);
+        }
+    }
+
+    &__label {
+        display: block;
+        font-weight: 700;
+    }
+
+    &__hint {
+        display: block;
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+    }
 }
 
 // Profilový obrázek s tlačítky vedle (R40)
@@ -17,7 +164,6 @@
     flex-wrap: wrap;
     align-items: center;
     gap: var(--space-3);
-    margin-bottom: var(--space-4);
 
     &__body {
         flex: 1;
@@ -41,7 +187,7 @@
     display: flex;
     flex-direction: column;
     gap: var(--space-2);
-    margin: var(--space-3) 0;
+    margin: 0;
     padding: 0;
     list-style: none;
 
@@ -65,14 +211,4 @@
         color: var(--color-text-muted);
         font-size: var(--font-size-sm);
     }
-}
-
-// Volba četnosti souhrnu (R42) — přepínače pod sebou, bez rámečku fieldsetu
-.digest-options {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
-    margin: 0;
-    padding: 0;
-    border: 0;
 }
