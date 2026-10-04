@@ -47,6 +47,8 @@ final class RateLimits
         'user-profile-information.update',
         'account.destroy',
         'account.devices.logout',
+        // Zkušební upozornění v telefonu posílá požadavek push službě (R66)
+        'account.push.test',
     ];
 
     /**

@@ -18,6 +18,7 @@ use App\Domain\Offers\LocalCalendar;
 use App\Domain\Offers\OfferPresenter;
 use App\Enums\Chain;
 use App\Http\Requests\ShoppingListRequest;
+use App\Http\Requests\ShoppingListSyncRequest;
 use App\Models\ShoppingListItem;
 use App\Models\User;
 use Carbon\CarbonImmutable;
@@ -99,6 +100,21 @@ class ShoppingListController extends Controller
     {
         Gate::authorize('update', $item);
         $item->update(['checked_at' => $request->boolean('checked') ? CarbonImmutable::now() : null]);
+
+        return back(fallback: route('shopping-list.index'));
+    }
+
+    /**
+     * Odškrtnutí udělaná v obchodě bez signálu (R66) — prohlížeč je pošle najednou, až je
+     * připojení. Položky, které mezitím zmizely (smazané na jiném zařízení), přeskočí.
+     */
+    public function sync(ShoppingListSyncRequest $request): RedirectResponse
+    {
+        $items = $this->user($request)->shoppingListItems();
+        $changes = $request->changes();
+
+        (clone $items)->whereKey($changes['checked'])->whereNull('checked_at')->update(['checked_at' => CarbonImmutable::now()]);
+        (clone $items)->whereKey($changes['unchecked'])->update(['checked_at' => null]);
 
         return back(fallback: route('shopping-list.index'));
     }

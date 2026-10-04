@@ -14,7 +14,8 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
         <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
+        {{-- viewport-fit=cover: aplikace z plochy jde až k výřezu displeje, odsazení řeší env(safe-area-inset-*) (R66) --}}
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
         <title inertia>{{ $seo['title'] }}</title>
         <meta name="description" content="{{ $seo['description'] }}">
         <meta name="robots" content="{{ $seo['robots'] }}">
@@ -46,6 +47,16 @@
         <link rel="apple-touch-icon" href="/images/brand/apple-touch-icon.png">
         {{-- Přidání na plochu telefonu (R55, ManifestController) --}}
         <link rel="manifest" href="{{ route('manifest', absolute: false) }}">
+        {{-- iPhone (R66): okno bez lišty Safari, název pod ikonou, stavový řádek nad stránkou (ne přes ni)
+             a úvodní obrazovka podle rozlišení displeje — iOS ji z manifestu nebere --}}
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-title" content="{{ __('app.ui.app_name') }}">
+        <meta name="apple-mobile-web-app-status-bar-style" content="default">
+        @foreach (config('letaky.pwa.startup_images') as [$width, $height, $ratio])
+            <link rel="apple-touch-startup-image" href="/images/brand/splash-{{ $width }}x{{ $height }}x{{ $ratio }}.png"
+                media="(device-width: {{ $width }}px) and (device-height: {{ $height }}px) and (-webkit-device-pixel-ratio: {{ $ratio }}) and (orientation: portrait)">
+        @endforeach
         {{-- schema.org pro vyhledávače — datový blok, ne skript (CSP ho nespouští) --}}
         @foreach ($seo['jsonLd'] as $data)
             <script type="application/ld+json">{!! json_encode($data, $jsonLdFlags) !!}</script>

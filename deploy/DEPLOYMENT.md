@@ -85,6 +85,9 @@ a vyplň místa `<…>`:
 - `MAIL_*` — schránka založená ve WebAdminu (odkazy na obnovu hesla)
 - `TESCO_API_KEY` — veřejný klíč e-shopu Tesco, stejný jako lokálně (`mangoApiKey`, viz ZDROJE_DAT.md)
 - `LETAKY_CRON_TOKEN` — náhodný řetězec: `docker compose exec app php -r "echo bin2hex(random_bytes(24));"`
+- `LETAKY_VAPID_PUBLIC_KEY` a `LETAKY_VAPID_PRIVATE_KEY` — klíče pro upozornění v telefonu (R66):
+  `docker compose exec app php artisan letaky:push-keys`, vygenerovat **jednou** a neměnit (nové klíče
+  zneplatní všechny odběry); prázdné = upozornění vypnutá
 - volitelně `LETAKY_GA_MEASUREMENT_ID` (Google Analytics po souhlasu s cookies, R52) a `LETAKY_USER_AGENT`
   (User-Agent stahování — **bez `https://`**, jinak Albert vrací 400, R65; konfigurace není v cache,
   změna v `.env` platí hned bez nasazení)
@@ -118,7 +121,7 @@ pole *Opakovat* je zápis cronu (`minuta hodina den měsíc den_v_týdnu`). URL 
 | Slevohlídka – Globus | `50 5,13 * * *` | `…/cron/import-offers?chain=globus&token=…` (~25 s) |
 | Slevohlídka – Billa | `0 6,14 * * *` | `…/cron/import-offers?chain=billa&token=…` (~50 s; celý katalog, po ranní výměně akcí) |
 | Slevohlídka – kategorie | `0 4 1 * *` | `…/cron/import-categories?token=…` — strom kategorií (stačí občas) |
-| Slevohlídka – souhrn | `30 6-22 * * *` | `…/cron/send-digests?token=…` — e-mailové souhrny a okamžitá upozornění nových akcí (R42, R58); jedno volání = dávka 100 uživatelů, kterým je čas a od jejichž souhrnu doběhlo stažení (R54) |
+| Slevohlídka – souhrn | `30 6-22 * * *` | `…/cron/send-digests?token=…` — e-mailové souhrny a okamžitá upozornění nových akcí (R42, R58) a upozornění v telefonu (R66); jedno volání = dávka 100 uživatelů na e-mail a 200 na telefon, kterým je čas a od jejichž souhrnu doběhlo stažení (R54) |
 | Slevohlídka – úklid | `15 3 * * *` | `…/cron/prune-sessions?token=…` — smaže vypršelé relace (IP, prohlížeč) a propadlé odkazy na obnovu hesla (R53; zásady slibují průběžné mazání) |
 
 Hned po nasazení zavolej URL stažení ručně v prohlížeči (kategorie první), ať se nečeká
@@ -277,13 +280,22 @@ v `.env` na hostingu.
 
 ### Aktualizace z `10072aa` (sedmé nasazení — zatím nenasazeno)
 
-User-Agent bez `https://` v kódu (R65) a aktualizace dokumentace. Bez SQL skriptu a změny cronu,
-`composer.lock` se nezměnil.
+User-Agent bez `https://` v kódu (R65) a **aplikace v telefonu** (R66): service worker a offline
+režim, spodní lišta, upozornění v telefonu. **Změnil se `composer.lock`** (`minishlink/web-push`
+a jeho závislosti), přibyla složka `resources/pwa` a obrázky v `public/images/brand`.
 
-1. **Nahraj `deploy/upload/`** jako minule: bez `vendor/`, ale s `vendor/composer/` a `bootstrap/cache/packages.php`; `public/build/` nejdřív smaž.
-2. Řádek `LETAKY_USER_AGENT` v `.env` už není potřeba — výchozí hodnota v kódu je stejná; může zůstat.
-3. **Ověř:** `version.txt?v=<cokoli>` a `/health/imports` (Albert OK po dalším stažení).
-4. Zapiš verzi do *Nasazené verze*.
+1. **Záloha databáze** a v phpMyAdminu `migrations-2026-10-04-upozorneni-v-telefonu.sql` (tabulka
+   `push_subscriptions`, `users.push_sent_at`) — **před** nahráním kódu.
+2. Lokálně `docker compose exec app php artisan letaky:push-keys` a oba řádky vlož do `.env` na hostingu.
+3. **Nahraj `deploy/upload/` celé včetně `vendor/`** (nové balíčky) a `bootstrap/cache/packages.php`;
+   `public/build/` nejdřív smaž.
+4. Řádek `LETAKY_USER_AGENT` v `.env` už není potřeba — výchozí hodnota v kódu je stejná; může zůstat.
+5. **Ověř:** `version.txt?v=<cokoli>`, `/health/imports` (Albert OK po dalším stažení),
+   `/sw.js` vrací JavaScript začínající `self.SW_CONFIG`, `/offline` stránku „Jste offline“;
+   v telefonu: Můj účet → Upozornění → *Posílat upozornění na toto zařízení* a *Poslat zkušební
+   upozornění* (na iPhonu až z aplikace přidané na plochu); `/cron/send-digests?token=…` vrací
+   i řádek `Upozornění v telefonu — odesláno: N`.
+6. Zapiš verzi do *Nasazené verze* a datum ke skriptu v *Historii SQL skriptů*.
 
 **Každá nová migrace potřebuje SQL skript** `deploy/migrations-<datum>-<popis>.sql`
 (opakovatelný: `CREATE TABLE IF NOT EXISTS`, `ADD COLUMN IF NOT EXISTS`) včetně zápisu do
@@ -312,6 +324,7 @@ a ruční opravy katalogu. Před každým SQL skriptem a jinak aspoň jednou mě
 | `migrations-2026-10-02-ucet.sql` | nastavení účtu: `users.avatar_path` (R40), `users.offers_sort` a `min_discount_percent` (R41), `users.digest_frequency` a `digest_sent_at` (R42); opakovatelný, pustit **před** nahráním kódu | 2026-10-02 |
 | `migrations-2026-10-03-souhlasy.sql` | souhlasy (R51): `users.terms_accepted_at`, `terms_version`, `marketing_consent_at`, `marketing_consent_version`, `marketing_consent_withdrawn_at`; dosavadní účty označí jako ověřené (`email_verified_at`); opakovatelný, pustit **před** nahráním kódu | 2026-10-03 |
 | `migrations-2026-10-04-nakupni-seznam.sql` | nákupní seznam (R61): tabulka `shopping_list_items`; opakovatelný, pustit **před** nahráním kódu | 2026-10-04 |
+| `migrations-2026-10-04-upozorneni-v-telefonu.sql` | upozornění v telefonu (R66): tabulka `push_subscriptions`, `users.push_sent_at`; opakovatelný, pustit **před** nahráním kódu | |
 
 ## Nasazené verze
 

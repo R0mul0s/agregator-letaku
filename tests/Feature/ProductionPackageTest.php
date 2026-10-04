@@ -22,3 +22,10 @@ it('balíček nese právní texty, které aplikace čte za běhu (R51)', functio
 
     expect($script)->toContain("'resources\\".config('letaky.legal.directory')."'");
 });
+
+it('balíček nese service worker, který server posílá na /sw.js (R66)', function (): void {
+    $script = (string) file_get_contents(base_path('deploy/build-upload.ps1'));
+
+    expect($script)->toContain("'resources\\pwa'")
+        ->and(resource_path('pwa/service-worker.js'))->toBeFile();
+});

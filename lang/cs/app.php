@@ -148,6 +148,19 @@ return [
         'failed' => 'Souhrny — chyba: :error',
     ],
 
+    // Upozornění v telefonu — web push (R66, SendPushNotifications)
+    'push' => [
+        'title_one' => ':name je v akci',
+        'title_many' => ':count nová akce na hlídané zboží|:count nové akce na hlídané zboží|:count nových akcí na hlídané zboží',
+        'line' => ':name — :price, :chain',
+        'more' => 'a :count další…|a :count další…|a :count dalších…',
+        'test_title' => 'Upozornění fungují',
+        'test_body' => 'Takhle vám dáme vědět, až bude hlídané zboží v akci.',
+        'done' => 'Upozornění v telefonu — odesláno: :count',
+        'failed' => 'Upozornění v telefonu — chyba: :error',
+        'keys_generated' => 'Klíče VAPID — vložte je do .env (na produkci do .env na hostingu):',
+    ],
+
     // Hlídání stahování (/health/imports) — prostý text pro monitoring
     'health' => [
         'ok' => ':chain — OK, naposledy :at',
@@ -182,6 +195,52 @@ return [
             'preferences' => 'Obchody',
             'offers' => 'Všechny akce',
             'catalog' => 'Katalog',
+            // Spodní lišta záložek na telefonu (R66, TabBar.vue) — krátké názvy, ať se jich pět vejde
+            'tabs_label' => 'Hlavní stránky',
+            'tabs' => [
+                'home' => 'Moje slevy',
+                'watch_items' => 'Hlídám',
+                'shopping_list' => 'Seznam',
+                'preferences' => 'Obchody',
+                'offers' => 'Akce',
+            ],
+        ],
+
+        // Aplikace v telefonu (R66): přidání na plochu, offline režim (InstallPrompt, OfflineBar, PhoneAppSettings)
+        'pwa' => [
+            'install_title' => 'Slevohlídka jako aplikace',
+            'install_text' => 'Přidejte si Slevohlídku na plochu telefonu — otevře se jedním klepnutím, nákupní seznam funguje i bez signálu a může vás upozornit na nové akce.',
+            'install' => 'Přidat na plochu',
+            'install_later' => 'Teď ne',
+            'install_ios_steps' => 'V Safari klepněte dole na Sdílet (čtverec se šipkou) a pak na Přidat na plochu.',
+            'install_browser_menu' => 'V menu prohlížeče zvolte Přidat na plochu nebo Nainstalovat aplikaci.',
+            'installed' => 'Slevohlídku máte na ploše — běží jako aplikace.',
+            'settings_title' => 'Aplikace v telefonu',
+            'offline' => 'Jste offline — ukazujeme uloženou verzi.',
+            'stale' => 'Slabý signál — ukazujeme uloženou verzi.',
+            'fetched_at' => 'Stav z :at.',
+            'offline_navigation' => 'Jste offline a tahle stránka není uložená. Moje slevy a nákupní seznam fungují i bez signálu.',
+        ],
+
+        // Stránka bez připojení (R66, resources/views/pwa/offline.blade.php)
+        'offline' => [
+            'title' => 'Jste offline',
+            'text' => 'Tahle stránka bez signálu není k dispozici. Moje slevy a nákupní seznam máte v telefonu uložené.',
+            'retry' => 'Zkusit znovu',
+        ],
+
+        // Upozornění v telefonu — web push (R66, PhoneAppSettings.vue)
+        'push' => [
+            'title' => 'Upozornění v telefonu',
+            'hint' => 'Jakmile bude hlídané zboží v akci, telefon vám to oznámí — po stažení letáků, nejvýš jednou za hodinu a jen přes den.',
+            'enable' => 'Posílat upozornění na toto zařízení',
+            'test' => 'Poslat zkušební upozornění',
+            'other_devices' => 'Upozornění chodí také na: :devices.',
+            'unsupported' => 'Tento prohlížeč upozornění neumí. Zkuste Chrome, Edge, Firefox nebo Samsung Internet.',
+            'ios_install_first' => 'Na iPhonu upozornění fungují, jen když máte Slevohlídku přidanou na plochu — pak je zapnete tady v aplikaci.',
+            'denied' => 'Upozornění máte pro Slevohlídku v prohlížeči zakázaná. Povolte je v nastavení webu (ikona zámku u adresy) nebo v nastavení telefonu.',
+            'failed' => 'Upozornění se nepodařilo nastavit. Zkuste to prosím znovu.',
+            'invalid_endpoint' => 'Upozornění tohoto prohlížeče nepodporujeme.',
         ],
 
         'catalog' => [
@@ -545,6 +604,14 @@ return [
             'clear_checked_confirm' => 'Odškrtnuté položky zmizí ze seznamu.',
             'clear_checked_confirm_label' => 'Smazat',
             'limit' => 'Do seznamu se vejde nejvýš :count akcí.',
+            // V obchodě (R66): odškrtnutí bez signálu, poslání seznamu, nezhasínání displeje
+            'pending' => 'Odškrtnutí bez signálu jsou uložená v telefonu — odešleme je, až budete online.',
+            'share' => 'Poslat seznam',
+            'share_line' => '– :name, :price',
+            'share_empty' => 'V seznamu už nic nezbývá koupit.',
+            'share_copied' => 'Seznam je zkopírovaný — vložte ho do zprávy.',
+            'share_failed' => 'Seznam se nepodařilo zkopírovat.',
+            'wake_lock' => 'Nezhasínat displej',
         ],
 
         'home' => [
@@ -742,6 +809,11 @@ return [
                 'shopping-added' => 'Přidáno do nákupního seznamu.',
                 'shopping-removed' => 'Odebráno z nákupního seznamu.',
                 'shopping-cleared' => 'Odškrtnuté položky jsou pryč.',
+                // PushSubscriptionController (R66)
+                'push-enabled' => 'Upozornění na tomto zařízení jsou zapnutá.',
+                'push-disabled' => 'Upozornění na tomto zařízení jsou vypnutá.',
+                'push-test-sent' => 'Zkušební upozornění je na cestě.',
+                'push-test-failed' => 'Zkušební upozornění se nepodařilo poslat. Zkuste upozornění vypnout a znovu zapnout.',
                 // CatalogController
                 'product-saved' => 'Produkt je uložený.',
                 'product-deleted' => 'Produkt je smazaný.',

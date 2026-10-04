@@ -13,6 +13,8 @@ defineProps({
     label: { type: String, default: '' },
     /** Chyba validace pole. */
     error: { type: String, default: null },
+    /** Pole nejde měnit (ukládání ještě běží). */
+    disabled: { type: Boolean, default: false },
 });
 
 const model = defineModel({ type: Boolean, default: false });
@@ -25,6 +27,7 @@ const model = defineModel({ type: Boolean, default: false });
                 :id="id"
                 v-model="model"
                 :name="id"
+                :disabled="disabled"
                 type="checkbox"
                 class="form-checkbox__input"
                 :aria-invalid="error ? 'true' : undefined"

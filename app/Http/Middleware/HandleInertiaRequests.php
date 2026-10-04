@@ -16,6 +16,7 @@ use App\Enums\Chain;
 use App\Models\User;
 use App\Support\Operator;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Vite;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -27,7 +28,10 @@ class HandleInertiaRequests extends Middleware
      */
     protected $rootView = 'app';
 
-    /** Položky hlavní navigace přihlášeného uživatele: název routy => klíč textu v app.ui.nav. */
+    /**
+     * Položky hlavní navigace přihlášeného uživatele: název routy => klíč textu v app.ui.nav.
+     * Na telefonu jsou ve spodní liště záložek (R66, TabBar.vue) s ikonou podle klíče (NavIcon.vue).
+     */
     private const NAVIGATION = [
         'home' => 'home',
         'watch-items.index' => 'watch_items',
@@ -91,7 +95,16 @@ class HandleInertiaRequests extends Middleware
             'shoppingList' => fn (): ?array => $user instanceof User ? [
                 'offerIds' => $user->shoppingListItems()->pluck('offer_id')->all(),
                 'toggleUrl' => route('shopping-list.toggle', absolute: false),
+                // Odškrtnutí udělaná bez připojení se odešlou, až je signál — z kterékoli stránky (R66)
+                'syncUrl' => route('shopping-list.sync', absolute: false),
             ] : null,
+            // Aplikace v telefonu (R66): service worker jen z buildu — s Vite dev serverem (HMR)
+            // by ukládal soubory, které se při každé změně mění
+            'pwa' => fn (): array => [
+                'serviceWorkerUrl' => Vite::isRunningHot() ? null : route('service-worker', absolute: false),
+                'refreshAfterMinutes' => config()->integer('letaky.pwa.refresh_after_minutes'),
+                'installSnoozeDays' => config()->integer('letaky.pwa.install_prompt_snooze_days'),
+            ],
             // Patička (R51): provozovatel, kontakt a právní stránky — název se nesmí krýt s propem stránky
             'siteFooter' => fn (): array => [
                 'operator' => config('letaky.operator.name'),
@@ -114,7 +127,10 @@ class HandleInertiaRequests extends Middleware
             'navigation' => fn (): array => array_map(
                 fn (string $routeName, string $labelKey): array => [
                     'url' => route($routeName, absolute: false),
+                    'key' => $labelKey,
                     'label' => 'nav.'.$labelKey,
+                    // Ve spodní liště na telefonu jen hlavní položky přihlášeného (katalog admina zůstává v menu)
+                    'tab' => $user !== null && array_key_exists($routeName, self::NAVIGATION),
                     'active' => $request->routeIs($routeName) || $request->routeIs(str_replace('.index', '.*', $routeName)),
                 ],
                 array_keys($this->navigation($user)),

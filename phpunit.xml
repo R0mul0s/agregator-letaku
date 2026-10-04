@@ -37,6 +37,9 @@
         <env name="LETAKY_KAUFLAND_STORE_PAGE_DELAY_MS" value="0"/>
         <env name="TESCO_API_KEY" value="test-api-key"/>
         <env name="LETAKY_PASSWORD_UNCOMPROMISED" value="false"/>
+        <!-- Upozornění v telefonu (R66) vypnutá — testy si klíče VAPID nastaví samy, odeslání podvrhnou -->
+        <env name="LETAKY_VAPID_PUBLIC_KEY" value=""/>
+        <env name="LETAKY_VAPID_PRIVATE_KEY" value=""/>
         <env name="MAIL_MAILER" value="array"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>

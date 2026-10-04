@@ -39,6 +39,7 @@ use Illuminate\Support\Collection;
  * @property int|null $min_discount_percent Moje slevy jen se slevou aspoň tolik %, null = všechny (R41)
  * @property DigestFrequency $digest_frequency Jak často posílat e-mailový souhrn (R42)
  * @property CarbonImmutable|null $digest_sent_at Poslední zpracovaný souhrn (UTC), i když nebylo co poslat (R54)
+ * @property CarbonImmutable|null $push_sent_at Poslední zpracované upozornění v telefonu (UTC), i když nebylo co poslat (R66)
  * @property CarbonImmutable|null $terms_accepted_at Přijetí podmínek užití (R51)
  * @property int|null $terms_version Verze přijatých podmínek (letaky.legal.terms_version)
  * @property CarbonImmutable|null $marketing_consent_at Souhlas s obchodními sděleními (R51); null = bez souhlasu
@@ -73,6 +74,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'min_discount_percent' => null,
         'digest_frequency' => 'off',
         'digest_sent_at' => null,
+        'push_sent_at' => null,
         'terms_accepted_at' => null,
         'terms_version' => null,
         'marketing_consent_at' => null,
@@ -102,6 +104,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'min_discount_percent' => 'integer',
             'digest_frequency' => DigestFrequency::class,
             'digest_sent_at' => 'immutable_datetime',
+            'push_sent_at' => 'immutable_datetime',
             'terms_accepted_at' => 'immutable_datetime',
             'terms_version' => 'integer',
             'marketing_consent_at' => 'immutable_datetime',
@@ -140,6 +143,16 @@ class User extends Authenticatable implements MustVerifyEmail
     public function shoppingListItems(): HasMany
     {
         return $this->hasMany(ShoppingListItem::class);
+    }
+
+    /**
+     * Zařízení, kterým chodí upozornění v telefonu (web push, R66).
+     *
+     * @return HasMany<PushSubscription, $this>
+     */
+    public function pushSubscriptions(): HasMany
+    {
+        return $this->hasMany(PushSubscription::class);
     }
 
     /**

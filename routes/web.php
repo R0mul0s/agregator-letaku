@@ -21,6 +21,8 @@ use App\Http\Controllers\LegalController;
 use App\Http\Controllers\ManifestController;
 use App\Http\Controllers\OffersController;
 use App\Http\Controllers\OfferSuggestionsController;
+use App\Http\Controllers\PushSubscriptionController;
+use App\Http\Controllers\ServiceWorkerController;
 use App\Http\Controllers\ShoppingListController;
 use App\Http\Controllers\ShoppingPreferencesController;
 use App\Http\Controllers\UnsubscribeController;
@@ -46,6 +48,10 @@ Route::middleware('throttle:'.RateLimits::PUBLIC)->group(function (): void {
 
     // Manifest pro přidání na plochu telefonu (R55)
     Route::get('/manifest.webmanifest', ManifestController::class)->name('manifest');
+    // Service worker a stránka bez připojení (R66) — service worker musí být v kořeni webu,
+    // aby obsloužil celou aplikaci; seznam souborů k uložení skládá server z buildu
+    Route::get('/sw.js', [ServiceWorkerController::class, 'script'])->name('service-worker');
+    Route::get('/offline', [ServiceWorkerController::class, 'offline'])->name('offline');
 
     // Monitoring stahování (UptimeRobot) — veřejné, jen stav
     Route::get('/health/imports', HealthImportsController::class)->name('health.imports');
@@ -78,6 +84,8 @@ Route::middleware('auth')->group(function (): void {
     // Nákupní seznam (R61): přidat / odebrat z karty akce, odškrtnout v obchodě, uklidit po nákupu
     Route::get('/seznam', [ShoppingListController::class, 'index'])->name('shopping-list.index');
     Route::post('/seznam', [ShoppingListController::class, 'toggle'])->name('shopping-list.toggle');
+    // Odškrtnutí udělaná bez připojení najednou, až je zase signál (R66)
+    Route::patch('/seznam', [ShoppingListController::class, 'sync'])->name('shopping-list.sync');
     Route::delete('/seznam/odskrtnute', [ShoppingListController::class, 'clearChecked'])->name('shopping-list.clear-checked');
     Route::patch('/seznam/{item}', [ShoppingListController::class, 'update'])->whereNumber('item')->name('shopping-list.update');
     Route::delete('/seznam/{item}', [ShoppingListController::class, 'destroy'])->whereNumber('item')->name('shopping-list.destroy');
@@ -91,6 +99,10 @@ Route::middleware('auth')->group(function (): void {
     Route::put('/ucet/novinky', [AccountController::class, 'updateMarketing'])->name('account.marketing');
     Route::put('/ucet/moje-slevy', [AccountController::class, 'updateOffersPreferences'])->name('account.offers-preferences');
     Route::delete('/ucet/zarizeni', [AccountController::class, 'logoutOtherDevices'])->name('account.devices.logout');
+    // Upozornění v telefonu (R66): zapnout / vypnout na tomto zařízení, zkušební upozornění
+    Route::post('/ucet/upozorneni', [PushSubscriptionController::class, 'store'])->name('account.push.store');
+    Route::delete('/ucet/upozorneni', [PushSubscriptionController::class, 'destroy'])->name('account.push.destroy');
+    Route::post('/ucet/upozorneni/zkouska', [PushSubscriptionController::class, 'test'])->name('account.push.test');
     Route::get('/ucet/obrazek', [AvatarController::class, 'show'])->name('account.avatar');
     Route::post('/ucet/obrazek', [AvatarController::class, 'update'])->name('account.avatar.update');
     Route::delete('/ucet/obrazek', [AvatarController::class, 'destroy'])->name('account.avatar.destroy');

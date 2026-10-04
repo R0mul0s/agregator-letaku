@@ -2,7 +2,7 @@
 
 /**
  * Stránka účtu (R12, R40) — profilový obrázek, jméno a e-mail, heslo (ukládá Fortify),
- * přihlášená zařízení a zrušení účtu.
+ * upozornění e-mailem a v telefonu (R42, R66), přihlášená zařízení a zrušení účtu.
  *
  * @author Roman Hlaváček
  *
@@ -17,11 +17,13 @@ use App\Actions\Fortify\UpdateUserPassword;
 use App\Actions\Fortify\UpdateUserProfileInformation;
 use App\Domain\Account\MailingSubscriptions;
 use App\Domain\Account\UserSessions;
+use App\Domain\Push\Vapid;
 use App\Enums\DigestFrequency;
 use App\Enums\OffersSort;
 use App\Http\Requests\DigestRequest;
 use App\Http\Requests\MarketingRequest;
 use App\Http\Requests\OffersPreferencesRequest;
+use App\Models\PushSubscription;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -53,7 +55,7 @@ class AccountController extends Controller
     /**
      * Zobrazí formuláře účtu; názvy sad chyb musí sedět s akcemi Fortify.
      */
-    public function show(Request $request, UserSessions $sessions): Response
+    public function show(Request $request, UserSessions $sessions, Vapid $vapid): Response
     {
         return Inertia::render('Account', [
             'urls' => [
@@ -99,6 +101,21 @@ class AccountController extends Controller
                 ),
             ],
             'marketingConsent' => $this->user($request)->hasMarketingConsent(),
+            // Upozornění v telefonu (R66) — bez klíčů VAPID vypnutá; zařízení podle adresy odběru,
+            // ať stránka pozná, jestli je mezi nimi to, na kterém je otevřená
+            'push' => $vapid->isConfigured() ? [
+                'publicKey' => $vapid->publicKey(),
+                'urls' => [
+                    'store' => route('account.push.store', absolute: false),
+                    'destroy' => route('account.push.destroy', absolute: false),
+                    'test' => route('account.push.test', absolute: false),
+                ],
+                'devices' => $this->user($request)->pushSubscriptions()->latest('updated_at')->get()
+                    ->map(fn (PushSubscription $subscription): array => [
+                        'endpoint' => $subscription->endpoint,
+                        'device' => $subscription->device,
+                    ])->all(),
+            ] : null,
         ]);
     }
 

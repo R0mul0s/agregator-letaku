@@ -21,7 +21,7 @@ volné číslo R…). Změna chování obchodu (nový endpoint, jiné pole) pat�
 
 ## Stav
 
-Hotové jsou etapy 1–5g, zveřejnění (8) a opravy a funkce z kritické revize (9) (PLAN.md, kap. 6):
+Hotové jsou etapy 1–5g, zveřejnění (8), opravy a funkce z kritické revize (9) a aplikace v telefonu (10) (PLAN.md, kap. 6):
 - **Stahování:** Kaufland (i po 149 prodejnách, R49), Tesco, Lidl, Penny (R15–R17, R25, R26), Globus (R46),
   Billa z celého katalogu (R48); zmínky v letácích bez ceny — Lidl, Penny, Albert (R27, R36; Albert jen zmínky).
   Pojistky importu: nula akcí je chyba, podezřelý propad akce nestáhne (stav `partial`), zámek proti
@@ -35,6 +35,9 @@ Hotové jsou etapy 1–5g, zveřejnění (8) a opravy a funkce z kritické reviz
   (`/obchody`) s ukládáním hned (R64), nový účet sleduje všechny obchody a jde do Hlídám (R55), registrace
   a přihlášení se skutečnými akcemi a heslem jen jednou (R56)
 - **E-maily:** upozornění na nové akce hned / denně / týdně, po dávkách (R42, R54, R58)
+- **Aplikace v telefonu (R66):** manifest se zkratkami, úvodní obrazovky iPhonu, spodní lišta záložek, výzva
+  k přidání na plochu; service worker s offline režimem (Moje slevy, seznam, Hlídám), odškrtávání bez signálu,
+  nezhasínání displeje a poslání seznamu; upozornění v telefonu (web push) z cronu souhrnů
 - **Vzhled a přívětivost:** název Slevohlídka a vzhled podle loga (R34, R35), loga obchodů (R32), toasty
   a vlastní potvrzovací okno (R47), oslovení v 5. pádě, plovoucí hlavička, manifest pro plochu telefonu (R55)
 - **Zveřejnění:** podmínky a zásady (`/podminky`, `/ochrana-udaju`), souhlasy, ověření e-mailu, odhlášení
@@ -86,6 +89,7 @@ docker compose exec app php artisan letaky:import-categories        # strom kate
 docker compose exec app php artisan letaky:admin email@example.com  # správa katalogu /katalog (R29), --revoke odebere
 docker compose exec app php artisan letaky:send-digests             # e-mailové souhrny nových akcí (R42), do Mailpitu
 docker compose exec app php artisan letaky:prune-sessions           # úklid vypršelých relací a odkazů na obnovu hesla (R53)
+docker compose exec app php artisan letaky:push-keys                # klíče VAPID pro upozornění v telefonu (R66), jednou do .env
 ```
 Výsledek každého stažení je v tabulce `scrape_runs`.
 
@@ -113,7 +117,7 @@ powershell -ExecutionPolicy Bypass -File deploy\build-upload.ps1   # jen z commi
 
 - **Žádná fronta, scheduler ani démon** — nic nesmí implementovat `ShouldQueue`.
   Stahování spouští cron WebAdminu: `/cron/import-offers?chain=…&token=…` po obchodech
-  a `/cron/import-categories?token=…`, prodejny Kauflandu `/cron/import-stores?chain=kaufland&token=…` (R49), souhrny `/cron/send-digests?token=…`, úklid `/cron/prune-sessions?token=…` (R53) (`CronController`, token `LETAKY_CRON_TOKEN`,
+  a `/cron/import-categories?token=…`, prodejny Kauflandu `/cron/import-stores?chain=kaufland&token=…` (R49), souhrny a upozornění v telefonu `/cron/send-digests?token=…` (R66), úklid `/cron/prune-sessions?token=…` (R53) (`CronController`, token `LETAKY_CRON_TOKEN`,
   bez tokenu 404). Každá úloha je Action volatelná z artisan příkazu i z kontroleru.
 - **`/health/imports`** vrací 503, když obchod nemá úspěšné stažení za 26 h (UptimeRobot).
 - **Každá migrace potřebuje SQL skript** `deploy/migrations-<datum>-<popis>.sql`
@@ -124,6 +128,8 @@ powershell -ExecutionPolicy Bypass -File deploy\build-upload.ps1   # jen z commi
   obrázky `https:` kvůli CDN obchodů). Nový externí zdroj ve stránce = úprava CSP.
 - **Dlouhé požadavky:** stažení Tesca trvá ~45 s; limit hostingu se ověří při nasazení (O8).
 - Nepřidávej závislost, kterou hosting nemá (Redis, fronta, binárky jako `pdftotext`).
+- **Service worker** (`/sw.js`) je route, zdroj `resources/pwa/service-worker.js` jde do balíčku (`build-upload.ps1`);
+  klíče VAPID (`LETAKY_VAPID_*`) jsou v `.env` na hostingu a nemění se (R66).
 
 ## Stack
 
@@ -171,6 +177,7 @@ MariaDB 11.4 · Pest 4 · Larastan · Pint. Extrakce letáků (etapa 6): Claude 
 37. **Zveřejnění (R51):** údaje provozovatele jsou v `letaky.operator` — do textů se doplňují (`{operator}`, `{company_id}`… v `resources/legal/*.md`), nikdy se nepíšou natvrdo. Kapitoly jsou nadpisy `##` — z nich vzniká obsah stránky a id pro odkazy (`/ochrana-udaju#5-cookies-a-uloziste-v-prohlizeci`), přejmenování nadpisu změní odkaz. Podstatná změna podmínek = zvýšit `letaky.legal.terms_version`, změna textu souhlasu s obchodními sděleními = `marketing_consent_version`. **Každý e-mail jen na ověřenou adresu** (`whereNotNull('email_verified_at')`) a hromadný s odhlášením jedním klepnutím (`MailingSubscriptions::unsubscribeUrl` + hlavičky jako `DigestMail::headers`); obchodní sdělení jen uživatelům s `hasMarketingConsent()`. Nová cookie, localStorage nebo příjemce údajů = upravit `resources/legal/privacy.md` (tabulky cookies podle kategorií). Chybové stránky jsou Blade (`resources/views/errors/page.blade.php`), nový kód s vlastní šablonou Laravelu potřebuje vlastní soubor `errors/<kód>.blade.php`, jinak vyhraje anglická.
 38. **Cookies a Google Analytics (R52):** GA4 se načte **jen na produkci a až po souhlasu** s analytickými cookies (`resources/js/lib/consent.js`, sdílený prop `cookieConsent`, ID v `letaky.cookie_consent`). Nic, co ukládá cookies nebo posílá data třetí straně (pixel, reklamní síť, mapa, video), se nesmí načíst před souhlasem — patří do kategorie v `CookieConsent.vue` a za `consentState`. Nový nástroj nebo kategorie = zvýšit `letaky.cookie_consent.version` (všichni se vyberou znovu), doplnit CSP v `public/.htaccess` a tabulku v `resources/legal/privacy.md`. Inline skript CSP nedovolí. Kořen aplikace má třídu `app-root` (přidá `app.js`) — nestylovat `body > div`, chytá i prvky rozšíření prohlížeče.
 39. **Ochrana účtů (R53):** registrace bez captchy — skryté pole a podepsaný čas načtení (`RegistrationGuard`); test registrace musí poslat data z `registrationInput()` (`tests/Pest.php`) (token „vyplněný“ před 30 s), jinak skončí chybou `bot_check`. Hesla kontroluje Have I Been Pwned přes `Password::defaults()` — v testech vypnuto (`LETAKY_PASSWORD_UNCOMPROMISED=false` v `phpunit.xml`), test úniku musí volat `Http::fake`. Přihlášení má dva limity (e-mail + IP a samotná IP). Websupport pustí **300 e-mailů za hodinu ze schránky** — hromadné e-maily po dávkách jako souhrny (`letaky.digest.users_per_run`, cron každou hodinu 6:30–22:30, R54; okamžité upozornění R58 bere jen uživatele, od jejichž souhrnu doběhlo stažení). Změna e-mailu chce současné heslo (R54).
+40. **Aplikace v telefonu (R66):** service worker `resources/pwa/service-worker.js` **není v buildu Vite** — server ho posílá na `/sw.js` s nastavením (`ServiceWorkerController`: verze, soubory z `public/build/manifest.json`); s dev serverem Vite (HMR) se neregistruje, offline a push se zkouší na `npm run build`. Stránky dostupné offline jsou v `letaky.pwa.offline_paths` — uložené HTML i JSON Inertie obsahují data uživatele, po odhlášení je maže `clearOfflineData` (`lib/pwa.js`, název cache `slevohlidka-pages` musí sedět se service workerem). Emulace offline v DevTools se service workeru netýká — ověřovat se zastaveným nginx. Upozornění v telefonu: adresu odběru posílá prohlížeč, server na ni posílá požadavky — jen domény z `letaky.push.allowed_hosts` (`PushServiceEndpoint`, jinak SSRF); odeslání přes `PushSender` (v testech podvržený, `WebPushSender` testovat s `MockHandler` Guzzle). Na iPhonu push jen v aplikaci z plochy. Hlavní položky navigace jsou na telefonu ve spodní liště (`tab` ve sdílené navigaci) — prvek přilepený ke spodnímu okraji musí přičíst `--tab-bar-offset`. Obrázky aplikace (maskovatelná ikona, silueta upozornění, úvodní obrazovky iPhonu) kreslí `resources/brand/app-images.html` v headless Edge.
 
 ## Jazyk
 

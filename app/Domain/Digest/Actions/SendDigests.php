@@ -3,7 +3,7 @@
 /**
  * E-mailový souhrn nových akcí hlídaných položek (R42). Cron ho volá po ranním stažení akcí;
  * uživatel dostane souhrn podle své volby (denně / týdně), jen když od minulého souhrnu
- * přibyly akce. Akce jsou stejné jako v Mých slevách (MyOffers — sledované obchody, karty,
+ * přibyly akce. Akce jsou stejné jako v Mých slevách (NewOffers — sledované obchody, karty,
  * minimální sleva), „nová“ = obchod ji poprvé nabídl po posledním souhrnu (`created_at`).
  *
  * Po dávkách (R54): jedno volání zpracuje nejvýš `letaky.digest.users_per_run` uživatelů,
@@ -20,12 +20,11 @@ declare(strict_types=1);
 
 namespace App\Domain\Digest\Actions;
 
+use App\Domain\Digest\NewOffers;
 use App\Domain\Matching\MyOffers;
 use App\Enums\DigestFrequency;
-use App\Enums\ScrapeStatus;
 use App\Mail\DigestMail;
 use App\Models\Offer;
-use App\Models\ScrapeRun;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
@@ -34,7 +33,10 @@ use Throwable;
 
 final class SendDigests
 {
-    public function __construct(private readonly MyOffers $myOffers) {}
+    public function __construct(
+        private readonly MyOffers $myOffers,
+        private readonly NewOffers $newOffers,
+    ) {}
 
     /**
      * Pošle souhrny jedné dávce uživatelů, kterým je čas; vrátí počet odeslaných. Chyba
@@ -48,10 +50,8 @@ final class SendDigests
 
         // Bez stažení akcí od posledního souhrnu nové akce být nemůžou (R58) — okamžité
         // upozornění by jinak každou hodinu znovu počítalo Moje slevy všem
-        $lastImport = ScrapeRun::query()
-            ->whereIn('status', [ScrapeStatus::Succeeded, ScrapeStatus::Partial])
-            ->max('finished_at');
-        if (! is_string($lastImport)) {
+        $lastImport = $this->newOffers->lastImportFinishedAt();
+        if ($lastImport === null) {
             return 0;
         }
 
@@ -107,25 +107,16 @@ final class SendDigests
      */
     private function sendTo(User $user): bool
     {
-        $items = [];
-        foreach ($this->myOffers->forUser($user, withMentions: false) as $group) {
-            $new = array_values(array_filter(
-                array_column($group['offers'], 'offer'),
-                fn (Offer $offer): bool => $user->digest_sent_at === null || $offer->created_at > $user->digest_sent_at,
-            ));
-            if ($new !== []) {
-                $items[] = [
-                    'name' => $group['watchItem']->name,
-                    'offers' => array_map(fn (Offer $offer): array => [
-                        'name' => $offer->name,
-                        'chain' => $offer->chain->label(),
-                        'price' => $this->myOffers->userPrice($user, $offer),
-                        'discountPercent' => $offer->effectiveDiscountPercent(),
-                        'validTo' => $offer->valid_to,
-                    ], $new),
-                ];
-            }
-        }
+        $items = array_map(fn (array $group): array => [
+            'name' => $group['watchItem']->name,
+            'offers' => array_map(fn (Offer $offer): array => [
+                'name' => $offer->name,
+                'chain' => $offer->chain->label(),
+                'price' => $this->myOffers->userPrice($user, $offer),
+                'discountPercent' => $offer->effectiveDiscountPercent(),
+                'validTo' => $offer->valid_to,
+            ], $group['offers']),
+        ], $this->newOffers->forUser($user, $user->digest_sent_at));
 
         if ($items === []) {
             return false;

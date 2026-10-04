@@ -210,6 +210,7 @@ Eloquent model                 ← perzistence
 - **Vysvětlivka nesmí být jen v `title`** — na dotykovém displeji se neukáže. Štítek s vysvětlením je tlačítko s ikonou „i“ (`InfoIcon`) a textem pod ním ([R55](PLAN.md#8-log-rozhodnutí)).
 - Tlačítko, které jen přepíná stav (do seznamu, hlídat), ukáže nový stav hned po klepnutí a server ho potvrdí — na pomalém mobilním připojení by jinak druhé klepnutí narazilo na zablokované tlačítko ([R62](PLAN.md#8-log-rozhodnutí)).
 - Hlavní scénář je telefon v obchodě: ovládací prvky dost velké pro palec, důležité informace na první obrazovce.
+- **Aplikace v telefonu** ([R66](PLAN.md#8-log-rozhodnutí)): stránka, která má fungovat bez signálu, patří do `letaky.pwa.offline_paths` a změna, kterou jde udělat offline, musí počkat v prohlížeči a odeslat se po návratu signálu (vzor `lib/offlineChecks.js`); co offline nejde, je bez připojení zakázané. Data uživatele uložená v prohlížeči (cache, localStorage) se po odhlášení mažou. Prvek přilepený ke spodnímu okraji obrazovky přičítá `--tab-bar-offset` (spodní lišta záložek) a obsah u okrajů displeje `env(safe-area-inset-*)`. localStorage jen přes `lib/storage.js` (anonymní okno ho nemá).
 - Žádný jQuery.
 
 ---

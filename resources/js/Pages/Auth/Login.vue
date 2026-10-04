@@ -10,6 +10,7 @@ import CheckboxField from '@/Components/CheckboxField.vue';
 import TextField from '@/Components/TextField.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { useTranslations } from '@/lib/i18n';
+import { isStandalone } from '@/lib/pwa';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 
 const props = defineProps({
@@ -23,7 +24,9 @@ const t = useTranslations();
 const form = useForm({
     email: '',
     password: '',
-    remember: false,
+    // Aplikace z plochy (R66) je osobní telefon a na iPhonu nesdílí přihlášení se Safari —
+    // bez zapamatování by se po dvou hodinách přihlašoval znovu
+    remember: isStandalone(),
 });
 
 /** Odešle přihlášení; heslo se po odeslání vždy vymaže. */

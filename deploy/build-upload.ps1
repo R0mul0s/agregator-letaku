@@ -65,8 +65,9 @@ if (Test-Path $upload) { Remove-Item $upload -Recurse -Force }
 # zakázaného — nový pracovní soubor v repu se tak na hosting nedostane omylem.
 # database\ kvůli migracím a seederům (data katalogu) — artisan se na hostingu
 # nespouští, ale composer autoload na ně odkazuje. resources\legal = podmínky
-# a zásady (R51), aplikace je čte za běhu.
-$appDirs = @('app', 'bootstrap', 'config', 'database', 'lang', 'public', 'resources\views', 'resources\legal', 'routes')
+# a zásady (R51), aplikace je čte za běhu. resources\pwa = service worker (R66),
+# server ho posílá na /sw.js.
+$appDirs = @('app', 'bootstrap', 'config', 'database', 'lang', 'public', 'resources\views', 'resources\legal', 'resources\pwa', 'routes')
 $appFiles = @('artisan', 'composer.json', 'composer.lock')
 # Soubory, které vznikají lokálně a nahrát se nesmí (hot = běžící Vite dev server,
 # _preview* = pomocné stránky pro snímky obrazovky).
@@ -116,6 +117,9 @@ foreach ($legal in @('terms.md', 'privacy.md')) {
     if (-not (Test-Path "$upload\resources\legal\$legal")) {
         throw "V balíčku chybí resources\legal\$legal — právní stránky by na hostingu spadly (R51)."
     }
+}
+if (-not (Test-Path "$upload\resources\pwa\service-worker.js")) {
+    throw 'V balíčku chybí resources\pwa\service-worker.js — /sw.js by na hostingu spadl (R66).'
 }
 
 # Verze pro ověření po nasazení: https://slevohlidka.rhsoft.cz/version.txt?v=… (proxy

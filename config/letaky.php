@@ -333,6 +333,67 @@ return [
         'max_items' => 200,
     ],
 
+    /*
+    | Aplikace v telefonu (PWA, R66): service worker (/sw.js) a offline režim. Stránky v seznamu
+    | offline_paths si service worker ukládá a bez připojení ukáže poslední verzi; ostatní
+    | stránky ukážou bez připojení stránku „Jste offline“. Po network_timeout_ms bez odpovědi
+    | serveru (slabý signál v obchodě) dostane uživatel uloženou verzi a nová se uloží na příště.
+    */
+    'pwa' => [
+        'offline_paths' => ['/', '/seznam', '/hlidam'],
+        'network_timeout_ms' => 4000,
+        // Po návratu do aplikace z pozadí se stránka načte znovu, když je starší než tohle —
+        // nainstalovaná aplikace nemá tlačítko pro obnovení a v telefonu běží klidně dny
+        'refresh_after_minutes' => 30,
+        // Výzva k přidání na plochu: kolik dní po zavření se znovu neukáže
+        'install_prompt_snooze_days' => 30,
+        // Úvodní obrazovka iPhonu při spuštění z plochy — iOS ji nebere z manifestu, chce obrázek
+        // přesně na rozlišení displeje: [šířka, výška v CSS px, hustota]. Obrázky
+        // public/images/brand/splash-{šířka}x{výška}x{hustota}.png kreslí resources/brand/splash.html
+        // (jméno bez „-“ a osmi znaků před příponou — .htaccess by ho jako build cachoval napořád).
+        'startup_images' => [
+            [440, 956, 3],
+            [402, 874, 3],
+            [430, 932, 3],
+            [393, 852, 3],
+            [428, 926, 3],
+            [390, 844, 3],
+            [414, 896, 3],
+            [375, 812, 3],
+            [414, 896, 2],
+            [375, 667, 2],
+        ],
+    ],
+
+    /*
+    | Upozornění v telefonu — web push (R66). Klíče VAPID vygeneruje `php artisan letaky:push-keys`
+    | (veřejný jde do prohlížeče, soukromý jen do .env); bez nich je funkce vypnutá. Cron
+    | /cron/send-digests pošle po stažení s novými akcemi upozornění dávce uživatelů, nejvýš
+    | jednou za interval_hours. Upozornění se smí posílat jen na adresy push služeb prohlížečů
+    | (allowed_hosts, i subdomény) — jinak by šlo server přimět posílat požadavky kamkoli (SSRF).
+    */
+    'push' => [
+        'vapid' => [
+            'public_key' => env('LETAKY_VAPID_PUBLIC_KEY'),
+            'private_key' => env('LETAKY_VAPID_PRIVATE_KEY'),
+        ],
+        // Jak dlouho push služba upozornění drží pro vypnutý telefon (sekundy) — ráno je včerejší pozdě
+        'ttl_seconds' => 43200,
+        'timeout_seconds' => 10,
+        'users_per_run' => 200,
+        'interval_hours' => 1,
+        // Kolik akcí upozornění vypíše (zbytek „a další…“) — text v telefonu má pár řádků
+        'max_offers' => 3,
+        'max_subscriptions_per_user' => 10,
+        'allowed_hosts' => [
+            'fcm.googleapis.com',
+            'android.googleapis.com',
+            'updates.push.services.mozilla.com',
+            'push.apple.com',
+            'notify.windows.com',
+        ],
+    ],
+
     'cron' => [
         'token' => env('LETAKY_CRON_TOKEN'),
         // Limit běhu jednoho volání — stažení Tesca trvá ~45 s; hosting ho může omezit i tak (O8)

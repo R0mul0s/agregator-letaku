@@ -4,6 +4,19 @@
 // @author Roman Hlaváček
 // @created 2026-10-04
 
+// Nástroje seznamu (R66): poslat seznam, nezhasínat displej, smazat odškrtnuté
+.shopping-toolbar {
+    justify-content: flex-start;
+    gap: var(--space-2);
+
+    // Zapnuté nezhasínání displeje — stav jako u přepínače
+    &__wake--on {
+        background: var(--color-accent-soft);
+        border-color: var(--color-accent);
+        color: var(--color-accent-strong);
+    }
+}
+
 .shopping-group {
     margin-bottom: var(--space-3);
 

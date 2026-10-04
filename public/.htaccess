@@ -51,7 +51,8 @@
     # Písmo je přibalené (build), API obchodů volá jen server.
     # Google Analytics 4 (R52, jen po souhlasu s cookies): knihovna z googletagmanager.com,
     # měření na google-analytics.com (region1.… apod., proto *.).
-    Header always set Content-Security-Policy "default-src 'self'; script-src 'self' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'"
+    # Service worker a manifest aplikace v telefonu (R66) jen vlastní (worker-src, manifest-src).
+    Header always set Content-Security-Policy "default-src 'self'; script-src 'self' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'"
 
     # HSTS jen na HTTPS odpovědi; max-age = 1 rok.
     <If "req('X-Forwarded-Proto') == 'https'">

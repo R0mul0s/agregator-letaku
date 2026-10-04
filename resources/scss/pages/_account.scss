@@ -220,3 +220,8 @@
         font-size: var(--font-size-sm);
     }
 }
+
+// Aplikace v telefonu (PhoneAppSettings.vue, R66): upozornění pod přidáním na plochu s odstupem
+.phone-app__push-title {
+    margin-top: var(--space-2);
+}

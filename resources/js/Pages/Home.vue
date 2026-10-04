@@ -14,6 +14,7 @@ import WatchGroup from '@/Components/WatchGroup.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { useTranslations } from '@/lib/i18n';
 import { discountPercent } from '@/lib/offer';
+import { clearAppBadge } from '@/lib/pwa';
 import { Head, Link, usePage } from '@inertiajs/vue3';
 import { computed, nextTick, onMounted, ref } from 'vue';
 
@@ -163,6 +164,8 @@ function toggleAll() {
 }
 
 onMounted(async () => {
+    // Nové akce z upozornění v telefonu jsou vidět — číslo na ikoně aplikace pryč (R66)
+    clearAppBadge();
     try {
         expandedIds.value = new Set(JSON.parse(localStorage.getItem(EXPANDED_STORAGE_KEY) ?? '[]'));
         rowsInStore.value = localStorage.getItem(ROWS_STORAGE_KEY) !== '0';

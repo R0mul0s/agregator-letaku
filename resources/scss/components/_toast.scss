@@ -11,7 +11,8 @@
     z-index: var(--z-toast);
     right: var(--space-3);
     // Na telefonu nad tlačítkem Nahoru (toast je přes celou šířku), na širokém displeji dole
-    bottom: calc(var(--back-to-top-offset) + var(--back-to-top-size) + var(--space-2));
+    // Nad spodní lištou záložek, je-li (R66, --tab-bar-offset)
+    bottom: calc(var(--back-to-top-offset) + var(--back-to-top-size) + var(--space-2) + var(--tab-bar-offset));
     left: var(--space-3);
     display: flex;
     flex-direction: column;

@@ -12,6 +12,8 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Domain\Push\PushSender;
+use App\Domain\Push\WebPushSender;
 use App\Models\User;
 use App\Support\RateLimits;
 use Illuminate\Database\Eloquent\Model;
@@ -22,11 +24,11 @@ use Illuminate\Validation\Rules\Password;
 class AppServiceProvider extends ServiceProvider
 {
     /**
-     * Registrace služeb — zatím žádné.
+     * Registrace služeb: odeslání upozornění v telefonu (R66) přes push služby prohlížečů.
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(PushSender::class, WebPushSender::class);
     }
 
     /**

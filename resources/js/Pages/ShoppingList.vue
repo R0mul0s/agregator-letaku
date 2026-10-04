@@ -2,6 +2,10 @@
     Nákupní seznam (R61) — akce po obchodech, v obchodě se odškrtávají. Odškrtnuté jdou
     v obchodě na konec a po nákupu se smažou jedním tlačítkem; skončená akce zůstává označená.
 
+    V obchodě (R66): odškrtávat jde i bez signálu — odškrtnutí počká v prohlížeči a odešle se,
+    až je připojení (lib/offlineChecks.js); mazání bez připojení nejde. Seznam jde poslat
+    (sdílení systému, jinak zkopírovat) a displej při nakupování nemusí zhasínat.
+
     @author Roman Hlaváček
     @created 2026-10-04
 -->
@@ -13,10 +17,13 @@ import { confirmDialog } from '@/lib/confirm';
 import { formatDate, formatPrice } from '@/lib/format';
 import { useTranslations } from '@/lib/i18n';
 import { packageLabel } from '@/lib/offer';
+import { pendingChecks, queueCheck } from '@/lib/offlineChecks';
+import { showToast } from '@/lib/toast';
+import { useWakeLock } from '@/lib/wakeLock';
 import { Head, router, usePage } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 
-defineProps({
+const props = defineProps({
     /** Obchody s položkami [{ chain, chainName, items: [{ id, checked, expired, userPrice, offer, updateUrl, deleteUrl }] }]. */
     groups: { type: Array, required: true },
     clearCheckedUrl: { type: String, required: true },
@@ -27,18 +34,68 @@ defineProps({
 const t = useTranslations();
 const page = usePage();
 const locale = computed(() => page.props.locale);
+const wakeLock = useWakeLock();
 
 /** Volby požadavku, po kterých stránka zůstane, kde je. */
 const KEEP_PAGE = { preserveScroll: true, preserveState: true };
 
+/** Je připojení? Bez něj jde jen odškrtávat. */
+const online = ref(true);
+
+/** Změna připojení. */
+function updateOnline() {
+    online.value = navigator.onLine;
+}
+
+onMounted(() => {
+    updateOnline();
+    window.addEventListener('online', updateOnline);
+    window.addEventListener('offline', updateOnline);
+});
+
+onBeforeUnmount(() => {
+    window.removeEventListener('online', updateOnline);
+    window.removeEventListener('offline', updateOnline);
+});
+
+/** Skupiny s odškrtnutím, které ještě čeká na odeslání (R66). */
+const displayGroups = computed(() =>
+    props.groups.map((group) => ({
+        ...group,
+        items: group.items.map((item) => (item.id in pendingChecks.value ? { ...item, checked: pendingChecks.value[item.id] } : item)),
+    })),
+);
+
+/** Čekají odškrtnutí na připojení? */
+const hasPending = computed(() => Object.keys(pendingChecks.value).length > 0);
+
 /**
- * Odškrtne položku, nebo odškrtnutí zruší.
+ * Odškrtne položku, nebo odškrtnutí zruší. Bez připojení (nebo když požadavek nedojde)
+ * se odškrtnutí zapamatuje a odešle později.
  *
  * @param {object} item
  * @param {boolean} checked
  */
 function check(item, checked) {
-    router.patch(item.updateUrl, { checked }, KEEP_PAGE);
+    if (!navigator.onLine) {
+        queueCheck(item.id, checked);
+
+        return;
+    }
+
+    router.patch(
+        item.updateUrl,
+        { checked },
+        {
+            ...KEEP_PAGE,
+            onNetworkError: () => {
+                queueCheck(item.id, checked);
+
+                // Chybu sítě nehlásit toastem — odškrtnutí je zapamatované
+                return false;
+            },
+        },
+    );
 }
 
 /**
@@ -85,6 +142,46 @@ function priceLabel(item) {
 function remaining(group) {
     return group.items.filter((item) => !item.checked).length;
 }
+
+/**
+ * Seznam jako text ke sdílení: co zbývá koupit, po obchodech, s cenou.
+ *
+ * @returns {string}
+ */
+function shareText() {
+    return displayGroups.value
+        .map((group) => ({ group, items: group.items.filter((item) => !item.checked && !item.expired) }))
+        .filter(({ items }) => items.length)
+        .map(({ group, items }) => [`${group.chainName}:`, ...items.map((item) => t('shopping.share_line', { name: item.offer.name, price: priceLabel(item) }))].join('\n'))
+        .join('\n\n');
+}
+
+/** Pošle seznam sdílením systému (rodině do chatu); bez něj ho zkopíruje. */
+async function share() {
+    const text = shareText();
+    if (!text) {
+        showToast(t('shopping.share_empty'));
+
+        return;
+    }
+
+    if (navigator.share) {
+        try {
+            await navigator.share({ title: t('shopping.title'), text });
+        } catch {
+            // Uživatel sdílení zavřel
+        }
+
+        return;
+    }
+
+    try {
+        await navigator.clipboard.writeText(text);
+        showToast(t('shopping.share_copied'));
+    } catch {
+        showToast(t('shopping.share_failed'));
+    }
+}
 </script>
 
 <template>
@@ -99,11 +196,24 @@ function remaining(group) {
         <EmptyState v-if="!groups.length" :text="t('shopping.empty')" />
 
         <template v-else>
-            <div v-if="hasChecked" class="watch-groups__toolbar">
-                <button type="button" class="button button--ghost" @click="clearChecked(clearCheckedUrl)">{{ t('shopping.clear_checked') }}</button>
+            <div class="watch-groups__toolbar shopping-toolbar">
+                <button type="button" class="button button--ghost" @click="share">{{ t('shopping.share') }}</button>
+                <button
+                    v-if="wakeLock.supported"
+                    type="button"
+                    class="button button--ghost shopping-toolbar__wake"
+                    :class="{ 'shopping-toolbar__wake--on': wakeLock.enabled.value }"
+                    :aria-pressed="wakeLock.enabled.value ? 'true' : 'false'"
+                    @click="wakeLock.toggle"
+                >
+                    {{ t('shopping.wake_lock') }}
+                </button>
+                <button v-if="hasChecked && online" type="button" class="button button--ghost" @click="clearChecked(clearCheckedUrl)">{{ t('shopping.clear_checked') }}</button>
             </div>
 
-            <section v-for="group in groups" :key="group.chain" class="card shopping-group">
+            <p v-if="hasPending" class="notice notice--warning" role="status">{{ t('shopping.pending') }}</p>
+
+            <section v-for="group in displayGroups" :key="group.chain" class="card shopping-group">
                 <h2 class="shopping-group__title">
                     <ChainLogo :chain="group.chain" with-name />
                     <span class="shopping-group__remaining">{{ t('shopping.remaining', { count: remaining(group) }) }}</span>
@@ -129,7 +239,13 @@ function remaining(group) {
                             </p>
                         </div>
                         <span class="shopping-item__price">{{ priceLabel(item) }}</span>
-                        <button type="button" class="icon-button icon-button--danger" :title="t('shopping.remove', { name: item.offer.name })" @click="remove(item)">
+                        <button
+                            type="button"
+                            class="icon-button icon-button--danger"
+                            :disabled="!online"
+                            :title="t('shopping.remove', { name: item.offer.name })"
+                            @click="remove(item)"
+                        >
                             <!-- Koš -->
                             <svg class="icon-button__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6" /></svg>
                             <span class="visually-hidden">{{ t('shopping.remove', { name: item.offer.name }) }}</span>

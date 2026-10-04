@@ -10,7 +10,8 @@
     position: fixed;
     z-index: var(--z-cookie-bar);
     right: 0;
-    bottom: 0;
+    // Nad spodní lištou záložek, je-li (R66)
+    bottom: var(--tab-bar-offset);
     left: 0;
     padding: var(--space-3);
     pointer-events: none;

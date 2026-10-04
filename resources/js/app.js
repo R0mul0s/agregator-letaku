@@ -7,6 +7,7 @@
 // Písmo Nunito (zaoblené jako nápis v logu) — variabilní, latinka i s češtinou, z balíčku, ne z CDN
 import '@fontsource-variable/nunito/wght.css';
 import { initConsent } from '@/lib/consent';
+import { initPwa } from '@/lib/pwa';
 import { installStatusToasts } from '@/lib/toast';
 import { createInertiaApp } from '@inertiajs/vue3';
 import { createApp, h } from 'vue';
@@ -35,5 +36,7 @@ createInertiaApp({
             .use(plugin)
             .mount(el);
         installStatusToasts(props.initialPage);
+        // Aplikace v telefonu (R66): service worker, offline režim, výzva k přidání na plochu
+        initPwa(props.initialPage);
     },
 });

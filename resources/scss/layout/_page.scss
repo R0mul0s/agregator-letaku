@@ -21,7 +21,8 @@
     width: 100%;
     max-width: var(--content-max-width);
     margin: 0 auto;
-    padding: var(--space-4) var(--space-3);
+    // Aplikace z plochy na šířku: obsah mimo výřez displeje (viewport-fit=cover, R66)
+    padding: var(--space-4) max(var(--space-3), env(safe-area-inset-right)) var(--space-4) max(var(--space-3), env(safe-area-inset-left));
 
     // Fokus dostává jen programově (odkaz „Přeskočit na obsah"), rámeček kolem
     // celého obsahu by jen rušil

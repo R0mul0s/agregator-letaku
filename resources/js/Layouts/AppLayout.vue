@@ -4,6 +4,8 @@
     (hamburger); nepřihlášený má v hlavičce jen Registraci, přihlášení a vzhled jsou v menu (R44).
     Vpravo dole tlačítko Nahoru. Pod hlavičkou lišta pro neověřený e-mail, dole patička
     s provozovatelem a právními stránkami (R51), lišta souhlasu s cookies (R52).
+    Aplikace v telefonu (R66): přihlášený má na telefonu hlavní stránky ve spodní liště záložek
+    (hamburger jen pro zbytek — katalog admina), lišta „Jste offline“ a výzva k přidání na plochu.
 
     @author Roman Hlaváček
     @created 2026-10-02
@@ -14,7 +16,10 @@ import BackToTop from '@/Components/BackToTop.vue';
 import ConfirmDialog from '@/Components/ConfirmDialog.vue';
 import CookieConsent from '@/Components/CookieConsent.vue';
 import EmailVerificationBar from '@/Components/EmailVerificationBar.vue';
+import InstallPrompt from '@/Components/InstallPrompt.vue';
+import OfflineBar from '@/Components/OfflineBar.vue';
 import StoresDialog from '@/Components/StoresDialog.vue';
+import TabBar from '@/Components/TabBar.vue';
 import Toaster from '@/Components/Toaster.vue';
 import ThemeSwitch from '@/Components/ThemeSwitch.vue';
 import UserMenu from '@/Components/UserMenu.vue';
@@ -28,8 +33,8 @@ const NAV_ID = 'app-navigation';
 const t = useTranslations();
 const page = usePage();
 
-/** Hamburger na telefonu — přihlášený i nepřihlášený, kdykoli je co navigovat. */
-const hasMenuButton = computed(() => page.props.navigation.length > 0);
+/** Hamburger na telefonu — jen pro položky, které nejsou ve spodní liště záložek (R66). */
+const hasMenuButton = computed(() => page.props.navigation.some((item) => !item.tab));
 
 /** Navigace rozbalená na telefonu. */
 const navOpen = ref(false);
@@ -88,7 +93,7 @@ onBeforeUnmount(() => {
                     :key="item.url"
                     :href="item.url"
                     class="app-header__link"
-                    :class="{ 'app-header__link--active': item.active }"
+                    :class="{ 'app-header__link--active': item.active, 'app-header__link--tab': item.tab }"
                     :aria-current="item.active ? 'page' : undefined"
                 >
                     {{ t(item.label) }}
@@ -131,13 +136,16 @@ onBeforeUnmount(() => {
     </header>
 
     <EmailVerificationBar v-if="page.props.auth.user && !page.props.auth.user.emailVerified" />
+    <OfflineBar />
 
     <!-- tabindex -1: po odkazu „Přeskočit na obsah" dostane fokus i hlavní obsah -->
     <main id="main" class="page" tabindex="-1">
+        <InstallPrompt />
         <slot />
     </main>
 
     <AppFooter />
+    <TabBar />
 
     <BackToTop />
     <Toaster />

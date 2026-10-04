@@ -9,6 +9,7 @@
 @use 'layout/app-header';
 @use 'layout/page';
 @use 'layout/app-footer';
+@use 'layout/tab-bar';
 @use 'components/button';
 @use 'components/form';
 @use 'components/card';
@@ -28,6 +29,8 @@
 @use 'components/confirm-dialog';
 @use 'components/cookie-consent';
 @use 'components/stores-dialog';
+@use 'components/install-prompt';
+@use 'components/offline-bar';
 @use 'pages/account';
 @use 'pages/watch';
 @use 'pages/shopping';

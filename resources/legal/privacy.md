@@ -42,6 +42,15 @@ hned, jak přibudou (nejvýš jednou za hodinu), denně nebo týdně. Souhrn je 
 o kterou jste požádali, právní základ je plnění smlouvy. Chodí jen na ověřenou adresu.
 Vypnete ho v účtu nebo jedním klepnutím v patičce každého souhrnu.
 
+### Upozornění v telefonu
+
+Pokud si v účtu zapnete upozornění na svém zařízení, váš prohlížeč vytvoří u své push
+služby odběr a já si uložím jeho adresu, šifrovací klíče a název zařízení (např.
+„Chrome · Android“, odvozený z identifikace prohlížeče). Na odběr pak posílám upozornění
+na nové akce hlídaných položek. Obsah upozornění je šifrovaný, push služba ho nepřečte.
+Upozornění jsou součást služby, o kterou jste požádali, právní základ je plnění smlouvy.
+Vypnete je v účtu nebo v nastavení prohlížeče či telefonu.
+
 ### Obchodní sdělení (jen se souhlasem)
 
 Pokud k tomu dáte samostatný souhlas, posílám vám e-mailem novinky o Slevohlídce
@@ -88,6 +97,7 @@ a cílení reklamy (Google signály). Reklamu zatím nezobrazuji.
 | Údaje | Doba |
 |---|---|
 | účet a vše, co k němu patří (hlídané položky, nákupní seznam, obchody, předvolby, obrázek, souhlasy) | do zrušení účtu |
+| odběr upozornění v telefonu | do vypnutí upozornění nebo zrušení účtu; odběr, který push služba přestane přijímat, se smaže při dalším upozornění |
 | relace (IP adresa, prohlížeč) | 2 hodiny od poslední aktivity, potom se průběžně maže |
 | přihlášení „Zapamatovat si mě“ | nejdéle 400 dní nebo do odhlášení |
 | odkaz pro obnovu hesla | 60 minut |
@@ -109,13 +119,18 @@ V zálohách údaje zůstanou nejdéle do jejich přepsání.
   Tesco): obrázky produktů a stránek letáků se načítají přímo z jejich serverů. Váš
   prohlížeč jim přitom sdělí vaši IP adresu a údaje o prohlížeči, ne adresu stránky
   Slevohlídky. Zpracování na jejich straně se řídí jejich zásadami.
+- **Push služby prohlížečů** — jen pokud zapnete upozornění v telefonu: služba výrobce
+  vašeho prohlížeče (Google pro Chrome a Android, Apple pro Safari a iPhone, Mozilla pro
+  Firefox, Microsoft pro Edge ve Windows) upozornění doručí do zařízení. Dostane adresu
+  odběru a zašifrovaný obsah, který nepřečte; její servery mohou být i mimo EU.
 - **Google Ireland Limited** (Gordon House, Barrow Street, Dublin 4, Irsko) — jen pokud
   povolíte analytické nebo marketingové cookies: měření návštěvnosti Google Analytics.
   Google může údaje předávat do USA; předání se opírá o rámec EU–USA pro ochranu
   osobních údajů (Data Privacy Framework), ke kterému se Google LLC přihlásila.
 
 Údaje neprodávám ani nepředávám za úplatu. Kromě Google Analytics (se souhlasem)
-je nepředávám mimo EU. Orgánům veřejné moci je poskytnu jen tehdy, když to ukládá zákon.
+a push služby vašeho prohlížeče (jen se zapnutými upozorněními v telefonu) je nepředávám
+mimo EU. Orgánům veřejné moci je poskytnu jen tehdy, když to ukládá zákon.
 
 ## 5. Cookies a úložiště v prohlížeči
 
@@ -136,6 +151,11 @@ snadno jako přijmout.
 | `letaky-theme` | localStorage | zvolený světlý nebo tmavý vzhled | do smazání v prohlížeči |
 | `slevohlidka.home.expanded` | localStorage | které skupiny v Mých slevách máte rozbalené | do smazání v prohlížeči |
 | `slevohlidka.home.rows` | localStorage | v Mých slevách po výběru obchodu akce jako řádky, nebo karty | do smazání v prohlížeči |
+| `slevohlidka.install.dismissed_at` | localStorage | kdy jste zavřeli výzvu k přidání Slevohlídky na plochu (30 dní se neukáže) | do smazání v prohlížeči |
+| `slevohlidka.shopping.wake_lock` | localStorage | v nákupním seznamu nezhasínat displej | do smazání v prohlížeči |
+| `slevohlidka.shopping.pending` | localStorage | odškrtnutí v nákupním seznamu udělaná bez signálu, než se odešlou | do odeslání nebo odhlášení |
+| `slevohlidka-static-…` | úložiště aplikace (Cache Storage) | soubory webu, aby se aplikace v telefonu načetla rychle a bez signálu | do další verze webu |
+| `slevohlidka-pages` | úložiště aplikace (Cache Storage) | poslední verze Mých slev, nákupního seznamu a Hlídám pro použití bez signálu | do odhlášení |
 
 **Analytické (se souhlasem)** — Google Analytics 4
 

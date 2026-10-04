@@ -8,7 +8,8 @@
     position: fixed;
     z-index: var(--z-back-to-top);
     right: var(--back-to-top-offset);
-    bottom: var(--back-to-top-offset);
+    // Nad spodní lištou záložek, je-li (R66)
+    bottom: calc(var(--back-to-top-offset) + var(--tab-bar-offset));
     display: inline-flex;
     align-items: center;
     justify-content: center;

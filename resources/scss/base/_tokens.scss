@@ -197,6 +197,16 @@
     // Lišta souhlasu s cookies (R52) nad tlačítkem Nahoru, pod toastem
     --z-cookie-bar: 45;
     --z-toast: 50;
+    // Spodní lišta záložek na telefonu (R66): nad obsahem a hlavičkou, pod tlačítkem Nahoru
+    --z-tab-bar: 35;
+    --tab-bar-height: 3.75rem;
+    --tab-bar-icon-size: 1.5rem;
+    --font-size-tab: 0.6875rem;
+    // O kolik zvednout prvky přilepené ke spodnímu okraji (toast, Nahoru, cookies) — bez lišty 0,
+    // s lištou na telefonu její výška (layout/_tab-bar.scss)
+    --tab-bar-offset: 0px;
+    // Výzva k přidání na plochu (R66)
+    --install-icon-size: 3rem;
     // O kolik méně posunout na kotvu (#polozka-…) — výška plovoucí hlavičky s rezervou
     --header-scroll-offset: 6rem;
     --back-to-top-size: 3rem;

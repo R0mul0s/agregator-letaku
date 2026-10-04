@@ -99,3 +99,24 @@ it('nepřihlášený seznam nemá', function (): void {
     $this->get(route('shopping-list.index'))->assertRedirect(route('login'));
     $this->get(route('offers'))->assertInertia(fn (Assert $page) => $page->where('shoppingList', null));
 });
+
+it('odškrtnutí bez připojení uloží najednou, cizí a smazané položky přeskočí (R66)', function (): void {
+    $milk = $this->user->shoppingListItems()->create(['offer_id' => Offer::factory()->create()->id]);
+    $butter = $this->user->shoppingListItems()->create(['offer_id' => Offer::factory()->create()->id, 'checked_at' => now()->subHour()]);
+    $foreign = ShoppingListItem::query()->create(['user_id' => User::factory()->create()->id, 'offer_id' => Offer::factory()->create()->id]);
+
+    $this->from(route('shopping-list.index'))->patch(route('shopping-list.sync'), ['checks' => [
+        ['id' => $milk->id, 'checked' => true],
+        ['id' => $butter->id, 'checked' => false],
+        ['id' => $foreign->id, 'checked' => true],
+        ['id' => 999999, 'checked' => true],
+    ]])->assertRedirect(route('shopping-list.index'));
+
+    expect($milk->fresh()?->checked_at?->toDateTimeString())->toBe('2026-10-02 10:00:00')
+        ->and($butter->fresh()?->checked_at)->toBeNull()
+        ->and($foreign->fresh()?->checked_at)->toBeNull();
+});
+
+it('synchronizace bez seznamu změn neprojde', function (): void {
+    $this->patch(route('shopping-list.sync'), ['checks' => 'vse'])->assertSessionHasErrors('checks');
+});

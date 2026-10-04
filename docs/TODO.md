@@ -14,9 +14,11 @@ v [PLAN.md](PLAN.md). Větší celky se z toho stávají etapou.
 
 ## Upozornění
 
-**Odkud:** zadání 2026-10-02. E-mailová upozornění hned / denně / týdně jsou hotová (R42, R58).
+**Odkud:** zadání 2026-10-02. E-mailová upozornění hned / denně / týdně (R42, R58) a upozornění v telefonu (web push, R66) jsou hotová.
 
-- Telegram nebo web push (se service workerem) jako další kanál vedle e-mailu
+- tlačítko „Do seznamu“ přímo v upozornění v telefonu — service worker nemá token CSRF, potřeboval by podepsanou adresu jako odhlášení z e-mailů
+- odběr, který prohlížeč sám vymění (`pushsubscriptionchange`), se dnes obnoví až zapnutím v Můj účet — obnovovat ho při startu aplikace
+- volba, jestli upozornění v telefonu chodí i v době, kdy jde e-mail (dnes nezávisle — kdo má obojí „hned“, dostane obojí)
 - zmínky v letácích bez ceny (R27) v souhrnu — dnes jen akce s cenou
 - tabulka `watch_matches` (co už uživatel viděl / dostal), pokud nebude stačit čas posledního souhrnu a `offers.created_at`
 
@@ -88,8 +90,9 @@ v [PLAN.md](PLAN.md). Větší celky se z toho stávají etapou.
 
 ## Zobrazení
 
-- manifest je hotový (R55); service worker až s upozorněními (web push, offline)
+- aplikace v telefonu hotová (R66) — dál: snímky obrazovky v manifestu (bohatší dialog instalace na Androidu, potřebují snímky přihlášené aplikace), `share_target` (sdílení textu z jiné aplikace rovnou do Hlídám), tmavé úvodní obrazovky iPhonu
+- skener čárového kódu v obchodě („je tohle jinde ve slevě?“) — `BarcodeDetector` umí jen Chromium na Androidu a EAN mají jen některé zdroje (Globus, Kaufland v URL obrázku)
+- „Jsem v obchodě“ podle polohy — prodejny nemají souřadnice; poloha je citlivý údaj
 - kompaktní řádky „Jsem v obchodě“ hotové (R62) — dál: řádky i ve Všech akcích
 - „Hlídat“ z karty hotové (R60) — dál: i v Mých slevách a na úvodní stránce
 - nákupní seznam hotový (R61) — dál: sdílení seznamu s rodinou, přidání vlastní položky bez akce
-- spodní lišta záložek na telefonu místo hamburgeru (Moje slevy / Hlídám / Akce)

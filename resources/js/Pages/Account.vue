@@ -1,6 +1,7 @@
 <!--
     Můj účet (R12, R40, R41) — profilový obrázek, jméno a e-mail, heslo (Fortify),
-    předvolby Mých slev, e-mailový souhrn (R42), novinky a nabídky (souhlas, R51),
+    předvolby Mých slev, e-mailový souhrn (R42), aplikace a upozornění v telefonu (R66),
+    novinky a nabídky (souhlas, R51),
     přihlášená zařízení a zrušení účtu.
 
     Sekce pod sebou s navigací (R63): nadpis s vysvětlením vlevo, pole vpravo. Volby (souhrn,
@@ -12,6 +13,7 @@
 -->
 <script setup>
 import CheckboxField from '@/Components/CheckboxField.vue';
+import PhoneAppSettings from '@/Components/PhoneAppSettings.vue';
 import TextField from '@/Components/TextField.vue';
 import UserAvatar from '@/Components/UserAvatar.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
@@ -36,6 +38,8 @@ const props = defineProps({
     digest: { type: Object, required: true },
     /** Souhlas s obchodními sděleními (R51). */
     marketingConsent: { type: Boolean, required: true },
+    /** Upozornění v telefonu (R66, PhoneAppSettings.vue); null = vypnutá na serveru. */
+    push: { type: Object, default: null },
 });
 
 const t = useTranslations();
@@ -384,6 +388,8 @@ async function deleteAccount() {
                             </label>
                             <p v-if="digestForm.errors.digest_frequency" class="form-field__error" role="alert">{{ digestForm.errors.digest_frequency }}</p>
                         </fieldset>
+
+                        <PhoneAppSettings :push="push" />
 
                         <div id="novinky" class="account-section__part">
                             <h3 class="account-section__subtitle">{{ t('account.marketing_title') }}</h3>

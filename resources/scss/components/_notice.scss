@@ -14,4 +14,10 @@
         background: var(--color-success-soft);
         border-color: var(--color-success);
     }
+
+    // Čeká na něco (odškrtnutí bez signálu, R66)
+    &--warning {
+        background: var(--color-warning-soft);
+        color: var(--color-warning-text);
+    }
 }

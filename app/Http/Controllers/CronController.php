@@ -18,6 +18,7 @@ use App\Domain\Catalog\Actions\ImportCategories;
 use App\Domain\Chains\Actions\ImportStores;
 use App\Domain\Digest\Actions\SendDigests;
 use App\Domain\Offers\Actions\ImportChainOffers;
+use App\Domain\Push\Actions\SendPushNotifications;
 use App\Domain\Sources\SourceRegistry;
 use App\Enums\Chain;
 use App\Enums\ScrapeStatus;
@@ -94,20 +95,26 @@ class CronController extends Controller
 
     /**
      * Pošle e-mailové souhrny nových akcí (R42) jedné dávce uživatelů (R54) — každou hodinu 6:30–22:30 kvůli okamžitým upozorněním (R58).
+     * Stejný cron posílá i upozornění v telefonu (R66), ať na hostingu nepřibývá další úloha;
+     * chyba jednoho kanálu druhý nezastaví.
      */
-    public function sendDigests(CronRequest $request, SendDigests $send): Response
+    public function sendDigests(CronRequest $request, SendDigests $send, SendPushNotifications $push): Response
     {
         $this->extendTimeLimit();
+        $lines = [];
+        $failed = false;
 
-        try {
-            $count = $send();
-        } catch (Throwable $error) {
-            report($error);
-
-            return $this->text(__('app.digest.failed', ['error' => $error->getMessage()]), Response::HTTP_INTERNAL_SERVER_ERROR);
+        foreach (['digest' => $send, 'push' => $push] as $channel => $action) {
+            try {
+                $lines[] = __("app.$channel.done", ['count' => $action()]);
+            } catch (Throwable $error) {
+                report($error);
+                $lines[] = __("app.$channel.failed", ['error' => $error->getMessage()]);
+                $failed = true;
+            }
         }
 
-        return $this->text(__('app.digest.done', ['count' => $count]));
+        return $this->text(implode("\n", $lines), $failed ? Response::HTTP_INTERNAL_SERVER_ERROR : Response::HTTP_OK);
     }
 
     /**
