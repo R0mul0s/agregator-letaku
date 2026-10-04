@@ -32,8 +32,8 @@ v [PLAN.md](PLAN.md). Větší celky se z toho stávají etapou.
 
 **Odkud:** R10 v PLAN.md. Nabídky se nemažou.
 
-- graf ceny produktu v čase napříč obchody
-- „je tahle akce opravdu výhodná?“ = porovnání s nejnižší akční cenou za posledních N týdnů
+- graf ceny produktu v čase napříč obchody (srovnání s dřívějšími akcemi stejné položky je hotové, R59)
+- „je tahle akce opravdu výhodná?“ hotové (R59) — dál: srovnání i s běžnou cenou mimo akci (e-shopy Tesca a Billy ji mají)
 - Penny a Albert uvádějí nejnižší cenu za 30 dní, dá se uložit jako další údaj
 
 ## Další obchody

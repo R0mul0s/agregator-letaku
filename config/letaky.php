@@ -316,6 +316,14 @@ return [
         'lock_seconds' => 600,
     ],
 
+    /*
+    | „Je to opravdu sleva?“ (R59, App\Domain\Offers\PriceHistory): s dřívějšími akcemi stejné
+    | položky u stejného obchodu za kolik týdnů zpátky se cena akce porovná.
+    */
+    'price_history' => [
+        'weeks' => 12,
+    ],
+
     'cron' => [
         'token' => env('LETAKY_CRON_TOKEN'),
         // Limit běhu jednoho volání — stažení Tesca trvá ~45 s; hosting ho může omezit i tak (O8)

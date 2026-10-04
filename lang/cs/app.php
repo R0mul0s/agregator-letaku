@@ -378,6 +378,12 @@ return [
             'stores_dialog_close' => 'Zavřít',
             'maybe' => 'Možná',
             'maybe_hint' => 'Akce je na více druhů a hledanou variantu neuvádí — ověřte u obchodu.',
+            // „Je to opravdu sleva?“ (R59) — srovnání s dřívějšími akcemi stejné položky u obchodu
+            'history' => [
+                'lowest' => 'Nejlevněji za :weeks týdnů',
+                'same' => 'Stejně levně jako před týdnem|Stejně levně jako před :count týdny|Stejně levně jako před :count týdny',
+                'cheaper_before' => 'Před týdnem stálo :price|Před :count týdny stálo :price|Před :count týdny stálo :price',
+            ],
             'source' => 'Do obchodu',
             'suggestion_product' => 'katalog',
             'pagination' => 'Stránkování',

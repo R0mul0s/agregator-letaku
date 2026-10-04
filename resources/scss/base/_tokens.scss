@@ -32,6 +32,8 @@
     --color-focus: #1c7ed6;
     --color-success: #2f9e44;
     --color-success-soft: #ebfbee;
+    // Zelený text na --color-success-soft — malé písmo potřebuje kontrast aspoň 4,5 : 1 (R59)
+    --color-success-text: #1e6b2c;
     --color-danger: #c92a2a;
     --color-danger-soft: #fff0f0;
     --color-warning-soft: #fff4e0;
@@ -276,6 +278,7 @@
         --color-focus: #4dabf7;
         --color-success: #51cf66;
         --color-success-soft: #13301b;
+        --color-success-text: #8ce99a;
         --color-danger: #ff6b6b;
         --color-danger-soft: #3a1717;
         --color-warning-soft: #3a2a0c;

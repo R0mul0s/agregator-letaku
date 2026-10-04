@@ -16,6 +16,7 @@ namespace App\Http\Controllers;
 use App\Domain\Matching\MyOffers;
 use App\Domain\Offers\MentionPresenter;
 use App\Domain\Offers\OfferPresenter;
+use App\Domain\Offers\PriceHistory;
 use App\Enums\DigestFrequency;
 use App\Models\User;
 use App\Support\CzechVocative;
@@ -29,7 +30,7 @@ class HomeController extends Controller
      * Zobrazí slevy po hlídaných položkách, s cenou, kterou uživatel zaplatí, a zmínky
      * v letácích bez ceny (R27).
      */
-    public function __invoke(Request $request, MyOffers $myOffers, OfferPresenter $presenter, MentionPresenter $mentionPresenter, LandingController $landing, CzechVocative $vocative): Response
+    public function __invoke(Request $request, MyOffers $myOffers, OfferPresenter $presenter, MentionPresenter $mentionPresenter, LandingController $landing, CzechVocative $vocative, PriceHistory $priceHistory): Response
     {
         // Nepřihlášený má na stejné adrese úvodní stránku (R44)
         $user = $request->user();
@@ -39,6 +40,9 @@ class HomeController extends Controller
 
         // Vybrané prodejny (R49) — u akce, která neplatí všude, se vypíšou ty, kde platí
         $storeCodes = $user->selectedStoreCodes();
+        $groups = $myOffers->forUser($user);
+        // „Je to opravdu sleva?“ (R59) — jedním dotazem pro akce všech skupin
+        $history = $priceHistory->forOffers(array_merge(...array_map(fn (array $group): array => array_column($group['offers'], 'offer'), $groups)));
 
         return Inertia::render('Home', [
             'hasFollowedChains' => $user->followedChains()->exists(),
@@ -64,7 +68,7 @@ class HomeController extends Controller
                 'editUrl' => route('watch-items.index', [WatchItemController::EDIT_PARAMETER => $group['watchItem']->id], absolute: false),
                 'deleteUrl' => route('watch-items.destroy', $group['watchItem'], absolute: false),
                 'offers' => array_map(fn (array $match): array => [
-                    ...$presenter->toPage($match['offer'], $storeCodes),
+                    ...$presenter->toPage($match['offer'], $storeCodes, $history[$match['offer']->id] ?? null),
                     'matchStatus' => $match['status']->value,
                     // Cena, kterou uživatel zaplatí (s kartou, pokud ji má) — nejnižší cena
                     // v hlavičce skupiny se počítá z akcí na stránce, i po výběru obchodu (R55)
@@ -74,7 +78,7 @@ class HomeController extends Controller
                     fn (array $mention): array => $mentionPresenter->toPage($mention['page'], $mention['status']),
                     $group['mentions'],
                 ),
-            ], $myOffers->forUser($user)),
+            ], $groups),
         ]);
     }
 }

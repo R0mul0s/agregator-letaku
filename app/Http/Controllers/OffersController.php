@@ -16,6 +16,7 @@ namespace App\Http\Controllers;
 
 use App\Domain\Offers\OfferPresenter;
 use App\Domain\Offers\OfferSearch;
+use App\Domain\Offers\PriceHistory;
 use App\Enums\Chain;
 use App\Http\Requests\OffersRequest;
 use App\Models\Offer;
@@ -28,7 +29,7 @@ class OffersController extends Controller
     /**
      * Zobrazí neskončené akce odpovídající hledání, v načteném rozsahu stránek.
      */
-    public function __invoke(OffersRequest $request, OfferSearch $search, OfferPresenter $presenter): Response
+    public function __invoke(OffersRequest $request, OfferSearch $search, OfferPresenter $presenter, PriceHistory $priceHistory): Response
     {
         $query = $search->query($request->searchText(), $request->chain());
         // Přihlášený uvidí u akce, která neplatí všude, ve kterých jeho prodejnách platí (R49)
@@ -41,14 +42,17 @@ class OffersController extends Controller
             'q' => $request->searchText(),
             'chain' => $request->chain()?->value,
         ]);
+        $offers = $query->offset($window->offset())->limit($window->limit())->get();
+        // „Je to opravdu sleva?“ (R59) — jedním dotazem pro celou stránku
+        $history = $priceHistory->forOffers($offers);
 
         return Inertia::render('Offers', [
             'searchUrl' => route('offers', absolute: false),
             'suggestUrl' => route('offers.suggestions', absolute: false),
             'suggestMinLength' => config()->integer('letaky.offers.suggest_min_length'),
             'offers' => [
-                'data' => $query->offset($window->offset())->limit($window->limit())->get()
-                    ->map(fn (Offer $offer): array => $presenter->toPage($offer, $storeCodes))
+                'data' => $offers
+                    ->map(fn (Offer $offer): array => $presenter->toPage($offer, $storeCodes, $history[$offer->id] ?? null))
                     ->all(),
                 'total' => $total,
             ],

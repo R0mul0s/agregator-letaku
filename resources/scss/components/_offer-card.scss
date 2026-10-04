@@ -82,6 +82,28 @@
         font-size: var(--font-size-sm);
     }
 
+    // „Je to opravdu sleva?“ (R59): zeleně nejnižší cena za období, oranžově dřív levněji
+    &__history {
+        align-self: flex-start;
+        margin-top: var(--space-1);
+        padding: 0 var(--space-2);
+        border-radius: var(--radius-sm);
+        background: var(--color-bg);
+        color: var(--color-text-muted);
+        font-size: var(--font-size-xs);
+        font-weight: 700;
+
+        &--lowest {
+            background: var(--color-success-soft);
+            color: var(--color-success-text);
+        }
+
+        &--cheaper_before {
+            background: var(--color-warning-soft);
+            color: var(--color-warning-text);
+        }
+    }
+
     // Vysvětlení štítku „Možná“ po klepnutí (R55); i v kartě zmínky
     &__hint {
         margin-bottom: var(--space-2);

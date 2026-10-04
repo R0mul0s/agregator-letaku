@@ -75,6 +75,23 @@ const unitPrice = computed(() => {
 });
 
 /**
+ * „Je to opravdu sleva?“ (R59): srovnání s dřívějšími akcemi stejné položky u obchodu
+ * (App\Domain\Offers\PriceHistory); null = dřívější akce není.
+ */
+const historyLabel = computed(() => {
+    const history = props.offer.priceHistory;
+    if (!history) {
+        return null;
+    }
+
+    return t(`offers.history.${history.status}`, {
+        weeks: history.weeks,
+        count: history.weeksAgo,
+        price: formatPrice(history.price, locale.value),
+    });
+});
+
+/**
  * Cena za jednotku jako „29,90 Kč / kg“.
  *
  * @param {number} halers
@@ -146,6 +163,7 @@ function unitPriceLabel(halers) {
             {{ formatPrice(offer.loyaltyPrice, locale) }} {{ t('offers.with_card', { program: offer.loyaltyProgramName }) }}
         </p>
         <p v-if="unitPrice !== null && offer.unitPriceUnit" class="offer-card__unit-price">{{ unitPriceLabel(unitPrice) }}</p>
+        <p v-if="historyLabel" class="offer-card__history" :class="`offer-card__history--${offer.priceHistory.status}`">{{ historyLabel }}</p>
 
         <footer class="offer-card__footer">
             <span>{{ t('offers.valid', { from: formatDate(offer.validFrom, locale), to: formatDate(offer.validTo, locale) }) }}</span>

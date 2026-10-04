@@ -31,9 +31,11 @@ final class OfferPresenter
      *
      * @param  list<string>  $selectedStoreCodes  Prodejny vybrané uživatelem (R49) — u akce, která
      *                                            neplatí všude, se vypíšou ty z nich, kde platí
+     * @param  array{status: string, price: int, weeks: int, weeksAgo: int}|null  $priceHistory  Porovnání
+     *                                                                                           s dřívějšími akcemi (PriceHistory, R59)
      * @return array<string, mixed>
      */
-    public function toPage(Offer $offer, array $selectedStoreCodes = []): array
+    public function toPage(Offer $offer, array $selectedStoreCodes = [], ?array $priceHistory = null): array
     {
         return [
             'id' => $offer->id,
@@ -64,6 +66,7 @@ final class OfferPresenter
             // Odkaz na CDN obchodu — obrázek se nestahuje ani neukládá (R22)
             'imageUrl' => $offer->image_url,
             'stores' => $this->stores($offer, $selectedStoreCodes),
+            'priceHistory' => $priceHistory,
         ];
     }
 
