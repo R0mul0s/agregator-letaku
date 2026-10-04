@@ -47,6 +47,14 @@
             background: var(--color-surface);
             color: var(--color-accent-strong);
         }
+
+        // Sekce, ve které uživatel právě je
+        &--active,
+        &--active:hover {
+            background: var(--color-accent-soft);
+            color: var(--color-accent-strong);
+            font-weight: 800;
+        }
     }
 }
 

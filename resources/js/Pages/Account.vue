@@ -20,7 +20,7 @@ import { confirmDialog } from '@/lib/confirm';
 import { useTranslations } from '@/lib/i18n';
 import { squareImage } from '@/lib/image';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
-import { computed, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 
 const props = defineProps({
     urls: { type: Object, required: true },
@@ -54,6 +54,86 @@ const SECTIONS = [
 ];
 
 const user = computed(() => page.props.auth.user);
+
+/** Sekce, ve které uživatel právě je — zvýrazní se v navigaci (R63). */
+const activeSection = ref(SECTIONS[0].id);
+
+/** Tolerance (px) pro „posunuto až na konec stránky“ — zaokrouhlení výšek v prohlížeči. */
+const BOTTOM_TOLERANCE_PX = 2;
+
+/** Čeká na snímek, aby se při posouvání nepočítalo víckrát než jednou za vykreslení. */
+let spyFrame = null;
+
+/**
+ * Sekce vybraná klepnutím v navigaci — platí, dokud uživatel sám neposune stránku. Sekce
+ * u konce stránky k hlavičce nedojede a pravidlo „konec stránky“ by zvýraznilo poslední.
+ */
+let clickedSection = null;
+
+/**
+ * Klepnutí na sekci v navigaci.
+ *
+ * @param {string} id
+ */
+function selectSection(id) {
+    activeSection.value = id;
+    clickedSection = id;
+}
+
+/** Posunutí kolečkem, prstem nebo klávesou — dál rozhoduje poloha stránky. */
+function releaseClickedSection() {
+    clickedSection = null;
+}
+
+/** Události, kterými uživatel posouvá sám (ne skok na kotvu po klepnutí). */
+const USER_SCROLL_EVENTS = ['wheel', 'touchstart', 'keydown'];
+
+/**
+ * Najde aktuální sekci: poslední, jejíž začátek už dojel pod hlavičku (odsazení kotev
+ * scroll-padding-top). Na konci stránky poslední sekce — krátká by k hlavičce nedojela.
+ */
+function updateActiveSection() {
+    spyFrame = null;
+    if (clickedSection !== null) {
+        return;
+    }
+
+    const root = document.documentElement;
+    if (window.innerHeight + window.scrollY >= root.scrollHeight - BOTTOM_TOLERANCE_PX) {
+        activeSection.value = SECTIONS[SECTIONS.length - 1].id;
+
+        return;
+    }
+
+    const offset = parseFloat(getComputedStyle(root).scrollPaddingTop) || 0;
+    let current = SECTIONS[0].id;
+    for (const section of SECTIONS) {
+        const element = document.getElementById(section.id);
+        if (element && element.getBoundingClientRect().top <= offset + BOTTOM_TOLERANCE_PX) {
+            current = section.id;
+        }
+    }
+    activeSection.value = current;
+}
+
+/** Posluchač posouvání — výpočet jednou za snímek. */
+function onScroll() {
+    spyFrame ??= requestAnimationFrame(updateActiveSection);
+}
+
+onMounted(() => {
+    window.addEventListener('scroll', onScroll, { passive: true });
+    USER_SCROLL_EVENTS.forEach((event) => window.addEventListener(event, releaseClickedSection, { passive: true }));
+    updateActiveSection();
+});
+
+onBeforeUnmount(() => {
+    window.removeEventListener('scroll', onScroll);
+    USER_SCROLL_EVENTS.forEach((event) => window.removeEventListener(event, releaseClickedSection));
+    if (spyFrame !== null) {
+        cancelAnimationFrame(spyFrame);
+    }
+});
 
 /** Přihlášení i jinde než tady — jen pak má smysl odhlásit ostatní zařízení. */
 const hasOtherSessions = computed(() => props.sessions.some((session) => !session.current));
@@ -214,7 +294,15 @@ async function deleteAccount() {
         <div class="account">
             <!-- Sekce stránky: na počítači vlevo a jedou s ní, na telefonu řada odkazů nahoře -->
             <nav class="account-nav" :aria-label="t('account.nav_label')">
-                <a v-for="section in SECTIONS" :key="section.id" :href="`#${section.id}`" class="account-nav__link">
+                <a
+                    v-for="section in SECTIONS"
+                    :key="section.id"
+                    :href="`#${section.id}`"
+                    class="account-nav__link"
+                    :class="{ 'account-nav__link--active': activeSection === section.id }"
+                    :aria-current="activeSection === section.id ? 'location' : undefined"
+                    @click="selectSection(section.id)"
+                >
                     {{ t(`account.sections.${section.key}.title`) }}
                 </a>
             </nav>
