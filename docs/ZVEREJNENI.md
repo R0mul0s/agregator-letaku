@@ -37,10 +37,10 @@ Značení: **[R]** = rozhodne nebo zařídí Roman, **[K]** = kód.
   a přesný název společnosti v zásadách (`resources/legal/privacy.md`, kap. 4).
 - [ ] **[R] Záznamy o činnostech zpracování** (čl. 30 GDPR) — jednostránkový interní
   dokument. Lze vzít tabulky z kap. 2 zásad.
-- [ ] **[R] Přečíst a schválit** `resources/legal/terms.md` a `privacy.md` — hlavně návrh
-  doby uchování e-mailové komunikace (3 roky, obecná promlčecí lhůta) a zálohy „nejdéle
-  6 měsíců“ (postup mazání je v DEPLOYMENT.md). `letaky.legal.effective_from` je 2026-10-04
-  (R69) — při změně textů ho posunout na den nasazení.
+- [ ] **[R] Přečíst a schválit** `resources/legal/terms.md` a `privacy.md` — hlavně zálohy
+  „nejdéle 6 měsíců“ (postup mazání je v DEPLOYMENT.md). Doba uchování e-mailové komunikace
+  3 roky (obecná promlčecí lhůta) schválena 4. 10. 2026. `letaky.legal.effective_from` je
+  2026-10-04 (R69) — při změně textů ho posunout na den nasazení.
 - [ ] **[R] Google Analytics — nastavení služby** (R52): Správce → Uchovávání dat na **14 měsíců**
   (zásady to tak uvádějí, výchozí jsou 2 měsíce); přijmout dodatek o zpracování dat (Správce →
   Nastavení účtu); Google signály zapnout jen pokud bude reklama; **vypnout měření změn historie
