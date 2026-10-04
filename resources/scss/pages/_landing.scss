@@ -78,6 +78,17 @@
         list-style: none;
     }
 
+    // Logo obchodu jako odkaz na jeho akce (R68) — při najetí se nadzvedne jako tlačítko
+    &__chain-link {
+        display: block;
+        border-radius: var(--radius-sm);
+        transition: transform var(--duration-fast);
+
+        &:hover {
+            transform: translateY(var(--hover-lift));
+        }
+    }
+
     // Maskot na bílém kruhu s nakloněnou cenovkou slevy (motiv z loga)
     &__art {
         position: relative;

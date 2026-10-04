@@ -28,6 +28,7 @@ use App\Domain\Offers\Exceptions\ImportAlreadyRunning;
 use App\Domain\Offers\Exceptions\SourceReturnedNoOffers;
 use App\Domain\Offers\Exceptions\SuspiciousWithdrawal;
 use App\Domain\Offers\LocalCalendar;
+use App\Domain\Offers\Parsing\WebUrl;
 use App\Domain\Sources\SourceRegistry;
 use App\Enums\Chain;
 use App\Enums\ScrapeStatus;
@@ -109,7 +110,7 @@ final class ImportChainOffers
 
                 // Zdroj jen se zmínkami (Albert, R36) nabídky nemá — u ostatních je nula chyba,
                 // i když vrátily stránky letáku (rozbitý parser Lidlu nebo Penny, R54)
-                if ($stored === [] && (! $this->isMentionsOnly($chain) || ! array_any($batches, fn (SourceBatch $batch): bool => $batch->pages !== []))) {
+                if ($stored === [] && (! $chain->mentionsOnly() || ! array_any($batches, fn (SourceBatch $batch): bool => $batch->pages !== []))) {
                     throw SourceReturnedNoOffers::for($chain);
                 }
 
@@ -221,8 +222,8 @@ final class ImportChainOffers
             'leaflet_id' => $leaflet->id,
             'number' => $page->number,
             'text' => $page->text,
-            'image_url' => $page->imageUrl,
-            'page_url' => $page->pageUrl,
+            'image_url' => WebUrl::orNull($page->imageUrl),
+            'page_url' => WebUrl::orNull($page->pageUrl),
             'created_at' => $now,
             'updated_at' => $now,
         ], $pages);
@@ -316,14 +317,6 @@ final class ImportChainOffers
     }
 
     /**
-     * Má obchod jen zmínky v letácích bez nabídek s cenou (Albert, R36)?
-     */
-    private function isMentionsOnly(Chain $chain): bool
-    {
-        return config("letaky.sources.{$chain->value}.mentions_only") === true;
-    }
-
-    /**
      * Založí nebo aktualizuje zdroj nabídek.
      */
     private function storeLeaflet(Chain $chain, LeafletData $data): Leaflet
@@ -335,7 +328,7 @@ final class ImportChainOffers
                 'format' => $data->format,
                 'valid_from' => $data->validFrom,
                 'valid_to' => $data->validTo,
-                'source_url' => $data->sourceUrl,
+                'source_url' => WebUrl::orNull($data->sourceUrl),
                 'fetched_at' => CarbonImmutable::now(),
             ],
         );
@@ -375,8 +368,8 @@ final class ImportChainOffers
             'valid_from' => $offer->validFrom->toDateString(),
             'valid_to' => $offer->validTo->toDateString(),
             'source_category' => $offer->sourceCategory,
-            'image_url' => $offer->imageUrl,
-            'source_url' => $offer->sourceUrl,
+            'image_url' => WebUrl::orNull($offer->imageUrl),
+            'source_url' => WebUrl::orNull($offer->sourceUrl),
             'raw' => json_encode($offer->raw, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE),
             'created_at' => $now,
             'updated_at' => $now,

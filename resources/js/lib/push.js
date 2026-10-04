@@ -72,6 +72,26 @@ export async function subscribe(publicKey) {
 }
 
 /**
+ * Zruší odběr tohoto prohlížeče před odhlášením (R67) — na sdíleném zařízení by jinak dál
+ * chodila upozornění odhlášeného uživatele. Chyba odhlášení nezastaví.
+ *
+ * @returns {Promise<string|null>} adresa zrušeného odběru (server smaže jeho záznam), nebo null
+ */
+export async function unsubscribeThisDevice() {
+    try {
+        const subscription = await currentSubscription();
+        if (!subscription) {
+            return null;
+        }
+        await subscription.unsubscribe();
+
+        return subscription.endpoint;
+    } catch {
+        return null;
+    }
+}
+
+/**
  * Klíč z base64url na bajty (pushManager.subscribe chce BufferSource).
  *
  * @param {string} value

@@ -30,6 +30,12 @@ final class LegalDocuments
     /** Zásady zpracování osobních údajů — resources/legal/privacy.md. */
     public const PRIVACY = 'privacy';
 
+    /**
+     * Id kapitoly zásad o cookies — cíl odkazu z cookie lišty (R69). Vzniká z nadpisu,
+     * přejmenování nadpisu ho změní (LegalPagesTest to hlídá).
+     */
+    public const COOKIES_SECTION = '5-cookies-a-uloziste-v-prohlizeci';
+
     /** Kapitoly dokumentu = nadpisy druhé úrovně (## v Markdownu). */
     private const SECTION_HEADING = '~<h2>(.*?)</h2>~s';
 

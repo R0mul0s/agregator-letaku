@@ -107,13 +107,23 @@ it('udělí a odvolá souhlas s obchodními sděleními s časem a verzí textu 
         ->marketing_consent_at->toDateTimeString()->toBe('2026-10-03 10:00:00')
         ->marketing_consent_version->toBe(config('letaky.legal.marketing_consent_version'));
 
+    // Odvolání nechá doklad o udělení (čas a verzi textu, R69)
     $this->travelTo('2026-10-05 08:00:00');
     $this->put(route('account.marketing'), ['marketing' => false]);
     expect($user->fresh())
-        ->marketing_consent_at->toBeNull()
+        ->hasMarketingConsent()->toBeFalse()
+        ->marketing_consent_at->toDateTimeString()->toBe('2026-10-03 10:00:00')
+        ->marketing_consent_version->toBe(config('letaky.legal.marketing_consent_version'))
         ->marketing_consent_withdrawn_at->toDateTimeString()->toBe('2026-10-05 08:00:00');
 
     $this->get(route('account'))->assertInertia(fn (Assert $page) => $page->where('marketingConsent', false));
+
+    // Nové udělení po odvolání platí
+    $this->travelTo('2026-10-06 08:00:00');
+    $this->put(route('account.marketing'), ['marketing' => true]);
+    expect($user->fresh())
+        ->hasMarketingConsent()->toBeTrue()
+        ->marketing_consent_at->toDateTimeString()->toBe('2026-10-06 08:00:00');
 });
 
 it('nezmění heslo se špatným současným heslem a chybu dá do vlastní sady', function (): void {
@@ -144,6 +154,24 @@ it('změní heslo se správným současným heslem', function (): void {
         ->assertSessionHas('status', 'password-updated');
 
     expect(Hash::check('Nove-heslo-2026', $user->fresh()?->password ?? ''))->toBeTrue();
+});
+
+it('po změně hesla odhlásí ostatní zařízení (R67)', function (): void {
+    config(['session.driver' => 'database']);
+    $user = User::factory()->create(['remember_token' => 'stary-token']);
+    DB::table('sessions')->insert(['id' => 'jine-zarizeni', 'user_id' => $user->id, 'ip_address' => '10.0.0.2', 'user_agent' => 'test', 'payload' => '', 'last_activity' => now()->getTimestamp()]);
+
+    $this->actingAs($user)
+        ->from(route('account'))
+        ->put(route('user-password.update'), [
+            'current_password' => UserFactory::PASSWORD,
+            'password' => 'Nove-heslo-2026',
+            'password_confirmation' => 'Nove-heslo-2026',
+        ])
+        ->assertSessionHas('status', 'password-updated');
+
+    expect(DB::table('sessions')->where('id', 'jine-zarizeni')->exists())->toBeFalse()
+        ->and($user->fresh()?->remember_token)->not->toBe('stary-token');
 });
 
 /**

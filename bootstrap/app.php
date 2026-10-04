@@ -40,7 +40,12 @@ return Application::configure(basePath: dirname(__DIR__))
         // TLS končí na proxy Websupportu (R38): IP klienta a https z X-Forwarded-* hlaviček.
         // Bez toho má každý návštěvník IP proxy (jeden společný limit požadavků)
         // a absolutní adresy (canonical, og:url, sitemap) vycházejí s http://
-        $middleware->trustProxies(at: '*');
+        // X-Forwarded-Prefix ne (R67): proxy ho propouští od klienta a vložil by cestu
+        // do adres v e-mailech (obnova hesla, ověření adresy)
+        $middleware->trustProxies(at: '*', headers: Request::HEADER_X_FORWARDED_FOR
+            | Request::HEADER_X_FORWARDED_HOST
+            | Request::HEADER_X_FORWARDED_PORT
+            | Request::HEADER_X_FORWARDED_PROTO);
 
         // Nepřihlášený jde na přihlášení, přihlášený z přihlášení na svůj seznam slev
         $middleware->redirectGuestsTo(fn (): string => route('login'));

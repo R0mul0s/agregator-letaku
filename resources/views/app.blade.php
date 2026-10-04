@@ -35,6 +35,7 @@
         <meta name="twitter:title" content="{{ $seo['title'] }}">
         <meta name="twitter:description" content="{{ $seo['description'] }}">
         <meta name="twitter:image" content="{{ $seo['image']['url'] }}">
+        <meta name="twitter:image:alt" content="{{ $seo['image']['alt'] }}">
         {{-- Název aplikace pro šablonu titulku stránek (resources/js/app.js) --}}
         <meta name="application-name" content="{{ __('app.ui.app_name') }}">
         {{-- Barva lišty prohlížeče na mobilu podle režimu systému (= --color-bg v _tokens.scss) --}}

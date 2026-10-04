@@ -30,6 +30,8 @@ defineProps({
     stats: { type: Object, required: true },
     /** Obchody se zdrojem dat (hodnoty App\Enums\Chain). */
     chains: { type: Array, required: true },
+    /** Adresy akcí obchodů { kaufland: '/akce?chain=kaufland' }; obchod jen se zmínkami chybí. */
+    chainUrls: { type: Object, default: () => ({}) },
     /** Akce s nejvyšší slevou z různých obchodů (OfferPresenter). */
     topOffers: { type: Array, required: true },
 });
@@ -40,7 +42,7 @@ const page = usePage();
 
 <template>
     <AppLayout>
-        <Head :title="t('landing.title')" />
+        <Head :title="page.props.seoTitle" />
 
         <section class="landing-hero">
             <div class="landing-hero__body">
@@ -55,7 +57,12 @@ const page = usePage();
                     {{ t('landing.login_hint') }} <Link :href="urls.login" class="link">{{ t('landing.login') }}</Link>
                 </p>
                 <ul class="landing-hero__chains">
-                    <li v-for="chain in chains" :key="chain"><ChainLogo :chain="chain" large /></li>
+                    <li v-for="chain in chains" :key="chain">
+                        <Link v-if="chainUrls[chain]" :href="chainUrls[chain]" class="landing-hero__chain-link">
+                            <ChainLogo :chain="chain" large />
+                        </Link>
+                        <ChainLogo v-else :chain="chain" large />
+                    </li>
                 </ul>
             </div>
             <!-- Košík „jede“: poskakuje, za ním ubíhají čárky rychlosti (jen CSS, při omezení pohybu stojí) -->

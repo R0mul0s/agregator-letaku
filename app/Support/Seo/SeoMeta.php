@@ -6,7 +6,7 @@
  * vidět robot bez JavaScriptu nebo náhled odkazu, musí být v šabloně ze serveru.
  *
  * Indexovat se smí jen veřejné stránky: úvodní stránka, Všechny akce (bez hledání)
- * a právní stránky (R51).
+ * a právní stránky (R51). Výpis obchodu jen se zmínkami bez cen (Albert) ne — je prázdný.
  * Přihlášení a registrace „noindex, follow“, vše za přihlášením „noindex, nofollow“.
  *
  * @author Roman Hlaváček
@@ -21,6 +21,7 @@ namespace App\Support\Seo;
 use App\Enums\Chain;
 use App\Http\Requests\OffersRequest;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 
 final class SeoMeta
 {
@@ -51,21 +52,13 @@ final class SeoMeta
     public function forRequest(Request $request): array
     {
         $routeName = (string) $request->route()?->getName();
-        $chain = $routeName === 'offers' ? $request->enum('chain', Chain::class) : null;
-        $page = match (true) {
-            $routeName === 'home' && $request->user() === null => 'home',
-            $routeName === 'offers' && $chain !== null => 'offers_chain',
-            $routeName === 'offers' => 'offers',
-            $routeName === 'legal.terms' => 'terms',
-            $routeName === 'legal.privacy' => 'privacy',
-            default => 'default',
-        };
-        $robots = $this->robots($routeName, $page, $request);
-        $replacements = ['chain' => $chain?->label() ?? ''];
+        $chain = $this->chain($request, $routeName);
+        $page = $this->page($request, $routeName, $chain);
+        $robots = $this->robots($routeName, $page, $chain, $request);
 
         return [
-            'title' => __("app.seo.pages.{$page}.title", $replacements),
-            'description' => __("app.seo.pages.{$page}.description", $replacements),
+            'title' => $this->title($request),
+            'description' => __("app.seo.pages.{$page}.description", ['chain' => $chain?->genitive() ?? '']),
             'canonical' => $this->canonical($request, $routeName),
             'robots' => $robots,
             'image' => [
@@ -80,6 +73,18 @@ final class SeoMeta
     }
 
     /**
+     * Titulek stránky. Veřejné stránky ho dostávají i do Vue (sdílená vlastnost seoTitle,
+     * R68) — jinak by ho po načtení přepsal obecný titulek z <Head> a Google by viděl ten.
+     */
+    public function title(Request $request): string
+    {
+        $routeName = (string) $request->route()?->getName();
+        $chain = $this->chain($request, $routeName);
+
+        return __("app.seo.pages.{$this->page($request, $routeName, $chain)}.title", ['chain' => $chain?->genitive() ?? '']);
+    }
+
+    /**
      * Adresa úvodní stránky s koncovým lomítkem („https://slevohlidka.rhsoft.cz/“) —
      * jednotně v canonical, sitemap.xml, llms.txt a schema.org.
      */
@@ -89,13 +94,39 @@ final class SeoMeta
     }
 
     /**
+     * Druh stránky pro texty v app.seo.pages.
+     */
+    private function page(Request $request, string $routeName, ?Chain $chain): string
+    {
+        return match (true) {
+            $routeName === 'home' && $request->user() === null => 'home',
+            $routeName === 'offers' && $chain !== null => 'offers_chain',
+            $routeName === 'offers' => 'offers',
+            $routeName === 'legal.terms' => 'terms',
+            $routeName === 'legal.privacy' => 'privacy',
+            default => 'default',
+        };
+    }
+
+    /**
+     * Obchod vybraný ve Všech akcích, jinak null.
+     */
+    private function chain(Request $request, string $routeName): ?Chain
+    {
+        return $routeName === 'offers' ? $request->enum('chain', Chain::class) : null;
+    }
+
+    /**
      * Pravidlo pro roboty: veřejné stránky indexovat, výsledky hledání ne (nekonečně
      * kombinací, slabý obsah), přihlášení a registraci ne, vše ostatní ani sledovat.
+     * Obchod jen se zmínkami v letácích (Albert, R36) má výpis akcí prázdný — neindexovat (R68).
      */
-    private function robots(string $routeName, string $page, Request $request): string
+    private function robots(string $routeName, string $page, ?Chain $chain, Request $request): string
     {
         if ($page === 'home' || $page === 'offers_chain' || $page === 'offers') {
-            return $request->filled('q') ? self::NOINDEX_FOLLOW : self::INDEX;
+            $emptyListing = $chain !== null && $chain->mentionsOnly();
+
+            return $request->filled('q') || $emptyListing ? self::NOINDEX_FOLLOW : self::INDEX;
         }
         if ($page === 'terms' || $page === 'privacy') {
             return self::INDEX;
@@ -106,21 +137,27 @@ final class SeoMeta
 
     /**
      * Kanonická adresa: bez parametrů kromě obchodu a stránky ve Všech akcích. Rozsah
-     * „Načíst další“ (?od=) je stejný obsah jako jeho poslední stránka.
+     * „Načíst další“ (?od=) je stejný obsah jako jeho poslední stránka. Výsledky hledání
+     * (noindex) odkazují samy na sebe — noindex a canonical jinam jsou protichůdné signály.
+     * Adresa z APP_URL (url()->current()), ne z požadavku — s kořenovým .htaccess by
+     * nesla /public (R67).
      */
     private function canonical(Request $request, string $routeName): string
     {
         if ($routeName !== 'offers') {
             // Úvodní stránka s koncovým lomítkem ("https://…/"), ostatní bez
-            return $request->is('/') ? self::homeUrl() : $request->url();
+            return $request->is('/') ? self::homeUrl() : url()->current();
         }
 
-        $query = http_build_query(array_filter([
-            'chain' => $request->enum('chain', Chain::class)?->value,
-            OffersRequest::PAGE => $request->integer(OffersRequest::PAGE) > 1 ? $request->integer(OffersRequest::PAGE) : null,
-        ]));
+        $parameters = $request->filled('q')
+            ? $request->query()
+            : array_filter([
+                'chain' => $request->enum('chain', Chain::class)?->value,
+                OffersRequest::PAGE => $request->integer(OffersRequest::PAGE) > 1 ? $request->integer(OffersRequest::PAGE) : null,
+            ]);
+        $query = Arr::query($parameters);
 
-        return $request->url().($query === '' ? '' : '?'.$query);
+        return url()->current().($query === '' ? '' : '?'.$query);
     }
 
     /**

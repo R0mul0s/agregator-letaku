@@ -24,7 +24,9 @@ final class MailingSubscriptions
 {
     /**
      * Udělí nebo odvolá souhlas s obchodními sděleními. Opakované udělení ani odvolání
-     * nepřepíše čas původního záznamu.
+     * nepřepíše čas původního záznamu. Odvolání čas a verzi udělení nechá (R69) — doklad
+     * o souhlasu je potřeba i pro sdělení poslaná před odvoláním; souhlas platí, když je
+     * udělení novější než poslední odvolání (User::hasMarketingConsent).
      */
     public function setMarketingConsent(User $user, bool $consent): void
     {
@@ -37,11 +39,7 @@ final class MailingSubscriptions
                 'marketing_consent_at' => CarbonImmutable::now(),
                 'marketing_consent_version' => config()->integer('letaky.legal.marketing_consent_version'),
             ]
-            : [
-                'marketing_consent_at' => null,
-                'marketing_consent_version' => null,
-                'marketing_consent_withdrawn_at' => CarbonImmutable::now(),
-            ])->save();
+            : ['marketing_consent_withdrawn_at' => CarbonImmutable::now()])->save();
     }
 
     /**

@@ -2,8 +2,10 @@
 
 /**
  * Úklid osobních údajů po vypršení (R53): relace (session s IP a prohlížečem) starší
- * než `session.lifetime` a propadlé odkazy pro obnovu hesla. Laravel relace maže jen
- * náhodně při požadavcích (loterie) — zásady slibují průběžné mazání, proto denní cron.
+ * než `session.lifetime`, propadlé odkazy pro obnovu hesla a prošlé položky cache (R69) —
+ * v cache jsou počítadla limitů požadavků s IP a e-mailem a databázová cache prošlý
+ * řádek smaže, jen když se na stejný klíč znovu sáhne. Laravel relace maže jen náhodně
+ * při požadavcích (loterie) — zásady slibují průběžné mazání, proto denní cron.
  * Volá ho artisan `letaky:prune-sessions` i cron URL `/cron/prune-sessions`.
  *
  * @author Roman Hlaváček
@@ -22,11 +24,12 @@ use Illuminate\Support\Facades\Password;
 final class PruneExpiredSessions
 {
     /**
-     * Smaže vypršelé relace a odkazy pro obnovu hesla; vrátí počet smazaných relací.
+     * Smaže vypršelé relace, odkazy pro obnovu hesla a prošlou cache; vrátí počet smazaných relací.
      */
     public function __invoke(): int
     {
         Password::broker()->getRepository()->deleteExpired();
+        $this->pruneCache();
 
         if (config('session.driver') !== 'database') {
             return 0;
@@ -35,5 +38,21 @@ final class PruneExpiredSessions
         $expiredBefore = CarbonImmutable::now()->subMinutes(config()->integer('session.lifetime'))->getTimestamp();
 
         return DB::table(config()->string('session.table'))->where('last_activity', '<', $expiredBefore)->delete();
+    }
+
+    /**
+     * Smaže prošlé položky databázové cache (limity požadavků, zámky stažení). Platné nechá.
+     */
+    private function pruneCache(): void
+    {
+        $store = config()->string('cache.default');
+        if (config("cache.stores.{$store}.driver") !== 'database') {
+            return;
+        }
+
+        DB::connection(config("cache.stores.{$store}.connection"))
+            ->table(config()->string("cache.stores.{$store}.table"))
+            ->where('expiration', '<', CarbonImmutable::now()->getTimestamp())
+            ->delete();
     }
 }

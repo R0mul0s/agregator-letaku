@@ -13,7 +13,9 @@ podmínky a zásady (`resources/legal`), patička, souhlasy při registraci, ov�
 odhlášení z e-mailů jedním klepnutím, české chybové stránky; ochrana účtů a úklid
 v [R53](PLAN.md#8-log-rozhodnutí); opravy a funkce z revize (souhrny po dávkách, pojistky
 importu, heslo při změně e-mailu, první kroky po registraci, nákupní seznam…)
-v [R54–R65](PLAN.md#8-log-rozhodnutí). Hotové body se odsud mažou a popisují
+v [R54–R65](PLAN.md#8-log-rozhodnutí); zabezpečení, SEO a soukromí z revize připravenosti
+(adresy bez `/public`, odhlášení zařízení po změně hesla, limit e-mailů, `security.txt`, GA bez
+tokenů, datum účinnosti textů…) v [R67–R69](PLAN.md#8-log-rozhodnutí). Hotové body se odsud mažou a popisují
 v [PLAN.md](PLAN.md); technické nápady z revize jsou v [TODO.md](TODO.md#provoz-a-údržba).
 
 Značení: **[R]** = rozhodne nebo zařídí Roman, **[K]** = kód.
@@ -35,13 +37,17 @@ Značení: **[R]** = rozhodne nebo zařídí Roman, **[K]** = kód.
   a přesný název společnosti v zásadách (`resources/legal/privacy.md`, kap. 4).
 - [ ] **[R] Záznamy o činnostech zpracování** (čl. 30 GDPR) — jednostránkový interní
   dokument. Lze vzít tabulky z kap. 2 zásad.
-- [ ] **[R] Přečíst a schválit** `resources/legal/terms.md` a `privacy.md` (zálohy „nejdéle
-  6 měsíců“ musí odpovídat skutečnosti), pak nastavit `letaky.legal.effective_from`
-  na den spuštění.
+- [ ] **[R] Přečíst a schválit** `resources/legal/terms.md` a `privacy.md` — hlavně návrh
+  doby uchování e-mailové komunikace (3 roky, obecná promlčecí lhůta) a zálohy „nejdéle
+  6 měsíců“ (postup mazání je v DEPLOYMENT.md). `letaky.legal.effective_from` je 2026-10-04
+  (R69) — při změně textů ho posunout na den nasazení.
 - [ ] **[R] Google Analytics — nastavení služby** (R52): Správce → Uchovávání dat na **14 měsíců**
   (zásady to tak uvádějí, výchozí jsou 2 měsíce); přijmout dodatek o zpracování dat (Správce →
-  Nastavení účtu); Google signály zapnout jen pokud bude reklama. Po nasazení ověřit v Realtime,
-  že měření běží až po „Přijmout“.
+  Nastavení účtu); Google signály zapnout jen pokud bude reklama; **vypnout měření změn historie
+  prohlížeče** v rozšířeném měření (R69, postup v DEPLOYMENT.md). Po nasazení ověřit v Realtime,
+  že měření běží až po „Přijmout“ a že po „Přijmout vše“ nevznikají jiné cookies než `_ga`, `_ga_<ID>`.
+- [ ] **[R] `www.slevohlidka.rhsoft.cz`** odpovídá s certifikátem jiné domény (chyba TLS) — DNS
+  záznam odstranit, nebo nastavit certifikát a přesměrování na adresu bez `www`.
 
 ## 2. Doporučené před spuštěním
 
@@ -49,8 +55,8 @@ Značení: **[R]** = rozhodne nebo zařídí Roman, **[K]** = kód.
 - [ ] **[R]+[K] Monitoring:** UptimeRobot i na `/up`. Upozornění na chyby e-mailem
   (log kanál `mail` nebo denní souhrn chyb). Do `/health/imports` přidat import prodejen.
 - [ ] **[R] Zálohy:** doplnit `offer_product`, `shopping_list_items` a avatary
-  (`storage/app/private/avatars` přes FTP), ověřit automatické zálohy Websupportu, dobu
-  uchování zapsat do zásad; jednou vyzkoušet obnovu.
+  (`storage/app/private/avatars` přes FTP), ověřit, jak dlouho drží automatické zálohy
+  Websupportu (zásady slibují nejdéle 6 měsíců); jednou vyzkoušet obnovu.
 - [ ] **[R] Měkké spuštění:** nejdřív 20–50 lidem z okolí na dva týdny a sledovat, co opravdu
   používají (doporučení revize 4. 10. 2026), teprve pak veřejně.
 
@@ -60,7 +66,8 @@ Značení: **[R]** = rozhodne nebo zařídí Roman, **[K]** = kód.
 - [ ] Rušení dlouho neaktivních účtů (např. po 2 letech s upozorněním) — pak doplnit do zásad.
 - [ ] Cache pro Moje slevy a počty na úvodní stránce, až přibudou uživatelé.
 - [ ] **[K] První obchodní sdělení:** Mailable jen uživatelům s `hasMarketingConsent()`
-  a ověřeným e-mailem, v předmětu nebo úvodu označené jako obchodní sdělení, patička
+  (v SQL: `marketing_consent_at` vyplněné a novější než `marketing_consent_withdrawn_at` —
+  odvolání čas udělení nemaže, R69) a ověřeným e-mailem, v předmětu nebo úvodu označené jako obchodní sdělení, patička
   níže, odkaz a hlavičky odhlášení na `MailingList::Marketing` (vzor `DigestMail`).
   Text patičky:
   > Toto je obchodní sdělení. Dostáváte ho, protože jste souhlasili se zasíláním novinek

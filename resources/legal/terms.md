@@ -42,11 +42,11 @@
 
 ## 4. Uživatelský účet
 
-1. Účet si může založit osoba starší 15 let. E-mailovou adresu potvrdí odkazem, který
-   jí služba pošle; do té doby jí služba neposílá souhrny ani jiná sdělení.
+1. Účet si může založit osoba od 15 let. E-mailovou adresu potvrdí odkazem, který
+   jí služba pošle; do té doby jí služba neposílá souhrny, upozornění ani jiná sdělení.
 2. Údaje v účtu mají být pravdivé. Jeden člověk má jeden účet a nikomu ho nepředává.
 3. Heslo uchovávejte v tajnosti. Zneužití účtu hlaste bez zbytečného odkladu.
-4. Účet můžete kdykoli sami zrušit v sekci Účet. Údaje se smažou podle Zásad
+4. Účet můžete kdykoli sami zrušit v sekci Můj účet. Údaje se smažou podle Zásad
    zpracování osobních údajů.
 
 ## 5. Pravidla používání
@@ -90,8 +90,7 @@ Zpracování osobních údajů popisují samostatné [Zásady zpracování osobn
 ## 9. Změny podmínek
 
 1. Provozovatel může podmínky změnit, například kvůli nové funkci nebo změně právní
-   úpravy. Podstatnou změnu oznámí e-mailem nebo při přihlášení nejméně 14 dní před
-   účinností.
+   úpravy. Podstatnou změnu oznámí e-mailem nejméně 14 dní před účinností.
 2. Pokud se změnou nesouhlasíte, můžete účet zrušit. Když službu po účinnosti změny
    používáte dál, platí, že jste změnu přijali.
 

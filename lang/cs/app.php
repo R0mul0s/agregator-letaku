@@ -19,28 +19,29 @@ return [
         'description' => 'Slevohlídka — rychlý lovec slev. Hlídá akce z letáků obchodů Kaufland, Tesco, Albert, Lidl, Penny, Globus a Billa.',
     ],
 
-    // Hlavička HTML pro vyhledávače a sdílení (R45, App\Support\Seo\SeoMeta) — jen server, ne Vue
+    // Hlavička HTML pro vyhledávače a sdílení (R45, App\Support\Seo\SeoMeta). Titulek do 60 znaků,
+    // popis do 160 (delší Google zkrátí, R68). Titulek veřejných stránek dostává i Vue (seoTitle).
     'seo' => [
         'pages' => [
             'home' => [
-                'title' => 'Slevohlídka — akce z letáků Kaufland, Tesco, Albert, Lidl, Penny, Globus a Billa',
-                'description' => 'Slevohlídka každý den projde letáky a e-shopy Kauflandu, Tesca, Albertu, Lidlu, Penny, Globusu a Billy a ukáže, kde je to, co kupujete, právě ve slevě a nejlevněji za kilo nebo litr. Zdarma.',
+                'title' => 'Slevohlídka — akce z letáků Kauflandu, Tesca, Lidlu a dalších',
+                'description' => 'Akce z letáků Kauflandu, Tesca, Albertu, Lidlu, Penny, Globusu a Billy na jednom místě. Hlídá, co kupujete, a ukáže nejnižší cenu za kilo nebo litr. Zdarma.',
             ],
             'offers' => [
                 'title' => 'Všechny akce z letáků · Slevohlídka',
                 'description' => 'Aktuální akce z letáků a e-shopů Kauflandu, Tesca, Lidlu, Penny, Globusu a Billy na jednom místě — s cenou za kilo nebo litr a cenou s věrnostní kartou.',
             ],
             'offers_chain' => [
-                'title' => 'Akce :chain z letáku · Slevohlídka',
-                'description' => 'Aktuální akce :chain z letáku a e-shopu — s cenou za kilo nebo litr a cenou s věrnostní kartou. Přehled od Slevohlídky.',
+                'title' => 'Aktuální akce :chain · Slevohlídka',
+                'description' => 'Aktuální akce :chain na jednom místě — s cenou za kilo nebo litr a cenou s věrnostní kartou. Přehled od Slevohlídky.',
             ],
             'terms' => [
                 'title' => 'Podmínky užití · Slevohlídka',
-                'description' => 'Podmínky užití služby Slevohlídka — co služba dělá, správnost cen, uživatelský účet a e-maily.',
+                'description' => 'Podmínky užití služby Slevohlídka — co služba dělá a co ne, správnost cen převzatých z letáků, uživatelský účet, e-maily a upozornění.',
             ],
             'privacy' => [
                 'title' => 'Zásady zpracování osobních údajů · Slevohlídka',
-                'description' => 'Jaké osobní údaje Slevohlídka zpracovává, proč a jak dlouho, cookies a vaše práva.',
+                'description' => 'Jaké osobní údaje Slevohlídka zpracovává, proč a jak dlouho, komu je předává, jaké používá cookies a jaká máte práva.',
             ],
             'default' => [
                 'title' => 'Slevohlídka',
@@ -60,6 +61,17 @@ return [
         'penny' => 'Penny',
         'globus' => 'Globus',
         'billa' => 'Billa',
+    ],
+
+    // Názvy obchodů ve 2. pádě (Chain::genitive) — „Aktuální akce Kauflandu“
+    'chains_genitive' => [
+        'kaufland' => 'Kauflandu',
+        'tesco' => 'Tesca',
+        'albert' => 'Albertu',
+        'lidl' => 'Lidlu',
+        'penny' => 'Penny',
+        'globus' => 'Globusu',
+        'billa' => 'Billy',
     ],
 
     // App\Enums\StoreFormat
@@ -110,7 +122,7 @@ return [
     // llms.txt (R45) — popis webu pro jazykové modely
     'llms' => [
         'summary' => 'Slevohlídka je česká webová aplikace, která každý den stahuje akční nabídky z letáků a e-shopů obchodů Kaufland, Tesco, Albert, Lidl, Penny, Globus a Billa a ukazuje je přehledně na jednom místě.',
-        'about' => 'Přihlášený uživatel si vybere obchody, věrnostní karty a položky, které chce hlídat (produkt z katalogu nebo vlastní slova). Slevohlídka mu pak ukáže jen akce na tyto položky, seřazené podle ceny za kilogram, litr nebo kus, a volitelně pošle e-mailový souhrn nových akcí. Přehled všech aktuálních akcí je veřejný.',
+        'about' => 'Přihlášený uživatel si vybere obchody, věrnostní karty a položky, které chce hlídat (produkt z katalogu nebo vlastní slova). Slevohlídka mu pak ukáže jen akce na tyto položky, seřazené podle ceny za kilogram, litr nebo kus, a u akce řekne, jestli je to opravdu sleva oproti dřívějším cenám. Akce si uživatel přidá do nákupního seznamu rozděleného podle obchodů a v obchodě („Jsem v obchodě“) je vidí jako kompaktní seznam. O nových akcích ho Slevohlídka upozorní e-mailem nebo v telefonu. Jde přidat na plochu telefonu jako aplikace; Moje slevy a nákupní seznam fungují i bez signálu. Přehled všech aktuálních akcí je veřejný.',
         'pages_title' => 'Veřejné stránky',
         'home' => 'Úvodní stránka',
         'home_description' => 'co Slevohlídka umí a ukázka akcí s nejvyšší slevou',
@@ -514,7 +526,7 @@ return [
                 // Souhlasy (R51): podmínky povinné, obchodní sdělení dobrovolná a nezaškrtnutá
                 'terms_before' => 'Souhlasím s',
                 'terms_link' => 'podmínkami užití',
-                'privacy_before' => 'Jak zacházíme s vašimi údaji, popisují',
+                'privacy_before' => 'Jak Slevohlídka zachází s vašimi údaji, popisují',
                 'privacy_link' => 'zásady zpracování osobních údajů',
                 'terms_required' => 'Bez souhlasu s podmínkami užití účet založit nejde.',
                 // Ochrana proti botům (R53): skryté pole a chyba podezřelého odeslání
@@ -544,7 +556,6 @@ return [
 
         // Úvodní stránka pro nepřihlášené (R44, Landing.vue)
         'landing' => [
-            'title' => 'Slevohlídka — rychlý lovec slev',
             'eyebrow' => 'Rychlý lovec slev',
             'headline' => 'Slevy z letáků na to, co opravdu kupujete',
             'lead' => 'Slevohlídka každý den projde letáky a e-shopy Kauflandu, Tesca, Albertu, Lidlu, Penny, Globusu a Billy. Řeknete jí, co kupujete — a ona vám ukáže, kde je to právě ve slevě a kde nejlevněji za kilo nebo litr.',
@@ -732,7 +743,7 @@ return [
         // Souhlas s cookies (R52, CookieConsent.vue) — odmítnout stejně snadno jako přijmout
         'cookies' => [
             'title' => 'Cookies na Slevohlídce',
-            'intro' => 'Nezbytné cookies potřebujeme, aby web fungoval. S vaším souhlasem použijeme i analytické cookies (Google Analytics), abychom věděli, co lidé na webu používají, a marketingové pro měření reklamy. Souhlas můžete kdykoli změnit v patičce.',
+            'intro' => 'Nezbytné cookies Slevohlídka potřebuje, aby web fungoval. S vaším souhlasem použije i analytické cookies (Google Analytics), aby věděla, co lidé na webu používají, a marketingové pro měření reklamy. Souhlas můžete kdykoli změnit v patičce.',
             'more' => 'Více o cookies',
             'settings' => 'Nastavení',
             'accept_all' => 'Přijmout vše',
@@ -746,7 +757,7 @@ return [
             'analytics_title' => 'Analytické',
             'analytics_text' => 'Google Analytics — statistiky návštěvnosti (které stránky se čtou, z jakého zařízení), podle kterých Slevohlídku zlepšujeme.',
             'marketing_title' => 'Marketingové',
-            'marketing_text' => 'Dovolí Googlu použít data z návštěvy pro měření a cílení reklamy. Reklamu zatím nezobrazujeme.',
+            'marketing_text' => 'Dovolí Googlu použít data z návštěvy pro měření a cílení reklamy. Reklama se na Slevohlídce zatím nezobrazuje.',
         ],
 
         // Právní stránky (R51, Legal.vue)
@@ -766,7 +777,7 @@ return [
             'title' => 'Odhlášení z e-mailů',
             'confirm' => 'Opravdu už nechcete dostávat :list na :email?',
             'submit' => 'Odhlásit',
-            'done' => 'Na :email už :list neposíláme. Zapnout ho můžete kdykoli znovu v nastavení účtu.',
+            'done' => 'Na :email už :list nechodí. E-maily znovu zapnete kdykoli v nastavení účtu.',
             'home' => 'Na úvodní stránku',
         ],
 

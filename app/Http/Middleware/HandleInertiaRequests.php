@@ -14,7 +14,9 @@ namespace App\Http\Middleware;
 
 use App\Enums\Chain;
 use App\Models\User;
+use App\Support\Legal\LegalDocuments;
 use App\Support\Operator;
+use App\Support\Seo\SeoMeta;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Vite;
 use Inertia\Middleware;
@@ -71,6 +73,8 @@ class HandleInertiaRequests extends Middleware
                     'logo' => asset(sprintf(config()->string('letaky.chain_logo_path'), $chain->value)),
                 ], Chain::cases()),
             ),
+            // Titulek veřejné stránky stejný jako ze serveru (R68) — <Head> ve Vue by ho jinak přepsal
+            'seoTitle' => fn (): string => app(SeoMeta::class)->title($request),
             'locale' => app()->getLocale(),
             'timezone' => config('letaky.display_timezone'),
             'auth' => [
@@ -119,7 +123,9 @@ class HandleInertiaRequests extends Middleware
                 'measurementId' => app()->isProduction() ? config('letaky.cookie_consent.google_measurement_id') : null,
                 'version' => config()->integer('letaky.cookie_consent.version'),
                 'maxAgeDays' => config()->integer('letaky.cookie_consent.max_age_days'),
-                'privacyUrl' => route('legal.privacy', absolute: false),
+                'redactedPaths' => config('letaky.cookie_consent.redacted_paths'),
+                // Rovnou na kapitolu o cookies v zásadách (R69)
+                'privacyUrl' => route('legal.privacy', absolute: false).'#'.LegalDocuments::COOKIES_SECTION,
             ],
             // Zpráva Fortify po akci: přeložený text (odkaz na obnovu hesla odeslán)
             // nebo kód (profile-information-updated, password-updated)

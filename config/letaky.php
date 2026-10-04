@@ -61,13 +61,14 @@ return [
     | Podmínky užití a zásady zpracování osobních údajů (R51): Markdown v resources/legal.
     | Verze podmínek se ukládá k uživateli při registraci (users.terms_version), verze textu
     | souhlasu s obchodními sděleními k souhlasu (users.marketing_consent_version) — při
-    | podstatné změně textu zvýšit. Datum účinnosti null = na stránce se neukáže.
+    | podstatné změně textu zvýšit. Datum účinnosti (Y-m-d) je na stránkách a v sitemap.xml (lastmod),
+    | při změně textů ho posunout na den nasazení (R69).
     */
     'legal' => [
         'directory' => 'legal',
         'terms_version' => 1,
         'marketing_consent_version' => 1,
-        'effective_from' => null,
+        'effective_from' => '2026-10-04',
     ],
 
     /*
@@ -80,6 +81,9 @@ return [
         'google_measurement_id' => env('LETAKY_GA_MEASUREMENT_ID', 'G-BM3CZ7M4PD'),
         'version' => 1,
         'max_age_days' => 180,
+        // Stránky s tokenem nebo e-mailem v adrese (R69): do GA jde jen tento začátek cesty,
+        // bez zbytku a parametrů — obnova hesla, ověření e-mailu, odhlášení z e-mailů
+        'redacted_paths' => ['/reset-password', '/email/verify', '/odhlaseni'],
     ],
 
     /*
@@ -459,8 +463,18 @@ return [
     ],
 
     /*
-    | Omezení počtu požadavků za minutu (R45, App\Support\RateLimits). Běžný uživatel se
-    | k limitům nepřiblíží; brání hádání hesel a tokenu cronu a zahlcení našeptávače.
+    | security.txt (RFC 9116, R68): platnost (pole Expires) dní od dneška — RFC doporučuje
+    | méně než rok; jazyky, ve kterých jde chybu nahlásit.
+    */
+    'security_txt' => [
+        'expires_days' => 180,
+        'languages' => 'cs, en',
+    ],
+
+    /*
+    | Omezení počtu požadavků za minutu, u e-mailů za hodinu (R45, R67, App\Support\RateLimits).
+    | Běžný uživatel se k limitům nepřiblíží; brání hádání hesel a tokenu cronu, zahlcení
+    | našeptávače a vyčerpání limitu e-mailů hostingu (300 za hodinu ze schránky).
     */
     'rate_limits' => [
         'public_per_minute' => 120,
@@ -468,6 +482,8 @@ return [
         'cron_per_minute' => 20,
         'writes_per_minute' => 60,
         'sensitive_writes_per_minute' => 5,
+        // Formuláře, které posílají e-mail (registrace, obnova hesla, ověření, změna e-mailu), za hodinu (R67)
+        'emails_per_hour' => 10,
     ],
 
     /*

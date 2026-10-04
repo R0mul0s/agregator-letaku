@@ -7,11 +7,14 @@
  * na Google nic neposílá. Google Consent Mode v2: výchozí stav vše „denied“, po volbě
  * „update“; marketingový souhlas povolí reklamní signály Googlu (ad_*).
  * Inline skript CSP nedovolí — gtag se nastavuje tady, knihovna z googletagmanager.com.
- * Měření stránek v SPA obstará GA4 sám (změny historie prohlížeče).
+ * Zobrazení stránek posílá aplikace sama po každém přechodu Inertie (R69), s adresou bez
+ * tokenů: odkaz na obnovu hesla nese token a e-mail, odkaz na odhlášení z e-mailů podpis —
+ * do Googlu nesmí. Měření změn historie v GA4 (rozšířené měření) proto musí být vypnuté.
  *
  * @author Roman Hlaváček
  * @created 2026-10-03
  */
+import { router } from '@inertiajs/vue3';
 import { reactive } from 'vue';
 
 /** Název cookie se souhlasem — popsaný v zásadách (resources/legal/privacy.md). */
@@ -35,9 +38,12 @@ export const consentState = reactive({
 });
 
 /** Konfigurace ze serveru (sdílený prop cookieConsent). */
-let config = { measurementId: null, version: 1, maxAgeDays: 180 };
+let config = { measurementId: null, version: 1, maxAgeDays: 180, redactedPaths: [] };
 
 let analyticsLoaded = false;
+
+/** Adresa naposledy změřené stránky — počáteční načtení se nezměří dvakrát. */
+let lastMeasuredLocation = null;
 
 /**
  * Fronta příkazů gtag — musí to být objekt arguments, ne pole (tak ho gtag.js čte).
@@ -130,12 +136,43 @@ function loadAnalytics() {
     analyticsLoaded = true;
 
     gtag('js', new Date());
-    gtag('config', config.measurementId);
+    // Zobrazení stránky posílá measurePageView — výchozí by neslo adresu s tokeny (R69)
+    gtag('config', config.measurementId, { send_page_view: false });
+    measurePageView();
 
     const script = document.createElement('script');
     script.async = true;
     script.src = `${GTAG_URL}?id=${encodeURIComponent(config.measurementId)}`;
     document.head.appendChild(script);
+}
+
+/**
+ * Adresa aktuální stránky pro měření: u stránek s tokenem v adrese (obnova hesla, ověření
+ * e-mailu, odhlášení z e-mailů — letaky.cookie_consent.redacted_paths) jen jejich začátek
+ * bez zbytku cesty a parametrů.
+ *
+ * @returns {string}
+ */
+function pageLocation() {
+    const url = new URL(window.location.href);
+    const redacted = config.redactedPaths.find((prefix) => url.pathname === prefix || url.pathname.startsWith(`${prefix}/`));
+
+    return redacted ? `${url.origin}${redacted}` : url.href;
+}
+
+/**
+ * Změří zobrazení aktuální stránky s očištěnou adresou. Adresu nastaví i pro další události
+ * GA (čas na stránce), ty by jinak vzaly adresu z prohlížeče.
+ */
+function measurePageView() {
+    const location = pageLocation();
+    if (!analyticsLoaded || location === lastMeasuredLocation) {
+        return;
+    }
+    lastMeasuredLocation = location;
+
+    gtag('set', { page_location: location });
+    gtag('event', 'page_view', { page_location: location, page_title: document.title });
 }
 
 /**
@@ -157,11 +194,14 @@ function applyChoice(choice) {
 /**
  * Spustí se při startu aplikace: výchozí Consent Mode (vše zakázané) a uložená volba.
  *
- * @param {{ measurementId: string|null, version: number, maxAgeDays: number } | undefined} serverConfig
+ * @param {{ measurementId: string|null, version: number, maxAgeDays: number, redactedPaths: string[] } | undefined} serverConfig
  */
 export function initConsent(serverConfig) {
     config = { ...config, ...serverConfig };
     gtag('consent', 'default', consentModeFor({ analytics: false, marketing: false }));
+
+    // Přechod mezi stránkami SPA — titulek nastaví <Head> až po vykreslení nové stránky
+    router.on('navigate', () => window.setTimeout(measurePageView));
 
     const stored = readStoredChoice();
     if (stored) {

@@ -18,6 +18,7 @@ use App\Models\User;
 use App\Support\RateLimits;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 
@@ -32,7 +33,7 @@ class AppServiceProvider extends ServiceProvider
     }
 
     /**
-     * Přísnější Eloquent při vývoji a v testech, jednotný zápis čísel v JSON.
+     * Přísnější Eloquent při vývoji a v testech, jednotný zápis čísel v JSON, adresy z APP_URL.
      */
     public function boot(): void
     {
@@ -43,6 +44,11 @@ class AppServiceProvider extends ServiceProvider
         // N+1 dotazy, přiřazení mimo $fillable a čtení nenačtených atributů
         // jsou při vývoji chyba, na produkci jen ne
         Model::shouldBeStrict(! $this->app->isProduction());
+
+        // Absolutní adresy (odkazy v e-mailech, canonical, sitemap) vždy z APP_URL (R67), ne
+        // z požadavku — s kořenovým .htaccess by jinak nesly /public a hlavičky od klienta
+        // by mohly změnit adresu v odkazu na obnovu hesla
+        URL::forceRootUrl(config()->string('app.url'));
 
         // Katalog produktů spravuje jen admin (R29)
         Gate::define('manage-catalog', fn (User $user): bool => $user->is_admin);

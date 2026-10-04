@@ -48,7 +48,7 @@ function search() {
 
 <template>
     <AppLayout>
-        <Head :title="t('offers.title')" />
+        <Head :title="page.props.seoTitle" />
 
         <header class="page__header">
             <h1 class="page__title">{{ t('offers.title') }}</h1>

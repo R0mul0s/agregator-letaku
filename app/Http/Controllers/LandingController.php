@@ -47,6 +47,13 @@ class LandingController extends Controller
                 'products' => Product::query()->count(),
             ],
             'chains' => array_map(fn (Chain $chain): string => $chain->value, $chains),
+            // Logo obchodu odkazuje na jeho akce (R68) — robot jinak stránky obchodů najde jen
+            // v sitemap (výběr obchodu ve Všech akcích jsou tlačítka); obchod jen se zmínkami ne
+            'chainUrls' => array_reduce(
+                array_filter($chains, fn (Chain $chain): bool => ! $chain->mentionsOnly()),
+                fn (array $urls, Chain $chain): array => [...$urls, $chain->value => route('offers', ['chain' => $chain->value], absolute: false)],
+                [],
+            ),
             'topOffers' => array_map(
                 fn (Offer $offer): array => $this->presenter->toPage($offer),
                 $this->highlights->topDiscounts(config()->integer('letaky.landing.top_offers')),

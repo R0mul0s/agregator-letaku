@@ -33,6 +33,19 @@ it('smaže relace starší než jejich platnost a propadlé odkazy na obnovu hes
         ->and(DB::table('password_reset_tokens')->pluck('email')->all())->toBe(['novy@example.com']);
 });
 
+it('smaže prošlé položky databázové cache (limity požadavků s IP), platné nechá (R69)', function (): void {
+    config(['cache.default' => 'database']);
+    $this->travelTo('2026-10-03 12:00:00');
+    DB::table('cache')->insert([
+        ['key' => 'limit-prosly', 'value' => '1', 'expiration' => now()->subMinute()->getTimestamp()],
+        ['key' => 'limit-platny', 'value' => '1', 'expiration' => now()->addMinute()->getTimestamp()],
+    ]);
+
+    app(PruneExpiredSessions::class)();
+
+    expect(DB::table('cache')->pluck('key')->all())->toBe(['limit-platny']);
+});
+
 it('cron URL uklidí jen s tokenem', function (): void {
     config(['letaky.cron.token' => 'tajny-token']);
 

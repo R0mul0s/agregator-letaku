@@ -1,6 +1,9 @@
+# Výpis adresářů vypnutý vždy (R67), nejen s mod_negotiation (jak to má šablona Laravelu)
+Options -Indexes
+
 <IfModule mod_rewrite.c>
     <IfModule mod_negotiation.c>
-        Options -MultiViews -Indexes
+        Options -MultiViews
     </IfModule>
 
     RewriteEngine On
@@ -22,10 +25,12 @@
     RewriteCond %{HTTP:x-xsrf-token} .
     RewriteRule .* - [E=HTTP_X_XSRF_TOKEN:%{HTTP:X-XSRF-Token}]
 
-    # Redirect Trailing Slashes If Not A Folder...
+    # Lomítko na konci adresy (mimo složky) přesměruje na adresu bez něj. Cesta podle
+    # THE_REQUEST jako u HTTPS výš (R67) — REQUEST_URI při kořenovém .htaccess obsahuje
+    # /public a /akce/ by vedlo na /public/akce.
     RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteCond %{REQUEST_URI} (.+)/$
-    RewriteRule ^ %1 [L,R=301]
+    RewriteCond %{THE_REQUEST} ^[A-Z]+\ (/[^?\ ]*?)/+[?\ ]
+    RewriteRule ^ %1 [L,R=301,NE]
 
     # Send Requests To Front Controller...
     RewriteCond %{REQUEST_FILENAME} !-d
@@ -58,6 +63,12 @@
     <If "req('X-Forwarded-Proto') == 'https'">
         Header always set Strict-Transport-Security "max-age=31536000"
     </If>
+
+    # Obrázky bez hashe v názvu (loga obchodů, ikony, og-image, favicon; R68) — týden v cache,
+    # změna obrázku se tak projeví nejpozději za týden. Sestavené assety přepíše pravidlo níž.
+    <FilesMatch "\.(png|svg|ico|webp|jpe?g)$">
+        Header always set Cache-Control "public, max-age=604800" "expr=%{REQUEST_STATUS} == 200"
+    </FilesMatch>
 
     # Sestavené assety mají v názvu hash obsahu (Vite: „app-B9u7YS45.js“) — můžou ležet
     # v cache napořád. Podle jména souboru — URI se při kořenovém .htaccess liší

@@ -292,7 +292,9 @@ CI (GitHub Actions) zatím není, ruční kontroly jsou jediná pojistka ([R14](
 - **Změna e-mailu chce současné heslo** a formuláře s heslem nebo odesláním e-mailu mají přísnější limit požadavků (`RateLimits::SENSITIVE_ROUTES`, [R54](PLAN.md#8-log-rozhodnutí)).
 - Tajemství (API klíče obchodů a LLM) jsou v `.env`, nikdy v repu. `.env.example` má prázdné hodnoty.
 - CSRF všude. Cron URL je chráněná tokenem z `.env` a rate limitem; bez tokenu vrací 404.
-- **Obsah od obchodu je nedůvěryhodný vstup**: ve Vue jen textová interpolace, nikdy `v-html`. Totéž platí pro text od LLM.
+- **Obsah od obchodu je nedůvěryhodný vstup**: ve Vue jen textová interpolace, nikdy `v-html`. Totéž platí pro text od LLM. Odkazy a obrázky od obchodu se ukládají jen jako adresy `http(s)` (`WebUrl`, [R67](PLAN.md#8-log-rozhodnutí)).
+- **Absolutní adresy jen z `APP_URL`** (`URL::forceRootUrl`), nikdy z hlaviček požadavku — odkaz na obnovu hesla by šel podvrhnout ([R67](PLAN.md#8-log-rozhodnutí)). Změna hesla odhlásí ostatní zařízení.
+- **Do Google Analytics nesmí odejít token ani e-mail z adresy**: stránka s nimi patří do `letaky.cookie_consent.redacted_paths` ([R69](PLAN.md#8-log-rozhodnutí)).
 - `v-html` jen pro vlastní právní texty převedené na serveru se zahozeným HTML (`LegalDocuments`, R51).
 - **E-maily jen na ověřenou adresu** (R51). Hromadný e-mail má odhlášení jedním klepnutím bez přihlášení (podepsaná adresa, `List-Unsubscribe`); obchodní sdělení jen se souhlasem (`User::hasMarketingConsent`).
 - Neveřejná rozhraní obchodů, která vyžadují přihlášení (`UNAUTHENTICATED`), se neobcházejí.

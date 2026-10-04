@@ -45,6 +45,8 @@ Route::middleware('throttle:'.RateLimits::PUBLIC)->group(function (): void {
     Route::get('/robots.txt', [CrawlerFilesController::class, 'robots'])->name('robots');
     Route::get('/sitemap.xml', [CrawlerFilesController::class, 'sitemap'])->name('sitemap');
     Route::get('/llms.txt', [CrawlerFilesController::class, 'llms'])->name('llms');
+    // Kontakt pro hlášení bezpečnostních chyb (RFC 9116, R68)
+    Route::get('/.well-known/security.txt', [CrawlerFilesController::class, 'securityTxt'])->name('security-txt');
 
     // Manifest pro přidání na plochu telefonu (R55)
     Route::get('/manifest.webmanifest', ManifestController::class)->name('manifest');

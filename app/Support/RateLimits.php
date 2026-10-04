@@ -8,7 +8,8 @@
  * - SUGGESTIONS: našeptávač (dotaz při psaní), podle IP.
  * - CRON: cron URL — zkoušení tokenu, podle IP.
  * - WRITES: všechny měnící požadavky (POST/PUT/DELETE) skupiny web, podle uživatele nebo IP;
- *   formuláře, které ověřují heslo nebo posílají e-mail, přísněji podle IP. Přihlášení má
+ *   formuláře, které ověřují heslo nebo posílají e-mail, přísněji podle IP; formuláře s e-mailem
+ *   navíc hodinovým limitem podle uživatele nebo IP (R67). Přihlášení má
  *   vlastní limit Fortify (login, FortifyServiceProvider).
  *
  * @author Roman Hlaváček
@@ -47,8 +48,22 @@ final class RateLimits
         'user-profile-information.update',
         'account.destroy',
         'account.devices.logout',
+        // Znovu poslat ověřovací e-mail (R67)
+        'verification.send',
         // Zkušební upozornění v telefonu posílá požadavek push službě (R66)
         'account.push.test',
+    ];
+
+    /**
+     * Formuláře, které posílají e-mail — mají navíc hodinový limit (R67). Hosting pustí
+     * 300 e-mailů za hodinu ze schránky; jeden účet by jinak opakovaným ověřovacím e-mailem
+     * na cizí adresu vyčerpal limit všem (obnova hesla, souhrny) a schránka by spamovala.
+     */
+    private const MAIL_ROUTES = [
+        'register.store',
+        'password.email',
+        'verification.send',
+        'user-profile-information.update',
     ];
 
     /**
@@ -62,23 +77,29 @@ final class RateLimits
 
         RateLimiter::for(self::CRON, fn (Request $request): Limit => Limit::perMinute(self::limit('cron_per_minute'))->by((string) $request->ip()));
 
-        RateLimiter::for(self::WRITES, function (Request $request): Limit {
+        RateLimiter::for(self::WRITES, function (Request $request): Limit|array {
             if ($request->isMethodSafe()) {
                 return Limit::none();
             }
 
+            $user = $request->user();
+            $client = $user === null ? 'ip|'.$request->ip() : 'user|'.$user->getAuthIdentifier();
+
             if ($request->routeIs(...self::SENSITIVE_ROUTES)) {
-                return Limit::perMinute(self::limit('sensitive_writes_per_minute'))->by('sensitive|'.$request->ip());
+                $limits = [Limit::perMinute(self::limit('sensitive_writes_per_minute'))->by('sensitive|'.$request->ip())];
+                if ($request->routeIs(...self::MAIL_ROUTES)) {
+                    $limits[] = Limit::perHour(self::limit('emails_per_hour'))->by('mail|'.$client);
+                }
+
+                return $limits;
             }
 
-            $user = $request->user();
-
-            return Limit::perMinute(self::limit('writes_per_minute'))->by($user === null ? 'ip|'.$request->ip() : 'user|'.$user->getAuthIdentifier());
+            return Limit::perMinute(self::limit('writes_per_minute'))->by($client);
         });
     }
 
     /**
-     * Počet požadavků za minutu z konfigurace letaky.rate_limits.
+     * Počet požadavků (za minutu, u e-mailů za hodinu) z konfigurace letaky.rate_limits.
      */
     private static function limit(string $key): int
     {

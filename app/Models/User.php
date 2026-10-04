@@ -42,7 +42,7 @@ use Illuminate\Support\Collection;
  * @property CarbonImmutable|null $push_sent_at Poslední zpracované upozornění v telefonu (UTC), i když nebylo co poslat (R66)
  * @property CarbonImmutable|null $terms_accepted_at Přijetí podmínek užití (R51)
  * @property int|null $terms_version Verze přijatých podmínek (letaky.legal.terms_version)
- * @property CarbonImmutable|null $marketing_consent_at Souhlas s obchodními sděleními (R51); null = bez souhlasu
+ * @property CarbonImmutable|null $marketing_consent_at Poslední udělení souhlasu s obchodními sděleními (R51); platí, jen když je novější než odvolání (R69)
  * @property int|null $marketing_consent_version Verze textu souhlasu (letaky.legal.marketing_consent_version)
  * @property CarbonImmutable|null $marketing_consent_withdrawn_at Poslední odvolání souhlasu
  * @property string|null $remember_token
@@ -167,11 +167,13 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * Souhlasí uživatel se zasíláním obchodních sdělení (R51)?
+     * Souhlasí uživatel se zasíláním obchodních sdělení (R51)? Udělení musí být novější
+     * než poslední odvolání — odvolání čas udělení nemaže (R69).
      */
     public function hasMarketingConsent(): bool
     {
-        return $this->marketing_consent_at !== null;
+        return $this->marketing_consent_at !== null
+            && ($this->marketing_consent_withdrawn_at === null || $this->marketing_consent_withdrawn_at->lessThan($this->marketing_consent_at));
     }
 
     /**

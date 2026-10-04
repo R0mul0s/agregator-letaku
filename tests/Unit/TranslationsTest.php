@@ -27,8 +27,9 @@ use App\Http\Responses\ErrorToast;
 use App\Http\Responses\RegisterResponse;
 use App\Http\Responses\VerifyEmailResponse;
 
-it('má název pro každý obchod', function (Chain $chain): void {
-    expect(trans()->has('app.chains.'.$chain->value))->toBeTrue();
+it('má název pro každý obchod v 1. i 2. pádě', function (Chain $chain): void {
+    expect(trans()->has('app.chains.'.$chain->value))->toBeTrue()
+        ->and(trans()->has('app.chains_genitive.'.$chain->value))->toBeTrue();
 })->with(Chain::cases());
 
 it('má název pro každý formát prodejny', function (StoreFormat $format): void {

@@ -49,7 +49,8 @@ služby odběr a já si uložím jeho adresu, šifrovací klíče a název zař�
 „Chrome · Android“, odvozený z identifikace prohlížeče). Na odběr pak posílám upozornění
 na nové akce hlídaných položek. Obsah upozornění je šifrovaný, push služba ho nepřečte.
 Upozornění jsou součást služby, o kterou jste požádali, právní základ je plnění smlouvy.
-Vypnete je v účtu nebo v nastavení prohlížeče či telefonu.
+Chodí jen na účet s ověřenou adresou. Vypnete je v účtu nebo v nastavení prohlížeče
+či telefonu; když se na zařízení odhlásíte, odběr se zruší.
 
 ### Obchodní sdělení (jen se souhlasem)
 
@@ -68,11 +69,18 @@ nepředávám, sdělení posílám já.
 | Údaje | Účel | Právní základ |
 |---|---|---|
 | IP adresa a identifikace prohlížeče u relace (session) | udržení přihlášení, přehled přihlášených zařízení ve vašem účtu | plnění smlouvy, oprávněný zájem na zabezpečení |
-| IP adresa v omezení počtu požadavků | ochrana proti zneužití (hádání hesel, přetížení) | oprávněný zájem na zabezpečení |
+| IP adresa, u přihlášení i e-mail, v omezení počtu požadavků | ochrana proti zneužití (hádání hesel, přetížení, rozesílání e-mailů na cizí adresy) | oprávněný zájem na zabezpečení |
 | záznamy o chybách aplikace | oprava chyb | oprávněný zájem na provozu služby |
 
 Relace s IP adresou vzniká i u nepřihlášeného návštěvníka, bez ní nefunguje ochrana
 formulářů.
+
+### Když mi napíšete
+
+| Údaje | Účel | Právní základ |
+|---|---|---|
+| e-mail a obsah zprávy (dotaz, nahlášení chyby, žádost obchodu o stažení obsahu) | vyřízení dotazu nebo žádosti | oprávněný zájem odpovědět na vaši zprávu |
+| e-mail a obsah žádosti o uplatnění práv podle GDPR (kap. 6) | vyřízení žádosti a doložení, jak jsem ji vyřídil | právní povinnost (čl. 6 odst. 1 písm. c GDPR) |
 
 ### Měření návštěvnosti (jen se souhlasem)
 
@@ -80,7 +88,9 @@ Pokud v liště cookies povolíte analytické cookies, měřím návštěvnost p
 Analytics 4**: které stránky se zobrazují, odkud návštěvník přišel, typ zařízení
 a prohlížeče, přibližné místo podle IP adresy a náhodný identifikátor prohlížeče
 v cookies. Statistiky mi pomáhají Slevohlídku zlepšovat. Bez souhlasu se Google
-Analytics vůbec nenačte a na Google se nic neposílá.
+Analytics vůbec nenačte a na Google se nic neposílá. U stránek, jejichž adresa obsahuje
+váš e-mail nebo bezpečnostní kód (odkaz pro obnovu hesla, ověření e-mailu, odhlášení
+z e-mailů), posílám jen začátek adresy bez těchto údajů.
 
 Pokud povolíte i marketingové cookies, smí Google data z návštěvy použít pro měření
 a cílení reklamy (Google signály). Reklamu zatím nezobrazuji.
@@ -97,18 +107,19 @@ a cílení reklamy (Google signály). Reklamu zatím nezobrazuji.
 | Údaje | Doba |
 |---|---|
 | účet a vše, co k němu patří (hlídané položky, nákupní seznam, obchody, předvolby, obrázek, souhlasy) | do zrušení účtu |
-| odběr upozornění v telefonu | do vypnutí upozornění nebo zrušení účtu; odběr, který push služba přestane přijímat, se smaže při dalším upozornění |
-| relace (IP adresa, prohlížeč) | 2 hodiny od poslední aktivity, potom se průběžně maže |
+| odběr upozornění v telefonu | do vypnutí upozornění, odhlášení na zařízení nebo zrušení účtu; odběr, který push služba přestane přijímat, se smaže při dalším upozornění |
+| relace (IP adresa, prohlížeč) | 2 hodiny od poslední aktivity, potom se smaže nejpozději do 24 hodin |
 | přihlášení „Zapamatovat si mě“ | nejdéle 400 dní nebo do odhlášení |
-| odkaz pro obnovu hesla | 60 minut |
-| omezení počtu požadavků | několik minut |
+| odkaz pro obnovu hesla | platí 60 minut, záznam se smaže nejpozději do 24 hodin po vypršení |
+| omezení počtu požadavků | nejvýš hodinu, potom se smaže nejpozději do 24 hodin |
 | záznamy o chybách | 14 dní |
 | volba cookies | 6 měsíců, pak se vás zeptám znovu |
 | data Google Analytics | 14 měsíců (nastavení uchování v Google Analytics) |
-| zálohy databáze | nejdéle 6 měsíců, pak se přepíšou |
+| e-mailová komunikace | po dobu vyřízení, potom nejdéle 3 roky kvůli případným nárokům; žádosti podle GDPR 3 roky od vyřízení |
+| zálohy databáze | nejdéle 6 měsíců, potom se mažou |
 
-Účet zrušíte sami v sekci Účet. Smaže se okamžitě se vším, co k němu patří.
-V zálohách údaje zůstanou nejdéle do jejich přepsání.
+Účet zrušíte sami v sekci Můj účet. Smaže se okamžitě se vším, co k němu patří.
+V zálohách údaje zůstanou nejdéle do smazání zálohy.
 
 ## 4. Kdo k údajům má přístup
 
@@ -116,9 +127,10 @@ V zálohách údaje zůstanou nejdéle do jejich přepsání.
   Zpracovává údaje jako zpracovatel podle mých pokynů na serverech v EU. Jeho servery
   také vedou běžné záznamy o přístupech (IP adresa, čas, adresa stránky).
 - **Obchody, jejichž akce zobrazuji** (Albert, Billa, Globus, Kaufland, Lidl, Penny,
-  Tesco): obrázky produktů a stránek letáků se načítají přímo z jejich serverů. Váš
-  prohlížeč jim přitom sdělí vaši IP adresu a údaje o prohlížeči, ne adresu stránky
-  Slevohlídky. Zpracování na jejich straně se řídí jejich zásadami.
+  Tesco): obrázky produktů a stránek letáků se načítají přímo ze serverů obchodů nebo
+  jejich poskytovatelů (například sítí pro doručování obsahu, CDN). Váš prohlížeč jim
+  přitom sdělí vaši IP adresu a údaje o prohlížeči, ne adresu stránky Slevohlídky.
+  Zpracování na jejich straně se řídí jejich zásadami.
 - **Push služby prohlížečů** — jen pokud zapnete upozornění v telefonu: služba výrobce
   vašeho prohlížeče (Google pro Chrome a Android, Apple pro Safari a iPhone, Mozilla pro
   Firefox, Microsoft pro Edge ve Windows) upozornění doručí do zařízení. Dostane adresu
@@ -202,4 +214,4 @@ Služba je určena osobám od 15 let.
 ## 9. Změny zásad
 
 Zásady mohu změnit, například když přibude nová funkce. Podstatnou změnu oznámím
-předem e-mailem nebo při přihlášení. Předchozí verze vám na požádání pošlu.
+předem e-mailem. Předchozí verze vám na požádání pošlu.

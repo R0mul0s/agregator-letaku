@@ -11,6 +11,7 @@
 declare(strict_types=1);
 
 use App\Http\Responses\ErrorToast;
+use App\Support\Legal\LegalDocuments;
 use Illuminate\Http\Request;
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -89,7 +90,9 @@ it('sdílí nastavení souhlasu s cookies; ID měření Google Analytics jen na 
         ->assertInertia(fn (Assert $page) => $page
             ->where('cookieConsent.measurementId', null)
             ->where('cookieConsent.version', config('letaky.cookie_consent.version'))
-            ->where('cookieConsent.privacyUrl', '/ochrana-udaju'));
+            // Odkaz z cookie lišty vede rovnou na kapitolu o cookies (R69)
+            ->where('cookieConsent.privacyUrl', '/ochrana-udaju#'.LegalDocuments::COOKIES_SECTION)
+            ->where('cookieConsent.redactedPaths', ['/reset-password', '/email/verify', '/odhlaseni']));
 
     $this->app['env'] = 'production';
     $this->get(route('offers'))
@@ -100,5 +103,7 @@ it('z kapitol dokumentu sestaví obsah a nadpisům dá id pro odkazy', function 
     $this->get(route('legal.privacy'))
         ->assertInertia(fn (Assert $page) => $page
             ->where('sections.0', ['id' => '1-kdo-vase-udaje-zpracovava', 'title' => '1. Kdo vaše údaje zpracovává'])
+            // Cíl odkazu z cookie lišty (R69) — přejmenování nadpisu by ho rozbilo
+            ->where('sections.4.id', LegalDocuments::COOKIES_SECTION)
             ->where('html', fn (string $html): bool => str_contains($html, '<h2 id="1-kdo-vase-udaje-zpracovava">1. Kdo vaše údaje zpracovává</h2>')));
 });

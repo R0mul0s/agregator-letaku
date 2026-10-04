@@ -167,6 +167,20 @@ it('vypne upozornění jen na vlastním zařízení', function (): void {
     expect(PushSubscription::query()->pluck('user_id')->all())->toBe([$other->id]);
 });
 
+it('odhlášení smaže odběr zařízení, ze kterého se uživatel odhlásil, jiná nechá (R67)', function (): void {
+    $other = User::factory()->create();
+    PushSubscription::query()->create(['user_id' => $other->id, 'endpoint' => PUSH_ENDPOINT, 'public_key' => 'k', 'auth_token' => 'a', 'device' => 'Chrome']);
+    PushSubscription::query()->create(['user_id' => $this->user->id, 'endpoint' => PUSH_ENDPOINT.'-telefon', 'public_key' => 'k', 'auth_token' => 'a', 'device' => 'Chrome']);
+    PushSubscription::query()->create(['user_id' => $this->user->id, 'endpoint' => PUSH_ENDPOINT.'-pocitac', 'public_key' => 'k', 'auth_token' => 'a', 'device' => 'Edge']);
+
+    // Cizí adresu odhlášení nesmaže
+    $this->actingAs($this->user)->post(route('logout'), ['push_endpoint' => PUSH_ENDPOINT]);
+    $this->actingAs($this->user)->post(route('logout'), ['push_endpoint' => PUSH_ENDPOINT.'-telefon'])->assertRedirect();
+
+    expect(PushSubscription::query()->orderBy('id')->pluck('endpoint')->all())->toBe([PUSH_ENDPOINT, PUSH_ENDPOINT.'-pocitac'])
+        ->and(auth()->check())->toBeFalse();
+});
+
 it('zkušební upozornění pošle jen na vlastní zařízení', function (): void {
     $sender = fakePushSender();
     PushSubscription::query()->create(['user_id' => $this->user->id, 'endpoint' => PUSH_ENDPOINT, 'public_key' => 'k', 'auth_token' => 'a', 'device' => 'Chrome']);
@@ -240,6 +254,15 @@ describe('upozornění na nové akce', function (): void {
         expect(app(SendPushNotifications::class)())->toBe(1)
             ->and($sender->sent)->toHaveCount(2)
             ->and($sender->sent[1]['message']->body)->toStartWith('Máslo nové');
+    });
+
+    it('neověřenému účtu nic nepošle (R67)', function (): void {
+        $sender = fakePushSender();
+        $this->user->forceFill(['email_verified_at' => null])->save();
+        pushImportedOffer(['name' => 'Máslo 250 g']);
+
+        expect(app(SendPushNotifications::class)())->toBe(0)
+            ->and($sender->sent)->toBe([]);
     });
 
     it('bez klíčů VAPID nic nepošle', function (): void {

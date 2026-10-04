@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace App\Actions\Fortify;
 
+use App\Domain\Account\UserSessions;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -25,8 +26,11 @@ class UpdateUserPassword implements UpdatesUserPasswords
     /** Pojmenovaná sada chyb — stránka účtu má dva formuláře a chyby se nesmí plést. */
     public const ERROR_BAG = 'updatePassword';
 
+    public function __construct(private readonly UserSessions $sessions) {}
+
     /**
-     * Ověří současné heslo a uloží nové.
+     * Ověří současné heslo, uloží nové a odhlásí ostatní zařízení (R67) — kdo heslo mění,
+     * protože ho někdo zná, nechce, aby ten zůstal přihlášený.
      *
      * @param  array<string, string>  $input
      *
@@ -42,5 +46,7 @@ class UpdateUserPassword implements UpdatesUserPasswords
         $user->forceFill([
             'password' => Hash::make($input['password']),
         ])->save();
+
+        $this->sessions->logoutOthers($user, session()->getId());
     }
 }

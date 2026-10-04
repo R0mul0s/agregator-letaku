@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 use App\Models\User;
 use Illuminate\Auth\Notifications\ResetPassword;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -62,4 +63,39 @@ it('nastaví nové heslo tokenem z e-mailu', function (): void {
     });
 
     expect(Hash::check('Nove-heslo-2026', $user->fresh()?->password ?? ''))->toBeTrue();
+});
+
+it('po obnově hesla odhlásí všechna zařízení (R67)', function (): void {
+    Notification::fake();
+    config(['session.driver' => 'database']);
+    $user = User::factory()->create();
+    DB::table('sessions')->insert(['id' => 'utocnik', 'user_id' => $user->id, 'ip_address' => '10.0.0.9', 'user_agent' => 'test', 'payload' => '', 'last_activity' => now()->getTimestamp()]);
+    $this->post(route('password.email'), ['email' => $user->email]);
+
+    Notification::assertSentTo($user, ResetPassword::class, function (ResetPassword $notification) use ($user): bool {
+        $this->post(route('password.update'), [
+            'token' => $notification->token,
+            'email' => $user->email,
+            'password' => 'Nove-heslo-2026',
+            'password_confirmation' => 'Nove-heslo-2026',
+        ])->assertRedirect(route('login'));
+
+        return true;
+    });
+
+    expect(DB::table('sessions')->where('user_id', $user->id)->exists())->toBeFalse();
+});
+
+it('odkaz pro obnovu hesla vede na adresu z APP_URL, ne z hlaviček požadavku (R67)', function (): void {
+    Notification::fake();
+    $user = User::factory()->create();
+
+    $this->withHeaders(['X-Forwarded-Host' => 'zly.example', 'X-Forwarded-Prefix' => '/zly'])
+        ->post(route('password.email'), ['email' => $user->email]);
+
+    Notification::assertSentTo($user, ResetPassword::class, function (ResetPassword $notification) use ($user): bool {
+        $url = $notification->toMail($user)->actionUrl;
+
+        return str_starts_with($url, rtrim(config()->string('app.url'), '/').'/reset-password/');
+    });
 });

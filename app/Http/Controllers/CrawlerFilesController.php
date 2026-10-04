@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Soubory pro roboty (R45): robots.txt, sitemap.xml a llms.txt. Generují se z rout, aby
+ * Soubory pro roboty (R45): robots.txt, sitemap.xml, llms.txt a security.txt (R68). Generují se z rout, aby
  * nesly správnou doménu (APP_URL) a mimo produkci zakázaly indexaci celého webu.
  *
  * @author Roman Hlaváček
@@ -56,22 +56,27 @@ class CrawlerFilesController extends Controller
     }
 
     /**
-     * sitemap.xml: úvodní stránka, Všechny akce, akce jednotlivých obchodů a právní stránky (R51). Datum změny
-     * je poslední úspěšné stažení akcí.
+     * sitemap.xml: úvodní stránka, Všechny akce, akce jednotlivých obchodů a právní stránky (R51).
+     * Datum změny akcí je poslední úspěšné stažení, právních stránek datum jejich účinnosti (R68)
+     * — jinak by se „měnily“ dvakrát denně a Google by datu přestal věřit.
      */
     public function sitemap(): Response
     {
-        $lastModified = $this->lastImport()?->toAtomString();
+        $offersModified = $this->lastImport()?->toAtomString();
+        $legalModified = config('letaky.legal.effective_from');
         $urls = [
-            SeoMeta::homeUrl(),
-            route('offers'),
-            ...array_map(fn (Chain $chain): string => route('offers', ['chain' => $chain->value]), $this->chainsWithCurrentOffers()),
-            route('legal.terms'),
-            route('legal.privacy'),
+            ['loc' => SeoMeta::homeUrl(), 'lastmod' => $offersModified],
+            ['loc' => route('offers'), 'lastmod' => $offersModified],
+            ...array_map(fn (Chain $chain): array => [
+                'loc' => route('offers', ['chain' => $chain->value]),
+                'lastmod' => $offersModified,
+            ], $this->chainsWithCurrentOffers()),
+            ['loc' => route('legal.terms'), 'lastmod' => $legalModified],
+            ['loc' => route('legal.privacy'), 'lastmod' => $legalModified],
         ];
 
         return response()
-            ->view('crawlers.sitemap', ['urls' => $urls, 'lastModified' => $lastModified])
+            ->view('crawlers.sitemap', ['urls' => $urls])
             ->header('Content-Type', 'application/xml; charset=utf-8')
             ->header('Cache-Control', 'public, max-age='.self::CACHE_SECONDS);
     }
@@ -85,12 +90,29 @@ class CrawlerFilesController extends Controller
         $content = view('crawlers.llms', [
             'homeUrl' => SeoMeta::homeUrl(),
             'chains' => array_map(fn (Chain $chain): array => [
-                'name' => $chain->label(),
+                'name' => $chain->genitive(),
                 'url' => route('offers', ['chain' => $chain->value]),
             ], $this->chainsWithCurrentOffers()),
         ])->render();
 
         return $this->text($content, 'text/markdown');
+    }
+
+    /**
+     * security.txt (RFC 9116, R68): kam hlásit bezpečnostní chybu. Platnost se posouvá
+     * s každým požadavkem — kontakt je e-mail provozovatele z konfigurace a udržuje se s ní.
+     */
+    public function securityTxt(): Response
+    {
+        $expires = CarbonImmutable::now('UTC')->startOfDay()->addDays(config()->integer('letaky.security_txt.expires_days'));
+        $lines = [
+            'Contact: mailto:'.config()->string('letaky.operator.email'),
+            'Expires: '.$expires->format('Y-m-d\TH:i:s\Z'),
+            'Preferred-Languages: '.config()->string('letaky.security_txt.languages'),
+            'Canonical: '.route('security-txt'),
+        ];
+
+        return $this->text(implode("\n", $lines)."\n", 'text/plain');
     }
 
     /**

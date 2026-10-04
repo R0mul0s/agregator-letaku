@@ -299,15 +299,33 @@ a jeho závislosti), přibyla složka `resources/pwa` a obrázky v `public/image
 
 ### Aktualizace z `046d8eb` (osmé nasazení)
 
-Jen frontend: hlavička na telefonu s celým logem a spodní lištou do šířky 799 px (R66), cenovka
-slevy na kartě bez obrázku nepřekrývá název. Bez SQL skriptu, `composer.lock` se nezměnil,
-žádné soubory nezmizely.
+Hlavička na telefonu s celým logem a spodní lištou do šířky 799 px (R66), cenovka slevy na kartě
+bez obrázku nepřekrývá název; **revize před spuštěním (R67–R69)**: adresy z `APP_URL`, přesměrování
+`/public/…` a lomítka, odhlášení zařízení po změně hesla, hodinový limit e-mailů, SEO (titulky,
+Albert `noindex`, `security.txt`), GA bez tokenů v adrese, právní texty s datem účinnosti.
+Bez SQL skriptu, `composer.lock` se nezměnil, žádné soubory nezmizely. **Změnil se kořenový
+`.htaccess`** (`deploy/root-htaccess-fallback`) — ten balíček nenahrává.
 
-1. **Nahraj z `deploy/upload/`** jen `public/build/` (na hostingu ji nejdřív smaž) a `public/version.txt`.
-2. **Ověř:** `version.txt?v=<cokoli>`; na telefonu hlavička s logem a spodní lišta; na `/akce` karta
-   bez obrázku se slevou (cenovka vpravo v řádku štítků). Service worker si nové assety stáhne sám
-   (verze v `/sw.js` je podle `manifest.json`).
-3. Zapiš verzi do *Nasazené verze*.
+1. **Nahraj `deploy/upload/`** bez `vendor/` (`composer.lock` je stejný); `public/build/` nejdřív smaž.
+   Nový je `app/Listeners/`, změnily se `public/.htaccess`, `config/`, `lang/`, `resources/legal/`.
+2. **Kořenový `.htaccess`:** nahraď na hostingu obsahem `deploy/root-htaccess-fallback` (přesměrování
+   `/public/…`, výjimka pro `/.well-known/`).
+3. **Google Analytics** (Správce → Datové streamy → web → Rozšířené měření → Zobrazení stránek →
+   Rozšířená nastavení): **vypnout „Změny stránek na základě událostí historie prohlížeče“** — zobrazení
+   stránek posílá aplikace sama s adresou bez tokenů (R69); se zapnutým by se měřilo dvakrát a s tokeny.
+4. **Ověř:**
+   - `version.txt?v=<cokoli>`
+   - `/public/akce` → 301 na `/akce`, `/akce/` → 301 na `/akce` (ne `/public/akce`)
+   - `curl -H "X-Forwarded-Prefix: /zly" https://slevohlidka.rhsoft.cz/akce` má canonical bez `/zly`
+   - `/.well-known/security.txt` vrací text s `Contact:`
+   - `/akce?chain=billa` má titulek „Aktuální akce Billy · Slevohlídka“ i po načtení stránky
+     (záložka prohlížeče); `/akce?chain=albert` má `noindex, follow`
+   - `/ochrana-udaju` ukazuje datum účinnosti; v GA Realtime se po „Přijmout“ objeví zobrazení stránky
+   - na telefonu hlavička s logem a spodní lišta; na `/akce` karta bez obrázku se slevou
+5. **Účty bez přijetí podmínek** (založené mezi prvním nasazením a R51, 2.–3. 10.) — v phpMyAdminu
+   `SELECT id, email, created_at FROM users WHERE terms_accepted_at IS NULL;` Jsou-li mezi nimi cizí
+   lidé, pošli jim podmínky e-mailem (souhlas se registrací nedali).
+6. Zapiš verzi do *Nasazené verze*.
 
 **Každá nová migrace potřebuje SQL skript** `deploy/migrations-<datum>-<popis>.sql`
 (opakovatelný: `CREATE TABLE IF NOT EXISTS`, `ADD COLUMN IF NOT EXISTS`) včetně zápisu do
@@ -324,7 +342,9 @@ a ruční opravy katalogu. Před každým SQL skriptem a jinak aspoň jednou mě
    komprese **gzip**, zaškrtnout *Přidat příkaz DROP TABLE*
 2. Tabulky stačí `users`, `followed_chains`, `watch_items`, `products`, `categories`,
    `offer_product_exclusions`, `migrations` — akce a jejich přiřazení stáhne a dopočítá cron
-3. Soubor ulož mimo hosting jako `slevohlidka-RRRR-MM-DD.sql.gz`
+3. Soubor ulož mimo hosting jako `slevohlidka-RRRR-MM-DD.sql.gz` — na vlastní disk, ne do cloudového
+   úložiště (to by byl další příjemce údajů, zásady kap. 4)
+4. **Zálohy starší než 6 měsíců smaž** — zásady (kap. 3) slibují nejdéle 6 měsíců (R69)
 
 ## Historie SQL skriptů
 

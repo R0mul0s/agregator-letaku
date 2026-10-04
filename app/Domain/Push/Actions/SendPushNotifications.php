@@ -60,6 +60,8 @@ final class SendPushNotifications
         $sent = 0;
 
         $users = User::query()
+            // Neověřenému účtu služba nic neposílá (podmínky čl. 4.1, R67) — jako e-maily (R51)
+            ->whereNotNull('email_verified_at')
             ->whereHas('pushSubscriptions')
             ->where(fn (Builder $query) => $query->whereNull('push_sent_at')->orWhere('push_sent_at', '<', $lastImport))
             ->where(fn (Builder $query) => $query

@@ -9,6 +9,7 @@
 import ThemeSwitch from '@/Components/ThemeSwitch.vue';
 import UserAvatar from '@/Components/UserAvatar.vue';
 import { useTranslations } from '@/lib/i18n';
+import { unsubscribeThisDevice } from '@/lib/push';
 import { Link, router, usePage } from '@inertiajs/vue3';
 import { onBeforeUnmount, onMounted, ref, useId } from 'vue';
 
@@ -48,6 +49,16 @@ function onKeydown(event) {
     if (event.key === 'Escape' && open.value) {
         close(true);
     }
+}
+
+/**
+ * Odhlásí uživatele. Nejdřív zruší odběr upozornění v tomto prohlížeči a jeho adresu pošle
+ * s odhlášením, server smaže záznam (R67, ForgetPushSubscriptionOnLogout).
+ */
+async function logout() {
+    const endpoint = await unsubscribeThisDevice();
+
+    router.post(page.props.auth.logoutUrl, endpoint ? { push_endpoint: endpoint } : {});
 }
 
 let removeNavigateListener = null;
@@ -92,11 +103,11 @@ onBeforeUnmount(() => {
                 <span class="user-menu__theme-label">{{ t('theme.label') }}</span>
                 <ThemeSwitch />
             </div>
-            <Link :href="page.props.auth.logoutUrl" method="post" as="button" class="user-menu__item">
+            <button type="button" class="user-menu__item" @click="logout">
                 <!-- Dveře se šipkou ven -->
                 <svg class="user-menu__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4H5v16h9M10 12h10M17 8l4 4-4 4" /></svg>
                 {{ t('auth.logout') }}
-            </Link>
+            </button>
         </div>
     </div>
 </template>
