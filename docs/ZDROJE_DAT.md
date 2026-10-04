@@ -308,6 +308,7 @@ Publitas (Albert CZ, groupId 90263):
 - Textová vrstva PDF existuje, ale ceny ztrácejí desetinnou čárku (haléře v horním indexu: „9490“ = 94,90) a sloupce jsou rozházené. **Spolehlivý je vision LLM nad obrázkem stránky**, text PDF slouží jako kontrola.
 - Slug dalšího týdne je `{týden}{hm|sm}_akcni_letak` a dá se zkoušet dopředu **(předpoklad)**.
 - Doména má Akamai Bot Manager, ale požadavky (GraphQL, Publitas, obrázky) prošly i s výchozím UA. Při vyšší frekvenci může blokovat **(předpoklad)**.
+- **User-Agent s adresou `https://…` jde přes prerender** (ověřeno 4. 10. 2026, R65): Albert ho bere jako robota vyhledávače a pošle na prerender, který zahodí `Content-Type` — Apollo GraphQL pak dotaz zablokuje jako CSRF a vrátí 400 se stránkou HTML. UA proto bez schématu: `Slevohlidka/1.0 (+slevohlidka.rhsoft.cz)` projde (200).
 - VOP zakazují stahování obsahu e-shopu a aplikace, na letáky nemíří výslovně ([O6](PLAN.md#7-otevřené-otázky)).
 
 ---

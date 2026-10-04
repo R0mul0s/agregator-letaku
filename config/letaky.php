@@ -110,7 +110,9 @@ return [
     | Stahování od obchodů — šetrně a s identifikovatelným User-Agentem (R5, R53).
     */
     'http' => [
-        'user_agent' => env('LETAKY_USER_AGENT', 'Slevohlidka/1.0 (+https://slevohlidka.rhsoft.cz)'),
+        // Adresa bez schématu (R65): UA s „https://“ vypadá jako robot vyhledávače a Albert takový
+        // požadavek pošle přes prerender, který GraphQL dotaz rozbije (400)
+        'user_agent' => env('LETAKY_USER_AGENT', 'Slevohlidka/1.0 (+slevohlidka.rhsoft.cz)'),
         'timeout_seconds' => 30,
         'retries' => 2,
         'retry_delay_ms' => 2000,

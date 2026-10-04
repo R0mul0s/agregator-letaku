@@ -77,3 +77,13 @@ it('leták bez stránek je změna odpovědi a stažení selže', function (): vo
 
     expect(ScrapeRun::query()->sole()->status)->toBe(ScrapeStatus::Failed);
 });
+
+it('posílá identifikovatelný User-Agent bez adresy se schématem (R65)', function (): void {
+    fakeAlbert();
+
+    $this->artisan('letaky:import-offers', ['chain' => ['albert']])->assertSuccessful();
+
+    // UA s „https://“ Albert pošle přes prerender pro roboty a GraphQL vrátí 400
+    Http::assertSent(fn (Request $request): bool => str_starts_with($request->header('User-Agent')[0] ?? '', 'Slevohlidka/')
+        && ! str_contains($request->header('User-Agent')[0] ?? '', '://'));
+});
