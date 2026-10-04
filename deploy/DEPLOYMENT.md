@@ -325,7 +325,7 @@ nemění. `composer.lock` se nezměnil, žádné soubory nezmizely. **Změnil se
    - na telefonu hlavička s logem a spodní lišta; na `/akce` karta bez obrázku se slevou
 5. **Účty bez přijetí podmínek** (založené mezi prvním nasazením a R51, 2.–3. 10.) — v phpMyAdminu
    `SELECT id, email, created_at FROM users WHERE terms_accepted_at IS NULL;` Jsou-li mezi nimi cizí
-   lidé, pošli jim podmínky e-mailem (souhlas se registrací nedali).
+   lidé, pošli jim podmínky e-mailem (souhlas se registrací nedali). Výsledek 4. 10. 2026: 0 účtů.
 6. **Katalog (R70):** po záloze (*Záloha databáze*) pusť v phpMyAdminu
    `deploy/data-2026-10-04-katalog-rozsireni.sql` — kdykoli, kód na něm nezávisí. Ověř
    `SELECT COUNT(*) FROM products;` (206, víc jen s produkty přidanými v `/katalog`); akce se

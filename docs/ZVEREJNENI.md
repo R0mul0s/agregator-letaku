@@ -43,8 +43,8 @@ Značení: **[R]** = rozhodne nebo zařídí Roman, **[K]** = kód.
   2026-10-04 (R69) — při změně textů ho posunout na den nasazení.
 - [ ] **[R] Google Analytics — nastavení služby** (R52): Správce → Uchovávání dat na **14 měsíců**
   (zásady to tak uvádějí, výchozí jsou 2 měsíce); přijmout dodatek o zpracování dat (Správce →
-  Nastavení účtu); Google signály zapnout jen pokud bude reklama; **vypnout měření změn historie
-  prohlížeče** v rozšířeném měření (R69, postup v DEPLOYMENT.md). Po nasazení ověřit v Realtime,
+  Nastavení účtu); Google signály zapnout jen pokud bude reklama. Měření změn historie
+  prohlížeče v rozšířeném měření je vypnuté (R69, hotovo 4. 10. 2026). Po nasazení ověřit v Realtime,
   že měření běží až po „Přijmout“ a že po „Přijmout vše“ nevznikají jiné cookies než `_ga`, `_ga_<ID>`.
 - [ ] **[R] `www.slevohlidka.rhsoft.cz`** odpovídá s certifikátem jiné domény (chyba TLS) — DNS
   záznam odstranit, nebo nastavit certifikát a přesměrování na adresu bez `www`.
