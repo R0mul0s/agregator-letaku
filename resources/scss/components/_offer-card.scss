@@ -33,6 +33,8 @@
     &__badges {
         display: flex;
         flex-wrap: wrap;
+        // Vyšší cenovka (karta bez obrázku) nesmí natáhnout štítky
+        align-items: center;
         gap: var(--space-1);
         margin-bottom: var(--space-1);
     }
@@ -67,6 +69,12 @@
         font-size: var(--font-size-sticker);
         font-weight: 900;
         transform: rotate(var(--sticker-rotation));
+
+        // Karta bez obrázku: cenovka v toku na konci řádku štítků
+        &--inline {
+            position: static;
+            margin-left: auto;
+        }
     }
 
     &__name {

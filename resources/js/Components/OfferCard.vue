@@ -122,13 +122,15 @@ function unitPriceLabel(halers) {
                 <InfoIcon />
             </button>
             <span class="tag" :class="{ 'tag--accent': offer.offerType === 'discount' }">{{ t(`offer_types.${offer.offerType}`) }}</span>
+            <!-- Bez obrázku cenovka vpravo v řádku štítků — přes prázdné pole by překryla název -->
+            <span v-if="discount && !offer.imageUrl" class="offer-card__sticker offer-card__sticker--inline" aria-hidden="true">−{{ discount }} %</span>
         </div>
         <p v-if="offer.matchStatus === 'maybe'" :id="maybeHintId" class="offer-card__hint" :hidden="!maybeHintOpen">{{ t('offers.maybe_hint') }}</p>
 
         <!-- Obrázek z CDN obchodu, nestahuje se k nám (R22); název nese nadpis, obrázek je dekorativní.
              Sleva jako červená cenovka přes obrázek (motiv z loga); čtečka ji má i u ceny. -->
-        <div class="offer-card__media">
-            <img v-if="offer.imageUrl" :src="offer.imageUrl" alt="" class="offer-card__image" loading="lazy" referrerpolicy="no-referrer" />
+        <div v-if="offer.imageUrl" class="offer-card__media">
+            <img :src="offer.imageUrl" alt="" class="offer-card__image" loading="lazy" referrerpolicy="no-referrer" />
             <span v-if="discount" class="offer-card__sticker" aria-hidden="true">−{{ discount }} %</span>
         </div>
         <h2 class="offer-card__name">{{ offer.name }}</h2>

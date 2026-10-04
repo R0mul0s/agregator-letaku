@@ -297,6 +297,18 @@ a jeho závislosti), přibyla složka `resources/pwa` a obrázky v `public/image
    i řádek `Upozornění v telefonu — odesláno: N`.
 6. Zapiš verzi do *Nasazené verze* a datum ke skriptu v *Historii SQL skriptů*.
 
+### Aktualizace z `046d8eb` (osmé nasazení)
+
+Jen frontend: hlavička na telefonu s celým logem a spodní lištou do šířky 799 px (R66), cenovka
+slevy na kartě bez obrázku nepřekrývá název. Bez SQL skriptu, `composer.lock` se nezměnil,
+žádné soubory nezmizely.
+
+1. **Nahraj z `deploy/upload/`** jen `public/build/` (na hostingu ji nejdřív smaž) a `public/version.txt`.
+2. **Ověř:** `version.txt?v=<cokoli>`; na telefonu hlavička s logem a spodní lišta; na `/akce` karta
+   bez obrázku se slevou (cenovka vpravo v řádku štítků). Service worker si nové assety stáhne sám
+   (verze v `/sw.js` je podle `manifest.json`).
+3. Zapiš verzi do *Nasazené verze*.
+
 **Každá nová migrace potřebuje SQL skript** `deploy/migrations-<datum>-<popis>.sql`
 (opakovatelný: `CREATE TABLE IF NOT EXISTS`, `ADD COLUMN IF NOT EXISTS`) včetně zápisu do
 tabulky `migrations` — ve stejném commitu jako migrace. Nové produkty katalogu jdou na
