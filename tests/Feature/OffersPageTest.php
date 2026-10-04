@@ -12,11 +12,15 @@ declare(strict_types=1);
 
 use App\Enums\Chain;
 use App\Enums\LoyaltyProgram;
+use App\Enums\MatchStatus;
 use App\Enums\OfferType;
 use App\Enums\PackageUnit;
 use App\Models\Offer;
+use App\Models\OfferProduct;
+use App\Models\Product;
 use App\Models\User;
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Facades\Cache;
 use Inertia\Testing\AssertableInertia as Assert;
 
 beforeEach(function (): void {
@@ -174,4 +178,45 @@ it('stránku za koncem výpisu zkrátí na poslední a rozsah omezí stropem (R4
         ->assertInertia(fn (Assert $page) => $page
             ->where('pagination.from', 3)
             ->has('offers.data', 4));
+});
+
+it('s hledaným textem řadí podle relevance: název, značka, až pak popis (R71)', function (): void {
+    Offer::factory()->create(['name' => 'Coca-Cola 1l', 'description' => 'MENU PIZZA+COLA', 'discount_percent' => 50]);
+    Offer::factory()->create(['name' => 'Feliciana Speciale', 'brand' => 'Pizza Bakery', 'discount_percent' => 40]);
+    Offer::factory()->create(['name' => 'Dr. Oetker Pizza', 'discount_percent' => 30]);
+    Offer::factory()->create(['name' => 'Pizza šunková', 'discount_percent' => 10]);
+
+    expect(offerNames(['q' => 'pizza']))->toBe(['Pizza šunková', 'Dr. Oetker Pizza', 'Feliciana Speciale', 'Coca-Cola 1l']);
+});
+
+it('akce produktu z našeptávače a jen slevy (R71)', function (): void {
+    $product = Product::factory()->create(['name' => 'Máslo']);
+    $assigned = Offer::factory()->create(['name' => 'Tatra máslo', 'offer_type' => OfferType::Discount, 'original_price' => 5990]);
+    OfferProduct::query()->create(['offer_id' => $assigned->id, 'product_id' => $product->id, 'status' => MatchStatus::Match, 'is_manual' => false]);
+    Offer::factory()->create(['name' => 'Máslo bez produktu', 'offer_type' => OfferType::PromoPrice]);
+    Offer::factory()->create(['name' => 'Rama', 'offer_type' => OfferType::PromoPrice]);
+
+    expect(offerNames(['produkt' => $product->id]))->toBe(['Tatra máslo'])
+        ->and(offerNames(['sleva' => 1]))->toBe(['Tatra máslo']);
+
+    $this->get(route('offers', ['produkt' => $product->id]))
+        ->assertInertia(fn (Assert $page) => $page->where('product', 'Máslo')->where('filters.produkt', $product->id));
+});
+
+it('když text nic nenajde, ukáže výsledky opraveného překlepu (R71)', function (): void {
+    Cache::flush();
+    Offer::factory()->create(['name' => 'Pizza Margherita']);
+
+    $this->get(route('offers', ['q' => 'pyzza']))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('correction', ['original' => 'pyzza', 'corrected' => 'pizza'])
+            ->where('offers.data.0.name', 'Pizza Margherita')
+            ->where('filters.q', 'pyzza'));
+});
+
+it('výpis zúžený produktem nebo slevami se neindexuje (R71)', function (): void {
+    $product = Product::factory()->create();
+
+    expect($this->get(route('offers', ['produkt' => $product->id]))->getContent())->toContain('<meta name="robots" content="noindex, follow">')
+        ->and($this->get(route('offers', ['sleva' => 1]))->getContent())->toContain('<meta name="robots" content="noindex, follow">');
 });

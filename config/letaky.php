@@ -463,6 +463,22 @@ return [
     ],
 
     /*
+    | Hledání ve Všech akcích a v Hlídám (R71). Našeptávač ukáže nejvýš tolik produktů katalogu
+    | a akcí; prázdné pole oblíbené produkty (nejvíc akcí). Oprava překlepu jen u slov od
+    | typo_min_length znaků, do typo_short_word_length znaků o 1 změnu, delší o 2. Slovník
+    | se staví z aktuálních akcí a drží v cache. Náhled vlastních slov ukáže pár příkladů.
+    */
+    'search' => [
+        'suggest_products' => 4,
+        'suggest_offers' => 5,
+        'popular_products' => 6,
+        'typo_min_length' => 3,
+        'typo_short_word_length' => 3,
+        'vocabulary_cache_minutes' => 60,
+        'preview_examples' => 3,
+    ],
+
+    /*
     | security.txt (RFC 9116, R68): platnost (pole Expires) dní od dneška — RFC doporučuje
     | méně než rok; jazyky, ve kterých jde chybu nahlásit.
     */
@@ -501,9 +517,8 @@ return [
     'offers' => [
         'per_page' => 50,
         'search_max_length' => 100,
-        // Našeptávač hledání: od kolika znaků a kolik návrhů
+        // Našeptávač a živé hledání: od kolika znaků (počty návrhů v search, R71)
         'suggest_min_length' => 2,
-        'suggest_limit' => 8,
     ],
 
     /*

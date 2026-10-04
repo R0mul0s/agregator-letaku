@@ -14,13 +14,14 @@ import WatchItemTile from '@/Components/WatchItemTile.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { useTranslations } from '@/lib/i18n';
 import { Head, router, usePage } from '@inertiajs/vue3';
-import { computed, nextTick, onMounted, ref } from 'vue';
+import { computed, nextTick, onMounted, ref, watch } from 'vue';
 
 const props = defineProps({
+    /** Adresy { store, home, preview }. */
     urls: { type: Object, required: true },
     /** Hlídané položky s počtem akcí, nejnižší cenou a zmínkami (WatchItemController::index). */
     watchItems: { type: Array, required: true },
-    /** Produkty katalogu [{ id, name, categoryLabel, department, watched }]. */
+    /** Produkty katalogu [{ id, name, categoryLabel, categoryName, department, icon, watched, offersCount, lowestPrice }]. */
     products: { type: Array, required: true },
     /** Katalog po odděleních a pododděleních (CatalogBrowseTree, R47). */
     catalogTree: { type: Array, required: true },
@@ -64,6 +65,18 @@ async function openOwnForm(text) {
     ownFormElement.value?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
+/** ID položek, které už stránka ukázala — nové (právě přidané) se krátce zvýrazní (R71). */
+const knownIds = new Set(props.watchItems.map((item) => item.id));
+const freshIds = ref(new Set());
+
+watch(
+    () => props.watchItems,
+    (items) => {
+        freshIds.value = new Set(items.filter((item) => !knownIds.has(item.id)).map((item) => item.id));
+        items.forEach((item) => knownIds.add(item.id));
+    },
+);
+
 // „Hlídat“ u akce bez produktu katalogu (R60): formulář s názvem akce, slova jde upravit
 onMounted(() => {
     if (props.prefill) {
@@ -82,13 +95,22 @@ onMounted(() => {
         </header>
 
         <section class="card watch-new">
-            <WatchAdd :products="products" @product="watchProduct" @own="openOwnForm" />
+            <WatchAdd :products="products" :preview-url="urls.preview" @product="watchProduct" @own="openOwnForm" />
             <p v-if="addError" class="form-field__error" role="alert">{{ addError }}</p>
 
             <div v-if="ownForm" ref="ownFormElement" class="watch-new__own">
                 <h2 class="watch-new__title">{{ t('watch.own_title') }}</h2>
                 <p class="form-field__hint watch-hint">{{ t('watch.own_hint') }}</p>
-                <WatchItemForm :key="ownFormKey" :url="urls.store" :item="ownForm" :submit-label="t('watch.add')" cancelable @saved="ownForm = null" @cancel="ownForm = null" />
+                <WatchItemForm
+                    :key="ownFormKey"
+                    :url="urls.store"
+                    :item="ownForm"
+                    :preview-url="urls.preview"
+                    :submit-label="t('watch.add')"
+                    cancelable
+                    @saved="ownForm = null"
+                    @cancel="ownForm = null"
+                />
             </div>
         </section>
 
@@ -100,7 +122,15 @@ onMounted(() => {
                     <span class="watch-group__count">{{ watchItems.length }}</span>
                 </h2>
                 <div class="watch-list__grid">
-                    <WatchItemTile v-for="item in watchItems" :key="item.id" :item="item" :home-url="urls.home" :initially-editing="item.id === editId" />
+                    <WatchItemTile
+                        v-for="item in watchItems"
+                        :key="item.id"
+                        :item="item"
+                        :home-url="urls.home"
+                        :preview-url="urls.preview"
+                        :fresh="freshIds.has(item.id)"
+                        :initially-editing="item.id === editId"
+                    />
                 </div>
             </template>
         </section>

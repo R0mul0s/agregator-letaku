@@ -52,15 +52,13 @@ final class CatalogBrowseTree
         }
 
         uasort($departments, fn (array $a, array $b): int => $a['rank'] <=> $b['rank']);
-        $icons = config()->array('letaky.catalog.department_icons');
 
         $tree = [];
         foreach ($departments as $name => $department) {
             uasort($department['aisles'], fn (array $a, array $b): int => $a['rank'] <=> $b['rank']);
-            $icon = $icons[$name] ?? self::FALLBACK_ICON;
             $tree[] = [
                 'name' => (string) $name,
-                'icon' => is_string($icon) ? $icon : self::FALLBACK_ICON,
+                'icon' => self::icon((string) $name),
                 'aisles' => array_map(
                     fn (int|string $aisle, array $data): array => ['name' => (string) $aisle, 'productIds' => $data['productIds']],
                     array_keys($department['aisles']),
@@ -70,5 +68,15 @@ final class CatalogBrowseTree
         }
 
         return $tree;
+    }
+
+    /**
+     * Klíč ikony oddělení (DepartmentIcon.vue) — i pro našeptávač v Hlídám (R71).
+     */
+    public static function icon(?string $department): string
+    {
+        $icon = $department === null ? null : (config()->array('letaky.catalog.department_icons')[$department] ?? null);
+
+        return is_string($icon) ? $icon : self::FALLBACK_ICON;
     }
 }

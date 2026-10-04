@@ -11,6 +11,7 @@
  */
 import { clearPendingChecks, syncPendingChecks } from '@/lib/offlineChecks';
 import { lookup } from '@/lib/i18n';
+import { forgetSearch } from '@/lib/search';
 import { readStored, writeStored } from '@/lib/storage';
 import { showToast } from '@/lib/toast';
 import { router } from '@inertiajs/vue3';
@@ -216,6 +217,9 @@ export function initPwa(initialPage) {
         const nextUser = event.detail.page.props.auth.user;
         if (user && !nextUser) {
             clearOfflineData();
+            // Poslední hledání (R71) — po odhlášení by na sdíleném zařízení prozradila, co
+            // uživatel hledal; nepřihlášenému zůstávají (při startu se nemažou)
+            forgetSearch();
         } else if (!user && nextUser) {
             warmOfflinePages();
         }

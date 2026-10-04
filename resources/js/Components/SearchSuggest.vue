@@ -1,159 +1,361 @@
 <!--
-    Pole hledání s našeptávačem (combobox podle WAI-ARIA) — návrhy ze serveru po krátké pauze
-    v psaní; šipky vybírají, Enter potvrdí, Escape zavře. Výběr návrhu hned hledá.
+    Pole hledání ve Všech akcích s bohatým našeptávačem (R71, combobox podle WAI-ARIA).
+    Prázdné pole: poslední hledání a oblíbené produkty. Při psaní: produkty katalogu s počtem
+    akcí a cenou od (klepnutí = akce produktu, tlačítko Hlídat), první akce s obrázkem, obchodem
+    a cenou, „Zobrazit všech N výsledků“; překlep opraví server. Shoda je zvýrazněná.
+    Šipky vybírají, Enter potvrdí (bez výběru hledá text), Escape zavře, „/“ skočí do pole.
+    Na telefonu se hledání otevře přes celou obrazovku.
 
     @author Roman Hlaváček
     @created 2026-10-02
 -->
 <script setup>
+import ChainLogo from '@/Components/ChainLogo.vue';
+import DepartmentIcon from '@/Components/DepartmentIcon.vue';
+import HighlightText from '@/Components/HighlightText.vue';
+import WatchOfferButton from '@/Components/WatchOfferButton.vue';
+import { formatPrice } from '@/lib/format';
 import { useTranslations } from '@/lib/i18n';
-import { computed, onBeforeUnmount, ref } from 'vue';
+import { useRotatingPlaceholder } from '@/lib/placeholder';
+import { forgetSearch, recentSearches } from '@/lib/search';
+import { usePage } from '@inertiajs/vue3';
+import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 
 /** Pauza v psaní, po které se načtou návrhy (ms). */
-const DEBOUNCE_MS = 250;
+const DEBOUNCE_MS = 200;
 
 const props = defineProps({
     /** Atribut id i name pole. */
     id: { type: String, required: true },
     label: { type: String, required: true },
-    placeholder: { type: String, default: undefined },
-    /** Adresa návrhů (GET ?q=…, vrací { suggestions: [{ type, label }] }). */
+    /** Adresa návrhů (GET ?q=…, OfferSuggestionsController). */
     url: { type: String, required: true },
     /** Další parametry dotazu (zvolený obchod). */
     params: { type: Object, default: () => ({}) },
     /** Od kolika znaků se návrhy načítají. */
     minLength: { type: Number, required: true },
+    /** Načítají se výsledky stránky (živé hledání) — v poli se točí kolečko. */
+    loading: { type: Boolean, default: false },
+    /** Adresy pro tlačítko Hlídat u produktu (WatchOfferButton), null = bez tlačítka. */
+    watchUrls: { type: Object, default: null },
 });
 
-const emit = defineEmits(['select']);
+const emit = defineEmits(['search', 'product']);
 
 const model = defineModel({ type: String, default: '' });
 
 const t = useTranslations();
-const suggestions = ref([]);
+const page = usePage();
+
+const input = ref(null);
+const data = reactive({ corrected: null, total: 0, products: [], offers: [], popular: false });
 const open = ref(false);
+const focused = ref(false);
+const fetching = ref(false);
 const activeIndex = ref(-1);
+const recent = ref([]);
 let timer = null;
 let controller = null;
 
 const listId = computed(() => `${props.id}-suggestions`);
-const activeId = computed(() => (activeIndex.value >= 0 ? `${listId.value}-${activeIndex.value}` : undefined));
+const text = computed(() => model.value.trim());
+/** Text, ke kterému se zvýrazňuje shoda (opravený, když server opravil překlep). */
+const highlightQuery = computed(() => data.corrected ?? text.value);
 
-/** Načte návrhy k aktuálnímu textu; předchozí nedokončený požadavek zruší. */
+const placeholder = useRotatingPlaceholder(
+    () => page.props.translations?.search?.examples ?? [],
+    computed(() => focused.value || text.value !== ''),
+    (example) => t('search.try', { example }),
+);
+
+/** Skupiny návrhů s nadpisy; každá volba má index pro ovládání klávesnicí. */
+const sections = computed(() => {
+    const groups = [];
+    if (text.value === '') {
+        groups.push({ key: 'recent', title: t('search.recent'), options: recent.value.map((query) => ({ kind: 'recent', query })) });
+        groups.push({ key: 'popular', title: t('search.popular'), options: data.products.map((product) => ({ kind: 'product', product })) });
+    } else {
+        groups.push({ key: 'products', title: t('search.products'), options: data.products.map((product) => ({ kind: 'product', product })) });
+        groups.push({ key: 'offers', title: t('search.offers'), options: data.offers.map((offer) => ({ kind: 'offer', offer })) });
+        if (data.total > 0) {
+            groups.push({ key: 'all', title: null, options: [{ kind: 'all' }] });
+        }
+    }
+    let index = 0;
+
+    return groups.filter((group) => group.options.length).map((group) => ({ ...group, options: group.options.map((option) => ({ ...option, index: index++ })) }));
+});
+
+const options = computed(() => sections.value.flatMap((section) => section.options));
+const activeId = computed(() => (activeIndex.value >= 0 ? `${listId.value}-${activeIndex.value}` : undefined));
+const nothingFound = computed(() => text.value.length >= props.minLength && !fetching.value && options.value.length === 0 && data.popular === false);
+const panelVisible = computed(() => open.value && (options.value.length > 0 || nothingFound.value));
+
+/** Načte návrhy k aktuálnímu textu (prázdné pole = oblíbené); předchozí požadavek zruší. */
 async function load() {
-    const text = model.value.trim();
-    if (text.length < props.minLength) {
-        close();
+    if (text.value !== '' && text.value.length < props.minLength) {
+        Object.assign(data, { corrected: null, total: 0, products: [], offers: [], popular: false });
 
         return;
     }
 
     controller?.abort();
     controller = new AbortController();
-    const query = new URLSearchParams(Object.fromEntries(Object.entries({ ...props.params, q: text }).filter(([, value]) => value !== '')));
+    fetching.value = true;
+    const query = new URLSearchParams(Object.fromEntries(Object.entries({ ...props.params, q: text.value }).filter(([, value]) => value !== '' && value !== null)));
 
     try {
         const response = await fetch(`${props.url}?${query}`, { headers: { Accept: 'application/json' }, signal: controller.signal });
-        if (!response.ok) {
-            return;
+        if (response.ok) {
+            Object.assign(data, await response.json());
+            activeIndex.value = -1;
         }
-        suggestions.value = (await response.json()).suggestions;
-        activeIndex.value = -1;
-        open.value = suggestions.value.length > 0;
+        fetching.value = false;
     } catch (error) {
-        // Zrušený požadavek (psaní pokračuje) není chyba; jiné chyby jen schovají návrhy
+        // Zrušený požadavek (psaní pokračuje) není chyba
         if (error.name !== 'AbortError') {
-            close();
+            fetching.value = false;
         }
     }
 }
 
 /** Načte návrhy po pauze v psaní. */
 function onInput() {
-    clearTimeout(timer);
-    timer = setTimeout(load, DEBOUNCE_MS);
+    open.value = true;
+    window.clearTimeout(timer);
+    timer = window.setTimeout(load, DEBOUNCE_MS);
 }
 
-/** Zavře seznam návrhů. */
+/** Fokus: otevře panel s posledními hledáními a oblíbenými, nebo návrhy k textu. */
+function onFocus() {
+    focused.value = true;
+    recent.value = recentSearches();
+    open.value = true;
+    load();
+}
+
+/** Zavře panel návrhů. */
 function close() {
     open.value = false;
     activeIndex.value = -1;
 }
 
-/**
- * Vybere návrh: doplní text a ohlásí výběr.
- *
- * @param {{ label: string }} suggestion
- */
-function choose(suggestion) {
-    model.value = suggestion.label;
+/** Konec hledání: zavře panel a na telefonu i celou obrazovku hledání a klávesnici. */
+function finish() {
     close();
-    emit('select', suggestion.label);
+    input.value?.blur();
 }
 
 /**
- * Ovládání klávesnicí.
+ * Potvrdí volbu.
+ *
+ * @param {{ kind: string, query?: string, product?: object, offer?: object }} option
+ */
+function choose(option) {
+    if (option.kind === 'product') {
+        emit('product', option.product);
+    } else {
+        const query = option.kind === 'recent' ? option.query : option.kind === 'offer' ? option.offer.name : (data.corrected ?? model.value);
+        model.value = query;
+        emit('search', query);
+    }
+    finish();
+}
+
+/**
+ * Zapomene jedno poslední hledání, nebo všechna.
+ *
+ * @param {string} [query]
+ */
+function forget(query) {
+    forgetSearch(query);
+    recent.value = recentSearches();
+    activeIndex.value = -1;
+}
+
+/**
+ * Ovládání klávesnicí. Enter bez vybrané volby hledá napsaný text.
  *
  * @param {KeyboardEvent} event
  */
 function onKeydown(event) {
-    if (!open.value) {
-        return;
-    }
-
     if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+        if (!options.value.length) {
+            return;
+        }
         event.preventDefault();
+        open.value = true;
         const step = event.key === 'ArrowDown' ? 1 : -1;
-        activeIndex.value = (activeIndex.value + step + suggestions.value.length) % suggestions.value.length;
-    } else if (event.key === 'Enter' && activeIndex.value >= 0) {
+        activeIndex.value = (activeIndex.value + step + options.value.length) % options.value.length;
+    } else if (event.key === 'Enter') {
         event.preventDefault();
-        choose(suggestions.value[activeIndex.value]);
+        if (open.value && activeIndex.value >= 0) {
+            choose(options.value[activeIndex.value]);
+        } else {
+            emit('search', model.value);
+            finish();
+        }
     } else if (event.key === 'Escape') {
-        close();
+        // Prohlížeč by pole typu search Escapem vymazal — Escape jen zavírá
+        event.preventDefault();
+        if (open.value) {
+            close();
+        } else {
+            input.value?.blur();
+        }
     }
 }
 
+/**
+ * Klávesa „/“ kdekoli na stránce skočí do pole (mimo jiná pole a úpravy textu).
+ *
+ * @param {KeyboardEvent} event
+ */
+function onShortcut(event) {
+    const target = event.target;
+    const typing = target instanceof HTMLElement && (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName));
+    if (event.key === '/' && !typing && !event.ctrlKey && !event.metaKey && !event.altKey) {
+        event.preventDefault();
+        input.value?.focus();
+    }
+}
+
+// Jiný obchod = jiné návrhy (počty akcí, oblíbené)
+watch(
+    () => props.params,
+    () => focused.value && load(),
+    { deep: true },
+);
+
+// Celá obrazovka hledání na telefonu: stránka pod ní se nesmí posouvat
+watch(focused, (value) => document.documentElement.classList.toggle('has-search-sheet', value));
+
+onMounted(() => document.addEventListener('keydown', onShortcut));
+
 onBeforeUnmount(() => {
-    clearTimeout(timer);
+    window.clearTimeout(timer);
     controller?.abort();
+    document.removeEventListener('keydown', onShortcut);
+    document.documentElement.classList.remove('has-search-sheet');
 });
 </script>
 
 <template>
-    <div class="form-field search-suggest">
-        <label :for="id" class="form-field__label">{{ label }}</label>
-        <input
-            :id="id"
-            v-model="model"
-            :name="id"
-            type="search"
-            class="form-field__input"
-            :placeholder="placeholder"
-            role="combobox"
-            autocomplete="off"
-            aria-autocomplete="list"
-            :aria-expanded="open ? 'true' : 'false'"
-            :aria-controls="listId"
-            :aria-activedescendant="activeId"
-            @input="onInput"
-            @keydown="onKeydown"
-            @blur="close"
-        />
-        <ul v-show="open" :id="listId" class="search-suggest__list" role="listbox" :aria-label="label">
-            <!-- mousedown místo click — click by přišel až po blur pole, který seznam zavře -->
-            <li
-                v-for="(suggestion, index) in suggestions"
-                :id="`${listId}-${index}`"
-                :key="`${suggestion.type}-${suggestion.label}`"
-                class="search-suggest__option"
-                :class="{ 'search-suggest__option--active': index === activeIndex }"
-                role="option"
-                :aria-selected="index === activeIndex ? 'true' : 'false'"
-                @mousedown.prevent="choose(suggestion)"
-            >
-                <span>{{ suggestion.label }}</span>
-                <span v-if="suggestion.type === 'product'" class="tag">{{ t('offers.suggestion_product') }}</span>
-            </li>
-        </ul>
+    <div class="form-field search-suggest" :class="{ 'search-suggest--focused': focused }">
+        <div class="search-suggest__head">
+            <label :for="id" class="form-field__label search-suggest__label">{{ label }}</label>
+            <!-- Na telefonu přes celou obrazovku: zpět na výsledky -->
+            <button type="button" class="link-button search-suggest__back" @mousedown.prevent @click="finish">{{ t('search.back') }}</button>
+        </div>
+        <div class="search-suggest__control">
+            <span class="search-suggest__icon" :class="{ 'search-suggest__icon--busy': loading || fetching }" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5" /><path d="M15.5 15.5L21 21" /></svg>
+            </span>
+            <input
+                :id="id"
+                ref="input"
+                v-model="model"
+                :name="id"
+                type="search"
+                enterkeyhint="search"
+                class="form-field__input search-suggest__input"
+                :placeholder="placeholder"
+                role="combobox"
+                autocomplete="off"
+                aria-autocomplete="list"
+                :aria-expanded="panelVisible ? 'true' : 'false'"
+                :aria-controls="listId"
+                :aria-activedescendant="activeId"
+                :aria-busy="loading || fetching ? 'true' : 'false'"
+                @input="onInput"
+                @focus="onFocus"
+                @keydown="onKeydown"
+                @blur="
+                    focused = false;
+                    close();
+                "
+            />
+            <kbd class="search-suggest__shortcut" aria-hidden="true">/</kbd>
+        </div>
+
+        <div v-show="panelVisible" class="search-panel">
+            <p v-if="data.corrected" class="search-panel__notice">{{ t('search.corrected', { text: data.corrected }) }}</p>
+            <p v-if="nothingFound" class="search-panel__notice">{{ t('search.nothing', { text }) }}</p>
+
+            <!-- mousedown.prevent — klepnutí nesmí vzít poli fokus (blur by panel zavřel dřív, než přijde click) -->
+            <ul :id="listId" class="search-panel__list" role="listbox" :aria-label="label">
+                <template v-for="section in sections" :key="section.key">
+                    <li v-if="section.title" class="search-panel__heading" role="presentation">
+                        <span>{{ section.title }}</span>
+                        <button v-if="section.key === 'recent'" type="button" class="link-button search-panel__clear" @mousedown.prevent @click="forget()">
+                            {{ t('search.clear_recent') }}
+                        </button>
+                    </li>
+                    <li
+                        v-for="option in section.options"
+                        :id="`${listId}-${option.index}`"
+                        :key="`${section.key}-${option.index}`"
+                        class="search-panel__option"
+                        :class="[`search-panel__option--${option.kind}`, { 'search-panel__option--active': option.index === activeIndex }]"
+                        role="option"
+                        :aria-selected="option.index === activeIndex ? 'true' : 'false'"
+                        @mousedown.prevent="choose(option)"
+                        @mousemove="activeIndex = option.index"
+                    >
+                        <template v-if="option.kind === 'recent'">
+                            <svg class="search-panel__glyph" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5" /><path d="M12 7.5V12l3 2" /></svg>
+                            <span class="search-panel__main">{{ option.query }}</span>
+                            <button type="button" class="search-panel__remove" :title="t('search.forget')" @mousedown.prevent.stop @click.stop="forget(option.query)">
+                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
+                                <span class="visually-hidden">{{ t('search.forget') }}</span>
+                            </button>
+                        </template>
+
+                        <template v-else-if="option.kind === 'product'">
+                            <span class="search-panel__badge"><DepartmentIcon :name="option.product.icon" /></span>
+                            <span class="search-panel__main">
+                                <span class="search-panel__name"><HighlightText :text="option.product.name" :query="highlightQuery" /></span>
+                                <span class="search-panel__meta">
+                                    {{ t('search.product_offers', { count: option.product.offersCount }) }}
+                                    <template v-if="option.product.lowestPrice !== null">
+                                        · {{ t('search.from', { price: formatPrice(option.product.lowestPrice, page.props.locale) }) }}
+                                    </template>
+                                </span>
+                            </span>
+                            <span v-if="watchUrls" class="search-panel__action" @mousedown.prevent.stop>
+                                <WatchOfferButton :target="{ productId: option.product.id, name: option.product.name, watched: option.product.watched }" :urls="watchUrls" />
+                            </span>
+                        </template>
+
+                        <template v-else-if="option.kind === 'offer'">
+                            <span class="search-panel__thumb">
+                                <img v-if="option.offer.imageUrl" :src="option.offer.imageUrl" alt="" loading="lazy" referrerpolicy="no-referrer" />
+                            </span>
+                            <span class="search-panel__main">
+                                <span class="search-panel__name"><HighlightText :text="option.offer.name" :query="highlightQuery" /></span>
+                                <span class="search-panel__meta">
+                                    <ChainLogo :chain="option.offer.chain" />
+                                    <span v-if="option.offer.packageText">{{ option.offer.packageText }}</span>
+                                </span>
+                            </span>
+                            <span class="search-panel__price">
+                                <span v-if="option.offer.discountPercent" class="search-panel__discount">−{{ option.offer.discountPercent }} %</span>
+                                <strong>{{ formatPrice(option.offer.price ?? option.offer.loyaltyPrice, page.props.locale) }}</strong>
+                            </span>
+                        </template>
+
+                        <template v-else>
+                            <span class="search-panel__all">{{ t('search.show_all', { count: data.total, text: highlightQuery }) }} →</span>
+                        </template>
+                    </li>
+                </template>
+            </ul>
+
+            <p class="search-panel__keys" aria-hidden="true">
+                <span><kbd>↑</kbd><kbd>↓</kbd> {{ t('search.keys_move') }}</span>
+                <span><kbd>Enter</kbd> {{ t('search.keys_choose') }}</span>
+                <span><kbd>Esc</kbd> {{ t('search.keys_close') }}</span>
+            </p>
+        </div>
     </div>
 </template>

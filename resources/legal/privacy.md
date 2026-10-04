@@ -163,6 +163,7 @@ snadno jako přijmout.
 | `letaky-theme` | localStorage | zvolený světlý nebo tmavý vzhled | do smazání v prohlížeči |
 | `slevohlidka.home.expanded` | localStorage | které skupiny v Mých slevách máte rozbalené | do smazání v prohlížeči |
 | `slevohlidka.home.rows` | localStorage | v Mých slevách po výběru obchodu akce jako řádky, nebo karty | do smazání v prohlížeči |
+| `slevohlidka.search.recent` | localStorage | posledních 5 hledání ve Všech akcích, abyste je měli po ruce | do smazání v hledání nebo odhlášení |
 | `slevohlidka.install.dismissed_at` | localStorage | kdy jste zavřeli výzvu k přidání Slevohlídky na plochu (30 dní se neukáže) | do smazání v prohlížeči |
 | `slevohlidka.shopping.wake_lock` | localStorage | v nákupním seznamu nezhasínat displej | do smazání v prohlížeči |
 | `slevohlidka.shopping.pending` | localStorage | odškrtnutí v nákupním seznamu udělaná bez signálu, než se odešlou | do odeslání nebo odhlášení |

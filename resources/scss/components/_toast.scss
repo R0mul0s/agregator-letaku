@@ -106,3 +106,21 @@
         transform: none;
     }
 }
+
+// Akce v toastu („Vrátit“ po přidání hlídané položky, R71)
+.toast__action {
+    flex: none;
+    padding: var(--space-1) var(--space-2);
+    background: none;
+    border: 1px solid currentcolor;
+    border-radius: var(--radius-sm);
+    color: inherit;
+    font-weight: 700;
+    cursor: pointer;
+
+    &:hover,
+    &:focus-visible {
+        background: var(--color-accent-soft);
+        color: var(--color-accent-strong);
+    }
+}

@@ -13,6 +13,7 @@ declare(strict_types=1);
 namespace App\Http\Middleware;
 
 use App\Enums\Chain;
+use App\Http\Controllers\WatchItemController;
 use App\Models\User;
 use App\Support\Legal\LegalDocuments;
 use App\Support\Operator;
@@ -130,6 +131,8 @@ class HandleInertiaRequests extends Middleware
             // Zpráva Fortify po akci: přeložený text (odkaz na obnovu hesla odeslán)
             // nebo kód (profile-information-updated, password-updated)
             'status' => fn (): ?string => $request->session()->get('status'),
+            // „Vrátit“ v toastu po přidání hlídané položky (R71): adresa jejího smazání
+            'statusUndo' => fn (): ?string => $request->session()->get(WatchItemController::UNDO_SESSION_KEY),
             'navigation' => fn (): array => array_map(
                 fn (string $routeName, string $labelKey): array => [
                     'url' => route($routeName, absolute: false),

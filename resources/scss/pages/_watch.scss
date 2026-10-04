@@ -204,18 +204,6 @@
     &__input {
         width: 100%;
     }
-
-    &__category {
-        color: var(--color-text-muted);
-        font-size: var(--font-size-xs);
-        text-align: right;
-    }
-
-    // Poslední volba „Hlídat … vlastními slovy“ oddělená od produktů
-    &__own {
-        color: var(--color-accent-strong);
-        font-weight: 700;
-    }
 }
 
 // Hlídané položky jako dlaždice v mřížce
@@ -252,6 +240,15 @@
     // Formulář úpravy potřebuje víc místa než dlaždice
     &--editing {
         grid-column: 1 / -1;
+    }
+
+    // Právě přidaná položka (R71) — naskočí a krátce se rozsvítí; při omezení pohybu nic
+    &--fresh {
+        animation: watch-tile-fresh var(--duration-fresh) ease-out;
+
+        @media (prefers-reduced-motion: reduce) {
+            animation: none;
+        }
     }
 
     &__header {
@@ -564,4 +561,20 @@
     flex: 0 1 var(--chain-select-min-width);
     margin-right: auto;
     margin-bottom: 0;
+}
+
+@keyframes watch-tile-fresh {
+    0% {
+        box-shadow: 0 0 0 0 var(--color-accent);
+        transform: scale(0.96);
+    }
+
+    30% {
+        box-shadow: 0 0 0 var(--fresh-ring-width) var(--color-accent-soft);
+        transform: scale(1);
+    }
+
+    100% {
+        box-shadow: var(--shadow-card);
+    }
 }

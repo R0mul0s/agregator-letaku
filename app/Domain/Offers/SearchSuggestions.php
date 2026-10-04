@@ -1,9 +1,11 @@
 <?php
 
 /**
- * Našeptávač hledání ve Všech akcích — produkty katalogu a názvy aktuálních akcí, ve kterých
- * text začíná některé slovo (bez ohledu na diakritiku a velikost písmen, porovnání MariaDB);
- * názvy, které textem začínají, jsou první.
+ * Našeptávač hledání ve Všech akcích (R71) — místo holých textů rovnou odpověď: produkty
+ * katalogu s počtem aktuálních akcí a nejnižší cenou (klepnutím filtr akcí produktu nebo
+ * hlídání) a první akce stejně seřazené jako výsledky, s obrázkem, obchodem a cenou.
+ * Když text nic nenajde, zkusí opravu překlepu (SearchVocabulary). Bez textu oblíbené
+ * produkty — ty, které mají právě nejvíc akcí.
  *
  * @author Roman Hlaváček
  *
@@ -14,72 +16,173 @@ declare(strict_types=1);
 
 namespace App\Domain\Offers;
 
+use App\Domain\Catalog\CatalogBrowseTree;
+use App\Domain\Catalog\CategoryPaths;
 use App\Enums\Chain;
 use App\Models\Offer;
+use App\Models\OfferProduct;
 use App\Models\Product;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 
 final class SearchSuggestions
 {
-    /** Vzory začátku slova v LIKE: začátek názvu, po mezeře, po pomlčce a lomítku („Coca-Cola“, „Fanta/Sprite“). */
-    private const WORD_STARTS = ['', '% ', '%-', '%/'];
+    /** Kolik produktů katalogu podle názvu vybrat, než se odfiltrují ty bez akcí. */
+    private const PRODUCT_CANDIDATES = 30;
 
-    public function __construct(private readonly LocalCalendar $calendar) {}
+    public function __construct(
+        private readonly OfferSearch $search,
+        private readonly SearchVocabulary $vocabulary,
+        private readonly LocalCalendar $calendar,
+        private readonly CategoryPaths $categories,
+    ) {}
 
     /**
-     * Návrhy pro text: nejdřív produkty katalogu, pak názvy neskončených akcí (bez opakování).
+     * Návrhy k hledanému textu.
      *
-     * @return list<array{type: 'product'|'offer', label: string}>
+     * @return array{corrected: string|null, total: int, products: list<array<string, mixed>>, offers: list<array<string, mixed>>}
      */
-    public function for(string $text, ?Chain $chain): array
+    public function for(string $text, ?Chain $chain, ?User $user): array
     {
-        $limit = config()->integer('letaky.offers.suggest_limit');
-        $escaped = addcslashes($text, '%_\\');
-
-        $products = Product::query()
-            ->tap(fn (Builder $query) => $this->whereWordStarts($query, $escaped))
-            ->orderByRaw('name LIKE ? DESC', [$escaped.'%'])
-            ->orderBy('name')
-            ->limit($limit)
-            ->pluck('name')
-            ->all();
-
-        $offers = Offer::query()
-            ->active()
-            ->notExpired($this->calendar->today())
-            ->when($chain, fn (Builder $query, Chain $chain) => $query->where('chain', $chain))
-            ->tap(fn (Builder $query) => $this->whereWordStarts($query, $escaped))
-            ->groupBy('name')
-            ->orderByRaw('name LIKE ? DESC', [$escaped.'%'])
-            ->orderBy('name')
-            ->limit($limit)
-            ->pluck('name')
-            ->all();
-
-        $suggestions = [];
-        foreach ($products as $name) {
-            $suggestions[mb_strtolower($name)] = ['type' => 'product', 'label' => $name];
-        }
-        foreach ($offers as $name) {
-            $suggestions[mb_strtolower($name)] ??= ['type' => 'offer', 'label' => $name];
+        $corrected = null;
+        $total = $this->search->query($text, $chain)->count();
+        if ($total === 0) {
+            $corrected = $this->vocabulary->correct($text);
+            if ($corrected !== null) {
+                $text = $corrected;
+                $total = $this->search->query($text, $chain)->count();
+            }
         }
 
-        return array_slice(array_values($suggestions), 0, $limit);
+        $offers = $total === 0 ? [] : $this->search->query($text, $chain)
+            ->limit(config()->integer('letaky.search.suggest_offers'))
+            ->get()
+            ->map(fn (Offer $offer): array => $this->offerToPage($offer))
+            ->all();
+
+        return [
+            'corrected' => $corrected,
+            'total' => $total,
+            'products' => $this->products($text, $chain, $user),
+            'offers' => array_values($offers),
+        ];
     }
 
     /**
-     * Název obsahuje text jako začátek slova („cola“ najde „Coca-Cola“, ne „Chocolate“).
+     * Oblíbené produkty pro prázdné pole — nejvíc aktuálních akcí.
      *
-     * @template TModel of \Illuminate\Database\Eloquent\Model
-     *
-     * @param  Builder<TModel>  $query
+     * @return list<array<string, mixed>>
      */
-    private function whereWordStarts(Builder $query, string $escaped): void
+    public function popular(?Chain $chain, ?User $user): array
     {
-        $query->where(function (Builder $query) use ($escaped): void {
-            foreach (self::WORD_STARTS as $prefix) {
-                $query->orWhere('name', 'like', $prefix.$escaped.'%');
-            }
-        });
+        $stats = $this->stats(null, $chain);
+        uasort($stats, fn (array $a, array $b): int => $b['count'] <=> $a['count']);
+        $ids = array_slice(array_keys($stats), 0, config()->integer('letaky.search.popular_products'));
+        $products = Product::query()->whereIn('id', $ids)->get()->keyBy('id');
+
+        return $this->productsToPage(array_values(array_filter(array_map(fn (int $id): ?Product => $products->get($id), $ids))), $stats, $chain, $user);
+    }
+
+    /**
+     * Produkty katalogu, jejichž název obsahuje všechna slova jako začátky slov a které mají
+     * aktuální akce; název začínající textem první, pak podle počtu akcí.
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function products(string $text, ?Chain $chain, ?User $user): array
+    {
+        $query = Product::query();
+        foreach (WordStart::words($text) as $word) {
+            WordStart::where($query, ['name'], $word);
+        }
+        $candidates = $query->orderByRaw('name LIKE ? DESC', [addcslashes($text, '%_\\').'%'])
+            ->orderBy('name')
+            ->limit(self::PRODUCT_CANDIDATES)
+            ->get();
+
+        $stats = $this->stats(array_values($candidates->pluck('id')->all()), $chain);
+        $withOffers = array_values(array_filter($candidates->all(), fn (Product $product): bool => isset($stats[$product->id])));
+        // Stabilní řazení: pořadí z databáze (začátek názvu, abeceda) jen uvnitř stejného počtu akcí
+        // by přeházelo „Pizza“ za „Pizza mražená“ — počet rozhoduje jen u názvů, které textem nezačínají
+        $prefix = mb_strtolower($text);
+        usort($withOffers, fn (Product $a, Product $b): int => [! str_starts_with(mb_strtolower($a->name), $prefix), -$stats[$a->id]['count']]
+            <=> [! str_starts_with(mb_strtolower($b->name), $prefix), -$stats[$b->id]['count']]);
+
+        return $this->productsToPage(array_slice($withOffers, 0, config()->integer('letaky.search.suggest_products')), $stats, $chain, $user);
+    }
+
+    /**
+     * Počet aktuálních akcí a nejnižší cena (bez karty) produktů; produkt bez akcí chybí.
+     *
+     * @param  list<int>|null  $productIds  null = všechny produkty
+     * @return array<int, array{count: int, lowestPrice: int|null}>
+     */
+    private function stats(?array $productIds, ?Chain $chain): array
+    {
+        if ($productIds === []) {
+            return [];
+        }
+
+        $rows = OfferProduct::query()
+            ->join('offers', 'offers.id', '=', 'offer_product.offer_id')
+            ->when($productIds !== null, fn (Builder $query) => $query->whereIn('offer_product.product_id', $productIds ?? []))
+            ->whereNull('offers.withdrawn_at')
+            ->whereDate('offers.valid_to', '>=', $this->calendar->today()->toDateString())
+            ->when($chain, fn (Builder $query, Chain $chain) => $query->where('offers.chain', $chain))
+            ->groupBy('offer_product.product_id')
+            ->selectRaw('offer_product.product_id, COUNT(DISTINCT offer_product.offer_id) AS offers_count, MIN(offers.price) AS lowest_price')
+            ->toBase()
+            ->get();
+
+        $stats = [];
+        foreach ($rows as $row) {
+            $stats[(int) $row->product_id] = [
+                'count' => (int) $row->offers_count,
+                'lowestPrice' => $row->lowest_price === null ? null : (int) $row->lowest_price,
+            ];
+        }
+
+        return $stats;
+    }
+
+    /**
+     * Produkty pro našeptávač: počet akcí, cena od, odkaz na jejich akce a jestli je uživatel hlídá.
+     *
+     * @param  list<Product>  $products
+     * @param  array<int, array{count: int, lowestPrice: int|null}>  $stats
+     * @return list<array<string, mixed>>
+     */
+    private function productsToPage(array $products, array $stats, ?Chain $chain, ?User $user): array
+    {
+        $watched = $user === null ? [] : array_flip($user->watchItems()->whereNotNull('product_id')->pluck('product_id')->all());
+
+        return array_map(fn (Product $product): array => [
+            'id' => $product->id,
+            'name' => $product->name,
+            'icon' => CatalogBrowseTree::icon($this->categories->department($product->category_id)),
+            'offersCount' => $stats[$product->id]['count'] ?? 0,
+            'lowestPrice' => $stats[$product->id]['lowestPrice'] ?? null,
+            'url' => route('offers', array_filter(['produkt' => $product->id, 'chain' => $chain?->value]), absolute: false),
+            'watched' => isset($watched[$product->id]),
+        ], $products);
+    }
+
+    /**
+     * Akce pro našeptávač — jen to, co se v řádku ukáže.
+     *
+     * @return array<string, mixed>
+     */
+    private function offerToPage(Offer $offer): array
+    {
+        return [
+            'id' => $offer->id,
+            'name' => $offer->name,
+            'chain' => $offer->chain->value,
+            'packageText' => $offer->package_text,
+            'price' => $offer->price,
+            'loyaltyPrice' => $offer->loyalty_price,
+            'discountPercent' => $offer->effectiveDiscountPercent(),
+            'imageUrl' => $offer->image_url,
+        ];
     }
 }

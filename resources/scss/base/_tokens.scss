@@ -227,6 +227,20 @@
     --empty-mascot-size: 6rem;
     --empty-text-max-width: 32rem;
     --search-text-min-width: 16rem;
+    // Hledání s našeptávačem (R71): panel návrhů, miniatury akcí, ikony produktů, kolečko načítání
+    --search-panel-max-height: 34rem;
+    --search-thumb-size: 3rem;
+    --search-badge-size: 2.25rem;
+    --search-input-padding-left: 2.5rem;
+    --search-spin-duration: 0.8s;
+    --search-shortcut-size: 1.5rem;
+    // Celá obrazovka hledání na telefonu — nad hlavičkou a spodní lištou, pod toastem
+    --z-search-sheet: 48;
+    // Výsledky během živého hledání — ztlumené, dokud nepřijdou nové
+    --opacity-loading: 0.45;
+    // Právě přidaná hlídaná položka se krátce rozsvítí (R71)
+    --duration-fresh: 1.4s;
+    --fresh-ring-width: 4px;
     --font-size-price: 1.75rem;
     // Cenovka slevy: bílý text na červené potřebuje „velký text“ (≥ 18,66 px tučně) pro kontrast 3 : 1
     --font-size-sticker: 1.25rem;

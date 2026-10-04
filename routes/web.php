@@ -27,6 +27,7 @@ use App\Http\Controllers\ShoppingListController;
 use App\Http\Controllers\ShoppingPreferencesController;
 use App\Http\Controllers\UnsubscribeController;
 use App\Http\Controllers\WatchItemController;
+use App\Http\Middleware\ReadOnlySession;
 use App\Support\RateLimits;
 use Illuminate\Support\Facades\Route;
 
@@ -74,12 +75,18 @@ Route::middleware('throttle:'.RateLimits::PUBLIC)->group(function (): void {
 });
 
 Route::get('/akce/naseptavac', OfferSuggestionsController::class)
-    ->middleware('throttle:'.RateLimits::SUGGESTIONS)
+    // Relace jen pro čtení — dotaz při psaní nesmí přepsat zprávu souběžného uložení (R71)
+    ->middleware(['throttle:'.RateLimits::SUGGESTIONS, ReadOnlySession::class])
     ->name('offers.suggestions');
 
 Route::middleware('auth')->group(function (): void {
     Route::get('/hlidam', [WatchItemController::class, 'index'])->name('watch-items.index');
     Route::post('/hlidam', [WatchItemController::class, 'store'])->name('watch-items.store');
+    // Náhled vlastních slov při psaní (R71) — dotaz při každé pauze v psaní, limit jako našeptávač,
+    // relace jen pro čtení (souběžné „Přidat“ by jinak přišlo o toast)
+    Route::get('/hlidam/nahled', [WatchItemController::class, 'preview'])
+        ->middleware(['throttle:'.RateLimits::SUGGESTIONS, ReadOnlySession::class])
+        ->name('watch-items.preview');
     Route::put('/hlidam/{watchItem}', [WatchItemController::class, 'update'])->name('watch-items.update');
     Route::delete('/hlidam/{watchItem}', [WatchItemController::class, 'destroy'])->name('watch-items.destroy');
 

@@ -126,7 +126,7 @@ final class SeoMeta
         if ($page === 'home' || $page === 'offers_chain' || $page === 'offers') {
             $emptyListing = $chain !== null && $chain->mentionsOnly();
 
-            return $request->filled('q') || $emptyListing ? self::NOINDEX_FOLLOW : self::INDEX;
+            return $this->isFiltered($request) || $emptyListing ? self::NOINDEX_FOLLOW : self::INDEX;
         }
         if ($page === 'terms' || $page === 'privacy') {
             return self::INDEX;
@@ -149,7 +149,7 @@ final class SeoMeta
             return $request->is('/') ? self::homeUrl() : url()->current();
         }
 
-        $parameters = $request->filled('q')
+        $parameters = $this->isFiltered($request)
             ? $request->query()
             : array_filter([
                 'chain' => $request->enum('chain', Chain::class)?->value,
@@ -158,6 +158,15 @@ final class SeoMeta
         $query = Arr::query($parameters);
 
         return url()->current().($query === '' ? '' : '?'.$query);
+    }
+
+    /**
+     * Výpis zúžený hledáním, produktem z našeptávače nebo jen slevami (R71) — nekonečně
+     * kombinací, do výsledků hledání nepatří.
+     */
+    private function isFiltered(Request $request): bool
+    {
+        return $request->filled('q') || $request->filled(OffersRequest::PRODUCT) || $request->boolean(OffersRequest::DISCOUNTS);
     }
 
     /**

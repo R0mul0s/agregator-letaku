@@ -6,9 +6,12 @@
     @created 2026-10-02
 -->
 <script setup>
+import ChainLogo from '@/Components/ChainLogo.vue';
 import TextField from '@/Components/TextField.vue';
+import { formatPrice } from '@/lib/format';
 import { useTranslations } from '@/lib/i18n';
-import { useForm } from '@inertiajs/vue3';
+import { useWatchPreview } from '@/lib/watchPreview';
+import { useForm, usePage } from '@inertiajs/vue3';
 import { useId } from 'vue';
 
 const props = defineProps({
@@ -21,11 +24,14 @@ const props = defineProps({
     submitLabel: { type: String, required: true },
     /** Tlačítko Zrušit i u nové položky (úprava ho má vždy). */
     cancelable: { type: Boolean, default: false },
+    /** Adresa náhledu akcí, které by slova našla (R71); null = bez náhledu. */
+    previewUrl: { type: String, default: null },
 });
 
 const emit = defineEmits(['saved', 'cancel']);
 
 const t = useTranslations();
+const page = usePage();
 // Více formulářů na stránce — id polí musí být jedinečná
 const idPrefix = useId();
 
@@ -35,6 +41,13 @@ const form = useForm({
     variant_keywords: props.item.variantKeywords ?? '',
     exclude_keywords: props.item.excludeKeywords ?? '',
 });
+
+// Co by slova teď našla (R71) — „rum“ chytá i „Rump steak“, poznat to jde ještě před uložením
+const preview = useWatchPreview(props.previewUrl, () => ({
+    keywords: form.keywords,
+    variant_keywords: form.variant_keywords,
+    exclude_keywords: form.exclude_keywords,
+}));
 
 /** Odešle formulář; nová položka se po uložení vyprázdní. */
 function submit() {
@@ -61,6 +74,22 @@ function submit() {
             required
             :error="form.errors.keywords"
         />
+        <div v-if="previewUrl && (preview.count !== null || preview.loading)" class="watch-preview" aria-live="polite">
+            <p class="watch-preview__title">
+                <template v-if="preview.loading && preview.count === null">{{ t('watch.preview_loading') }}</template>
+                <template v-else-if="preview.count === 0">{{ t('watch.preview_none') }}</template>
+                <template v-else>{{ t('watch.preview_count', { count: preview.count }) }}</template>
+            </p>
+            <ul v-if="preview.examples.length" class="watch-preview__list">
+                <li v-for="(example, index) in preview.examples" :key="index" class="watch-preview__item">
+                    <ChainLogo :chain="example.chain" />
+                    <span class="watch-preview__name">{{ example.name }}</span>
+                    <span v-if="example.maybe" class="tag">{{ t('offers.maybe') }}</span>
+                    <strong v-if="example.price !== null" class="watch-preview__price">{{ formatPrice(example.price, page.props.locale) }}</strong>
+                </li>
+            </ul>
+            <p v-if="preview.count" class="watch-preview__hint">{{ t('watch.preview_hint') }}</p>
+        </div>
         <TextField
             :id="`${idPrefix}-variant`"
             v-model="form.variant_keywords"

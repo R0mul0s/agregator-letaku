@@ -348,6 +348,27 @@ Jen `public/.htaccess`: přesměrování `/public/…` na adresu bez něj přesu
    `/public` → 301 na `/` (přes `/public/`, lomítko přidá Apache); `/akce` a `/.well-known/security.txt` dál 200.
 3. Zapiš verzi do *Nasazené verze*.
 
+### Aktualizace z `e7f942f` (desáté nasazení)
+
+Hledání (R71): živé výsledky od začátku slova podle relevance, našeptávač s produkty, akcemi,
+posledními a oblíbenými hledáními, oprava překlepu, „Jen slevy“; v Hlídám počty akcí u produktů,
+náhled vlastních slov a „Vrátit“ v toastu. Bez SQL skriptu, `composer.lock` se nezměnil, žádné
+soubory nezmizely.
+
+1. **Nahraj `deploy/upload/`** bez `vendor/`; `public/build/` nejdřív smaž. Nové soubory jsou
+   v `app/Domain/Offers/` a `app/Http/Middleware/`, změnily se `config/`, `lang/`, `routes/`,
+   `resources/legal/privacy.md` (nový řádek localStorage).
+2. **Ověř:**
+   - `version.txt?v=<cokoli>`
+   - `/akce`: klepnutí do pole ukáže poslední hledání a „Teď nejvíc v akci“; „pizza“ přepočítá
+     výsledky bez tlačítka a našeptá produkt Pizza s počtem akcí a akce s obrázkem; „pyzza“ ukáže
+     „„pyzza“ nic nenašlo — výsledky jsou pro „pizza““; „Jen slevy“ zúží výpis
+   - `/akce/naseptavac?q=pizza` vrací JSON s `products` a `offers`
+   - Hlídám: „rum“ našeptá produkt s „N akcí · od …“ a u vlastních slov „Teď by našlo N akcí“;
+     po přidání produktu toast s „Vrátit“, které položku zase odebere
+   - na telefonu se hledání ve Všech akcích otevře přes celou obrazovku s tlačítkem Zpět
+3. Zapiš verzi do *Nasazené verze*.
+
 **Každá nová migrace potřebuje SQL skript** `deploy/migrations-<datum>-<popis>.sql`
 (opakovatelný: `CREATE TABLE IF NOT EXISTS`, `ADD COLUMN IF NOT EXISTS`) včetně zápisu do
 tabulky `migrations` — ve stejném commitu jako migrace. Nové produkty katalogu jdou na

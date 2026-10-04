@@ -15,10 +15,15 @@ namespace App\Http\Controllers;
 use App\Domain\Catalog\CatalogBrowseTree;
 use App\Domain\Catalog\CategoryPaths;
 use App\Domain\Matching\MyOffers;
+use App\Domain\Matching\TextNormalizer;
+use App\Domain\Matching\WatchRule;
+use App\Enums\MatchStatus;
 use App\Http\Requests\WatchItemRequest;
 use App\Models\Product;
 use App\Models\User;
 use App\Models\WatchItem;
+use App\Rules\SearchableKeywords;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -44,6 +49,9 @@ class WatchItemController extends Controller
 
     public const STATUS_REMOVED = 'watch-item-removed';
 
+    /** Session: adresa smazání právě přidané položky pro „Vrátit“ v toastu (R71, sdílená statusUndo). */
+    public const UNDO_SESSION_KEY = 'status_undo';
+
     /**
      * Hlídané položky s tím, co k nim teď je v akci (počet akcí, nejnižší cena, zmínky
      * v letácích — stejně jako v Mých slevách), a produkty katalogu k přidání.
@@ -54,11 +62,14 @@ class WatchItemController extends Controller
         $user = $request->user();
         $watchedProductIds = $user->watchItems()->whereNotNull('product_id')->pluck('product_id')->all();
         $products = Product::query()->orderBy('name')->get();
+        // Našeptávač ukáže, jestli se hlídání vyplatí — kolik akcí by produkt teď našel (R71)
+        $stats = $myOffers->productStats($user);
 
         return Inertia::render('WatchItems', [
             'urls' => [
                 'store' => route('watch-items.store', absolute: false),
                 'home' => route('home', absolute: false),
+                'preview' => route('watch-items.preview', absolute: false),
             ],
             'watchItems' => array_map(fn (array $group): array => [
                 ...$this->itemToPage($group['watchItem']),
@@ -75,8 +86,12 @@ class WatchItemController extends Controller
                 'id' => $product->id,
                 'name' => $product->name,
                 'categoryLabel' => $categories->label($product->category_id),
+                'categoryName' => $categories->name($product->category_id),
                 'department' => $categories->department($product->category_id),
+                'icon' => CatalogBrowseTree::icon($categories->department($product->category_id)),
                 'watched' => in_array($product->id, $watchedProductIds, true),
+                'offersCount' => $stats[$product->id]['count'] ?? 0,
+                'lowestPrice' => $stats[$product->id]['lowestPrice'] ?? null,
             ]),
             // Procházení katalogu po odděleních jako v e-shopu (R47)
             'catalogTree' => $browseTree->build($products),
@@ -110,11 +125,42 @@ class WatchItemController extends Controller
     {
         /** @var User $user */
         $user = $request->user();
-        $user->watchItems()->create($request->watchItemData());
+        $item = $user->watchItems()->create($request->watchItemData());
 
-        // Z karty ve Všech akcích (R60) zpátky na stejné místo, jinak na Hlídám
+        // Z karty ve Všech akcích (R60) zpátky na stejné místo, jinak na Hlídám. Toast nabídne
+        // „Vrátit“ — smazání právě přidané položky (R71)
         return ($request->boolean(self::STAY_FIELD) ? back(fallback: route('watch-items.index')) : to_route('watch-items.index'))
-            ->with('status', self::STATUS_ADDED);
+            ->with('status', self::STATUS_ADDED)
+            ->with(self::UNDO_SESSION_KEY, route('watch-items.destroy', $item, absolute: false));
+    }
+
+    /**
+     * Náhled vlastních slov (R71): kolik akcí by položka teď našla a pár příkladů — uživatel
+     * hned vidí, že „rum“ chytá i „Rump steak“. Stejná pravidla jako Moje slevy.
+     */
+    public function preview(Request $request, MyOffers $myOffers, TextNormalizer $normalizer): JsonResponse
+    {
+        $max = 'max:'.config()->integer('letaky.watch.keywords_max_length');
+        $data = $request->validate([
+            'keywords' => ['required', 'string', $max, new SearchableKeywords],
+            'variant_keywords' => ['nullable', 'string', $max],
+            'exclude_keywords' => ['nullable', 'string', $max],
+        ]);
+
+        /** @var User $user */
+        $user = $request->user();
+        $rule = WatchRule::fromText($data['keywords'], $data['variant_keywords'] ?? null, $data['exclude_keywords'] ?? null, $normalizer);
+        $matches = $myOffers->preview($user, $rule);
+
+        return response()->json([
+            'count' => count($matches),
+            'examples' => array_map(fn (array $match): array => [
+                'name' => $match['offer']->name,
+                'chain' => $match['offer']->chain->value,
+                'price' => $myOffers->userPrice($user, $match['offer']),
+                'maybe' => $match['status'] === MatchStatus::Maybe,
+            ], array_slice($matches, 0, config()->integer('letaky.search.preview_examples'))),
+        ]);
     }
 
     /**

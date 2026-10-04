@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Našeptávač hledání ve Všech akcích (JSON pro pole hledání).
+ * Našeptávač hledání ve Všech akcích (JSON pro pole hledání, R71).
  *
  * @author Roman Hlaváček
  *
@@ -14,20 +14,28 @@ namespace App\Http\Controllers;
 
 use App\Domain\Offers\SearchSuggestions;
 use App\Http\Requests\OffersRequest;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 
 class OfferSuggestionsController extends Controller
 {
     /**
-     * Návrhy k hledanému textu; kratší text než minimum vrátí prázdný seznam.
+     * Návrhy k hledanému textu; prázdné pole dostane oblíbené produkty, text kratší než
+     * minimum nic.
      */
     public function __invoke(OffersRequest $request, SearchSuggestions $suggestions): JsonResponse
     {
         $text = $request->searchText();
-        $tooShort = $text === null || mb_strlen($text) < config()->integer('letaky.offers.suggest_min_length');
+        $user = $request->user();
+        $user = $user instanceof User ? $user : null;
 
-        return response()->json([
-            'suggestions' => $tooShort ? [] : $suggestions->for($text, $request->chain()),
-        ]);
+        if ($text === null) {
+            return response()->json(['corrected' => null, 'total' => 0, 'products' => $suggestions->popular($request->chain(), $user), 'offers' => [], 'popular' => true]);
+        }
+        if (mb_strlen($text) < config()->integer('letaky.offers.suggest_min_length')) {
+            return response()->json(['corrected' => null, 'total' => 0, 'products' => [], 'offers' => [], 'popular' => false]);
+        }
+
+        return response()->json([...$suggestions->for($text, $request->chain(), $user), 'popular' => false]);
     }
 }

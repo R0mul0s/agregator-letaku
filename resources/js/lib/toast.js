@@ -67,17 +67,19 @@ export function pauseDismiss(id) {
  * R63, R64), se neukáže podruhé — jen se jí znovu odpočítá čas.
  *
  * @param {string} message
+ * @param {{ label: string, run: () => void }|null} [action] Tlačítko v toastu („Vrátit“, R71)
  */
-export function showToast(message) {
+export function showToast(message, action = null) {
     const shown = toasts.find((toast) => toast.message === message);
     if (shown) {
+        shown.action = action;
         scheduleDismiss(shown.id);
 
         return;
     }
 
     const id = nextId++;
-    toasts.push({ id, message });
+    toasts.push({ id, message, action });
     while (toasts.length > MAX_TOASTS) {
         dismissToast(toasts[0].id);
     }
@@ -92,7 +94,12 @@ export function showToast(message) {
 function showStatus(page) {
     const status = page?.props?.status;
     if (typeof status === 'string' && status !== '') {
-        showToast(lookup(page.props.translations, `toast.messages.${status}`) ?? status);
+        // „Vrátit“ (R71): server poslal adresu, která uložení vezme zpět (smazání přidané položky)
+        const undoUrl = page.props.statusUndo;
+        const action = undoUrl
+            ? { label: lookup(page.props.translations, 'toast.undo') ?? '', run: () => router.delete(undoUrl, { preserveScroll: true, preserveState: true }) }
+            : null;
+        showToast(lookup(page.props.translations, `toast.messages.${status}`) ?? status, action);
     }
 }
 

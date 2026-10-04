@@ -19,6 +19,10 @@ const props = defineProps({
     item: { type: Object, required: true },
     /** Odkaz na Moje slevy — kotva vede na skupinu položky. */
     homeUrl: { type: String, required: true },
+    /** Adresa náhledu vlastních slov při úpravě (R71). */
+    previewUrl: { type: String, default: null },
+    /** Právě přidaná položka — krátce se zvýrazní (R71). */
+    fresh: { type: Boolean, default: false },
     /** Otevřít rovnou úpravu (odkaz „Upravit“ z Mých slev, ?upravit=id). */
     initiallyEditing: { type: Boolean, default: false },
 });
@@ -49,11 +53,12 @@ async function remove() {
 </script>
 
 <template>
-    <article ref="root" class="card watch-tile" :class="{ 'watch-tile--editing': editing, 'watch-tile--active': item.offersCount > 0 }">
+    <article ref="root" class="card watch-tile" :class="{ 'watch-tile--editing': editing, 'watch-tile--active': item.offersCount > 0, 'watch-tile--fresh': fresh }">
         <WatchItemForm
             v-if="editing"
             :url="item.updateUrl"
             method="put"
+            :preview-url="previewUrl"
             :item="item"
             :submit-label="t('watch.save')"
             @saved="editing = false"

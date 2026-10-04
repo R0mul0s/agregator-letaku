@@ -12,10 +12,13 @@ declare(strict_types=1);
 
 use App\Enums\Chain;
 use App\Enums\LoyaltyProgram;
+use App\Enums\MatchStatus;
+use App\Enums\OfferType;
 use App\Http\Controllers\WatchItemController;
 use App\Models\Category;
 use App\Models\FollowedChain;
 use App\Models\Offer;
+use App\Models\OfferProduct;
 use App\Models\Product;
 use App\Models\User;
 use App\Models\WatchItem;
@@ -213,4 +216,52 @@ it('po přidání, úpravě a smazání položky pošle kód stavu pro toast (R4
         ->assertSessionHas('status', WatchItemController::STATUS_UPDATED);
     $this->delete(route('watch-items.destroy', $item))
         ->assertSessionHas('status', WatchItemController::STATUS_REMOVED);
+});
+
+it('po přidání pošle i adresu pro „Vrátit“ v toastu (R71)', function (): void {
+    $this->post(route('watch-items.store'), ['name' => 'Vejce', 'keywords' => 'vejce'])
+        ->assertSessionHas(WatchItemController::UNDO_SESSION_KEY, route('watch-items.destroy', $this->user->watchItems()->sole(), absolute: false));
+});
+
+it('u produktů katalogu pošle kategorii, ikonu oddělení a kolik akcí by uživatel viděl (R71)', function (): void {
+    $this->travelTo('2026-10-02 10:00:00');
+    FollowedChain::query()->create(['user_id' => $this->user->id, 'chain' => Chain::Tesco, 'include_online_only' => true]);
+    $butter = Product::factory()->create(['name' => 'Máslo']);
+    Product::factory()->create(['name' => 'Rum']);
+    $assign = fn (Offer $offer) => OfferProduct::query()->create(['offer_id' => $offer->id, 'product_id' => $butter->id, 'status' => MatchStatus::Match, 'is_manual' => false]);
+    $assign(Offer::factory()->create(['name' => 'Tatra máslo', 'chain' => Chain::Tesco, 'price' => 4990]));
+    $assign(Offer::factory()->create(['name' => 'Madeta máslo', 'chain' => Chain::Tesco, 'price' => 3990]));
+    // Nesledovaný obchod a akce jen s kartou, kterou uživatel nemá, se nepočítají (jako Moje slevy)
+    $assign(Offer::factory()->create(['name' => 'Máslo Lidl', 'chain' => Chain::Lidl, 'price' => 2990]));
+    $assign(Offer::factory()->create(['name' => 'Máslo s Clubcard', 'chain' => Chain::Tesco, 'price' => 1990, 'offer_type' => OfferType::LoyaltyOnly, 'loyalty_program' => LoyaltyProgram::Clubcard]));
+
+    $this->get(route('watch-items.index'))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('products.0.name', 'Máslo')
+            ->where('products.0.offersCount', 2)
+            ->where('products.0.lowestPrice', 3990)
+            ->has('products.0.icon')
+            ->where('products.1.name', 'Rum')
+            ->where('products.1.offersCount', 0)
+            ->where('urls.preview', '/hlidam/nahled'));
+});
+
+it('náhled vlastních slov ukáže počet akcí a příklady jako Moje slevy (R71)', function (): void {
+    $this->travelTo('2026-10-02 10:00:00');
+    FollowedChain::query()->create(['user_id' => $this->user->id, 'chain' => Chain::Lidl, 'include_online_only' => true]);
+    Offer::factory()->create(['name' => 'Rum Božkov', 'chain' => Chain::Lidl, 'price' => 19990]);
+    Offer::factory()->create(['name' => 'Rump steak', 'chain' => Chain::Lidl, 'price' => 12990]);
+    Offer::factory()->create(['name' => 'Rum Tesco', 'chain' => Chain::Tesco]);
+
+    $this->getJson(route('watch-items.preview', ['keywords' => 'rum']))
+        ->assertOk()
+        ->assertJsonPath('count', 2)
+        ->assertJsonPath('examples.*.name', ['Rump steak', 'Rum Božkov'])
+        ->assertJsonPath('examples.0.chain', 'lidl');
+
+    $this->getJson(route('watch-items.preview', ['keywords' => 'rum', 'exclude_keywords' => 'steak']))
+        ->assertJsonPath('count', 1);
+
+    // Jedno písmeno by pustilo skoro všechno — jako při uložení (R54)
+    $this->getJson(route('watch-items.preview', ['keywords' => 'r']))->assertUnprocessable();
 });

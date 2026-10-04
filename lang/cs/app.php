@@ -306,9 +306,18 @@ return [
             'title' => 'Hlídám',
             'intro' => 'Co hlídáte, to se ukáže v Mých slevách.',
             'add_label' => 'Co chcete hlídat?',
-            'add_placeholder' => 'např. máslo, pivo, Coca-Cola Zero',
+            // Příklady, které se střídají v prázdném poli (R71, lib/placeholder.js)
+            'examples' => ['máslo', 'pivo', 'Coca-Cola Zero', 'káva', 'banány', 'jogurt'],
             'add_hint' => 'Vyberte produkt z katalogu. Co v katalogu není, pohlídáte vlastními slovy.',
             'own_option' => 'Hlídat „:text“ vlastními slovy',
+            'own_meta' => 'Pro věc, která v katalogu není',
+            'did_you_mean' => 'Nic přesně neodpovídá — nemysleli jste:',
+            'no_offers_now' => 'teď bez akce',
+            // Náhled vlastních slov (R71) — co by položka teď našla
+            'preview_loading' => 'Hledání akcí…',
+            'preview_none' => 'Teď by nenašlo žádnou akci — upozorní, až nějaká bude.',
+            'preview_count' => 'Teď by našlo :count akci|Teď by našlo :count akce|Teď by našlo :count akcí',
+            'preview_hint' => 'Chytá i něco jiného? Doplňte slovo do pole Vyloučit.',
             'own_link' => 'Hlídat vlastními slovy',
             'watching' => 'Hlídáte',
             'list_title' => 'Hlídané položky',
@@ -426,6 +435,33 @@ return [
             'ks' => 'ks',
         ],
 
+        // Hledání s našeptávačem (R71, SearchSuggest.vue, Offers.vue)
+        'search' => [
+            // Příklady, které se střídají v prázdném poli (lib/placeholder.js)
+            'examples' => ['máslo', 'Coca-Cola Zero', 'pivo', 'káva', 'banány', 'pizza'],
+            'try' => 'Zkuste „:example“',
+            'back' => 'Zpět',
+            'recent' => 'Poslední hledání',
+            'clear_recent' => 'Smazat',
+            'forget' => 'Zapomenout toto hledání',
+            'popular' => 'Teď nejvíc v akci',
+            'products' => 'Produkty z katalogu',
+            'offers' => 'Akce',
+            'product_offers' => ':count akce|:count akce|:count akcí',
+            'from' => 'od :price',
+            'show_all' => 'Zobrazit :count výsledek pro „:text“|Zobrazit všechny :count výsledky pro „:text“|Zobrazit všech :count výsledků pro „:text“',
+            'corrected' => 'Výsledky pro „:text“',
+            'nothing' => 'Pro „:text“ teď nic v akci není.',
+            'keys_move' => 'vybrat',
+            'keys_choose' => 'potvrdit',
+            'keys_close' => 'zavřít',
+            'discounts_only' => 'Jen slevy',
+            'product_filter' => 'Produkt: :name',
+            'remove_filter' => 'Zrušit filtr',
+            'correction' => '„:original“ nic nenašlo — výsledky jsou pro „:corrected“.',
+            'empty_text' => '„:text“ teď v akci není. Pohlídejte si to — Slevohlídka dá vědět, až bude.',
+        ],
+
         'offers' => [
             'title' => 'Všechny akce',
             'search' => 'Hledat',
@@ -464,7 +500,6 @@ return [
                 'cheaper_before' => 'Před týdnem stálo :price|Před :count týdny stálo :price|Před :count týdny stálo :price',
             ],
             'source' => 'Do obchodu',
-            'suggestion_product' => 'katalog',
             'pagination' => 'Stránkování',
             'previous' => 'Předchozí',
             'next' => 'Další',
@@ -791,6 +826,8 @@ return [
         // Stav, který tu není (věta od Fortify, „Účet je zrušený…“), se ukáže tak, jak je.
         'toast' => [
             'close' => 'Zavřít zprávu',
+            // Tlačítko v toastu po přidání hlídané položky (R71)
+            'undo' => 'Vrátit',
             'messages' => [
                 // Fortify a AccountController / AvatarController
                 'profile-information-updated' => 'Osobní údaje jsou uložené.',

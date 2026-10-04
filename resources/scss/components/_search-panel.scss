@@ -1,0 +1,521 @@
+// _search-panel.scss
+// Pole hledání s našeptávačem (R71) — Všechny akce i Hlídám: lupa a kolečko načítání v poli,
+// panel návrhů po skupinách (produkty s ikonou oddělení, akce s miniaturou, obchodem a cenou),
+// zvýrazněná shoda, nápověda kláves; na telefonu hledání přes celou obrazovku. Štítky filtrů,
+// upozornění na opravený překlep a ztlumené výsledky při živém hledání.
+//
+// @author Roman Hlaváček
+// @created 2026-10-04
+
+@use '../abstracts/mixins' as *;
+
+.search-suggest {
+    position: relative;
+
+    &__head {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: var(--space-2);
+    }
+
+    // „Zpět“ jen na telefonu v hledání přes celou obrazovku
+    &__back {
+        display: none;
+    }
+
+    &__control {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+    }
+
+    &__input {
+        width: 100%;
+        padding-left: var(--search-input-padding-left);
+        transition: border-color var(--duration-fast), box-shadow var(--duration-fast);
+
+        &:focus {
+            border-color: var(--color-accent);
+            outline: none;
+            box-shadow: var(--focus-ring);
+        }
+    }
+
+    // Lupa vlevo v poli; při načítání se z ní stane točící se kolečko
+    &__icon {
+        position: absolute;
+        top: 50%;
+        left: var(--space-3);
+        display: inline-flex;
+        color: var(--color-text-muted);
+        pointer-events: none;
+        transform: translateY(-50%);
+
+        svg {
+            width: var(--icon-size);
+            height: var(--icon-size);
+            fill: none;
+            stroke: currentcolor;
+            stroke-width: var(--svg-stroke-icon);
+            stroke-linecap: round;
+        }
+
+        &--busy svg {
+            display: none;
+        }
+
+        &--busy::before {
+            content: '';
+            width: var(--icon-size);
+            height: var(--icon-size);
+            border: calc(var(--svg-stroke-icon) * 1px) solid var(--color-border);
+            border-top-color: var(--color-accent);
+            border-radius: 50%;
+            animation: search-spin var(--search-spin-duration) linear infinite;
+        }
+    }
+
+    // Nápověda „/“ vpravo v prázdném poli — jen na počítači
+    &__shortcut {
+        position: absolute;
+        top: 50%;
+        right: var(--space-3);
+        display: none;
+        min-width: var(--search-shortcut-size);
+        height: var(--search-shortcut-size);
+        place-items: center;
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-sm);
+        color: var(--color-text-muted);
+        font-family: inherit;
+        font-size: var(--font-size-xs);
+        pointer-events: none;
+        transform: translateY(-50%);
+
+        @include from-nav {
+            display: inline-grid;
+        }
+    }
+
+    &__input:focus ~ &__shortcut,
+    &__input:not(:placeholder-shown) ~ &__shortcut {
+        display: none;
+    }
+
+    // Telefon: hledání přes celou obrazovku (jen Všechny akce — pole s tlačítkem Zpět)
+    @include below-nav {
+        &--focused:has(.search-suggest__back) {
+            position: fixed;
+            z-index: var(--z-search-sheet);
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-2);
+            padding: var(--space-3) var(--space-3) calc(var(--space-3) + env(safe-area-inset-bottom));
+            background: var(--color-bg);
+
+            .search-suggest__back {
+                display: inline;
+            }
+
+            .search-panel {
+                position: static;
+                flex: 1;
+                max-height: none;
+                margin: 0;
+            }
+        }
+    }
+}
+
+// Pod celou obrazovkou hledání se stránka neposouvá
+@include below-nav {
+    .has-search-sheet:has(.search-suggest--focused .search-suggest__back) {
+        overflow: hidden;
+    }
+}
+
+@keyframes search-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+// Panel návrhů
+.search-panel {
+    position: absolute;
+    z-index: var(--z-dropdown);
+    top: 100%;
+    right: 0;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    max-height: var(--search-panel-max-height);
+    margin-top: var(--space-1);
+    overflow: hidden;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-card-hover);
+
+    &__list {
+        flex: 1;
+        margin: 0;
+        padding: var(--space-1);
+        overflow-y: auto;
+        list-style: none;
+    }
+
+    &__notice {
+        margin: 0;
+        padding: var(--space-2) var(--space-3);
+        border-bottom: 1px solid var(--color-border);
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+    }
+
+    &__heading {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        padding: var(--space-2) var(--space-3) var(--space-1);
+        color: var(--color-text-muted);
+        font-size: var(--font-size-xs);
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+
+    &__clear {
+        font-size: var(--font-size-xs);
+        text-transform: none;
+    }
+
+    &__option {
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+        padding: var(--space-2) var(--space-3);
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+
+        &--active {
+            background: var(--color-accent-soft);
+        }
+
+        // Návrh, který nejde zvolit (produkt už hlídaný)
+        &--disabled {
+            cursor: default;
+            opacity: var(--opacity-disabled);
+        }
+
+        &--all {
+            justify-content: center;
+            margin-top: var(--space-1);
+            border-top: 1px solid var(--color-border);
+            border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+        }
+    }
+
+    &__main {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        min-width: 0;
+    }
+
+    // Dlouhé názvy akcí na dva řádky, pak tři tečky
+    &__name {
+        display: -webkit-box;
+        overflow: hidden;
+        font-weight: 600;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+    }
+
+    &__meta {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--space-1) var(--space-2);
+        color: var(--color-text-muted);
+        font-size: var(--font-size-xs);
+    }
+
+    // Počet akcí — hlavní důvod, proč produkt hlídat
+    &__hot {
+        color: var(--color-success-text);
+        font-weight: 700;
+    }
+
+    // Ikona oddělení produktu / „+“ u vlastních slov
+    &__badge {
+        display: inline-grid;
+        flex: none;
+        place-items: center;
+        width: var(--search-badge-size);
+        height: var(--search-badge-size);
+        background: var(--color-bg);
+        border-radius: 50%;
+        color: var(--color-text-muted);
+        font-size: var(--font-size-card-title);
+        font-weight: 700;
+
+        .department-icon {
+            width: var(--icon-size);
+            height: var(--icon-size);
+        }
+
+        &--accent {
+            background: var(--color-accent-soft);
+            color: var(--color-accent-strong);
+        }
+    }
+
+    &__thumb {
+        display: inline-grid;
+        flex: none;
+        place-items: center;
+        width: var(--search-thumb-size);
+        height: var(--search-thumb-size);
+        overflow: hidden;
+        background: var(--color-logo-bg);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-sm);
+
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+    }
+
+    &__price {
+        display: flex;
+        flex: none;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: var(--space-1);
+    }
+
+    // Cenovka slevy (motiv z loga)
+    &__discount {
+        padding: 0 var(--space-1);
+        background: var(--color-accent);
+        border-radius: var(--radius-sm);
+        color: var(--color-on-accent);
+        font-size: var(--font-size-xs);
+        font-weight: 800;
+    }
+
+    // Hlídat přímo z návrhu — na telefonu by vzalo místo názvu, hlídat jde i z karty akce
+    &__action {
+        display: none;
+        flex: none;
+
+        @include from-nav {
+            display: block;
+        }
+
+        .watch-offer {
+            font-size: var(--font-size-xs);
+        }
+    }
+
+    &__glyph {
+        flex: none;
+        width: var(--icon-size);
+        height: var(--icon-size);
+        fill: none;
+        stroke: var(--color-text-muted);
+        stroke-width: var(--svg-stroke-icon);
+        stroke-linecap: round;
+    }
+
+    &__remove {
+        display: inline-grid;
+        flex: none;
+        place-items: center;
+        width: var(--icon-button-size);
+        height: var(--icon-button-size);
+        padding: 0;
+        background: none;
+        border: 0;
+        border-radius: 50%;
+        color: var(--color-text-muted);
+        cursor: pointer;
+
+        &:hover {
+            color: var(--color-accent-strong);
+        }
+
+        svg {
+            width: var(--icon-size-sm);
+            height: var(--icon-size-sm);
+            fill: none;
+            stroke: currentcolor;
+            stroke-width: var(--svg-stroke-icon);
+            stroke-linecap: round;
+        }
+    }
+
+    &__all {
+        color: var(--color-accent-strong);
+        font-weight: 700;
+    }
+
+    // Nápověda kláves — jen na počítači
+    &__keys {
+        display: none;
+        gap: var(--space-3);
+        margin: 0;
+        padding: var(--space-2) var(--space-3);
+        border-top: 1px solid var(--color-border);
+        color: var(--color-text-muted);
+        font-size: var(--font-size-xs);
+
+        @include from-nav {
+            display: flex;
+        }
+
+        kbd {
+            margin-right: var(--space-1);
+            padding: 0 var(--space-1);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-sm);
+            font-family: inherit;
+        }
+    }
+}
+
+// Zvýrazněná shoda v názvu
+.highlight {
+    background: none;
+    color: var(--color-accent-strong);
+    font-weight: 800;
+}
+
+// Štítky filtrů pod polem (jen slevy, produkt z našeptávače)
+.search-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin: calc(var(--space-2) * -1) 0 var(--space-3);
+}
+
+.search-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    padding: var(--space-1) var(--space-3);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-pill);
+    color: var(--color-text);
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    cursor: pointer;
+    transition: border-color var(--duration-fast), background-color var(--duration-fast);
+
+    &:hover {
+        border-color: var(--color-accent);
+    }
+
+    &--on {
+        background: var(--color-accent-soft);
+        border-color: var(--color-accent);
+        color: var(--color-accent-strong);
+    }
+
+    &__remove {
+        display: inline-grid;
+        place-items: center;
+        padding: 0;
+        background: none;
+        border: 0;
+        color: inherit;
+        cursor: pointer;
+
+        svg {
+            width: var(--icon-size-sm);
+            height: var(--icon-size-sm);
+            fill: none;
+            stroke: currentcolor;
+            stroke-width: var(--svg-stroke-icon);
+            stroke-linecap: round;
+        }
+    }
+}
+
+// Opravený překlep nad výsledky
+.search-correction {
+    margin: 0 0 var(--space-3);
+    color: var(--color-text-muted);
+}
+
+// Nic nenašlo — prázdný stav s nabídkou pohlídat
+.search-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+// Výsledky během živého hledání
+.offer-grid--loading {
+    opacity: var(--opacity-loading);
+    pointer-events: none;
+    transition: opacity var(--duration-fast);
+}
+
+// Náhled vlastních slov ve formuláři Hlídám
+.watch-preview {
+    padding: var(--space-2) var(--space-3);
+    background: var(--color-bg);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-sm);
+
+    &__title {
+        margin: 0;
+        font-weight: 700;
+    }
+
+    &__list {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-1);
+        margin: var(--space-2) 0 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    &__item {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+    }
+
+    &__name {
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    &__price {
+        flex: none;
+    }
+
+    &__hint {
+        margin: var(--space-2) 0 0;
+        color: var(--color-text-muted);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .search-suggest__icon--busy::before {
+        animation: none;
+    }
+}

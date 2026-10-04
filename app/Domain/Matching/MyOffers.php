@@ -92,6 +92,53 @@ final class MyOffers
     }
 
     /**
+     * Pro každý produkt katalogu kolik akcí by uživatel v Mých slevách viděl a nejnižší cenu,
+     * kterou zaplatí (R71) — našeptávač v Hlídám ukáže, jestli se hlídání vyplatí. Stejná
+     * pravidla jako Moje slevy: sledované obchody a jejich upřesnění, karty, minimální sleva.
+     *
+     * @return array<int, array{count: int, lowestPrice: int|null}> Klíč je ID produktu; produkt bez akcí chybí
+     */
+    public function productStats(User $user): array
+    {
+        $followed = $user->followedChains()->get();
+        if ($followed->isEmpty()) {
+            return [];
+        }
+
+        $offersByProduct = [];
+        $assignments = OfferProduct::query()
+            ->whereHas('offer', fn (Builder $query) => $this->whereCurrentFollowed($query, $followed))
+            ->with('offer')
+            ->get();
+        foreach ($assignments as $assignment) {
+            if ($this->isAvailableTo($user, $assignment->offer) && $this->meetsMinDiscount($user, $assignment->offer)) {
+                $offersByProduct[$assignment->product_id][$assignment->offer_id] = $assignment->offer;
+            }
+        }
+
+        return array_map(fn (array $offers): array => [
+            'count' => count($offers),
+            'lowestPrice' => $this->lowestPrice($user, array_values($offers)),
+        ], $offersByProduct);
+    }
+
+    /**
+     * Akce, které by našla hlídaná položka s vlastními slovy — náhled ve formuláři a v našeptávači
+     * Hlídám (R71), než ji uživatel uloží. Stejná pravidla jako Moje slevy, seřazené jako v nich.
+     *
+     * @return list<array{offer: Offer, status: MatchStatus}>
+     */
+    public function preview(User $user, WatchRule $rule): array
+    {
+        $followed = $user->followedChains()->get();
+        if ($followed->isEmpty() || $rule->keywords === []) {
+            return [];
+        }
+
+        return $this->availableSorted($user, $this->matchByRule($rule, $this->candidates($followed, [$rule])));
+    }
+
+    /**
      * Nabídky položky s vlastními slovy podle jejích pravidel.
      *
      * @param  list<array{offer: Offer, prepared: array{text: string, isPetFood: bool}}>  $candidates
