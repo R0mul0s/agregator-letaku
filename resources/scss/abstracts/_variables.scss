@@ -7,3 +7,8 @@
 
 $breakpoint-md: 768px;
 $breakpoint-lg: 1024px;
+
+// Hlavička a spodní lišta záložek (R66): pod touto šířkou mobilní navigace — lišta dole,
+// v hlavičce jen logo a avatar. Výš než md: na tabletu na výšku se navigace s pěti
+// položkami vedle loga a avataru nevejde.
+$breakpoint-nav: 800px;

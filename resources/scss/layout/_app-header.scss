@@ -38,7 +38,7 @@
         // Aplikace z plochy na šířku: obsah mimo výřez displeje (viewport-fit=cover, R66)
         padding: var(--space-2) max(var(--space-3), env(safe-area-inset-right)) var(--space-2) max(var(--space-3), env(safe-area-inset-left));
 
-        @include from-md {
+        @include from-nav {
             flex-wrap: nowrap;
         }
     }
@@ -60,7 +60,7 @@
         background: var(--color-logo-mark-bg);
         border-radius: 50%;
 
-        @include from-md {
+        @include from-nav {
             width: var(--logo-size);
             height: var(--logo-size);
         }
@@ -70,21 +70,21 @@
     &__name {
         @include visually-hidden;
 
-        @include from-md {
+        @include from-nav {
             @include visually-shown;
         }
     }
 
     // Přihlášený se spodní lištou záložek (R66): na telefonu v hlavičce zbývá jen avatar, takže
-    // se vejde celé logo s názvem a mottem jako na počítači (mezi md a lg motto ustoupí navigaci)
+    // se vejde celé logo s názvem a mottem jako na počítači (mezi 800 px a lg motto ustoupí navigaci)
     &--with-tabs &__name {
-        @media (max-width: $breakpoint-md - 1px) {
+        @include below-nav {
             @include visually-shown;
         }
     }
 
     &--with-tabs &__tagline {
-        @media (max-width: $breakpoint-md - 1px) {
+        @include below-nav {
             display: block;
         }
     }
@@ -124,7 +124,7 @@
         order: 1;
         gap: var(--space-1);
 
-        @include from-md {
+        @include from-nav {
             flex: 1;
             order: 0;
             justify-content: flex-end;
@@ -133,14 +133,14 @@
 
     // Na telefonu jsou hlavní položky ve spodní liště záložek (R66) — v hlavičce jen od md
     &__link--tab {
-        @media (max-width: $breakpoint-md - 1px) {
+        @include below-nav {
             display: none;
         }
     }
 
     // Bez hamburgeru (přihlášený bez položek mimo lištu) navigace na telefonu není
     &:not(&--with-menu) &__nav {
-        @media (max-width: $breakpoint-md - 1px) {
+        @include below-nav {
             display: none;
         }
     }
@@ -178,7 +178,7 @@
     &--with-menu &__nav {
         display: none;
 
-        @include from-md {
+        @include from-nav {
             display: flex;
         }
     }
@@ -189,7 +189,7 @@
         padding-top: var(--space-1);
         border-top: 1px solid var(--color-border);
 
-        @include from-md {
+        @include from-nav {
             flex-direction: row;
             padding-top: 0;
             border-top: 0;
@@ -215,7 +215,7 @@
             color: var(--color-accent-strong);
         }
 
-        @include from-md {
+        @include from-nav {
             display: none;
         }
     }
@@ -252,7 +252,7 @@
     &--guest &__actions {
         gap: var(--space-1);
 
-        @include from-md {
+        @include from-nav {
             gap: var(--space-2);
         }
 
@@ -261,7 +261,7 @@
             padding: var(--space-1) var(--space-2);
             font-size: var(--font-size-sm);
 
-            @include from-md {
+            @include from-nav {
                 min-height: var(--control-size);
                 padding: var(--space-2) var(--space-3);
                 font-size: inherit;
@@ -273,7 +273,7 @@
     &__actions &__login {
         display: none;
 
-        @include from-md {
+        @include from-nav {
             display: inline-flex;
         }
     }
@@ -289,7 +289,7 @@
         padding: var(--space-2) var(--space-3) var(--space-1);
         border-top: 1px solid var(--color-border);
 
-        @include from-md {
+        @include from-nav {
             display: none;
         }
     }
@@ -298,7 +298,7 @@
     &__actions &__guest-theme {
         display: none;
 
-        @include from-md {
+        @include from-nav {
             display: inline-flex;
         }
     }

@@ -21,7 +21,7 @@
     pointer-events: none;
 
     @include from-md {
-        bottom: var(--back-to-top-offset);
+        bottom: calc(var(--back-to-top-offset) + var(--tab-bar-offset));
     }
 }
 

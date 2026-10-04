@@ -1,18 +1,17 @@
 // _tab-bar.scss
 // Spodní lišta záložek na telefonu (TabBar.vue, R66) — hlavní stránky na dosah palce jako
-// v nativní aplikaci. Od středního displeje se neukazuje (navigace je v hlavičce). Se
+// v nativní aplikaci. Od šířky $breakpoint-nav (800 px) se neukazuje — navigace je v hlavičce. Se
 // zapnutou lištou se obsah i prvky přilepené ke spodnímu okraji zvednou o její výšku.
 //
 // @author Roman Hlaváček
 // @created 2026-10-04
 
 @use '../abstracts/mixins' as *;
-@use '../abstracts/variables' as *;
 
 // Stránka s lištou na telefonu: odsazení obsahu a posun toastu, tlačítka Nahoru a cookies
 // (--tab-bar-offset) — i o pruh pod gestem iPhonu (safe-area-inset-bottom)
 .app-root:has(.tab-bar) {
-    @media (max-width: $breakpoint-md - 1px) {
+    @include below-nav {
         --tab-bar-offset: calc(var(--tab-bar-height) + env(safe-area-inset-bottom));
 
         padding-bottom: var(--tab-bar-offset);
@@ -31,7 +30,7 @@
     border-top: 1px solid var(--color-border);
     box-shadow: var(--shadow-card);
 
-    @include from-md {
+    @include from-nav {
         display: none;
     }
 

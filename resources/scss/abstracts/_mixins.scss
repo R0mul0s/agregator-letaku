@@ -50,6 +50,20 @@
     white-space: normal;
 }
 
+/// Styly od šířky, kde je navigace v hlavičce (R66) — pod ní spodní lišta záložek.
+@mixin from-nav {
+    @media (min-width: $breakpoint-nav) {
+        @content;
+    }
+}
+
+/// Styly pod šířkou navigace v hlavičce — mobilní hlavička se spodní lištou (R66).
+@mixin below-nav {
+    @media (max-width: $breakpoint-nav - 1px) {
+        @content;
+    }
+}
+
 /// Styly od širokého displeje výš.
 @mixin from-lg {
     @media (min-width: $breakpoint-lg) {
