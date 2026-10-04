@@ -87,24 +87,29 @@ class FortifyServiceProvider extends ServiceProvider
             'showcase' => fn (): array => $this->showcase(),
         ]));
 
-        Fortify::registerView(fn (): Response => Inertia::render('Auth/Register', [
-            'urls' => [
-                'submit' => route('register.store', absolute: false),
-                'login' => route('login', absolute: false),
-                'terms' => route('legal.terms', absolute: false),
-                'privacy' => route('legal.privacy', absolute: false),
-            ],
-            // Ochrana proti botům (R53): podepsaný čas načtení a název skrytého pole
-            'guard' => [
-                'tokenField' => RegistrationGuard::TOKEN_FIELD,
-                'token' => app(RegistrationGuard::class)->token(),
-                'trapField' => RegistrationGuard::TRAP_FIELD,
-            ],
-            // Nápověda u hesla (R56) — stejná délka jako Password::defaults() v AppServiceProvider
-            'passwordMinLength' => config()->integer('letaky.auth.password.min_length'),
-            // Panel vedle formuláře (R56): počet akcí, obchody a ukázka akcí s nejvyšší slevou
-            'showcase' => fn (): array => $this->showcase(),
-        ]));
+        Fortify::registerView(function (Request $request): Response {
+            // Z karty akce „Hlídat“ (R60): produkt se začne hlídat hned po registraci
+            RegisterResponse::rememberProduct($request);
+
+            return Inertia::render('Auth/Register', [
+                'urls' => [
+                    'submit' => route('register.store', absolute: false),
+                    'login' => route('login', absolute: false),
+                    'terms' => route('legal.terms', absolute: false),
+                    'privacy' => route('legal.privacy', absolute: false),
+                ],
+                // Ochrana proti botům (R53): podepsaný čas načtení a název skrytého pole
+                'guard' => [
+                    'tokenField' => RegistrationGuard::TOKEN_FIELD,
+                    'token' => app(RegistrationGuard::class)->token(),
+                    'trapField' => RegistrationGuard::TRAP_FIELD,
+                ],
+                // Nápověda u hesla (R56) — stejná délka jako Password::defaults() v AppServiceProvider
+                'passwordMinLength' => config()->integer('letaky.auth.password.min_length'),
+                // Panel vedle formuláře (R56): počet akcí, obchody a ukázka akcí s nejvyšší slevou
+                'showcase' => fn (): array => $this->showcase(),
+            ]);
+        });
 
         // Výzvu k ověření e-mailu (R51) ukazuje lišta v rozvržení, samostatná stránka není potřeba
         Fortify::verifyEmailView(fn (): RedirectResponse => to_route('home'));

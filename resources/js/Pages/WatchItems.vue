@@ -14,7 +14,7 @@ import WatchItemTile from '@/Components/WatchItemTile.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { useTranslations } from '@/lib/i18n';
 import { Head, router, usePage } from '@inertiajs/vue3';
-import { computed, nextTick, ref } from 'vue';
+import { computed, nextTick, onMounted, ref } from 'vue';
 
 const props = defineProps({
     urls: { type: Object, required: true },
@@ -26,6 +26,8 @@ const props = defineProps({
     catalogTree: { type: Array, required: true },
     /** Položka, jejíž úprava se má otevřít (odkaz z Mých slev), nebo null. */
     editId: { type: Number, default: null },
+    /** Text z karty akce „Hlídat“ (R60) — otevře formulář vlastních slov, nebo null. */
+    prefill: { type: String, default: null },
 });
 
 const t = useTranslations();
@@ -61,6 +63,13 @@ async function openOwnForm(text) {
     await nextTick();
     ownFormElement.value?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
+
+// „Hlídat“ u akce bez produktu katalogu (R60): formulář s názvem akce, slova jde upravit
+onMounted(() => {
+    if (props.prefill) {
+        openOwnForm(props.prefill);
+    }
+});
 </script>
 
 <template>

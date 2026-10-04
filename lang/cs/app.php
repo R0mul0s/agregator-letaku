@@ -379,6 +379,12 @@ return [
             'maybe' => 'Možná',
             'maybe_hint' => 'Akce je na více druhů a hledanou variantu neuvádí — ověřte u obchodu.',
             // „Je to opravdu sleva?“ (R59) — srovnání s dřívějšími akcemi stejné položky u obchodu
+            // „Hlídat“ z karty ve Všech akcích (R60, WatchOfferButton.vue)
+            'watch' => [
+                'product' => '+ Hlídat :name',
+                'own' => '+ Hlídat',
+                'watched' => '✓ Hlídáte :name',
+            ],
             'history' => [
                 'lowest' => 'Nejlevněji za :weeks týdnů',
                 'same' => 'Stejně levně jako před týdnem|Stejně levně jako před :count týdny|Stejně levně jako před :count týdny',

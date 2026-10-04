@@ -22,6 +22,7 @@ use App\Models\WatchItem;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -29,6 +30,12 @@ class WatchItemController extends Controller
 {
     /** Parametr adresy Hlídám, který otevře úpravu položky (odkaz z Mých slev). */
     public const EDIT_PARAMETER = 'upravit';
+
+    /** Parametr adresy Hlídám, který otevře formulář vlastních slov s textem (z karty akce, R60). */
+    public const PREFILL_PARAMETER = 'pridat';
+
+    /** Pole formuláře: po přidání zůstat na stránce, odkud uživatel přišel (Všechny akce, R60). */
+    public const STAY_FIELD = 'stay';
 
     /** Kódy stavu pro toast po uložení (R47, lang: ui.toast.messages). */
     public const STATUS_ADDED = 'watch-item-added';
@@ -61,6 +68,8 @@ class WatchItemController extends Controller
             ], $myOffers->forUser($user)),
             // Odkaz „Upravit“ z Mých slev (?upravit=id) otevře úpravu položky rovnou v dlaždici
             'editId' => $request->integer(self::EDIT_PARAMETER) ?: null,
+            // „Hlídat“ u akce bez produktu katalogu (R60) — text jako název i hledaná slova
+            'prefill' => Str::limit(trim($request->string(self::PREFILL_PARAMETER)->toString()), config()->integer('letaky.watch.name_max_length'), '') ?: null,
             // Katalog nahradil šablony (R31) — produkt jde hlídat jedním klepnutím, nejvýš jednou
             'products' => $products->map(fn (Product $product): array => [
                 'id' => $product->id,
@@ -103,7 +112,9 @@ class WatchItemController extends Controller
         $user = $request->user();
         $user->watchItems()->create($request->watchItemData());
 
-        return to_route('watch-items.index')->with('status', self::STATUS_ADDED);
+        // Z karty ve Všech akcích (R60) zpátky na stejné místo, jinak na Hlídám
+        return ($request->boolean(self::STAY_FIELD) ? back(fallback: route('watch-items.index')) : to_route('watch-items.index'))
+            ->with('status', self::STATUS_ADDED);
     }
 
     /**

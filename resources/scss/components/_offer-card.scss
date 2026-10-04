@@ -178,3 +178,15 @@
         font-size: var(--font-size-sm);
     }
 }
+
+// „Hlídat“ z karty ve Všech akcích (R60) — menší tlačítko v patě karty
+.watch-offer {
+    min-height: var(--icon-button-size);
+    padding: var(--space-1) var(--space-3);
+    font-size: var(--font-size-sm);
+
+    &--done {
+        color: var(--color-success-text);
+        font-weight: 700;
+    }
+}

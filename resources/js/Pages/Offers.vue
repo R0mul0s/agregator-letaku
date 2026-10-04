@@ -11,6 +11,7 @@ import EmptyState from '@/Components/EmptyState.vue';
 import OfferCard from '@/Components/OfferCard.vue';
 import Pagination from '@/Components/Pagination.vue';
 import SearchSuggest from '@/Components/SearchSuggest.vue';
+import WatchOfferButton from '@/Components/WatchOfferButton.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { useTranslations } from '@/lib/i18n';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
@@ -27,6 +28,8 @@ const props = defineProps({
     pagination: { type: Object, required: true },
     filters: { type: Object, required: true },
     chains: { type: Array, required: true },
+    /** Adresy pro „Hlídat“ z karty (R60, WatchOfferButton). */
+    watchUrls: { type: Object, required: true },
 });
 
 const t = useTranslations();
@@ -82,7 +85,10 @@ function search() {
 
         <EmptyState v-if="offers.data.length === 0" :text="t('offers.empty')" />
         <div v-else class="offer-grid">
-            <OfferCard v-for="offer in offers.data" :key="offer.id" :offer="offer" />
+            <OfferCard v-for="offer in offers.data" :key="offer.id" :offer="offer">
+                <!-- „Hlídat“ přímo z karty (R60) -->
+                <WatchOfferButton v-if="offer.watchTarget" :target="offer.watchTarget" :urls="watchUrls" />
+            </OfferCard>
         </div>
 
         <Pagination :pagination="pagination" :total="offers.total" />
