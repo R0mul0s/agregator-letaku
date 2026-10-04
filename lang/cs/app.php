@@ -300,8 +300,9 @@ return [
             'stores_none_found' => 'Žádná prodejna neodpovídá.',
             'stores_max' => 'Vybrat jde nejvýš :count prodejen.',
             'loyalty' => 'Mám :program',
-            'save' => 'Uložit',
-            'unsaved' => 'Máte neuložené změny.',
+            // Ukládání hned po každé změně (R64)
+            'autosave' => 'Změny se ukládají hned.',
+            'saving' => 'Ukládám…',
         ],
 
         // App\Enums\OfferType

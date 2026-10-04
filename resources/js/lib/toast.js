@@ -63,11 +63,19 @@ export function pauseDismiss(id) {
 }
 
 /**
- * Ukáže toast se zprávou.
+ * Ukáže toast se zprávou. Stejná zpráva, která už svítí (ukládání hned po každé změně,
+ * R63, R64), se neukáže podruhé — jen se jí znovu odpočítá čas.
  *
  * @param {string} message
  */
 export function showToast(message) {
+    const shown = toasts.find((toast) => toast.message === message);
+    if (shown) {
+        scheduleDismiss(shown.id);
+
+        return;
+    }
+
     const id = nextId++;
     toasts.push({ id, message });
     while (toasts.length > MAX_TOASTS) {

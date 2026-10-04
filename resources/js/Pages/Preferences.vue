@@ -1,7 +1,8 @@
 <!--
     Moje obchody — sledované obchody s upřesněním a věrnostní karty (R19, R21). Každý obchod
     je karta s přepínačem sledování; nastavení obchodu (typ prodejny, e-shop, karta) jsou řádky
-    s popiskem vlevo a ovládáním vpravo. Uložení je v liště, která drží u spodního okraje (R47).
+    s popiskem vlevo a ovládáním vpravo. Každá změna se uloží hned, stejně jako v Mém účtu (R64);
+    posílá se vždy celé nastavení, takže při překryvu požadavků vyhraje poslední a nic se neztratí.
 
     @author Roman Hlaváček
     @created 2026-10-02
@@ -11,8 +12,9 @@ import ChainLogo from '@/Components/ChainLogo.vue';
 import StoreSelect from '@/Components/StoreSelect.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { useTranslations } from '@/lib/i18n';
+import { showToast } from '@/lib/toast';
 import { Head, useForm } from '@inertiajs/vue3';
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 
 const props = defineProps({
     urls: { type: Object, required: true },
@@ -45,17 +47,16 @@ const form = useForm({
     loyalty_programs: [...props.loyaltyPrograms],
 });
 
-/** Stav formuláře jako text — pro porovnání s uloženým. */
-const snapshot = () => JSON.stringify([chainSettings.value, [...form.loyalty_programs].sort()]);
-const savedSnapshot = snapshot();
-
-/** Změnil uživatel něco od načtení stránky? */
-const dirty = computed(() => snapshot() !== savedSnapshot);
+/** Stav formuláře jako text — změna kteréhokoli nastavení ho změní a spustí uložení. */
+const snapshot = computed(() => JSON.stringify([chainSettings.value, [...form.loyalty_programs].sort()]));
 
 const availableChains = computed(() => props.chains.filter((chain) => chain.available));
 const followedCount = computed(() => availableChains.value.filter((chain) => chainSettings.value[chain.value].followed).length);
 
-/** Uloží nastavení — sledované obchody z chainSettings, karty z formuláře. */
+// Uložení hned po každé změně (R64)
+watch(snapshot, submit);
+
+/** Uloží celé nastavení — sledované obchody z chainSettings, karty z formuláře; chybu ukáže toastem. */
 function submit() {
     form
         .transform((data) => ({
@@ -69,7 +70,11 @@ function submit() {
                     store_codes: chain.stores.length ? chainSettings.value[chain.value].storeCodes : [],
                 })),
         }))
-        .put(props.urls.update, { preserveScroll: true });
+        .put(props.urls.update, {
+            preserveScroll: true,
+            preserveState: true,
+            onError: (errors) => showToast(Object.values(errors)[0]),
+        });
 }
 </script>
 
@@ -85,6 +90,7 @@ function submit() {
         <form class="preferences" novalidate @submit.prevent="submit">
             <p class="preferences__count">
                 {{ t('preferences.followed_count', { count: followedCount, total: availableChains.length }) }}
+                <span class="preferences__autosave" role="status">{{ form.processing ? t('preferences.saving') : t('preferences.autosave') }}</span>
             </p>
 
             <div class="preferences__grid">
@@ -143,11 +149,6 @@ function submit() {
                         </label>
                     </div>
                 </section>
-            </div>
-
-            <div class="preferences__actions" :class="{ 'preferences__actions--dirty': dirty }">
-                <p v-if="dirty" class="preferences__unsaved" role="status">{{ t('preferences.unsaved') }}</p>
-                <button type="submit" class="button button--primary" :disabled="form.processing">{{ t('preferences.save') }}</button>
             </div>
         </form>
     </AppLayout>
