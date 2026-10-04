@@ -37,10 +37,10 @@ těchto prodejen.
 
 ### E-mailový souhrn akcí
 
-Pokud si v účtu zapnete souhrn, posílám vám e-mailem nové akce na hlídané položky,
-denně nebo týdně. Souhrn je součást služby, o kterou jste požádali, právní základ je
-plnění smlouvy. Chodí jen na ověřenou adresu. Vypnete ho v účtu nebo jedním klepnutím
-v patičce každého souhrnu.
+Pokud si v účtu zapnete souhrn, posílám vám e-mailem nové akce na hlídané položky —
+hned, jak přibudou (nejvýš jednou za hodinu), denně nebo týdně. Souhrn je součást služby,
+o kterou jste požádali, právní základ je plnění smlouvy. Chodí jen na ověřenou adresu.
+Vypnete ho v účtu nebo jedním klepnutím v patičce každého souhrnu.
 
 ### Obchodní sdělení (jen se souhlasem)
 

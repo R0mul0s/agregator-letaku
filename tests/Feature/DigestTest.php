@@ -15,14 +15,29 @@ use App\Domain\Digest\Actions\SendDigests;
 use App\Enums\Chain;
 use App\Enums\DigestFrequency;
 use App\Enums\MailingList;
+use App\Enums\ScrapeStatus;
 use App\Http\Controllers\AccountController;
 use App\Http\Requests\DigestRequest;
 use App\Mail\DigestMail;
 use App\Models\FollowedChain;
 use App\Models\Offer;
+use App\Models\ScrapeRun;
 use App\Models\User;
 use App\Models\WatchItem;
 use Illuminate\Support\Facades\Mail;
+
+/**
+ * Akce Kauflandu, jako by ji právě přineslo stažení — souhrn počítá jen s uživateli,
+ * od jejichž posledního souhrnu stažení doběhlo (R58).
+ *
+ * @param  array<string, mixed>  $attributes
+ */
+function importedOffer(array $attributes): Offer
+{
+    ScrapeRun::query()->create(['chain' => Chain::Kaufland, 'status' => ScrapeStatus::Succeeded, 'started_at' => now(), 'finished_at' => now()]);
+
+    return Offer::factory()->create($attributes);
+}
 
 beforeEach(function (): void {
     Mail::fake();
@@ -34,8 +49,8 @@ beforeEach(function (): void {
 });
 
 it('první souhrn pošle se všemi aktuálními akcemi a zapamatuje si čas', function (): void {
-    Offer::factory()->create(['name' => 'Máslo 250 g']);
-    Offer::factory()->create(['name' => 'Vejce M']);
+    importedOffer(['name' => 'Máslo 250 g']);
+    importedOffer(['name' => 'Vejce M']);
 
     expect(app(SendDigests::class)())->toBe(1);
 
@@ -46,11 +61,11 @@ it('první souhrn pošle se všemi aktuálními akcemi a zapamatuje si čas', fu
 });
 
 it('další souhrn pošle až po intervalu a jen s akcemi, které přibyly', function (): void {
-    Offer::factory()->create(['name' => 'Máslo staré']);
+    importedOffer(['name' => 'Máslo staré']);
     app(SendDigests::class)();
 
     $this->travelTo('2026-10-02 13:00:00');
-    Offer::factory()->create(['name' => 'Máslo nové']);
+    importedOffer(['name' => 'Máslo nové']);
     expect(app(SendDigests::class)())->toBe(0);
 
     $this->travelTo('2026-10-03 06:30:00');
@@ -63,7 +78,7 @@ it('další souhrn pošle až po intervalu a jen s akcemi, které přibyly', fun
 it('bez nových akcí ani s vypnutým souhrnem nic nepošle', function (): void {
     expect(app(SendDigests::class)())->toBe(0);
 
-    Offer::factory()->create(['name' => 'Máslo 250 g']);
+    importedOffer(['name' => 'Máslo 250 g']);
     $this->user->forceFill(['digest_frequency' => DigestFrequency::Off])->save();
     expect(app(SendDigests::class)())->toBe(0);
 
@@ -72,7 +87,7 @@ it('bez nových akcí ani s vypnutým souhrnem nic nepošle', function (): void 
 
 it('týdenní souhrn přijde nejdřív po týdnu', function (): void {
     $this->user->forceFill(['digest_frequency' => DigestFrequency::Weekly, 'digest_sent_at' => now()->subDays(3)])->save();
-    Offer::factory()->create(['name' => 'Máslo 250 g']);
+    importedOffer(['name' => 'Máslo 250 g']);
     expect(app(SendDigests::class)())->toBe(0);
 
     $this->travelTo('2026-10-06 06:30:00');
@@ -80,7 +95,7 @@ it('týdenní souhrn přijde nejdřív po týdnu', function (): void {
 });
 
 it('e-mail má předmět s počtem akcí a odkazy na Moje slevy a nastavení', function (): void {
-    Offer::factory()->create(['name' => 'Máslo 250 g', 'price' => 3990]);
+    importedOffer(['name' => 'Máslo 250 g', 'price' => 3990]);
     app(SendDigests::class)();
 
     Mail::assertSent(DigestMail::class, function (DigestMail $mail): bool {
@@ -95,7 +110,7 @@ it('e-mail má předmět s počtem akcí a odkazy na Moje slevy a nastavení', f
 
 it('cron URL pošle souhrny jen s tokenem', function (): void {
     config(['letaky.cron.token' => 'tajny-token']);
-    Offer::factory()->create(['name' => 'Máslo 250 g']);
+    importedOffer(['name' => 'Máslo 250 g']);
 
     $this->get(route('cron.send-digests'))->assertNotFound();
     $this->get(route('cron.send-digests', ['token' => 'tajny-token']))
@@ -119,14 +134,14 @@ it('uloží četnost souhrnu; po zapnutí přijde první souhrn znovu celý', fu
 
 it('na neověřenou adresu souhrn nepošle (R51)', function (): void {
     $this->user->forceFill(['email_verified_at' => null])->save();
-    Offer::factory()->create(['name' => 'Máslo 250 g']);
+    importedOffer(['name' => 'Máslo 250 g']);
 
     expect(app(SendDigests::class)())->toBe(0);
     Mail::assertNothingSent();
 });
 
 it('e-mail má odhlášení jedním klepnutím v patičce i v hlavičkách (R51)', function (): void {
-    Offer::factory()->create(['name' => 'Máslo 250 g']);
+    importedOffer(['name' => 'Máslo 250 g']);
     app(SendDigests::class)();
     $unsubscribeUrl = app(MailingSubscriptions::class)->unsubscribeUrl($this->user, MailingList::Digest);
 
@@ -147,7 +162,7 @@ it('jedno volání zpracuje jen dávku uživatelů, od nejdéle čekajících (R
     $other->forceFill(['digest_frequency' => DigestFrequency::Daily])->save();
     FollowedChain::query()->create(['user_id' => $other->id, 'chain' => Chain::Kaufland, 'include_online_only' => true]);
     WatchItem::factory()->for($other)->create(['name' => 'Máslo', 'keywords' => 'máslo']);
-    Offer::factory()->create(['name' => 'Máslo 250 g']);
+    importedOffer(['name' => 'Máslo 250 g']);
 
     expect(app(SendDigests::class)())->toBe(1);
     Mail::assertSent(DigestMail::class, fn (DigestMail $mail): bool => $mail->hasTo($this->user->email));
@@ -159,13 +174,41 @@ it('jedno volání zpracuje jen dávku uživatelů, od nejdéle čekajících (R
 });
 
 it('uživatele bez nových akcí zapíše jako zpracovaného, aby nezabíral dávku (R54)', function (): void {
+    // Stažení doběhlo, ale hlídanou položku nenašlo
+    importedOffer(['name' => 'Vejce M']);
+
     expect(app(SendDigests::class)())->toBe(0)
         ->and($this->user->fresh()?->digest_sent_at?->toDateTimeString())->toBe('2026-10-02 06:30:00');
 
     // Akce, která přibyla po zpracování, přijde v dalším souhrnu
     $this->travelTo('2026-10-02 12:00:00');
-    Offer::factory()->create(['name' => 'Máslo 250 g']);
+    importedOffer(['name' => 'Máslo 250 g']);
     $this->travelTo('2026-10-03 06:30:00');
 
     expect(app(SendDigests::class)())->toBe(1);
+});
+
+it('okamžité upozornění přijde po stažení s novou akcí, nejvýš jednou za hodinu (R58)', function (): void {
+    $this->user->forceFill(['digest_frequency' => DigestFrequency::Instant])->save();
+    importedOffer(['name' => 'Máslo ráno']);
+    expect(app(SendDigests::class)())->toBe(1);
+
+    // Další stažení za půl hodiny — hodina od posledního upozornění ještě neuplynula
+    $this->travelTo('2026-10-02 07:00:00');
+    importedOffer(['name' => 'Máslo dopoledne']);
+    expect(app(SendDigests::class)())->toBe(0);
+
+    $this->travelTo('2026-10-02 07:30:00');
+    expect(app(SendDigests::class)())->toBe(1);
+    Mail::assertSent(DigestMail::class, fn (DigestMail $mail): bool => array_column($mail->groups[0]['offers'], 'name') === ['Máslo dopoledne']);
+});
+
+it('bez stažení od posledního souhrnu uživatele vůbec nezpracuje (R58)', function (): void {
+    $this->user->forceFill(['digest_frequency' => DigestFrequency::Instant])->save();
+    importedOffer(['name' => 'Máslo ráno']);
+    app(SendDigests::class)();
+
+    $this->travelTo('2026-10-02 09:30:00');
+    expect(app(SendDigests::class)())->toBe(0)
+        ->and($this->user->fresh()?->digest_sent_at?->toDateTimeString())->toBe('2026-10-02 06:30:00');
 });

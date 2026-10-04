@@ -15,6 +15,8 @@ namespace App\Enums;
 enum DigestFrequency: string
 {
     case Off = 'off';
+    // Po každém stažení, které přineslo nové akce, nejvýš jednou za hodinu (R58)
+    case Instant = 'instant';
     case Daily = 'daily';
     case Weekly = 'weekly';
 

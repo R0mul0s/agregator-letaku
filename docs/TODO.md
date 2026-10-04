@@ -16,7 +16,7 @@ v [PLAN.md](PLAN.md). Větší celky se z toho stávají etapou.
 
 **Odkud:** zadání 2026-10-02. E-mailový souhrn denně / týdně je hotový (R42).
 
-- okamžitý e-mail (případně Telegram), když se hlídaná položka objeví v akci — dnes jen souhrn jednou denně
+- okamžité upozornění e-mailem hotové (R58); Telegram nebo web push (se service workerem) jako další kanál
 - zmínky v letácích bez ceny (R27) v souhrnu — dnes jen akce s cenou
 - tabulka `watch_matches` (co už uživatel viděl / dostal), pokud nebude stačit čas posledního souhrnu a `offers.created_at`
 

@@ -22,8 +22,10 @@ namespace App\Domain\Digest\Actions;
 
 use App\Domain\Matching\MyOffers;
 use App\Enums\DigestFrequency;
+use App\Enums\ScrapeStatus;
 use App\Mail\DigestMail;
 use App\Models\Offer;
+use App\Models\ScrapeRun;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
@@ -44,11 +46,21 @@ final class SendDigests
         $now = CarbonImmutable::now();
         $sent = 0;
 
+        // Bez stažení akcí od posledního souhrnu nové akce být nemůžou (R58) — okamžité
+        // upozornění by jinak každou hodinu znovu počítalo Moje slevy všem
+        $lastImport = ScrapeRun::query()
+            ->whereIn('status', [ScrapeStatus::Succeeded, ScrapeStatus::Partial])
+            ->max('finished_at');
+        if (! is_string($lastImport)) {
+            return 0;
+        }
+
         // Jen na ověřenou adresu (R51) — jinak by šlo souhrny posílat na cizí e-mail.
         // Nejdřív kdo souhrn ještě nedostal (null je v MariaDB při řazení vzestupně první).
         $users = User::query()
             ->whereNotNull('email_verified_at')
             ->where(fn (Builder $query) => $this->whereDue($query, $now))
+            ->where(fn (Builder $query) => $query->whereNull('digest_sent_at')->orWhere('digest_sent_at', '<', $lastImport))
             ->orderBy('digest_sent_at')
             ->orderBy('id')
             ->limit(config()->integer('letaky.digest.users_per_run'))

@@ -321,6 +321,7 @@ return [
         // App\Enums\DigestFrequency — e-mailový souhrn (R42)
         'digest_frequency' => [
             'off' => 'Neposílat',
+            'instant' => 'Hned, jak akce přibude',
             'daily' => 'Denně',
             'weekly' => 'Jednou týdně',
         ],
@@ -490,7 +491,7 @@ return [
                 'unit_price' => ['title' => 'Cena za kilo a litr', 'text' => 'Akce řadí podle ceny za jednotku, takže velké balení nepřebije menší, ale levnější.'],
                 'cards' => ['title' => 'S vaší kartou', 'text' => 'Clubcard, Lidl Plus, Kaufland Card… Akce jen s kartou uvidíte, jen když kartu máte.'],
                 'mentions' => ['title' => 'I to, co je v letáku bez ceny', 'text' => 'Když leták zmíní, co hlídáte, ale cenu z něj přečíst nejde, dostanete odkaz přímo na stránku letáku.'],
-                'digest' => ['title' => 'Souhrn e-mailem', 'text' => 'Ráno po vydání letáků přijde souhrn nových akcí — denně nebo jednou týdně, jen když je co hlásit.'],
+                'digest' => ['title' => 'Upozornění e-mailem', 'text' => 'Nové akce na to, co hlídáte, přijdou e-mailem hned, jak se objeví, nebo jako souhrn denně či jednou týdně — jen když je co hlásit.'],
                 'free' => ['title' => 'Zdarma a bez reklam', 'text' => 'Žádné reklamní bannery, měření návštěvnosti jen s vaším souhlasem. Jen akce z letáků, seřazené tak, aby se daly porovnat.'],
             ],
             'steps_title' => 'Jak to funguje',

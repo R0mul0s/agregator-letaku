@@ -93,7 +93,7 @@ class CronController extends Controller
     }
 
     /**
-     * Pošle e-mailové souhrny nových akcí (R42) jedné dávce uživatelů (R54) — každou hodinu dopoledne.
+     * Pošle e-mailové souhrny nových akcí (R42) jedné dávce uživatelů (R54) — každou hodinu 6:30–22:30 kvůli okamžitým upozorněním (R58).
      */
     public function sendDigests(CronRequest $request, SendDigests $send): Response
     {

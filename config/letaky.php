@@ -284,15 +284,18 @@ return [
     ],
 
     /*
-    | E-mailový souhrn nových akcí (R42). Cron ho volá po ranním stažení, každou hodinu
-    | dopoledne (R54) — jedno volání zpracuje dávku uživatelů; interval je o pár hodin kratší
-    | než den / týden, aby posun cronu souhrn nepřeskočil.
+    | E-mailový souhrn nových akcí (R42). Cron ho volá každou hodinu od 6:30 do 22:30 (R54, R58)
+    | — jedno volání zpracuje dávku uživatelů, kterým je čas a od jejichž posledního souhrnu
+    | doběhlo stažení akcí; interval je o pár hodin kratší než den / týden, aby posun cronu
+    | souhrn nepřeskočil. Okno začíná po ranním stažení, takže denní souhrn chodí ráno.
     */
     'digest' => [
         // Uživatelů na jedno volání: vejde se do limitu běhu (~1 s na e-mail) i do limitu
         // Websupportu 300 e-mailů za hodinu ze schránky
         'users_per_run' => 100,
         'interval_hours' => [
+            // Okamžité upozornění (R58): po stažení, které přineslo nové akce, ale nejvýš jednou za hodinu
+            'instant' => 1,
             'daily' => 20,
             'weekly' => 164,
         ],

@@ -115,7 +115,7 @@ pole *Opakovat* je zápis cronu (`minuta hodina den měsíc den_v_týdnu`). URL 
 | Slevohlídka – Globus | `50 5,13 * * *` | `…/cron/import-offers?chain=globus&token=…` (~25 s) |
 | Slevohlídka – Billa | `0 6,14 * * *` | `…/cron/import-offers?chain=billa&token=…` (~50 s; celý katalog, po ranní výměně akcí) |
 | Slevohlídka – kategorie | `0 4 1 * *` | `…/cron/import-categories?token=…` — strom kategorií (stačí občas) |
-| Slevohlídka – souhrn | `30 7-11 * * *` | `…/cron/send-digests?token=…` — e-mailové souhrny nových akcí (R42), po ranním stažení; jedno volání = dávka 100 uživatelů (R54), proto každou hodinu dopoledne |
+| Slevohlídka – souhrn | `30 6-22 * * *` | `…/cron/send-digests?token=…` — e-mailové souhrny a okamžitá upozornění nových akcí (R42, R58); jedno volání = dávka 100 uživatelů, kterým je čas a od jejichž souhrnu doběhlo stažení (R54) |
 | Slevohlídka – úklid | `15 3 * * *` | `…/cron/prune-sessions?token=…` — smaže vypršelé relace (IP, prohlížeč) a propadlé odkazy na obnovu hesla (R53; zásady slibují průběžné mazání) |
 
 Hned po nasazení zavolej URL stažení ručně v prohlížeči (kategorie první), ať se nečeká
@@ -186,10 +186,12 @@ schránky, 2 000 za hodinu z celé domény**; počítá se každý příjemce. P
 60 minut odeslat nic a zprávy z té doby se nedoručí. Limit se netýká schránek u Websupportu.
 
 Souhrny (`/cron/send-digests`) jdou po dávkách (R54): jedno volání zpracuje nejvýš
-`letaky.digest.users_per_run` (100) uživatelů, od nejdéle čekajících, takže pět volání dopoledne
-(7–11 h) stačí na 500 uživatelů denně a hodina nepřesáhne 100 e-mailů. Uživatel, kterému se souhrn
-neodeslal (chyba SMTP), ho dostane při dalším volání (`digest_sent_at` se neuloží). Při víc
-uživatelích prodloužit okno cronu, ne dávku.
+`letaky.digest.users_per_run` (100) uživatelů, od nejdéle čekajících, a jen ty, od jejichž
+posledního souhrnu doběhlo stažení akcí (R58) — bez nových stažení je volání skoro zadarmo.
+Volá se každou hodinu 6:30–22:30: okamžitá upozornění (nejvýš jednou za hodinu) přijdou do
+hodiny po stažení, denní souhrn ráno po prvním stažení. Hodina nepřesáhne 100 e-mailů. Uživatel,
+kterému se souhrn neodeslal (chyba SMTP), ho dostane při dalším volání. Při víc uživatelích
+zvětšit dávku nejvýš do limitu 300 e-mailů za hodinu.
 
 ---
 
@@ -261,7 +263,7 @@ Opravy z revize (R54). Bez SQL skriptu (nový stav `partial` je jen hodnota v `s
 `composer.lock` se nezměnil.
 
 1. **Nahraj `deploy/upload/`** jako minule: bez `vendor/`, ale s `vendor/composer/` a `bootstrap/cache/packages.php`; `public/build/` nejdřív smaž.
-2. **Cron souhrnu** změň z `30 6 * * *` na `30 7-11 * * *` (dávky po 100 uživatelích).
+2. **Cron souhrnu** změň z `30 6 * * *` na `30 6-22 * * *` (dávky po 100 uživatelích, okamžitá upozornění R58).
 3. **Ověř:** `/cron/send-digests?token=…` vrací `Souhrny — odesláno: N`; v Účtu se při změně e-mailu objeví pole s heslem.
 4. Zapiš verzi do *Nasazené verze*.
 
