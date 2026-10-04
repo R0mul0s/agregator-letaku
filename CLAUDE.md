@@ -45,7 +45,7 @@ Hotové jsou etapy 1–5g, zveřejnění (8), opravy a funkce z kritické revize
   registrace a účtů (R53, R54), SEO a limity požadavků (R45); revize před spuštěním — adresy z `APP_URL`,
   odhlášení zařízení po změně hesla, limit e-mailů za hodinu, `security.txt`, GA bez tokenů v adrese (R67–R69)
 
-Produkce běží na `https://slevohlidka.rhsoft.cz` (nasazeno 2026-10-02, naposledy `046d8eb` 2026-10-04);
+Produkce běží na `https://slevohlidka.rhsoft.cz` (nasazeno 2026-10-02, naposledy `25a224e` 2026-10-04);
 postup aktualizace a nasazené verze jsou v `deploy/DEPLOYMENT.md`. Sleduje se 7 obchodů; Makro
 zatím nejde (ochrana proti robotům). Etapa 6 (LLM) jen když bude potřeba.
 Co z dřívějších rozhodnutí platí a co ne, je v tabulce na začátku PLAN.md.

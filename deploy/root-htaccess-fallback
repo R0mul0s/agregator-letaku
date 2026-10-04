@@ -18,15 +18,8 @@
     RewriteRule ^(composer\.(json|lock)|package(-lock)?\.json|artisan|phpstan\.neon|vite\.config\.js|compose\.ya?ml) - [F,L]
     RewriteRule ^(app|bootstrap|config|database|lang|resources|routes|storage|vendor|tests|deploy|docs|docker)/ - [F,L]
 
-    # --- Adresa s /public (R67) přesměruje na stejnou bez něj -----------------
-    # Jinak je celý web dostupný dvakrát (/akce i /public/akce) — duplicitní obsah
-    # pro vyhledávače. Podle THE_REQUEST (původní řádek požadavku): po vnitřním
-    # přepisu níž už cesta /public obsahuje a přesměrovávat se nesmí. Query string
-    # připojí Apache sám, %1 je už zakódovaná cesta (NE).
-    RewriteCond %{THE_REQUEST} ^[A-Z]+\ /public/?[?\ ]
-    RewriteRule ^ / [L,R=301]
-    RewriteCond %{THE_REQUEST} ^[A-Z]+\ /public(/[^?\ ]+)
-    RewriteRule ^ %1 [L,R=301,NE]
+    # Adresa s /public přesměruje public/.htaccess (R67) — u adres pod public/ Apache
+    # bere pravidla jen odtud, tato kořenová by se tam neuplatnila.
 
     # --- Vše ostatní směruj do public/ (lookahead brání smyčce) ---------------
     RewriteRule ^((?!public/).*)$ public/$1 [L]

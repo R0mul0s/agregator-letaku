@@ -17,6 +17,16 @@ Options -Indexes
     RewriteCond %{THE_REQUEST} ^[A-Z]+\ (/[^?\ ]*)
     RewriteRule ^ https://%{HTTP_HOST}%1 [L,R=301,NE]
 
+    # Adresa s /public (R67) přesměruje na stejnou bez něj — s kořenovým .htaccess
+    # (deploy/root-htaccess-fallback) je jinak celý web dostupný dvakrát. Musí být tady:
+    # u adres pod public/ Apache bere pravidla jen z tohoto souboru, kořenová se nedědí.
+    # Podle THE_REQUEST (původní řádek požadavku) — po vnitřním přepisu z kořene už cesta
+    # /public obsahuje a přesměrovávat se nesmí. Query string připojí Apache sám.
+    RewriteCond %{THE_REQUEST} ^[A-Z]+\ /public/?[?\ ]
+    RewriteRule ^ / [L,R=301]
+    RewriteCond %{THE_REQUEST} ^[A-Z]+\ /public(/[^?\ ]+)
+    RewriteRule ^ %1 [L,R=301,NE]
+
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
