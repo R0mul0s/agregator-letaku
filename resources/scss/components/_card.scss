@@ -98,11 +98,13 @@
     display: grid;
     align-items: stretch;
     gap: var(--space-4);
-    max-width: var(--auth-showcase-max-width);
+    // Pod sebou stejně široké jako karta formuláře, vedle sebe obě poloviny
+    max-width: var(--auth-card-max-width);
     margin: 0 auto;
 
     @include from-md {
         grid-template-columns: 1fr 1fr;
+        max-width: var(--auth-showcase-max-width);
         margin-top: var(--space-4);
     }
 
@@ -112,11 +114,13 @@
         margin-top: 0;
     }
 
+    // Karta formuláře nahoře jako obsah panelu, ne uprostřed výšky řádku
     &__form {
         display: flex;
-        align-items: center;
+        align-items: flex-start;
     }
 
+    // Obsah od shora se stejným odsazením jako karta — začíná ve stejné výšce jako formulář
     &__panel {
         display: flex;
         flex-direction: column;
@@ -126,11 +130,6 @@
         background: var(--gradient-panel);
         border-radius: var(--radius-lg);
         color: var(--color-on-brand);
-
-        @include from-md {
-            justify-content: center;
-            padding: var(--space-5) var(--space-4);
-        }
     }
 
     // Maskot a název v řádku — značka, ne hlavní obsah panelu
