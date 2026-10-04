@@ -336,7 +336,7 @@ Po nasazení se ukázalo, že `/public/akce` dál vrací 200: u adres pod `publi
 pravidla jen z `public/.htaccess`, přesměrování v kořenovém `.htaccess` se tam neuplatní.
 Canonical už vede na `/akce` (adresy z `APP_URL`), přesměrování opravuje deváté nasazení.
 
-### Aktualizace z `25a224e` (deváté nasazení)
+### Aktualizace z `25a224e` (deváté nasazení — provedeno, `e7f942f`)
 
 Jen `public/.htaccess`: přesměrování `/public/…` na adresu bez něj přesunuté z kořenového
 `.htaccess` (R67). Bez SQL skriptu a bez změny kódu.
@@ -345,7 +345,7 @@ Jen `public/.htaccess`: přesměrování `/public/…` na adresu bez něj přesu
    Kořenový `.htaccess` je možné nahradit novým `deploy/root-htaccess-fallback` (jen bez
    nefunkčních pravidel), není to nutné.
 2. **Ověř:** `/public/akce` → 301 na `/akce`, `/public/akce?chain=lidl` → 301 na `/akce?chain=lidl`,
-   `/public` → 301 na `/`; `/akce` a `/.well-known/security.txt` dál 200.
+   `/public` → 301 na `/` (přes `/public/`, lomítko přidá Apache); `/akce` a `/.well-known/security.txt` dál 200.
 3. Zapiš verzi do *Nasazené verze*.
 
 **Každá nová migrace potřebuje SQL skript** `deploy/migrations-<datum>-<popis>.sql`
@@ -397,3 +397,4 @@ Co běží na produkci — pro `git log <commit>..HEAD` při dalším nasazení
 | 2026-10-04 | `10072aa` | šesté nasazení: opravy a funkce z revize (R54–R64) — pojistky importu, prodlužování akcí Billy, heslo při změně e-mailu, souhrny po dávkách; nový účet sleduje všechny obchody, „Jsem v obchodě“, manifest; registrace se skutečnými akcemi; zámek stažení; okamžité upozornění (cron souhrnu `30 6-22`); „Je to opravdu sleva?“; „Hlídat“ z karty; nákupní seznam (SQL `migrations-2026-10-04-nakupni-seznam.sql`); kompaktní řádky; Můj účet a Moje obchody s ukládáním hned. Po nasazení Albert opraven `LETAKY_USER_AGENT` v `.env` (R65) |
 | 2026-10-04 | `046d8eb` | sedmé nasazení: User-Agent bez `https://` v kódu (R65); aplikace v telefonu (R66) — manifest se zkratkami, úvodní obrazovky iPhonu, spodní lišta záložek, výzva k přidání na plochu, service worker s offline režimem a odškrtáváním bez signálu, upozornění v telefonu (web push); SQL `migrations-2026-10-04-upozorneni-v-telefonu.sql`, klíče `LETAKY_VAPID_*` v `.env`, nový balíček `minishlink/web-push` ve `vendor/` |
 | 2026-10-04 | `25a224e` | osmé nasazení: hlavička na telefonu s logem a spodní lišta do 799 px (R66); revize před spuštěním (R67–R69) — adresy z `APP_URL`, odhlášení zařízení po změně hesla, hodinový limit e-mailů, titulky a `noindex` Alberta, `security.txt`, GA bez tokenů v adrese, právní texty s datem účinnosti 2026-10-04; nový kořenový `.htaccess`; katalog 206 produktů (R70, SQL `data-2026-10-04-katalog-rozsireni.sql`). `/public/akce` zatím bez přesměrování (oprava v devátém) |
+| 2026-10-04 | `e7f942f` | deváté nasazení: jen `public/.htaccess` — přesměrování `/public/…` na adresu bez něj (R67); `version.txt` zůstává `25a224e` |
