@@ -46,7 +46,7 @@ final class OfferHighlights
 
     /**
      * Akce s nejvyšší slevou a obrázkem, z každého obchodu nejdřív po jedné
-     * (ať ukázka neukazuje šest jogurtů z jednoho letáku).
+     * (ať ukázka neukazuje šest jogurtů z jednoho letáku); výsledek od nejvyšší slevy.
      *
      * @return list<Offer>
      */
@@ -77,7 +77,11 @@ final class OfferHighlights
             }
         }
 
-        return array_values($picked);
+        // Druhé kolo přidává až za první — bez seřazení by −66 % stálo pod −56 %
+        $picked = array_values($picked);
+        usort($picked, fn (Offer $a, Offer $b): int => [$b->discount_percent, $a->id] <=> [$a->discount_percent, $b->id]);
+
+        return $picked;
     }
 
     /**
