@@ -278,7 +278,7 @@ Po nasazení se ukázalo, že Albert od pátého nasazení padá s HTTP 400 (Use
 R65). Opraveno bez nasazení řádkem `LETAKY_USER_AGENT="Slevohlidka/1.0 (+slevohlidka.rhsoft.cz)"`
 v `.env` na hostingu.
 
-### Aktualizace z `10072aa` (sedmé nasazení — zatím nenasazeno)
+### Aktualizace z `10072aa` (sedmé nasazení — provedeno, `046d8eb`)
 
 User-Agent bez `https://` v kódu (R65) a **aplikace v telefonu** (R66): service worker a offline
 režim, spodní lišta, upozornění v telefonu. **Změnil se `composer.lock`** (`minishlink/web-push`
@@ -324,7 +324,7 @@ a ruční opravy katalogu. Před každým SQL skriptem a jinak aspoň jednou mě
 | `migrations-2026-10-02-ucet.sql` | nastavení účtu: `users.avatar_path` (R40), `users.offers_sort` a `min_discount_percent` (R41), `users.digest_frequency` a `digest_sent_at` (R42); opakovatelný, pustit **před** nahráním kódu | 2026-10-02 |
 | `migrations-2026-10-03-souhlasy.sql` | souhlasy (R51): `users.terms_accepted_at`, `terms_version`, `marketing_consent_at`, `marketing_consent_version`, `marketing_consent_withdrawn_at`; dosavadní účty označí jako ověřené (`email_verified_at`); opakovatelný, pustit **před** nahráním kódu | 2026-10-03 |
 | `migrations-2026-10-04-nakupni-seznam.sql` | nákupní seznam (R61): tabulka `shopping_list_items`; opakovatelný, pustit **před** nahráním kódu | 2026-10-04 |
-| `migrations-2026-10-04-upozorneni-v-telefonu.sql` | upozornění v telefonu (R66): tabulka `push_subscriptions`, `users.push_sent_at`; opakovatelný, pustit **před** nahráním kódu | |
+| `migrations-2026-10-04-upozorneni-v-telefonu.sql` | upozornění v telefonu (R66): tabulka `push_subscriptions`, `users.push_sent_at`; opakovatelný, pustit **před** nahráním kódu | 2026-10-04 |
 
 ## Nasazené verze
 
@@ -339,3 +339,4 @@ Co běží na produkci — pro `git log <commit>..HEAD` při dalším nasazení
 | 2026-10-03 | `aed786f` | čtvrté nasazení: krmivo pro zvířata (R50), zveřejnění (R51) — podmínky a zásady, patička, souhlasy při registraci, ověření e-mailu, odhlášení z e-mailů, české chybové stránky; cookie lišta a Google Analytics 4 po souhlasu (R52, CSP v `public/.htaccess`); SQL `migrations-2026-10-03-souhlasy.sql`. Volitelně `LETAKY_GA_MEASUREMENT_ID` v `.env` |
 | 2026-10-03 | `b2996c0` | páté nasazení: ochrana účtů a úklid (R53) — registrace proti botům, kontrola uniklých hesel, limit přihlášení na IP, `favicon.ico`, User-Agent; cron `/cron/prune-sessions` (15 3). Bez SQL skriptu |
 | 2026-10-04 | `10072aa` | šesté nasazení: opravy a funkce z revize (R54–R64) — pojistky importu, prodlužování akcí Billy, heslo při změně e-mailu, souhrny po dávkách; nový účet sleduje všechny obchody, „Jsem v obchodě“, manifest; registrace se skutečnými akcemi; zámek stažení; okamžité upozornění (cron souhrnu `30 6-22`); „Je to opravdu sleva?“; „Hlídat“ z karty; nákupní seznam (SQL `migrations-2026-10-04-nakupni-seznam.sql`); kompaktní řádky; Můj účet a Moje obchody s ukládáním hned. Po nasazení Albert opraven `LETAKY_USER_AGENT` v `.env` (R65) |
+| 2026-10-04 | `046d8eb` | sedmé nasazení: User-Agent bez `https://` v kódu (R65); aplikace v telefonu (R66) — manifest se zkratkami, úvodní obrazovky iPhonu, spodní lišta záložek, výzva k přidání na plochu, service worker s offline režimem a odškrtáváním bez signálu, upozornění v telefonu (web push); SQL `migrations-2026-10-04-upozorneni-v-telefonu.sql`, klíče `LETAKY_VAPID_*` v `.env`, nový balíček `minishlink/web-push` ve `vendor/` |

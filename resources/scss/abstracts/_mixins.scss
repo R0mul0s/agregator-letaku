@@ -39,6 +39,17 @@
     white-space: nowrap;
 }
 
+/// Zruší visually-hidden — prvek skrytý jen vizuálně se zase ukáže.
+@mixin visually-shown {
+    position: static;
+    width: auto;
+    height: auto;
+    margin: 0;
+    overflow: visible;
+    clip-path: none;
+    white-space: normal;
+}
+
 /// Styly od širokého displeje výš.
 @mixin from-lg {
     @media (min-width: $breakpoint-lg) {

@@ -36,6 +36,9 @@ const page = usePage();
 /** Hamburger na telefonu — jen pro položky, které nejsou ve spodní liště záložek (R66). */
 const hasMenuButton = computed(() => page.props.navigation.some((item) => !item.tab));
 
+/** Spodní lišta záložek na telefonu (R66) — v hlavičce je pak místo na celé logo s názvem. */
+const hasTabBar = computed(() => page.props.navigation.some((item) => item.tab));
+
 /** Navigace rozbalená na telefonu. */
 const navOpen = ref(false);
 
@@ -73,6 +76,7 @@ onBeforeUnmount(() => {
             'app-header--guest': !page.props.auth.user,
             'app-header--animated-logo': page.component === 'Landing',
             'app-header--with-menu': hasMenuButton,
+            'app-header--with-tabs': hasTabBar,
             'app-header--menu-open': navOpen,
         }"
     >

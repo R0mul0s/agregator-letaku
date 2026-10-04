@@ -71,13 +71,21 @@
         @include visually-hidden;
 
         @include from-md {
-            position: static;
-            width: auto;
-            height: auto;
-            margin: 0;
-            overflow: visible;
-            clip-path: none;
-            white-space: normal;
+            @include visually-shown;
+        }
+    }
+
+    // Přihlášený se spodní lištou záložek (R66): na telefonu v hlavičce zbývá jen avatar, takže
+    // se vejde celé logo s názvem a mottem jako na počítači (mezi md a lg motto ustoupí navigaci)
+    &--with-tabs &__name {
+        @media (max-width: $breakpoint-md - 1px) {
+            @include visually-shown;
+        }
+    }
+
+    &--with-tabs &__tagline {
+        @media (max-width: $breakpoint-md - 1px) {
+            display: block;
         }
     }
 
