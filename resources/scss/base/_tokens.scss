@@ -82,7 +82,6 @@
     --gradient-hero: linear-gradient(120deg, #fdecec 0%, #ffffff 70%);
     // Panel s bílým textem — tmavší konec palety loga, ať má běžný text kontrast aspoň 4,5 : 1
     --gradient-panel: linear-gradient(150deg, #d91f29 0%, #a5121b 100%);
-    --color-panel-lines: rgb(255 255 255 / 35%);
     --hover-lift: -2px;
     --button-edge: 3px;
     --sticker-rotation: -6deg;
@@ -126,11 +125,13 @@
     --cookie-dialog-max-width: 36rem;
     --auth-card-max-width: 28rem;
     --auth-showcase-max-width: 60rem;
-    --auth-mascot-size: 10rem;
-    --auth-mascot-size-mobile: 6rem;
-    --panel-lines-width: 3rem;
-    --panel-lines-height: 1.5rem;
-    --panel-line-thickness: 0.3rem;
+    // Panel vedle přihlášení a registrace (R56): maskot u názvu, nadpis, cenovky akcí, kroky
+    --auth-brand-mascot-size: 3rem;
+    --font-size-auth-headline: 2.25rem;
+    --font-size-auth-headline-mobile: 1.5rem;
+    --auth-deal-image-size: 3.5rem;
+    --auth-deal-tilt: 1deg;
+    --auth-step-size: 1.25rem;
     --account-column-min-width: 20rem;
     // Karta obchodu v Mých obchodech — tři v řádku do šířky obsahu (69rem bez odsazení)
     --chain-card-min-width: 20rem;

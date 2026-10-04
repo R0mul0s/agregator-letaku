@@ -102,6 +102,8 @@ return [
             'min_seconds' => 3,
             'max_age_minutes' => 120,
         ],
+        // Kolik akcí s nejvyšší slevou ukáže panel vedle přihlášení a registrace (R56)
+        'showcase_deals' => 3,
     ],
 
     /*

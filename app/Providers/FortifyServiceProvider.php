@@ -17,8 +17,12 @@ use App\Actions\Fortify\ResetUserPassword;
 use App\Actions\Fortify\UpdateUserPassword;
 use App\Actions\Fortify\UpdateUserProfileInformation;
 use App\Domain\Account\RegistrationGuard;
+use App\Domain\Offers\OfferHighlights;
+use App\Domain\Offers\OfferPresenter;
+use App\Enums\Chain;
 use App\Http\Responses\RegisterResponse;
 use App\Http\Responses\VerifyEmailResponse;
+use App\Models\Offer;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -79,6 +83,8 @@ class FortifyServiceProvider extends ServiceProvider
                 'register' => route('register', absolute: false),
                 'forgotPassword' => route('password.request', absolute: false),
             ],
+            // Panel vedle formuláře (R56): počet akcí, obchody a ukázka akcí s nejvyšší slevou
+            'showcase' => fn (): array => $this->showcase(),
         ]));
 
         Fortify::registerView(fn (): Response => Inertia::render('Auth/Register', [
@@ -94,6 +100,10 @@ class FortifyServiceProvider extends ServiceProvider
                 'token' => app(RegistrationGuard::class)->token(),
                 'trapField' => RegistrationGuard::TRAP_FIELD,
             ],
+            // Nápověda u hesla (R56) — stejná délka jako Password::defaults() v AppServiceProvider
+            'passwordMinLength' => config()->integer('letaky.auth.password.min_length'),
+            // Panel vedle formuláře (R56): počet akcí, obchody a ukázka akcí s nejvyšší slevou
+            'showcase' => fn (): array => $this->showcase(),
         ]));
 
         // Výzvu k ověření e-mailu (R51) ukazuje lišta v rozvržení, samostatná stránka není potřeba
@@ -113,5 +123,26 @@ class FortifyServiceProvider extends ServiceProvider
                 'submit' => route('password.update', absolute: false),
             ],
         ]));
+    }
+
+    /**
+     * Data panelu vedle přihlášení a registrace (AuthShowcase.vue, R56) — skutečné akce
+     * místo obecných slibů: kolik jich právě je, ze kterých obchodů a pár nejvyšších slev.
+     *
+     * @return array{offers: int, chains: list<string>, deals: list<array<string, mixed>>}
+     */
+    private function showcase(): array
+    {
+        $highlights = app(OfferHighlights::class);
+        $presenter = app(OfferPresenter::class);
+
+        return [
+            'offers' => $highlights->currentCount(),
+            'chains' => array_map(fn (Chain $chain): string => $chain->value, $highlights->chains()),
+            'deals' => array_map(
+                fn (Offer $offer): array => $presenter->toPage($offer),
+                $highlights->topDiscounts(config()->integer('letaky.auth.showcase_deals')),
+            ),
+        ];
     }
 }

@@ -16,6 +16,7 @@ use App\Domain\Chains\ChainCatalog;
 use App\Enums\Chain;
 use App\Http\Responses\RegisterResponse;
 use App\Models\FollowedChain;
+use App\Models\Offer;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Notifications\VerifyEmail;
@@ -42,7 +43,6 @@ function registrationInput(array $overrides = []): array
         'name' => 'Roman',
         'email' => 'roman@example.com',
         'password' => NEW_PASSWORD,
-        'password_confirmation' => NEW_PASSWORD,
         'terms' => true,
         RegistrationGuard::TOKEN_FIELD => app(RegistrationGuard::class)->token(CarbonImmutable::now()->subSeconds(FILL_SECONDS)),
         RegistrationGuard::TRAP_FIELD => '',
@@ -62,6 +62,22 @@ it('zobrazí registrační stránku s ochranou proti botům', function (): void 
             ->where('guard.trapField', RegistrationGuard::TRAP_FIELD)
             ->where('guard.token', fn (string $token): bool => $token !== ''));
 });
+
+it('vedle registrace i přihlášení ukáže počet akcí, obchody a akce s nejvyšší slevou (R56)', function (string $route, string $component): void {
+    $this->travelTo('2026-10-02 10:00:00');
+    Offer::factory()->create(['chain' => Chain::Lidl, 'name' => 'Máslo', 'discount_percent' => 40, 'image_url' => 'https://example.com/maslo.jpg']);
+    Offer::factory()->create(['chain' => Chain::Penny, 'name' => 'Bez obrázku', 'discount_percent' => 50, 'image_url' => null]);
+
+    $this->get(route($route))->assertInertia(fn (Assert $page) => $page
+        ->component($component)
+        ->where('showcase.offers', 2)
+        ->where('showcase.chains', fn ($chains): bool => in_array('lidl', $chains->all(), true))
+        ->has('showcase.deals', 1)
+        ->where('showcase.deals.0.name', 'Máslo'));
+})->with([
+    'registrace' => ['register', 'Auth/Register'],
+    'přihlášení' => ['login', 'Auth/Login'],
+]);
 
 it('zaregistruje uživatele, přihlásí ho, e-mail uloží malými písmeny a pošle odkaz na ověření', function (): void {
     Notification::fake();
@@ -115,9 +131,18 @@ it('odmítne už použitý e-mail', function (): void {
     expect(User::query()->count())->toBe(1);
 });
 
-it('odmítne heslo, které nesouhlasí s potvrzením, a chybu napíše česky', function (): void {
-    $this->post(route('register.store'), registrationInput(['password_confirmation' => 'jine-heslo']))
-        ->assertSessionHasErrors(['password' => 'Potvrzení pole heslo nesouhlasí.']);
+it('heslo při registraci nechce potvrzení — formulář má tlačítko Ukázat heslo (R56)', function (): void {
+    $input = registrationInput();
+    unset($input['password_confirmation']);
+
+    $this->post(route('register.store'), $input)->assertSessionHasNoErrors();
+
+    $this->assertAuthenticated();
+});
+
+it('krátké heslo odmítne a chybu napíše česky', function (): void {
+    $this->post(route('register.store'), registrationInput(['password' => 'kratke']))
+        ->assertSessionHasErrors('password');
 
     $this->assertGuest();
 });

@@ -25,6 +25,17 @@ trait PasswordValidationRules
      */
     protected function passwordRules(): array
     {
-        return ['required', 'string', Password::default(), 'confirmed'];
+        return [...$this->registrationPasswordRules(), 'confirmed'];
+    }
+
+    /**
+     * Pravidla hesla při registraci — bez potvrzení (R56): formulář má jedno pole s tlačítkem
+     * „Ukázat heslo“, překlep uživatel vidí, a zapomenuté heslo jde obnovit e-mailem.
+     *
+     * @return array<int, Rule|array<mixed>|string>
+     */
+    protected function registrationPasswordRules(): array
+    {
+        return ['required', 'string', Password::default()];
     }
 }

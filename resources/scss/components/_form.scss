@@ -57,6 +57,48 @@
         color: var(--color-text-muted);
         font-size: var(--font-size-sm);
     }
+
+    // Obal pole — místo pro tlačítko „Ukázat heslo“ uvnitř pole (R56)
+    &__control {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+    }
+
+    &__input--revealable {
+        padding-right: var(--control-size);
+    }
+
+    &__reveal {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        display: grid;
+        place-items: center;
+        width: var(--control-size);
+        padding: 0;
+        background: none;
+        border: 0;
+        border-radius: var(--radius-sm);
+        color: var(--color-text-muted);
+        cursor: pointer;
+
+        &:hover,
+        &[aria-pressed='true'] {
+            color: var(--color-accent-strong);
+        }
+    }
+
+    &__reveal-icon {
+        width: var(--icon-size);
+        height: var(--icon-size);
+        fill: none;
+        stroke: currentcolor;
+        stroke-width: var(--svg-stroke-icon);
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
 }
 
 // Přepínač zapnuto / vypnuto — zaškrtávátko s role="switch" (Moje obchody). Popisek je mimo

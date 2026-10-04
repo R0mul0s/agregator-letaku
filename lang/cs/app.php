@@ -393,16 +393,18 @@ return [
 
         'auth' => [
             // Panel vedle přihlášení a registrace (AuthShowcase.vue)
+            // Skutečné akce místo obecných slibů (R56); počet akcí bere landing.stats.offers
             'showcase' => [
-                'chains' => 'Hlídá akce z letáků i e-shopů.',
-                'unit_price' => 'Řadí podle ceny za kilo, litr nebo kus, s vaší věrnostní kartou.',
-                'mentions' => 'Najde i to, co je v letáku bez ceny.',
+                'headline' => 'Letáky projdeme za vás.',
+                'lead' => 'Řeknete, co kupujete, a Slevohlídka vám ukáže, kde je to právě nejlevnější.',
+                'deals_title' => 'Právě teď ulovené',
             ],
             'logout' => 'Odhlásit se',
             'name' => 'Jméno',
             'email' => 'E-mail',
             'password' => 'Heslo',
             'password_confirmation' => 'Heslo znovu',
+            'password_show' => 'Ukázat heslo',
             'remember' => 'Zapamatovat si mě',
 
             'login' => [
@@ -415,7 +417,22 @@ return [
 
             'register' => [
                 'title' => 'Registrace',
-                'submit' => 'Zaregistrovat se',
+                // Karta formuláře (R56): cesta ve třech krocích, nadpis s přínosem, co čekat
+                'steps_label' => 'Kroky registrace',
+                'steps' => [
+                    'account' => 'Účet',
+                    'watch' => 'Co kupujete',
+                    'hunt' => 'Slevy hlídáme my',
+                ],
+                'heading' => 'Začněte hlídat slevy',
+                'intro' => 'Zdarma a za minutu. Pak jen vyberete, co kupujete.',
+                'password_hint' => 'Aspoň :min znaků.',
+                'trust' => [
+                    'free' => 'Zdarma',
+                    'no_ads' => 'Žádné reklamy',
+                    'cancel' => 'Účet zrušíte kdykoli',
+                ],
+                'submit' => 'Začít hlídat slevy',
                 'has_account' => 'Už máte účet?',
                 'login' => 'Přihlaste se',
                 // Souhlasy (R51): podmínky povinné, obchodní sdělení dobrovolná a nezaškrtnutá

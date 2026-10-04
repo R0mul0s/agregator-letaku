@@ -45,7 +45,8 @@ Hotové jsou etapy 1–5g (PLAN.md, kap. 6):
   kontrola uniklých hesel, limit přihlášení na IP a denní úklid relací (R53); opravy z revize —
   pojistky importu, prodlužování akcí Billy, heslo při změně e-mailu, souhrny po dávkách (R54);
   UX z revize — nový účet sleduje všechny obchody a jde do Hlídám, „Jsem v obchodě“ v Mých slevách,
-  menší pruh na telefonu, „Možná“ klepnutím, manifest pro plochu telefonu (R55)
+  menší pruh na telefonu, „Možná“ klepnutím, manifest pro plochu telefonu (R55); registrace
+  a přihlášení se skutečnými akcemi a heslem jen jednou s tlačítkem Ukázat (R56)
 
 Produkce běží na `https://slevohlidka.rhsoft.cz` (nasazeno 2026-10-02, naposledy `b2996c0` 2026-10-03);
 postup aktualizace a nasazené verze jsou v `deploy/DEPLOYMENT.md`. Sleduje se 7 obchodů; Makro

@@ -52,7 +52,7 @@ class CreateNewUser implements CreatesNewUsers
         $data = Validator::make($input, [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique(User::class)],
-            'password' => $this->passwordRules(),
+            'password' => $this->registrationPasswordRules(),
             'terms' => ['accepted'],
             'marketing' => ['boolean'],
         ], ['terms.accepted' => __('app.ui.auth.register.terms_required')])->validate();

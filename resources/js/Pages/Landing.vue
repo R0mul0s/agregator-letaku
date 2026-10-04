@@ -10,6 +10,7 @@ import ChainLogo from '@/Components/ChainLogo.vue';
 import FeatureIcon from '@/Components/FeatureIcon.vue';
 import OfferCard from '@/Components/OfferCard.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
+import { formatNumber } from '@/lib/format';
 import { useTranslations } from '@/lib/i18n';
 import { Head, Link, usePage } from '@inertiajs/vue3';
 
@@ -35,16 +36,6 @@ defineProps({
 
 const t = useTranslations();
 const page = usePage();
-
-/**
- * Číslo s oddělením tisíců („6 245“).
- *
- * @param {number} value
- * @returns {string}
- */
-function formatNumber(value) {
-    return value.toLocaleString(page.props.locale);
-}
 </script>
 
 <template>
@@ -83,7 +74,7 @@ function formatNumber(value) {
 
         <ul class="landing-stats">
             <li class="landing-stats__item">
-                <strong class="landing-stats__value">{{ formatNumber(stats.offers) }}</strong>
+                <strong class="landing-stats__value">{{ formatNumber(stats.offers, page.props.locale) }}</strong>
                 {{ t('landing.stats.offers', { count: stats.offers }) }}
             </li>
             <li class="landing-stats__item">
@@ -91,7 +82,7 @@ function formatNumber(value) {
                 {{ t('landing.stats.chains', { count: stats.chains }) }}
             </li>
             <li class="landing-stats__item">
-                <strong class="landing-stats__value">{{ formatNumber(stats.products) }}</strong>
+                <strong class="landing-stats__value">{{ formatNumber(stats.products, page.props.locale) }}</strong>
                 {{ t('landing.stats.products', { count: stats.products }) }}
             </li>
             <li class="landing-stats__item">

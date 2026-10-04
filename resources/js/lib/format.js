@@ -48,6 +48,17 @@ export function formatPrice(halers, locale) {
     return cachedFormatter(Intl.NumberFormat, locale, { style: 'currency', currency: CURRENCY }).format(halers / HALERS_PER_CROWN);
 }
 
+/**
+ * Celé číslo s oddělením tisíců („6 245“).
+ *
+ * @param {number} value
+ * @param {string} locale
+ * @returns {string}
+ */
+export function formatNumber(value, locale) {
+    return cachedFormatter(Intl.NumberFormat, locale, {}).format(value);
+}
+
 /** Základní jednotka balení => větší jednotka od tisíce (1 000 g = 1 kg). Kusy se nepřevádějí. */
 const LARGER_UNITS = { g: 'kg', ml: 'l' };
 const LARGER_UNIT_FACTOR = 1000;

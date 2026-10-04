@@ -47,9 +47,42 @@
         font-size: var(--font-size-lg);
     }
 
+    // Nadpis s úvodní větou pod sebou (registrace, R56)
+    &__title--tight {
+        margin-bottom: var(--space-1);
+    }
+
     &__intro {
         margin-bottom: var(--space-3);
         color: var(--color-text-muted);
+    }
+
+    // Hlavní tlačítko přes celou šířku karty (registrace, R56)
+    // inline-flex tlačítka zahodí mezeru mezi textem a šipkou — odstup dá gap
+    &__submit {
+        gap: var(--space-2);
+        width: 100%;
+        margin-top: var(--space-2);
+        font-size: var(--font-size-md);
+    }
+
+    // Co uživatele čeká — drobně pod tlačítkem, s fajfkami
+    &__trust {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: var(--space-1) var(--space-3);
+        margin: 0;
+        padding: 0;
+        color: var(--color-text-muted);
+        font-size: var(--font-size-xs);
+        list-style: none;
+    }
+
+    &__trust-item::before {
+        content: '✓ ';
+        color: var(--color-success);
+        font-weight: 900;
     }
 
     &__footer {
@@ -60,7 +93,7 @@
     }
 }
 
-// Přihlášení a registrace — barevný panel s maskotem vedle formuláře (AuthShowcase.vue)
+// Přihlášení a registrace — červený panel se skutečnými akcemi vedle formuláře (AuthShowcase.vue, R56)
 .auth-showcase {
     display: grid;
     align-items: stretch;
@@ -85,86 +118,203 @@
     }
 
     &__panel {
-        position: relative;
         display: flex;
         flex-direction: column;
-        align-items: center;
-        gap: var(--space-2);
+        gap: var(--space-3);
         padding: var(--space-4);
         overflow: hidden;
         background: var(--gradient-panel);
         border-radius: var(--radius-lg);
         color: var(--color-on-brand);
-        text-align: center;
 
         @include from-md {
             justify-content: center;
             padding: var(--space-5) var(--space-4);
         }
+    }
 
-        // „Rychlostní čárky“ z loga přes roh panelu
-        &::before {
-            content: '';
-            position: absolute;
-            top: var(--space-4);
-            left: var(--space-4);
-            width: var(--panel-lines-width);
-            height: var(--panel-lines-height);
-            background:
-                linear-gradient(var(--color-panel-lines), var(--color-panel-lines)) left top / 100% var(--panel-line-thickness) no-repeat,
-                linear-gradient(var(--color-panel-lines), var(--color-panel-lines)) left center / 70% var(--panel-line-thickness) no-repeat,
-                linear-gradient(var(--color-panel-lines), var(--color-panel-lines)) left bottom / 40% var(--panel-line-thickness) no-repeat;
-        }
+    // Maskot a název v řádku — značka, ne hlavní obsah panelu
+    &__brand {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
     }
 
     // Maskot na bílém kruhu — tělo je černé, na červené by zaniklo
     &__mascot {
-        width: var(--auth-mascot-size-mobile);
-        height: auto;
-        padding: var(--space-2);
+        flex: none;
+        width: var(--auth-brand-mascot-size);
+        height: var(--auth-brand-mascot-size);
+        padding: var(--space-1);
         background: var(--color-logo-bg);
         border-radius: 50%;
         box-shadow: var(--shadow-card-hover);
-
-        @include from-md {
-            width: var(--auth-mascot-size);
-        }
     }
 
     &__name {
-        font-size: var(--font-size-lg);
+        display: block;
+        font-size: var(--font-size-brand);
         font-weight: 900;
         letter-spacing: var(--letter-spacing-brand);
+        line-height: var(--line-height-heading);
     }
 
     &__tagline {
-        font-size: var(--font-size-card-title);
+        display: block;
+        font-size: var(--font-size-sm);
         font-weight: 700;
     }
 
-    // Přednosti jen na širším displeji — na mobilu stačí maskot a motto nad formulářem
-    &__benefits {
-        display: none;
-        margin: var(--space-3) 0 0;
-        padding: 0;
-        list-style: none;
-        text-align: left;
+    &__headline {
+        font-size: var(--font-size-auth-headline-mobile);
+        font-weight: 900;
+        letter-spacing: var(--letter-spacing-heading);
+        line-height: var(--line-height-heading);
 
         @include from-md {
-            display: flex;
-            flex-direction: column;
-            gap: var(--space-2);
+            font-size: var(--font-size-auth-headline);
         }
     }
 
-    &__benefit {
-        display: flex;
-        gap: var(--space-2);
+    // Úvodní věta, počet akcí a cenovky jen na širším displeji — na mobilu je nad formulářem
+    // jen nadpis a obchody, ať je formulář na první obrazovce
+    &__lead,
+    &__count,
+    &__deals {
+        display: none;
 
-        &::before {
-            content: '✓';
-            flex: none;
-            font-weight: 900;
+        @include from-md {
+            display: block;
         }
+    }
+
+    &__count-value {
+        font-size: var(--font-size-card-title);
+        font-weight: 900;
+    }
+
+    &__chains {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-1);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    &__deals-title {
+        margin-bottom: var(--space-2);
+        font-size: var(--font-size-xs);
+        font-weight: 800;
+        letter-spacing: var(--letter-spacing-caps);
+        text-transform: uppercase;
+    }
+}
+
+// Cenovky skutečných akcí v panelu — mírně natočené střídavě na obě strany jako v letáku
+.auth-deals {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.auth-deal {
+    display: grid;
+    grid-template-columns: var(--auth-deal-image-size) minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2);
+    background: var(--color-surface);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-card-hover);
+    color: var(--color-text);
+    transform: rotate(var(--auth-deal-tilt));
+
+    &:nth-child(even) {
+        transform: rotate(calc(-1 * var(--auth-deal-tilt)));
+    }
+
+    // Fotky obchodů jsou na bílém pozadí — bílé pole i v tmavém režimu
+    &__image {
+        width: var(--auth-deal-image-size);
+        height: var(--auth-deal-image-size);
+        padding: var(--space-1);
+        object-fit: contain;
+        background: var(--color-logo-bg);
+        border-radius: var(--radius-sm);
+    }
+
+    &__name {
+        display: -webkit-box;
+        overflow: hidden;
+        font-size: var(--font-size-sm);
+        font-weight: 700;
+        line-height: var(--line-height-heading);
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+    }
+
+    &__meta {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        margin-top: var(--space-1);
+    }
+
+    &__price {
+        color: var(--color-price);
+        font-weight: 900;
+    }
+
+    // Červená cenovka slevy jako přes obrázek v kartě akce
+    &__sticker {
+        padding: var(--space-1) var(--space-2);
+        background: var(--gradient-brand);
+        border-radius: var(--radius-sm);
+        color: var(--color-on-brand);
+        font-weight: 900;
+        white-space: nowrap;
+        transform: rotate(var(--sticker-rotation));
+    }
+}
+
+// Registrace: tři kroky cesty k prvním slevám nad nadpisem (R56)
+.auth-steps {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1) var(--space-3);
+    margin: 0 0 var(--space-3);
+    padding: 0;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+    list-style: none;
+
+    &__item {
+        display: flex;
+        align-items: center;
+        gap: var(--space-1);
+
+        &--current {
+            color: var(--color-accent-strong);
+        }
+    }
+
+    &__number {
+        display: grid;
+        place-items: center;
+        width: var(--auth-step-size);
+        height: var(--auth-step-size);
+        border: 1px solid var(--color-border);
+        border-radius: 50%;
+    }
+
+    &__item--current &__number {
+        background: var(--color-accent);
+        border-color: transparent;
+        color: var(--color-on-accent);
     }
 }

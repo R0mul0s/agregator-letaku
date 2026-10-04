@@ -1,5 +1,5 @@
 <!--
-    Přihlášení (Fortify, R12).
+    Přihlášení (Fortify, R12) — vedle formuláře panel se skutečnými akcemi (R56).
 
     @author Roman Hlaváček
     @created 2026-10-02
@@ -14,6 +14,8 @@ import { Head, Link, useForm } from '@inertiajs/vue3';
 
 const props = defineProps({
     urls: { type: Object, required: true },
+    /** Data panelu vedle formuláře (AuthShowcase.vue, R56). */
+    showcase: { type: Object, required: true },
 });
 
 const t = useTranslations();
@@ -36,14 +38,14 @@ function submit() {
     <AppLayout>
         <Head :title="t('auth.login.title')" />
 
-        <AuthShowcase>
+        <AuthShowcase :showcase="showcase">
             <section class="auth-card">
                 <h1 class="auth-card__title">{{ t('auth.login.title') }}</h1>
 
 
                 <form class="form" novalidate @submit.prevent="submit">
                     <TextField id="email" v-model="form.email" :label="t('auth.email')" type="email" autocomplete="username" required autofocus :error="form.errors.email" />
-                    <TextField id="password" v-model="form.password" :label="t('auth.password')" type="password" autocomplete="current-password" required :error="form.errors.password" />
+                    <TextField id="password" v-model="form.password" :label="t('auth.password')" type="password" autocomplete="current-password" required revealable :error="form.errors.password" />
                     <CheckboxField id="remember" v-model="form.remember" :label="t('auth.remember')" />
 
                     <div class="form__actions">
