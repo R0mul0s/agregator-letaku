@@ -259,7 +259,7 @@ Kaufland po prodejnách (R49). `composer.lock` se nezměnil.
 
 ### Aktualizace z `b2996c0` (šesté nasazení)
 
-Opravy a funkce z revize (R54–R62). `composer.lock` se nezměnil.
+Opravy a funkce z revize (R54–R64). `composer.lock` se nezměnil.
 
 1. **Záloha databáze**.
 2. **SQL:** v phpMyAdminu spusť `deploy/migrations-2026-10-04-nakupni-seznam.sql` (tabulka `shopping_list_items`, R61). Opakovatelný, stará verze kódu s ním běží dál. Nový stav `partial` (R54) a četnost `instant` (R58) jsou jen hodnoty v textových sloupcích.
