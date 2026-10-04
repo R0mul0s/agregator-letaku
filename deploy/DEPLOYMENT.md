@@ -302,8 +302,9 @@ a jeho závislosti), přibyla složka `resources/pwa` a obrázky v `public/image
 Hlavička na telefonu s celým logem a spodní lištou do šířky 799 px (R66), cenovka slevy na kartě
 bez obrázku nepřekrývá název; **revize před spuštěním (R67–R69)**: adresy z `APP_URL`, přesměrování
 `/public/…` a lomítka, odhlášení zařízení po změně hesla, hodinový limit e-mailů, SEO (titulky,
-Albert `noindex`, `security.txt`), GA bez tokenů v adrese, právní texty s datem účinnosti.
-Bez SQL skriptu, `composer.lock` se nezměnil, žádné soubory nezmizely. **Změnil se kořenový
+Albert `noindex`, `security.txt`), GA bez tokenů v adrese, právní texty s datem účinnosti;
+**katalog rozšířený na 206 produktů (R70)** — jediný SQL skript jsou data katalogu, schéma se
+nemění. `composer.lock` se nezměnil, žádné soubory nezmizely. **Změnil se kořenový
 `.htaccess`** (`deploy/root-htaccess-fallback`) — ten balíček nenahrává.
 
 1. **Nahraj `deploy/upload/`** bez `vendor/` (`composer.lock` je stejný); `public/build/` nejdřív smaž.
@@ -325,13 +326,19 @@ Bez SQL skriptu, `composer.lock` se nezměnil, žádné soubory nezmizely. **Zm�
 5. **Účty bez přijetí podmínek** (založené mezi prvním nasazením a R51, 2.–3. 10.) — v phpMyAdminu
    `SELECT id, email, created_at FROM users WHERE terms_accepted_at IS NULL;` Jsou-li mezi nimi cizí
    lidé, pošli jim podmínky e-mailem (souhlas se registrací nedali).
-6. Zapiš verzi do *Nasazené verze*.
+6. **Katalog (R70):** po záloze (*Záloha databáze*) pusť v phpMyAdminu
+   `deploy/data-2026-10-04-katalog-rozsireni.sql` — kdykoli, kód na něm nezávisí. Ověř
+   `SELECT COUNT(*) FROM products;` (206, víc jen s produkty přidanými v `/katalog`); akce se
+   k novým produktům přiřadí při dalším stažení každého obchodu.
+7. Zapiš verzi do *Nasazené verze* a datum ke skriptu v *Historii SQL skriptů*.
 
 **Každá nová migrace potřebuje SQL skript** `deploy/migrations-<datum>-<popis>.sql`
 (opakovatelný: `CREATE TABLE IF NOT EXISTS`, `ADD COLUMN IF NOT EXISTS`) včetně zápisu do
 tabulky `migrations` — ve stejném commitu jako migrace. Nové produkty katalogu jdou na
-produkci přidat ve správě katalogu, nebo skriptem `deploy/data-<datum>-katalog.sql`
-(`mariadb-dump --no-create-info --replace … products`).
+produkci přidat ve správě katalogu, nebo skriptem `deploy/data-<datum>-katalog-<popis>.sql`
+s `INSERT … ON DUPLICATE KEY UPDATE` podle jedinečného názvu a kategorií přes `source_id`
+(jako `data-2026-10-04-katalog-rozsireni.sql`) — `REPLACE` podle `id` by přepsal produkty,
+které admin na produkci přidal sám.
 
 ## Záloha databáze
 
@@ -357,6 +364,7 @@ a ruční opravy katalogu. Před každým SQL skriptem a jinak aspoň jednou mě
 | `migrations-2026-10-03-souhlasy.sql` | souhlasy (R51): `users.terms_accepted_at`, `terms_version`, `marketing_consent_at`, `marketing_consent_version`, `marketing_consent_withdrawn_at`; dosavadní účty označí jako ověřené (`email_verified_at`); opakovatelný, pustit **před** nahráním kódu | 2026-10-03 |
 | `migrations-2026-10-04-nakupni-seznam.sql` | nákupní seznam (R61): tabulka `shopping_list_items`; opakovatelný, pustit **před** nahráním kódu | 2026-10-04 |
 | `migrations-2026-10-04-upozorneni-v-telefonu.sql` | upozornění v telefonu (R66): tabulka `push_subscriptions`, `users.push_sent_at`; opakovatelný, pustit **před** nahráním kódu | 2026-10-04 |
+| `data-2026-10-04-katalog-rozsireni.sql` | rozšíření katalogu (R70): 42 nových produktů a nová pravidla šesti (Minerální voda, Džus, Prací prostředek, Salám, Ovesné vločky, Nealkoholické pivo); podle názvu, opakovatelný, nezávisí na kódu | — |
 
 ## Nasazené verze
 

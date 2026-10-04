@@ -27,7 +27,7 @@ Hotové jsou etapy 1–5g, zveřejnění (8), opravy a funkce z kritické revize
   Pojistky importu: nula akcí je chyba, podezřelý propad akce nestáhne (stav `partial`), zámek proti
   souběžnému stažení, prodlužování pokračujících akcí Billy (R54, R57); User-Agent bez `https://` (R65)
 - **Hlídání a Moje slevy (`/`):** Hlídám (`/hlidam`, produkt z katalogu nebo vlastní slova, R39, R47),
-  katalog 164 produktů se stromem Tesca a tabulkou pro admina (`/katalog`, R24, R28–R31, R37), sbalitelné
+  katalog 206 produktů se stromem Tesca a tabulkou pro admina (`/katalog`, R24, R28–R31, R37, R70), sbalitelné
   skupiny (R43), „Jsem v obchodě“ s kompaktními řádky (R55, R62), „Je to opravdu sleva?“ (R59)
 - **Všechny akce (`/akce`):** veřejné, našeptávač, výběr obchodu s logy, stránkování (R43, R44), „Hlídat“
   přímo z karty (R60); **nákupní seznam** (`/seznam`, R61)

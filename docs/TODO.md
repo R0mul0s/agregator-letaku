@@ -72,7 +72,7 @@ v [PLAN.md](PLAN.md). Větší celky se z toho stávají etapou.
 
 **Odkud:** etapa 5, R28–R30 v PLAN.md.
 
-- rozšiřovat katalog (R33, R37; dnes 164 produktů, ~52 % akcí) — hlavně o věci, které uživatelé hlídají vlastními slovy; „Celé kuře“ potřebuje pravidlo, které odliší „kuře“ od „kuřecí“
+- rozšiřovat katalog (R33, R37, R70; dnes 206 produktů, ~64 % akcí) — hlavně o věci, které uživatelé hlídají vlastními slovy, a sezónní (husa a kachna k Martinu, kapr na Vánoce, mák, prášek do pečiva a vanilkový cukr na cukroví — teď skoro bez akcí, pravidla nejdou ověřit); „Celé kuře“ potřebuje pravidlo, které odliší „kuře“ od „kuřecí“
 - zápis „celé slovo“ v pravidlech (např. `=rum`) — krátká slova jako začátek slova chytají i jiná slova („rum“ → „Rump“), dnes to řeší vyloučená slova
 - seznam **nepřiřazených akcí** v katalogu (potraviny bez produktu) jako podklad pro nové produkty; později třídění přes LLM (etapa 6)
 - akce Tesca mají v e-shopu i polici stromu (`superDepartmentName`, `departmentName`; regál a police jde doplnit do dotazu) — zařadit je do kategorií rovnou, bez pravidel

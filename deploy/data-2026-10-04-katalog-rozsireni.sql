@@ -1,0 +1,75 @@
+-- Slevohlídka — rozšíření katalogu (R70)
+--
+-- 42 nových produktů (rostlinné nápoje, dětská výživa, instantní nudle, koření, olivy,
+-- sýry, dezerty, sladkosti, likéry, cider, drogerie a úklid…) a nová pravidla šesti
+-- produktů, které obchody pojmenovávají jinak než druhovým slovem: Minerální voda,
+-- Džus, Prací prostředek, Salám, Ovesné vločky, Nealkoholické pivo.
+--
+-- Skript je OPAKOVATELNÝ: produkty se hledají podle jedinečného názvu (`products.name`),
+-- existující dostanou pravidla a kategorii z tohoto skriptu (ruční úpravy těchto 48
+-- produktů v /katalog přepíše). Kategorie podle `source_id` ze stromu Tesca
+-- (data-2026-10-02-katalog.sql). Přiřazení akcí (offer_product) dopočítá aplikace při
+-- dalším stažení akcí každého obchodu (cron); uložení produktu v /katalog ho přepočítá hned.
+--
+-- Vygenerováno z vývojové databáze po CatalogSeeder.
+--
+-- @author Roman Hlaváček
+-- @created 2026-10-04
+
+SET NAMES utf8mb4;
+
+INSERT INTO `products` (`name`, `keywords`, `variant_keywords`, `exclude_keywords`, `category_id`, `created_at`, `updated_at`) VALUES
+('Prací prostředek', 'prací|praní|persil|ariel|perwoll|lanza|bonux', NULL, 'myčk aviváž avivážní perličky parfém houbičk mikrohadřík odstraňovač pampers', (SELECT id FROM categories WHERE source_id = 'b;JUMzJTlBa2xpZCU3Q1ByYW4lQzMlQUQ='), NOW(), NOW()),
+('Salám', 'salám|poličan|vysočina|uherák|kmotrovky|lovecký|herkules|gothajský|čabajka|chorizo|fuet|kolbász|salami|salame', NULL, 'pizza příchu salámový', (SELECT id FROM categories WHERE source_id = 'b;TWFzbyUyMGElMjBsYWglQzUlQUZka3klN0NVemVuaW55JTIwYSUyMGxhaCVDNSVBRmRreQ=='), NOW(), NOW()),
+('Ovesné vločky', 'vločky ovesné|ovsa', NULL, 'příkrm hami kaše corny sunar kapsičk smoothie', (SELECT id FROM categories WHERE source_id = 'b;VHJ2YW5saXYlQzMlQTklN0NDZXJlJUMzJUExbGllLCUyMG0lQzMlQkNzbGklMjBhJTIwa2ElQzUlQTFl'), NOW(), NOW()),
+('Nealkoholické pivo', 'nealko|nealkoholické|birell', NULL, 'víno vína sekt nápoj mattoni cocktail mojito daiquiri beach republica střik guarana drwitt', (SELECT id FROM categories WHERE source_id = 'b;TiVDMyVBMXBvamUlN0NQaXZv'), NOW(), NOW()),
+('Minerální voda', 'minerální|pramenitá|perlivá|perlivý|neperlivá|sycená|nesycená|nesycený|kyselka|magnesia|vincentka', NULL, 'čaj tea víno vína sekt limonád kofola cola nápoj substrát', (SELECT id FROM categories WHERE source_id = 'b;TiVDMyVBMXBvamUlN0NWb2R5LCUyMG1pbmVyJUMzJUExbGt5JTIwYSUyMGZ1bmslQzQlOERuJUMzJUFEJTIwdm9keQ=='), NOW(), NOW()),
+('Džus', 'džus|nektar|šťáva|cappy|rauch|granini|pfanner|capri|relax|toma', NULL, 'příchu citronová maso masu pečeně nektarink sirup pyré svačink kapsičk čaj guláš čínu lemonade limonád relaxing relaxační tomat vložk sprchov espresso káva', (SELECT id FROM categories WHERE source_id = 'b;TiVDMyVBMXBvamUlN0NEJUM1JUJFdXN5LCUyMG5la3RhcnklMjBhJTIwb3ZvY24lQzMlQTklMjBuJUMzJUExcG9qZQ=='), NOW(), NOW()),
+('Rostlinný nápoj', 'nápoj sójový|ovesný|mandlový|rýžový|kokosový|rostlinný|ovesno', NULL, 'magu sycený', (SELECT id FROM categories WHERE source_id = 'b;U3BlY2klQzMlQTFsbiVDMyVBRCUyMHYlQzMlQkQlQzUlQkVpdmElN0NWZWdldGFyaSVDMyVBMW5zayVDMyVBOSUyMGElMjB2ZWdhbnNrJUMzJUE5JTdDTWFuYSUyMGElMjByb3N0bGlubiVDMyVBOSUyMG4lQzMlQTFwb2pl'), NOW(), NOW()),
+('Dětská výživa', 'příkrm|přesnídávka|přesnídavka|kašička|hami|sunar|gerber|hipp|nutrilon|bebivita|bebevita|smootík|beba', NULL, 'babysanft ubrousky šampon koupel pleťov sprchov', (SELECT id FROM categories WHERE source_id = 'b;RCVDMyVBRHQlQzQlOUIlN0NTdHJhdmElMjBwcm8lMjBkJUM0JTlCdGk='), NOW(), NOW()),
+('Instantní nudle', 'nudle|yum|oyakata|ramen', NULL, 'nudlemi vaječné semolinové zátkovy těstoviny polévka bebivita babiččiny celestýnské', (SELECT id FROM categories WHERE source_id = 'b;VHJ2YW5saXYlQzMlQTklN0NJbnN0YW50biVDMyVBRCUyMGolQzMlQURkbGElMjBhJTIwcG9sJUMzJUE5dmt5JTdDSW5zdGFudG4lQzMlQUQlMjBqJUMzJUFEZGxh'), NOW(), NOW()),
+('Ovesná kaše', 'kaše ovesná', NULL, 'gerber', (SELECT id FROM categories WHERE source_id = 'b;VHJ2YW5saXYlQzMlQTklN0NDZXJlJUMzJUExbGllLCUyMG0lQzMlQkNzbGklMjBhJTIwa2ElQzUlQTFlJTdDT3Zlc24lQzMlQTksJTIwcHJvdGVpbm92JUMzJUE5JTIwYSUyMGRhbCVDNSVBMSVDMyVBRCUyMGthJUM1JUExZQ=='), NOW(), NOW()),
+('Bujón a vývar', 'bujón|bujon|masox|vývar', NULL, 'hami příkrm', (SELECT id FROM categories WHERE source_id = 'b;VHJ2YW5saXYlQzMlQTklN0NJbnN0YW50biVDMyVBRCUyMGolQzMlQURkbGElMjBhJTIwcG9sJUMzJUE5dmt5JTdDQnVqJUMzJUIzbnk='), NOW(), NOW()),
+('Koření', 'koření|kotányi|pepř|kmín|majoránka|oregano|kurkuma|bobkový|provensálské|skořice|muškátový|hřebíček', NULL, 'vroubky chips chipsy brambůrk snack příchu krekr salám pepři pepřem kaše čaj čistič peprmint pepřenky hermelín camembert chléb kmínový kečup omáčka tyčinky tyčina koleno twistky mysli müsli kuličky svačinka oveska plátky', (SELECT id FROM categories WHERE source_id = 'b;VHJ2YW5saXYlQzMlQTklN0NTJUM1JUFGbCwlMjBjdWtyJTIwYSUyMGtvJUM1JTk5ZW4lQzMlQUQlN0NTdSVDNSVBMWVuJUMzJUE5JTIwa28lQzUlOTllbiVDMyVBRA=='), NOW(), NOW()),
+('Olivy', 'olivy', NULL, 'olej', (SELECT id FROM categories WHERE source_id = 'b;VHJ2YW5saXYlQzMlQTklN0NLb256ZXJ2b3ZhbiVDMyVBOSUyMHBvdHJhdmlueSU3Q0tvbnplcnZvdmFuJUMzJUExJTIwYSUyMG5ha2wlQzMlQTFkYW4lQzMlQTElMjB6ZWxlbmluYQ=='), NOW(), NOW()),
+('Passata a protlak', 'rajčat pasírovan|protlak|loupan|passata|drcen', NULL, 'omáčk rýže', (SELECT id FROM categories WHERE source_id = 'b;VHJ2YW5saXYlQzMlQTklN0NEcmVzaW5reSUyMGElMjBvbSVDMyVBMSVDNCU4RGt5JTdDS2UlQzQlOER1cHklMjBhJTIwcHJvdGxha3k='), NOW(), NOW()),
+('Omáčka na těstoviny', 'omáčka rajčatová|bazalkou|arrabbiata|napoletana|boloňská|bolognese|basilico', NULL, 'pesto patak tikka', (SELECT id FROM categories WHERE source_id = 'b;VHJ2YW5saXYlQzMlQTklN0NEcmVzaW5reSUyMGElMjBvbSVDMyVBMSVDNCU4RGt5JTdDT20lQzMlQTElQzQlOERreSUyMGElMjBtYXJpbiVDMyVBMWR5'), NOW(), NOW()),
+('Pesto', 'pesto', NULL, 'pizza', (SELECT id FROM categories WHERE source_id = 'b;VHJ2YW5saXYlQzMlQTklN0NEcmVzaW5reSUyMGElMjBvbSVDMyVBMSVDNCU4RGt5JTdDT20lQzMlQTElQzQlOERreSUyMGElMjBtYXJpbiVDMyVBMWR5'), NOW(), NOW()),
+('Čerstvý sýr', 'gervais|lučina|žervé|philadelphia|ricotta|kiri', NULL, 'chips příchu těstoviny plněná křup', (SELECT id FROM categories WHERE source_id = 'b;TWwlQzMlQTklQzQlOERuJUMzJUE5LCUyMHZlamNlJTIwYSUyMG1hcmdhciVDMyVBRG55JTdDUyVDMyVCRHJ5JTIwYSUyMHR2YXJvaHklN0NDb3R0YWdlJTIwYSUyMCVDNCU4RGVyc3R2JUMzJUE5JTIwcyVDMyVCRHJ5JTdDJUM0JThDZXJzdHYlQzMlQTklMjBzJUMzJUJEcnk='), NOW(), NOW()),
+('Parenica, korbáčiky a bryndza', 'parenica|oštiepok|pološtiepok|korbáčik|korbáčiky|nitky|guločky|bryndza', NULL, NULL, (SELECT id FROM categories WHERE source_id = 'b;TWwlQzMlQTklQzQlOERuJUMzJUE5LCUyMHZlamNlJTIwYSUyMG1hcmdhciVDMyVBRG55JTdDUyVDMyVCRHJ5JTIwYSUyMHR2YXJvaHklN0NQdWx0b3YlQzMlQTklMjBzJUMzJUJEcnklN0NVemVuJUMzJUE5JTIwcHVsdG92JUMzJUE5JTIwcyVDMyVCRHJ5'), NOW(), NOW()),
+('Balkánský sýr a feta', 'balkánský|feta|salakis', NULL, NULL, (SELECT id FROM categories WHERE source_id = 'b;TWwlQzMlQTklQzQlOERuJUMzJUE5LCUyMHZlamNlJTIwYSUyMG1hcmdhciVDMyVBRG55JTdDUyVDMyVCRHJ5JTIwYSUyMHR2YXJvaHklN0NNb3phcmVsbGEsJTIwUmljb3R0YSUyMGElMjBTYWwlQzMlQTF0b3YlQzMlQTklMjBzJUMzJUJEcnklN0NTYWwlQzMlQTF0b3YlQzMlQTklMjBzJUMzJUJEcnksJTIwQmFsayVDMyVBMW5zayVDMyVCRCUyMHMlQzMlQkRy'), NOW(), NOW()),
+('Niva', 'niva|gorgonzola|roquefort', NULL, NULL, (SELECT id FROM categories WHERE source_id = 'b;TWwlQzMlQTklQzQlOERuJUMzJUE5LCUyMHZlamNlJTIwYSUyMG1hcmdhciVDMyVBRG55JTdDUyVDMyVCRHJ5JTIwYSUyMHR2YXJvaHklN0NQbCVDMyVBRHMlQzUlODhvdiVDMyVBOSUyMGElMjB6cmFqJUMzJUFEY2klMjBzJUMzJUJEcnklN0NTJUMzJUJEcnklMjBzJTIwbW9kcm91JTIwcGwlQzMlQURzbiVDMyVBRA=='), NOW(), NOW()),
+('Mléčný dezert', 'dezert|monte|termix|pribináček', NULL, 'pes psy kočk zmrzlin mražen montepulciano tyčinka', (SELECT id FROM categories WHERE source_id = 'b;TWwlQzMlQTklQzQlOERuJUMzJUE5LCUyMHZlamNlJTIwYSUyMG1hcmdhciVDMyVBRG55JTdDSm9ndXJ0eSUyMGElMjBkZXplcnR5JTdDTWwlQzMlQTklQzQlOERuJUMzJUE5JTIwZGV6ZXJ0eQ=='), NOW(), NOW()),
+('Mléčná rýže a krupička', 'mléčná rýže|krupička|riso', NULL, NULL, (SELECT id FROM categories WHERE source_id = 'b;TWwlQzMlQTklQzQlOERuJUMzJUE5LCUyMHZlamNlJTIwYSUyMG1hcmdhciVDMyVBRG55JTdDSm9ndXJ0eSUyMGElMjBkZXplcnR5JTdDTWwlQzMlQTklQzQlOERuJUMzJUExJTIwciVDMyVCRCVDNSVCRWUlMjBhJTIwa3J1cGljZQ=='), NOW(), NOW()),
+('Proteinová tyčinka', 'tyčinka|tyčinky|bar protein|proteinov', NULL, NULL, (SELECT id FROM categories WHERE source_id = 'b;U3BlY2klQzMlQTFsbiVDMyVBRCUyMHYlQzMlQkQlQzUlQkVpdmElN0NQcm90ZWlueSU3Q1Byb3RlaW5vdiVDMyVBOSUyMHR5JUM0JThEaW5reQ=='), NOW(), NOW()),
+('Proteinové dezerty a nápoje', 'protein', NULL, 'tyčink bar müsli mysli ořechy chléb bread sendvič vločky kaše crunchy sýr plátky hermelín madeland emco corny', (SELECT id FROM categories WHERE source_id = 'b;U3BlY2klQzMlQTFsbiVDMyVBRCUyMHYlQzMlQkQlQzUlQkVpdmElN0NQcm90ZWlueSU3Q1Byb3RlaW5vdiVDMyVBOSUyMGRyaW5reQ=='), NOW(), NOW()),
+('Knedlíky', 'knedlík|knedle', NULL, NULL, (SELECT id FROM categories WHERE source_id = 'b;TXJhJUM1JUJFZW4lQzMlQTklN0NNcmElQzUlQkVlbiVDMyVBOSUyMHBvbG90b3ZhcnklMjBhJTIwaG90b3YlQzMlQTElMjBqJUMzJUFEZGxhJTdDTXJhJUM1JUJFZW4lQzMlQTklMjBrbmVkbCVDMyVBRGt5JTIwYSUyMHNsYWRrJUMzJUExJTIwaiVDMyVBRGRsYQ=='), NOW(), NOW()),
+('Zelí', 'zelí', NULL, 'knedlík bageta', (SELECT id FROM categories WHERE source_id = 'b;VHJ2YW5saXYlQzMlQTklN0NLb256ZXJ2b3ZhbiVDMyVBOSUyMHBvdHJhdmlueSU3Q0tvbnplcnZvdmFuJUMzJUExJTIwYSUyMG5ha2wlQzMlQTFkYW4lQzMlQTElMjB6ZWxlbmluYQ=='), NOW(), NOW()),
+('Sterilované okurky', 'okurky', NULL, 'hadovk salátov nápoj antiperspirant', (SELECT id FROM categories WHERE source_id = 'b;VHJ2YW5saXYlQzMlQTklN0NLb256ZXJ2b3ZhbiVDMyVBOSUyMHBvdHJhdmlueSU3Q0tvbnplcnZvdmFuJUMzJUExJTIwYSUyMG5ha2wlQzMlQTFkYW4lQzMlQTElMjB6ZWxlbmluYQ=='), NOW(), NOW()),
+('Želé bonbony', 'želé|haribo|pedro|gumové|gumídci|žvýkací|wummis|jelly', NULL, 'zelen zelí maska mask noční pečivo čokopiškoty kladivo těsnění creatine studentská', (SELECT id FROM categories WHERE source_id = 'b;VHJ2YW5saXYlQzMlQTklN0NTbGFka29zdGklMjBhJTIwY3Vrcm92aW5reSU3Q0JvbmIlQzMlQjNueSUyMGElMjBsJUMzJUFEeiVDMyVBMXRrYQ=='), NOW(), NOW()),
+('Slané tyčinky a krekry', 'tyčinky|kreksy|krekry|krekr|preclík|hradecké|bake|crackers|tuc|pom-bär|křupky', NULL, 'vatové bavlněné tučný zmrzlina makronky čokolád surimi mozzarell ovesné lupínky gerber sunar ella kiddylicious goodies praskací', (SELECT id FROM categories WHERE source_id = 'b;VHJ2YW5saXYlQzMlQTklN0NTbGFuJUMzJUE5JTIwc25hY2t5JTdDS3Jla3J5JTIwYSUyMHNuYWNreQ=='), NOW(), NOW()),
+('Popcorn', 'popcorn', NULL, NULL, (SELECT id FROM categories WHERE source_id = 'b;VHJ2YW5saXYlQzMlQTklN0NTbGFuJUMzJUE5JTIwc25hY2t5JTdDUG9wY29ybg=='), NOW(), NOW()),
+('Pomazánka', 'pomazánka|pomazánky', NULL, 'lískooříšk biscoff ovocná jahodová snickers milka nutella', (SELECT id FROM categories WHERE source_id = 'b;TWFzbyUyMGElMjBsYWglQzUlQUZka3klN0NVemVuaW55JTIwYSUyMGxhaCVDNSVBRmRreSU3Q1BvbWF6JUMzJUExbmt5'), NOW(), NOW()),
+('Cereálie', 'cereálie|cornflakes|flakes|polštářky|čtverečky|kuličky', NULL, 'masové wc domestos veganské activia sušenky cereáliemi kostíci marlenka stripsy ovocné', (SELECT id FROM categories WHERE source_id = 'b;VHJ2YW5saXYlQzMlQTklN0NDZXJlJUMzJUExbGllLCUyMG0lQzMlQkNzbGklMjBhJTIwa2ElQzUlQTFlJTdDQ2VyZSVDMyVBMWxpZSUyMGElMjBrdWt1JUM1JTk5aSVDNCU4RG4lQzMlQTklMjBsdXAlQzMlQURua3k='), NOW(), NOW()),
+('Žvýkačky', 'žvýkačky|žvýkačka|airwaves|orbit|mentos|stimorol|freedent', NULL, NULL, (SELECT id FROM categories WHERE source_id = 'b;VHJ2YW5saXYlQzMlQTklN0NTbGFka29zdGklMjBhJTIwY3Vrcm92aW5reSU3QyVDNSVCRHYlQzMlQkRrYSVDNCU4RGt5'), NOW(), NOW()),
+('Perník', 'perník|perníčky', NULL, 'směs kypřicí', (SELECT id FROM categories WHERE source_id = 'b;VHJ2YW5saXYlQzMlQTklN0NTbGFka29zdGklMjBhJTIwY3Vrcm92aW5reSU3Q1Blcm4lQzMlQURreQ=='), NOW(), NOW()),
+('Piškoty', 'piškoty', NULL, NULL, (SELECT id FROM categories WHERE source_id = 'b;VHJ2YW5saXYlQzMlQTklN0NTbGFka29zdGklMjBhJTIwY3Vrcm92aW5reSU3Q1BpJUM1JUExa290eQ=='), NOW(), NOW()),
+('Likér', 'likér|baileys|peprmint|griotka|griotte|jägermeister|amaretto|limoncello|vaječný', NULL, 'likérov likérem zakysaná campari elixir salát pomazánk těstoviny', (SELECT id FROM categories WHERE source_id = 'b;TiVDMyVBMXBvamUlN0NMaWhvdmlueSU3Q0xpayVDMyVBOXJ5JTIwYSUyMG1lZG92aW5h'), NOW(), NOW()),
+('Fernet', 'fernet', NULL, NULL, (SELECT id FROM categories WHERE source_id = 'b;TiVDMyVBMXBvamUlN0NMaWhvdmlueSU3Q09zdGF0biVDMyVBRCUyMGxpaG92aW55'), NOW(), NOW()),
+('Aperol a Campari', 'aperol|campari', NULL, NULL, (SELECT id FROM categories WHERE source_id = 'b;TiVDMyVBMXBvamUlN0NMaWhvdmlueSU3Q09zdGF0biVDMyVBRCUyMGxpaG92aW55'), NOW(), NOW()),
+('Cider', 'cider|cidre|cidr|somersby|strongbow|kingswood', NULL, NULL, (SELECT id FROM categories WHERE source_id = 'b;TiVDMyVBMXBvamUlN0NQaXZvJTdDQ2lkZXI='), NOW(), NOW()),
+('Míchané alkoholické nápoje', 'koktejl|cocktail|margarita|spritz|libre|mojito|colada|pornstar|daiquiri', NULL, 'nealko ovocný sirup krevet okurky energy', (SELECT id FROM categories WHERE source_id = 'b;TiVDMyVBMXBvamUlN0NMaWhvdmlueSU3Q0tva3Rlamx5JTIwYSUyMG0lQzMlQURjaGFuJUMzJUE5JTIwbiVDMyVBMXBvamU='), NOW(), NOW()),
+('Osvěžovač vzduchu', 'osvěžovač|glade|wick|ambi|difuzér', NULL, 'konvice pánev svíčka', (SELECT id FROM categories WHERE source_id = 'b;JUMzJTlBa2xpZCU3Q1YlQzUlQUZuJUM0JTlCJTIwZG9tb3ZhJTdDT3N2JUM0JTlCJUM1JUJFb3ZhJUM0JThEZSUyMHZ6ZHVjaHU='), NOW(), NOW()),
+('Barva na vlasy', 'barva|barvení|color|palette|casting vlasy|vlasů', NULL, 'šampon shampoo kondicionér kříd', (SELECT id FROM categories WHERE source_id = 'b;RHJvZ2VyaWUlN0NQJUMzJUE5JUM0JThEZSUyMG8lMjB2bGFzeSU3Q0JhcnZ5JTIwbmElMjB2bGFzeQ=='), NOW(), NOW()),
+('Kondicionér na vlasy', 'kondicionér|balzám', NULL, 'rty ruce kapesník kaštanem mixa', (SELECT id FROM categories WHERE source_id = 'b;RHJvZ2VyaWUlN0NQJUMzJUE5JUM0JThEZSUyMG8lMjB2bGFzeSU3Q0tvbmRpY2lvbiVDMyVBOXJ5'), NOW(), NOW()),
+('Krém na ruce', 'krém ruce|ruky', NULL, NULL, (SELECT id FROM categories WHERE source_id = 'b;RHJvZ2VyaWUlN0NQJUMzJUE5JUM0JThEZSUyMG8lMjB0JUM0JTlCbG8lN0NQJUMzJUE5JUM0JThEZSUyMG8lMjBydWNlJTIwYSUyMG5vaHklN0NLciVDMyVBOW15JTIwbmElMjBydWNl'), NOW(), NOW()),
+('Tělové mléko a krém', 'tělové|tělový', NULL, 'deodorant', (SELECT id FROM categories WHERE source_id = 'b;RHJvZ2VyaWUlN0NQJUMzJUE5JUM0JThEZSUyMG8lMjB0JUM0JTlCbG8lN0NUJUM0JTlCbG92JUMzJUExJTIwbWwlQzMlQTlrYSUyMGElMjBrciVDMyVBOW15'), NOW(), NOW()),
+('Mop, houbičky a hadříky', 'mop|vileda|spontex|smeták|houbičk|hadr', NULL, 'vysavač prkno sušák rukavice svíčka', (SELECT id FROM categories WHERE source_id = 'b;JUMzJTlBa2xpZCU3QyVDNCU4Q2klQzUlQTF0JUM0JTlCbiVDMyVBRCU3Q1BvdCVDNSU5OWVieSUyMGElMjB2eWJhdmVuJUMzJUFE'), NOW(), NOW()),
+('Vonné perličky', 'perličky', NULL, 'cukrov zdob', (SELECT id FROM categories WHERE source_id = 'b;JUMzJTlBa2xpZCU3Q1ByYW4lQzMlQUQlN0NEb3BsJUM1JTg4a3klMjBrJTIwcHJhbiVDMyVBRA=='), NOW(), NOW()),
+('Odstraňovač skvrn', 'skvrn|vanish', NULL, 'ariel', (SELECT id FROM categories WHERE source_id = 'b;JUMzJTlBa2xpZCU3Q1ByYW4lQzMlQUQlN0NPZHN0cmElQzUlODhvdmElQzQlOERlJTIwc2t2cm4lMjBhJTIwZG9wbCVDNSU4OGt5JTIwbmElMjBwcmFuJUMzJUFE'), NOW(), NOW())
+ON DUPLICATE KEY UPDATE
+    `keywords` = VALUES(`keywords`),
+    `variant_keywords` = VALUES(`variant_keywords`),
+    `exclude_keywords` = VALUES(`exclude_keywords`),
+    `category_id` = VALUES(`category_id`),
+    `updated_at` = NOW();
