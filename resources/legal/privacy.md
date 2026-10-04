@@ -135,6 +135,7 @@ snadno jako přijmout.
 | `slevohlidka-consent` | cookie | vaše volba cookies | 6 měsíců |
 | `letaky-theme` | localStorage | zvolený světlý nebo tmavý vzhled | do smazání v prohlížeči |
 | `slevohlidka.home.expanded` | localStorage | které skupiny v Mých slevách máte rozbalené | do smazání v prohlížeči |
+| `slevohlidka.home.rows` | localStorage | v Mých slevách po výběru obchodu akce jako řádky, nebo karty | do smazání v prohlížeči |
 
 **Analytické (se souhlasem)** — Google Analytics 4
 

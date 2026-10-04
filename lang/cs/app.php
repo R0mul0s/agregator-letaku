@@ -532,6 +532,8 @@ return [
             'empty' => 'Seznam je prázdný. Akce do něj přidáte tlačítkem „Do seznamu“ v Mých slevách nebo ve Všech akcích.',
             'add' => '+ Do seznamu',
             'added' => '✓ V seznamu',
+            // Kompaktní řádek (R62): tlačítko jen s ikonou, stav nese aria-pressed
+            'add_label' => 'Nákupní seznam',
             'remove' => 'Odebrat :name ze seznamu',
             'check' => 'Koupeno: :name',
             'expired' => 'akce skončila',
@@ -563,6 +565,9 @@ return [
             'count' => ':count akce|:count akce|:count akcí',
             'edit_watch_items' => 'Upravit hlídané',
             'chain_filter' => 'Jsem v obchodě',
+            // V obchodě akce jako řádky, nebo karty s obrázkem (R62)
+            'view_rows' => 'Zobrazit řádky',
+            'view_cards' => 'Zobrazit karty',
             'expand_all' => 'Rozbalit vše',
             'collapse_all' => 'Sbalit vše',
             'sorted_by' => 'Řazeno od :sort',

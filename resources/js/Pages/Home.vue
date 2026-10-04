@@ -93,6 +93,25 @@ function onChainChange() {
     filterCollapsedIds.value = new Set();
 }
 
+/** Klíč v localStorage: v obchodě akce jako řádky (výchozí), nebo karty (R62). */
+const ROWS_STORAGE_KEY = 'slevohlidka.home.rows';
+
+/** Po výběru obchodu akce jako kompaktní řádky — v obchodě se míň posouvá (R62). */
+const rowsInStore = ref(true);
+
+/** Řádky se ukazují jen s vybraným obchodem; bez něj jsou karty s obrázkem. */
+const compact = computed(() => chainFilter.value !== '' && rowsInStore.value);
+
+/** Přepne řádky a karty a zapamatuje si volbu; bez localStorage platí do zavření stránky. */
+function toggleRows() {
+    rowsInStore.value = !rowsInStore.value;
+    try {
+        localStorage.setItem(ROWS_STORAGE_KEY, rowsInStore.value ? '1' : '0');
+    } catch {
+        // volba platí jen do zavření stránky
+    }
+}
+
 /** Uloží rozbalené skupiny; bez přístupu k localStorage (anonymní okno) se stav jen nezapamatuje. */
 function saveExpanded() {
     try {
@@ -146,6 +165,7 @@ function toggleAll() {
 onMounted(async () => {
     try {
         expandedIds.value = new Set(JSON.parse(localStorage.getItem(EXPANDED_STORAGE_KEY) ?? '[]'));
+        rowsInStore.value = localStorage.getItem(ROWS_STORAGE_KEY) !== '0';
     } catch {
         expandedIds.value = new Set();
     }
@@ -222,6 +242,10 @@ onMounted(async () => {
                     :all-label="t('offers.all_chains')"
                     @change="onChainChange"
                 />
+                <!-- V obchodě řádky, nebo karty s obrázkem (R62) -->
+                <button v-if="chainFilter" type="button" class="button button--ghost" @click="toggleRows">
+                    {{ rowsInStore ? t('home.view_cards') : t('home.view_rows') }}
+                </button>
                 <button type="button" class="button button--ghost" @click="toggleAll">
                     {{ allExpanded ? t('home.collapse_all') : t('home.expand_all') }}
                 </button>
@@ -233,6 +257,7 @@ onMounted(async () => {
                 :digest-frequency="digestFrequency"
                 :digest-url="urls.digest"
                 :expanded="isExpanded(item.id)"
+                :compact="compact"
                 @update:expanded="(value) => setExpanded(item.id, value)"
             />
         </template>

@@ -8,6 +8,7 @@
 <script setup>
 import MentionCard from '@/Components/MentionCard.vue';
 import OfferCard from '@/Components/OfferCard.vue';
+import OfferRow from '@/Components/OfferRow.vue';
 import ShoppingToggle from '@/Components/ShoppingToggle.vue';
 import { formatPrice } from '@/lib/format';
 import { confirmDialog } from '@/lib/confirm';
@@ -23,6 +24,8 @@ const props = defineProps({
     digestFrequency: { type: String, default: null },
     /** Nastavení souhrnu v účtu. */
     digestUrl: { type: String, required: true },
+    /** Akce jako kompaktní řádky místo karet — „Jsem v obchodě“ (R62). */
+    compact: { type: Boolean, default: false },
 });
 
 /** Rozbalená skupina (řídí stránka — pamatuje si stav a umí rozbalit vše). */
@@ -108,7 +111,10 @@ async function remove() {
                         </span>
                     </p>
                 </div>
-                <div v-if="item.offers.length" class="offer-grid">
+                <ul v-if="item.offers.length && compact" class="offer-rows">
+                    <OfferRow v-for="offer in item.offers" :key="offer.id" :offer="offer" />
+                </ul>
+                <div v-else-if="item.offers.length" class="offer-grid">
                     <OfferCard v-for="offer in item.offers" :key="offer.id" :offer="offer">
                         <ShoppingToggle :offer-id="offer.id" />
                     </OfferCard>

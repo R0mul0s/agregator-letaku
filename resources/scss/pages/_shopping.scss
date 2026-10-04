@@ -94,3 +94,63 @@
         color: var(--color-success-text);
     }
 }
+
+// „Jsem v obchodě“ (R62): akce jako kompaktní řádky místo karet s obrázkem
+.offer-rows {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.offer-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: var(--shopping-row-min-height);
+    padding: var(--space-2) 0;
+    border-top: 1px solid var(--color-border);
+
+    &:first-child {
+        border-top: 0;
+    }
+
+    &__name {
+        font-weight: 700;
+        line-height: var(--line-height-heading);
+    }
+
+    &__meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0 var(--space-2);
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+    }
+
+    &__prices {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+    }
+
+    &__price {
+        color: var(--color-price);
+        font-weight: 900;
+        white-space: nowrap;
+    }
+
+    &__discount {
+        color: var(--color-accent-strong);
+        font-size: var(--font-size-xs);
+        font-weight: 800;
+    }
+}
+
+// Tlačítko jen s ikonou v řádku — čtverec, dost velký pro palec
+.shopping-toggle--compact {
+    width: var(--shopping-check-target);
+    min-height: var(--shopping-check-target);
+    padding: 0;
+    font-size: var(--font-size-md);
+}

@@ -47,7 +47,8 @@ Hotové jsou etapy 1–5g (PLAN.md, kap. 6):
   UX z revize — nový účet sleduje všechny obchody a jde do Hlídám, „Jsem v obchodě“ v Mých slevách,
   menší pruh na telefonu, „Možná“ klepnutím, manifest pro plochu telefonu (R55); registrace
   a přihlášení se skutečnými akcemi a heslem jen jednou s tlačítkem Ukázat (R56); zámek stažení (R57),
-  okamžité upozornění (R58), „Je to opravdu sleva?“ (R59), „Hlídat“ z karty (R60), nákupní seznam (R61)
+  okamžité upozornění (R58), „Je to opravdu sleva?“ (R59), „Hlídat“ z karty (R60), nákupní seznam (R61),
+  kompaktní řádky „Jsem v obchodě“ (R62)
 
 Produkce běží na `https://slevohlidka.rhsoft.cz` (nasazeno 2026-10-02, naposledy `b2996c0` 2026-10-03);
 postup aktualizace a nasazené verze jsou v `deploy/DEPLOYMENT.md`. Sleduje se 7 obchodů; Makro
