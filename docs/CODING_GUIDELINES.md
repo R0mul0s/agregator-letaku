@@ -1,10 +1,10 @@
 <!--
-  Pravidla pro psaní kódu — Agregátor letáků
+  Pravidla pro psaní kódu — Slevohlídka
   @author Roman Hlaváček
   @created 2026-10-02
 -->
 
-# Coding Guidelines — Agregátor letáků
+# Coding Guidelines — Slevohlídka
 
 Tento dokument je závazný pro všechny úpravy v repozitáři. Vychází z pravidel
 projektu Počasí, upravených na scrapery obchodů a uživatelské účty.
@@ -124,11 +124,11 @@ Eloquent model                 ← perzistence
 
 ### Zdroje dat obchodů (scrapery)
 - **Každý obchod = jedna třída zdroje** v `app/Domain/Sources/<Obchod>`, implementuje společné rozhraní a vrací kolekci `OfferData` (DTO, `readonly`). Zdroj neukládá do DB a neví o uživatelích.
-- **HTTP výhradně přes `Http::` facade Laravelu** s timeoutem, retry a User-Agentem z konfigurace. Žádný `file_get_contents` ani curl.
+- **HTTP výhradně přes `Http::` facade Laravelu** s timeoutem, retry a User-Agentem z konfigurace. Žádný `file_get_contents` ani curl. User-Agent je identifikovatelný, ale **bez adresy se schématem** (`+slevohlidka.rhsoft.cz`, ne `https://…`) — Albert jinak požadavek pošle přes prerender pro roboty a vrátí 400 ([R65](PLAN.md#8-log-rozhodnutí)).
 - URL, hlavičky, pauzy mezi požadavky a API klíče jsou v `config/letaky.php` (klíče v `.env`). V kódu zdroje nejsou natvrdo.
 - **Mezi požadavky na stejný obchod je pauza** (`config('letaky.request_delay_ms')`). Respektuj robots.txt, viz [ZDROJE_DAT.md](ZDROJE_DAT.md).
 - Parsování odpovědi je samostatná metoda nebo třída, která přijímá řetězec nebo pole. Kvůli testům s fixtures nesmí sama stahovat.
-- **Neočekávaný tvar odpovědi = výjimka**, ne prázdná kolekce. Nula položek se zapíše do `scrape_runs` jako chyba.
+- **Neočekávaný tvar odpovědi = výjimka**, ne prázdná kolekce. Nula položek se zapíše do `scrape_runs` jako chyba (výjimkou je jen obchod s `mentions_only`). Podezřele velký propad akcí oproti minulému stažení akce nestáhne a stažení skončí jako `partial`; stažení obchodu drží zámek, souběžné neběží ([R54](PLAN.md#8-log-rozhodnutí), [R57](PLAN.md#8-log-rozhodnutí)).
 - Původní položka se ukládá do `offers.raw`, aby se data dala přepočítat bez nového stažení.
 
 ### Normalizace dat od obchodů
@@ -180,6 +180,8 @@ Eloquent model                 ← perzistence
 ### Migrace
 - **Každá změna schématu = nová migrace.** Nikdy se neupravuje migrace, která už běžela na produkci.
 - Každá migrace má funkční `down()`.
+- **Každá migrace má ve stejném commitu SQL skript** `deploy/migrations-<datum>-<popis>.sql` — opakovatelný (`IF NOT EXISTS`), se zápisem do `migrations`, schéma shodné s výsledkem `migrate` (`SHOW CREATE TABLE`). Na produkci není SSH ani composer, skript se pouští v phpMyAdminu ([R20](PLAN.md#8-log-rozhodnutí), [DEPLOYMENT.md](../deploy/DEPLOYMENT.md)).
+- Nová hodnota enumu v textovém sloupci (stav stažení, četnost souhrnu) migraci ani skript nepotřebuje.
 - Sloupce s cenou mají `comment()` s jednotkou („haléře“).
 
 ### Datové typy a pojmenování
@@ -203,6 +205,11 @@ Eloquent model                 ← perzistence
 - Ceny, čísla a datumy formátuje `resources/js/lib/format.js` (`Intl`, haléře → Kč). Nikdy se neskládají ručně.
 - Data do stránky připravuje server. Komponenta nepočítá ceny za jednotku ani nefiltruje velké seznamy (výjimka: malé seznamy pro admina, např. ~160 produktů katalogu, se filtrují a řadí v prohlížeči).
 - Sdílená data Inertie (`HandleInertiaRequests::share`) nesmí mít stejný klíč jako prop stránky — prop stránky ho přepíše.
+- **Zpětná vazba:** uložení potvrzuje toast (kód stavu ze serveru, [R47](PLAN.md#8-log-rozhodnutí)), nevratnou akci vlastní potvrzovací okno (`confirmDialog`), nikdy `window.confirm`.
+- **Nastavení se ukládá hned po změně** (přepínače, výběry, zaškrtávátka) a posílá celý stav, aby při překryvu požadavků vyhrál poslední; tlačítko Uložit mají jen formuláře, kde se píše ([R63](PLAN.md#8-log-rozhodnutí), [R64](PLAN.md#8-log-rozhodnutí)). Heslo se k nebezpečné akci zadává až po klepnutí.
+- **Vysvětlivka nesmí být jen v `title`** — na dotykovém displeji se neukáže. Štítek s vysvětlením je tlačítko s ikonou „i“ (`InfoIcon`) a textem pod ním ([R55](PLAN.md#8-log-rozhodnutí)).
+- Tlačítko, které jen přepíná stav (do seznamu, hlídat), ukáže nový stav hned po klepnutí a server ho potvrdí — na pomalém mobilním připojení by jinak druhé klepnutí narazilo na zablokované tlačítko ([R62](PLAN.md#8-log-rozhodnutí)).
+- Hlavní scénář je telefon v obchodě: ovládací prvky dost velké pro palec, důležité informace na první obrazovce.
 - Žádný jQuery.
 
 ---
@@ -280,9 +287,10 @@ CI (GitHub Actions) zatím není, ruční kontroly jsou jediná pojistka ([R14](
 ## 10. Bezpečnost
 
 - **Přihlášení přes Fortify** ([R12](PLAN.md#8-log-rozhodnutí), [R13](PLAN.md#8-log-rozhodnutí)): hesla hashovaná, limit pokusů o přihlášení na dvojici e-mail + IP a na samotnou IP (R53), hesla kontrolovaná proti únikům (Have I Been Pwned), registrace chráněná skrytým polem a časem vyplnění, odeslání odkazu na obnovu hesla omezuje Laravel (jednou za minutu).
-- **Uživatel vidí a mění jen svá data.** Hlídané položky a sledované obchody přes Policy a vazby na uživatele.
+- **Uživatel vidí a mění jen svá data.** Hlídané položky, nákupní seznam a sledované obchody přes Policy a vazby na uživatele.
+- **Změna e-mailu chce současné heslo** a formuláře s heslem nebo odesláním e-mailu mají přísnější limit požadavků (`RateLimits::SENSITIVE_ROUTES`, [R54](PLAN.md#8-log-rozhodnutí)).
 - Tajemství (API klíče obchodů a LLM) jsou v `.env`, nikdy v repu. `.env.example` má prázdné hodnoty.
-- CSRF všude. Případná cron URL je chráněná tokenem z `.env` a rate limitem.
+- CSRF všude. Cron URL je chráněná tokenem z `.env` a rate limitem; bez tokenu vrací 404.
 - **Obsah od obchodu je nedůvěryhodný vstup**: ve Vue jen textová interpolace, nikdy `v-html`. Totéž platí pro text od LLM.
 - `v-html` jen pro vlastní právní texty převedené na serveru se zahozeným HTML (`LegalDocuments`, R51).
 - **E-maily jen na ověřenou adresu** (R51). Hromadný e-mail má odhlášení jedním klepnutím bez přihlášení (podepsaná adresa, `List-Unsubscribe`); obchodní sdělení jen se souhlasem (`User::hasMarketingConsent`).

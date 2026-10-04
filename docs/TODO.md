@@ -1,5 +1,5 @@
 <!--
-  Odložené úkoly — Agregátor letáků
+  Odložené úkoly — Slevohlídka
   @author Roman Hlaváček
   @created 2026-10-02
 -->
@@ -14,9 +14,9 @@ v [PLAN.md](PLAN.md). Větší celky se z toho stávají etapou.
 
 ## Upozornění
 
-**Odkud:** zadání 2026-10-02. E-mailový souhrn denně / týdně je hotový (R42).
+**Odkud:** zadání 2026-10-02. E-mailová upozornění hned / denně / týdně jsou hotová (R42, R58).
 
-- okamžité upozornění e-mailem hotové (R58); Telegram nebo web push (se service workerem) jako další kanál
+- Telegram nebo web push (se service workerem) jako další kanál vedle e-mailu
 - zmínky v letácích bez ceny (R27) v souhrnu — dnes jen akce s cenou
 - tabulka `watch_matches` (co už uživatel viděl / dostal), pokud nebude stačit čas posledního souhrnu a `offers.created_at`
 
@@ -48,12 +48,23 @@ v [PLAN.md](PLAN.md). Větší celky se z toho stávají etapou.
 
 - **Albert: ceny z textu stránek** (R36) — text Publitas má názvy, balení i ceny, ale ceny rozsekané („31“ „90“) a bez polohy; zkusit párování podle pořadí bloků, nebo vision LLM nad obrázkem stránky (etapa 6)
 - **Lidl: ceny ze zbytku letáku** (R23, R25) — potraviny jen v letáku dnes ukazujeme jako zmínky bez ceny (R27); cenu by dal až text PDF nebo obrázek stránky přes LLM
-- **Zmínky bez ceny (R27):** u zmínky ukázat, které slovo ji našlo; víc frází pro stránky bez akcí (recepty, soutěže); zmínky i pro Kaufland (`keyWords` v API letáků Schwarz) a Tesco (seznam produktů letáku)
+- **Zmínky bez ceny (R27):** ověřit, jestli najdou něco u položek z katalogu — zmínky hledají celá slova, pravidla katalogu jsou začátky slov („eidamsk“), takže nejspíš ne (revize 4. 10. 2026); u zmínky ukázat, které slovo ji našlo; víc frází pro stránky bez akcí (recepty, soutěže); zmínky i pro Kaufland (`keyWords` v API letáků Schwarz) a Tesco (seznam produktů letáku)
 - **Lidl: nepotravinové akce** (R25) — dnes se ukládají jen `category: Food`
 - **Penny: neověřené dlaždice letáku** (R26) — ~260 cen z ~560 bez ověření cenou za jednotku; tokeny stránky s polohami předat LLM
 - **Tesco „Super ceny“ z letáku** (R17): položky letáku bez akce v e-shopu chybí — doplnit z obrázků stránek letáku (vision LLM, etapa 6)
-- **plánované spouštění** importů cron URL na Websupportu (R20, etapa 7) — dnes jen ručně artisan příkazem
 - **řazení výsledků hledání** podle shody nebo slevy — dnes podle začátku platnosti, takže dlouhodobé akce e-shopu jsou nahoře
+
+## Provoz a údržba
+
+**Odkud:** kritická revize 4. 10. 2026 (R54–R65 vyřešily chyby importu, souhrnů a zámek stažení).
+
+- **upozornění na chyby e-mailem** (log kanál `mail` nebo denní souhrn chyb) — dnes chyby vidí jen ten, kdo otevře logy přes FTP; Albert padal den, než se na to přišlo (R65)
+- **kontroly kvality v `build-upload.ps1`** — Pest a PHPStan před sestavením balíčku (CI není, R14)
+- **`/health/imports` i pro import prodejen Kauflandu** — se zastaralými seznamy prodejen zmizí ~10 % akcí, pod hranicí pojistky R54
+- **retence:** smazat `offers.raw` u akcí skončených před N měsíci (Billa ~400 MB ročně), čistit `offer_stores` a `leaflet_pages` skončených akcí
+- **cron „Spuštění PHP souboru“ místo URL** (DEPLOYMENT.md) — bez limitu délky požadavku a tokenu v URL, vyřešilo by O8; ověřit, jestli ho Websupport umí
+- **nasazení přes FTP není atomické** — režim údržby (`storage/framework/down`) během nahrávání, případně nová složka a přepnutí kořene webu
+- **rozhodnout o parseru letáku Penny** (glyfy fontu SVG, ~590 řádků, ~55 % cen) a o **Albertovi jen se zmínkami** — nejhorší poměr údržby k užitku; kandidáti na vypnutí nebo LLM (etapa 6)
 
 ## Katalog produktů — rozšíření
 

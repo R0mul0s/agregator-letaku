@@ -7,11 +7,14 @@
 # Zveřejnění: checklist
 
 Slevohlídka byla dělaná pro vlastní použití (R5). Tenhle dokument sepisuje, co
-chybí ke spuštění pro veřejnost. Vychází z průzkumu kódu ze 3. 10. 2026.
-Technická a GDPR část je hotová v [R51](PLAN.md#8-log-rozhodnutí): podmínky a zásady
-(`resources/legal`), patička, souhlasy při registraci, ověření e-mailu, odhlášení
-z e-mailů jedním klepnutím, české chybové stránky; ochrana účtů a úklid v [R53](PLAN.md#8-log-rozhodnutí), opravy z revize (souhrny po dávkách, pojistky importu, heslo při změně e-mailu) v [R54](PLAN.md#8-log-rozhodnutí). Hotové body se odsud mažou
-a popisují v [PLAN.md](PLAN.md).
+chybí ke spuštění pro veřejnost. Vychází z průzkumu kódu ze 3. 10. 2026 a kritické
+revize ze 4. 10. 2026. Technická a GDPR část je hotová v [R51](PLAN.md#8-log-rozhodnutí):
+podmínky a zásady (`resources/legal`), patička, souhlasy při registraci, ověření e-mailu,
+odhlášení z e-mailů jedním klepnutím, české chybové stránky; ochrana účtů a úklid
+v [R53](PLAN.md#8-log-rozhodnutí); opravy a funkce z revize (souhrny po dávkách, pojistky
+importu, heslo při změně e-mailu, první kroky po registraci, nákupní seznam…)
+v [R54–R65](PLAN.md#8-log-rozhodnutí). Hotové body se odsud mažou a popisují
+v [PLAN.md](PLAN.md); technické nápady z revize jsou v [TODO.md](TODO.md#provoz-a-údržba).
 
 Značení: **[R]** = rozhodne nebo zařídí Roman, **[K]** = kód.
 
@@ -45,8 +48,11 @@ Značení: **[R]** = rozhodne nebo zařídí Roman, **[K]** = kód.
 - [ ] **[R] O8 — změřit limit délky požadavku** na hostingu, zapsat do PLAN.md.
 - [ ] **[R]+[K] Monitoring:** UptimeRobot i na `/up`. Upozornění na chyby e-mailem
   (log kanál `mail` nebo denní souhrn chyb). Do `/health/imports` přidat import prodejen.
-- [ ] **[R] Zálohy:** doplnit `offer_product` a avatary (`storage/app/private/avatars`
-  přes FTP), ověřit automatické zálohy Websupportu, dobu uchování zapsat do zásad.
+- [ ] **[R] Zálohy:** doplnit `offer_product`, `shopping_list_items` a avatary
+  (`storage/app/private/avatars` přes FTP), ověřit automatické zálohy Websupportu, dobu
+  uchování zapsat do zásad; jednou vyzkoušet obnovu.
+- [ ] **[R] Měkké spuštění:** nejdřív 20–50 lidem z okolí na dva týdny a sledovat, co opravdu
+  používají (doporučení revize 4. 10. 2026), teprve pak veřejně.
 
 ## 3. Po spuštění / podle potřeby
 
@@ -65,8 +71,9 @@ Značení: **[R]** = rozhodne nebo zařídí Roman, **[K]** = kód.
 - **Cookie lišta a Google Analytics jsou hotové** (R52). **Reklamní a affiliate sítě s cookies**
   se smí načíst jen za souhlasem v kategorii Marketingové (`consentState.marketing`),
   s úpravou CSP, zásad a zvýšením `letaky.cookie_consent.version`.
-- **Úvodní stránka slibuje „Zdarma a bez reklam“** (`lang/cs/app.php`, `landing.features.free`).
-  Před reklamou text upravit.
+- **Úvodní stránka slibuje „Zdarma a bez reklam“ a registrace „Žádné reklamy“** (`lang/cs/app.php`,
+  `landing.features.free`, `auth.register.trust.no_ads`). Dokud reklama na webu není, nechávají se
+  (rozhodnutí 4. 10. 2026); před reklamou oba texty upravit.
 - **Placené nebo partnerské nabídky** ve výpisech a souhrnech musí být viditelně
   označené jako reklama (zákon o regulaci reklamy). Souhrn s partnerskými nabídkami
   už je obchodní sdělení, posílat jen se souhlasem.

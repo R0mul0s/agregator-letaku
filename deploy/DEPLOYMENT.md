@@ -85,6 +85,9 @@ a vyplň místa `<…>`:
 - `MAIL_*` — schránka založená ve WebAdminu (odkazy na obnovu hesla)
 - `TESCO_API_KEY` — veřejný klíč e-shopu Tesco, stejný jako lokálně (`mangoApiKey`, viz ZDROJE_DAT.md)
 - `LETAKY_CRON_TOKEN` — náhodný řetězec: `docker compose exec app php -r "echo bin2hex(random_bytes(24));"`
+- volitelně `LETAKY_GA_MEASUREMENT_ID` (Google Analytics po souhlasu s cookies, R52) a `LETAKY_USER_AGENT`
+  (User-Agent stahování — **bez `https://`**, jinak Albert vrací 400, R65; konfigurace není v cache,
+  změna v `.env` platí hned bez nasazení)
 
 > **Ladění bez SSH:** chyby jsou v `storage/logs/laravel-RRRR-MM-DD.log` —
 > stáhni ho přes FTP. `APP_DEBUG=true` na produkci nezapínej ani dočasně.
@@ -268,6 +271,20 @@ Opravy a funkce z revize (R54–R64). `composer.lock` se nezměnil.
 5. **Ověř:** `/cron/send-digests?token=…` vrací `Souhrny — odesláno: N`; v Účtu se při změně e-mailu objeví pole s heslem; v menu je Seznam a karta akce má „Do seznamu“; `/manifest.webmanifest` vrací JSON.
 6. Zapiš verzi do *Nasazené verze* a datum ke skriptu v *Historii SQL skriptů*.
 
+Po nasazení se ukázalo, že Albert od pátého nasazení padá s HTTP 400 (User-Agent s `https://`,
+R65). Opraveno bez nasazení řádkem `LETAKY_USER_AGENT="Slevohlidka/1.0 (+slevohlidka.rhsoft.cz)"`
+v `.env` na hostingu.
+
+### Aktualizace z `10072aa` (sedmé nasazení — zatím nenasazeno)
+
+User-Agent bez `https://` v kódu (R65) a aktualizace dokumentace. Bez SQL skriptu a změny cronu,
+`composer.lock` se nezměnil.
+
+1. **Nahraj `deploy/upload/`** jako minule: bez `vendor/`, ale s `vendor/composer/` a `bootstrap/cache/packages.php`; `public/build/` nejdřív smaž.
+2. Řádek `LETAKY_USER_AGENT` v `.env` už není potřeba — výchozí hodnota v kódu je stejná; může zůstat.
+3. **Ověř:** `version.txt?v=<cokoli>` a `/health/imports` (Albert OK po dalším stažení).
+4. Zapiš verzi do *Nasazené verze*.
+
 **Každá nová migrace potřebuje SQL skript** `deploy/migrations-<datum>-<popis>.sql`
 (opakovatelný: `CREATE TABLE IF NOT EXISTS`, `ADD COLUMN IF NOT EXISTS`) včetně zápisu do
 tabulky `migrations` — ve stejném commitu jako migrace. Nové produkty katalogu jdou na
@@ -308,4 +325,4 @@ Co běží na produkci — pro `git log <commit>..HEAD` při dalším nasazení
 | 2026-10-03 | `ae88b48` | třetí nasazení: Kaufland po prodejnách (R49); SQL `migrations-2026-10-03-prodejny.sql`, cron `import-stores` (45 4,12) |
 | 2026-10-03 | `aed786f` | čtvrté nasazení: krmivo pro zvířata (R50), zveřejnění (R51) — podmínky a zásady, patička, souhlasy při registraci, ověření e-mailu, odhlášení z e-mailů, české chybové stránky; cookie lišta a Google Analytics 4 po souhlasu (R52, CSP v `public/.htaccess`); SQL `migrations-2026-10-03-souhlasy.sql`. Volitelně `LETAKY_GA_MEASUREMENT_ID` v `.env` |
 | 2026-10-03 | `b2996c0` | páté nasazení: ochrana účtů a úklid (R53) — registrace proti botům, kontrola uniklých hesel, limit přihlášení na IP, `favicon.ico`, User-Agent; cron `/cron/prune-sessions` (15 3). Bez SQL skriptu |
-| 2026-10-04 | `10072aa` | šesté nasazení: opravy a funkce z revize (R54–R64) — pojistky importu, prodlužování akcí Billy, heslo při změně e-mailu, souhrny po dávkách; nový účet sleduje všechny obchody, „Jsem v obchodě“, manifest; registrace se skutečnými akcemi; zámek stažení; okamžité upozornění (cron souhrnu `30 6-22`); „Je to opravdu sleva?“; „Hlídat“ z karty; nákupní seznam (SQL `migrations-2026-10-04-nakupni-seznam.sql`); kompaktní řádky; Můj účet a Moje obchody s ukládáním hned |
+| 2026-10-04 | `10072aa` | šesté nasazení: opravy a funkce z revize (R54–R64) — pojistky importu, prodlužování akcí Billy, heslo při změně e-mailu, souhrny po dávkách; nový účet sleduje všechny obchody, „Jsem v obchodě“, manifest; registrace se skutečnými akcemi; zámek stažení; okamžité upozornění (cron souhrnu `30 6-22`); „Je to opravdu sleva?“; „Hlídat“ z karty; nákupní seznam (SQL `migrations-2026-10-04-nakupni-seznam.sql`); kompaktní řádky; Můj účet a Moje obchody s ukládáním hned. Po nasazení Albert opraven `LETAKY_USER_AGENT` v `.env` (R65) |

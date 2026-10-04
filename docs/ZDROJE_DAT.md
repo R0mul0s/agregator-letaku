@@ -6,9 +6,10 @@
 
 # Zdroje dat obchodů
 
-Výsledek technického průzkumu z **2. 10. 2026** (leták 30. 9.–6. 10. 2026). Všechno
-je ověřené skutečnými požadavky (curl). Co je jen předpoklad, je označené
-**(předpoklad)**.
+Výsledek technického průzkumu z **2. 10. 2026** (leták 30. 9.–6. 10. 2026), doplněný
+při implementaci a provozu: Globus a Billa (R46, R48), Kaufland po prodejnách (R49, 3. 10.),
+prodlužování akcí Billy a User-Agent (R54, R65, 4. 10.). Všechno je ověřené skutečnými
+požadavky (curl). Co je jen předpoklad, je označené **(předpoklad)**.
 
 Jde o **neveřejná a nedokumentovaná rozhraní**, která se můžou kdykoli změnit.
 Když scraper přestane fungovat, začni tady a porovnej s aktuální odpovědí. Po
@@ -16,7 +17,11 @@ změně tento dokument aktualizuj ve stejném commitu jako kód.
 
 Společné pro všechny obchody:
 - Headless prohlížeč, captcha ani obcházení WAF nejsou potřeba.
-- Stahovat šetrně: 1–2× denně, pauza mezi požadavky, identifikovatelný User-Agent ([R5](PLAN.md#8-log-rozhodnutí)).
+- Stahovat šetrně: 1–2× denně, pauza mezi požadavky, identifikovatelný User-Agent ([R5](PLAN.md#8-log-rozhodnutí)) —
+  `Slevohlidka/1.0 (+slevohlidka.rhsoft.cz)`, **bez `https://`**: weby s prerenderem pro roboty (Albert)
+  pošlou UA s adresou na prerender a API vrátí chybu ([R65](PLAN.md#8-log-rozhodnutí)).
+- Částečná odpověď je nebezpečnější než žádná: chybějící akce se označí jako stažené (R16). Import proto
+  hlídá nulu i podezřelý propad počtu akcí ([R54](PLAN.md#8-log-rozhodnutí)).
 - Do LLM nebo k parsování nikdy neposílat celé PDF, když existuje lepší zdroj (PDF mají 15–42 MB).
 
 ---

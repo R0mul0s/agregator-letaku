@@ -25,7 +25,7 @@ bude potřeba ([R23](#8-log-rozhodnutí)).
 - **Pravidla pro psaní kódu:** [CODING_GUIDELINES.md](CODING_GUIDELINES.md)
 - **Zdroje dat jednotlivých obchodů (endpointy, pole, pasti):** [ZDROJE_DAT.md](ZDROJE_DAT.md)
 
-### Co platí a co ne (stav k 2. 10. 2026)
+### Co platí a co ne (stav k 4. 10. 2026)
 
 Log rozhodnutí (kap. 8) se nepřepisuje — starší rozhodnutí nahrazují novější. Tady je výsledek:
 
@@ -54,6 +54,10 @@ Log rozhodnutí (kap. 8) se nepřepisuje — starší rozhodnutí nahrazují nov
 | Odkaz akce Kauflandu vede na kategorii a textovým fragmentem na dlaždici (detail akce nemá vlastní adresu) | Odkaz na celý přehled nabídky |
 | Produkce Websupport, cron URL, SQL skripty migrací, bez fronty (R20); balíček v `deploy/` pro `slevohlidka.rhsoft.cz`, cron po obchodech, `/health/imports` pro UptimeRobot (R38) | GitHub CI (R14 — zatím ne); jedna cron URL pro všechny obchody (O8) |
 | Import s pojistkami (R54): nula akcí je chyba i se stránkami letáku (kromě Alberta), chybí-li víc než 40 % neskončených akcí, žádná se neoznačí jako stažená (stav `partial`); Billa prodlužuje pokračující akce se stejnou cenou; souhrny po dávkách 100 uživatelů, cron každou hodinu 6:30–22:30 s okamžitým upozorněním (R58) | Stažení všeho, co v novém stažení chybí (R16 bez pojistky); každý týden nový řádek akce Billy; souhrny všem v jednom požadavku jednou denně |
+| Jedno stažení obchodu najednou (zámek v cache, R57); User-Agent `Slevohlidka/1.0 (+slevohlidka.rhsoft.cz)` bez schématu (R65) | Souběžná stažení bez zámku; UA s `https://…` (R53 bod 6) |
+| Upozornění e-mailem hned (nejvýš jednou za hodinu), denně nebo týdně (R58); u akce srovnání s dřívějšími akcemi stejné položky za 12 týdnů (R59) | Jen souhrn denně / týdně |
+| „Hlídat“ přímo z karty ve Všech akcích, nepřihlášený přes registraci (R60); nákupní seznam po obchodech s odškrtáváním (R61); „Jsem v obchodě“ jako kompaktní řádky (R62) | Hlídání jen ze stránky Hlídám; akce v obchodě jen jako velké karty |
+| Registrace a přihlášení s panelem skutečných akcí, heslo při registraci jen jednou s tlačítkem Ukázat (R56); Můj účet jako sekce pod sebou s navigací (R63); nastavení v Účtu i v Mých obchodech se ukládá hned po změně (R63, R64) | Panel s maskotem a obecnými větami; „Heslo znovu“ při registraci; mřížka karet účtu se šesti tlačítky Uložit; lišta Uložit v Mých obchodech |
 
 ---
 
@@ -66,13 +70,15 @@ Log rozhodnutí (kap. 8) se nepřepisuje — starší rozhodnutí nahrazují nov
 - Uživatel zadá **hlídané položky**, buď konkrétní produkt, nebo kategorii bez ohledu na značku ([R18](#8-log-rozhodnutí)).
 - Zobrazí **seznam aktuálních slev** k hlídaným položkám ve sledovaných obchodech, porovnatelný podle ceny za jednotku.
 - Ukáže i **zmínky v letácích bez ceny** — položka je na stránce letáku, ale cenu z něj neumíme přečíst ([R27](#8-log-rozhodnutí)).
-- Nabídky archivuje, takže zůstává historie cen i po zmizení letáku ([R10](#8-log-rozhodnutí)).
+- Nabídky archivuje, takže zůstává historie cen i po zmizení letáku ([R10](#8-log-rozhodnutí)); u akce ukáže srovnání s dřívějšími akcemi stejné položky ([R59](#8-log-rozhodnutí)).
+- Pošle e-mailem nové akce na hlídané položky — hned po stažení, denně, nebo týdně ([R42](#8-log-rozhodnutí), [R58](#8-log-rozhodnutí)).
+- Akce jde dát do **nákupního seznamu** po obchodech a v obchodě je odškrtávat ([R61](#8-log-rozhodnutí)).
 
 ### Co systém nedělá
 - Nebere data z agregátorů (kupi.cz, akcniceny.cz), jen přímo od obchodů ([R1](#8-log-rozhodnutí)).
 - Nepřebírá letáky ani fotky produktů. Ukládá fakta a odkaz na zdroj ([R5](#8-log-rozhodnutí)).
-- Zatím neposílá upozornění, výstupem je webový seznam (nápad je v [TODO.md](TODO.md)).
-- Neřeší nákupní košík ani objednávky.
+- Neposílá push notifikace (jen e-mail; web push až se service workerem, [TODO.md](TODO.md)).
+- Neřeší nákupní košík ani objednávky — nákupní seznam je jen pro uživatele.
 
 ### Typické scénáře (z průzkumu)
 
@@ -194,12 +200,14 @@ Stránka se při dalším stažení přepíše. Slouží jen pro zmínky bez cen
 - `users.is_admin`: smí spravovat katalog (`/katalog`); nastavuje příkaz `letaky:admin {email}`
 
 ### Uživatelé a hlídání (etapa 3)
-- `users`: účty (Fortify); `loyalty_programs` = JSON seznam karet a aplikací, které uživatel má ([R19](#8-log-rozhodnutí))
-- `followed_chains`: sledované obchody — `chain`, `store_format` (null = všechny typy prodejen), `include_online_only` ([R19](#8-log-rozhodnutí))
+- `users`: účty (Fortify); `loyalty_programs` = JSON seznam karet a aplikací, které uživatel má ([R19](#8-log-rozhodnutí)); předvolby Mých slev `offers_sort`, `min_discount_percent` (R41); upozornění `digest_frequency` (off / instant / daily / weekly) a `digest_sent_at` = poslední zpracování (R42, R54, R58); souhlasy `terms_*`, `marketing_consent_*` (R51); `avatar_path` (R40)
+- `followed_chains`: sledované obchody — `chain`, `store_format` (null = všechny typy prodejen), `include_online_only`, `store_codes` (vybrané prodejny Kauflandu, R49) ([R19](#8-log-rozhodnutí)); nový účet sleduje všechny obchody (R55)
 - `watch_items`: hlídané položky — `name`, `product_id` (produkt katalogu, R31) nebo vlastní `keywords`, `variant_keywords`, `exclude_keywords` ([R18](#8-log-rozhodnutí))
+- `shopping_list_items`: nákupní seznam — `user_id`, `offer_id` (unikátní dvojice), `checked_at` = odškrtnuto v obchodě ([R61](#8-log-rozhodnutí))
 
 Shody hlídaných položek s nabídkami se neukládají, počítají se při zobrazení ([R19](#8-log-rozhodnutí)).
-Tabulka `watch_matches` přibude s upozorněními (TODO).
+Upozornění e-mailem pozná „novou“ akci podle `offers.created_at` a `users.digest_sent_at` (R42, R58);
+tabulka `watch_matches` zatím není potřeba (TODO).
 
 ### Provoz
 - `scrape_runs`: každé stažení obchodu (začátek, konec, stav, počet uložených a stažených nabídek, chyba). **Nula položek je chyba**, ne „žádné akce“ (kromě Alberta jen se zmínkami). Stav `partial`: nabídky uložené, ale chybějící akce se neoznačily jako stažené, protože jich chybělo podezřele mnoho (R54).
@@ -210,17 +218,26 @@ Tabulka `watch_matches` přibude s upozorněními (TODO).
 ## 5. Toky dat
 
 ```
-php artisan letaky:import-offers [obchod…]      (zatím ručně, na produkci cron URL — R20)
+php artisan letaky:import-offers [obchod…]      (lokálně ručně, na produkci cron URL po obchodech — R20, R38)
    └─▶ ImportChainOffers (pro každý obchod, selhání jednoho nezastaví ostatní)
+          ├─ zámek obchodu v cache; zaseknutá stažení obchodu → chyba (R57)
           ├─ zdroj obchodu (Sources/<Obchod>, SourceHttp s pauzami) ──HTTP──▶ web / API obchodu
           │     └─ převod na OfferData: cena v haléřích, balení, typ akce, místní platnost
+          ├─ Billa: pokračující akce se stejnou cenou převezme začátek uložené (R54)
           ├─ upsert leaflets + offers (deduplikace podle klíče), v jedné transakci
-          ├─ neskončené nabídky obchodu, které chyběly → withdrawn_at (R16)
+          ├─ nula akcí (kromě Alberta jen se zmínkami) → chyba (R54)
+          ├─ neskončené nabídky obchodu, které chyběly → withdrawn_at (R16);
+          │     chybí-li víc než 40 % → nic, stažení „partial“ (R54)
           ├─ AssignProducts::forChain: nabídky obchodu → produkty katalogu (offer_product, R30)
-          └─▶ scrape_runs (úspěch / chyba)
+          └─▶ scrape_runs (úspěch / částečné / chyba)
 
+php artisan letaky:import-stores kaufland       (před stažením Kauflandu; akce 149 prodejen, R49)
 php artisan letaky:import-categories            (občas; strom kategorií e-shopu Tesco, R28)
 /katalog (admin): uložení produktu → AssignProducts::forProduct; „sem patří / nepatří“ → CorrectAssignment
+
+php artisan letaky:send-digests                 (na produkci cron každou hodinu 6:30–22:30 — R42, R54, R58)
+   └─▶ SendDigests: dávka nejvýš 100 uživatelů, kterým je čas a od jejichž posledního souhrnu
+          doběhlo stažení → MyOffers bez zmínek → nové akce (created_at) → e-mail; digest_sent_at
 ```
 
 Moje slevy (etapa 3) se počítají při zobrazení stránky:
@@ -254,8 +271,8 @@ Etapa 6 přidá extrakci letáků:
 leták (obrázky stránek / PDF / SVG) ──▶ ExtractLeafletPage ──Claude API──▶ položky ──▶ normalizace ──▶ offers
 ```
 
-Produkce na Websupportu nemá scheduler ani frontu ([R20](#8-log-rozhodnutí)): úlohy bude
-spouštět cron WebAdminu voláním URL s tokenem. Proto je každá úloha **Action** volatelná
+Produkce na Websupportu nemá scheduler ani frontu ([R20](#8-log-rozhodnutí)): úlohy spouští
+cron WebAdminu voláním URL s tokenem. Proto je každá úloha **Action** volatelná
 z artisan příkazu i z kontroleru.
 
 ---
@@ -278,8 +295,9 @@ z artisan příkazu i z kontroleru.
 | 5g | **Kaufland po prodejnách** (R49): seznam prodejen a jejich akcí, stránky prodejen s akcemi mimo výchozí nabídku, prodejny akce, výběr více prodejen v Mých obchodech, štítek „Jen Trutnov“ | hotovo 2026-10-03 |
 | 5e | **Vzhled podle zkoušení** (R47): toasty místo zpráv v obsahu, vlastní potvrzovací okno, Moje obchody s přepínači, katalog v Hlídám jako dlaždice oddělení, jedoucí košík v Mých slevách, oslovení v 5. pádě, posuvník v barvách webu | hotovo 2026-10-02 |
 | 6 | **LLM** (R23), jen pokud bude potřeba: Albert (obrázky stránek), zbytek letáku Lidlu, třídění nepřiřazených nabídek | |
-| 7 | **Nasazení na Websupport** (R20, R38): cron URL pro stahování, hlídání stažení (`/health/imports`), HTTPS a bezpečnostní hlavičky v `public/.htaccess`, SQL skripty schématu a katalogu, build balíčku, [deploy/DEPLOYMENT.md](../deploy/DEPLOYMENT.md), ověření O8 | nasazeno 2026-10-02 (první verze `c5d45d7`, aktualizace `20ef035` s R39–R48, `ae88b48` s R49 2026-10-03) |
-| 8 | **Zveřejnění** (R51–R53, [ZVEREJNENI.md](ZVEREJNENI.md)): podmínky a zásady, patička, souhlasy při registraci, ověření e-mailu, odhlášení z e-mailů jedním klepnutím, české chybové stránky; zbývá právní posouzení O6 a organizační body checklistu | kód hotový 2026-10-03, nenasazeno |
+| 7 | **Nasazení na Websupport** (R20, R38): cron URL pro stahování, hlídání stažení (`/health/imports`), HTTPS a bezpečnostní hlavičky v `public/.htaccess`, SQL skripty schématu a katalogu, build balíčku, [deploy/DEPLOYMENT.md](../deploy/DEPLOYMENT.md), ověření O8 | nasazeno 2026-10-02 (první verze `c5d45d7`, aktualizace `20ef035` s R39–R48, `ae88b48` s R49 2026-10-03; další verze v řádcích 8 a 9 a v [DEPLOYMENT.md](../deploy/DEPLOYMENT.md#nasazené-verze)) |
+| 8 | **Zveřejnění** (R51–R53, [ZVEREJNENI.md](ZVEREJNENI.md)): podmínky a zásady, patička, souhlasy při registraci, ověření e-mailu, odhlášení z e-mailů jedním klepnutím, české chybové stránky, cookie lišta a GA4, ochrana účtů; zbývá právní posouzení O6 a organizační body checklistu | nasazeno 2026-10-03 (`aed786f`, `b2996c0`) |
+| 9 | **Kritická revize před spuštěním** (R54–R65): pojistky importu a zámek stažení, prodlužování akcí Billy, souhrny po dávkách a okamžité upozornění; první kroky po registraci, „Jsem v obchodě“ s kompaktními řádky, „Je to opravdu sleva?“, „Hlídat“ z karty, nákupní seznam, manifest; nová registrace, Můj účet a Moje obchody s ukládáním hned; User-Agent bez `https://` | nasazeno 2026-10-04 (`10072aa`, R54–R64); R65 v kódu, na produkci zatím přes `.env` |
 
 ---
 

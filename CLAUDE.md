@@ -1,7 +1,7 @@
 # Slevohlídka (agregátor letáků)
 
 Webová aplikace **Slevohlídka** („Rychlý lovec slev“, R34), která hlídá akční nabídky z letáků obchodů **Kaufland, Tesco,
-Albert, Lidl, Penny, Globus a Billa**. Uživatel si vybere prodejny a hlídané položky (konkrétní
+Albert, Lidl, Penny, Globus a Billa**. Uživatel si vybere obchody a hlídané položky (konkrétní
 produkt nebo kategorii) a vidí, kde a za kolik jsou ve slevě. Osobní projekt
 Romana Hlaváčka (IČO), připravuje se zveřejnění pro cizí uživatele (R51, [docs/ZVEREJNENI.md](docs/ZVEREJNENI.md)).
 
@@ -21,34 +21,25 @@ volné číslo R…). Změna chování obchodu (nový endpoint, jiné pole) pat�
 
 ## Stav
 
-Hotové jsou etapy 1–5g (PLAN.md, kap. 6):
-- účty (Fortify, R12, R13); stahování akcí Kauflandu, Tesca, Lidlu a Penny (R15–R17, R25, R26)
-- Globus z REST API webu (R46): katalog akcí jednoho hypermarketu, cena s aplikací Můj Globus, bez oblečení
-- Billa z API celého katalogu (R48): akce i akce jen s BILLA Klubem, platnost = akční týden st–út
-- zmínky v letácích bez ceny — Lidl, Penny a Albert (R27, R36; Albert jen zmínky, ceny zatím ne)
-- Všechny akce (`/akce`) s našeptávačem a výběrem obchodu s logy; Moje obchody (`/obchody`),
-  Hlídám (`/hlidam`, produkt z katalogu klepnutím, nebo vlastní slova) a Moje slevy (`/`)
-- katalog produktů (R24, R28–R31, R37): strom kategorií z Tesca, 164 produktů, tabulka pro
-  admina (`/katalog`) s přiřazováním akcí a ručními opravami
-- název Slevohlídka a vzhled podle loga (R34, R35), loga obchodů (R32)
-- přívětivost (R39–R45): Hlídám s našeptávačem, menu účtu s avatarem, předvolby Mých slev,
-  e-mailový souhrn, sbalitelné Moje slevy, stránkování Všech akcí a katalogu, úvodní stránka
-  pro nepřihlášené a veřejné Všechny akce, SEO a limity požadavků; plovoucí hlavička
-  s hamburgerem na telefonu a tlačítko Nahoru
-- vzhled podle zkoušení (R47): toasty po uložení, vlastní potvrzovací okno, Moje obchody s přepínači,
-  katalog v Hlídám jako dlaždice oddělení, oslovení v 5. pádě
-- Kaufland po prodejnách (R49): akce všech 149 prodejen, výběr více prodejen v Mých obchodech, štítek „Jen Trutnov“
-  s oknem seznamu prodejen
-- příprava na zveřejnění (R51): podmínky a zásady (`/podminky`, `/ochrana-udaju`), patička s provozovatelem, souhlasy
-  při registraci, ověření e-mailu, odhlášení z e-mailů jedním klepnutím, české chybové stránky;
-  lišta souhlasu s cookies a Google Analytics až po souhlasu (R52); ochrana registrace proti botům,
-  kontrola uniklých hesel, limit přihlášení na IP a denní úklid relací (R53); opravy z revize —
-  pojistky importu, prodlužování akcí Billy, heslo při změně e-mailu, souhrny po dávkách (R54);
-  UX z revize — nový účet sleduje všechny obchody a jde do Hlídám, „Jsem v obchodě“ v Mých slevách,
-  menší pruh na telefonu, „Možná“ klepnutím, manifest pro plochu telefonu (R55); registrace
-  a přihlášení se skutečnými akcemi a heslem jen jednou s tlačítkem Ukázat (R56); zámek stažení (R57),
-  okamžité upozornění (R58), „Je to opravdu sleva?“ (R59), „Hlídat“ z karty (R60), nákupní seznam (R61),
-  kompaktní řádky „Jsem v obchodě“ (R62), Můj účet jako sekce pod sebou s ukládáním hned (R63)
+Hotové jsou etapy 1–5g, zveřejnění (8) a opravy a funkce z kritické revize (9) (PLAN.md, kap. 6):
+- **Stahování:** Kaufland (i po 149 prodejnách, R49), Tesco, Lidl, Penny (R15–R17, R25, R26), Globus (R46),
+  Billa z celého katalogu (R48); zmínky v letácích bez ceny — Lidl, Penny, Albert (R27, R36; Albert jen zmínky).
+  Pojistky importu: nula akcí je chyba, podezřelý propad akce nestáhne (stav `partial`), zámek proti
+  souběžnému stažení, prodlužování pokračujících akcí Billy (R54, R57); User-Agent bez `https://` (R65)
+- **Hlídání a Moje slevy (`/`):** Hlídám (`/hlidam`, produkt z katalogu nebo vlastní slova, R39, R47),
+  katalog 164 produktů se stromem Tesca a tabulkou pro admina (`/katalog`, R24, R28–R31, R37), sbalitelné
+  skupiny (R43), „Jsem v obchodě“ s kompaktními řádky (R55, R62), „Je to opravdu sleva?“ (R59)
+- **Všechny akce (`/akce`):** veřejné, našeptávač, výběr obchodu s logy, stránkování (R43, R44), „Hlídat“
+  přímo z karty (R60); **nákupní seznam** (`/seznam`, R61)
+- **Účet:** Fortify (R12), menu pod avatarem (R40), Můj účet jako sekce s ukládáním hned (R63), Moje obchody
+  (`/obchody`) s ukládáním hned (R64), nový účet sleduje všechny obchody a jde do Hlídám (R55), registrace
+  a přihlášení se skutečnými akcemi a heslem jen jednou (R56)
+- **E-maily:** upozornění na nové akce hned / denně / týdně, po dávkách (R42, R54, R58)
+- **Vzhled a přívětivost:** název Slevohlídka a vzhled podle loga (R34, R35), loga obchodů (R32), toasty
+  a vlastní potvrzovací okno (R47), oslovení v 5. pádě, plovoucí hlavička, manifest pro plochu telefonu (R55)
+- **Zveřejnění:** podmínky a zásady (`/podminky`, `/ochrana-udaju`), souhlasy, ověření e-mailu, odhlášení
+  z e-mailů jedním klepnutím, české chybové stránky (R51), cookie lišta a GA4 po souhlasu (R52), ochrana
+  registrace a účtů (R53, R54), SEO a limity požadavků (R45)
 
 Produkce běží na `https://slevohlidka.rhsoft.cz` (nasazeno 2026-10-02, naposledy `10072aa` 2026-10-04);
 postup aktualizace a nasazené verze jsou v `deploy/DEPLOYMENT.md`. Sleduje se 7 obchodů; Makro
