@@ -257,7 +257,7 @@ Kaufland po prodejnách (R49). `composer.lock` se nezměnil.
 5. **Ověř:** v Mých obchodech u Kauflandu výběr prodejen, na `/akce?chain=kaufland&q=K-Mistři` štítky „Jen …“ / „Jen v N prodejnách“.
 6. Zapiš verzi do *Nasazené verze* a datum ke skriptu v *Historii SQL skriptů*.
 
-### Aktualizace z `b2996c0` (šesté nasazení)
+### Aktualizace z `b2996c0` (šesté nasazení — provedeno, `10072aa`)
 
 Opravy a funkce z revize (R54–R64). `composer.lock` se nezměnil.
 
@@ -294,7 +294,7 @@ a ruční opravy katalogu. Před každým SQL skriptem a jinak aspoň jednou mě
 | `migrations-2026-10-03-prodejny.sql` | prodejny Kauflandu (R49): tabulky `stores` a `offer_stores`, `followed_chains.store_codes`; opakovatelný, pustit **před** nahráním kódu | 2026-10-03 |
 | `migrations-2026-10-02-ucet.sql` | nastavení účtu: `users.avatar_path` (R40), `users.offers_sort` a `min_discount_percent` (R41), `users.digest_frequency` a `digest_sent_at` (R42); opakovatelný, pustit **před** nahráním kódu | 2026-10-02 |
 | `migrations-2026-10-03-souhlasy.sql` | souhlasy (R51): `users.terms_accepted_at`, `terms_version`, `marketing_consent_at`, `marketing_consent_version`, `marketing_consent_withdrawn_at`; dosavadní účty označí jako ověřené (`email_verified_at`); opakovatelný, pustit **před** nahráním kódu | 2026-10-03 |
-| `migrations-2026-10-04-nakupni-seznam.sql` | nákupní seznam (R61): tabulka `shopping_list_items`; opakovatelný, pustit **před** nahráním kódu | — |
+| `migrations-2026-10-04-nakupni-seznam.sql` | nákupní seznam (R61): tabulka `shopping_list_items`; opakovatelný, pustit **před** nahráním kódu | 2026-10-04 |
 
 ## Nasazené verze
 
@@ -308,3 +308,4 @@ Co běží na produkci — pro `git log <commit>..HEAD` při dalším nasazení
 | 2026-10-03 | `ae88b48` | třetí nasazení: Kaufland po prodejnách (R49); SQL `migrations-2026-10-03-prodejny.sql`, cron `import-stores` (45 4,12) |
 | 2026-10-03 | `aed786f` | čtvrté nasazení: krmivo pro zvířata (R50), zveřejnění (R51) — podmínky a zásady, patička, souhlasy při registraci, ověření e-mailu, odhlášení z e-mailů, české chybové stránky; cookie lišta a Google Analytics 4 po souhlasu (R52, CSP v `public/.htaccess`); SQL `migrations-2026-10-03-souhlasy.sql`. Volitelně `LETAKY_GA_MEASUREMENT_ID` v `.env` |
 | 2026-10-03 | `b2996c0` | páté nasazení: ochrana účtů a úklid (R53) — registrace proti botům, kontrola uniklých hesel, limit přihlášení na IP, `favicon.ico`, User-Agent; cron `/cron/prune-sessions` (15 3). Bez SQL skriptu |
+| 2026-10-04 | `10072aa` | šesté nasazení: opravy a funkce z revize (R54–R64) — pojistky importu, prodlužování akcí Billy, heslo při změně e-mailu, souhrny po dávkách; nový účet sleduje všechny obchody, „Jsem v obchodě“, manifest; registrace se skutečnými akcemi; zámek stažení; okamžité upozornění (cron souhrnu `30 6-22`); „Je to opravdu sleva?“; „Hlídat“ z karty; nákupní seznam (SQL `migrations-2026-10-04-nakupni-seznam.sql`); kompaktní řádky; Můj účet a Moje obchody s ukládáním hned |

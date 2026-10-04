@@ -50,7 +50,7 @@ Hotové jsou etapy 1–5g (PLAN.md, kap. 6):
   okamžité upozornění (R58), „Je to opravdu sleva?“ (R59), „Hlídat“ z karty (R60), nákupní seznam (R61),
   kompaktní řádky „Jsem v obchodě“ (R62), Můj účet jako sekce pod sebou s ukládáním hned (R63)
 
-Produkce běží na `https://slevohlidka.rhsoft.cz` (nasazeno 2026-10-02, naposledy `b2996c0` 2026-10-03);
+Produkce běží na `https://slevohlidka.rhsoft.cz` (nasazeno 2026-10-02, naposledy `10072aa` 2026-10-04);
 postup aktualizace a nasazené verze jsou v `deploy/DEPLOYMENT.md`. Sleduje se 7 obchodů; Makro
 zatím nejde (ochrana proti robotům). Etapa 6 (LLM) jen když bude potřeba.
 Co z dřívějších rozhodnutí platí a co ne, je v tabulce na začátku PLAN.md.
