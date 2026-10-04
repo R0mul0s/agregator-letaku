@@ -73,6 +73,8 @@ return [
         'offers_done' => ':chain — uloženo nabídek: :count',
         'offers_partial' => ':chain — uloženo nabídek: :count, ale chybějící akce se neoznačily jako stažené (:error)',
         'failed' => ':chain — chyba: :error',
+        // Záznam stažení, které hosting ukončil dřív, než se uzavřelo (R57)
+        'stuck' => 'Stažení nedoběhlo — proces nejspíš ukončil hosting (časový limit nebo paměť).',
         'unknown_chain' => 'Neznámý obchod nebo obchod bez zdroje „:chain“. Dostupné: :available',
         'categories_done' => 'Kategorie — uloženo: :count',
         'categories_failed' => 'Kategorie — chyba: :error',

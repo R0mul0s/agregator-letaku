@@ -24,22 +24,28 @@ use App\Domain\Offers\Data\LeafletData;
 use App\Domain\Offers\Data\LeafletPageData;
 use App\Domain\Offers\Data\OfferData;
 use App\Domain\Offers\Data\SourceBatch;
+use App\Domain\Offers\Exceptions\ImportAlreadyRunning;
 use App\Domain\Offers\Exceptions\SourceReturnedNoOffers;
 use App\Domain\Offers\Exceptions\SuspiciousWithdrawal;
 use App\Domain\Offers\LocalCalendar;
 use App\Domain\Sources\SourceRegistry;
 use App\Enums\Chain;
+use App\Enums\ScrapeStatus;
 use App\Models\Leaflet;
 use App\Models\LeafletPage;
 use App\Models\Offer;
 use App\Models\OfferStore;
 use App\Models\ScrapeRun;
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Throwable;
 
 final class ImportChainOffers
 {
+    /** Předpona zámku stažení obchodu v cache (R57). */
+    private const LOCK_PREFIX = 'import-offers:';
+
     /** Počet řádků v jednom hromadném zápisu. */
     private const UPSERT_CHUNK = 500;
 
@@ -66,6 +72,29 @@ final class ImportChainOffers
      * @throws Throwable
      */
     public function __invoke(Chain $chain): ScrapeRun
+    {
+        // Jedno stažení obchodu najednou (R57) — souběžná by si navzájem stáhla akce (R16).
+        // Zámek v cache vyprší sám, když hosting proces ukončí dřív, než ho uvolní.
+        $lock = Cache::lock(self::LOCK_PREFIX.$chain->value, config()->integer('letaky.import.lock_seconds'));
+        if (! $lock->get()) {
+            throw ImportAlreadyRunning::for($chain);
+        }
+
+        try {
+            $this->failStuckRuns($chain);
+
+            return $this->import($chain);
+        } finally {
+            $lock->release();
+        }
+    }
+
+    /**
+     * Stažení pod zámkem: zdroj, uložení v transakci a záznam o výsledku.
+     *
+     * @throws Throwable
+     */
+    private function import(Chain $chain): ScrapeRun
     {
         $run = ScrapeRun::start($chain);
 
@@ -104,6 +133,23 @@ final class ImportChainOffers
         }
 
         return $run;
+    }
+
+    /**
+     * Stažení obchodu, které zůstalo „běží“ déle, než platí zámek, nedoběhlo — hosting proces
+     * ukončil (časový limit, paměť) a záznam se nestihl uzavřít. Označí se jako neúspěšné (R57).
+     */
+    private function failStuckRuns(Chain $chain): void
+    {
+        ScrapeRun::query()
+            ->where('chain', $chain)
+            ->where('status', ScrapeStatus::Running)
+            ->where('started_at', '<', CarbonImmutable::now()->subSeconds(config()->integer('letaky.import.lock_seconds')))
+            ->update([
+                'status' => ScrapeStatus::Failed,
+                'error' => __('app.import.stuck'),
+                'finished_at' => CarbonImmutable::now(),
+            ]);
     }
 
     /**

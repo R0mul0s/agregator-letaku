@@ -308,6 +308,9 @@ return [
     */
     'import' => [
         'max_withdrawn_share' => 0.4,
+        // Zámek jednoho stažení obchodu (R57): delší než limit běhu cronu (cron.time_limit_seconds),
+        // aby nevypršel během stažení; stažení „běží“ déle než tohle = nedoběhlo, označí se jako chyba
+        'lock_seconds' => 600,
     ],
 
     'cron' => [

@@ -20,6 +20,7 @@ use App\Models\Leaflet;
 use App\Models\Offer;
 use App\Models\ScrapeRun;
 use Illuminate\Http\Client\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 
 const KAUFLAND_OFFERS_URL = 'https://prodejny.kaufland.cz/nabidka/prehled.html*';
@@ -234,4 +235,32 @@ it('odmítne neznámý obchod', function (): void {
     $this->artisan('letaky:import-offers', ['chain' => ['makro']])->assertExitCode(2);
 
     expect(ScrapeRun::query()->count())->toBe(0);
+});
+
+it('souběžné stažení stejného obchodu nespustí (R57)', function (): void {
+    Http::fake([KAUFLAND_OFFERS_URL => Http::response(responseFixture('kaufland/prehled-2026-10-02.html'))]);
+    $running = Cache::lock('import-offers:kaufland', 600);
+    $running->get();
+
+    $this->artisan('letaky:import-offers', ['chain' => ['kaufland']])->assertFailed();
+
+    expect(ScrapeRun::query()->count())->toBe(0);
+    Http::assertNothingSent();
+
+    $running->release();
+    $this->artisan('letaky:import-offers', ['chain' => ['kaufland']])->assertSuccessful();
+});
+
+it('stažení, které zůstalo „běží“ déle než zámek, označí jako neúspěšné (R57)', function (): void {
+    Http::fake([KAUFLAND_OFFERS_URL => Http::response(responseFixture('kaufland/prehled-2026-10-02.html'))]);
+    $stuck = ScrapeRun::query()->create(['chain' => Chain::Kaufland, 'status' => ScrapeStatus::Running, 'started_at' => now()->subHour()]);
+    $other = ScrapeRun::query()->create(['chain' => Chain::Tesco, 'status' => ScrapeStatus::Running, 'started_at' => now()->subHour()]);
+
+    $this->artisan('letaky:import-offers', ['chain' => ['kaufland']])->assertSuccessful();
+
+    expect($stuck->fresh())
+        ->status->toBe(ScrapeStatus::Failed)
+        ->error->toContain('nedoběhlo')
+        ->finished_at->not->toBeNull()
+        ->and($other->fresh()?->status)->toBe(ScrapeStatus::Running);
 });
