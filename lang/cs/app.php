@@ -178,6 +178,7 @@ return [
             'close' => 'Zavřít menu',
             'home' => 'Moje slevy',
             'watch_items' => 'Hlídám',
+            'shopping_list' => 'Seznam',
             'preferences' => 'Obchody',
             'offers' => 'Všechny akce',
             'catalog' => 'Katalog',
@@ -524,6 +525,25 @@ return [
             'register' => 'Zaregistrujte se zdarma',
         ],
 
+        // Nákupní seznam (R61, ShoppingList.vue, ShoppingToggle.vue)
+        'shopping' => [
+            'title' => 'Nákupní seznam',
+            'intro' => 'Akce, které chcete koupit, seřazené podle obchodu. V obchodě je odškrtávejte.',
+            'empty' => 'Seznam je prázdný. Akce do něj přidáte tlačítkem „Do seznamu“ v Mých slevách nebo ve Všech akcích.',
+            'add' => '+ Do seznamu',
+            'added' => '✓ V seznamu',
+            'remove' => 'Odebrat :name ze seznamu',
+            'check' => 'Koupeno: :name',
+            'expired' => 'akce skončila',
+            'valid_to' => 'do :date',
+            'remaining' => 'zbývá :count|zbývají :count|zbývá :count',
+            'clear_checked' => 'Smazat odškrtnuté',
+            'clear_checked_confirm_title' => 'Smazat odškrtnuté?',
+            'clear_checked_confirm' => 'Odškrtnuté položky zmizí ze seznamu.',
+            'clear_checked_confirm_label' => 'Smazat',
+            'limit' => 'Do seznamu se vejde nejvýš :count akcí.',
+        ],
+
         'home' => [
             'title' => 'Moje slevy',
             'hello' => 'Ahoj, :name!',
@@ -695,6 +715,10 @@ return [
                 'watch-item-added' => 'Položka je mezi hlídanými.',
                 'watch-item-updated' => 'Hlídaná položka je uložená.',
                 'watch-item-removed' => 'Položku už nehlídáte.',
+                // ShoppingListController (R61)
+                'shopping-added' => 'Přidáno do nákupního seznamu.',
+                'shopping-removed' => 'Odebráno z nákupního seznamu.',
+                'shopping-cleared' => 'Odškrtnuté položky jsou pryč.',
                 // CatalogController
                 'product-saved' => 'Produkt je uložený.',
                 'product-deleted' => 'Produkt je smazaný.',

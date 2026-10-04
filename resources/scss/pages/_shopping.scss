@@ -1,0 +1,96 @@
+// _shopping.scss
+// Nákupní seznam (R61): skupiny po obchodech, řádky k odškrtnutí; tlačítko „Do seznamu“ na kartě akce.
+//
+// @author Roman Hlaváček
+// @created 2026-10-04
+
+.shopping-group {
+    margin-bottom: var(--space-3);
+
+    &__title {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-2);
+        margin-bottom: var(--space-2);
+        font-size: var(--font-size-card-title);
+    }
+
+    &__remaining {
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+        font-weight: 600;
+    }
+}
+
+.shopping-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+// Řádek: zaškrtávátko, název s balením a platností, cena, smazat — velké cíle pro palec v obchodě
+.shopping-item {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: var(--shopping-row-min-height);
+    padding: var(--space-2) 0;
+    border-top: 1px solid var(--color-border);
+
+    &:first-child {
+        border-top: 0;
+    }
+
+    // Celé pole kolem políčka je klepací — v obchodě se míří palcem
+    &__check {
+        display: grid;
+        place-items: center;
+        width: var(--shopping-check-target);
+        height: var(--shopping-check-target);
+        cursor: pointer;
+    }
+
+    &__name {
+        font-weight: 700;
+        line-height: var(--line-height-heading);
+    }
+
+    &__meta {
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+    }
+
+    &__expired {
+        color: var(--color-warning-text);
+        font-weight: 700;
+    }
+
+    &__price {
+        color: var(--color-price);
+        font-weight: 900;
+        white-space: nowrap;
+    }
+
+    // Koupené: přeškrtnuté a tlumené, v obchodě je na konci
+    &--checked &__name,
+    &--checked &__price {
+        color: var(--color-text-muted);
+        text-decoration: line-through;
+    }
+}
+
+// „Do seznamu“ na kartě akce — menší tlačítko v patě karty; přidané zeleně
+.shopping-toggle {
+    min-height: var(--icon-button-size);
+    padding: var(--space-1) var(--space-3);
+    font-size: var(--font-size-sm);
+
+    &--added {
+        border-color: transparent;
+        background: var(--color-success-soft);
+        color: var(--color-success-text);
+    }
+}

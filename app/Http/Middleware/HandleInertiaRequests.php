@@ -31,6 +31,7 @@ class HandleInertiaRequests extends Middleware
     private const NAVIGATION = [
         'home' => 'home',
         'watch-items.index' => 'watch_items',
+        'shopping-list.index' => 'shopping_list',
         'preferences' => 'preferences',
         'offers' => 'offers',
     ];
@@ -85,6 +86,12 @@ class HandleInertiaRequests extends Middleware
                 'accountUrl' => route('account', absolute: false),
                 'accountActive' => $request->routeIs('account'),
             ],
+            // Nákupní seznam (R61): které akce v něm jsou — tlačítko na kartě akce ukáže stav;
+            // název se nesmí krýt s propem stránky
+            'shoppingList' => fn (): ?array => $user instanceof User ? [
+                'offerIds' => $user->shoppingListItems()->pluck('offer_id')->all(),
+                'toggleUrl' => route('shopping-list.toggle', absolute: false),
+            ] : null,
             // Patička (R51): provozovatel, kontakt a právní stránky — název se nesmí krýt s propem stránky
             'siteFooter' => fn (): array => [
                 'operator' => config('letaky.operator.name'),

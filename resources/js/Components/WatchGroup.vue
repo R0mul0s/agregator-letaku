@@ -8,6 +8,7 @@
 <script setup>
 import MentionCard from '@/Components/MentionCard.vue';
 import OfferCard from '@/Components/OfferCard.vue';
+import ShoppingToggle from '@/Components/ShoppingToggle.vue';
 import { formatPrice } from '@/lib/format';
 import { confirmDialog } from '@/lib/confirm';
 import { useTranslations } from '@/lib/i18n';
@@ -108,7 +109,9 @@ async function remove() {
                     </p>
                 </div>
                 <div v-if="item.offers.length" class="offer-grid">
-                    <OfferCard v-for="offer in item.offers" :key="offer.id" :offer="offer" />
+                    <OfferCard v-for="offer in item.offers" :key="offer.id" :offer="offer">
+                        <ShoppingToggle :offer-id="offer.id" />
+                    </OfferCard>
                 </div>
 
                 <template v-if="item.mentions.length">

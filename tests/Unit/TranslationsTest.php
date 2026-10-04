@@ -18,6 +18,7 @@ use App\Enums\StoreFormat;
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\AvatarController;
 use App\Http\Controllers\CatalogController;
+use App\Http\Controllers\ShoppingListController;
 use App\Http\Controllers\ShoppingPreferencesController;
 use App\Http\Controllers\UnsubscribeController;
 use App\Http\Controllers\WatchItemController;
@@ -60,6 +61,9 @@ it('má text toastu pro každý kód stavu po uložení (R47)', function (string
     AvatarController::STATUS_UPDATED,
     ShoppingPreferencesController::STATUS_SAVED,
     WatchItemController::STATUS_ADDED,
+    ShoppingListController::STATUS_ADDED,
+    ShoppingListController::STATUS_REMOVED,
+    ShoppingListController::STATUS_CLEARED,
     WatchItemController::STATUS_UPDATED,
     WatchItemController::STATUS_REMOVED,
     CatalogController::STATUS_PRODUCT_SAVED,

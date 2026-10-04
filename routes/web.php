@@ -21,6 +21,7 @@ use App\Http\Controllers\LegalController;
 use App\Http\Controllers\ManifestController;
 use App\Http\Controllers\OffersController;
 use App\Http\Controllers\OfferSuggestionsController;
+use App\Http\Controllers\ShoppingListController;
 use App\Http\Controllers\ShoppingPreferencesController;
 use App\Http\Controllers\UnsubscribeController;
 use App\Http\Controllers\WatchItemController;
@@ -73,6 +74,13 @@ Route::middleware('auth')->group(function (): void {
     Route::post('/hlidam', [WatchItemController::class, 'store'])->name('watch-items.store');
     Route::put('/hlidam/{watchItem}', [WatchItemController::class, 'update'])->name('watch-items.update');
     Route::delete('/hlidam/{watchItem}', [WatchItemController::class, 'destroy'])->name('watch-items.destroy');
+
+    // Nákupní seznam (R61): přidat / odebrat z karty akce, odškrtnout v obchodě, uklidit po nákupu
+    Route::get('/seznam', [ShoppingListController::class, 'index'])->name('shopping-list.index');
+    Route::post('/seznam', [ShoppingListController::class, 'toggle'])->name('shopping-list.toggle');
+    Route::delete('/seznam/odskrtnute', [ShoppingListController::class, 'clearChecked'])->name('shopping-list.clear-checked');
+    Route::patch('/seznam/{item}', [ShoppingListController::class, 'update'])->whereNumber('item')->name('shopping-list.update');
+    Route::delete('/seznam/{item}', [ShoppingListController::class, 'destroy'])->whereNumber('item')->name('shopping-list.destroy');
 
     Route::get('/obchody', [ShoppingPreferencesController::class, 'show'])->name('preferences');
     Route::put('/obchody', [ShoppingPreferencesController::class, 'update'])->name('preferences.update');

@@ -133,6 +133,16 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Nákupní seznam — akce, které si dal do seznamu (R61).
+     *
+     * @return HasMany<ShoppingListItem, $this>
+     */
+    public function shoppingListItems(): HasMany
+    {
+        return $this->hasMany(ShoppingListItem::class);
+    }
+
+    /**
      * Adresa profilového obrázku, null bez obrázku (ukážou se iniciály). Název souboru
      * je při každém nahrání nový — parametr v obrázek v cache prohlížeče obnoví.
      */

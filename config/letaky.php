@@ -324,6 +324,13 @@ return [
         'weeks' => 12,
     ],
 
+    /*
+    | Nákupní seznam (R61): nejvýš tolik akcí na uživatele.
+    */
+    'shopping_list' => [
+        'max_items' => 200,
+    ],
+
     'cron' => [
         'token' => env('LETAKY_CRON_TOKEN'),
         // Limit běhu jednoho volání — stažení Tesca trvá ~45 s; hosting ho může omezit i tak (O8)

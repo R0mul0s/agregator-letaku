@@ -8,9 +8,9 @@
 import ChainLogo from '@/Components/ChainLogo.vue';
 import ChainWatermark from '@/Components/ChainWatermark.vue';
 import InfoIcon from '@/Components/InfoIcon.vue';
-import { formatDate, formatPackage, formatPrice } from '@/lib/format';
+import { formatDate, formatPrice } from '@/lib/format';
 import { useTranslations } from '@/lib/i18n';
-import { discountPercent } from '@/lib/offer';
+import { discountPercent, packageLabel } from '@/lib/offer';
 import { showStoresDialog } from '@/lib/storesDialog';
 import { usePage } from '@inertiajs/vue3';
 import { computed, ref, useId } from 'vue';
@@ -54,13 +54,7 @@ const storesLabel = computed(() => {
 const isLoyaltyOnly = computed(() => props.offer.offerType === 'loyalty_only');
 
 /** Balení: text obchodu, jinak množství a jednotka z názvu Tesco („1 l“, „500 g“). */
-const packageLabel = computed(() => {
-    if (props.offer.packageText) {
-        return props.offer.packageText;
-    }
-
-    return props.offer.quantity ? formatPackage(props.offer.quantity, props.offer.unit, locale.value, (unit) => t(`package_units.${unit}`)) : null;
-});
+const packageText = computed(() => packageLabel(props.offer, locale.value, t));
 
 /**
  * Cena za jednotku k hlavní ceně karty. U akce na více kusů by byla z běžné ceny,
@@ -140,7 +134,7 @@ function unitPriceLabel(halers) {
         <h2 class="offer-card__name">{{ offer.name }}</h2>
         <p v-if="offer.description" class="offer-card__description">{{ offer.description }}</p>
         <p v-if="offer.variantNote" class="offer-card__variant">{{ offer.variantNote }}</p>
-        <p v-if="packageLabel" class="offer-card__package">{{ packageLabel }}</p>
+        <p v-if="packageText" class="offer-card__package">{{ packageText }}</p>
 
         <div class="offer-card__prices">
             <template v-if="isLoyaltyOnly">

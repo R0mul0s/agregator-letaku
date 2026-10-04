@@ -29,7 +29,7 @@ nevyžaduje. Se vším, co se týká vašich údajů, se obracejte na uvedený e
 |---|---|---|
 | jméno, e-mail, heslo (uložené jen jako nevratný otisk) | vedení účtu, přihlášení, ověření e-mailu, obnova hesla | plnění smlouvy, tedy podmínek užití (čl. 6 odst. 1 písm. b GDPR) |
 | profilový obrázek (nepovinný) | zobrazení ve vašem účtu | plnění smlouvy |
-| hlídané položky, vybrané obchody a prodejny, věrnostní programy, které máte (jen název programu, ne číslo karty), předvolby zobrazení | zobrazení slev, které vás zajímají | plnění smlouvy |
+| hlídané položky, nákupní seznam, vybrané obchody a prodejny, věrnostní programy, které máte (jen název programu, ne číslo karty), předvolby zobrazení | zobrazení slev, které vás zajímají | plnění smlouvy |
 | čas přijetí podmínek a jejich verze | doložení, s jakými podmínkami jste souhlasili | oprávněný zájem (čl. 6 odst. 1 písm. f GDPR) |
 
 Výběr prodejen může prozradit, kde přibližně nakupujete. Slouží jen k zobrazení akcí
@@ -87,7 +87,7 @@ a cílení reklamy (Google signály). Reklamu zatím nezobrazuji.
 
 | Údaje | Doba |
 |---|---|
-| účet a vše, co k němu patří (hlídané položky, obchody, předvolby, obrázek, souhlasy) | do zrušení účtu |
+| účet a vše, co k němu patří (hlídané položky, nákupní seznam, obchody, předvolby, obrázek, souhlasy) | do zrušení účtu |
 | relace (IP adresa, prohlížeč) | 2 hodiny od poslední aktivity, potom se průběžně maže |
 | přihlášení „Zapamatovat si mě“ | nejdéle 400 dní nebo do odhlášení |
 | odkaz pro obnovu hesla | 60 minut |

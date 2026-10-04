@@ -11,6 +11,7 @@ import EmptyState from '@/Components/EmptyState.vue';
 import OfferCard from '@/Components/OfferCard.vue';
 import Pagination from '@/Components/Pagination.vue';
 import SearchSuggest from '@/Components/SearchSuggest.vue';
+import ShoppingToggle from '@/Components/ShoppingToggle.vue';
 import WatchOfferButton from '@/Components/WatchOfferButton.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { useTranslations } from '@/lib/i18n';
@@ -86,8 +87,9 @@ function search() {
         <EmptyState v-if="offers.data.length === 0" :text="t('offers.empty')" />
         <div v-else class="offer-grid">
             <OfferCard v-for="offer in offers.data" :key="offer.id" :offer="offer">
-                <!-- „Hlídat“ přímo z karty (R60) -->
+                <!-- „Hlídat“ přímo z karty (R60) a nákupní seznam (R61) -->
                 <WatchOfferButton v-if="offer.watchTarget" :target="offer.watchTarget" :urls="watchUrls" />
+                <ShoppingToggle :offer-id="offer.id" />
             </OfferCard>
         </div>
 

@@ -79,6 +79,6 @@ v [PLAN.md](PLAN.md). Větší celky se z toho stávají etapou.
 
 - manifest je hotový (R55); service worker až s upozorněními (web push, offline)
 - „Jsem v obchodě“ (R55): kompaktní řádkový režim karet (cena, obchod, cena za jednotku) — velké karty s obrázkem znamenají v obchodě hodně posouvání
-- „Hlídat tohle“ přímo z karty ve Všech akcích (i pro nepřihlášené — uložit lokálně, po registraci převést)
-- nákupní seznam s odškrtáváním, seřazený podle obchodu (z revize 4. 10. 2026)
+- „Hlídat“ z karty hotové (R60) — dál: i v Mých slevách a na úvodní stránce
+- nákupní seznam hotový (R61) — dál: sdílení seznamu s rodinou, přidání vlastní položky bez akce
 - spodní lišta záložek na telefonu místo hamburgeru (Moje slevy / Hlídám / Akce)

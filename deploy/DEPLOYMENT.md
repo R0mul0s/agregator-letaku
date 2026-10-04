@@ -259,13 +259,14 @@ Kaufland po prodejnách (R49). `composer.lock` se nezměnil.
 
 ### Aktualizace z `b2996c0` (šesté nasazení)
 
-Opravy z revize (R54). Bez SQL skriptu (nový stav `partial` je jen hodnota v `scrape_runs.status`),
-`composer.lock` se nezměnil.
+Opravy a funkce z revize (R54–R62). `composer.lock` se nezměnil.
 
-1. **Nahraj `deploy/upload/`** jako minule: bez `vendor/`, ale s `vendor/composer/` a `bootstrap/cache/packages.php`; `public/build/` nejdřív smaž.
-2. **Cron souhrnu** změň z `30 6 * * *` na `30 6-22 * * *` (dávky po 100 uživatelích, okamžitá upozornění R58).
-3. **Ověř:** `/cron/send-digests?token=…` vrací `Souhrny — odesláno: N`; v Účtu se při změně e-mailu objeví pole s heslem.
-4. Zapiš verzi do *Nasazené verze*.
+1. **Záloha databáze**.
+2. **SQL:** v phpMyAdminu spusť `deploy/migrations-2026-10-04-nakupni-seznam.sql` (tabulka `shopping_list_items`, R61). Opakovatelný, stará verze kódu s ním běží dál. Nový stav `partial` (R54) a četnost `instant` (R58) jsou jen hodnoty v textových sloupcích.
+3. **Nahraj `deploy/upload/`** jako minule: bez `vendor/`, ale s `vendor/composer/` a `bootstrap/cache/packages.php`; `public/build/` nejdřív smaž.
+4. **Cron souhrnu** změň z `30 6 * * *` na `30 6-22 * * *` (dávky po 100 uživatelích, okamžitá upozornění R58).
+5. **Ověř:** `/cron/send-digests?token=…` vrací `Souhrny — odesláno: N`; v Účtu se při změně e-mailu objeví pole s heslem; v menu je Seznam a karta akce má „Do seznamu“; `/manifest.webmanifest` vrací JSON.
+6. Zapiš verzi do *Nasazené verze* a datum ke skriptu v *Historii SQL skriptů*.
 
 **Každá nová migrace potřebuje SQL skript** `deploy/migrations-<datum>-<popis>.sql`
 (opakovatelný: `CREATE TABLE IF NOT EXISTS`, `ADD COLUMN IF NOT EXISTS`) včetně zápisu do
@@ -293,6 +294,7 @@ a ruční opravy katalogu. Před každým SQL skriptem a jinak aspoň jednou mě
 | `migrations-2026-10-03-prodejny.sql` | prodejny Kauflandu (R49): tabulky `stores` a `offer_stores`, `followed_chains.store_codes`; opakovatelný, pustit **před** nahráním kódu | 2026-10-03 |
 | `migrations-2026-10-02-ucet.sql` | nastavení účtu: `users.avatar_path` (R40), `users.offers_sort` a `min_discount_percent` (R41), `users.digest_frequency` a `digest_sent_at` (R42); opakovatelný, pustit **před** nahráním kódu | 2026-10-02 |
 | `migrations-2026-10-03-souhlasy.sql` | souhlasy (R51): `users.terms_accepted_at`, `terms_version`, `marketing_consent_at`, `marketing_consent_version`, `marketing_consent_withdrawn_at`; dosavadní účty označí jako ověřené (`email_verified_at`); opakovatelný, pustit **před** nahráním kódu | 2026-10-03 |
+| `migrations-2026-10-04-nakupni-seznam.sql` | nákupní seznam (R61): tabulka `shopping_list_items`; opakovatelný, pustit **před** nahráním kódu | — |
 
 ## Nasazené verze
 
