@@ -93,6 +93,26 @@ describe('záznamy z cronu', function (): void {
             ->and(NewOffersNotification::groups($record))->toBe([['title' => 'Máslo', 'offerIds' => [$butter->id]]]);
     });
 
+    it('zapamatuje si akce nejlevnější za 12 týdnů a dá je do nadpisu i do detailu (11c)', function (): void {
+        $this->user->forceFill(['notified_at' => now()->subHour()])->save();
+        // Stejná položka Kauflandu před třemi týdny dráž — skončená, sama nová není
+        Offer::factory()->create(['chain' => Chain::Kaufland, 'external_id' => 'maslo-250', 'name' => 'Máslo 250 g', 'price' => 4990, 'valid_from' => '2026-09-09', 'valid_to' => '2026-09-15']);
+        $butter = centerImportedOffer(['external_id' => 'maslo-250', 'name' => 'Máslo 250 g', 'price' => 3990, 'valid_from' => '2026-10-01', 'valid_to' => '2026-10-07']);
+
+        app(RecordNewOffers::class)();
+
+        $record = $this->user->notifications()->sole();
+        expect(OffersNotification::lowestOfferIds($record))->toBe([$butter->id]);
+
+        $this->actingAs($this->user)->get(route('notifications.index'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('notifications.0.title', 'Máslo je nejlevněji za 12 týdnů')
+                ->where('notifications.0.lowestCount', 1)
+                ->where('priceHistoryWeeks', 12));
+        $this->get(route('notifications.show', $record->id))
+            ->assertInertia(fn (Assert $page) => $page->where('groups.0.offers.0.priceHistory.status', 'lowest'));
+    });
+
     it('bez nové akce nic nezapíše, čas posune', function (): void {
         $this->user->forceFill(['notified_at' => now()->subHour()])->save();
         centerImportedOffer(['name' => 'Vejce M']);
@@ -288,5 +308,6 @@ it('denní úklid smaže záznamy starší než doba uchování', function (): v
 
     app(PruneExpiredSessions::class)();
 
-    expect($this->user->notifications()->pluck('data')->all())->toBe([['groups' => [['title' => 'Pivo', 'offerIds' => []]]]]);
+    expect($this->user->notifications()->get()->map(fn (DatabaseNotification $record): array => OffersNotification::groups($record))->all())
+        ->toBe([[['title' => 'Pivo', 'offerIds' => []]]]);
 });

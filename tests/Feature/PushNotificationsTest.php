@@ -240,6 +240,18 @@ describe('upozornění na nové akce', function (): void {
             ->and($this->user->fresh()?->push_sent_at?->toDateTimeString())->toBe('2026-10-02 06:30:00');
     });
 
+    it('akci nejlevnější za 12 týdnů napíše do nadpisu i k řádku (R74, 11c)', function (): void {
+        $sender = fakePushSender();
+        Offer::factory()->create(['chain' => Chain::Kaufland, 'external_id' => 'maslo-250', 'name' => 'Máslo 250 g', 'price' => 4990, 'valid_from' => '2026-09-09', 'valid_to' => '2026-09-15']);
+        pushImportedOffer(['external_id' => 'maslo-250', 'name' => 'Máslo 250 g', 'price' => 3990, 'valid_from' => '2026-10-01', 'valid_to' => '2026-10-07']);
+
+        recordAndPush();
+
+        $message = $sender->sent[0]['message'];
+        expect($message->title)->toBe('Máslo je nejlevněji za 12 týdnů')
+            ->and($message->body)->toBe("Máslo 250 g — 39,90\u{00A0}Kč, Kaufland · nejlevněji za 12 týdnů");
+    });
+
     it('víc akcí shrne počtem a vypíše jen první', function (): void {
         $sender = fakePushSender();
         foreach (['Máslo A', 'Máslo B', 'Máslo C', 'Máslo D', 'Máslo E'] as $name) {

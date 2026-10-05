@@ -24,6 +24,13 @@
         color: var(--color-accent-strong);
     }
 
+    // Nejlevněji za sledované období (R59) — v centru upozornění a v řádku akce (R74, etapa 11c)
+    &--success {
+        background: var(--color-success-soft);
+        border-color: transparent;
+        color: var(--color-success-text);
+    }
+
     &--warning {
         background: var(--color-warning-soft);
         border-color: transparent;

@@ -20,6 +20,7 @@ use App\Domain\Notifications\NotificationPresenter;
 use App\Domain\Notifications\OffersNotification;
 use App\Domain\Offers\LocalCalendar;
 use App\Domain\Offers\OfferPresenter;
+use App\Domain\Offers\PriceHistory;
 use App\Models\Offer;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
@@ -47,6 +48,8 @@ class NotificationController extends Controller
             'readUrl' => route('notifications.read', absolute: false),
             'watchItemsUrl' => route('watch-items.index', absolute: false),
             'retentionDays' => config()->integer('letaky.notifications.retention_days'),
+            // Štítek „Nejlevněji za N týdnů“ u záznamu s takovou akcí (etapa 11c)
+            'priceHistoryWeeks' => config()->integer('letaky.price_history.weeks'),
         ]);
     }
 
@@ -60,6 +63,7 @@ class NotificationController extends Controller
         OfferPresenter $offerPresenter,
         MyOffers $myOffers,
         LocalCalendar $calendar,
+        PriceHistory $priceHistory,
     ): Response {
         $user = $this->user($request);
         /** @var DatabaseNotification $record */
@@ -70,14 +74,16 @@ class NotificationController extends Controller
         $offers = Offer::query()->with('stores')->findMany(OffersNotification::offerIds($record))->keyBy('id');
         $storeCodes = $user->selectedStoreCodes();
         $today = $calendar->today();
+        // „Je to opravdu sleva?“ (R59) — u řádku štítek „Nejlevněji za N týdnů“ (etapa 11c)
+        $history = $priceHistory->forOffers($offers->values());
 
         $groups = array_map(fn (array $group): array => [
             'title' => $group['title'],
-            'offers' => array_values(array_filter(array_map(function (int $id) use ($offers, $offerPresenter, $myOffers, $user, $storeCodes, $today): ?array {
+            'offers' => array_values(array_filter(array_map(function (int $id) use ($offers, $offerPresenter, $myOffers, $user, $storeCodes, $today, $history): ?array {
                 $offer = $offers->get($id);
 
                 return $offer === null ? null : [
-                    ...$offerPresenter->toPage($offer, $storeCodes),
+                    ...$offerPresenter->toPage($offer, $storeCodes, $history[$id] ?? null),
                     'userPrice' => $myOffers->userPrice($user, $offer),
                     // Obchod akci stáhl (R16) nebo už skončila
                     'ended' => $offer->withdrawn_at !== null || $offer->valid_to->lessThan($today),

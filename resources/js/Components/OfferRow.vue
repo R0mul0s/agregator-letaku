@@ -2,7 +2,8 @@
     Akce jako kompaktní řádek (R62) — „Jsem v obchodě“ v Mých slevách: název s balením, cena
     za jednotku, cena, kterou uživatel zaplatí, sleva a tlačítko do nákupního seznamu. Velká karta
     s obrázkem by v obchodě znamenala hodně posouvání. V centru upozornění (R74) i s obchodem;
-    skončená akce je ztlumená a bez tlačítka do seznamu.
+    skončená akce je ztlumená a bez tlačítka do seznamu. Akce nejlevnější za sledované období
+    (R59) má štítek.
 
     @author Roman Hlaváček
     @created 2026-10-04
@@ -57,6 +58,10 @@ const unitPrice = computed(() => {
                 {{ offer.name }}
                 <span v-if="offer.matchStatus === 'maybe'" class="tag tag--warning">{{ t('offers.maybe') }}</span>
                 <span v-if="offer.ended" class="tag">{{ t('notifications.ended') }}</span>
+                <!-- Nejlevněji za sledované období (R59, centrum upozornění 11c) -->
+                <span v-else-if="offer.priceHistory?.status === 'lowest'" class="tag tag--success">{{
+                    t('offers.history.lowest', { weeks: offer.priceHistory.weeks })
+                }}</span>
             </p>
             <p class="offer-row__meta">
                 <span v-if="withChain" class="offer-row__chain">{{ offer.chainName }}</span>

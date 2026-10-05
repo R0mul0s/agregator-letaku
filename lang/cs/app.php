@@ -169,6 +169,8 @@ return [
     'notifications' => [
         'new_offers' => [
             'title_one' => ':name je v akci',
+            // Akce je nejlevnější za sledované období (PriceHistory, R59; etapa 11c)
+            'title_lowest' => ':name je nejlevněji za :weeks týdnů',
             'title_many' => ':count nová akce na hlídané zboží|:count nové akce na hlídané zboží|:count nových akcí na hlídané zboží',
         ],
         'ending_soon' => [
@@ -187,6 +189,8 @@ return [
     // Upozornění v telefonu — web push (R66, SendPushNotifications)
     'push' => [
         'line' => ':name — :price, :chain',
+        // Akce nejlevnější za sledované období (etapa 11c)
+        'line_lowest' => ':name — :price, :chain · nejlevněji za :weeks týdnů',
         'more' => 'a :count další…|a :count další…|a :count dalších…',
         'test_title' => 'Upozornění fungují',
         'test_body' => 'Přesně takhle vám zaťukáme, až bude hlídané zboží v akci.',

@@ -22,7 +22,7 @@ final class NotificationPresenter
     /**
      * Shrnutí záznamu do seznamu; null = druh, který tahle verze neumí ukázat.
      *
-     * @return array{id: string, kind: string, title: string, text: string, createdAt: string|null, unread: bool, url: string}|null
+     * @return array{id: string, kind: string, title: string, text: string, lowestCount: int, createdAt: string|null, unread: bool, url: string}|null
      */
     public function summary(DatabaseNotification $notification): ?array
     {
@@ -32,13 +32,17 @@ final class NotificationPresenter
         }
 
         $groups = OffersNotification::groups($notification);
+        $offerIds = OffersNotification::offerIds($notification);
+        $lowestCount = count(array_intersect($offerIds, OffersNotification::lowestOfferIds($notification)));
 
         return [
             'id' => $notification->id,
             'kind' => $kind->value,
-            'title' => $this->title($kind, $groups, count(OffersNotification::offerIds($notification))),
+            'title' => $this->title($kind, $groups, count($offerIds), $lowestCount > 0),
             // Hlídané položky, nebo obchody, kterých se akce týkají
             'text' => implode(', ', array_column($groups, 'title')),
+            // Kolik akcí bylo nejlevnějších za sledované období (etapa 11c) — štítek v seznamu
+            'lowestCount' => $lowestCount,
             'createdAt' => $notification->created_at?->toIso8601String(),
             'unread' => $notification->read_at === null,
             'url' => route('notifications.show', $notification->id, absolute: false),
@@ -46,16 +50,24 @@ final class NotificationPresenter
     }
 
     /**
-     * Nadpis podle druhu: u jedné nové akce s názvem hlídané položky, jinak s počtem akcí.
+     * Nadpis podle druhu: u jedné nové akce s názvem hlídané položky (a „nejlevněji za N týdnů“,
+     * je-li nejlevnější za sledované období, etapa 11c), jinak s počtem akcí.
      *
      * @param  list<array{title: string, offerIds: list<int>}>  $groups
      */
-    public function title(NotificationKind $kind, array $groups, int $offerCount): string
+    public function title(NotificationKind $kind, array $groups, int $offerCount, bool $lowest = false): string
     {
+        $name = $groups[0]['title'] ?? '';
+
         return match ($kind) {
-            NotificationKind::NewOffers => $offerCount === 1
-                ? __('app.notifications.new_offers.title_one', ['name' => $groups[0]['title'] ?? ''])
-                : trans_choice('app.notifications.new_offers.title_many', $offerCount),
+            NotificationKind::NewOffers => match (true) {
+                $offerCount === 1 && $lowest => __('app.notifications.new_offers.title_lowest', [
+                    'name' => $name,
+                    'weeks' => config()->integer('letaky.price_history.weeks'),
+                ]),
+                $offerCount === 1 => __('app.notifications.new_offers.title_one', ['name' => $name]),
+                default => trans_choice('app.notifications.new_offers.title_many', $offerCount),
+            },
             NotificationKind::EndingSoon => trans_choice('app.notifications.ending_soon.title', $offerCount),
         };
     }

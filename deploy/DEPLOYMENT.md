@@ -356,8 +356,8 @@ náhled vlastních slov a „Vrátit“ v toastu. **Tón a kontakt (R72):** př�
 texty „my“ (datum účinnosti 2026-10-05), stránka `/kontakt`, v patičce sekce Kontakt. **České
 adresy (R73):** `/prihlaseni`, `/registrace`, `/zapomenute-heslo`… (staré přesměrované 301), přepínač
 „Ukazovat i akce jen pro e-shop“. **Centrum upozornění (R74):** zvonek v hlavičce, `/upozorneni`,
-upozornění v telefonu vede na záznam, odpoledne „Zítra končí…“ s akcemi z nákupního seznamu; mobilní
-navigace se spodní lištou do 829 px. **SQL skript
+upozornění v telefonu vede na záznam, odpoledne „Zítra končí…“ s akcemi z nákupního seznamu, akce
+nejlevnější za 12 týdnů se štítkem; mobilní navigace se spodní lištou do 829 px. **SQL skript
 `migrations-2026-10-05-centrum-upozorneni.sql`**, `composer.lock` se nezměnil, žádné soubory nezmizely.
 
 1. **Záloha databáze** (viz *Záloha databáze*) a pak v phpMyAdminu

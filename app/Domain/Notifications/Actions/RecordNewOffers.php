@@ -21,6 +21,7 @@ namespace App\Domain\Notifications\Actions;
 
 use App\Domain\Digest\NewOffers;
 use App\Domain\Notifications\NewOffersNotification;
+use App\Domain\Offers\PriceHistory;
 use App\Models\Offer;
 use App\Models\User;
 use Carbon\CarbonImmutable;
@@ -29,7 +30,10 @@ use Throwable;
 
 final class RecordNewOffers
 {
-    public function __construct(private readonly NewOffers $newOffers) {}
+    public function __construct(
+        private readonly NewOffers $newOffers,
+        private readonly PriceHistory $priceHistory,
+    ) {}
 
     /**
      * Zpracuje jednu dávku uživatelů, kterým od posledního zpracování doběhlo stažení;
@@ -68,20 +72,25 @@ final class RecordNewOffers
     }
 
     /**
-     * Zapíše uživateli záznam s akcemi, které obchody nabídly po `$since`; bez nich nic.
+     * Zapíše uživateli záznam s akcemi, které obchody nabídly po `$since`, i s tím, které
+     * z nich jsou nejlevnější za sledované období (etapa 11c); bez nových akcí nic.
      */
     private function record(User $user, CarbonImmutable $since): bool
     {
-        $groups = array_map(fn (array $group): array => [
-            'title' => $group['watchItem']->name,
-            'offerIds' => array_map(fn (Offer $offer): int => $offer->id, $group['offers']),
-        ], $this->newOffers->forUser($user, $since));
-
-        if ($groups === []) {
+        $newGroups = $this->newOffers->forUser($user, $since);
+        if ($newGroups === []) {
             return false;
         }
 
-        $user->notify(new NewOffersNotification($groups));
+        $groups = array_map(fn (array $group): array => [
+            'title' => $group['watchItem']->name,
+            'offerIds' => array_map(fn (Offer $offer): int => $offer->id, $group['offers']),
+        ], $newGroups);
+
+        $history = $this->priceHistory->forOffers(array_merge(...array_column($newGroups, 'offers')));
+        $lowest = array_keys(array_filter($history, fn (array $comparison): bool => $comparison['status'] === PriceHistory::LOWEST));
+
+        $user->notify(new NewOffersNotification($groups, $lowest));
 
         return true;
     }

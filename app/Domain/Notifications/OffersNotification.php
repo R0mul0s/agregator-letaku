@@ -81,6 +81,17 @@ abstract class OffersNotification extends Notification
     }
 
     /**
+     * ID akcí záznamu, které byly v okamžiku upozornění nejlevnější za sledované období
+     * (PriceHistory, R59; etapa 11c) — jen u nových akcí, jinak prázdné.
+     *
+     * @return list<int>
+     */
+    public static function lowestOfferIds(DatabaseNotification $notification): array
+    {
+        return array_values(array_filter((array) ($notification->data['lowestOfferIds'] ?? []), is_int(...)));
+    }
+
+    /**
      * Všechna ID akcí záznamu v pořadí skupin, bez opakování.
      *
      * @return list<int>

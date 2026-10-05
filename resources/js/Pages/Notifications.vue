@@ -20,6 +20,8 @@ const props = defineProps({
     readUrl: { type: String, required: true },
     watchItemsUrl: { type: String, required: true },
     retentionDays: { type: Number, required: true },
+    /** Sledované období „Je to opravdu sleva?“ (R59) pro štítek nejlevnější akce (etapa 11c). */
+    priceHistoryWeeks: { type: Number, required: true },
 });
 
 /** Milisekund ve dni — pro „Včera“. */
@@ -123,6 +125,7 @@ onMounted(() => {
                             <span class="notification-item__title">
                                 {{ item.title }}
                                 <span v-if="unreadIds.has(item.id)" class="tag tag--accent">{{ t('notifications.unread') }}</span>
+                                <span v-if="item.lowestCount" class="tag tag--success">{{ t('offers.history.lowest', { weeks: priceHistoryWeeks }) }}</span>
                             </span>
                             <span class="notification-item__text">{{ item.text }}</span>
                         </span>

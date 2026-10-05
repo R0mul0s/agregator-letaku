@@ -14,9 +14,10 @@ v [PLAN.md](PLAN.md). Větší celky se z toho stávají etapou.
 
 ## Upozornění
 
-**Odkud:** zadání 2026-10-02. E-mailová upozornění hned / denně / týdně (R42, R58), upozornění v telefonu (web push, R66) a centrum upozornění s novými a končícími akcemi (R74, etapy 11a, 11b) jsou hotová.
+**Odkud:** zadání 2026-10-02. E-mailová upozornění hned / denně / týdně (R42, R58), upozornění v telefonu (web push, R66) a centrum upozornění s novými, končícími a nejlevnějšími akcemi (R74, etapy 11a–11c) jsou hotová.
 
-- **centrum upozornění, další etapy (R74):** 11c akce zlevnila (štítek z `PriceHistory`, snížení ceny běžící akce jen když se na ostrých datech děje), 11d zprávy od nás (formulář admina, propagační jen se souhlasem)
+- **centrum upozornění, další etapa (R74):** 11d zprávy od nás (formulář admina, propagační jen se souhlasem)
+- **upozornění na zlevnění běžící akce** (R74, odloženo z 11c): import cenu u stejného klíče tiše přepíše — muselo by si pamatovat původní cenu (`previous_price`, `price_dropped_at`) a porovnávat srovnatelnou cenu (`PriceHistory::comparablePrice`, ne přechod na akci s kartou). Měření 5. 10. 2026: 3 zlevnění z 10 254 běžících akcí za 2–3 dny (Kaufland 1, Billa 2), ostatní obchody 0
 - e-mailový souhrn s odkazem do centra upozornění (dnes „Otevřít Moje slevy“)
 - tlačítko „Do seznamu“ přímo v upozornění v telefonu — service worker nemá token CSRF, potřeboval by podepsanou adresu jako odhlášení z e-mailů
 - odběr, který prohlížeč sám vymění (`pushsubscriptionchange`), se dnes obnoví až zapnutím v Můj účet — obnovovat ho při startu aplikace

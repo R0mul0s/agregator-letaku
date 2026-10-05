@@ -154,14 +154,17 @@ final class SendPushNotifications
 
         $count = count($offers);
         $shown = array_slice($offers, 0, config()->integer('letaky.push.max_offers'));
+        // Nejlevnější za sledované období (etapa 11c) — dovětek u akce, u jedné i v nadpisu
+        $lowest = array_merge([], ...$records->map(OffersNotification::lowestOfferIds(...))->all());
 
-        $lines = array_map(function (Offer $offer) use ($user): string {
+        $lines = array_map(function (Offer $offer) use ($user, $lowest): string {
             $price = $this->myOffers->userPrice($user, $offer);
 
-            return __('app.push.line', [
+            return __(in_array($offer->id, $lowest, true) ? 'app.push.line_lowest' : 'app.push.line', [
                 'name' => $offer->name,
                 'price' => $price === null ? __('app.digest.no_price') : $this->prices->format($price),
                 'chain' => $offer->chain->label(),
+                'weeks' => config()->integer('letaky.price_history.weeks'),
             ]);
         }, $shown);
         if ($count > count($shown)) {
@@ -175,7 +178,7 @@ final class SendPushNotifications
         $single = $records->count() === 1 ? $records->first() : null;
 
         return new PushMessage(
-            title: $this->presenter->title($kind, $titleGroups, $count),
+            title: $this->presenter->title($kind, $titleGroups, $count, in_array($offers[0]->id, $lowest, true)),
             body: implode("\n", $lines),
             url: $single === null
                 ? route('notifications.index', absolute: false)
