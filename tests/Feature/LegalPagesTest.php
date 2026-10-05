@@ -45,12 +45,13 @@ it('chybějící údaj provozovatele na právní stránce označí k doplnění'
         ->assertInertia(fn (Assert $page) => $page->where('html', fn (string $html): bool => str_contains($html, 'IČO [doplnit]')));
 });
 
-it('sdílí patičku s provozovatelem, sídlem po řádcích (bez prázdných) a odkazy', function (): void {
+it('sdílí patičku s kontaktem — značka, sídlo po řádcích (bez prázdných) a odkazy (R72)', function (): void {
     config(['letaky.operator.address' => ['Hlavní 1', ' ', '110 00 Praha']]);
 
     $this->get(route('offers'))
         ->assertInertia(fn (Assert $page) => $page
-            ->where('siteFooter.operator', config('letaky.operator.name'))
+            ->where('siteFooter.brand', 'RHsoft.cz')
+            ->where('siteFooter.contactUrl', '/kontakt')
             ->where('siteFooter.addressLines', ['Hlavní 1', '110 00 Praha'])
             ->missing('siteFooter.companyId')
             ->where('siteFooter.termsUrl', '/podminky')

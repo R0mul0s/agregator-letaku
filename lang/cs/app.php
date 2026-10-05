@@ -43,6 +43,10 @@ return [
                 'title' => 'Zásady zpracování osobních údajů · Slevohlídka',
                 'description' => 'Jaké osobní údaje Slevohlídka zpracovává, proč a jak dlouho, komu je předává, jaké používá cookies a jaká máte práva.',
             ],
+            'contact' => [
+                'title' => 'Kontakt · Slevohlídka',
+                'description' => 'Kdo Slevohlídku provozuje a jak se nám ozvat — chybná cena, nápad, spolupráce s obchody nebo dotaz k osobním údajům.',
+            ],
             'default' => [
                 'title' => 'Slevohlídka',
                 'description' => 'Slevohlídka — rychlý lovec slev. Hlídá akce z letáků obchodů Kaufland, Tesco, Albert, Lidl, Penny, Globus a Billa.',
@@ -109,14 +113,14 @@ return [
     // České chybové stránky (R51, resources/views/errors) — podle kódu, jinak obecné 4xx / 5xx
     'errors' => [
         'home' => 'Zpět na úvodní stránku',
-        '403' => ['title' => 'Sem nemáte přístup', 'text' => 'Na tuhle stránku nemáte oprávnění.'],
-        '404' => ['title' => 'Stránka nenalezena', 'text' => 'Tahle stránka neexistuje nebo už zmizela — jako akce z minulého týdne.'],
-        '419' => ['title' => 'Platnost stránky vypršela', 'text' => 'Stránka byla otevřená příliš dlouho. Načtěte ji znovu a zkuste to ještě jednou.'],
-        '429' => ['title' => 'Příliš mnoho požadavků', 'text' => 'Zpomalte prosím — za chvíli to půjde znovu.'],
-        '500' => ['title' => 'Něco se pokazilo', 'text' => 'Na naší straně nastala chyba. Zkuste to prosím za chvíli.'],
-        '503' => ['title' => 'Probíhá údržba', 'text' => 'Slevohlídka se právě aktualizuje. Za pár minut bude zpět.'],
-        '4xx' => ['title' => 'Stránku nejde zobrazit', 'text' => 'Požadavek se nepodařilo zpracovat.'],
-        '5xx' => ['title' => 'Něco se pokazilo', 'text' => 'Na naší straně nastala chyba. Zkuste to prosím za chvíli.'],
+        '403' => ['title' => 'Sem je vstup jen pro zasvěcené', 'text' => 'Na tuhle stránku nemáte oprávnění. Jestli si myslíte, že sem patříte, zkuste se přihlásit.'],
+        '404' => ['title' => 'Tahle stránka nám utekla', 'text' => 'Hledali jsme všude, i v letácích z minulého týdne. Možná zmizela, možná tu nikdy nebyla.'],
+        '419' => ['title' => 'Stránka nám trochu vystydla', 'text' => 'Byla otevřená moc dlouho. Načtěte ji znovu a zkuste to ještě jednou.'],
+        '429' => ['title' => 'Pomalu, lovče slev!', 'text' => 'Tolik požadavků najednou nestíháme. Dejte nám chvilku na nádech a zkuste to znovu.'],
+        '500' => ['title' => 'Tohle se nám nepovedlo', 'text' => 'Na naší straně se něco zadrhlo. Zkuste to prosím za chvilku znovu.'],
+        '503' => ['title' => 'Na chvilku jsme zavřeli', 'text' => 'Doplňujeme regály — Slevohlídka bude za pár minut zpátky.'],
+        '4xx' => ['title' => 'Tudy cesta nevede', 'text' => 'Požadavek se nepodařilo zpracovat. Zkuste to prosím znovu nebo jinou cestou.'],
+        '5xx' => ['title' => 'Tohle se nám nepovedlo', 'text' => 'Na naší straně se něco zadrhlo. Zkuste to prosím za chvilku znovu.'],
     ],
 
     // llms.txt (R45) — popis webu pro jazykové modely
@@ -136,6 +140,7 @@ return [
         'note_contact' => 'Kontakt na provozovatele: :email',
         'terms' => 'Podmínky užití',
         'privacy' => 'Zásady zpracování osobních údajů',
+        'contact' => 'Kontakt',
     ],
 
     // Úklid osobních údajů po vypršení (R53, PruneExpiredSessions)
@@ -147,13 +152,13 @@ return [
     'digest' => [
         'subject' => 'Slevohlídka: :count nová akce na hlídané zboží|Slevohlídka: :count nové akce na hlídané zboží|Slevohlídka: :count nových akcí na hlídané zboží',
         'greeting' => 'Ahoj, :name!',
-        'intro' => 'Od posledního souhrnu Slevohlídka ulovila tyhle akce ve vašich obchodech:',
+        'intro' => 'Máme úlovek! Od posledního souhrnu jsme ve vašich obchodech našli tyhle akce:',
         'no_price' => 'cena v letáku',
         'valid_to' => 'do :date',
         'more' => 'a :count další akce v Mých slevách|a :count další akce v Mých slevách|a :count dalších akcí v Mých slevách',
         'count' => ':count nová|:count nové|:count nových',
         'button' => 'Otevřít Moje slevy',
-        'footer' => 'Tento e-mail dostáváte, protože máte ve Slevohlídce zapnutý souhrn akcí — chodí :frequency.',
+        'footer' => 'Tenhle e-mail vám posíláme, protože máte ve Slevohlídce zapnutý souhrn akcí — chodí :frequency. Ať se vám nákup vydaří!',
         'unsubscribe_link' => 'Vypnout souhrn',
         'settings_link' => 'Nastavení účtu',
         'done' => 'Souhrny — odesláno: :count',
@@ -167,7 +172,7 @@ return [
         'line' => ':name — :price, :chain',
         'more' => 'a :count další…|a :count další…|a :count dalších…',
         'test_title' => 'Upozornění fungují',
-        'test_body' => 'Takhle vám dáme vědět, až bude hlídané zboží v akci.',
+        'test_body' => 'Přesně takhle vám zaťukáme, až bude hlídané zboží v akci.',
         'done' => 'Upozornění v telefonu — odesláno: :count',
         'failed' => 'Upozornění v telefonu — chyba: :error',
         'keys_generated' => 'Klíče VAPID — vložte je do .env (na produkci do .env na hostingu):',
@@ -221,15 +226,15 @@ return [
         // Aplikace v telefonu (R66): přidání na plochu, offline režim (InstallPrompt, OfflineBar, PhoneAppSettings)
         'pwa' => [
             'install_title' => 'Slevohlídka jako aplikace',
-            'install_text' => 'Přidejte si Slevohlídku na plochu telefonu — otevře se jedním klepnutím, nákupní seznam funguje i bez signálu a může vás upozornit na nové akce.',
+            'install_text' => 'Mějte Slevohlídku po ruce na ploše telefonu — otevře se jedním klepnutím, nákupní seznam funguje i v obchodě bez signálu a o nových akcích vám dá vědět sama.',
             'install' => 'Přidat na plochu',
             'install_later' => 'Teď ne',
             'install_ios_steps' => 'V Safari klepněte dole na Sdílet (čtverec se šipkou) a pak na Přidat na plochu.',
             'install_browser_menu' => 'V menu prohlížeče zvolte Přidat na plochu nebo Nainstalovat aplikaci.',
-            'installed' => 'Slevohlídku máte na ploše — běží jako aplikace.',
+            'installed' => 'Slevohlídku máte na ploše — lov může začít.',
             'settings_title' => 'Aplikace v telefonu',
-            'offline' => 'Jste offline — ukazujeme uloženou verzi.',
-            'stale' => 'Slabý signál — ukazujeme uloženou verzi.',
+            'offline' => 'Jste offline — ukazujeme, co jsme si uložili.',
+            'stale' => 'Signál zlobí — ukazujeme uloženou verzi.',
             'fetched_at' => 'Stav z :at.',
             'offline_navigation' => 'Jste offline a tahle stránka není uložená. Moje slevy a nákupní seznam fungují i bez signálu.',
         ],
@@ -237,7 +242,7 @@ return [
         // Stránka bez připojení (R66, resources/views/pwa/offline.blade.php)
         'offline' => [
             'title' => 'Jste offline',
-            'text' => 'Tahle stránka bez signálu není k dispozici. Moje slevy a nákupní seznam máte v telefonu uložené.',
+            'text' => 'Bez signálu tahle stránka nejde. Moje slevy a nákupní seznam ale máte uložené v telefonu — ty fungují i teď.',
             'retry' => 'Zkusit znovu',
         ],
 
@@ -248,10 +253,10 @@ return [
             'enable' => 'Posílat upozornění na toto zařízení',
             'test' => 'Poslat zkušební upozornění',
             'other_devices' => 'Upozornění chodí také na: :devices.',
-            'unsupported' => 'Tento prohlížeč upozornění neumí. Zkuste Chrome, Edge, Firefox nebo Samsung Internet.',
+            'unsupported' => 'Tenhle prohlížeč upozornění bohužel neumí. Zkuste Chrome, Edge, Firefox nebo Samsung Internet.',
             'ios_install_first' => 'Na iPhonu upozornění fungují, jen když máte Slevohlídku přidanou na plochu — pak je zapnete tady v aplikaci.',
             'denied' => 'Upozornění máte pro Slevohlídku v prohlížeči zakázaná. Povolte je v nastavení webu (ikona zámku u adresy) nebo v nastavení telefonu.',
-            'failed' => 'Upozornění se nepodařilo nastavit. Zkuste to prosím znovu.',
+            'failed' => 'Upozornění se nepodařilo nastavit. Zkusíte to ještě jednou?',
             'invalid_endpoint' => 'Upozornění tohoto prohlížeče nepodporujeme.',
         ],
 
@@ -304,18 +309,18 @@ return [
 
         'watch' => [
             'title' => 'Hlídám',
-            'intro' => 'Co hlídáte, to se ukáže v Mých slevách.',
+            'intro' => 'Co tady zadáte, to pro vás hlídáme. Úlovky pak najdete v Mých slevách.',
             'add_label' => 'Co chcete hlídat?',
             // Příklady, které se střídají v prázdném poli (R71, lib/placeholder.js)
             'examples' => ['máslo', 'pivo', 'Coca-Cola Zero', 'káva', 'banány', 'jogurt'],
-            'add_hint' => 'Vyberte produkt z katalogu. Co v katalogu není, pohlídáte vlastními slovy.',
+            'add_hint' => 'Vyberte produkt z katalogu. Co v katalogu chybí, pohlídáme podle vašich slov.',
             'own_option' => 'Hlídat „:text“ vlastními slovy',
             'own_meta' => 'Pro věc, která v katalogu není',
-            'did_you_mean' => 'Nic přesně neodpovídá — nemysleli jste:',
+            'did_you_mean' => 'Přesně tohle nemáme — nemysleli jste:',
             'no_offers_now' => 'teď bez akce',
             // Náhled vlastních slov (R71) — co by položka teď našla
-            'preview_loading' => 'Hledání akcí…',
-            'preview_none' => 'Teď by nenašlo žádnou akci — upozorní, až nějaká bude.',
+            'preview_loading' => 'Prohledáváme akce…',
+            'preview_none' => 'Teď by nenašlo nic — ale hlídáme dál a dáme vědět, až se něco objeví.',
             'preview_count' => 'Teď by našlo :count akci|Teď by našlo :count akce|Teď by našlo :count akcí',
             'preview_hint' => 'Chytá i něco jiného? Doplňte slovo do pole Vyloučit.',
             'own_link' => 'Hlídat vlastními slovy',
@@ -355,17 +360,17 @@ return [
             'delete' => 'Smazat',
             'stop' => 'Přestat hlídat',
             'delete_confirm_title' => 'Přestat hlídat?',
-            'delete_confirm' => '„:name“ zmizí z Hlídám i z Mých slev.',
-            'empty' => 'Zatím nic nehlídáte. Napište nahoře, co chcete hlídat, nebo projděte katalog.',
+            'delete_confirm' => '„:name“ zmizí z Hlídám i z Mých slev a slevy na to vám už hlásit nebudeme.',
+            'empty' => 'Zatím nic nehlídáte. Napište nahoře, na co máte chuť, nebo se projděte katalogem.',
             'limit' => 'Hlídat jde nejvýš :count položek.',
         ],
 
         'preferences' => [
             'title' => 'Moje obchody',
-            'intro' => 'Vyberte obchody, jejichž akce chcete hlídat, a karty nebo aplikace, které máte. Akce jen s kartou, kterou nemáte, se v Mých slevách neukážou.',
+            'intro' => 'Vyberte obchody, kde nakupujete, a karty nebo aplikace, které nosíte v peněžence. Akce jen s kartou, kterou nemáte, vás pak nebudou zbytečně lákat.',
             'follow' => 'Sledovat :chain',
             'followed' => 'Sledujete',
-            'not_followed' => 'Akce z tohoto obchodu neuvidíte.',
+            'not_followed' => 'Akce z tohoto obchodu vám neukážeme.',
             'followed_count' => 'Sledujete :count z :total obchodů|Sledujete :count z :total obchodů|Sledujete :count z :total obchodů',
             'coming_soon' => 'Připravujeme',
             'store_format' => 'Typ prodejny',
@@ -382,7 +387,7 @@ return [
             'loyalty' => 'Mám :program',
             // Ukládání hned po každé změně (R64)
             'autosave' => 'Změny se ukládají hned.',
-            'saving' => 'Ukládám…',
+            'saving' => 'Ukládáme…',
         ],
 
         // App\Enums\OfferType
@@ -451,15 +456,15 @@ return [
             'from' => 'od :price',
             'show_all' => 'Zobrazit :count výsledek pro „:text“|Zobrazit všechny :count výsledky pro „:text“|Zobrazit všech :count výsledků pro „:text“',
             'corrected' => 'Výsledky pro „:text“',
-            'nothing' => 'Pro „:text“ teď nic v akci není.',
+            'nothing' => 'Pro „:text“ jsme v akcích teď nic neulovili.',
             'keys_move' => 'vybrat',
             'keys_choose' => 'potvrdit',
             'keys_close' => 'zavřít',
             'discounts_only' => 'Jen slevy',
             'product_filter' => 'Produkt: :name',
             'remove_filter' => 'Zrušit filtr',
-            'correction' => '„:original“ nic nenašlo — výsledky jsou pro „:corrected“.',
-            'empty_text' => '„:text“ teď v akci není. Pohlídejte si to — Slevohlídka dá vědět, až bude.',
+            'correction' => '„:original“ jsme nenašli, tak ukazujeme „:corrected“. Prsty někdy kliknou vedle.',
+            'empty_text' => '„:text“ teď v akci není. Pohlídejte si to — dáme vědět, jakmile se objeví.',
         ],
 
         'offers' => [
@@ -470,7 +475,7 @@ return [
             'all_chains' => 'Všechny obchody',
             'submit' => 'Hledat',
             'count' => ':count nabídka|:count nabídky|:count nabídek',
-            'empty' => 'Žádná aktuální akce neodpovídá hledání.',
+            'empty' => 'Tentokrát jsme nic neulovili. Zkuste jiné slovo nebo jiný obchod.',
             'with_card' => 's kartou :program',
             'regular_price' => 'běžně :price',
             'unit_price' => ':price / :unit',
@@ -548,7 +553,7 @@ return [
                     'hunt' => 'Slevy hlídáme my',
                 ],
                 'heading' => 'Začněte hlídat slevy',
-                'intro' => 'Zdarma a za minutu. Pak jen vyberete, co kupujete.',
+                'intro' => 'Zdarma a za minutu. Pak už nám jen řeknete, co kupujete.',
                 'password_hint' => 'Aspoň :min znaků.',
                 'trust' => [
                     'free' => 'Zdarma',
@@ -566,13 +571,13 @@ return [
                 'terms_required' => 'Bez souhlasu s podmínkami užití účet založit nejde.',
                 // Ochrana proti botům (R53): skryté pole a chyba podezřelého odeslání
                 'trap' => 'Nevyplňujte',
-                'bot_check' => 'Registraci se nepodařilo ověřit. Načtěte prosím stránku znovu a zkuste to ještě jednou.',
+                'bot_check' => 'Registraci jsme nedokázali ověřit — skoro to vypadalo na robota. Načtěte prosím stránku znovu a zkuste to ještě jednou.',
                 'marketing' => 'Chci dostávat e-mailem novinky o Slevohlídce a vybrané nabídky partnerů. Souhlas můžu kdykoli odvolat v účtu nebo odkazem v každém e-mailu.',
             ],
 
             // Lišta pro neověřený e-mail (R51, EmailVerificationBar.vue)
             'verify' => [
-                'text' => 'Potvrďte prosím e-mail :email odkazem, který jsme vám poslali. Do té doby vám nepošleme souhrn akcí.',
+                'text' => 'Ještě jedna věc: potvrďte prosím e-mail :email odkazem, který jsme vám poslali. Do té doby vám souhrn akcí posílat nemůžeme.',
                 'resend' => 'Poslat odkaz znovu',
             ],
 
@@ -593,7 +598,7 @@ return [
         'landing' => [
             'eyebrow' => 'Rychlý lovec slev',
             'headline' => 'Slevy z letáků na to, co opravdu kupujete',
-            'lead' => 'Slevohlídka každý den projde letáky a e-shopy Kauflandu, Tesca, Albertu, Lidlu, Penny, Globusu a Billy. Řeknete jí, co kupujete — a ona vám ukáže, kde je to právě ve slevě a kde nejlevněji za kilo nebo litr.',
+            'lead' => 'Každý den za vás prolistujeme letáky a e-shopy Kauflandu, Tesca, Albertu, Lidlu, Penny, Globusu a Billy. Vy nám řeknete, co kupujete — my ukážeme, kde je to zrovna ve slevě a kde nejlevněji za kilo nebo litr.',
             'register' => 'Začít zdarma',
             'browse' => 'Prohlédnout akce',
             'login_hint' => 'Už máte účet?',
@@ -606,23 +611,23 @@ return [
             ],
             'features_title' => 'Co Slevohlídka umí',
             'features' => [
-                'watch' => ['title' => 'Hlídá, co kupujete', 'text' => 'Vyberte z katalogu máslo, pivo nebo Coca-Colu Zero, nebo napište vlastní slova. Ostatní akce vás nebudou rušit.'],
-                'unit_price' => ['title' => 'Cena za kilo a litr', 'text' => 'Akce řadí podle ceny za jednotku, takže velké balení nepřebije menší, ale levnější.'],
+                'watch' => ['title' => 'Hlídá, co kupujete', 'text' => 'Vyberte z katalogu máslo, pivo nebo Coca-Colu Zero, nebo napište vlastní slova. Ostatní akce vás rušit nebudou — slibujeme.'],
+                'unit_price' => ['title' => 'Cena za kilo a litr', 'text' => 'Řadíme podle ceny za jednotku, takže vás obří balení s velkým nápisem AKCE neoblafne.'],
                 'cards' => ['title' => 'S vaší kartou', 'text' => 'Clubcard, Lidl Plus, Kaufland Card… Akce jen s kartou uvidíte, jen když kartu máte.'],
                 'mentions' => ['title' => 'I to, co je v letáku bez ceny', 'text' => 'Když leták zmíní, co hlídáte, ale cenu z něj přečíst nejde, dostanete odkaz přímo na stránku letáku.'],
                 'digest' => ['title' => 'Upozornění e-mailem', 'text' => 'Nové akce na to, co hlídáte, přijdou e-mailem hned, jak se objeví, nebo jako souhrn denně či jednou týdně — jen když je co hlásit.'],
-                'free' => ['title' => 'Zdarma a bez reklam', 'text' => 'Žádné reklamní bannery, měření návštěvnosti jen s vaším souhlasem. Jen akce z letáků, seřazené tak, aby se daly porovnat.'],
+                'free' => ['title' => 'Zdarma a bez reklam', 'text' => 'Žádné blikající bannery, měření návštěvnosti jen s vaším souhlasem. Jen akce z letáků, seřazené tak, aby se daly porovnat.'],
             ],
             'steps_title' => 'Jak to funguje',
             'steps' => [
                 'chains' => ['title' => 'Vyberte obchody', 'text' => 'Kde nakupujete, jaký typ prodejny a které karty máte.'],
                 'watch' => ['title' => 'Řekněte, co hlídat', 'text' => 'Produkty z katalogu jedním klepnutím, nebo vlastní slova.'],
-                'hunt' => ['title' => 'Slevohlídka loví', 'text' => 'Každé ráno projde letáky a v Mých slevách máte jen to, co vás zajímá.'],
+                'hunt' => ['title' => 'Slevohlídka loví', 'text' => 'Každý den pročeše letáky a v Mých slevách najdete jen to, co vás zajímá.'],
             ],
             'top_title' => 'Právě teď nejvyšší slevy',
             'top_more' => 'Všechny akce',
             'cta_title' => 'Ať slevy loví Slevohlídka, ne vy',
-            'cta_text' => 'Registrace zabere minutu a nic nestojí.',
+            'cta_text' => 'Registrace zabere minutu a nestojí ani korunu.',
         ],
 
         // Výzva k registraci nad Všemi akcemi pro nepřihlášené (R44)
@@ -634,8 +639,8 @@ return [
         // Nákupní seznam (R61, ShoppingList.vue, ShoppingToggle.vue)
         'shopping' => [
             'title' => 'Nákupní seznam',
-            'intro' => 'Akce, které chcete koupit, seřazené podle obchodu. V obchodě je odškrtávejte.',
-            'empty' => 'Seznam je prázdný. Akce do něj přidáte tlačítkem „Do seznamu“ v Mých slevách nebo ve Všech akcích.',
+            'intro' => 'Akce, které chcete koupit, rozdělené podle obchodu. V obchodě je jen odškrtávejte.',
+            'empty' => 'Seznam zeje prázdnotou. Akce do něj přidáte tlačítkem „Do seznamu“ v Mých slevách nebo ve Všech akcích.',
             'add' => '+ Do seznamu',
             'added' => '✓ V seznamu',
             // Kompaktní řádek (R62): tlačítko jen s ikonou, stav nese aria-pressed
@@ -654,7 +659,7 @@ return [
             'pending' => 'Odškrtnutí bez signálu jsou uložená v telefonu — odešleme je, až budete online.',
             'share' => 'Poslat seznam',
             'share_line' => '– :name, :price',
-            'share_empty' => 'V seznamu už nic nezbývá koupit.',
+            'share_empty' => 'Všechno nakoupeno — v seznamu už nic nezbývá.',
             'share_copied' => 'Seznam je zkopírovaný — vložte ho do zprávy.',
             'share_failed' => 'Seznam se nepodařilo zkopírovat.',
             'wake_lock' => 'Nezhasínat displej',
@@ -663,7 +668,7 @@ return [
         'home' => [
             'title' => 'Moje slevy',
             'hello' => 'Ahoj, :name!',
-            'hero_text' => 'Tohle Slevohlídka ulovila v letácích a e-shopech obchodů, které sledujete.',
+            'hero_text' => 'Tohle jsme pro vás ulovili v letácích a e-shopech obchodů, které sledujete.',
             'stat_items' => 'hlídaná položka|hlídané položky|hlídaných položek',
             'stat_offers' => 'akce|akce|akcí',
             'stat_best' => 'nejvyšší sleva',
@@ -688,7 +693,7 @@ return [
             'min_discount_note' => 'jen slevy od :percent %',
             'change_preferences' => 'Změnit',
             'mentions_title' => 'V letáku, ale bez ceny',
-            'mentions_hint' => 'Leták obsahuje slova položky, cenu z něj ale přečíst neumíme — podívejte se na stránku letáku.',
+            'mentions_hint' => 'Leták o tom píše, ale cenu z něj přečíst neumíme — mrkněte přímo na stránku letáku.',
             'mention_maybe_hint' => 'Stránka hledanou variantu neuvádí — ověřte v letáku.',
             'mention_page' => 'Stránka :page',
             'mention_leaflet' => 'Akční leták',
@@ -704,11 +709,11 @@ return [
             // Sekce stránky s navigací (R63) — nadpis a vysvětlení vlevo, pole vpravo
             'nav_label' => 'Sekce účtu',
             'sections' => [
-                'profile' => ['title' => 'Profil', 'hint' => 'Jak vás Slevohlídka oslovuje a kam posílá e-maily.'],
+                'profile' => ['title' => 'Profil', 'hint' => 'Jak vás máme oslovovat a kam posílat e-maily.'],
                 'notifications' => ['title' => 'Upozornění', 'hint' => 'Kdy vám dáme vědět o nových akcích na hlídané zboží.'],
                 'offers' => ['title' => 'Moje slevy', 'hint' => 'Jak řadit akce u každé hlídané položky a které ukazovat.'],
                 'security' => ['title' => 'Zabezpečení', 'hint' => 'Heslo a zařízení, na kterých jste přihlášeni.'],
-                'delete' => ['title' => 'Zrušení účtu', 'hint' => 'Smaže účet, hlídané položky, nákupní seznam i nastavení obchodů. Nejde to vrátit.'],
+                'delete' => ['title' => 'Zrušení účtu', 'hint' => 'Smaže účet, hlídané položky, nákupní seznam i nastavení obchodů. Vrátit to nepůjde — a bude nám smutno.'],
             ],
             'autosave' => 'Změny se ukládají hned.',
             'cancel' => 'Zpět',
@@ -758,15 +763,15 @@ return [
             'delete_start' => 'Zrušit účet…',
             'delete_confirm_title' => 'Zrušit účet?',
             'delete_confirm' => 'Účet, hlídané položky i nastavení se smažou a nepůjde to vrátit.',
-            'deleted' => 'Účet je zrušený. Díky, že jste Slevohlídku vyzkoušeli.',
+            'deleted' => 'Účet je zrušený. Díky, že jste to se Slevohlídkou zkusili — kdyby se vám zastesklo, víte, kde nás najdete.',
         ],
 
         // Patička (R51, AppFooter.vue) — upozornění, provozovatel, odkazy
         'footer' => [
-            'about' => 'Každý den projde letáky a e-shopy sedmi obchodů a ukáže, kde je to, co kupujete, právě ve slevě — a kde nejlevněji za kilo nebo litr.',
+            'about' => 'Každý den za vás prolistujeme letáky a e-shopy sedmi obchodů a ukážeme, kde je to, co kupujete, zrovna ve slevě — a kde nejlevněji za kilo nebo litr.',
             'nav_title' => 'Slevohlídka',
             'info_title' => 'Informace',
-            'operator_title' => 'Provozovatel',
+            'contact_title' => 'Kontakt',
             'disclaimer' => 'Slevohlídka není oficiálním webem žádného obchodu. Názvy a loga obchodů jsou ochranné známky jejich vlastníků. Ceny jsou orientační, závazná je vždy cena v obchodě.',
             'copyright' => '© :year Slevohlídka',
             'terms' => 'Podmínky užití',
@@ -777,8 +782,8 @@ return [
 
         // Souhlas s cookies (R52, CookieConsent.vue) — odmítnout stejně snadno jako přijmout
         'cookies' => [
-            'title' => 'Cookies na Slevohlídce',
-            'intro' => 'Nezbytné cookies Slevohlídka potřebuje, aby web fungoval. S vaším souhlasem použije i analytické cookies (Google Analytics), aby věděla, co lidé na webu používají, a marketingové pro měření reklamy. Souhlas můžete kdykoli změnit v patičce.',
+            'title' => 'Dáte si cookies?',
+            'intro' => 'Bez nezbytných cookies by web nefungoval. S vaším souhlasem použijeme i analytické (Google Analytics), abychom věděli, co na webu používáte, a marketingové pro měření reklamy. Volbu můžete kdykoli změnit v patičce.',
             'more' => 'Více o cookies',
             'settings' => 'Nastavení',
             'accept_all' => 'Přijmout vše',
@@ -790,9 +795,76 @@ return [
             'necessary_title' => 'Nezbytné',
             'necessary_text' => 'Přihlášení, ochrana formulářů, vaše volba cookies a vzhled webu. Bez nich web nefunguje.',
             'analytics_title' => 'Analytické',
-            'analytics_text' => 'Google Analytics — statistiky návštěvnosti (které stránky se čtou, z jakého zařízení), podle kterých Slevohlídku zlepšujeme.',
+            'analytics_text' => 'Google Analytics — statistiky návštěvnosti (které stránky se čtou, z jakého zařízení), podle kterých Slevohlídku vylepšujeme.',
             'marketing_title' => 'Marketingové',
-            'marketing_text' => 'Dovolí Googlu použít data z návštěvy pro měření a cílení reklamy. Reklama se na Slevohlídce zatím nezobrazuje.',
+            'marketing_text' => 'Dovolí Googlu použít data z návštěvy pro měření a cílení reklamy. Reklamu zatím nezobrazujeme.',
+        ],
+
+        // Stránka Kontakt (R72, Contact.vue) — předmět e-mailu se u témat předvyplní
+        'contact' => [
+            'title' => 'Kontakt',
+            'lead' => 'Napište nám, zavolejte, pošlete holuba. O slevách si povídáme moc rádi — a o chybách v cenách ještě raději, protože je pak můžeme opravit.',
+            'operator_title' => 'Kdo Slevohlídku provozuje',
+            'company_id' => 'IČO :id',
+            'registered_office' => 'se sídlem :address',
+            'trade_register' => 'Fyzická osoba zapsaná v živnostenském rejstříku (:office)',
+            'email' => 'E-mail',
+            'phone' => 'Telefon',
+            'reply' => 'Odpovídáme zpravidla do dvou pracovních dnů. Rychleji, když nesháníme slevy na kafe.',
+            'topics_title' => 'S čím se ozvat',
+            'write' => 'Napsat e-mail',
+            'topics' => [
+                'price' => [
+                    'title' => 'Cena nesedí',
+                    'text' => 'V obchodě je to jinak než u nás? Pošlete název akce a obchod — podíváme se na to a opravíme.',
+                    'subject' => 'Slevohlídka: cena nesedí',
+                ],
+                'idea' => [
+                    'title' => 'Nápad nebo chyba webu',
+                    'text' => 'Něco nefunguje, něco by šlo udělat líp, nebo vám chybí obchod? Každý nápad si přečteme.',
+                    'subject' => 'Slevohlídka: nápad',
+                ],
+                'chains' => [
+                    'title' => 'Obchody a partneři',
+                    'text' => 'Zastupujete obchod nebo značku? Rádi se domluvíme na spolupráci — a když nesouhlasíte se zobrazením svého obsahu, vyřídíme to bez zbytečného odkladu.',
+                    'subject' => 'Slevohlídka: obchody a partneři',
+                ],
+                'privacy' => [
+                    'title' => 'Osobní údaje',
+                    'text' => 'Chcete vědět, co o vás víme, nebo údaje smazat? Žádost vyřídíme nejpozději do měsíce.',
+                    'subject' => 'Slevohlídka: osobní údaje',
+                    'link' => 'Zásady zpracování osobních údajů',
+                ],
+                'security' => [
+                    'title' => 'Bezpečnost',
+                    'text' => 'Našli jste ve Slevohlídce bezpečnostní chybu? Napište nám dřív, než o ní řeknete světu — rádi poděkujeme.',
+                    'subject' => 'Slevohlídka: bezpečnost',
+                ],
+            ],
+            'faq_title' => 'Časté otázky',
+            'faq' => [
+                'free' => [
+                    'question' => 'Je Slevohlídka opravdu zdarma?',
+                    'answer' => 'Ano. Žádné předplatné, žádné skryté poplatky, žádný háček.',
+                ],
+                'source' => [
+                    'question' => 'Odkud berete ceny?',
+                    'answer' => 'Z veřejných letáků a e-shopů obchodů. Stahujeme je dvakrát denně, takže máte přehled dřív, než doběhnete do schránky pro leták.',
+                ],
+                'different' => [
+                    'question' => 'Proč v obchodě stojí zboží jinak?',
+                    'answer' => 'Ceny přebíráme automaticky a obchody je občas změní, nebo platí jen v některých prodejnách či s kartou. Závazná je vždy cena v obchodě — a když nám nesrovnalost pošlete, opravíme ji.',
+                ],
+                'chains' => [
+                    'question' => 'Patříte k některému obchodu?',
+                    'answer' => 'Ne. Slevohlídka je nezávislá služba a s obchody nijak nespolupracuje. Názvy a loga obchodů patří jejich vlastníkům.',
+                ],
+                'delete' => [
+                    'question' => 'Jak zruším účet?',
+                    'answer' => 'V Můj účet → Zrušení účtu. Smaže se hned i se vším, co k němu patří.',
+                ],
+            ],
+            'documents' => 'Podrobnosti najdete v dokumentech',
         ],
 
         // Právní stránky (R51, Legal.vue)
@@ -812,7 +884,7 @@ return [
             'title' => 'Odhlášení z e-mailů',
             'confirm' => 'Opravdu už nechcete dostávat :list na :email?',
             'submit' => 'Odhlásit',
-            'done' => 'Na :email už :list nechodí. E-maily znovu zapnete kdykoli v nastavení účtu.',
+            'done' => 'Hotovo — na :email už :list neposíláme. Kdyby se vám zastesklo, zapnete si to v nastavení účtu.',
             'home' => 'Na úvodní stránku',
         ],
 
@@ -843,20 +915,20 @@ return [
                 // UnsubscribeController (R51)
                 'unsubscribed' => 'Hotovo, e-maily už vám posílat nebudeme.',
                 // Chyby u formuláře (R51, ErrorToast)
-                'session-expired' => 'Stránka byla otevřená příliš dlouho. Zkuste to prosím znovu.',
-                'too-many-requests' => 'Příliš mnoho pokusů. Zkuste to prosím za chvíli.',
+                'session-expired' => 'Stránka byla otevřená moc dlouho. Zkuste to prosím znovu.',
+                'too-many-requests' => 'Moc pokusů najednou. Dejte tomu chvilku a zkuste to znovu.',
                 // ShoppingPreferencesController
                 'preferences-saved' => 'Nastavení obchodů je uložené.',
                 // RegisterResponse (R55)
-                'registered' => 'Vítejte! Sledujeme pro vás všechny obchody — teď vyberte, co hlídat.',
+                'registered' => 'Vítejte na palubě! Sledujeme pro vás všechny obchody — teď vyberte, co hlídat.',
                 // WatchItemController
-                'watch-item-added' => 'Položka je mezi hlídanými.',
+                'watch-item-added' => 'Hotovo, hlídáme to pro vás.',
                 'watch-item-updated' => 'Hlídaná položka je uložená.',
-                'watch-item-removed' => 'Položku už nehlídáte.',
+                'watch-item-removed' => 'Už to nehlídáme.',
                 // ShoppingListController (R61)
                 'shopping-added' => 'Přidáno do nákupního seznamu.',
                 'shopping-removed' => 'Odebráno z nákupního seznamu.',
-                'shopping-cleared' => 'Odškrtnuté položky jsou pryč.',
+                'shopping-cleared' => 'Odškrtnuté položky jsme uklidili.',
                 // PushSubscriptionController (R66)
                 'push-enabled' => 'Upozornění na tomto zařízení jsou zapnutá.',
                 'push-disabled' => 'Upozornění na tomto zařízení jsou vypnutá.',

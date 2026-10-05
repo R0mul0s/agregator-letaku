@@ -249,6 +249,7 @@ resources/scss/
 ## 7. Texty a lokalizace
 
 - Všechny texty jsou v `lang/cs/app.php`: PHP (`__('app.…')`) i Vue (skupina `app.ui`).
+- **Tón ([R72](PLAN.md#8-log-rozhodnutí)):** web mluví za provozovatele v 1. osobě množného čísla („my“, „ulovili jsme“), návštěvníkovi vyká. Přátelsky a vřele, s jemným humorem kolem lovu slev — hlavně v prázdných stavech, chybových stránkách, toastech a úvodních větách. Tlačítka, popisky polí a chybové hlášky formulářů zůstávají jasné a věcné. Právní texty také „my“, genderově neutrálně (žádné „zapsaný“ — „fyzická osoba zapsaná“). Text souhlasu (`auth.register.marketing`, `account.marketing_label`) neměnit bez zvýšení `marketing_consent_version`.
 - **Výjimka: právní texty** (podmínky užití, zásady zpracování osobních údajů) jsou Markdown v `resources/legal` ([R51](PLAN.md#8-log-rozhodnutí)) — dlouhý text se tak dá číst, porovnávat mezi verzemi a dát právníkovi. Údaje provozovatele se doplňují z `letaky.operator`, nepíšou se do textu.
 - Placeholdery `:name`, plurály přes `trans_choice()` (čeština má tři tvary).
 - Chybějící klíč se zobrazí jako holý text, a to je **bug**.

@@ -6,7 +6,7 @@
  * vidět robot bez JavaScriptu nebo náhled odkazu, musí být v šabloně ze serveru.
  *
  * Indexovat se smí jen veřejné stránky: úvodní stránka, Všechny akce (bez hledání)
- * a právní stránky (R51). Výpis obchodu jen se zmínkami bez cen (Albert) ne — je prázdný.
+ * a právní stránky (R51), kontakt (R72). Výpis obchodu jen se zmínkami bez cen (Albert) ne — je prázdný.
  * Přihlášení a registrace „noindex, follow“, vše za přihlášením „noindex, nofollow“.
  *
  * @author Roman Hlaváček
@@ -104,6 +104,7 @@ final class SeoMeta
             $routeName === 'offers' => 'offers',
             $routeName === 'legal.terms' => 'terms',
             $routeName === 'legal.privacy' => 'privacy',
+            $routeName === 'contact' => 'contact',
             default => 'default',
         };
     }
@@ -128,7 +129,7 @@ final class SeoMeta
 
             return $this->isFiltered($request) || $emptyListing ? self::NOINDEX_FOLLOW : self::INDEX;
         }
-        if ($page === 'terms' || $page === 'privacy') {
+        if (in_array($page, ['terms', 'privacy', 'contact'], true)) {
             return self::INDEX;
         }
 

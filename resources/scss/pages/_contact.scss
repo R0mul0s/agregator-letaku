@@ -1,0 +1,239 @@
+// _contact.scss
+// Stránka Kontakt (Contact.vue, R72): velké klepací plochy pro e-mail a telefon, karta
+// provozovatele, rozcestník „S čím se ozvat“ a rozbalovací časté otázky.
+//
+// @author Roman Hlaváček
+// @created 2026-10-05
+
+@use '../abstracts/mixins' as *;
+
+// Úvodní věta pod nadpisem, ne vedle něj (page__header je jinak řádek nadpis — akce)
+.contact-hero {
+    flex-direction: column;
+    align-items: flex-start;
+
+    &__lead {
+        max-width: var(--contact-lead-max-width);
+    }
+}
+
+.contact-icon {
+    width: var(--landing-icon-size);
+    height: var(--landing-icon-size);
+    fill: none;
+    stroke: currentcolor;
+    stroke-width: var(--svg-stroke-icon);
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+// E-mail a telefon vedle karty provozovatele (na telefonu pod sebou)
+.contact-grid {
+    display: grid;
+    gap: var(--space-3);
+    margin-bottom: var(--space-5);
+
+    @include from-md {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        align-items: start;
+    }
+}
+
+.contact-quick {
+    display: grid;
+    gap: var(--space-3);
+
+    &__item {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        grid-template-rows: auto auto;
+        column-gap: var(--space-3);
+        align-items: center;
+        color: inherit;
+        text-decoration: none;
+        transition: transform var(--duration-fast), box-shadow var(--duration-fast);
+
+        &:hover {
+            box-shadow: var(--shadow-card-hover);
+            transform: translateY(var(--hover-lift));
+        }
+    }
+
+    &__icon {
+        display: inline-grid;
+        grid-row: 1 / 3;
+        place-items: center;
+        width: var(--landing-icon-box-size);
+        height: var(--landing-icon-box-size);
+        background: var(--color-accent-soft);
+        border-radius: var(--radius-md);
+        color: var(--color-accent-strong);
+    }
+
+    &__label {
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+    }
+
+    // Na telefonu menší písmo, ať se e-mail vejde na řádek a nezlomí se uprostřed
+    &__value {
+        overflow-wrap: anywhere;
+        color: var(--color-accent-strong);
+        font-size: var(--font-size-md);
+        font-weight: var(--font-weight-heading);
+
+        @include from-md {
+            font-size: var(--font-size-card-title);
+        }
+    }
+
+    &__reply {
+        margin: 0;
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+    }
+}
+
+.contact-operator {
+    border-left: var(--legal-accent-width) solid var(--color-accent);
+
+    &__title {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        margin-bottom: var(--space-3);
+        font-size: var(--font-size-card-title);
+
+        .contact-icon {
+            color: var(--color-accent-strong);
+        }
+    }
+
+    &__address {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-1);
+        font-style: normal;
+    }
+
+    &__name {
+        font-size: var(--font-size-card-title);
+    }
+
+    &__brand {
+        color: var(--color-accent-strong);
+        font-weight: 700;
+    }
+
+    &__register {
+        margin-top: var(--space-2);
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+    }
+}
+
+.contact-section {
+    margin-bottom: var(--space-5);
+
+    &__title {
+        margin-bottom: var(--space-3);
+        font-size: var(--font-size-card-title);
+    }
+}
+
+.contact-topics {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--landing-feature-min-width)), 1fr));
+    gap: var(--space-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.contact-topic {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+
+    &__icon {
+        display: inline-grid;
+        place-items: center;
+        width: var(--landing-icon-box-size);
+        height: var(--landing-icon-box-size);
+        background: var(--color-accent-soft);
+        border-radius: var(--radius-md);
+        color: var(--color-accent-strong);
+    }
+
+    &__title {
+        font-size: var(--font-size-md);
+    }
+
+    &__text {
+        flex: 1;
+        margin: 0;
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+    }
+
+    &__actions {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--space-2) var(--space-3);
+        font-size: var(--font-size-sm);
+    }
+}
+
+.contact-faq {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+
+    &__item {
+        padding: 0;
+    }
+
+    // Otázka jako řádek s šipkou, která se po rozbalení otočí
+    &__question {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-3);
+        padding: var(--space-3) var(--space-4);
+        font-weight: 700;
+        list-style: none;
+        cursor: pointer;
+
+        &::-webkit-details-marker {
+            display: none;
+        }
+
+        &::after {
+            content: '';
+            flex: none;
+            width: var(--space-2);
+            height: var(--space-2);
+            border-right: calc(var(--svg-stroke-icon) * 1px) solid currentcolor;
+            border-bottom: calc(var(--svg-stroke-icon) * 1px) solid currentcolor;
+            transform: rotate(45deg);
+            transition: transform var(--duration-fast);
+        }
+    }
+
+    &__item[open] &__question::after {
+        transform: rotate(-135deg);
+    }
+
+    &__answer {
+        margin: 0;
+        padding: 0 var(--space-4) var(--space-3);
+        color: var(--color-text-muted);
+    }
+}
+
+.contact-documents {
+    margin-top: var(--space-3);
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+}

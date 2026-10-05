@@ -33,6 +33,16 @@ final class Operator
     }
 
     /**
+     * Telefon pro odkaz tel: — bez mezer („+420736449607“), null = nevyplněný.
+     */
+    public function phoneHref(): ?string
+    {
+        $phone = preg_replace('/[^\d+]/', '', (string) config('letaky.operator.phone'));
+
+        return $phone === '' || $phone === null ? null : $phone;
+    }
+
+    /**
      * Adresa sídla na jednom řádku, null = nevyplněná.
      */
     public function address(): ?string

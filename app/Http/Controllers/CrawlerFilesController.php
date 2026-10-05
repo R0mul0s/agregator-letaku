@@ -73,6 +73,7 @@ class CrawlerFilesController extends Controller
             ], $this->chainsWithCurrentOffers()),
             ['loc' => route('legal.terms'), 'lastmod' => $legalModified],
             ['loc' => route('legal.privacy'), 'lastmod' => $legalModified],
+            ['loc' => route('contact'), 'lastmod' => $legalModified],
         ];
 
         return response()

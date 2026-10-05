@@ -13,6 +13,7 @@ declare(strict_types=1);
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\AvatarController;
 use App\Http\Controllers\CatalogController;
+use App\Http\Controllers\ContactController;
 use App\Http\Controllers\CrawlerFilesController;
 use App\Http\Controllers\CronController;
 use App\Http\Controllers\HealthImportsController;
@@ -66,6 +67,8 @@ Route::middleware('throttle:'.RateLimits::PUBLIC)->group(function (): void {
     // Právní stránky (R51)
     Route::get('/podminky', [LegalController::class, 'terms'])->name('legal.terms');
     Route::get('/ochrana-udaju', [LegalController::class, 'privacy'])->name('legal.privacy');
+    // Kontakt na provozovatele (R72)
+    Route::get('/kontakt', ContactController::class)->name('contact');
 
     // Odhlášení z e-mailů bez přihlášení (R51) — podepsaný odkaz; POST i od poštovního klienta (bez CSRF, bootstrap/app.php)
     Route::middleware('signed')->group(function (): void {

@@ -51,10 +51,16 @@ return [
     */
     'operator' => [
         'name' => 'Roman Hlaváček',
+        // Značka provozovatele v patičce (sekce Kontakt) a na stránce /kontakt (R72)
+        'brand' => 'RHsoft.cz',
         'company_id' => '88688143',
         // Sídlo po řádcích — patička je vypíše pod sebou, texty a e-maily spojí čárkou (App\Support\Operator)
         'address' => ['Rodov 133', '503 03 Smiřice'],
         'email' => 'roman.hlavacek@rhsoft.cz',
+        // Telefon k zobrazení; odkaz tel: je bez mezer (Operator::phoneHref)
+        'phone' => '+420 736 449 607',
+        // Živnostenský úřad, u kterého je provozovatel zapsaný (kontaktní stránka a právní texty)
+        'trade_office' => 'Magistrát města Hradec Králové',
     ],
 
     /*
@@ -68,7 +74,7 @@ return [
         'directory' => 'legal',
         'terms_version' => 1,
         'marketing_consent_version' => 1,
-        'effective_from' => '2026-10-04',
+        'effective_from' => '2026-10-05',
     ],
 
     /*

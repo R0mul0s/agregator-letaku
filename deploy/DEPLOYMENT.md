@@ -352,8 +352,9 @@ Jen `public/.htaccess`: přesměrování `/public/…` na adresu bez něj přesu
 
 Hledání (R71): živé výsledky od začátku slova podle relevance, našeptávač s produkty, akcemi,
 posledními a oblíbenými hledáními, oprava překlepu, „Jen slevy“; v Hlídám počty akcí u produktů,
-náhled vlastních slov a „Vrátit“ v toastu. Bez SQL skriptu, `composer.lock` se nezměnil, žádné
-soubory nezmizely.
+náhled vlastních slov a „Vrátit“ v toastu. **Tón a kontakt (R72):** přátelské texty webu, právní
+texty „my“ (datum účinnosti 2026-10-05), stránka `/kontakt`, v patičce sekce Kontakt. Bez SQL
+skriptu, `composer.lock` se nezměnil, žádné soubory nezmizely.
 
 1. **Nahraj `deploy/upload/`** bez `vendor/`; `public/build/` nejdřív smaž. Nové soubory jsou
    v `app/Domain/Offers/` a `app/Http/Middleware/`, změnily se `config/`, `lang/`, `routes/`,
@@ -367,6 +368,9 @@ soubory nezmizely.
    - Hlídám: „rum“ našeptá produkt s „N akcí · od …“ a u vlastních slov „Teď by našlo N akcí“;
      po přidání produktu toast s „Vrátit“, které položku zase odebere
    - na telefonu se hledání ve Všech akcích otevře přes celou obrazovku s tlačítkem Zpět
+   - `/kontakt` ukazuje provozovatele, e-mail, telefon, „S čím se ozvat“ a časté otázky; v patičce
+     sekce Kontakt s RHsoft.cz; `/podminky` „Účinné od 5. 10. 2026“ a „fyzická osoba zapsaná…“
+   - `/neexistuje` ukáže „Tahle stránka nám utekla“
 3. Zapiš verzi do *Nasazené verze*.
 
 **Každá nová migrace potřebuje SQL skript** `deploy/migrations-<datum>-<popis>.sql`

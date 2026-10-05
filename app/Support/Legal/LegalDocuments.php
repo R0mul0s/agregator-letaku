@@ -5,7 +5,7 @@
  * v resources/legal. Dlouhý strukturovaný text se v Markdownu dá číst, porovnávat mezi
  * verzemi i dát k posouzení právníkovi — proto výjimka z pravidla „texty v lang/cs/app.php“.
  * Údaje provozovatele se doplní z config/letaky.php ({operator}, {company_id}, {address},
- * {email}, {site_url}). Text je náš, ne od obchodu; syrové HTML v něm se přesto zahodí.
+ * {trade_office}, {email}, {site_url}). Text je náš, ne od obchodu; syrové HTML v něm se přesto zahodí.
  *
  * @author Roman Hlaváček
  *
@@ -82,6 +82,7 @@ final class LegalDocuments
             '{company_id}' => (string) ($operator['company_id'] ?? $missing),
             '{address}' => app(Operator::class)->address() ?? $missing,
             '{email}' => (string) ($operator['email'] ?? $missing),
+            '{trade_office}' => (string) ($operator['trade_office'] ?? $missing),
             '{site_url}' => SeoMeta::homeUrl(),
         ];
     }

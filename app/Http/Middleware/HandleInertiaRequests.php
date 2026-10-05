@@ -110,12 +110,14 @@ class HandleInertiaRequests extends Middleware
                 'refreshAfterMinutes' => config()->integer('letaky.pwa.refresh_after_minutes'),
                 'installSnoozeDays' => config()->integer('letaky.pwa.install_prompt_snooze_days'),
             ],
-            // Patička (R51): provozovatel, kontakt a právní stránky — název se nesmí krýt s propem stránky
+            // Patička (R51): kontakt, právní stránky — název se nesmí krýt s propem stránky.
+            // Sekce Kontakt se značkou provozovatele (R72); jméno a IČO jsou na /kontakt a v podmínkách
             'siteFooter' => fn (): array => [
-                'operator' => config('letaky.operator.name'),
-                // Sídlo pod sebou po řádcích; IČO je jen v podmínkách a zásadách (§ 435 OZ stačí tam)
+                'brand' => config('letaky.operator.brand'),
+                // Sídlo pod sebou po řádcích
                 'addressLines' => app(Operator::class)->addressLines(),
                 'email' => config('letaky.operator.email'),
+                'contactUrl' => route('contact', absolute: false),
                 'termsUrl' => route('legal.terms', absolute: false),
                 'privacyUrl' => route('legal.privacy', absolute: false),
             ],

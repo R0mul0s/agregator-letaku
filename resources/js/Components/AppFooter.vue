@@ -1,7 +1,7 @@
 <!--
     Patička webu (R51) — tradiční tmavá patička ve sloupcích: značka s krátkým popisem,
-    navigace, informace (podmínky, zásady, kontakt, nastavení cookies — R52) a provozovatel se sídlem
-    po řádcích (IČO je v podmínkách a zásadách, § 435 OZ).
+    navigace, informace (podmínky, zásady, kontakt, nastavení cookies — R52) a kontakt se značkou
+    provozovatele a sídlem po řádcích (R72; jméno a IČO jsou na /kontakt a v podmínkách, § 435 OZ).
     Dole pruh s copyrightem a upozorněním, že nejde o web obchodů a závazná je cena v obchodě.
     Data sdílí HandleInertiaRequests (siteFooter z config/letaky.php, navigation); chybějící
     údaj provozovatele se vynechá.
@@ -65,7 +65,7 @@ const year = new Date().getFullYear();
                             <Link :href="footer.privacyUrl" class="app-footer__link">{{ t('footer.privacy') }}</Link>
                         </li>
                         <li>
-                            <a :href="`mailto:${footer.email}`" class="app-footer__link">{{ t('footer.contact') }}</a>
+                            <Link :href="footer.contactUrl" class="app-footer__link">{{ t('footer.contact') }}</Link>
                         </li>
                         <li>
                             <button type="button" class="app-footer__link app-footer__link--button" @click="openConsentSettings">{{ t('footer.cookies') }}</button>
@@ -74,9 +74,9 @@ const year = new Date().getFullYear();
                 </nav>
 
                 <section class="app-footer__column">
-                    <h2 class="app-footer__title">{{ t('footer.operator_title') }}</h2>
+                    <h2 class="app-footer__title">{{ t('footer.contact_title') }}</h2>
                     <address class="app-footer__address">
-                        <span>{{ footer.operator }}</span>
+                        <Link :href="footer.contactUrl" class="app-footer__link">{{ footer.brand }}</Link>
                         <span v-for="line in footer.addressLines" :key="line">{{ line }}</span>
                         <a :href="`mailto:${footer.email}`" class="app-footer__link">{{ footer.email }}</a>
                     </address>

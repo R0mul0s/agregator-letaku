@@ -119,6 +119,8 @@
     --legal-max-width: 48rem;
     --legal-toc-width: 16rem;
     --legal-accent-width: 4px;
+    // Úvodní věta stránky Kontakt (R72) — kratší řádek se čte líp
+    --contact-lead-max-width: 44rem;
     --footer-logo-size: 2.5rem;
     --footer-brand-column: minmax(0, 1.6fr);
     --footer-about-max-width: 22rem;

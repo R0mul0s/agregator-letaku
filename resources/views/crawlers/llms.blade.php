@@ -19,6 +19,7 @@
 @endforeach
 - [{{ __('app.llms.terms') }}]({{ route('legal.terms') }})
 - [{{ __('app.llms.privacy') }}]({{ route('legal.privacy') }})
+- [{{ __('app.llms.contact') }}]({{ route('contact') }})
 
 ## {{ __('app.llms.notes_title') }}
 
