@@ -52,6 +52,8 @@
         top: 100%;
         right: 0;
         left: 0;
+        // Užší tlačítko (víc log, R82) nesmí zalomit názvy — seznam se roztáhne doleva
+        min-width: max-content;
         margin: var(--space-1) 0 0;
         padding: var(--space-1);
         background: var(--color-surface);
@@ -80,6 +82,56 @@
         &[aria-selected='true'] {
             font-weight: 600;
         }
+
+        // Výběr víc obchodů (R82): zaškrtávátko před logem
+        &--check {
+            gap: var(--space-2);
+        }
+    }
+
+    &__check {
+        display: inline-flex;
+        flex: none;
+        align-items: center;
+        justify-content: center;
+        width: var(--checkbox-size);
+        height: var(--checkbox-size);
+        border: 1px solid var(--color-border);
+        border-radius: var(--checkbox-radius);
+        background: var(--color-surface);
+
+        svg {
+            width: 100%;
+            height: 100%;
+            fill: none;
+            stroke: var(--color-on-accent);
+            stroke-width: var(--svg-stroke-check);
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            visibility: hidden;
+        }
+
+        [aria-selected='true'] > & {
+            background: var(--color-accent);
+            border-color: var(--color-accent);
+
+            svg {
+                visibility: visible;
+            }
+        }
+    }
+
+    // Víc vybraných obchodů: loga vedle sebe, zbytek jako „+2“
+    &__logos {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+    }
+
+    &__more {
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+        font-weight: 600;
     }
 }
 

@@ -396,11 +396,12 @@
     font-weight: 800;
 }
 
-// Štítky filtrů pod polem (jen slevy, produkt z našeptávače)
+// Štítky filtrů pod polem (brzy začnou, bez e-shopu, produkt z našeptávače) a přepínač zobrazení
 .search-chips {
     display: flex;
     flex-wrap: wrap;
     gap: var(--space-2);
+    align-items: center;
     margin: calc(var(--space-2) * -1) 0 var(--space-3);
 }
 
@@ -463,7 +464,8 @@
 }
 
 // Výsledky během živého hledání
-.offer-grid--loading {
+.offer-grid--loading,
+.offer-rows--loading {
     opacity: var(--opacity-loading);
     pointer-events: none;
     transition: opacity var(--duration-fast);
@@ -518,4 +520,9 @@
     .search-suggest__icon--busy::before {
         animation: none;
     }
+}
+
+// Přepínač karty / řádky (R82) vpravo v řádku štítků
+.search-chips__view {
+    margin-left: auto;
 }

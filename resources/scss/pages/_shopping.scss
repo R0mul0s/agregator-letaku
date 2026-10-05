@@ -185,3 +185,12 @@
     padding: 0;
     font-size: var(--font-size-md);
 }
+
+// Všechny akce v kompaktním zobrazení (R82): řádky v kartě, ať nesplývají s pozadím stránky
+.offer-rows--listing {
+    padding: 0 var(--space-3);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+}

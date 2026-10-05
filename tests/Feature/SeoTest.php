@@ -58,6 +58,12 @@ it('výpis jen akcí, které ještě nezačaly, se neindexuje (R76)', function (
     expect(metaContent($this->get('/akce?brzy=1')->getContent(), 'robots'))->toBe('noindex, follow');
 });
 
+it('víc obchodů najednou a bez e-shopu se neindexuje (R82)', function (): void {
+    expect(metaContent($this->get('/akce?chain=kaufland,lidl')->getContent(), 'robots'))->toBe('noindex, follow')
+        ->and(metaContent($this->get('/akce?chain=vse')->getContent(), 'robots'))->toBe('noindex, follow')
+        ->and(metaContent($this->get('/akce?bez-eshopu=1')->getContent(), 'robots'))->toBe('noindex, follow');
+});
+
 it('výpis obchodu jen se zmínkami v letácích (Albert) se neindexuje (R68)', function (): void {
     $html = $this->get('/akce?chain=albert')->getContent();
 

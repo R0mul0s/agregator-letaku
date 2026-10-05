@@ -2,7 +2,7 @@
 
 /**
  * Hledání v aktuálních nabídkách — slova jako začátky slov v názvu, značce a popisu (R71),
- * volitelně jeden obchod, produkt katalogu a jen slevy.
+ * volitelně jen vybrané obchody, produkt katalogu, budoucí akce a bez e-shopu (OfferFilters).
  *
  * Bez ohledu na diakritiku a velikost písmen („mleko“ najde „Mléko“) díky collation
  * utf8mb4_unicode_ci tabulek. S hledaným textem řadí podle relevance: název začínající
@@ -18,7 +18,6 @@ declare(strict_types=1);
 
 namespace App\Domain\Offers;
 
-use App\Enums\Chain;
 use App\Models\Offer;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -35,9 +34,9 @@ final class OfferSearch
      *
      * @return LengthAwarePaginator<int, Offer>
      */
-    public function search(?string $text, ?Chain $chain, int $perPage): LengthAwarePaginator
+    public function search(?string $text, OfferFilters $filters, int $perPage): LengthAwarePaginator
     {
-        return $this->query($text, $chain)->paginate($perPage);
+        return $this->query($text, $filters)->paginate($perPage);
     }
 
     /**
@@ -45,19 +44,18 @@ final class OfferSearch
      * s vlastním stránkováním (Všechny akce načítají víc stránek najednou). Bez textu od
      * nejdříve platných, s textem podle relevance.
      *
-     * @param  int|null  $productId  Jen akce přiřazené k produktu katalogu (R71, z našeptávače)
-     * @param  bool  $upcomingOnly  Jen akce, které ještě nezačaly (R76)
      * @return Builder<Offer>
      */
-    public function query(?string $text, ?Chain $chain, ?int $productId = null, bool $upcomingOnly = false): Builder
+    public function query(?string $text, OfferFilters $filters = new OfferFilters): Builder
     {
         $today = $this->calendar->today();
         $query = Offer::query()
             ->active()
             ->notExpired($today)
-            ->when($upcomingOnly, fn (Builder $query) => $query->upcoming($today))
-            ->when($chain, fn (Builder $query, Chain $chain) => $query->where('chain', $chain))
-            ->when($productId, fn (Builder $query, int $productId) => $query->whereHas('productAssignments', fn (Builder $query) => $query->where('product_id', $productId)))
+            ->when($filters->upcomingOnly, fn (Builder $query) => $query->upcoming($today))
+            ->when($filters->chains !== [], fn (Builder $query) => $query->whereIn('chain', $filters->chains))
+            ->when($filters->withoutEshop, fn (Builder $query) => $query->where('online_only', false))
+            ->when($filters->productId, fn (Builder $query, int $productId) => $query->whereHas('productAssignments', fn (Builder $query) => $query->where('product_id', $productId)))
             ->with('stores');
 
         if ($text === null || WordStart::words($text) === []) {

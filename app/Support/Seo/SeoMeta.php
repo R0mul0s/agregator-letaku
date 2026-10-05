@@ -162,12 +162,16 @@ final class SeoMeta
     }
 
     /**
-     * Výpis zúžený hledáním, produktem z našeptávače (R71) nebo jen budoucími akcemi (R76) —
-     * nekonečně kombinací, do výsledků hledání nepatří.
+     * Výpis zúžený hledáním, produktem z našeptávače (R71), jen budoucími akcemi (R76), bez
+     * e-shopu nebo víc obchody najednou (R82) — nekonečně kombinací, do výsledků hledání
+     * nepatří. Indexuje se jen celý výpis a výpis jednoho obchodu.
      */
     private function isFiltered(Request $request): bool
     {
-        return $request->filled('q') || $request->filled(OffersRequest::PRODUCT) || $request->boolean(OffersRequest::UPCOMING);
+        $multipleChains = $request->filled(OffersRequest::CHAIN) && $request->enum(OffersRequest::CHAIN, Chain::class) === null;
+
+        return $request->filled('q') || $request->filled(OffersRequest::PRODUCT) || $request->boolean(OffersRequest::UPCOMING)
+            || $request->boolean(OffersRequest::WITHOUT_ESHOP) || $multipleChains;
     }
 
     /**

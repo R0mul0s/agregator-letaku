@@ -4,7 +4,8 @@
  * Přehled všech aktuálních akcí s hledáním. Stránkování čísly i „Načíst další“ (R43):
  * načtený rozsah stránek je v adrese (?od=1&strana=3), takže obnovení i návrat zpět
  * ukážou totéž. Hledání podle relevance, filtr produktu z našeptávače a oprava
- * překlepu, když text nic nenajde (R71); jen akce, které ještě nezačaly (R76).
+ * překlepu, když text nic nenajde (R71); jen akce, které ještě nezačaly (R76); víc obchodů
+ * najednou (přihlášený má předvybrané sledované) a bez akcí jen z e-shopu (R82).
  *
  * @author Roman Hlaváček
  *
@@ -39,14 +40,15 @@ class OffersController extends Controller
     {
         $text = $request->searchText();
         $productId = $request->productId();
-        $query = $search->query($text, $request->chain(), $productId, $request->upcomingOnly());
+        $offerFilters = $request->filters();
+        $query = $search->query($text, $offerFilters);
         $total = $query->count();
         // Překlep (R71): hledání nic nenašlo, ale opravený text ano — ukáže se rovnou výsledek
         // opraveného s upozorněním
         $correction = null;
         if ($total === 0 && $text !== null) {
             $corrected = $vocabulary->correct($text);
-            $correctedQuery = $corrected === null ? null : $search->query($corrected, $request->chain(), $productId, $request->upcomingOnly());
+            $correctedQuery = $corrected === null ? null : $search->query($corrected, $offerFilters);
             $correctedTotal = $correctedQuery?->count() ?? 0;
             if ($correctedQuery !== null && $correctedTotal > 0) {
                 $correction = ['original' => $text, 'corrected' => $corrected];
@@ -61,9 +63,10 @@ class OffersController extends Controller
         // Hledání, které odkazy stránkování zachovají
         $filters = array_filter([
             'q' => $correction['corrected'] ?? $text,
-            'chain' => $request->chain()?->value,
+            OffersRequest::CHAIN => $request->chainParameter(),
             OffersRequest::PRODUCT => $productId,
             OffersRequest::UPCOMING => $request->upcomingOnly() ? 1 : null,
+            OffersRequest::WITHOUT_ESHOP => $request->withoutEshop() ? 1 : null,
         ]);
         $offers = $query->offset($window->offset())->limit($window->limit())->get();
         // „Je to opravdu sleva?“ (R59) — jedním dotazem pro celou stránku
@@ -99,9 +102,11 @@ class OffersController extends Controller
             ], absolute: false)),
             'filters' => [
                 'q' => $text ?? '',
-                'chain' => $request->chain()->value ?? '',
+                // Vybrané obchody (prázdné = všechny) — přihlášený bez volby vidí své sledované
+                OffersRequest::CHAIN => array_map(fn (Chain $chain): string => $chain->value, $offerFilters->chains),
                 OffersRequest::PRODUCT => $productId ?? '',
                 OffersRequest::UPCOMING => $request->upcomingOnly(),
+                OffersRequest::WITHOUT_ESHOP => $request->withoutEshop(),
             ],
             // Filtr produktu z našeptávače jako štítek nad výsledky (R71)
             'product' => $productId === null ? null : Product::query()->whereKey($productId)->value('name'),

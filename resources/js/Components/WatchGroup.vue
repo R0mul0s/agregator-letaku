@@ -29,8 +29,10 @@ const props = defineProps({
     digestFrequency: { type: String, default: null },
     /** Nastavení souhrnu v účtu. */
     digestUrl: { type: String, required: true },
-    /** Akce jako kompaktní řádky místo karet — „Jsem v obchodě“ (R62). */
+    /** Akce jako kompaktní řádky místo karet — „Jsem v obchodě“ (R62) nebo volba zobrazení (R82). */
     compact: { type: Boolean, default: false },
+    /** U řádku i obchod — mimo „Jsem v obchodě“ jsou v řádcích akce víc obchodů (R82). */
+    withChain: { type: Boolean, default: false },
 });
 
 /** Rozbalená skupina (řídí stránka — pamatuje si stav a umí rozbalit vše). */
@@ -144,7 +146,7 @@ async function remove() {
                     </p>
                 </div>
                 <ul v-if="item.offers.length && compact" class="offer-rows">
-                    <OfferRow v-for="offer in item.offers" :key="offer.id" :offer="offer" />
+                    <OfferRow v-for="offer in item.offers" :key="offer.id" :offer="offer" :with-chain="withChain" />
                 </ul>
                 <div v-else-if="item.offers.length" class="offer-grid">
                     <OfferCard v-for="offer in item.offers" :key="offer.id" :offer="offer">

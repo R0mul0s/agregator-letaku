@@ -40,7 +40,7 @@ return [
     */
     'theme_colors' => [
         'light' => '#f4f6f8',
-        'dark' => '#16181d',
+        'dark' => '#121418',
     ],
 
     /*

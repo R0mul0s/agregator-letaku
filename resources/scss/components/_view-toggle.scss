@@ -1,0 +1,68 @@
+// _view-toggle.scss
+// Přepínač karty / řádky (ViewToggle.vue, R82) — dvě tlačítka v jednom rámečku,
+// vybrané v barvě akcentu. Popisky od středního displeje, na telefonu jen ikony.
+//
+// @author Roman Hlaváček
+// @created 2026-10-05
+
+@use '../abstracts/mixins' as *;
+
+.view-toggle {
+    display: inline-flex;
+    flex: none;
+    padding: var(--view-toggle-inset);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-pill);
+
+    &__button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--space-1);
+        min-width: var(--control-size);
+        min-height: calc(var(--control-size) - 2 * var(--view-toggle-inset));
+        padding: 0 var(--space-2);
+        background: none;
+        border: 0;
+        border-radius: var(--radius-pill);
+        color: var(--color-text-muted);
+        font: inherit;
+        font-size: var(--font-size-sm);
+        font-weight: 600;
+        cursor: pointer;
+        transition: background-color var(--duration-fast), color var(--duration-fast);
+
+        &:hover {
+            color: var(--color-text);
+        }
+
+        &:focus-visible {
+            outline: none;
+            box-shadow: var(--focus-ring);
+        }
+
+        &[aria-pressed='true'] {
+            background: var(--color-accent-soft);
+            color: var(--color-accent-strong);
+        }
+
+        svg {
+            width: var(--icon-size);
+            height: var(--icon-size);
+            fill: none;
+            stroke: currentcolor;
+            stroke-width: var(--svg-stroke-icon);
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+    }
+
+    &__label {
+        @include visually-hidden;
+
+        @include from-md {
+            @include visually-shown;
+        }
+    }
+}

@@ -99,6 +99,8 @@
 
     // Kresby SVG (ikony) — v jednotkách viewBoxu, ne v pixelech obrazovky
     --svg-stroke-icon: 2;
+    // Fajfka v zaškrtávátku výběru obchodů (R82) — silnější, ať je v malém poli vidět
+    --svg-stroke-check: 3;
 
     --opacity-disabled: 0.5;
 
@@ -257,7 +259,10 @@
     // Cenovka slevy: bílý text na červené potřebuje „velký text“ (≥ 18,66 px tučně) pro kontrast 3 : 1
     --font-size-sticker: 1.25rem;
     --control-size: 2.5rem;
+    // Odsazení tlačítek přepínače karty / řádky od rámečku (R82)
+    --view-toggle-inset: 3px;
     --checkbox-size: 1.125rem;
+    --checkbox-radius: 0.25rem;
     --logo-size: 3rem;
     --logo-size-mobile: 3rem;
     --logo-mark-padding: 0.125rem;
@@ -297,25 +302,29 @@
 
     @include dark {
         color-scheme: dark;
-        // Podklad karet je antracit z loga
-        --color-bg: #16181d;
-        --color-surface: #1f222a;
-        --color-text: #eceef2;
-        --color-text-muted: #9aa0ab;
+        // Neutrální tmavý režim (R83): podklad studený antracit, červená jen na tlačítkách
+        // a cenovkách slev — ceny bílé, odkazy, aktivní položky a štítky šedé. Světlá
+        // lososová a růžová na tmavém pozadí „střílela“ (zpětná vazba uživatelů).
+        --color-bg: #121418;
+        --color-surface: #1c1f25;
+        --color-text: #e9ebef;
+        --color-text-muted: #9ca3ae;
         --color-brand: #ff4a52;
         --color-brand-dark: #eceef2;
-        --color-price: #ff858a;
+        --color-price: #ffffff;
         --color-logo-mark-bg: #eceef2;
         --color-footer-bg: #0f1115;
         --watermark-opacity: 0.1;
-        --color-accent: #ff5c63;
-        --color-accent-strong: #ff858a;
-        --color-accent-soft: #3a1c1f;
-        --color-on-accent: #16181d;
-        --color-border: #2e323b;
-        --color-scrollbar-thumb: #6b3236;
+        // Tlačítka v tmavé červené z loga s bílým textem (kontrast 4,8 : 1, WCAG AA)
+        --color-accent: #d6333c;
+        // Text „v akcentu“ (odkazy, aktivní navigace, počty ve štítcích) neutrální
+        --color-accent-strong: #e4e7ec;
+        --color-accent-soft: #2a2e36;
+        --color-on-accent: #ffffff;
+        --color-border: #2c3038;
+        --color-scrollbar-thumb: #3a3f48;
         --color-toast-bg: #eceef2;
-        --color-toast-text: #16181d;
+        --color-toast-text: #121418;
         --color-focus: #4dabf7;
         --color-success: #51cf66;
         --color-success-soft: #13301b;
@@ -328,8 +337,8 @@
         --color-info-text: #8cc4f5;
         --shadow-card: none;
         --shadow-card-hover: 0 12px 28px rgb(0 0 0 / 45%);
-        --gradient-brand: linear-gradient(135deg, #ff4a52 0%, #d91f29 100%);
-        --gradient-hero: linear-gradient(120deg, #3a1c1f 0%, #1f222a 70%);
+        --gradient-brand: linear-gradient(135deg, #e5343d 0%, #b81b24 100%);
+        --gradient-hero: linear-gradient(120deg, #23262d 0%, #1c1f25 70%);
         --focus-ring: 0 0 0 3px rgb(77 171 247 / 45%);
     }
 }

@@ -161,31 +161,31 @@
     --opacity-streak: 0.85;
 }
 
-/* Tmavý režim — volba uživatele (data-theme z js/theme-init.js) */
+/* Tmavý režim — volba uživatele (data-theme z js/theme-init.js); neutrální jako aplikace (R83) */
 :root[data-theme='dark'] {
     color-scheme: dark;
-    --color-bg: #16181d;
-    --color-surface: #1f222a;
-    --color-text: #eceef2;
-    --color-text-muted: #9aa0ab;
+    --color-bg: #121418;
+    --color-surface: #1c1f25;
+    --color-text: #e9ebef;
+    --color-text-muted: #9ca3ae;
     --color-brand: #ff4a52;
     --color-brand-dark: #eceef2;
-    --color-price: #ff858a;
+    --color-price: #ffffff;
     --color-logo-mark-bg: #eceef2;
     --color-footer-bg: #0f1115;
-    --color-accent: #ff5c63;
-    --color-accent-strong: #ff858a;
-    --color-accent-soft: #3a1c1f;
-    --color-on-accent: #16181d;
-    --color-border: #2e323b;
+    --color-accent: #d6333c;
+    --color-accent-strong: #e4e7ec;
+    --color-accent-soft: #2a2e36;
+    --color-on-accent: #ffffff;
+    --color-border: #2c3038;
     --color-success-soft: #13301b;
     --color-success-text: #8ce99a;
     --color-info-soft: #12273d;
     --color-info-text: #8cc4f5;
     --shadow-card: none;
     --shadow-card-hover: 0 12px 28px rgb(0 0 0 / 45%);
-    --gradient-brand: linear-gradient(135deg, #ff4a52 0%, #d91f29 100%);
-    --gradient-hero: linear-gradient(120deg, #3a1c1f 0%, #1f222a 70%);
+    --gradient-brand: linear-gradient(135deg, #e5343d 0%, #b81b24 100%);
+    --gradient-hero: linear-gradient(120deg, #23262d 0%, #1c1f25 70%);
     --focus-ring: 0 0 0 3px rgb(77 171 247 / 45%);
 }
 
@@ -193,28 +193,28 @@
 @media (prefers-color-scheme: dark) {
     :root:not([data-theme='light']) {
         color-scheme: dark;
-        --color-bg: #16181d;
-        --color-surface: #1f222a;
-        --color-text: #eceef2;
-        --color-text-muted: #9aa0ab;
+        --color-bg: #121418;
+        --color-surface: #1c1f25;
+        --color-text: #e9ebef;
+        --color-text-muted: #9ca3ae;
         --color-brand: #ff4a52;
         --color-brand-dark: #eceef2;
-        --color-price: #ff858a;
+        --color-price: #ffffff;
         --color-logo-mark-bg: #eceef2;
         --color-footer-bg: #0f1115;
-        --color-accent: #ff5c63;
-        --color-accent-strong: #ff858a;
-        --color-accent-soft: #3a1c1f;
-        --color-on-accent: #16181d;
-        --color-border: #2e323b;
+        --color-accent: #d6333c;
+        --color-accent-strong: #e4e7ec;
+        --color-accent-soft: #2a2e36;
+        --color-on-accent: #ffffff;
+        --color-border: #2c3038;
         --color-success-soft: #13301b;
         --color-success-text: #8ce99a;
         --color-info-soft: #12273d;
         --color-info-text: #8cc4f5;
         --shadow-card: none;
         --shadow-card-hover: 0 12px 28px rgb(0 0 0 / 45%);
-        --gradient-brand: linear-gradient(135deg, #ff4a52 0%, #d91f29 100%);
-        --gradient-hero: linear-gradient(120deg, #3a1c1f 0%, #1f222a 70%);
+        --gradient-brand: linear-gradient(135deg, #e5343d 0%, #b81b24 100%);
+        --gradient-hero: linear-gradient(120deg, #23262d 0%, #1c1f25 70%);
         --focus-ring: 0 0 0 3px rgb(77 171 247 / 45%);
     }
 }

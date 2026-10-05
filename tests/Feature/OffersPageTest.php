@@ -15,6 +15,7 @@ use App\Enums\LoyaltyProgram;
 use App\Enums\MatchStatus;
 use App\Enums\OfferType;
 use App\Enums\PackageUnit;
+use App\Models\FollowedChain;
 use App\Models\Offer;
 use App\Models\OfferProduct;
 use App\Models\Product;
@@ -98,6 +99,45 @@ it('filtruje podle obchodu', function (): void {
 
 it('odmítne neznámý obchod', function (): void {
     $this->get(route('offers', ['chain' => 'makro']))->assertSessionHasErrors('chain');
+    $this->get(route('offers', ['chain' => 'tesco,makro']))->assertSessionHasErrors('chain');
+});
+
+it('filtruje podle víc obchodů najednou a vrátí je v pořadí nabídky (R82)', function (): void {
+    Offer::factory()->create(['name' => 'Vejce Kaufland', 'chain' => Chain::Kaufland]);
+    Offer::factory()->create(['name' => 'Vejce Tesco', 'chain' => Chain::Tesco]);
+    Offer::factory()->create(['name' => 'Vejce Lidl', 'chain' => Chain::Lidl]);
+
+    expect(offerNames(['chain' => 'lidl,kaufland']))->toBe(['Vejce Kaufland', 'Vejce Lidl']);
+    $this->get(route('offers', ['chain' => 'lidl,kaufland']))
+        ->assertInertia(fn (Assert $page) => $page->where('filters.chain', ['kaufland', 'lidl']));
+});
+
+it('přihlášený bez volby vidí své sledované obchody, „vse“ všechny (R82)', function (): void {
+    $user = User::factory()->create();
+    foreach ([Chain::Tesco, Chain::Lidl] as $chain) {
+        FollowedChain::query()->create(['user_id' => $user->id, 'chain' => $chain, 'store_format' => null, 'include_online_only' => true]);
+    }
+    $this->actingAs($user);
+    Offer::factory()->create(['name' => 'Vejce Kaufland', 'chain' => Chain::Kaufland]);
+    Offer::factory()->create(['name' => 'Vejce Tesco', 'chain' => Chain::Tesco]);
+
+    expect(offerNames())->toBe(['Vejce Tesco'])
+        ->and(offerNames(['chain' => 'vse']))->toBe(['Vejce Kaufland', 'Vejce Tesco']);
+    $this->get(route('offers'))->assertInertia(fn (Assert $page) => $page->where('filters.chain', ['tesco', 'lidl']));
+    $this->get(route('offers', ['chain' => 'vse']))->assertInertia(fn (Assert $page) => $page->where('filters.chain', []));
+});
+
+it('bez e-shopu vynechá akce jen z e-shopu a filtr zůstane v odkazech (R82)', function (): void {
+    config(['letaky.offers.per_page' => 1]);
+    Offer::factory()->create(['name' => 'Vejce z letáku', 'chain' => Chain::Tesco]);
+    Offer::factory()->create(['name' => 'Vejce z prodejny', 'chain' => Chain::Tesco]);
+    Offer::factory()->create(['name' => 'Vejce z e-shopu', 'chain' => Chain::Tesco, 'online_only' => true]);
+
+    $this->get(route('offers', ['bez-eshopu' => 1, 'chain' => 'tesco,lidl']))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('offers.total', 2)
+            ->where('filters.bez-eshopu', true)
+            ->where('pagination.nextUrl', '/akce?chain=tesco%2Clidl&bez-eshopu=1&strana=2'));
 });
 
 it('pošle ceny v haléřích, cenu za jednotku a názvy z lang', function (): void {

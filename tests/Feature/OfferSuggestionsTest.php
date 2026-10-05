@@ -82,6 +82,11 @@ it('návrhy omezí na zvolený obchod a krátký text nenašeptává', function 
 
     $this->getJson(route('offers.suggestions', ['q' => 'vejce', 'chain' => 'tesco']))
         ->assertJsonPath('offers.*.name', ['Vejce Tesco']);
+    // Víc obchodů a bez e-shopu jako výsledky (R82)
+    Offer::factory()->create(['name' => 'Vejce Lidl', 'chain' => Chain::Lidl]);
+    Offer::factory()->create(['name' => 'Vejce Tesco e-shop', 'chain' => Chain::Tesco, 'online_only' => true]);
+    $this->getJson(route('offers.suggestions', ['q' => 'vejce', 'chain' => 'tesco,lidl', 'bez-eshopu' => 1]))
+        ->assertJsonPath('total', 2);
 
     $this->getJson(route('offers.suggestions', ['q' => 'v']))
         ->assertJsonPath('products', [])

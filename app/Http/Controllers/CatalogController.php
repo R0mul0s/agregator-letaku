@@ -18,6 +18,7 @@ use App\Domain\Catalog\Actions\CorrectAssignment;
 use App\Domain\Catalog\CategoryPaths;
 use App\Domain\Matching\TextNormalizer;
 use App\Domain\Offers\LocalCalendar;
+use App\Domain\Offers\OfferFilters;
 use App\Domain\Offers\OfferPresenter;
 use App\Domain\Offers\OfferSearch;
 use App\Enums\MatchStatus;
@@ -234,7 +235,7 @@ class CatalogController extends Controller
 
         $query = trim($request->string(self::SEARCH_PARAMETER)->toString());
         $assignedIds = $assignments->pluck('offer_id')->all();
-        $results = $query === '' ? [] : $search->search($query, null, config()->integer('letaky.catalog.search_results'))
+        $results = $query === '' ? [] : $search->search($query, new OfferFilters, config()->integer('letaky.catalog.search_results'))
             ->getCollection()
             ->reject(fn (Offer $offer): bool => in_array($offer->id, $assignedIds, true))
             ->map(fn (Offer $offer): array => [

@@ -3,7 +3,8 @@
     obchodech (R18, R19) a zmínky v letácích bez ceny (R27). Skupiny jsou sbalené, rozbalené
     si prohlížeč pamatuje (R43). Výběr obchodu ukáže jen jeho akce, rozbalené — „co z mého
     seznamu je teď v Lidlu“, když člověk stojí v obchodě (R55). Akce, které ještě nezačaly,
-    jsou ve sbalené sekci Brzy pod skupinami; v obchodě se neukazují vůbec (R76).
+    jsou ve sbalené sekci Brzy pod skupinami; v obchodě se neukazují vůbec (R76). Akce jako
+    karty, nebo kompaktní řádky — volba společná se Všemi akcemi, v obchodě vlastní (R62, R82).
 
     @author Roman Hlaváček
     @created 2026-10-02
@@ -12,10 +13,12 @@
 import ChainSelect from '@/Components/ChainSelect.vue';
 import EmptyState from '@/Components/EmptyState.vue';
 import UpcomingSection from '@/Components/UpcomingSection.vue';
+import ViewToggle from '@/Components/ViewToggle.vue';
 import WatchGroup from '@/Components/WatchGroup.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { useTranslations } from '@/lib/i18n';
 import { discountPercent } from '@/lib/offer';
+import { useCompactView } from '@/lib/viewMode';
 import { Head, Link, usePage } from '@inertiajs/vue3';
 import { computed, nextTick, onMounted, ref } from 'vue';
 
@@ -124,18 +127,29 @@ const ROWS_STORAGE_KEY = 'slevohlidka.home.rows';
 /** Po výběru obchodu akce jako kompaktní řádky — v obchodě se míň posouvá (R62). */
 const rowsInStore = ref(true);
 
-/** Řádky se ukazují jen s vybraným obchodem; bez něj jsou karty s obrázkem. */
-const compact = computed(() => chainFilter.value !== '' && rowsInStore.value);
+/** Mimo obchod karty, nebo řádky podle volby společné se Všemi akcemi (R82). */
+const compactView = useCompactView();
 
-/** Přepne řádky a karty a zapamatuje si volbu; bez localStorage platí do zavření stránky. */
-function toggleRows() {
-    rowsInStore.value = !rowsInStore.value;
-    try {
-        localStorage.setItem(ROWS_STORAGE_KEY, rowsInStore.value ? '1' : '0');
-    } catch {
-        // volba platí jen do zavření stránky
-    }
-}
+/**
+ * Řádky, nebo karty: v obchodě vlastní volba (výchozí řádky), jinak společná. Změna se
+ * zapamatuje; bez localStorage platí do zavření stránky.
+ */
+const compact = computed({
+    get: () => (chainFilter.value ? rowsInStore.value : compactView.value),
+    set: (value) => {
+        if (!chainFilter.value) {
+            compactView.value = value;
+
+            return;
+        }
+        rowsInStore.value = value;
+        try {
+            localStorage.setItem(ROWS_STORAGE_KEY, value ? '1' : '0');
+        } catch {
+            // volba platí jen do zavření stránky
+        }
+    },
+});
 
 /** Uloží rozbalené skupiny; bez přístupu k localStorage (anonymní okno) se stav jen nezapamatuje. */
 function saveExpanded() {
@@ -286,10 +300,8 @@ onMounted(async () => {
                     :all-label="t('offers.all_chains')"
                     @change="onChainChange"
                 />
-                <!-- V obchodě řádky, nebo karty s obrázkem (R62) -->
-                <button v-if="chainFilter" type="button" class="button button--ghost" @click="toggleRows">
-                    {{ rowsInStore ? t('home.view_cards') : t('home.view_rows') }}
-                </button>
+                <!-- Karty s obrázkem, nebo řádky (R62, R82) -->
+                <ViewToggle v-model="compact" />
                 <button type="button" class="button button--ghost" @click="toggleAll">
                     {{ allExpanded ? t('home.collapse_all') : t('home.expand_all') }}
                 </button>
@@ -302,6 +314,7 @@ onMounted(async () => {
                 :digest-url="urls.digest"
                 :expanded="isExpanded(item.id)"
                 :compact="compact"
+                :with-chain="!chainFilter"
                 @update:expanded="(value) => setExpanded(item.id, value)"
             />
             <!-- Akce, které ještě nezačaly (R76) — v obchodě (výběr obchodu) se neukazují -->

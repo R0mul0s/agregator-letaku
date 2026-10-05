@@ -511,6 +511,8 @@ return [
             'keys_close' => 'zavřít',
             // Jen akce, které ještě nezačaly (R76)
             'upcoming_only' => 'Brzy začnou',
+            // Bez akcí jen z e-shopu (R82)
+            'without_eshop' => 'Bez e-shopu',
             'product_filter' => 'Produkt: :name',
             'remove_filter' => 'Zrušit filtr',
             'correction' => '„:original“ jsme nenašli, tak ukazujeme „:corrected“. Prsty někdy kliknou vedle.',
@@ -523,6 +525,8 @@ return [
             'search_placeholder' => 'např. vejce, mléko, Coca-Cola',
             'chain' => 'Obchod',
             'all_chains' => 'Všechny obchody',
+            // Víc vybraných obchodů (R82): loga, která se do tlačítka nevešla
+            'more_chains' => '+:count',
             'submit' => 'Hledat',
             'count' => ':count nabídka|:count nabídky|:count nabídek',
             'empty' => 'Tentokrát jsme nic neulovili. Zkuste jiné slovo nebo jiný obchod.',
@@ -563,6 +567,13 @@ return [
             'next' => 'Další',
             'load_more' => 'Načíst další :count akci|Načíst další :count akce|Načíst dalších :count akcí',
             'shown' => 'Zobrazeno :from–:to z :total',
+        ],
+
+        // Přepínač zobrazení akcí: karty, nebo kompaktní řádky (R82)
+        'view' => [
+            'label' => 'Zobrazení akcí',
+            'cards' => 'Karty',
+            'rows' => 'Řádky',
         ],
 
         'theme' => [
@@ -795,9 +806,6 @@ return [
             'count' => ':count akce|:count akce|:count akcí',
             'edit_watch_items' => 'Upravit hlídané',
             'chain_filter' => 'Jsem v obchodě',
-            // V obchodě akce jako řádky, nebo karty s obrázkem (R62)
-            'view_rows' => 'Zobrazit řádky',
-            'view_cards' => 'Zobrazit karty',
             'expand_all' => 'Rozbalit vše',
             'collapse_all' => 'Sbalit vše',
             'sorted_by' => 'Řazeno od :sort',

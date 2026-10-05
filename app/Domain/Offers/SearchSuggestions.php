@@ -18,7 +18,6 @@ namespace App\Domain\Offers;
 
 use App\Domain\Catalog\CatalogBrowseTree;
 use App\Domain\Catalog\CategoryPaths;
-use App\Enums\Chain;
 use App\Models\Offer;
 use App\Models\OfferProduct;
 use App\Models\Product;
@@ -42,19 +41,19 @@ final class SearchSuggestions
      *
      * @return array{corrected: string|null, total: int, products: list<array<string, mixed>>, offers: list<array<string, mixed>>}
      */
-    public function for(string $text, ?Chain $chain, ?User $user): array
+    public function for(string $text, OfferFilters $filters, ?User $user): array
     {
         $corrected = null;
-        $total = $this->search->query($text, $chain)->count();
+        $total = $this->search->query($text, $filters)->count();
         if ($total === 0) {
             $corrected = $this->vocabulary->correct($text);
             if ($corrected !== null) {
                 $text = $corrected;
-                $total = $this->search->query($text, $chain)->count();
+                $total = $this->search->query($text, $filters)->count();
             }
         }
 
-        $offers = $total === 0 ? [] : $this->search->query($text, $chain)
+        $offers = $total === 0 ? [] : $this->search->query($text, $filters)
             ->limit(config()->integer('letaky.search.suggest_offers'))
             ->get()
             ->map(fn (Offer $offer): array => $this->offerToPage($offer))
@@ -63,7 +62,7 @@ final class SearchSuggestions
         return [
             'corrected' => $corrected,
             'total' => $total,
-            'products' => $this->products($text, $chain, $user),
+            'products' => $this->products($text, $filters, $user),
             'offers' => array_values($offers),
         ];
     }
@@ -73,14 +72,14 @@ final class SearchSuggestions
      *
      * @return list<array<string, mixed>>
      */
-    public function popular(?Chain $chain, ?User $user): array
+    public function popular(OfferFilters $filters, ?User $user): array
     {
-        $stats = $this->stats(null, $chain);
+        $stats = $this->stats(null, $filters);
         uasort($stats, fn (array $a, array $b): int => $b['count'] <=> $a['count']);
         $ids = array_slice(array_keys($stats), 0, config()->integer('letaky.search.popular_products'));
         $products = Product::query()->whereIn('id', $ids)->get()->keyBy('id');
 
-        return $this->productsToPage(array_values(array_filter(array_map(fn (int $id): ?Product => $products->get($id), $ids))), $stats, $chain, $user);
+        return $this->productsToPage(array_values(array_filter(array_map(fn (int $id): ?Product => $products->get($id), $ids))), $stats, $filters, $user);
     }
 
     /**
@@ -89,7 +88,7 @@ final class SearchSuggestions
      *
      * @return list<array<string, mixed>>
      */
-    private function products(string $text, ?Chain $chain, ?User $user): array
+    private function products(string $text, OfferFilters $filters, ?User $user): array
     {
         $query = Product::query();
         foreach (WordStart::words($text) as $word) {
@@ -100,7 +99,7 @@ final class SearchSuggestions
             ->limit(self::PRODUCT_CANDIDATES)
             ->get();
 
-        $stats = $this->stats(array_values($candidates->pluck('id')->all()), $chain);
+        $stats = $this->stats(array_values($candidates->pluck('id')->all()), $filters);
         $withOffers = array_values(array_filter($candidates->all(), fn (Product $product): bool => isset($stats[$product->id])));
         // Stabilní řazení: pořadí z databáze (začátek názvu, abeceda) jen uvnitř stejného počtu akcí
         // by přeházelo „Pizza“ za „Pizza mražená“ — počet rozhoduje jen u názvů, které textem nezačínají
@@ -108,7 +107,7 @@ final class SearchSuggestions
         usort($withOffers, fn (Product $a, Product $b): int => [! str_starts_with(mb_strtolower($a->name), $prefix), -$stats[$a->id]['count']]
             <=> [! str_starts_with(mb_strtolower($b->name), $prefix), -$stats[$b->id]['count']]);
 
-        return $this->productsToPage(array_slice($withOffers, 0, config()->integer('letaky.search.suggest_products')), $stats, $chain, $user);
+        return $this->productsToPage(array_slice($withOffers, 0, config()->integer('letaky.search.suggest_products')), $stats, $filters, $user);
     }
 
     /**
@@ -117,7 +116,7 @@ final class SearchSuggestions
      * @param  list<int>|null  $productIds  null = všechny produkty
      * @return array<int, array{count: int, lowestPrice: int|null}>
      */
-    private function stats(?array $productIds, ?Chain $chain): array
+    private function stats(?array $productIds, OfferFilters $filters): array
     {
         if ($productIds === []) {
             return [];
@@ -128,7 +127,8 @@ final class SearchSuggestions
             ->when($productIds !== null, fn (Builder $query) => $query->whereIn('offer_product.product_id', $productIds ?? []))
             ->whereNull('offers.withdrawn_at')
             ->whereDate('offers.valid_to', '>=', $this->calendar->today()->toDateString())
-            ->when($chain, fn (Builder $query, Chain $chain) => $query->where('offers.chain', $chain))
+            ->when($filters->chains !== [], fn (Builder $query) => $query->whereIn('offers.chain', $filters->chains))
+            ->when($filters->withoutEshop, fn (Builder $query) => $query->where('offers.online_only', false))
             ->groupBy('offer_product.product_id')
             ->selectRaw('offer_product.product_id, COUNT(DISTINCT offer_product.offer_id) AS offers_count, MIN(offers.price) AS lowest_price')
             ->toBase()
@@ -152,7 +152,7 @@ final class SearchSuggestions
      * @param  array<int, array{count: int, lowestPrice: int|null}>  $stats
      * @return list<array<string, mixed>>
      */
-    private function productsToPage(array $products, array $stats, ?Chain $chain, ?User $user): array
+    private function productsToPage(array $products, array $stats, OfferFilters $filters, ?User $user): array
     {
         $watched = $user === null ? [] : array_flip($user->watchItems()->whereNotNull('product_id')->pluck('product_id')->all());
 
@@ -162,7 +162,7 @@ final class SearchSuggestions
             'icon' => CatalogBrowseTree::icon($this->categories->department($product->category_id)),
             'offersCount' => $stats[$product->id]['count'] ?? 0,
             'lowestPrice' => $stats[$product->id]['lowestPrice'] ?? null,
-            'url' => route('offers', array_filter(['produkt' => $product->id, 'chain' => $chain?->value]), absolute: false),
+            'url' => route('offers', (new OfferFilters($filters->chains, $product->id, withoutEshop: $filters->withoutEshop))->urlParameters(), absolute: false),
             'watched' => isset($watched[$product->id]),
         ], $products);
     }

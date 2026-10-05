@@ -1,13 +1,19 @@
 <!--
     Výběr obchodu s logy (listbox podle WAI-ARIA) — nativní <select> obrázky v položkách neumí.
-    Šipky a Home/End vybírají, Enter / mezera potvrdí, Escape zavře.
+    Šipky a Home/End vybírají, Enter / mezera potvrdí, Escape zavře. S `multiple` (Všechny akce,
+    R82) jde vybrat víc obchodů: klepnutí obchod přidá nebo odebere a seznam zůstane otevřený,
+    „Všechny obchody“ výběr zruší; vybrané všechny obchody = bez omezení (prázdné pole).
 
     @author Roman Hlaváček
     @created 2026-10-02
 -->
 <script setup>
 import ChainLogo from '@/Components/ChainLogo.vue';
+import { useTranslations } from '@/lib/i18n';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
+
+/** Kolik log vybraných obchodů se vejde do tlačítka; zbytek jako „+2“. */
+const MAX_BUTTON_LOGOS = 3;
 
 const props = defineProps({
     /** Atribut id tlačítka. */
@@ -15,13 +21,18 @@ const props = defineProps({
     label: { type: String, required: true },
     /** Obchody (hodnoty App\Enums\Chain) v pořadí nabídky. */
     chains: { type: Array, required: true },
-    /** Text volby „bez omezení“ (hodnota ''). */
+    /** Text volby „bez omezení“ (hodnota '' nebo prázdné pole). */
     allLabel: { type: String, required: true },
+    /** Výběr víc obchodů — model je pole hodnot. */
+    multiple: { type: Boolean, default: false },
 });
 
 const emit = defineEmits(['change']);
 
-const model = defineModel({ type: String, default: '' });
+/** Jeden obchod ('' = všechny), s `multiple` pole obchodů ([] = všechny). */
+const model = defineModel({ type: [String, Array], default: '' });
+
+const t = useTranslations();
 
 const open = ref(false);
 const activeIndex = ref(0);
@@ -32,25 +43,70 @@ const list = ref(null);
 const options = computed(() => ['', ...props.chains]);
 const listId = computed(() => `${props.id}-list`);
 
+/** Vybrané obchody jako pole (i u jednoho výběru). */
+const selected = computed(() => {
+    if (props.multiple) {
+        return model.value;
+    }
+
+    return model.value ? [model.value] : [];
+});
+
+/** Loga do tlačítka a počet obchodů, které se nevešly. */
+const buttonLogos = computed(() => selected.value.slice(0, MAX_BUTTON_LOGOS));
+const hiddenCount = computed(() => Math.max(0, selected.value.length - MAX_BUTTON_LOGOS));
+
+/**
+ * Je volba vybraná? „Všechny“ při prázdném výběru.
+ *
+ * @param {string} value
+ * @returns {boolean}
+ */
+function isSelected(value) {
+    return value === '' ? selected.value.length === 0 : selected.value.includes(value);
+}
+
 /** Otevře seznam s aktivní vybranou volbou. */
 async function show() {
-    activeIndex.value = Math.max(0, options.value.indexOf(model.value));
+    activeIndex.value = Math.max(0, options.value.indexOf(selected.value[0] ?? ''));
     open.value = true;
     await nextTick();
     list.value?.focus();
 }
 
 /**
- * Vybere volbu a zavře seznam.
+ * Vybere volbu. Jeden obchod: nastaví ho a zavře seznam. Víc obchodů: obchod přidá nebo
+ * odebere (seznam zůstane otevřený), „všechny“ výběr zruší a seznam zavře.
  *
  * @param {string} value
  */
 function choose(value) {
-    open.value = false;
-    if (value !== model.value) {
-        model.value = value;
-        emit('change', value);
+    if (!props.multiple) {
+        open.value = false;
+        if (value !== model.value) {
+            model.value = value;
+            emit('change', value);
+        }
+
+        return;
     }
+
+    let next = [];
+    if (value === '') {
+        open.value = false;
+        if (selected.value.length === 0) {
+            return;
+        }
+    } else {
+        const chosen = isSelected(value) ? selected.value.filter((chain) => chain !== value) : [...selected.value, value];
+        // Pořadí jako v nabídce; vybrané všechny obchody = bez omezení
+        next = props.chains.filter((chain) => chosen.includes(chain));
+        if (next.length === props.chains.length) {
+            next = [];
+        }
+    }
+    model.value = next;
+    emit('change', next);
 }
 
 /**
@@ -100,8 +156,12 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocumentClick));
             :aria-labelledby="`${id}-label ${id}`"
             @click="open ? (open = false) : show()"
         >
-            <ChainLogo v-if="model" :chain="model" with-name />
-            <span v-else>{{ allLabel }}</span>
+            <span v-if="selected.length === 0">{{ allLabel }}</span>
+            <ChainLogo v-else-if="selected.length === 1" :chain="selected[0]" with-name />
+            <span v-else class="chain-select__logos">
+                <ChainLogo v-for="chain in buttonLogos" :key="chain" :chain="chain" />
+                <span v-if="hiddenCount" class="chain-select__more">{{ t('offers.more_chains', { count: hiddenCount }) }}</span>
+            </span>
             <span class="chain-select__arrow" aria-hidden="true">▾</span>
         </button>
         <ul
@@ -111,6 +171,7 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocumentClick));
             class="chain-select__list"
             role="listbox"
             tabindex="-1"
+            :aria-multiselectable="multiple ? 'true' : undefined"
             :aria-labelledby="`${id}-label`"
             :aria-activedescendant="`${listId}-${activeIndex}`"
             @keydown="onKeydown"
@@ -120,12 +181,16 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocumentClick));
                 :id="`${listId}-${index}`"
                 :key="value || 'all'"
                 class="chain-select__option"
-                :class="{ 'chain-select__option--active': index === activeIndex }"
+                :class="{ 'chain-select__option--active': index === activeIndex, 'chain-select__option--check': multiple }"
                 role="option"
-                :aria-selected="value === model ? 'true' : 'false'"
+                :aria-selected="isSelected(value) ? 'true' : 'false'"
                 @click="choose(value)"
                 @mouseenter="activeIndex = index"
             >
+                <!-- Zaškrtávátko jen pro oko — stav nese aria-selected -->
+                <span v-if="multiple" class="chain-select__check" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10" /></svg>
+                </span>
                 <ChainLogo v-if="value" :chain="value" with-name />
                 <span v-else>{{ allLabel }}</span>
             </li>
