@@ -22,7 +22,7 @@ it('ukáže provozovatele s IČO, sídlem, zápisem v rejstříku, e-mailem a te
             ->where('operator.companyId', '88688143')
             ->where('operator.address', 'Rodov 133, 503 03 Smiřice')
             ->where('operator.tradeOffice', 'Magistrát města Hradec Králové')
-            ->where('operator.email', 'roman.hlavacek@rhsoft.cz')
+            ->where('operator.email', 'info@slevohlidka.cz')
             ->where('operator.phone', '+420 736 449 607')
             // Odkaz tel: bez mezer
             ->where('operator.phoneHref', '+420736449607')

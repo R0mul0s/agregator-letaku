@@ -192,6 +192,11 @@ z `deploy/coming-soon/` (HTML, CSS, JS, bez PHP a databáze).
 Po přestěhování aplikace na doménu se obsah složky na hostingu smaže a nahradí aplikací;
 složku `deploy/coming-soon/` pak jde z repozitáře odstranit.
 
+**Kontakt a User-Agent (R80):** kontaktní e-mail `info@slevohlidka.cz` je v kódu
+(`letaky.operator.email`) a projeví se nasazením. Výchozí User-Agent je `Slevohlidka/1.0 (+slevohlidka.cz)`
+— řádek `LETAKY_USER_AGENT` se starou adresou v `.env` na hostingu (oprava R65) ho přebije,
+při nasazení ho smaž nebo přepiš na novou hodnotu.
+
 ## Monitoring: hlídání stahování
 
 URL **`https://slevohlidka.rhsoft.cz/health/imports`** (veřejná, bez tokenu) vrací **200**,

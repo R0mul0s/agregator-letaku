@@ -120,7 +120,7 @@ it('odkaz musí být cesta v aplikaci nebo https adresa', function (string $url,
     $valid ? $response->assertSessionHasNoErrors() : $response->assertSessionHasErrors('url');
 })->with([
     'cesta v aplikaci' => ['/akce?q=máslo', true],
-    'https' => ['https://slevohlidka.rhsoft.cz/kontakt', true],
+    'https' => ['https://slevohlidka.cz/kontakt', true],
     'http' => ['http://example.com', false],
     'javascript' => ['javascript:alert(1)', false],
     'adresa bez schématu' => ['//evil.example.com', false],

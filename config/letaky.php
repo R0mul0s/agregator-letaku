@@ -56,7 +56,7 @@ return [
         'company_id' => '88688143',
         // Sídlo po řádcích — patička je vypíše pod sebou, texty a e-maily spojí čárkou (App\Support\Operator)
         'address' => ['Rodov 133', '503 03 Smiřice'],
-        'email' => 'roman.hlavacek@rhsoft.cz',
+        'email' => 'info@slevohlidka.cz',
         // Telefon k zobrazení; odkaz tel: je bez mezer (Operator::phoneHref)
         'phone' => '+420 736 449 607',
         // Živnostenský úřad, u kterého je provozovatel zapsaný (kontaktní stránka a právní texty)
@@ -122,7 +122,7 @@ return [
     'http' => [
         // Adresa bez schématu (R65): UA s „https://“ vypadá jako robot vyhledávače a Albert takový
         // požadavek pošle přes prerender, který GraphQL dotaz rozbije (400)
-        'user_agent' => env('LETAKY_USER_AGENT', 'Slevohlidka/1.0 (+slevohlidka.rhsoft.cz)'),
+        'user_agent' => env('LETAKY_USER_AGENT', 'Slevohlidka/1.0 (+slevohlidka.cz)'),
         'timeout_seconds' => 30,
         'retries' => 2,
         'retry_delay_ms' => 2000,

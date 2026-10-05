@@ -18,7 +18,7 @@ změně tento dokument aktualizuj ve stejném commitu jako kód.
 Společné pro všechny obchody:
 - Headless prohlížeč, captcha ani obcházení WAF nejsou potřeba.
 - Stahovat šetrně: 1–2× denně, pauza mezi požadavky, identifikovatelný User-Agent ([R5](PLAN.md#8-log-rozhodnutí)) —
-  `Slevohlidka/1.0 (+slevohlidka.rhsoft.cz)`, **bez `https://`**: weby s prerenderem pro roboty (Albert)
+  `Slevohlidka/1.0 (+slevohlidka.cz)`, **bez `https://`**: weby s prerenderem pro roboty (Albert)
   pošlou UA s adresou na prerender a API vrátí chybu ([R65](PLAN.md#8-log-rozhodnutí)).
 - Částečná odpověď je nebezpečnější než žádná: chybějící akce se označí jako stažené (R16). Import proto
   hlídá nulu i podezřelý propad počtu akcí ([R54](PLAN.md#8-log-rozhodnutí)).

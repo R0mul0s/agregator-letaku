@@ -85,7 +85,7 @@ final class SeoMeta
     }
 
     /**
-     * Adresa úvodní stránky s koncovým lomítkem („https://slevohlidka.rhsoft.cz/“) —
+     * Adresa úvodní stránky s koncovým lomítkem („https://slevohlidka.cz/“) —
      * jednotně v canonical, sitemap.xml, llms.txt a schema.org.
      */
     public static function homeUrl(): string

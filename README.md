@@ -110,7 +110,7 @@ volume (`docker compose down -v`).
 | `LETAKY_LIDL_REQUEST_DELAY_MS`, `LETAKY_PENNY_REQUEST_DELAY_MS`, `LETAKY_ALBERT_REQUEST_DELAY_MS` | ne (500) | kratší pauza pro Lidl, Penny a Albert — desítky malých stránek (R25) |
 | `LETAKY_BILLA_REQUEST_DELAY_MS` | ne (1000) | pauza mezi stránkami katalogu Billy (25 stránek, R48) |
 | `LETAKY_KAUFLAND_STORES_DELAY_MS`, `LETAKY_KAUFLAND_STORE_PAGE_DELAY_MS` | ne (300, 1000) | pauza mezi seznamy akcí 149 prodejen Kauflandu a před stránkou prodejny (R49) |
-| `LETAKY_USER_AGENT` | ne | User-Agent požadavků na obchody; výchozí `Slevohlidka/1.0 (+slevohlidka.rhsoft.cz)` — **bez `https://`**, jinak Albert vrací 400 (R65) |
+| `LETAKY_USER_AGENT` | ne | User-Agent požadavků na obchody; výchozí `Slevohlidka/1.0 (+slevohlidka.cz)` — **bez `https://`**, jinak Albert vrací 400 (R65) |
 | `LETAKY_PASSWORD_UNCOMPROMISED` | ne (`true`) | kontrola uniklých hesel přes Have I Been Pwned (R53); v testech vypnutá |
 | `LETAKY_DISPLAY_TIMEZONE` | ne (`Europe/Prague`) | zóna pro „místní datum“ platnosti akcí |
 

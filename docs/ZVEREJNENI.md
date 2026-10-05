@@ -29,11 +29,10 @@ Značení: **[R]** = rozhodne nebo zařídí Roman, **[K]** = kód.
   (volná živnost, obory „Poskytování software… a webové portály“ a „Reklamní činnost,
   marketing…“) — doplnění oboru je ohlášení v RŽP.
 - [ ] **[R] Doména a schránka `info@slevohlidka.cz`.** Doména koupená (2026-10-05), do
-  přestěhování na ní běží stránka „Brzy spouštíme“ (`deploy/coming-soon`, R79). Pak přepsat
-  `letaky.operator.email` (teď `roman.hlavacek@rhsoft.cz`). Stránka „Brzy“ už odkazuje na
-  `info@slevohlidka.cz` — schránka musí existovat dřív, než se stránka nahraje.
-  Přestěhování na `slevohlidka.cz`: aplikace místo stránky „Brzy“, přesměrování 301 ze subdomény,
-  `APP_URL`, Search Console.
+  přestěhování na ní běží stránka „Brzy spouštíme“ (`deploy/coming-soon`, R79).
+  `letaky.operator.email` je `info@slevohlidka.cz` a User-Agent `+slevohlidka.cz` (R80, hotovo).
+  Zbývá přestěhování na `slevohlidka.cz`: aplikace místo stránky „Brzy“, přesměrování 301
+  ze subdomény, `APP_URL`, cron a ověřovací adresy v DEPLOYMENT.md, Search Console.
 - [ ] **[R] SPF, DKIM a DMARC** pro odesílací doménu (DNS). Bez nich souhrny i odkazy
   na ověření e-mailu padají do spamu.
 - [ ] **[R] Zpracovatelská smlouva s Websupportem** — ověřit, že je součástí jejich VOP,

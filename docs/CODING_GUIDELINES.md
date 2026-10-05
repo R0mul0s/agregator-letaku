@@ -124,7 +124,7 @@ Eloquent model                 ← perzistence
 
 ### Zdroje dat obchodů (scrapery)
 - **Každý obchod = jedna třída zdroje** v `app/Domain/Sources/<Obchod>`, implementuje společné rozhraní a vrací kolekci `OfferData` (DTO, `readonly`). Zdroj neukládá do DB a neví o uživatelích.
-- **HTTP výhradně přes `Http::` facade Laravelu** s timeoutem, retry a User-Agentem z konfigurace. Žádný `file_get_contents` ani curl. User-Agent je identifikovatelný, ale **bez adresy se schématem** (`+slevohlidka.rhsoft.cz`, ne `https://…`) — Albert jinak požadavek pošle přes prerender pro roboty a vrátí 400 ([R65](PLAN.md#8-log-rozhodnutí)).
+- **HTTP výhradně přes `Http::` facade Laravelu** s timeoutem, retry a User-Agentem z konfigurace. Žádný `file_get_contents` ani curl. User-Agent je identifikovatelný, ale **bez adresy se schématem** (`+slevohlidka.cz`, ne `https://…`) — Albert jinak požadavek pošle přes prerender pro roboty a vrátí 400 ([R65](PLAN.md#8-log-rozhodnutí)).
 - URL, hlavičky, pauzy mezi požadavky a API klíče jsou v `config/letaky.php` (klíče v `.env`). V kódu zdroje nejsou natvrdo.
 - **Mezi požadavky na stejný obchod je pauza** (`config('letaky.request_delay_ms')`). Respektuj robots.txt, viz [ZDROJE_DAT.md](ZDROJE_DAT.md).
 - Parsování odpovědi je samostatná metoda nebo třída, která přijímá řetězec nebo pole. Kvůli testům s fixtures nesmí sama stahovat.
