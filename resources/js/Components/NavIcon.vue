@@ -7,7 +7,7 @@
 -->
 <script setup>
 defineProps({
-    /** Klíč položky navigace: home, watch_items, shopping_list, preferences, offers, catalog. */
+    /** Klíč položky navigace: home, watch_items, shopping_list, preferences, offers. */
     name: { type: String, required: true },
 });
 
@@ -23,8 +23,6 @@ const PATHS = {
     preferences: ['M4 10v10h16V10', 'M3 4h18l-1 6H4L3 4z', 'M10 20v-5h4v5'],
     // Leták — mřížka akcí
     offers: ['M4 4h7v7H4z', 'M13 4h7v7h-7z', 'M4 13h7v7H4z', 'M13 13h7v7h-7z'],
-    // Kniha
-    catalog: ['M4 5a2 2 0 0 1 2-2h14v16H6a2 2 0 0 0-2 2V5z', 'M4 19a2 2 0 0 1 2-2h14'],
 };
 </script>
 

@@ -97,12 +97,12 @@ it('sdílí adresu service workeru a obnovení po návratu do aplikace', functio
         ->where('pwa.refreshAfterMinutes', config('letaky.pwa.refresh_after_minutes')));
 });
 
-it('přihlášený má hlavní stránky ve spodní liště, katalog admina zůstává v menu', function (): void {
+it('přihlášený má všechny hlavní stránky ve spodní liště, katalog admina je v menu pod avatarem (R75)', function (): void {
     $this->actingAs(User::factory()->create(['is_admin' => true]));
 
     $this->get(route('offers'))->assertInertia(fn (Assert $page) => $page
+        ->has('navigation', 5)
         ->where('navigation.0.key', 'home')
-        ->where('navigation.0.tab', true)
-        ->where('navigation.5.key', 'catalog')
-        ->where('navigation.5.tab', false));
+        ->where('navigation', fn ($items): bool => collect($items)->every(fn (array $item): bool => $item['tab']))
+        ->where('auth.catalogUrl', '/katalog'));
 });

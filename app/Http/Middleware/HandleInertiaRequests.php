@@ -48,11 +48,6 @@ class HandleInertiaRequests extends Middleware
         'offers' => 'offers',
     ];
 
-    /** Položky navigace navíc pro admina (R29). */
-    private const ADMIN_NAVIGATION = [
-        'catalog.index' => 'catalog',
-    ];
-
     /**
      * Sdílí s každou stránkou texty UI, jazyk a zónu, přihlášeného uživatele,
      * stavovou zprávu Fortify a navigaci.
@@ -91,10 +86,13 @@ class HandleInertiaRequests extends Middleware
                 // Nepřihlášený má v hlavičce přihlášení a registraci (R44)
                 'loginUrl' => route('login', absolute: false),
                 'registerUrl' => route('register', absolute: false),
-                // Účet je v menu pod avatarem vpravo nahoře (R40), ne v hlavní navigaci
+                // Účet je v menu pod avatarem vpravo nahoře (R40), ne v hlavní navigaci; na stránce
+                // z menu je avatar „aktivní položkou“
                 'accountUrl' => route('account', absolute: false),
-                'accountActive' => $request->routeIs('account'),
-                // Zprávy od nás (R74, 11d) — admin je má v menu pod avatarem, hlavička je plná
+                'accountActive' => $request->routeIs('account', 'catalog.*', 'announcements.*'),
+                // Admin má v menu pod avatarem i katalog (R29) a zprávy od nás (R74, 11d) — v hlavičce
+                // by se navigace zalamovala (R75)
+                'catalogUrl' => $user instanceof User && $user->is_admin ? route('catalog.index', absolute: false) : null,
                 'announcementsUrl' => $user instanceof User && $user->is_admin ? route('announcements.index', absolute: false) : null,
             ],
             // Nákupní seznam (R61): které akce v něm jsou — tlačítko na kartě akce ukáže stav;
@@ -149,7 +147,7 @@ class HandleInertiaRequests extends Middleware
                     'url' => route($routeName, absolute: false),
                     'key' => $labelKey,
                     'label' => 'nav.'.$labelKey,
-                    // Ve spodní liště na telefonu jen hlavní položky přihlášeného (katalog admina zůstává v menu)
+                    // Ve spodní liště na telefonu hlavní položky přihlášeného (nepřihlášený má jen hamburger)
                     'tab' => $user !== null && array_key_exists($routeName, self::NAVIGATION),
                     'active' => $request->routeIs($routeName) || $request->routeIs(str_replace('.index', '.*', $routeName)),
                 ],
@@ -160,7 +158,8 @@ class HandleInertiaRequests extends Middleware
     }
 
     /**
-     * Položky navigace: název routy => klíč textu; admin má navíc katalog, nepřihlášený jen Všechny akce (R44).
+     * Položky navigace: název routy => klíč textu; nepřihlášený jen Všechny akce (R44). Katalog
+     * admina je v menu pod avatarem (R75).
      *
      * @return array<string, string>
      */
@@ -170,6 +169,6 @@ class HandleInertiaRequests extends Middleware
             return self::GUEST_NAVIGATION;
         }
 
-        return $user->is_admin ? [...self::NAVIGATION, ...self::ADMIN_NAVIGATION] : self::NAVIGATION;
+        return self::NAVIGATION;
     }
 }

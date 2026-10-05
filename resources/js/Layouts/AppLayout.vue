@@ -5,7 +5,8 @@
     Vpravo dole tlačítko Nahoru. Pod hlavičkou lišta pro neověřený e-mail, dole patička
     s provozovatelem a právními stránkami (R51), lišta souhlasu s cookies (R52).
     Aplikace v telefonu (R66): přihlášený má na telefonu hlavní stránky ve spodní liště záložek
-    (hamburger jen pro zbytek — katalog admina), lišta „Jste offline“ a výzva k přidání na plochu.
+    (hamburger jen pro položky mimo lištu — dnes žádné, katalog admina je v menu pod avatarem, R75),
+    lišta „Jste offline“ a výzva k přidání na plochu.
 
     @author Roman Hlaváček
     @created 2026-10-02

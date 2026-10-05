@@ -24,17 +24,18 @@ beforeEach(function (): void {
     $this->admin = User::factory()->create(['is_admin' => true]);
 });
 
-it('katalog je jen pro admina a jen admin ho má v navigaci', function (): void {
+it('katalog je jen pro admina a jen admin ho má v menu pod avatarem (R75)', function (): void {
     $user = User::factory()->create();
 
     $this->actingAs($user)->get(route('catalog.index'))->assertForbidden();
     $this->actingAs($user)->post(route('catalog.store'), ['name' => 'X', 'keywords' => 'x'])->assertForbidden();
-    $this->actingAs($user)->get(route('home'))->assertInertia(fn (Assert $page) => $page
-        ->where('navigation', fn ($items): bool => ! collect($items)->contains('label', 'nav.catalog')));
+    $this->actingAs($user)->get(route('home'))->assertInertia(fn (Assert $page) => $page->where('auth.catalogUrl', null));
 
     $this->actingAs($this->admin)->get(route('catalog.index'))->assertOk();
     $this->actingAs($this->admin)->get(route('home'))->assertInertia(fn (Assert $page) => $page
-        ->where('navigation', fn ($items): bool => collect($items)->contains('label', 'nav.catalog')));
+        ->where('auth.catalogUrl', '/katalog')
+        ->where('navigation', fn ($items): bool => ! collect($items)->contains('label', 'nav.catalog')));
+    $this->actingAs($this->admin)->get(route('catalog.index'))->assertInertia(fn (Assert $page) => $page->where('auth.accountActive', true));
 });
 
 it('ukáže produkty s cestou kategorie a počtem přiřazených akcí', function (): void {
