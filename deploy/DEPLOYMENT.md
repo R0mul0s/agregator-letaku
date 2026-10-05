@@ -348,7 +348,7 @@ Jen `public/.htaccess`: přesměrování `/public/…` na adresu bez něj přesu
    `/public` → 301 na `/` (přes `/public/`, lomítko přidá Apache); `/akce` a `/.well-known/security.txt` dál 200.
 3. Zapiš verzi do *Nasazené verze*.
 
-### Aktualizace z `e7f942f` (desáté nasazení)
+### Aktualizace z `e7f942f` (desáté nasazení — provedeno, `0068710`)
 
 Hledání (R71): živé výsledky od začátku slova podle relevance, našeptávač s produkty, akcemi,
 posledními a oblíbenými hledáními, oprava překlepu, „Jen slevy“; v Hlídám počty akcí u produktů,
@@ -420,7 +420,7 @@ a ruční opravy katalogu. Před každým SQL skriptem a jinak aspoň jednou mě
 | `migrations-2026-10-04-nakupni-seznam.sql` | nákupní seznam (R61): tabulka `shopping_list_items`; opakovatelný, pustit **před** nahráním kódu | 2026-10-04 |
 | `migrations-2026-10-04-upozorneni-v-telefonu.sql` | upozornění v telefonu (R66): tabulka `push_subscriptions`, `users.push_sent_at`; opakovatelný, pustit **před** nahráním kódu | 2026-10-04 |
 | `data-2026-10-04-katalog-rozsireni.sql` | rozšíření katalogu (R70): 42 nových produktů a nová pravidla šesti (Minerální voda, Džus, Prací prostředek, Salám, Ovesné vločky, Nealkoholické pivo); podle názvu, opakovatelný, nezávisí na kódu | 2026-10-04 |
-| `migrations-2026-10-05-centrum-upozorneni.sql` | centrum upozornění (R74): tabulky `notifications` a `announcements`, `users.notified_at`; opakovatelný, pustit **před** nahráním kódu | — |
+| `migrations-2026-10-05-centrum-upozorneni.sql` | centrum upozornění (R74): tabulky `notifications` a `announcements`, `users.notified_at`; opakovatelný, pustit **před** nahráním kódu | 2026-10-05 |
 
 ## Nasazené verze
 
@@ -438,3 +438,4 @@ Co běží na produkci — pro `git log <commit>..HEAD` při dalším nasazení
 | 2026-10-04 | `046d8eb` | sedmé nasazení: User-Agent bez `https://` v kódu (R65); aplikace v telefonu (R66) — manifest se zkratkami, úvodní obrazovky iPhonu, spodní lišta záložek, výzva k přidání na plochu, service worker s offline režimem a odškrtáváním bez signálu, upozornění v telefonu (web push); SQL `migrations-2026-10-04-upozorneni-v-telefonu.sql`, klíče `LETAKY_VAPID_*` v `.env`, nový balíček `minishlink/web-push` ve `vendor/` |
 | 2026-10-04 | `25a224e` | osmé nasazení: hlavička na telefonu s logem a spodní lišta do 799 px (R66); revize před spuštěním (R67–R69) — adresy z `APP_URL`, odhlášení zařízení po změně hesla, hodinový limit e-mailů, titulky a `noindex` Alberta, `security.txt`, GA bez tokenů v adrese, právní texty s datem účinnosti 2026-10-04; nový kořenový `.htaccess`; katalog 206 produktů (R70, SQL `data-2026-10-04-katalog-rozsireni.sql`). `/public/akce` zatím bez přesměrování (oprava v devátém) |
 | 2026-10-04 | `e7f942f` | deváté nasazení: jen `public/.htaccess` — přesměrování `/public/…` na adresu bez něj (R67); `version.txt` zůstává `25a224e` |
+| 2026-10-05 | `0068710` | desáté nasazení: hledání s našeptávačem a opravou překlepů (R71), přátelský tón, právní texty jako firma a stránka `/kontakt` (R72), české adresy přihlášení a registrace se 301 ze starých (R73), centrum upozornění se zvonkem — nové a končící akce, nejlevněji za 12 týdnů, zprávy od nás, upozornění v telefonu ze záznamů, mobilní navigace do 829 px (R74), katalog admina v menu pod avatarem (R75); SQL `migrations-2026-10-05-centrum-upozorneni.sql` |
