@@ -387,7 +387,7 @@ nejlevnější za 12 týdnů se štítkem, zprávy od nás na `/zpravy` (admin, 
      cronu souhrnů přijde do telefonu
 4. Zapiš verzi do *Nasazené verze*.
 
-### Aktualizace z `0068710` (jedenácté nasazení)
+### Aktualizace z `0068710` (jedenácté nasazení — provedeno, `4cf9e35`)
 
 **Akce, které ještě nezačaly (R76):** v Mých slevách sbalená sekce „Brzy“ (ve „Jsem v obchodě“ skrytá),
 „Vyplatí se počkat“, štítek „Od čt 8. 10.“ s čárkovaným rámečkem, ve Všech akcích štítek „Brzy začnou“,
@@ -461,3 +461,4 @@ Co běží na produkci — pro `git log <commit>..HEAD` při dalším nasazení
 | 2026-10-04 | `25a224e` | osmé nasazení: hlavička na telefonu s logem a spodní lišta do 799 px (R66); revize před spuštěním (R67–R69) — adresy z `APP_URL`, odhlášení zařízení po změně hesla, hodinový limit e-mailů, titulky a `noindex` Alberta, `security.txt`, GA bez tokenů v adrese, právní texty s datem účinnosti 2026-10-04; nový kořenový `.htaccess`; katalog 206 produktů (R70, SQL `data-2026-10-04-katalog-rozsireni.sql`). `/public/akce` zatím bez přesměrování (oprava v devátém) |
 | 2026-10-04 | `e7f942f` | deváté nasazení: jen `public/.htaccess` — přesměrování `/public/…` na adresu bez něj (R67); `version.txt` zůstává `25a224e` |
 | 2026-10-05 | `0068710` | desáté nasazení: hledání s našeptávačem a opravou překlepů (R71), přátelský tón, právní texty jako firma a stránka `/kontakt` (R72), české adresy přihlášení a registrace se 301 ze starých (R73), centrum upozornění se zvonkem — nové a končící akce, nejlevněji za 12 týdnů, zprávy od nás, upozornění v telefonu ze záznamů, mobilní navigace do 829 px (R74), katalog admina v menu pod avatarem (R75); SQL `migrations-2026-10-05-centrum-upozorneni.sql` |
+| 2026-10-05 | `4cf9e35` | jedenácté nasazení: akce, které ještě nezačaly (R76) — sekce „Brzy“ v Mých slevách, „Vyplatí se počkat“, štítek „Od …“, filtr „Brzy začnou“, nákupní seznam, upozornění s datem začátku a ráno „Od dneška platí…“; zrušené „Jen slevy“ ve Všech akcích (R77); bez SQL skriptu |

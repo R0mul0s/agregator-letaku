@@ -21,7 +21,7 @@ volné číslo R…). Změna chování obchodu (nový endpoint, jiné pole) pat�
 
 ## Stav
 
-Hotové jsou etapy 1–5g, zveřejnění (8), opravy a funkce z kritické revize (9) a aplikace v telefonu (10) (PLAN.md, kap. 6):
+Hotové jsou etapy 1–5g, zveřejnění (8), opravy a funkce z kritické revize (9), aplikace v telefonu (10), centrum upozornění (11) a akce „brzy“ (12) (PLAN.md, kap. 6):
 - **Stahování:** Kaufland (i po 149 prodejnách, R49), Tesco, Lidl, Penny (R15–R17, R25, R26), Globus (R46),
   Billa z celého katalogu (R48); zmínky v letácích bez ceny — Lidl, Penny, Albert (R27, R36; Albert jen zmínky).
   Pojistky importu: nula akcí je chyba, podezřelý propad akce nestáhne (stav `partial`), zámek proti
@@ -56,7 +56,7 @@ Hotové jsou etapy 1–5g, zveřejnění (8), opravy a funkce z kritické revize
 - **Tón a kontakt (R72):** web mluví přátelsky „my“ s jemným humorem, právní texty jako firma (genderově
   neutrálně), stránka `/kontakt` s rozcestníkem a častými otázkami, v patičce sekce Kontakt (RHsoft.cz)
 
-Produkce běží na `https://slevohlidka.rhsoft.cz` (nasazeno 2026-10-02, naposledy `0068710` 2026-10-05);
+Produkce běží na `https://slevohlidka.rhsoft.cz` (nasazeno 2026-10-02, naposledy `4cf9e35` 2026-10-05);
 postup aktualizace a nasazené verze jsou v `deploy/DEPLOYMENT.md`. Sleduje se 7 obchodů; Makro
 zatím nejde (ochrana proti robotům). Etapa 6 (LLM) jen když bude potřeba.
 Co z dřívějších rozhodnutí platí a co ne, je v tabulce na začátku PLAN.md.
