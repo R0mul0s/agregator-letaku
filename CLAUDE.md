@@ -56,7 +56,7 @@ Hotové jsou etapy 1–5g, zveřejnění (8), opravy a funkce z kritické revize
 - **Tón a kontakt (R72):** web mluví přátelsky „my“ s jemným humorem, právní texty jako firma (genderově
   neutrálně), stránka `/kontakt` s rozcestníkem a častými otázkami, v patičce sekce Kontakt (RHsoft.cz)
 
-Produkce běží na `https://slevohlidka.rhsoft.cz` (nasazeno 2026-10-02, naposledy `4cf9e35` 2026-10-05);
+Produkce běží na `https://slevohlidka.rhsoft.cz` (nasazeno 2026-10-02, naposledy `400c89b` 2026-10-05);
 postup aktualizace a nasazené verze jsou v `deploy/DEPLOYMENT.md`. Sleduje se 7 obchodů; Makro
 zatím nejde (ochrana proti robotům). Etapa 6 (LLM) jen když bude potřeba.
 Co z dřívějších rozhodnutí platí a co ne, je v tabulce na začátku PLAN.md.
