@@ -154,14 +154,15 @@ it('na neověřenou adresu souhrn nepošle (R51)', function (): void {
     Mail::assertNothingSent();
 });
 
-it('e-mail má odhlášení jedním klepnutím v patičce i v hlavičkách (R51)', function (): void {
+it('e-mail má odhlášení jedním klepnutím v patičce i v hlavičkách a jen motto bez provozovatele (R51, R81)', function (): void {
     importedOffer(['name' => 'Máslo 250 g']);
     app(SendDigests::class)();
     $unsubscribeUrl = app(MailingSubscriptions::class)->unsubscribeUrl($this->user, MailingList::Digest);
 
     Mail::assertSent(DigestMail::class, function (DigestMail $mail) use ($unsubscribeUrl): bool {
         $mail->assertSeeInHtml(e($unsubscribeUrl), escape: false);
-        $mail->assertSeeInHtml(config('letaky.operator.name'));
+        $mail->assertSeeInHtml(__('app.mail.footer'));
+        $mail->assertDontSeeInHtml(config('letaky.operator.email'));
 
         return $mail->headers()->text === [
             'List-Unsubscribe' => '<'.$unsubscribeUrl.'>',

@@ -100,7 +100,6 @@ return [
     // Společné pro všechny e-maily (resources/views/vendor/mail)
     'mail' => [
         'footer' => 'Slevohlídka — rychlý lovec slev',
-        'company_id' => 'IČO :id',
     ],
 
     // Právní stránky (R51, resources/legal) — titulky; chybějící údaj provozovatele v textu

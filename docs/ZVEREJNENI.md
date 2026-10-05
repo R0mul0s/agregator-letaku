@@ -70,7 +70,9 @@ Značení: **[R]** = rozhodne nebo zařídí Roman, **[K]** = kód.
 - [ ] **[K] První obchodní sdělení:** Mailable jen uživatelům s `hasMarketingConsent()`
   (v SQL: `marketing_consent_at` vyplněné a novější než `marketing_consent_withdrawn_at` —
   odvolání čas udělení nemaže, R69) a ověřeným e-mailem, v předmětu nebo úvodu označené jako obchodní sdělení, patička
-  níže, odkaz a hlavičky odhlášení na `MailingList::Marketing` (vzor `DigestMail`).
+  níže, odkaz a hlavičky odhlášení na `MailingList::Marketing` (vzor `DigestMail`). Společná
+  patička e-mailů provozovatele neuvádí (R81) — obchodní sdělení nesmí skrývat odesílatele, do jeho
+  patičky proto přidat provozovatele (`letaky.operator`) nebo aspoň odkaz na `/kontakt`.
   Text patičky:
   > Toto je obchodní sdělení. Dostáváte ho, protože jste souhlasili se zasíláním novinek
   > a nabídek Slevohlídky. [Odhlásit se z obchodních sdělení]
