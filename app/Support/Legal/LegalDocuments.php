@@ -84,6 +84,8 @@ final class LegalDocuments
             '{email}' => (string) ($operator['email'] ?? $missing),
             '{trade_office}' => (string) ($operator['trade_office'] ?? $missing),
             '{site_url}' => SeoMeta::homeUrl(),
+            // Doba uchování záznamů centra upozornění (R74) — text zásad sedí s úklidem
+            '{notifications_retention_days}' => (string) config()->integer('letaky.notifications.retention_days'),
         ];
     }
 }

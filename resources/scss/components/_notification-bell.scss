@@ -1,0 +1,56 @@
+// _notification-bell.scss
+// Zvonek v hlavičce (R74, NotificationBell.vue) — odkaz do centra upozornění s kolečkem
+// nepřečtených; velikostí sedí k avataru vedle.
+//
+// @author Roman Hlaváček
+// @created 2026-10-05
+
+.notification-bell {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--control-size);
+    height: var(--control-size);
+    border: 1px solid transparent;
+    border-radius: 50%;
+    color: var(--color-text);
+
+    &:hover {
+        border-color: var(--color-border);
+    }
+
+    // Na stránce centra je zvonek „aktivní položkou“ navigace jako avatar na stránce účtu
+    &--active {
+        border-color: var(--color-accent);
+        color: var(--color-accent-strong);
+    }
+
+    &__icon {
+        width: var(--icon-size);
+        height: var(--icon-size);
+        fill: none;
+        stroke: currentcolor;
+        stroke-width: var(--svg-stroke-icon);
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+
+    &__count {
+        position: absolute;
+        top: var(--notification-count-offset);
+        right: var(--notification-count-offset);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: var(--notification-count-size);
+        height: var(--notification-count-size);
+        padding: 0 var(--space-1);
+        border-radius: var(--radius-pill);
+        background: var(--color-accent);
+        color: var(--color-on-accent);
+        font-size: var(--font-size-xs);
+        font-weight: 800;
+        line-height: 1;
+    }
+}

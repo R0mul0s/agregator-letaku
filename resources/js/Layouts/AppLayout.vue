@@ -17,6 +17,7 @@ import ConfirmDialog from '@/Components/ConfirmDialog.vue';
 import CookieConsent from '@/Components/CookieConsent.vue';
 import EmailVerificationBar from '@/Components/EmailVerificationBar.vue';
 import InstallPrompt from '@/Components/InstallPrompt.vue';
+import NotificationBell from '@/Components/NotificationBell.vue';
 import OfflineBar from '@/Components/OfflineBar.vue';
 import StoresDialog from '@/Components/StoresDialog.vue';
 import TabBar from '@/Components/TabBar.vue';
@@ -109,7 +110,8 @@ onBeforeUnmount(() => {
                 </div>
             </nav>
             <div class="app-header__actions">
-                <!-- Přihlášený má vzhled i odhlášení v menu pod avatarem (R40) -->
+                <!-- Zvonek s nepřečtenými upozorněními (R74); vzhled i odhlášení v menu pod avatarem (R40) -->
+                <NotificationBell v-if="page.props.auth.user" />
                 <UserMenu v-if="page.props.auth.user" />
                 <template v-else>
                     <!-- Na mobilu by se vedle přihlášení nevešel — vzhled se tam řídí systémem -->

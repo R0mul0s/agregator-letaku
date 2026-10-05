@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Domain\Digest\Actions\SendDigests;
+use App\Domain\Notifications\Actions\RecordNewOffers;
 use App\Domain\Push\Actions\SendPushNotifications;
 use Illuminate\Console\Command;
 
@@ -23,13 +24,15 @@ class SendDigestsCommand extends Command
     protected $signature = 'letaky:send-digests';
 
     /** @var string */
-    protected $description = 'Pošle e-mailové souhrny a upozornění v telefonu na nové akce uživatelům, kterým je čas';
+    protected $description = 'Zapíše nové akce do centra upozornění a pošle e-mailové souhrny a upozornění v telefonu uživatelům, kterým je čas';
 
     /**
-     * Pošle souhrny a upozornění a vypíše jejich počty.
+     * Zapíše záznamy centra (R74; upozornění v telefonu se z nich skládá), pošle souhrny
+     * a upozornění a vypíše jejich počty.
      */
-    public function handle(SendDigests $send, SendPushNotifications $push): int
+    public function handle(RecordNewOffers $record, SendDigests $send, SendPushNotifications $push): int
     {
+        $this->info(__('app.notifications.done', ['count' => $record()]));
         $this->info(__('app.digest.done', ['count' => $send()]));
         $this->info(__('app.push.done', ['count' => $push()]));
 

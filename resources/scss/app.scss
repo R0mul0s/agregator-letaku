@@ -25,6 +25,7 @@
 @use 'components/data-table';
 @use 'components/avatar';
 @use 'components/user-menu';
+@use 'components/notification-bell';
 @use 'components/back-to-top';
 @use 'components/toast';
 @use 'components/confirm-dialog';
@@ -41,3 +42,4 @@
 @use 'pages/landing';
 @use 'pages/legal';
 @use 'pages/contact';
+@use 'pages/notifications';

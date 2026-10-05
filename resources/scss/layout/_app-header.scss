@@ -75,8 +75,8 @@
         }
     }
 
-    // Přihlášený se spodní lištou záložek (R66): na telefonu v hlavičce zbývá jen avatar, takže
-    // se vejde celé logo s názvem a mottem jako na počítači (mezi 800 px a lg motto ustoupí navigaci)
+    // Přihlášený se spodní lištou záložek (R66): na telefonu v hlavičce zbývá jen zvonek a avatar, takže
+    // se vejde celé logo s názvem a mottem jako na počítači (mezi 830 px a lg motto ustoupí navigaci)
     &--with-tabs &__name {
         @include below-nav {
             @include visually-shown;

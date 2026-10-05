@@ -1,7 +1,7 @@
 /**
  * Aplikace v telefonu (PWA, R66): registrace service workeru (resources/pwa/service-worker.js),
  * výzva k přidání na plochu, obnovení stránky po návratu z pozadí, stránky uložené offline
- * a jejich smazání po odhlášení, číslo na ikoně aplikace.
+ * a jejich smazání po odhlášení, číslo na ikoně aplikace (nepřečtená upozornění, R74).
  *
  * Nainstalovaná aplikace nemá lištu prohlížeče ani tlačítko obnovit a v telefonu běží
  * klidně dny — data se proto po návratu do aplikace načtou znovu, když jsou starší.
@@ -142,9 +142,26 @@ export function offlineFetchedAt(path) {
     });
 }
 
-/** Smaže číslo na ikoně aplikace (uživatel nové akce viděl). */
+/** Smaže číslo na ikoně aplikace (odhlášení). */
 export function clearAppBadge() {
     navigator.clearAppBadge?.().catch(() => undefined);
+}
+
+/**
+ * Číslo na ikoně aplikace podle nepřečtených upozornění v centru (R74) — stejné jako u zvonku.
+ * Upozornění v telefonu ho nastaví samo (service worker), tady se po přečtení sníží nebo smaže.
+ *
+ * @param {object|null|undefined} notificationCenter Sdílená vlastnost notificationCenter
+ */
+function syncAppBadge(notificationCenter) {
+    if (!notificationCenter) {
+        return;
+    }
+    if (notificationCenter.unread > 0) {
+        navigator.setAppBadge?.(notificationCenter.unread).catch(() => undefined);
+    } else {
+        clearAppBadge();
+    }
 }
 
 /**
@@ -206,6 +223,7 @@ export function initPwa(initialPage) {
     if (user) {
         warmOfflinePages();
         syncPendingChecks(syncUrl);
+        syncAppBadge(initialPage.props.notificationCenter);
     } else {
         clearOfflineData();
     }
@@ -225,6 +243,7 @@ export function initPwa(initialPage) {
         }
         user = nextUser;
         syncUrl = event.detail.page.props.shoppingList?.syncUrl;
+        syncAppBadge(event.detail.page.props.notificationCenter);
     });
 
     // Přechod bez připojení na stránku, kterou service worker nemá uloženou

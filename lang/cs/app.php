@@ -165,10 +165,18 @@ return [
         'failed' => 'Souhrny — chyba: :error',
     ],
 
+    // Centrum upozornění (R74, RecordNewOffers, NotificationPresenter) — nadpisy i pro upozornění v telefonu
+    'notifications' => [
+        'new_offers' => [
+            'title_one' => ':name je v akci',
+            'title_many' => ':count nová akce na hlídané zboží|:count nové akce na hlídané zboží|:count nových akcí na hlídané zboží',
+        ],
+        'done' => 'Centrum upozornění — zapsáno: :count',
+        'failed' => 'Centrum upozornění — chyba: :error',
+    ],
+
     // Upozornění v telefonu — web push (R66, SendPushNotifications)
     'push' => [
-        'title_one' => ':name je v akci',
-        'title_many' => ':count nová akce na hlídané zboží|:count nové akce na hlídané zboží|:count nových akcí na hlídané zboží',
         'line' => ':name — :price, :chain',
         'more' => 'a :count další…|a :count další…|a :count dalších…',
         'test_title' => 'Upozornění fungují',
@@ -664,6 +672,23 @@ return [
             'share_copied' => 'Seznam je zkopírovaný — vložte ho do zprávy.',
             'share_failed' => 'Seznam se nepodařilo zkopírovat.',
             'wake_lock' => 'Nezhasínat displej',
+        ],
+
+        // Centrum upozornění (R74, Notifications.vue, NotificationDetail.vue, NotificationBell.vue)
+        'notifications' => [
+            'title' => 'Upozornění',
+            'intro' => 'Všechno, na co jsme vás za posledních :days dní upozornili — i když máte upozornění v telefonu a e-mailem vypnutá.',
+            'bell' => 'Upozornění',
+            'bell_unread' => 'Upozornění, :count nepřečtené|Upozornění, :count nepřečtená|Upozornění, :count nepřečtených',
+            'unread' => 'Nové',
+            'today' => 'Dnes',
+            'yesterday' => 'Včera',
+            'empty_title' => 'Zatím je tu ticho',
+            'empty' => 'Jakmile bude hlídané zboží v akci, najdete to tady. Hlídáme za vás každé stažení letáků.',
+            'empty_link' => 'Co hlídám',
+            'back' => 'Všechna upozornění',
+            'ended' => 'Skončila',
+            'all_ended' => 'Tyhle akce už skončily — příště buďte rychlejší než ostatní lovci slev.',
         ],
 
         'home' => [

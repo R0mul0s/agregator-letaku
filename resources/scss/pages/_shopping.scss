@@ -158,6 +158,18 @@
         font-size: var(--font-size-xs);
         font-weight: 800;
     }
+
+    // Obchod u řádku v centru upozornění (R74) — řádky tam nejsou po obchodech
+    &__chain {
+        color: var(--color-text);
+        font-weight: 700;
+    }
+
+    // Skončená nebo obchodem stažená akce (R74) — ztlumená, bez tlačítka do seznamu
+    &--ended {
+        grid-template-columns: minmax(0, 1fr) auto;
+        opacity: var(--opacity-ended);
+    }
 }
 
 // Tlačítko jen s ikonou v řádku — čtverec, dost velký pro palec

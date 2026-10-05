@@ -355,12 +355,16 @@ posledními a oblíbenými hledáními, oprava překlepu, „Jen slevy“; v Hl�
 náhled vlastních slov a „Vrátit“ v toastu. **Tón a kontakt (R72):** přátelské texty webu, právní
 texty „my“ (datum účinnosti 2026-10-05), stránka `/kontakt`, v patičce sekce Kontakt. **České
 adresy (R73):** `/prihlaseni`, `/registrace`, `/zapomenute-heslo`… (staré přesměrované 301), přepínač
-„Ukazovat i akce jen pro e-shop“. Bez SQL skriptu, `composer.lock` se nezměnil, žádné soubory nezmizely.
+„Ukazovat i akce jen pro e-shop“. **Centrum upozornění (R74):** zvonek v hlavičce, `/upozorneni`,
+upozornění v telefonu vede na záznam; mobilní navigace se spodní lištou do 829 px. **SQL skript
+`migrations-2026-10-05-centrum-upozorneni.sql`**, `composer.lock` se nezměnil, žádné soubory nezmizely.
 
-1. **Nahraj `deploy/upload/`** bez `vendor/`; `public/build/` nejdřív smaž. Nové soubory jsou
-   v `app/Domain/Offers/`, `app/Http/Middleware/` a `app/Http/Controllers/`, změnily se `config/`, `lang/`, `routes/`,
-   `resources/legal/privacy.md` (nový řádek localStorage).
-2. **Ověř:**
+1. **Záloha databáze** (viz *Záloha databáze*) a pak v phpMyAdminu
+   `deploy/migrations-2026-10-05-centrum-upozorneni.sql` — **před** nahráním kódu.
+2. **Nahraj `deploy/upload/`** bez `vendor/`; `public/build/` nejdřív smaž. Nové soubory jsou
+   v `app/Domain/Offers/`, `app/Domain/Notifications/`, `app/Enums/`, `app/Http/Middleware/` a `app/Http/Controllers/`,
+   změnily se `config/`, `lang/`, `routes/`, `resources/legal/privacy.md` (localStorage, centrum upozornění).
+3. **Ověř:**
    - `version.txt?v=<cokoli>`
    - `/akce`: klepnutí do pole ukáže poslední hledání a „Teď nejvíc v akci“; „pizza“ přepočítá
      výsledky bez tlačítka a našeptá produkt Pizza s počtem akcí a akce s obrázkem; „pyzza“ ukáže
@@ -374,7 +378,10 @@ adresy (R73):** `/prihlaseni`, `/registrace`, `/zapomenute-heslo`… (staré př
    - `/neexistuje` ukáže „Tahle stránka nám utekla“
    - `/login` přesměruje na `/prihlaseni`, `/register?hlidat=1` na `/registrace?hlidat=1`;
      přihlášení, odhlášení, změna hesla v Mém účtu a „Zapomenuté heslo“ (odkaz v e-mailu vede na `/nove-heslo/…`) fungují
-3. Zapiš verzi do *Nasazené verze*.
+   - v hlavičce je zvonek, `/upozorneni` ukáže „Zatím je tu ticho“; cron `send-digests` vypíše
+     „Centrum upozornění — zapsáno: 0“ (první běh jen začne počítat), po dalším stažení s novými akcemi
+     přibude záznam a upozornění v telefonu po klepnutí otevře jeho detail
+4. Zapiš verzi do *Nasazené verze*.
 
 **Každá nová migrace potřebuje SQL skript** `deploy/migrations-<datum>-<popis>.sql`
 (opakovatelný: `CREATE TABLE IF NOT EXISTS`, `ADD COLUMN IF NOT EXISTS`) včetně zápisu do
@@ -409,6 +416,7 @@ a ruční opravy katalogu. Před každým SQL skriptem a jinak aspoň jednou mě
 | `migrations-2026-10-04-nakupni-seznam.sql` | nákupní seznam (R61): tabulka `shopping_list_items`; opakovatelný, pustit **před** nahráním kódu | 2026-10-04 |
 | `migrations-2026-10-04-upozorneni-v-telefonu.sql` | upozornění v telefonu (R66): tabulka `push_subscriptions`, `users.push_sent_at`; opakovatelný, pustit **před** nahráním kódu | 2026-10-04 |
 | `data-2026-10-04-katalog-rozsireni.sql` | rozšíření katalogu (R70): 42 nových produktů a nová pravidla šesti (Minerální voda, Džus, Prací prostředek, Salám, Ovesné vločky, Nealkoholické pivo); podle názvu, opakovatelný, nezávisí na kódu | 2026-10-04 |
+| `migrations-2026-10-05-centrum-upozorneni.sql` | centrum upozornění (R74): tabulka `notifications`, `users.notified_at`; opakovatelný, pustit **před** nahráním kódu | — |
 
 ## Nasazené verze
 

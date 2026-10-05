@@ -103,6 +103,13 @@ class HandleInertiaRequests extends Middleware
                 // Odškrtnutí udělaná bez připojení se odešlou, až je signál — z kterékoli stránky (R66)
                 'syncUrl' => route('shopping-list.sync', absolute: false),
             ] : null,
+            // Centrum upozornění (R74): zvonek v hlavičce s počtem nepřečtených, stejné číslo
+            // na ikoně aplikace (lib/pwa.js); název se nesmí krýt s propem stránky
+            'notificationCenter' => fn (): ?array => $user instanceof User ? [
+                'url' => route('notifications.index', absolute: false),
+                'unread' => $user->unreadNotifications()->count(),
+                'active' => $request->routeIs('notifications.*'),
+            ] : null,
             // Aplikace v telefonu (R66): service worker jen z buildu — s Vite dev serverem (HMR)
             // by ukládal soubory, které se při každé změně mění
             'pwa' => fn (): array => [

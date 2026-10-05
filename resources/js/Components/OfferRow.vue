@@ -1,7 +1,8 @@
 <!--
     Akce jako kompaktní řádek (R62) — „Jsem v obchodě“ v Mých slevách: název s balením, cena
     za jednotku, cena, kterou uživatel zaplatí, sleva a tlačítko do nákupního seznamu. Velká karta
-    s obrázkem by v obchodě znamenala hodně posouvání.
+    s obrázkem by v obchodě znamenala hodně posouvání. V centru upozornění (R74) i s obchodem;
+    skončená akce je ztlumená a bez tlačítka do seznamu.
 
     @author Roman Hlaváček
     @created 2026-10-04
@@ -15,8 +16,10 @@ import { usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 
 const props = defineProps({
-    /** Akce z HomeController (OfferPresenter + matchStatus, userPrice). */
+    /** Akce z HomeController (OfferPresenter + matchStatus, userPrice), v centru upozornění i ended. */
     offer: { type: Object, required: true },
+    /** Vypsat i obchod — řádky nejsou rozdělené po obchodech (centrum upozornění). */
+    withChain: { type: Boolean, default: false },
 });
 
 const t = useTranslations();
@@ -48,13 +51,15 @@ const unitPrice = computed(() => {
 </script>
 
 <template>
-    <li class="offer-row">
+    <li class="offer-row" :class="{ 'offer-row--ended': offer.ended }">
         <div class="offer-row__body">
             <p class="offer-row__name">
                 {{ offer.name }}
                 <span v-if="offer.matchStatus === 'maybe'" class="tag tag--warning">{{ t('offers.maybe') }}</span>
+                <span v-if="offer.ended" class="tag">{{ t('notifications.ended') }}</span>
             </p>
             <p class="offer-row__meta">
+                <span v-if="withChain" class="offer-row__chain">{{ offer.chainName }}</span>
                 <span v-if="packageText">{{ packageText }}</span>
                 <span v-if="unitPrice">{{ unitPrice }}</span>
             </p>
@@ -63,6 +68,6 @@ const unitPrice = computed(() => {
             <span class="offer-row__price">{{ price }}</span>
             <span v-if="discount" class="offer-row__discount">−{{ discount }} %</span>
         </div>
-        <ShoppingToggle :offer-id="offer.id" compact />
+        <ShoppingToggle v-if="!offer.ended" :offer-id="offer.id" compact />
     </li>
 </template>

@@ -243,6 +243,11 @@
     // Právě přidaná hlídaná položka se krátce rozsvítí (R71)
     --duration-fresh: 1.4s;
     --fresh-ring-width: 4px;
+    // Centrum upozornění (R74): kolečko s počtem na zvonku, zvýraznění nepřečteného záznamu
+    --notification-count-size: 1.125rem;
+    --notification-count-offset: -0.25rem;
+    --notification-unread-width: 4px;
+    --opacity-ended: 0.6;
     --font-size-price: 1.75rem;
     // Cenovka slevy: bílý text na červené potřebuje „velký text“ (≥ 18,66 px tučně) pro kontrast 3 : 1
     --font-size-sticker: 1.25rem;

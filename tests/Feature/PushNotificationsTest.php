@@ -12,6 +12,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Notifications\Actions\RecordNewOffers;
 use App\Domain\Push\Actions\SendPushNotifications;
 use App\Domain\Push\PushDelivery;
 use App\Domain\Push\PushMessage;
@@ -85,6 +86,16 @@ function fakePushSender(array $deliveries = []): PushSender
     app()->instance(PushSender::class, $sender);
 
     return $sender;
+}
+
+/**
+ * Jako cron: zapíše záznamy centra upozornění (R74) a pošle z nich upozornění v telefonu.
+ */
+function recordAndPush(): int
+{
+    app(RecordNewOffers::class)();
+
+    return app(SendPushNotifications::class)();
 }
 
 /**
@@ -209,20 +220,20 @@ describe('upozornění na nové akce', function (): void {
     beforeEach(function (): void {
         FollowedChain::query()->create(['user_id' => $this->user->id, 'chain' => Chain::Kaufland, 'include_online_only' => true]);
         WatchItem::factory()->for($this->user)->create(['name' => 'Máslo', 'keywords' => 'máslo']);
-        $this->user->forceFill(['push_sent_at' => now()->subHours(2)])->save();
+        $this->user->forceFill(['push_sent_at' => now()->subHours(2), 'notified_at' => now()->subHours(2)])->save();
         PushSubscription::query()->create(['user_id' => $this->user->id, 'endpoint' => PUSH_ENDPOINT, 'public_key' => 'k', 'auth_token' => 'a', 'device' => 'Chrome']);
     });
 
-    it('pošle upozornění s akcí, cenou a obchodem a číslem na ikonu', function (): void {
+    it('pošle upozornění s akcí, cenou a obchodem, odkazem na záznam centra a číslem na ikonu', function (): void {
         $sender = fakePushSender();
         pushImportedOffer(['name' => 'Máslo 250 g', 'price' => 3990]);
 
-        expect(app(SendPushNotifications::class)())->toBe(1);
+        expect(recordAndPush())->toBe(1);
 
         $message = $sender->sent[0]['message'];
         expect($message->title)->toBe('Máslo je v akci')
             ->and($message->body)->toBe("Máslo 250 g — 39,90\u{00A0}Kč, Kaufland")
-            ->and($message->url)->toBe('/')
+            ->and($message->url)->toBe('/upozorneni/'.$this->user->notifications()->sole()->id)
             ->and($message->badge)->toBe(1)
             ->and($this->user->fresh()?->push_sent_at?->toDateTimeString())->toBe('2026-10-02 06:30:00');
     });
@@ -233,7 +244,7 @@ describe('upozornění na nové akce', function (): void {
             pushImportedOffer(['name' => $name]);
         }
 
-        app(SendPushNotifications::class)();
+        recordAndPush();
 
         $message = $sender->sent[0]['message'];
         expect($message->title)->toBe('5 nových akcí na hlídané zboží')
@@ -244,14 +255,14 @@ describe('upozornění na nové akce', function (): void {
     it('pošle nejvýš jednou za interval a jen akce, které přibyly', function (): void {
         $sender = fakePushSender();
         pushImportedOffer(['name' => 'Máslo staré']);
-        app(SendPushNotifications::class)();
+        recordAndPush();
 
         $this->travelTo('2026-10-02 07:00:00');
         pushImportedOffer(['name' => 'Máslo nové']);
-        expect(app(SendPushNotifications::class)())->toBe(0);
+        expect(recordAndPush())->toBe(0);
 
         $this->travelTo('2026-10-02 07:31:00');
-        expect(app(SendPushNotifications::class)())->toBe(1)
+        expect(recordAndPush())->toBe(1)
             ->and($sender->sent)->toHaveCount(2)
             ->and($sender->sent[1]['message']->body)->toStartWith('Máslo nové');
     });
@@ -261,7 +272,7 @@ describe('upozornění na nové akce', function (): void {
         $this->user->forceFill(['email_verified_at' => null])->save();
         pushImportedOffer(['name' => 'Máslo 250 g']);
 
-        expect(app(SendPushNotifications::class)())->toBe(0)
+        expect(recordAndPush())->toBe(0)
             ->and($sender->sent)->toBe([]);
     });
 
@@ -270,7 +281,7 @@ describe('upozornění na nové akce', function (): void {
         config(['letaky.push.vapid.private_key' => null]);
         pushImportedOffer(['name' => 'Máslo 250 g']);
 
-        expect(app(SendPushNotifications::class)())->toBe(0)
+        expect(recordAndPush())->toBe(0)
             ->and($sender->sent)->toBe([]);
     });
 
@@ -278,7 +289,7 @@ describe('upozornění na nové akce', function (): void {
         fakePushSender([PUSH_ENDPOINT => PushDelivery::Expired]);
         pushImportedOffer(['name' => 'Máslo 250 g']);
 
-        expect(app(SendPushNotifications::class)())->toBe(0)
+        expect(recordAndPush())->toBe(0)
             ->and(PushSubscription::query()->count())->toBe(0);
     });
 

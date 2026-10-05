@@ -21,6 +21,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LegacyAuthRedirectController;
 use App\Http\Controllers\LegalController;
 use App\Http\Controllers\ManifestController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OffersController;
 use App\Http\Controllers\OfferSuggestionsController;
 use App\Http\Controllers\PushSubscriptionController;
@@ -115,6 +116,11 @@ Route::middleware('auth')->group(function (): void {
     Route::delete('/seznam/odskrtnute', [ShoppingListController::class, 'clearChecked'])->name('shopping-list.clear-checked');
     Route::patch('/seznam/{item}', [ShoppingListController::class, 'update'])->whereNumber('item')->name('shopping-list.update');
     Route::delete('/seznam/{item}', [ShoppingListController::class, 'destroy'])->whereNumber('item')->name('shopping-list.destroy');
+
+    // Centrum upozornění (R74): záznamy, detail (cíl upozornění v telefonu), přečtení po zobrazení
+    Route::get('/upozorneni', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/upozorneni/precteno', [NotificationController::class, 'markRead'])->name('notifications.read');
+    Route::get('/upozorneni/{notification}', [NotificationController::class, 'show'])->whereUuid('notification')->name('notifications.show');
 
     Route::get('/obchody', [ShoppingPreferencesController::class, 'show'])->name('preferences');
     Route::put('/obchody', [ShoppingPreferencesController::class, 'update'])->name('preferences.update');

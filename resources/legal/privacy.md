@@ -54,6 +54,13 @@ Upozornění jsou součást služby, o kterou jste požádali, právní základ 
 Chodí jen na účet s ověřenou adresou. Vypnete je v účtu nebo v nastavení prohlížeče
 či telefonu; když se na zařízení odhlásíte, odběr se zruší.
 
+### Centrum upozornění
+
+Po každém stažení letáků si zapíšeme, které nové akce na hlídané zboží jsme pro vás našli
+(názvy hlídaných položek a odkazy na akce), a kdy jste si záznam přečetli. Záznamy vidíte
+v sekci Upozornění pod zvonkem, i když upozornění v telefonu ani e-mailem zapnutá nemáte.
+Jsou součást služby, právní základ je plnění smlouvy.
+
 ### Obchodní sdělení (jen se souhlasem)
 
 Pokud k tomu dáte samostatný souhlas, posíláme vám e-mailem novinky o Slevohlídce
@@ -109,6 +116,7 @@ a cílení reklamy (Google signály). Reklamu zatím nezobrazujeme.
 | Údaje | Doba |
 |---|---|
 | účet a vše, co k němu patří (hlídané položky, nákupní seznam, obchody, předvolby, obrázek, souhlasy) | do zrušení účtu |
+| záznamy v centru upozornění | {notifications_retention_days} dní, potom se smažou nejpozději do 24 hodin |
 | odběr upozornění v telefonu | do vypnutí upozornění, odhlášení na zařízení nebo zrušení účtu; odběr, který push služba přestane přijímat, se smaže při dalším upozornění |
 | relace (IP adresa, prohlížeč) | 2 hodiny od poslední aktivity, potom se smaže nejpozději do 24 hodin |
 | přihlášení „Zapamatovat si mě“ | nejdéle 400 dní nebo do odhlášení |

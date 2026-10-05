@@ -404,6 +404,19 @@ return [
         ],
     ],
 
+    /*
+    | Centrum upozornění (R74, /upozorneni). Cron /cron/send-digests po stažení s novými akcemi
+    | zapíše každému uživateli záznam (i bez zapnutých upozornění v telefonu nebo e-mailu);
+    | upozornění v telefonu se pak skládá ze záznamů. Po dávkách jako souhrny (R54).
+    | Starší záznamy maže denní úklid (/cron/prune-sessions) — doba je v zásadách (kap. 3).
+    */
+    'notifications' => [
+        'users_per_run' => 200,
+        'retention_days' => 30,
+        // Kolik posledních záznamů stránka ukáže (za 30 dní jich bývá pár za den)
+        'max_listed' => 100,
+    ],
+
     'cron' => [
         'token' => env('LETAKY_CRON_TOKEN'),
         // Limit běhu jednoho volání — stažení Tesca trvá ~45 s; hosting ho může omezit i tak (O8)
