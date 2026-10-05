@@ -38,7 +38,8 @@ class ShoppingListController extends Controller
     public const STATUS_CLEARED = 'shopping-cleared';
 
     /**
-     * Seznam po obchodech v pořadí výčtu obchodů; v obchodě nejdřív, co zbývá koupit.
+     * Seznam po obchodech v pořadí výčtu obchodů; v obchodě nejdřív, co zbývá koupit, a z toho
+     * nejdřív akce, které už platí — budoucí (R76) se zatím za akční cenu koupit nedají.
      */
     public function index(Request $request, OfferPresenter $presenter, MyOffers $myOffers, LocalCalendar $calendar): Response
     {
@@ -51,7 +52,7 @@ class ShoppingListController extends Controller
         foreach (Chain::cases() as $chain) {
             $inChain = $items
                 ->filter(fn (ShoppingListItem $item): bool => $item->offer->chain === $chain)
-                ->sortBy(fn (ShoppingListItem $item): array => [$item->checked_at !== null, $item->offer->name])
+                ->sortBy(fn (ShoppingListItem $item): array => [$item->checked_at !== null, $item->offer->isUpcoming($today), $item->offer->name])
                 ->values();
             if ($inChain->isEmpty()) {
                 continue;

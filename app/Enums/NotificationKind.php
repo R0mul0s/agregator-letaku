@@ -21,6 +21,9 @@ enum NotificationKind: string
     /** Akce z nákupního seznamu zítra končí (etapa 11b). */
     case EndingSoon = 'ending_soon';
 
+    /** Hlídané akce a akce ze seznamu, které dnes začínají a známe je dopředu (R76). */
+    case StartingToday = 'starting_today';
+
     /** Zpráva od nás — o službě, nebo propagační jen se souhlasem (etapa 11d). */
     case Announcement = 'announcement';
 
@@ -33,6 +36,7 @@ enum NotificationKind: string
         return match ($this) {
             self::NewOffers => 'new-offers',
             self::EndingSoon => 'ending-soon',
+            self::StartingToday => 'starting-today',
             self::Announcement => 'announcement',
         };
     }

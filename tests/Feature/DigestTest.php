@@ -108,6 +108,20 @@ it('e-mail má předmět s počtem akcí a odkazy na Moje slevy a nastavení', f
     });
 });
 
+it('akci, která ještě nezačala, pošle hned se začátkem platnosti, aktuální jen s koncem (R76)', function (): void {
+    importedOffer(['name' => 'Máslo dnes', 'valid_from' => '2026-10-01', 'valid_to' => '2026-10-07']);
+    importedOffer(['name' => 'Máslo ve středu', 'valid_from' => '2026-10-08', 'valid_to' => '2026-10-14']);
+    app(SendDigests::class)();
+
+    Mail::assertSent(DigestMail::class, function (DigestMail $mail): bool {
+        $mail->assertSeeInHtml('Máslo ve středu');
+        $mail->assertSeeInHtml("od 8.\u{00A0}10. do 14.\u{00A0}10.");
+        $mail->assertSeeInHtml("Kaufland · do 7.\u{00A0}10.");
+
+        return true;
+    });
+});
+
 it('cron URL pošle souhrny jen s tokenem', function (): void {
     config(['letaky.cron.token' => 'tajny-token']);
     importedOffer(['name' => 'Máslo 250 g']);

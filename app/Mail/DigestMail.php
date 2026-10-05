@@ -20,6 +20,7 @@ use App\Enums\MailingList;
 use App\Models\User;
 use App\Support\CzechVocative;
 use App\Support\PriceFormatter;
+use App\Support\ShortDate;
 use Carbon\CarbonImmutable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
@@ -28,11 +29,8 @@ use Illuminate\Mail\Mailables\Headers;
 
 class DigestMail extends Mailable
 {
-    /** Formát data konce platnosti v e-mailu („8. 10.“). */
-    private const DATE_FORMAT = 'j.'.PriceFormatter::NO_BREAK_SPACE.'n.';
-
     /**
-     * @param  list<array{name: string, offers: list<array{name: string, chain: string, price: int|null, discountPercent: int|null, validTo: CarbonImmutable}>}>  $groups  Hlídané položky s novými akcemi
+     * @param  list<array{name: string, offers: list<array{name: string, chain: string, price: int|null, discountPercent: int|null, validFrom: CarbonImmutable|null, validTo: CarbonImmutable}>}>  $groups  Hlídané položky s novými akcemi; validFrom jen u akce, která ještě nezačala (R76)
      */
     public function __construct(
         public readonly User $user,
@@ -67,6 +65,7 @@ class DigestMail extends Mailable
     {
         $limit = config()->integer('letaky.digest.max_offers_per_item');
         $prices = app(PriceFormatter::class);
+        $dates = app(ShortDate::class);
 
         return new Content(markdown: 'mail.digest', with: [
             // Oslovení v 5. pádě („Ahoj, Romane!“, R47)
@@ -78,7 +77,9 @@ class DigestMail extends Mailable
                     'chain' => $offer['chain'],
                     'price' => $offer['price'] === null ? null : $prices->format($offer['price']),
                     'discountPercent' => $offer['discountPercent'],
-                    'validTo' => $offer['validTo']->format(self::DATE_FORMAT),
+                    'validity' => $offer['validFrom'] === null
+                        ? __('app.digest.valid_to', ['date' => $dates->format($offer['validTo'])])
+                        : __('app.digest.valid_range', ['from' => $dates->format($offer['validFrom']), 'to' => $dates->format($offer['validTo'])]),
                 ], array_slice($item['offers'], 0, $limit)),
                 'total' => count($item['offers']),
                 'more' => max(0, count($item['offers']) - $limit),

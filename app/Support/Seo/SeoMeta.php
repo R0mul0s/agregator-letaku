@@ -162,12 +162,12 @@ final class SeoMeta
     }
 
     /**
-     * Výpis zúžený hledáním, produktem z našeptávače nebo jen slevami (R71) — nekonečně
-     * kombinací, do výsledků hledání nepatří.
+     * Výpis zúžený hledáním, produktem z našeptávače (R71) nebo jen budoucími akcemi (R76) —
+     * nekonečně kombinací, do výsledků hledání nepatří.
      */
     private function isFiltered(Request $request): bool
     {
-        return $request->filled('q') || $request->filled(OffersRequest::PRODUCT) || $request->boolean(OffersRequest::DISCOUNTS);
+        return $request->filled('q') || $request->filled(OffersRequest::PRODUCT) || $request->boolean(OffersRequest::UPCOMING);
     }
 
     /**

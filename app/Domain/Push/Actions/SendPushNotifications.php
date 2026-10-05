@@ -4,9 +4,10 @@
  * Upozornění v telefonu na nové akce hlídaných položek (web push, R66). Cron /cron/send-digests
  * ho volá spolu s e-mailovými souhrny každou hodinu 6:30–22:30 — v noci tak upozornění nechodí.
  *
- * Skládá se ze záznamů centra upozornění (R74, RecordNewOffers a RecordEndingOffers je zapíšou
- * těsně předtím): uživatel s aspoň jedním zařízením dostane upozornění na nepřečtené záznamy
- * (nové akce, končící akce ze seznamu, zprávy od nás se zaškrtnutým „i do telefonu“ — každý
+ * Skládá se ze záznamů centra upozornění (R74, RecordNewOffers, RecordEndingOffers
+ * a RecordStartingOffers je zapíšou těsně předtím): uživatel s aspoň jedním zařízením dostane
+ * upozornění na nepřečtené záznamy (nové akce, končící akce ze seznamu, dnes začínající akce
+ * (R76), zprávy od nás se zaškrtnutým „i do telefonu“ — každý
  * druh zvlášť), které vznikly po jeho posledním upozornění, nejvýš jednou za `letaky.push.interval_hours`.
  * Klepnutí otevře záznam v centru (víc záznamů = celé centrum), číslo na ikoně aplikace
  * je počet nepřečtených záznamů — stejné jako u zvonku v hlavičce.
@@ -26,6 +27,7 @@ use App\Domain\Matching\MyOffers;
 use App\Domain\Notifications\AnnouncementRecord;
 use App\Domain\Notifications\NotificationPresenter;
 use App\Domain\Notifications\OffersNotification;
+use App\Domain\Offers\LocalCalendar;
 use App\Domain\Push\PushMessage;
 use App\Domain\Push\PushSubscriptions;
 use App\Domain\Push\Vapid;
@@ -33,6 +35,7 @@ use App\Enums\NotificationKind;
 use App\Models\Offer;
 use App\Models\User;
 use App\Support\PriceFormatter;
+use App\Support\ShortDate;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -49,6 +52,8 @@ final class SendPushNotifications
         private readonly Vapid $vapid,
         private readonly PriceFormatter $prices,
         private readonly NotificationPresenter $presenter,
+        private readonly LocalCalendar $calendar,
+        private readonly ShortDate $dates,
     ) {}
 
     /**
@@ -177,15 +182,20 @@ final class SendPushNotifications
         // Nejlevnější za sledované období (etapa 11c) — dovětek u akce, u jedné i v nadpisu
         $lowest = array_merge([], ...$records->map(OffersNotification::lowestOfferIds(...))->all());
 
-        $lines = array_map(function (Offer $offer) use ($user, $lowest): string {
+        $today = $this->calendar->today();
+        $lines = array_map(function (Offer $offer) use ($user, $lowest, $today): string {
             $price = $this->myOffers->userPrice($user, $offer);
-
-            return __(in_array($offer->id, $lowest, true) ? 'app.push.line_lowest' : 'app.push.line', [
+            $line = __(in_array($offer->id, $lowest, true) ? 'app.push.line_lowest' : 'app.push.line', [
                 'name' => $offer->name,
                 'price' => $price === null ? __('app.digest.no_price') : $this->prices->format($price),
                 'chain' => $offer->chain->label(),
                 'weeks' => config()->integer('letaky.price_history.weeks'),
             ]);
+
+            // Akce, která ještě nezačala (R76) — ať ji nikdo nehledá v obchodě dnes
+            return $offer->isUpcoming($today)
+                ? __('app.push.starts', ['line' => $line, 'date' => $this->dates->format($offer->valid_from)])
+                : $line;
         }, $shown);
         if ($count > count($shown)) {
             $lines[] = trans_choice('app.push.more', $count - count($shown));

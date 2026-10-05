@@ -254,6 +254,14 @@ describe('upozornění na nové akce', function (): void {
             ->and($message->body)->toBe("Máslo 250 g — 39,90\u{00A0}Kč, Kaufland · nejlevněji za 12 týdnů");
     });
 
+    it('u akce, která ještě nezačala, napíše od kdy platí (R76)', function (): void {
+        $sender = fakePushSender();
+        pushImportedOffer(['name' => 'Máslo 250 g', 'price' => 3990, 'valid_from' => '2026-10-08', 'valid_to' => '2026-10-14']);
+
+        expect(recordAndPush())->toBe(1)
+            ->and($sender->sent[0]['message']->body)->toBe("Máslo 250 g — 39,90\u{00A0}Kč, Kaufland · od 8.\u{00A0}10.");
+    });
+
     it('víc akcí shrne počtem a vypíše jen první', function (): void {
         $sender = fakePushSender();
         foreach (['Máslo A', 'Máslo B', 'Máslo C', 'Máslo D', 'Máslo E'] as $name) {

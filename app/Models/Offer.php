@@ -189,6 +189,24 @@ class Offer extends Model
     }
 
     /**
+     * Nabídky, které ke dni ještě nezačaly — leták na příští dny (R76).
+     *
+     * @param  Builder<self>  $query
+     */
+    public function scopeUpcoming(Builder $query, CarbonImmutable $localToday): void
+    {
+        $query->whereDate('valid_from', '>', $localToday->toDateString());
+    }
+
+    /**
+     * Začíná nabídka až po daném dni (R76)? Platnost i den jsou místní data.
+     */
+    public function isUpcoming(CarbonImmutable $localToday): bool
+    {
+        return $this->valid_from->greaterThan($localToday);
+    }
+
+    /**
      * Sleva v procentech: od obchodu, jinak dopočtená z původní ceny; jen u typu „sleva“ (R8).
      * Stejný výpočet jako discountPercent() v resources/js/lib/offer.js.
      */

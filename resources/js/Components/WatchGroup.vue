@@ -1,6 +1,8 @@
 <!--
     Skupina hlídané položky v Mých slevách — sbalitelná. Hlavička ukazuje souhrn (počet akcí,
     nejnižší cenu, nejvyšší slevu) a akce upravit / přestat hlídat; po rozbalení akce a zmínky.
+    Akce, které ještě nezačaly, jsou v sekci Brzy (UpcomingSection) — tady jen jejich počet
+    a „Vyplatí se počkat“, když je některá výrazně levnější (R76).
 
     @author Roman Hlaváček
     @created 2026-10-02
@@ -10,7 +12,7 @@ import MentionCard from '@/Components/MentionCard.vue';
 import OfferCard from '@/Components/OfferCard.vue';
 import OfferRow from '@/Components/OfferRow.vue';
 import ShoppingToggle from '@/Components/ShoppingToggle.vue';
-import { formatPrice } from '@/lib/format';
+import { formatDate, formatPrice } from '@/lib/format';
 import { confirmDialog } from '@/lib/confirm';
 import { useTranslations } from '@/lib/i18n';
 import { discountPercent } from '@/lib/offer';
@@ -18,7 +20,10 @@ import { Link, router, usePage } from '@inertiajs/vue3';
 import { computed, useId } from 'vue';
 
 const props = defineProps({
-    /** Položka z HomeController (akce s cenou pro uživatele, zmínky, adresy úprav); po výběru obchodu jen jeho akce. */
+    /**
+     * Položka z HomeController (akce s cenou pro uživatele, budoucí akce `upcoming` a `waitTip`,
+     * zmínky, adresy úprav); po výběru obchodu jen jeho akce, bez budoucích.
+     */
     item: { type: Object, required: true },
     /** Jak často chodí e-mailový souhrn („denně“), null = vypnutý (R42). */
     digestFrequency: { type: String, default: null },
@@ -40,6 +45,27 @@ const lowestPrice = computed(() => {
     const prices = props.item.offers.map((offer) => offer.userPrice).filter((price) => price !== null);
 
     return prices.length ? Math.min(...prices) : null;
+});
+
+/**
+ * „Vyplatí se počkat“ (R76, App\Domain\Matching\WaitAdvice): obchod, od kdy, za kolik a o kolik
+ * levněji než nejlevnější akce dnes; null = nevyplatí.
+ */
+const waitTipText = computed(() => {
+    const tip = props.item.waitTip;
+    if (!tip) {
+        return null;
+    }
+
+    const locale = page.props.locale;
+
+    return t('watch.wait_tip_text', {
+        chain: tip.chainName,
+        date: formatDate(tip.validFrom, locale),
+        price: formatPrice(tip.userPrice, locale),
+        unit_price: t('offers.unit_price', { price: formatPrice(tip.unitPrice, locale), unit: t(`unit_price_units.${tip.unitPriceUnit}`) }),
+        percent: tip.savingPercent,
+    });
 });
 
 /** Nejvyšší sleva mezi akcemi položky, nebo null. */
@@ -77,6 +103,9 @@ async function remove() {
                     <span v-if="!item.offers.length && item.mentions.length" class="watch-group__summary">
                         {{ t('watch.mentions_count', { count: item.mentions.length }) }}
                     </span>
+                    <!-- Akce, které ještě nezačaly (R76) — jsou v sekci Brzy -->
+                    <span v-if="item.upcoming.length" class="watch-group__upcoming">{{ t('watch.upcoming_count', { count: item.upcoming.length }) }}</span>
+                    <span v-if="waitTipText" class="watch-group__wait">{{ t('watch.wait_tip') }}</span>
                 </button>
             </h2>
             <div class="watch-group__actions">
@@ -96,6 +125,9 @@ async function remove() {
         <!-- Karty se vykreslí až po rozbalení — sbalené skupiny nenačítají obrázky -->
         <div :id="bodyId" class="watch-group__body" :hidden="!expanded">
             <template v-if="expanded">
+                <p v-if="waitTipText" class="notice notice--success">
+                    <strong>{{ t('watch.wait_tip') }}:</strong> {{ waitTipText }}
+                </p>
                 <div v-if="!item.offers.length && !item.mentions.length" class="watch-group__empty">
                     <span class="watch-group__empty-icon" aria-hidden="true">
                         <!-- Oko — Slevohlídka hlídá dál -->

@@ -19,6 +19,7 @@ use App\Domain\Chains\Actions\ImportStores;
 use App\Domain\Digest\Actions\SendDigests;
 use App\Domain\Notifications\Actions\RecordEndingOffers;
 use App\Domain\Notifications\Actions\RecordNewOffers;
+use App\Domain\Notifications\Actions\RecordStartingOffers;
 use App\Domain\Offers\Actions\ImportChainOffers;
 use App\Domain\Push\Actions\SendPushNotifications;
 use App\Domain\Sources\SourceRegistry;
@@ -104,6 +105,7 @@ class CronController extends Controller
         CronRequest $request,
         RecordNewOffers $record,
         RecordEndingOffers $recordEnding,
+        RecordStartingOffers $recordStarting,
         SendDigests $send,
         SendPushNotifications $push,
     ): Response {
@@ -112,7 +114,7 @@ class CronController extends Controller
         $failed = false;
 
         // Záznamy centra upozornění (R74) jako první — upozornění v telefonu se z nich skládá
-        foreach (['notifications' => $record, 'ending_soon' => $recordEnding, 'digest' => $send, 'push' => $push] as $channel => $action) {
+        foreach (['notifications' => $record, 'ending_soon' => $recordEnding, 'starting_today' => $recordStarting, 'digest' => $send, 'push' => $push] as $channel => $action) {
             try {
                 $lines[] = __("app.$channel.done", ['count' => $action()]);
             } catch (Throwable $error) {

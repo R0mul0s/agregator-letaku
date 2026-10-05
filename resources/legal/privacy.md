@@ -57,8 +57,8 @@ Chodí jen na účet s ověřenou adresou. Vypnete je v účtu nebo v nastavení
 ### Centrum upozornění
 
 Po každém stažení letáků si zapíšeme, které nové akce na hlídané zboží jsme pro vás našli
-(názvy hlídaných položek a odkazy na akce), odpoledne také akce z vašeho nákupního seznamu,
-které zítra končí, a zprávy od nás o službě (například nový obchod nebo změna podmínek),
+(názvy hlídaných položek a odkazy na akce), ráno akce, na které čekáte a které ten den
+začínají, odpoledne také akce z vašeho nákupního seznamu, které zítra končí, a zprávy od nás o službě (například nový obchod nebo změna podmínek),
 a kdy jste si záznam přečetli. Záznamy vidíte
 v sekci Upozornění pod zvonkem, i když upozornění v telefonu ani e-mailem zapnutá nemáte.
 Jsou součást služby, právní základ je plnění smlouvy.

@@ -1,5 +1,6 @@
 <!--
     Karta jedné akční nabídky — obchod, název, ceny podle typu akce (R8), cena za jednotku, platnost.
+    Akce, která ještě nezačala, má štítek s datem začátku a odlišený rámeček (R76).
 
     @author Roman Hlaváček
     @created 2026-10-02
@@ -10,7 +11,7 @@ import ChainWatermark from '@/Components/ChainWatermark.vue';
 import InfoIcon from '@/Components/InfoIcon.vue';
 import { formatDate, formatPrice } from '@/lib/format';
 import { useTranslations } from '@/lib/i18n';
-import { discountPercent, packageLabel } from '@/lib/offer';
+import { discountPercent, packageLabel, startsLabel } from '@/lib/offer';
 import { showStoresDialog } from '@/lib/storesDialog';
 import { usePage } from '@inertiajs/vue3';
 import { computed, ref, useId } from 'vue';
@@ -33,6 +34,9 @@ const maybeHintId = useId();
 
 /** Sleva v procentech na cenovku přes obrázek. */
 const discount = computed(() => discountPercent(props.offer));
+
+/** Akce, která ještě nezačala (R76): „Od zítra“, „Od st 8. 10.“; null = už platí. */
+const starts = computed(() => startsLabel(props.offer, locale.value, t));
 
 /**
  * Štítek akce, která neplatí ve všech prodejnách (R49): vybrané prodejny, kde platí;
@@ -97,10 +101,12 @@ function unitPriceLabel(halers) {
 </script>
 
 <template>
-    <article class="offer-card">
+    <article class="offer-card" :class="{ 'offer-card--upcoming': starts }">
         <ChainWatermark :chain="offer.chain" />
         <div class="offer-card__badges">
             <ChainLogo :chain="offer.chain" />
+            <!-- Ještě nezačala (R76) — v obchodě zatím neplatí -->
+            <span v-if="starts" class="tag tag--upcoming">{{ starts }}</span>
             <!-- Vysvětlení klepnutím — title se na dotykovém displeji neukáže (R55) -->
             <button
                 v-if="offer.matchStatus === 'maybe'"

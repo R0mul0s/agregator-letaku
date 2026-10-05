@@ -17,7 +17,7 @@
 @foreach ($item['offers'] as $offer)
 <tr><td class="offer">
 <table width="100%" cellpadding="0" cellspacing="0" role="presentation"><tr>
-<td><span class="offer-name">{{ $offer['name'] }}</span><br><span class="offer-meta">{{ $offer['chain'] }} · {{ __('app.digest.valid_to', ['date' => $offer['validTo']]) }}</span></td>
+<td><span class="offer-name">{{ $offer['name'] }}</span><br><span class="offer-meta">{{ $offer['chain'] }} · {{ $offer['validity'] }}</span></td>
 <td class="offer-price-cell">@if ($offer['discountPercent'])<span class="offer-discount">−{{ $offer['discountPercent'] }}&nbsp;%</span><br>@endif<span class="offer-price">{{ $offer['price'] ?? __('app.digest.no_price') }}</span></td>
 </tr></table>
 </td></tr>

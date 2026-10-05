@@ -38,6 +38,9 @@
     --color-danger-soft: #fff0f0;
     --color-warning-soft: #fff4e0;
     --color-warning-text: #9a5b00;
+    // Akce, která ještě nezačala (R76) — modrá odliší „brzy“ od slevy (červená) i varování (oranžová)
+    --color-info-soft: #e7f1fb;
+    --color-info-text: #1b5e9e;
     // Posuvník: jezdec v tlumené červené z loga, při najetí akcent; dráha v barvě podkladu
     --color-scrollbar-thumb: #eba4a7;
     --color-scrollbar-thumb-hover: var(--color-accent);
@@ -321,6 +324,8 @@
         --color-danger-soft: #3a1717;
         --color-warning-soft: #3a2a0c;
         --color-warning-text: #fab005;
+        --color-info-soft: #12273d;
+        --color-info-text: #8cc4f5;
         --shadow-card: none;
         --shadow-card-hover: 0 12px 28px rgb(0 0 0 / 45%);
         --gradient-brand: linear-gradient(135deg, #ff4a52 0%, #d91f29 100%);

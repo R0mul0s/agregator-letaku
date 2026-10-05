@@ -1,8 +1,8 @@
 <?php
 
 /**
- * Parametry přehledu nabídek — hledaný text, obchod, produkt katalogu, jen slevy (R71)
- * a načtené stránky (R43).
+ * Parametry přehledu nabídek — hledaný text, obchod, produkt katalogu (R71), jen budoucí
+ * akce (R76) a načtené stránky (R43).
  *
  * @author Roman Hlaváček
  *
@@ -25,8 +25,8 @@ class OffersRequest extends FormRequest
     /** Parametr adresy: akce jednoho produktu katalogu (z našeptávače, R71). */
     public const PRODUCT = 'produkt';
 
-    /** Parametr adresy: jen slevy s původní cenou (R71). */
-    public const DISCOUNTS = 'sleva';
+    /** Parametr adresy: jen akce, které ještě nezačaly (R76). */
+    public const UPCOMING = 'brzy';
 
     /**
      * Pravidla validace.
@@ -39,7 +39,7 @@ class OffersRequest extends FormRequest
             'q' => ['nullable', 'string', 'max:'.config()->integer('letaky.offers.search_max_length')],
             'chain' => ['nullable', Rule::enum(Chain::class)],
             self::PRODUCT => ['nullable', 'integer', Rule::exists('products', 'id')],
-            self::DISCOUNTS => ['nullable', 'boolean'],
+            self::UPCOMING => ['nullable', 'boolean'],
             ...$this->pageWindowRules(),
         ];
     }
@@ -71,10 +71,10 @@ class OffersRequest extends FormRequest
     }
 
     /**
-     * Jen slevy s původní cenou?
+     * Jen akce, které ještě nezačaly?
      */
-    public function discountsOnly(): bool
+    public function upcomingOnly(): bool
     {
-        return $this->boolean(self::DISCOUNTS);
+        return $this->boolean(self::UPCOMING);
     }
 }

@@ -26,6 +26,8 @@ final class OfferPresenter
     /** @var array<string, string>|null Názvy prodejen podle kódu, načtené při prvním použití */
     private ?array $storeNames = null;
 
+    public function __construct(private readonly LocalCalendar $calendar) {}
+
     /**
      * Data jedné nabídky pro Vue.
      *
@@ -62,12 +64,24 @@ final class OfferPresenter
             'unitPriceUnit' => $offer->unit?->unitPriceKey(),
             'validFrom' => $offer->valid_from->format(self::DATE_FORMAT),
             'validTo' => $offer->valid_to->format(self::DATE_FORMAT),
+            // Akce, která ještě nezačala (R76): za kolik dní začne; null = už platí
+            'startsInDays' => $this->startsInDays($offer),
             'sourceUrl' => $offer->source_url,
             // Odkaz na CDN obchodu — obrázek se nestahuje ani neukládá (R22)
             'imageUrl' => $offer->image_url,
             'stores' => $this->stores($offer, $selectedStoreCodes),
             'priceHistory' => $priceHistory,
         ];
+    }
+
+    /**
+     * Za kolik dní akce začne (R76); null, když už platí.
+     */
+    private function startsInDays(Offer $offer): ?int
+    {
+        $today = $this->calendar->today();
+
+        return $offer->isUpcoming($today) ? (int) $today->diffInDays($offer->valid_from) : null;
     }
 
     /**

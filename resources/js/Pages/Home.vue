@@ -2,7 +2,8 @@
     Moje slevy — úvodní pruh s maskotem a souhrnem, akce k hlídaným položkám ve sledovaných
     obchodech (R18, R19) a zmínky v letácích bez ceny (R27). Skupiny jsou sbalené, rozbalené
     si prohlížeč pamatuje (R43). Výběr obchodu ukáže jen jeho akce, rozbalené — „co z mého
-    seznamu je teď v Lidlu“, když člověk stojí v obchodě (R55).
+    seznamu je teď v Lidlu“, když člověk stojí v obchodě (R55). Akce, které ještě nezačaly,
+    jsou ve sbalené sekci Brzy pod skupinami; v obchodě se neukazují vůbec (R76).
 
     @author Roman Hlaváček
     @created 2026-10-02
@@ -10,6 +11,7 @@
 <script setup>
 import ChainSelect from '@/Components/ChainSelect.vue';
 import EmptyState from '@/Components/EmptyState.vue';
+import UpcomingSection from '@/Components/UpcomingSection.vue';
 import WatchGroup from '@/Components/WatchGroup.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { useTranslations } from '@/lib/i18n';
@@ -19,6 +21,9 @@ import { computed, nextTick, onMounted, ref } from 'vue';
 
 /** Klíč v localStorage s rozbalenými položkami — jen pohodlí prohlížeče, ne nastavení účtu. */
 const EXPANDED_STORAGE_KEY = 'slevohlidka.home.expanded';
+
+/** Sekce Brzy mezi rozbalenými (R76) — vedle ID položek ve stejném klíči localStorage. */
+const UPCOMING_ID = 'brzy';
 
 /** Kotva skupiny v adrese (odkaz z dlaždice v Hlídám): #polozka-{id}. */
 const GROUP_HASH_PATTERN = /^#polozka-(\d+)$/;
@@ -50,14 +55,25 @@ const summary = computed(() => {
 /** Vybraný obchod (R55); '' = všechny. Nepamatuje se — po návratu na stránku je zase vše. */
 const chainFilter = ref('');
 
-/** Obchody s akcí nebo zmínkou u některé položky, v pořadí výčtu obchodů (sdílené chainInfo). */
+/**
+ * Zmínka v letáku, který už platí — v obchodě se budoucí letáky neukazují (R76).
+ *
+ * @param {object} mention
+ * @returns {boolean}
+ */
+const isCurrentMention = (mention) => !mention.startsInDays;
+
+/** Obchody s akcí nebo zmínkou, které dnes platí, u některé položky, v pořadí výčtu obchodů (sdílené chainInfo). */
 const filterChains = computed(() => {
-    const present = new Set(props.watchItems.flatMap((item) => [...item.offers, ...item.mentions]).map((entry) => entry.chain));
+    const present = new Set(props.watchItems.flatMap((item) => [...item.offers, ...item.mentions.filter(isCurrentMention)]).map((entry) => entry.chain));
 
     return Object.keys(page.props.chainInfo).filter((chain) => present.has(chain));
 });
 
-/** Položky k zobrazení: po výběru obchodu jen ty s jeho akcemi nebo zmínkami, a jen ty. */
+/**
+ * Položky k zobrazení: po výběru obchodu jen ty s jeho akcemi nebo zmínkami, a jen ty, které
+ * dnes platí — budoucí akce za akční cenu v obchodě zatím nekoupíte (R76).
+ */
 const visibleItems = computed(() => {
     if (!chainFilter.value) {
         return props.watchItems;
@@ -66,9 +82,18 @@ const visibleItems = computed(() => {
     const inChain = (entry) => entry.chain === chainFilter.value;
 
     return props.watchItems
-        .map((item) => ({ ...item, offers: item.offers.filter(inChain), mentions: item.mentions.filter(inChain) }))
+        .map((item) => ({
+            ...item,
+            offers: item.offers.filter(inChain),
+            mentions: item.mentions.filter((mention) => inChain(mention) && isCurrentMention(mention)),
+            upcoming: [],
+            waitTip: null,
+        }))
         .filter((item) => item.offers.length || item.mentions.length);
 });
+
+/** Položky s akcemi, které ještě nezačaly — sekce Brzy (R76). */
+const upcomingItems = computed(() => props.watchItems.filter((item) => item.upcoming.length));
 
 /** Rozbalené skupiny (id položek); ve výchozím stavu je vše sbalené. */
 const expandedIds = ref(new Set());
@@ -150,7 +175,7 @@ function setExpanded(id, value) {
     saveExpanded();
 }
 
-/** Rozbalí všechny skupiny, nebo — když už jsou všechny rozbalené — všechny sbalí. */
+/** Rozbalí všechny skupiny, nebo — když už jsou všechny rozbalené — všechny sbalí. Sekce Brzy zůstane, jak je. */
 function toggleAll() {
     if (chainFilter.value) {
         filterCollapsedIds.value = allExpanded.value ? new Set(visibleItems.value.map((item) => item.id)) : new Set();
@@ -158,9 +183,28 @@ function toggleAll() {
         return;
     }
 
-    expandedIds.value = allExpanded.value ? new Set() : new Set(props.watchItems.map((item) => item.id));
+    const next = new Set(allExpanded.value ? [] : props.watchItems.map((item) => item.id));
+    if (expandedIds.value.has(UPCOMING_ID)) {
+        next.add(UPCOMING_ID);
+    }
+    expandedIds.value = next;
     saveExpanded();
 }
+
+/** Rozbalená sekce Brzy (R76); ve výchozím stavu sbalená, stav si prohlížeč pamatuje. */
+const upcomingExpanded = computed({
+    get: () => expandedIds.value.has(UPCOMING_ID),
+    set: (value) => {
+        const next = new Set(expandedIds.value);
+        if (value) {
+            next.add(UPCOMING_ID);
+        } else {
+            next.delete(UPCOMING_ID);
+        }
+        expandedIds.value = next;
+        saveExpanded();
+    },
+});
 
 onMounted(async () => {
     try {
@@ -260,6 +304,8 @@ onMounted(async () => {
                 :compact="compact"
                 @update:expanded="(value) => setExpanded(item.id, value)"
             />
+            <!-- Akce, které ještě nezačaly (R76) — v obchodě (výběr obchodu) se neukazují -->
+            <UpcomingSection v-if="!chainFilter && upcomingItems.length" v-model:expanded="upcomingExpanded" :items="upcomingItems" />
         </template>
     </AppLayout>
 </template>

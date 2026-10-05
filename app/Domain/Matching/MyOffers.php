@@ -46,11 +46,12 @@ final class MyOffers
 
     /**
      * Pro každou hlídanou položku nabídky seřazené od nejnižší ceny za jednotku,
-     * shody před „možná“. Ceny s kartou počítá jen u karet, které uživatel má. K tomu zmínky
+     * shody před „možná“. Ceny s kartou počítá jen u karet, které uživatel má. Akce, které
+     * ještě nezačaly, jsou zvlášť v `upcoming` (R76), seřazené stejně. K tomu zmínky
      * v letácích bez ceny.
      *
      * @param  bool  $withMentions  Hledat i zmínky v letácích (souhrn je nepotřebuje)
-     * @return list<array{watchItem: WatchItem, offers: list<array{offer: Offer, status: MatchStatus}>, mentions: list<array{page: LeafletPage, status: MatchStatus}>}>
+     * @return list<array{watchItem: WatchItem, offers: list<array{offer: Offer, status: MatchStatus}>, upcoming: list<array{offer: Offer, status: MatchStatus}>, mentions: list<array{page: LeafletPage, status: MatchStatus}>}>
      */
     public function forUser(User $user, bool $withMentions = true): array
     {
@@ -75,15 +76,18 @@ final class MyOffers
         $assignments = $searchable && $productIds !== [] ? $this->assignments($followed, $productIds) : new Collection;
         $pages = $searchable && $withMentions ? $this->candidatePages($followed, $rules) : [];
 
+        $today = $this->calendar->today();
         $groups = [];
         foreach ($watchItems as $item) {
             $found = $item->product_id === null
                 ? $this->matchByRule($rules[$item->id], $candidates)
                 : $this->matchByProduct($item->product_id, $assignments);
             $offers = $this->availableSorted($user, $found);
+            $isUpcoming = fn (array $match): bool => $match['offer']->isUpcoming($today);
             $groups[] = [
                 'watchItem' => $item,
-                'offers' => $offers,
+                'offers' => array_values(array_filter($offers, fn (array $match): bool => ! $isUpcoming($match))),
+                'upcoming' => array_values(array_filter($offers, $isUpcoming)),
                 'mentions' => $this->mentions($rules[$item->id], $pages, array_column($offers, 'offer')),
             ];
         }

@@ -15,6 +15,9 @@ import { useTranslations } from '@/lib/i18n';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { computed, onMounted } from 'vue';
 
+/** Druhy záznamu s tlačítkem do nákupního seznamu — akce se kupují teď. */
+const SHOPPING_KINDS = ['ending_soon', 'starting_today'];
+
 const props = defineProps({
     /** Shrnutí záznamu { id, kind, title, text, createdAt, unread } (NotificationPresenter). */
     notification: { type: Object, required: true },
@@ -56,8 +59,8 @@ onMounted(() => {
         </header>
 
         <p v-if="allEnded" class="notice">{{ t('notifications.all_ended') }}</p>
-        <!-- Končící akce ze seznamu (11b): nákup se odškrtává v seznamu -->
-        <p v-else-if="notification.kind === 'ending_soon'" class="notification-detail__actions">
+        <!-- Končící akce ze seznamu (11b) a dnes začínající akce (R76): nákup se odškrtává v seznamu -->
+        <p v-else-if="SHOPPING_KINDS.includes(notification.kind)" class="notification-detail__actions">
             <Link :href="shoppingListUrl" class="button button--primary">{{ t('notifications.open_shopping_list') }}</Link>
         </p>
 

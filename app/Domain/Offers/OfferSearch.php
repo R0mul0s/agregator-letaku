@@ -19,7 +19,6 @@ declare(strict_types=1);
 namespace App\Domain\Offers;
 
 use App\Enums\Chain;
-use App\Enums\OfferType;
 use App\Models\Offer;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -47,17 +46,18 @@ final class OfferSearch
      * nejdříve platných, s textem podle relevance.
      *
      * @param  int|null  $productId  Jen akce přiřazené k produktu katalogu (R71, z našeptávače)
-     * @param  bool  $discountsOnly  Jen slevy s původní cenou (R8)
+     * @param  bool  $upcomingOnly  Jen akce, které ještě nezačaly (R76)
      * @return Builder<Offer>
      */
-    public function query(?string $text, ?Chain $chain, ?int $productId = null, bool $discountsOnly = false): Builder
+    public function query(?string $text, ?Chain $chain, ?int $productId = null, bool $upcomingOnly = false): Builder
     {
+        $today = $this->calendar->today();
         $query = Offer::query()
             ->active()
-            ->notExpired($this->calendar->today())
+            ->notExpired($today)
+            ->when($upcomingOnly, fn (Builder $query) => $query->upcoming($today))
             ->when($chain, fn (Builder $query, Chain $chain) => $query->where('chain', $chain))
             ->when($productId, fn (Builder $query, int $productId) => $query->whereHas('productAssignments', fn (Builder $query) => $query->where('product_id', $productId)))
-            ->when($discountsOnly, fn (Builder $query) => $query->where('offer_type', OfferType::Discount))
             ->with('stores');
 
         if ($text === null || WordStart::words($text) === []) {

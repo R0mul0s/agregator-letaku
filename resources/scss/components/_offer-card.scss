@@ -30,6 +30,12 @@
         box-shadow: var(--shadow-card-hover);
     }
 
+    // Akce, která ještě nezačala (R76) — čárkovaný rámeček jako leták „připravujeme“
+    &--upcoming {
+        border-style: dashed;
+        border-color: var(--color-info-text);
+    }
+
     &__badges {
         display: flex;
         flex-wrap: wrap;

@@ -10,10 +10,11 @@ import ChainWatermark from '@/Components/ChainWatermark.vue';
 import InfoIcon from '@/Components/InfoIcon.vue';
 import { formatDate } from '@/lib/format';
 import { useTranslations } from '@/lib/i18n';
+import { startsLabel } from '@/lib/offer';
 import { usePage } from '@inertiajs/vue3';
 import { computed, ref, useId } from 'vue';
 
-defineProps({
+const props = defineProps({
     /** Zmínka z App\Domain\Offers\MentionPresenter. */
     mention: { type: Object, required: true },
 });
@@ -21,6 +22,9 @@ defineProps({
 const t = useTranslations();
 const page = usePage();
 const locale = computed(() => page.props.locale);
+
+/** Leták, který ještě nezačal (R76): „Od zítra“, „Od st 8. 10.“; null = už platí. */
+const starts = computed(() => startsLabel(props.mention, locale.value, t));
 
 /** Vysvětlení štítku „Možná“ pod štítky — otevírá se klepnutím (R55). */
 const maybeHintOpen = ref(false);
@@ -35,6 +39,7 @@ const maybeHintId = useId();
         <div class="mention-card__body">
             <div class="offer-card__badges">
                 <ChainLogo :chain="mention.chain" />
+                <span v-if="starts" class="tag tag--upcoming">{{ starts }}</span>
                 <span v-if="mention.storeFormatName" class="tag">{{ mention.storeFormatName }}</span>
                 <!-- Vysvětlení klepnutím — title se na dotykovém displeji neukáže (R55) -->
                 <button

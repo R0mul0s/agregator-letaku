@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Domain\Matching\MyOffers;
+use App\Domain\Matching\WaitAdvice;
 use App\Domain\Offers\MentionPresenter;
 use App\Domain\Offers\OfferPresenter;
 use App\Domain\Offers\PriceHistory;
@@ -28,9 +29,9 @@ class HomeController extends Controller
 {
     /**
      * Zobrazí slevy po hlídaných položkách, s cenou, kterou uživatel zaplatí, a zmínky
-     * v letácích bez ceny (R27).
+     * v letácích bez ceny (R27); akce, které ještě nezačaly, zvlášť (R76).
      */
-    public function __invoke(Request $request, MyOffers $myOffers, OfferPresenter $presenter, MentionPresenter $mentionPresenter, LandingController $landing, CzechVocative $vocative, PriceHistory $priceHistory): Response
+    public function __invoke(Request $request, MyOffers $myOffers, OfferPresenter $presenter, MentionPresenter $mentionPresenter, LandingController $landing, CzechVocative $vocative, PriceHistory $priceHistory, WaitAdvice $waitAdvice): Response
     {
         // Nepřihlášený má na stejné adrese úvodní stránku (R44)
         $user = $request->user();
@@ -41,8 +42,18 @@ class HomeController extends Controller
         // Vybrané prodejny (R49) — u akce, která neplatí všude, se vypíšou ty, kde platí
         $storeCodes = $user->selectedStoreCodes();
         $groups = $myOffers->forUser($user);
-        // „Je to opravdu sleva?“ (R59) — jedním dotazem pro akce všech skupin
-        $history = $priceHistory->forOffers(array_merge(...array_map(fn (array $group): array => array_column($group['offers'], 'offer'), $groups)));
+        // „Je to opravdu sleva?“ (R59) — jedním dotazem pro akce všech skupin, i budoucí (R76)
+        $history = $priceHistory->forOffers(array_merge(...array_map(
+            fn (array $group): array => array_column([...$group['offers'], ...$group['upcoming']], 'offer'),
+            $groups,
+        )));
+        $offerToPage = fn (array $match): array => [
+            ...$presenter->toPage($match['offer'], $storeCodes, $history[$match['offer']->id] ?? null),
+            'matchStatus' => $match['status']->value,
+            // Cena, kterou uživatel zaplatí (s kartou, pokud ji má) — nejnižší cena
+            // v hlavičce skupiny se počítá z akcí na stránce, i po výběru obchodu (R55)
+            'userPrice' => $myOffers->userPrice($user, $match['offer']),
+        ];
 
         return Inertia::render('Home', [
             'hasFollowedChains' => $user->followedChains()->exists(),
@@ -67,13 +78,11 @@ class HomeController extends Controller
                 'fromCatalog' => $group['watchItem']->product_id !== null,
                 'editUrl' => route('watch-items.index', [WatchItemController::EDIT_PARAMETER => $group['watchItem']->id], absolute: false),
                 'deleteUrl' => route('watch-items.destroy', $group['watchItem'], absolute: false),
-                'offers' => array_map(fn (array $match): array => [
-                    ...$presenter->toPage($match['offer'], $storeCodes, $history[$match['offer']->id] ?? null),
-                    'matchStatus' => $match['status']->value,
-                    // Cena, kterou uživatel zaplatí (s kartou, pokud ji má) — nejnižší cena
-                    // v hlavičce skupiny se počítá z akcí na stránce, i po výběru obchodu (R55)
-                    'userPrice' => $myOffers->userPrice($user, $match['offer']),
-                ], $group['offers']),
+                'offers' => array_map($offerToPage, $group['offers']),
+                // Akce, které ještě nezačaly — sekce „Brzy“ (R76)
+                'upcoming' => array_map($offerToPage, $group['upcoming']),
+                // „Vyplatí se počkat“ (R76): budoucí akce výrazně levnější než dnešní
+                'waitTip' => $waitAdvice->for($user, array_column($group['offers'], 'offer'), array_column($group['upcoming'], 'offer')),
                 'mentions' => array_map(
                     fn (array $mention): array => $mentionPresenter->toPage($mention['page'], $mention['status']),
                     $group['mentions'],

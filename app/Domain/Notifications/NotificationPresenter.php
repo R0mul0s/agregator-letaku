@@ -3,7 +3,7 @@
 /**
  * Záznam centra upozornění (R74) pro stránku a upozornění v telefonu: nadpis, text, čas a stav
  * přečtení. Nadpis je stejný na stránce i v telefonu („Máslo je v akci“, „3 nové akce…“,
- * „Zítra končí 2 akce z vašeho seznamu“).
+ * „Zítra končí 2 akce z vašeho seznamu“, „Od dneška platí 3 akce, na které čekáte“).
  *
  * @author Roman Hlaváček
  *
@@ -82,6 +82,7 @@ final class NotificationPresenter
                 default => trans_choice('app.notifications.new_offers.title_many', $offerCount),
             },
             NotificationKind::EndingSoon => trans_choice('app.notifications.ending_soon.title', $offerCount),
+            NotificationKind::StartingToday => trans_choice('app.notifications.starting_today.title', $offerCount),
             NotificationKind::Announcement => throw new InvalidArgumentException('Zpráva od nás má nadpis ve svých datech.'),
         };
     }

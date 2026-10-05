@@ -155,6 +155,8 @@ return [
         'intro' => 'Máme úlovek! Od posledního souhrnu jsme ve vašich obchodech našli tyhle akce:',
         'no_price' => 'cena v letáku',
         'valid_to' => 'do :date',
+        // Akce, která ještě nezačala (R76)
+        'valid_range' => 'od :from do :to',
         'more' => 'a :count další akce v Mých slevách|a :count další akce v Mých slevách|a :count dalších akcí v Mých slevách',
         'count' => ':count nová|:count nové|:count nových',
         'button' => 'Otevřít Moje slevy',
@@ -176,6 +178,11 @@ return [
         'ending_soon' => [
             'title' => 'Zítra končí :count akce z vašeho seznamu|Zítra končí :count akce z vašeho seznamu|Zítra končí :count akcí z vašeho seznamu',
         ],
+        // Akce, které dnes začínají a známe je dopředu (R76, RecordStartingOffers)
+        'starting_today' => [
+            'title' => 'Od dneška platí :count akce, na kterou čekáte|Od dneška platí :count akce, na které čekáte|Od dneška platí :count akcí, na které čekáte',
+            'shopping_list' => 'Nákupní seznam',
+        ],
         'done' => 'Centrum upozornění — zapsáno: :count',
         'failed' => 'Centrum upozornění — chyba: :error',
     ],
@@ -186,11 +193,19 @@ return [
         'failed' => 'Končící akce ze seznamu — chyba: :error',
     ],
 
+    // Dnes začínající akce v centru upozornění (R76, RecordStartingOffers) — výstup cronu
+    'starting_today' => [
+        'done' => 'Dnes začínající akce — zapsáno: :count',
+        'failed' => 'Dnes začínající akce — chyba: :error',
+    ],
+
     // Upozornění v telefonu — web push (R66, SendPushNotifications)
     'push' => [
         'line' => ':name — :price, :chain',
         // Akce nejlevnější za sledované období (etapa 11c)
         'line_lowest' => ':name — :price, :chain · nejlevněji za :weeks týdnů',
+        // Dovětek akce, která ještě nezačala (R76)
+        'starts' => ':line · od :date',
         'more' => 'a :count další…|a :count další…|a :count dalších…',
         'test_title' => 'Upozornění fungují',
         'test_body' => 'Přesně takhle vám zaťukáme, až bude hlídané zboží v akci.',
@@ -350,6 +365,11 @@ return [
             'source_own' => 'Vlastní slova',
             'offers_count' => ':count akce|:count akce|:count akcí',
             'lowest_price' => 'od :price',
+            // Akce, které ještě nezačaly, v hlavičce skupiny Mých slev (R76)
+            'upcoming_count' => '+ :count brzy',
+            // „Vyplatí se počkat“ (R76, WaitAdvice)
+            'wait_tip' => 'Vyplatí se počkat',
+            'wait_tip_text' => ':chain od :date za :price (:unit_price) — o :percent % levněji než nejlevnější akce dnes.',
             'no_offers' => 'Teď v akci není',
             'mentions_count' => ':count zmínka v letáku|:count zmínky v letáku|:count zmínek v letáku',
             'show_offers' => 'Zobrazit v Mých slevách',
@@ -482,7 +502,8 @@ return [
             'keys_move' => 'vybrat',
             'keys_choose' => 'potvrdit',
             'keys_close' => 'zavřít',
-            'discounts_only' => 'Jen slevy',
+            // Jen akce, které ještě nezačaly (R76)
+            'upcoming_only' => 'Brzy začnou',
             'product_filter' => 'Produkt: :name',
             'remove_filter' => 'Zrušit filtr',
             'correction' => '„:original“ jsme nenašli, tak ukazujeme „:corrected“. Prsty někdy kliknou vedle.',
@@ -502,6 +523,9 @@ return [
             'regular_price' => 'běžně :price',
             'unit_price' => ':price / :unit',
             'valid' => 'Platí :from – :to',
+            // Akce, která ještě nezačala (R76) — štítek; :date jako „st 8. 10.“
+            'starts_tomorrow' => 'Od zítra',
+            'starts_on' => 'Od :date',
             'online_only' => 'Jen e-shop',
             // Akce, která neplatí ve všech prodejnách (R49)
             'only_in_stores' => 'Jen :stores',
@@ -671,6 +695,12 @@ return [
             'check' => 'Koupeno: :name',
             'expired' => 'akce skončila',
             'valid_to' => 'do :date',
+            // Akce, která ještě nezačala (R76): odškrtnutí se potvrzuje
+            'starts' => 'platí až od :date',
+            'upcoming_confirm_title' => 'Akce ještě neplatí',
+            'upcoming_confirm' => '„:name“ bude v akci až od :date — do té doby za akční cenu v obchodě nebude. Odškrtnout i tak?',
+            'upcoming_confirm_label' => 'Odškrtnout',
+            'share_line_upcoming' => '– :name, :price (od :date)',
             'remaining' => 'zbývá :count|zbývají :count|zbývá :count',
             'clear_checked' => 'Smazat odškrtnuté',
             'clear_checked_confirm_title' => 'Smazat odškrtnuté?',
@@ -771,6 +801,10 @@ return [
             'mention_maybe_hint' => 'Stránka hledanou variantu neuvádí — ověřte v letáku.',
             'mention_page' => 'Stránka :page',
             'mention_leaflet' => 'Akční leták',
+            // Akce, které ještě nezačaly (R76) — sbalená sekce pod hlídanými položkami
+            'upcoming_title' => 'Brzy',
+            'upcoming_summary' => ':count akce, první od :date|:count akce, první od :date|:count akcí, první od :date',
+            'upcoming_hint' => 'Obchody už tyhle akce zveřejnily, ale začnou až v příštích dnech — v obchodě zatím neplatí. Ráno v den začátku vám připomeneme.',
         ],
 
         // Menu pod avatarem vpravo nahoře (UserMenu.vue, R40)

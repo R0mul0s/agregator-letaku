@@ -1,6 +1,7 @@
 <!--
     Nákupní seznam (R61) — akce po obchodech, v obchodě se odškrtávají. Odškrtnuté jdou
     v obchodě na konec a po nákupu se smažou jedním tlačítkem; skončená akce zůstává označená.
+    Akce, která ještě nezačala, je za platnými s „platí až od“ a odškrtnutí se potvrzuje (R76).
 
     V obchodě (R66): odškrtávat jde i bez signálu — odškrtnutí počká v prohlížeči a odešle se,
     až je připojení (lib/offlineChecks.js); mazání bez připojení nejde. Seznam jde poslat
@@ -71,12 +72,27 @@ const hasPending = computed(() => Object.keys(pendingChecks.value).length > 0);
 
 /**
  * Odškrtne položku, nebo odškrtnutí zruší. Bez připojení (nebo když požadavek nedojde)
- * se odškrtnutí zapamatuje a odešle později.
+ * se odškrtnutí zapamatuje a odešle později. Akce, která ještě nezačala (R76), se odškrtne
+ * až po potvrzení — za akční cenu ji v obchodě zatím nekoupíte.
  *
  * @param {object} item
  * @param {boolean} checked
+ * @param {HTMLInputElement} input Zaškrtávátko — po zrušení potvrzení se vrátí
  */
-function check(item, checked) {
+async function check(item, checked, input) {
+    if (checked && item.offer.startsInDays) {
+        const confirmed = await confirmDialog({
+            title: t('shopping.upcoming_confirm_title'),
+            message: t('shopping.upcoming_confirm', { name: item.offer.name, date: formatDate(item.offer.validFrom, locale.value) }),
+            confirmLabel: t('shopping.upcoming_confirm_label'),
+        });
+        if (!confirmed) {
+            input.checked = false;
+
+            return;
+        }
+    }
+
     if (!navigator.onLine) {
         queueCheck(item.id, checked);
 
@@ -144,6 +160,20 @@ function remaining(group) {
 }
 
 /**
+ * Řádek seznamu ke sdílení; u akce, která ještě nezačala, i od kdy platí (R76).
+ *
+ * @param {object} item
+ * @returns {string}
+ */
+function shareLine(item) {
+    const replace = { name: item.offer.name, price: priceLabel(item) };
+
+    return item.offer.startsInDays
+        ? t('shopping.share_line_upcoming', { ...replace, date: formatDate(item.offer.validFrom, locale.value) })
+        : t('shopping.share_line', replace);
+}
+
+/**
  * Seznam jako text ke sdílení: co zbývá koupit, po obchodech, s cenou.
  *
  * @returns {string}
@@ -152,7 +182,7 @@ function shareText() {
     return displayGroups.value
         .map((group) => ({ group, items: group.items.filter((item) => !item.checked && !item.expired) }))
         .filter(({ items }) => items.length)
-        .map(({ group, items }) => [`${group.chainName}:`, ...items.map((item) => t('shopping.share_line', { name: item.offer.name, price: priceLabel(item) }))].join('\n'))
+        .map(({ group, items }) => [`${group.chainName}:`, ...items.map(shareLine)].join('\n'))
         .join('\n\n');
 }
 
@@ -227,7 +257,7 @@ async function share() {
                         :class="{ 'shopping-item--checked': item.checked, 'shopping-item--expired': item.expired }"
                     >
                         <label class="shopping-item__check">
-                            <input type="checkbox" class="form-checkbox__input" :checked="item.checked" @change="check(item, $event.target.checked)" />
+                            <input type="checkbox" class="form-checkbox__input" :checked="item.checked" @change="check(item, $event.target.checked, $event.target)" />
                             <span class="visually-hidden">{{ t('shopping.check', { name: item.offer.name }) }}</span>
                         </label>
                         <div class="shopping-item__body">
@@ -235,6 +265,10 @@ async function share() {
                             <p class="shopping-item__meta">
                                 <span v-if="packageLabel(item.offer, locale, t)">{{ packageLabel(item.offer, locale, t) }} · </span>
                                 <span v-if="item.expired" class="shopping-item__expired">{{ t('shopping.expired') }}</span>
+                                <!-- Ještě nezačala (R76) — v obchodě zatím za akční cenu není -->
+                                <span v-else-if="item.offer.startsInDays" class="shopping-item__upcoming">{{
+                                    t('shopping.starts', { date: formatDate(item.offer.validFrom, locale) })
+                                }}</span>
                                 <span v-else>{{ t('shopping.valid_to', { date: formatDate(item.offer.validTo, locale) }) }}</span>
                             </p>
                         </div>

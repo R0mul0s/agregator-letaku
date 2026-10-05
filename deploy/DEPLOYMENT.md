@@ -387,6 +387,28 @@ nejlevnější za 12 týdnů se štítkem, zprávy od nás na `/zpravy` (admin, 
      cronu souhrnů přijde do telefonu
 4. Zapiš verzi do *Nasazené verze*.
 
+### Aktualizace z `0068710` (jedenácté nasazení)
+
+**Akce, které ještě nezačaly (R76):** v Mých slevách sbalená sekce „Brzy“ (ve „Jsem v obchodě“ skrytá),
+„Vyplatí se počkat“, štítek „Od čt 8. 10.“ s čárkovaným rámečkem, ve Všech akcích štítek „Brzy začnou“,
+v nákupním seznamu „platí až od …“ s potvrzením odškrtnutí; upozornění s datem začátku a ráno „Od dneška
+platí N akcí, na které čekáte“. **„Jen slevy“ ve Všech akcích zrušené (R77).** Bez SQL skriptu,
+`composer.lock` se nezměnil, žádné soubory nezmizely, cron beze změny (nový záznam běží v `send-digests`).
+
+1. **Nahraj `deploy/upload/`** bez `vendor/`; `public/build/` nejdřív smaž. Nové soubory:
+   `app/Domain/Matching/WaitAdvice.php`, `app/Domain/Notifications/StartingTodayNotification.php`,
+   `app/Domain/Notifications/Actions/RecordStartingOffers.php`, `app/Support/ShortDate.php`;
+   změnily se `config/`, `lang/`, `resources/views/mail/`, `resources/legal/privacy.md` (centrum upozornění).
+2. **Ověř:**
+   - `version.txt?v=<cokoli>`
+   - `/akce`: místo „Jen slevy“ je „Brzy začnou“ — ukáže jen akce s modrým štítkem „Od …“ (pokud
+     některý obchod už zveřejnil příští leták, jinak prázdný výpis)
+   - Moje slevy: pod skupinami sbalená sekce „Brzy“ s počtem a prvním začátkem, ve skupině „+ N brzy“;
+     po výběru „Jsem v obchodě“ sekce zmizí
+   - nákupní seznam: budoucí akce je za platnými s „platí až od …“, odškrtnutí se zeptá
+   - cron `send-digests` vypíše řádek „Dnes začínající akce — zapsáno: N“ (záznamy vznikají od 7:00)
+3. Zapiš verzi do *Nasazené verze*.
+
 **Každá nová migrace potřebuje SQL skript** `deploy/migrations-<datum>-<popis>.sql`
 (opakovatelný: `CREATE TABLE IF NOT EXISTS`, `ADD COLUMN IF NOT EXISTS`) včetně zápisu do
 tabulky `migrations` — ve stejném commitu jako migrace. Nové produkty katalogu jdou na

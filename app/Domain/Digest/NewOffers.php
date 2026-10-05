@@ -42,7 +42,8 @@ final class NewOffers
 
     /**
      * Akce z Mých slev po hlídaných položkách, které obchod nabídl po `$since`; null = všechny
-     * aktuální. Položky bez nové akce vynechá.
+     * aktuální. Patří sem i akce, které ještě nezačaly (R76) — upozornění přijde hned, jak je
+     * obchod zveřejní, a akce v něm nese datum začátku. Položky bez nové akce vynechá.
      *
      * @return list<array{watchItem: WatchItem, offers: list<Offer>}>
      */
@@ -51,7 +52,7 @@ final class NewOffers
         $groups = [];
         foreach ($this->myOffers->forUser($user, withMentions: false) as $group) {
             $new = array_values(array_filter(
-                array_column($group['offers'], 'offer'),
+                array_column([...$group['offers'], ...$group['upcoming']], 'offer'),
                 fn (Offer $offer): bool => $since === null || $offer->created_at > $since,
             ));
             if ($new !== []) {

@@ -16,6 +16,7 @@ namespace App\Console\Commands;
 use App\Domain\Digest\Actions\SendDigests;
 use App\Domain\Notifications\Actions\RecordEndingOffers;
 use App\Domain\Notifications\Actions\RecordNewOffers;
+use App\Domain\Notifications\Actions\RecordStartingOffers;
 use App\Domain\Push\Actions\SendPushNotifications;
 use Illuminate\Console\Command;
 
@@ -25,16 +26,17 @@ class SendDigestsCommand extends Command
     protected $signature = 'letaky:send-digests';
 
     /** @var string */
-    protected $description = 'Zapíše nové a končící akce do centra upozornění a pošle e-mailové souhrny a upozornění v telefonu uživatelům, kterým je čas';
+    protected $description = 'Zapíše nové, končící a dnes začínající akce do centra upozornění a pošle e-mailové souhrny a upozornění v telefonu uživatelům, kterým je čas';
 
     /**
      * Zapíše záznamy centra (R74; upozornění v telefonu se z nich skládá), pošle souhrny
      * a upozornění a vypíše jejich počty.
      */
-    public function handle(RecordNewOffers $record, RecordEndingOffers $recordEnding, SendDigests $send, SendPushNotifications $push): int
+    public function handle(RecordNewOffers $record, RecordEndingOffers $recordEnding, RecordStartingOffers $recordStarting, SendDigests $send, SendPushNotifications $push): int
     {
         $this->info(__('app.notifications.done', ['count' => $record()]));
         $this->info(__('app.ending_soon.done', ['count' => $recordEnding()]));
+        $this->info(__('app.starting_today.done', ['count' => $recordStarting()]));
         $this->info(__('app.digest.done', ['count' => $send()]));
         $this->info(__('app.push.done', ['count' => $push()]));
 

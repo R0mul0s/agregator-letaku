@@ -54,6 +54,10 @@ it('Všechny akce: obchod a stránka v canonical, rozsah a hledání ne; hledán
         ->and($search)->not->toContain('application/ld+json');
 });
 
+it('výpis jen akcí, které ještě nezačaly, se neindexuje (R76)', function (): void {
+    expect(metaContent($this->get('/akce?brzy=1')->getContent(), 'robots'))->toBe('noindex, follow');
+});
+
 it('výpis obchodu jen se zmínkami v letácích (Albert) se neindexuje (R68)', function (): void {
     $html = $this->get('/akce?chain=albert')->getContent();
 

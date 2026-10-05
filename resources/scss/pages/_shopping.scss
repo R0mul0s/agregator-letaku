@@ -81,6 +81,12 @@
         font-weight: 700;
     }
 
+    // Akce, která ještě nezačala (R76)
+    &__upcoming {
+        color: var(--color-info-text);
+        font-weight: 700;
+    }
+
     &__price {
         color: var(--color-price);
         font-weight: 900;

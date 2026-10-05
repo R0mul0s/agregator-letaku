@@ -424,6 +424,11 @@ return [
         'ending_soon' => [
             'from_hour' => 16,
         ],
+        // Hlídané akce a akce ze seznamu, které dnes začínají a známe je dopředu (R76): jednou
+        // denně od této hodiny místního času — ráno, před nákupem, po ranním stažení
+        'starting_today' => [
+            'from_hour' => 7,
+        ],
         // Zprávy od nás (etapa 11d): délky polí formuláře a kolik znaků textu ukáže seznam
         // záznamů a upozornění v telefonu
         'announcement' => [
@@ -432,6 +437,15 @@ return [
             'url_max_length' => 500,
         ],
         'announcement_excerpt' => 140,
+    ],
+
+    /*
+    | Akce, které ještě nezačaly (R76). „Vyplatí se počkat“ v Mých slevách: budoucí akce hlídané
+    | položky je za jednotku levnější než nejlevnější akce, která platí dnes, aspoň o tolik procent
+    | (menší rozdíl nestojí za čekání). Porovnávají se jen ceny za stejnou jednotku.
+    */
+    'upcoming' => [
+        'wait_min_saving_percent' => 10,
     ],
 
     'cron' => [

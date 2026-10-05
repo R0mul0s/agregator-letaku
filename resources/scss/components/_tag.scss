@@ -37,6 +37,13 @@
         color: var(--color-warning-text);
     }
 
+    // Akce, která ještě nezačala (R76): „Od zítra“, „Od st 8. 10.“
+    &--upcoming {
+        background: var(--color-info-soft);
+        border-color: transparent;
+        color: var(--color-info-text);
+    }
+
     // Štítek jako tlačítko (šablony hlídaných položek)
     &--button {
         padding: var(--space-1) var(--space-3);

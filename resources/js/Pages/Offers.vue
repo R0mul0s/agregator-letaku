@@ -1,8 +1,8 @@
 <!--
     Přehled všech aktuálních akcí s hledáním a filtrem obchodu. Veřejný (R44) — nepřihlášený
     vidí nad výpisem výzvu k registraci. Hledání je živé (R71): výsledky se přepočítají
-    po krátké pauze v psaní, bez tlačítka; štítky filtrů (produkt z našeptávače, jen slevy)
-    a upozornění na opravený překlep. Když nic není v akci, nabídne to pohlídat.
+    po krátké pauze v psaní, bez tlačítka; štítky filtrů (produkt z našeptávače, jen akce,
+    které ještě nezačaly — R76) a upozornění na opravený překlep. Když nic není v akci, nabídne to pohlídat.
 
     @author Roman Hlaváček
     @created 2026-10-02
@@ -33,7 +33,7 @@ const props = defineProps({
     offers: { type: Object, required: true },
     /** Odkazy stránkování a „Načíst další“ (OffersController::pagination, R43). */
     pagination: { type: Object, required: true },
-    /** { q, chain, produkt, sleva } */
+    /** { q, chain, produkt, brzy } */
     filters: { type: Object, required: true },
     chains: { type: Array, required: true },
     /** Adresy pro „Hlídat“ z karty (R60, WatchOfferButton). */
@@ -105,9 +105,9 @@ function clearProduct() {
     search();
 }
 
-/** Přepne „Jen slevy“. */
-function toggleDiscounts() {
-    filters.sleva = !filters.sleva;
+/** Přepne „Brzy začnou“ — jen akce, které ještě nezačaly (R76). */
+function toggleUpcoming() {
+    filters.brzy = !filters.brzy;
     search();
 }
 
@@ -168,8 +168,8 @@ onBeforeUnmount(() => window.clearTimeout(liveTimer));
 
         <!-- Štítky filtrů (R71) -->
         <div class="search-chips">
-            <button type="button" class="search-chip" :class="{ 'search-chip--on': filters.sleva }" :aria-pressed="filters.sleva ? 'true' : 'false'" @click="toggleDiscounts">
-                {{ t('search.discounts_only') }}
+            <button type="button" class="search-chip" :class="{ 'search-chip--on': filters.brzy }" :aria-pressed="filters.brzy ? 'true' : 'false'" @click="toggleUpcoming">
+                {{ t('search.upcoming_only') }}
             </button>
             <span v-if="product" class="search-chip search-chip--on">
                 {{ t('search.product_filter', { name: product }) }}
