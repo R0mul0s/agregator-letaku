@@ -33,7 +33,7 @@ Hotové jsou etapy 1–5g, zveřejnění (8), opravy a funkce z kritické revize
   přímo z karty (R60); **nákupní seznam** (`/seznam`, R61)
 - **Účet:** Fortify (R12), menu pod avatarem (R40), Můj účet jako sekce s ukládáním hned (R63), Moje obchody
   (`/obchody`) s ukládáním hned (R64), nový účet sleduje všechny obchody a jde do Hlídám (R55), registrace
-  a přihlášení se skutečnými akcemi a heslem jen jednou (R56)
+  a přihlášení se skutečnými akcemi a heslem jen jednou (R56), české adresy `/prihlaseni`, `/registrace`… (R73)
 - **E-maily:** upozornění na nové akce hned / denně / týdně, po dávkách (R42, R54, R58)
 - **Aplikace v telefonu (R66):** manifest se zkratkami, úvodní obrazovky iPhonu, spodní lišta záložek, výzva
   k přidání na plochu; service worker s offline režimem (Moje slevy, seznam, Hlídám), odškrtávání bez signálu,

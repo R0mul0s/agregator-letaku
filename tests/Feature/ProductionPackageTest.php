@@ -14,7 +14,7 @@ declare(strict_types=1);
 it('vykreslí stránku i bez zdrojových souborů Vue (resources/js na produkci není)', function (): void {
     config(['inertia.pages.paths' => [storage_path('framework/testing/missing-pages')]]);
 
-    $this->get('/login')->assertOk();
+    $this->get('/prihlaseni')->assertOk();
 });
 
 it('balíček nese právní texty, které aplikace čte za běhu (R51)', function (): void {

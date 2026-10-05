@@ -37,8 +37,8 @@ it('zobrazí účet s adresami formulářů a názvy sad chyb', function (): voi
         ->assertInertia(fn (Assert $page) => $page
             ->component('Account')
             ->where('auth.user.name', 'Roman')
-            ->where('urls.profile', '/user/profile-information')
-            ->where('urls.password', '/user/password')
+            ->where('urls.profile', '/ucet/udaje')
+            ->where('urls.password', '/ucet/heslo')
             ->where('errorBags.profile', UpdateUserProfileInformation::ERROR_BAG)
             ->where('errorBags.password', UpdateUserPassword::ERROR_BAG));
 });

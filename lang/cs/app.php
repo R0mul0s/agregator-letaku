@@ -375,7 +375,8 @@ return [
             'coming_soon' => 'Připravujeme',
             'store_format' => 'Typ prodejny',
             'all_formats' => 'Všechny',
-            'include_online_only' => 'Akce jen z e-shopu',
+            // Přidá akce platné jen při nákupu online (R4) — ostatní akce jsou vidět vždy
+            'include_online_only' => 'Ukazovat i akce jen pro e-shop',
             // Výběr prodejen (R49, StoreSelect.vue)
             'stores' => 'Moje prodejny',
             'stores_hint' => 'Pultové maso, ryby a pár dalších akcí se liší po prodejnách. Bez výběru uvidíte akce všech prodejen.',

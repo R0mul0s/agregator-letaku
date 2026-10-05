@@ -24,9 +24,9 @@ it('zobrazí přihlašovací stránku s adresami formuláře', function (): void
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('Auth/Login')
-            ->where('urls.submit', '/login')
-            ->where('urls.register', '/register')
-            ->where('urls.forgotPassword', '/forgot-password'));
+            ->where('urls.submit', '/prihlaseni')
+            ->where('urls.register', '/registrace')
+            ->where('urls.forgotPassword', '/zapomenute-heslo'));
 });
 
 it('přihlásí uživatele se správným heslem a pošle ho na seznam slev', function (): void {

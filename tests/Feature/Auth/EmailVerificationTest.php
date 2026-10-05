@@ -52,7 +52,7 @@ it('pošle nový odkaz a neověřenému sdílí stav pro lištu', function (): v
         ->get(route('offers'))
         ->assertInertia(fn (Assert $page) => $page
             ->where('auth.user.emailVerified', false)
-            ->where('auth.verificationSendUrl', '/email/verification-notification'));
+            ->where('auth.verificationSendUrl', '/overeni-emailu/znovu'));
 
     $this->from(route('offers'))
         ->post(route('verification.send'))

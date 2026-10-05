@@ -36,7 +36,7 @@ it('nepřihlášenému ukáže úvodní stránku s počty, přihlášenému Moje
             // Logo obchodu je odkaz na jeho akce (R68), Albert jen se zmínkami ne
             ->where('chainUrls.kaufland', '/akce?chain=kaufland')
             ->missing('chainUrls.albert')
-            ->where('urls.register', '/register'));
+            ->where('urls.register', '/registrace'));
 
     $this->actingAs(User::factory()->create())->get('/')->assertInertia(fn (Assert $page) => $page->component('Home'));
 });

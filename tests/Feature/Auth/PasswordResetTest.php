@@ -96,6 +96,6 @@ it('odkaz pro obnovu hesla vede na adresu z APP_URL, ne z hlaviček požadavku (
     Notification::assertSentTo($user, ResetPassword::class, function (ResetPassword $notification) use ($user): bool {
         $url = $notification->toMail($user)->actionUrl;
 
-        return str_starts_with($url, rtrim(config()->string('app.url'), '/').'/reset-password/');
+        return str_starts_with($url, rtrim(config()->string('app.url'), '/').'/nove-heslo/');
     });
 });

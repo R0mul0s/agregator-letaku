@@ -26,7 +26,7 @@ class RegisterResponse implements RegisterResponseContract
     /** Kód stavu po registraci — toast (R47, lang: ui.toast.messages). */
     public const STATUS_REGISTERED = 'registered';
 
-    /** Parametr adresy registrace s produktem k hlídání (`/register?hlidat=12`, R60). */
+    /** Parametr adresy registrace s produktem k hlídání (`/registrace?hlidat=12`, R60, R73). */
     public const WATCH_PARAMETER = 'hlidat';
 
     /** Klíč v relaci, kde produkt čeká na dokončení registrace. */

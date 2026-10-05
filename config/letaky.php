@@ -89,7 +89,7 @@ return [
         'max_age_days' => 180,
         // Stránky s tokenem nebo e-mailem v adrese (R69): do GA jde jen tento začátek cesty,
         // bez zbytku a parametrů — obnova hesla, ověření e-mailu, odhlášení z e-mailů
-        'redacted_paths' => ['/reset-password', '/email/verify', '/odhlaseni'],
+        'redacted_paths' => ['/nove-heslo', '/overeni-emailu', '/odhlaseni'],
     ],
 
     /*

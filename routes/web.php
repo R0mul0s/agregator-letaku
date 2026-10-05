@@ -18,6 +18,7 @@ use App\Http\Controllers\CrawlerFilesController;
 use App\Http\Controllers\CronController;
 use App\Http\Controllers\HealthImportsController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\LegacyAuthRedirectController;
 use App\Http\Controllers\LegalController;
 use App\Http\Controllers\ManifestController;
 use App\Http\Controllers\OffersController;
@@ -69,6 +70,19 @@ Route::middleware('throttle:'.RateLimits::PUBLIC)->group(function (): void {
     Route::get('/ochrana-udaju', [LegalController::class, 'privacy'])->name('legal.privacy');
     // Kontakt na provozovatele (R72)
     Route::get('/kontakt', ContactController::class)->name('contact');
+
+    // Staré anglické adresy Fortify (do R73) — záložky, vyhledávače a odkazy na obnovu hesla
+    // z odeslaných e-mailů. Odkaz na ověření e-mailu přesměrovat nejde (podpis kryje i cestu),
+    // platí ale jen hodinu a jde poslat znovu.
+    foreach ([
+        '/login' => 'login',
+        '/register' => 'register',
+        '/forgot-password' => 'password.request',
+        '/reset-password/{token}' => 'password.reset',
+        '/email/verify' => 'verification.notice',
+    ] as $legacyPath => $target) {
+        Route::get($legacyPath, LegacyAuthRedirectController::class)->defaults(LegacyAuthRedirectController::TARGET, $target);
+    }
 
     // Odhlášení z e-mailů bez přihlášení (R51) — podepsaný odkaz; POST i od poštovního klienta (bez CSRF, bootstrap/app.php)
     Route::middleware('signed')->group(function (): void {

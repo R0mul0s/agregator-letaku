@@ -93,7 +93,7 @@ it('sdílí nastavení souhlasu s cookies; ID měření Google Analytics jen na 
             ->where('cookieConsent.version', config('letaky.cookie_consent.version'))
             // Odkaz z cookie lišty vede rovnou na kapitolu o cookies (R69)
             ->where('cookieConsent.privacyUrl', '/ochrana-udaju#'.LegalDocuments::COOKIES_SECTION)
-            ->where('cookieConsent.redactedPaths', ['/reset-password', '/email/verify', '/odhlaseni']));
+            ->where('cookieConsent.redactedPaths', ['/nove-heslo', '/overeni-emailu', '/odhlaseni']));
 
     $this->app['env'] = 'production';
     $this->get(route('offers'))

@@ -57,7 +57,7 @@ it('je veřejná: nepřihlášený vidí akce a v navigaci jen Všechny akce (R4
         ->assertInertia(fn (Assert $page) => $page
             ->where('offers.data.0.name', 'Vejce M')
             ->where('auth.user', null)
-            ->where('auth.registerUrl', '/register')
+            ->where('auth.registerUrl', '/registrace')
             ->where('navigation', [['url' => '/akce', 'key' => 'offers', 'label' => 'nav.offers', 'tab' => false, 'active' => true]]));
     $this->get(route('offers.suggestions', ['q' => 'vej']))->assertOk();
 });

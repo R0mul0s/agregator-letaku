@@ -97,7 +97,7 @@ a vyplň místa `<…>`:
 
 ## 5) Účet a správce katalogu
 
-1. Na `https://slevohlidka.rhsoft.cz/register` si založ účet.
+1. Na `https://slevohlidka.rhsoft.cz/registrace` si založ účet.
 2. Správu katalogu (`/katalog`, R29) mu dej v phpMyAdminu — `letaky:admin` na hostingu nejde:
    ```sql
    UPDATE `users` SET `is_admin` = 1 WHERE `email` = '<tvůj e-mail>';
@@ -143,8 +143,8 @@ i proxy — potřeboval by malý PHP skript, který stažení spustí (zatím ne
 ## 7) Ověř
 
 ```bash
-curl -I  "http://slevohlidka.rhsoft.cz/login"
-curl -I  "https://slevohlidka.rhsoft.cz/login"
+curl -I  "http://slevohlidka.rhsoft.cz/prihlaseni"
+curl -I  "https://slevohlidka.rhsoft.cz/prihlaseni"
 curl -s  "https://slevohlidka.rhsoft.cz/version.txt?v=$(date +%s)"
 curl -s  "https://slevohlidka.rhsoft.cz/health/imports"
 curl -si "https://slevohlidka.rhsoft.cz/cron/import-offers?chain=kaufland&token=spatny" | head -1
@@ -353,11 +353,12 @@ Jen `public/.htaccess`: přesměrování `/public/…` na adresu bez něj přesu
 Hledání (R71): živé výsledky od začátku slova podle relevance, našeptávač s produkty, akcemi,
 posledními a oblíbenými hledáními, oprava překlepu, „Jen slevy“; v Hlídám počty akcí u produktů,
 náhled vlastních slov a „Vrátit“ v toastu. **Tón a kontakt (R72):** přátelské texty webu, právní
-texty „my“ (datum účinnosti 2026-10-05), stránka `/kontakt`, v patičce sekce Kontakt. Bez SQL
-skriptu, `composer.lock` se nezměnil, žádné soubory nezmizely.
+texty „my“ (datum účinnosti 2026-10-05), stránka `/kontakt`, v patičce sekce Kontakt. **České
+adresy (R73):** `/prihlaseni`, `/registrace`, `/zapomenute-heslo`… (staré přesměrované 301), přepínač
+„Ukazovat i akce jen pro e-shop“. Bez SQL skriptu, `composer.lock` se nezměnil, žádné soubory nezmizely.
 
 1. **Nahraj `deploy/upload/`** bez `vendor/`; `public/build/` nejdřív smaž. Nové soubory jsou
-   v `app/Domain/Offers/` a `app/Http/Middleware/`, změnily se `config/`, `lang/`, `routes/`,
+   v `app/Domain/Offers/`, `app/Http/Middleware/` a `app/Http/Controllers/`, změnily se `config/`, `lang/`, `routes/`,
    `resources/legal/privacy.md` (nový řádek localStorage).
 2. **Ověř:**
    - `version.txt?v=<cokoli>`
@@ -371,6 +372,8 @@ skriptu, `composer.lock` se nezměnil, žádné soubory nezmizely.
    - `/kontakt` ukazuje provozovatele, e-mail, telefon, „S čím se ozvat“ a časté otázky; v patičce
      sekce Kontakt s RHsoft.cz; `/podminky` „Účinné od 5. 10. 2026“ a „fyzická osoba zapsaná…“
    - `/neexistuje` ukáže „Tahle stránka nám utekla“
+   - `/login` přesměruje na `/prihlaseni`, `/register?hlidat=1` na `/registrace?hlidat=1`;
+     přihlášení, odhlášení, změna hesla v Mém účtu a „Zapomenuté heslo“ (odkaz v e-mailu vede na `/nove-heslo/…`) fungují
 3. Zapiš verzi do *Nasazené verze*.
 
 **Každá nová migrace potřebuje SQL skript** `deploy/migrations-<datum>-<popis>.sql`

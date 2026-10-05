@@ -29,7 +29,7 @@ it('zobrazí registrační stránku s ochranou proti botům', function (): void 
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('Auth/Register')
-            ->where('urls.submit', '/register')
+            ->where('urls.submit', '/registrace')
             ->where('urls.terms', '/podminky')
             ->where('urls.privacy', '/ochrana-udaju')
             ->where('guard.tokenField', RegistrationGuard::TOKEN_FIELD)

@@ -71,7 +71,7 @@ it('titulky a popisy veřejných stránek mají délku vhodnou pro výsledky hle
 })->with(['home', 'offers', 'offers_chain', 'terms', 'privacy']);
 
 it('přihlášení se neindexuje, stránky za přihlášením ani nesledují', function (): void {
-    expect(metaContent($this->get('/login')->getContent(), 'robots'))->toBe('noindex, follow');
+    expect(metaContent($this->get('/prihlaseni')->getContent(), 'robots'))->toBe('noindex, follow');
 
     $html = $this->actingAs(User::factory()->create())->get('/hlidam')->getContent();
     expect(metaContent($html, 'robots'))->toBe('noindex, nofollow');
@@ -95,7 +95,7 @@ it('robots.txt mimo produkci zakáže vše, na produkci soukromé cesty a odká�
     $this->get('/robots.txt')
         ->assertSeeText('Allow: /')
         ->assertSeeText('Disallow: /hlidam')
-        ->assertDontSeeText('Disallow: /login')
+        ->assertDontSeeText('Disallow: /prihlaseni')
         ->assertSeeText('Sitemap: '.route('sitemap'));
 });
 
@@ -136,9 +136,9 @@ it('security.txt má kontakt, platnost do půl roku a canonical (R68)', function
 it('omezí registraci a obnovu hesla na pár pokusů za minutu z jedné IP', function (): void {
     config(['letaky.rate_limits.sensitive_writes_per_minute' => 2]);
 
-    $this->post('/forgot-password', ['email' => 'nikdo@example.com'])->assertStatus(302);
-    $this->post('/forgot-password', ['email' => 'nikdo@example.com'])->assertStatus(302);
-    $this->post('/forgot-password', ['email' => 'nikdo@example.com'])->assertStatus(429);
+    $this->post('/zapomenute-heslo', ['email' => 'nikdo@example.com'])->assertStatus(302);
+    $this->post('/zapomenute-heslo', ['email' => 'nikdo@example.com'])->assertStatus(302);
+    $this->post('/zapomenute-heslo', ['email' => 'nikdo@example.com'])->assertStatus(429);
 
     // Čtení stránek limit měnících požadavků nepočítá
     $this->get('/akce')->assertOk();
