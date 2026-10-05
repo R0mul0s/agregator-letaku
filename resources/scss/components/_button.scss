@@ -26,12 +26,12 @@
     &--primary {
         padding-inline: var(--space-4);
         background: var(--color-accent);
-        box-shadow: 0 var(--button-edge) 0 var(--color-accent-strong);
+        box-shadow: 0 var(--button-edge) 0 var(--color-button-edge);
         color: var(--color-on-accent);
 
         &:hover:not(:disabled) {
             transform: translateY(var(--hover-lift));
-            box-shadow: 0 calc(var(--button-edge) - var(--hover-lift)) 0 var(--color-accent-strong);
+            box-shadow: 0 calc(var(--button-edge) - var(--hover-lift)) 0 var(--color-button-edge);
         }
 
         &:active:not(:disabled) {

@@ -49,6 +49,8 @@
     /* Akcent ztmavený kvůli kontrastu bílého textu na tlačítku (WCAG AA) */
     --color-accent: #d91f29;
     --color-accent-strong: #b8141e;
+    /* Spodní hrana hlavního tlačítka — tmavší červená v obou režimech (R83) */
+    --color-button-edge: #b8141e;
     --color-accent-soft: #fdecec;
     --color-on-accent: #ffffff;
     /* Text bílého tlačítka na červeném panelu — panel je červený v obou režimech */
@@ -176,6 +178,7 @@
     --color-accent: #d6333c;
     --color-accent-strong: #e4e7ec;
     --color-accent-soft: #2a2e36;
+    --color-button-edge: #8f1820;
     --color-on-accent: #ffffff;
     --color-border: #2c3038;
     --color-success-soft: #13301b;
@@ -205,6 +208,7 @@
         --color-accent: #d6333c;
         --color-accent-strong: #e4e7ec;
         --color-accent-soft: #2a2e36;
+        --color-button-edge: #8f1820;
         --color-on-accent: #ffffff;
         --color-border: #2c3038;
         --color-success-soft: #13301b;
@@ -458,13 +462,13 @@ button {
 .button--primary {
     padding-inline: var(--space-4);
     background: var(--color-accent);
-    box-shadow: 0 var(--button-edge) 0 var(--color-accent-strong);
+    box-shadow: 0 var(--button-edge) 0 var(--color-button-edge);
     color: var(--color-on-accent);
 }
 
 .button--primary:hover {
     transform: translateY(var(--hover-lift));
-    box-shadow: 0 calc(var(--button-edge) - var(--hover-lift)) 0 var(--color-accent-strong);
+    box-shadow: 0 calc(var(--button-edge) - var(--hover-lift)) 0 var(--color-button-edge);
 }
 
 .button--primary:active {

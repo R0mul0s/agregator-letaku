@@ -27,6 +27,10 @@
     --color-accent: #d91f29;
     --color-accent-strong: #b8141e;
     --color-accent-soft: #fdecec;
+    // Spodní hrana hlavního tlačítka — tmavší červená v obou režimech (R83: accent-strong je v tmavém šedý)
+    --color-button-edge: #b8141e;
+    // Text bílého tlačítka na červeném panelu (výzva k registraci) — v obou režimech červený
+    --color-panel-button-text: #b8141e;
     --color-on-accent: #ffffff;
     --color-border: #dfe1e6;
     --color-focus: #1c7ed6;
@@ -320,6 +324,7 @@
         // Text „v akcentu“ (odkazy, aktivní navigace, počty ve štítcích) neutrální
         --color-accent-strong: #e4e7ec;
         --color-accent-soft: #2a2e36;
+        --color-button-edge: #8f1820;
         --color-on-accent: #ffffff;
         --color-border: #2c3038;
         --color-scrollbar-thumb: #3a3f48;
