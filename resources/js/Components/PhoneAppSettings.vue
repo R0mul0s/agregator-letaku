@@ -2,7 +2,7 @@
     Aplikace v telefonu v Můj účet (R66) — přidání na plochu a upozornění na tomto zařízení
     (web push). Stav upozornění je vlastnost zařízení: prohlížeč zná svůj odběr, server
     seznam zařízení uživatele; zapnuté = odběr prohlížeče je mezi nimi. Ukládá se hned
-    po přepnutí (R63) s toastem ze serveru.
+    po přepnutí (R63) s toastem ze serveru. Dole verze aplikace a ruční kontrola aktualizací (R78).
 
     @author Roman Hlaváček
     @created 2026-10-04
@@ -11,7 +11,7 @@
 import CheckboxField from '@/Components/CheckboxField.vue';
 import { useTranslations } from '@/lib/i18n';
 import { currentSubscription, isPushSupported, notificationPermission, subscribe } from '@/lib/push';
-import { installState, isIos, promptInstall, serviceWorkerRegistration } from '@/lib/pwa';
+import { checkForUpdate, installState, isIos, promptInstall, serviceWorkerRegistration } from '@/lib/pwa';
 import { showToast } from '@/lib/toast';
 import { router } from '@inertiajs/vue3';
 import { computed, onMounted, ref, watch } from 'vue';
@@ -19,6 +19,8 @@ import { computed, onMounted, ref, watch } from 'vue';
 const props = defineProps({
     /** Upozornění v telefonu { publicKey, urls: { store, destroy, test }, devices: [{ endpoint, device }] }; null = vypnutá na serveru. */
     push: { type: Object, default: null },
+    /** Nasazená verze aplikace (R78); null = vývoj. */
+    appVersion: { type: String, default: null },
 });
 
 const t = useTranslations();
@@ -33,6 +35,9 @@ const permission = ref('default');
 /** Adresa odběru tohoto prohlížeče; null = neodebírá. */
 const endpoint = ref(null);
 const busy = ref(false);
+/** Aktualizace jdou zkontrolovat (běží service worker — ne s dev serverem Vite). */
+const updatesSupported = ref(false);
+const checkingUpdate = ref(false);
 
 /** Upozornění na tomto zařízení — odběr prohlížeče, který server zná. */
 const enabled = computed(() => endpoint.value !== null && (props.push?.devices ?? []).some((device) => device.endpoint === endpoint.value));
@@ -55,7 +60,8 @@ const unavailableReason = computed(() => {
 
 onMounted(async () => {
     ios.value = isIos();
-    pushSupported.value = isPushSupported() && (await serviceWorkerRegistration()) !== null;
+    updatesSupported.value = (await serviceWorkerRegistration()) !== null;
+    pushSupported.value = isPushSupported() && updatesSupported.value;
     permission.value = notificationPermission();
     if (pushSupported.value) {
         endpoint.value = (await currentSubscription())?.endpoint ?? null;
@@ -110,6 +116,14 @@ async function disable() {
 function sendTest() {
     router.post(props.push.urls.test, { endpoint: endpoint.value }, KEEP_PAGE);
 }
+
+/** Zeptá se na novou verzi aplikace; nalezená se hned načte (lib/pwa.js). */
+async function checkUpdate() {
+    checkingUpdate.value = true;
+    const found = await checkForUpdate({ applyWhenReady: true });
+    checkingUpdate.value = false;
+    showToast(t(found ? 'pwa.update_found' : 'pwa.update_current'));
+}
 </script>
 
 <template>
@@ -137,5 +151,12 @@ function sendTest() {
                 {{ t('push.other_devices', { devices: otherDevices.map((device) => device.device).join(', ') }) }}
             </p>
         </template>
+
+        <div v-if="appVersion || updatesSupported" class="phone-app__version">
+            <p v-if="appVersion" class="form-field__hint">{{ t('pwa.version', { version: appVersion }) }}</p>
+            <button v-if="updatesSupported" type="button" class="button button--ghost account-section__action" :disabled="checkingUpdate" @click="checkUpdate">
+                {{ checkingUpdate ? t('pwa.update_checking') : t('pwa.update_check') }}
+            </button>
+        </div>
     </div>
 </template>

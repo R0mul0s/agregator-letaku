@@ -1,10 +1,17 @@
 /**
  * Aplikace v telefonu (PWA, R66): registrace service workeru (resources/pwa/service-worker.js),
  * výzva k přidání na plochu, obnovení stránky po návratu z pozadí, stránky uložené offline
- * a jejich smazání po odhlášení, číslo na ikoně aplikace (nepřečtená upozornění, R74).
+ * a jejich smazání po odhlášení, číslo na ikoně aplikace (nepřečtená upozornění, R74),
+ * nová verze po nasazení (R78).
  *
  * Nainstalovaná aplikace nemá lištu prohlížeče ani tlačítko obnovit a v telefonu běží
  * klidně dny — data se proto po návratu do aplikace načtou znovu, když jsou starší.
+ *
+ * Nová verze: SPA se sama celá nenačítá, a prohlížeč se na nový service worker ptá jen při
+ * celém načtení. Aplikace se proto ptá sama (návrat do aplikace, pravidelně v popředí, ručně
+ * v Můj účet). Když se aktivuje service worker z jiného buildu, než se kterým stránka běží,
+ * načte se znovu — sama, dokud uživatel od návratu do aplikace na nic nesáhl, jinak nabídne
+ * lištu „Načíst“ (UpdateBar.vue) a sama se načte až při dalším návratu.
  *
  * @author Roman Hlaváček
  * @created 2026-10-04
@@ -46,11 +53,28 @@ window.addEventListener('appinstalled', () => {
     installState.promptEvent = null;
 });
 
+/** Jak dlouho čekat na odpověď service workeru, než se vzdá (starý ji neumí poslat). */
+const WORKER_REPLY_TIMEOUT_MS = 2000;
+
+/** Nová verze aplikace je připravená (lišta s „Načíst“, UpdateBar.vue). */
+export const updateState = reactive({
+    available: false,
+});
+
 /** Nastavení ze sdílené vlastnosti pwa (HandleInertiaRequests). */
-let settings = { serviceWorkerUrl: null, refreshAfterMinutes: 0, installSnoozeDays: 0 };
+let settings = { serviceWorkerUrl: null, refreshAfterMinutes: 0, updateCheckMinutes: 0, installSnoozeDays: 0 };
 
 /** Kdy stránka naposledy dostala data ze serveru. */
 let lastLoadedAt = Date.now();
+
+/** Verze assetů, se kterou stránka běží (Inertia, hash manifestu buildu). */
+let pageVersion = null;
+
+/** Sáhl uživatel od spuštění nebo návratu do aplikace na obrazovku? Dokud ne, nová verze se načte sama. */
+let interacted = false;
+
+/** Načíst novou verzi hned, jak se aktivuje (uživatel o ni požádal v Můj účet). */
+let applyWhenReady = false;
 
 /**
  * Běží aplikace z plochy (bez lišty prohlížeče)?
@@ -188,14 +212,149 @@ async function warmOfflinePages() {
 }
 
 /**
- * Po návratu do aplikace z pozadí načte data znovu, když jsou starší než nastavení.
+ * Verze assetů, se kterou běží aktivní service worker.
+ *
+ * @returns {Promise<string|null>} null = žádný service worker nebo neodpověděl
+ */
+function workerAssetVersion() {
+    const worker = navigator.serviceWorker?.controller;
+    if (!worker) {
+        return Promise.resolve(null);
+    }
+
+    return new Promise((resolve) => {
+        const channel = new MessageChannel();
+        const timer = setTimeout(() => resolve(null), WORKER_REPLY_TIMEOUT_MS);
+        channel.port1.onmessage = (event) => {
+            clearTimeout(timer);
+            resolve(event.data?.assetVersion ?? null);
+        };
+        worker.postMessage({ type: 'asset-version' }, [channel.port2]);
+    });
+}
+
+/**
+ * Běží aktivní service worker z jiného buildu než stránka?
+ *
+ * @returns {Promise<boolean>}
+ */
+async function isNewerVersionActive() {
+    const version = await workerAssetVersion();
+
+    return version !== null && pageVersion !== null && version !== pageVersion;
+}
+
+/** Načte stránku znovu s novou verzí aplikace. */
+export function applyUpdate() {
+    window.location.reload();
+}
+
+/**
+ * Aktivoval se nový service worker: z jiného buildu načte stránku znovu, když uživatel od
+ * návratu do aplikace na nic nesáhl (nebo o to požádal), jinak ukáže lištu.
+ */
+async function onControllerChange() {
+    if (!(await isNewerVersionActive())) {
+        return;
+    }
+
+    if (applyWhenReady || (document.visibilityState === 'visible' && !interacted)) {
+        applyUpdate();
+
+        return;
+    }
+    updateState.available = true;
+}
+
+/**
+ * Zeptá se serveru na nový service worker. Nový se nainstaluje sám a stránku načte znovu
+ * přes controllerchange (onControllerChange).
+ *
+ * @param {{ applyWhenReady?: boolean }} [options] applyWhenReady: novou verzi načíst hned
+ *     (ruční kontrola v Můj účet), ne až podle toho, jestli uživatel na něco sáhl
+ * @returns {Promise<boolean>} Je k dispozici nová verze?
+ */
+export async function checkForUpdate({ applyWhenReady: apply = false } = {}) {
+    if (!navigator.onLine || !settings.serviceWorkerUrl || !('serviceWorker' in navigator)) {
+        return false;
+    }
+
+    const registration = await navigator.serviceWorker.getRegistration();
+    if (!registration) {
+        return false;
+    }
+
+    try {
+        await registration.update();
+    } catch {
+        return false;
+    }
+
+    // Nový service worker se instaluje (aktivuje se sám, skipWaiting) …
+    if (registration.installing || registration.waiting) {
+        applyWhenReady = applyWhenReady || apply;
+
+        return true;
+    }
+
+    // … nebo už je aktivní a stránka běží se starým buildem (aktivoval se v jiném okně)
+    if (await isNewerVersionActive()) {
+        if (apply) {
+            applyUpdate();
+        } else {
+            updateState.available = true;
+        }
+
+        return true;
+    }
+
+    return false;
+}
+
+/**
+ * Hlídá novou verzi aplikace: aktivace nového service workeru, pravidelná kontrola v popředí
+ * a doteky uživatele (po nich se už stránka sama nenačte, jen nabídne lištu).
+ */
+function watchForUpdates() {
+    if (!settings.serviceWorkerUrl || !('serviceWorker' in navigator)) {
+        return;
+    }
+
+    navigator.serviceWorker.addEventListener('controllerchange', onControllerChange);
+
+    const markInteracted = () => (interacted = true);
+    window.addEventListener('pointerdown', markInteracted, { capture: true, passive: true });
+    window.addEventListener('keydown', markInteracted, { capture: true });
+
+    setInterval(() => {
+        if (document.visibilityState === 'visible') {
+            checkForUpdate();
+        }
+    }, settings.updateCheckMinutes * MINUTE_MS);
+}
+
+/**
+ * Po návratu do aplikace z pozadí: připravenou novou verzi načte, jinak se na ni zeptá
+ * a data načte znovu, když jsou starší než nastavení.
  */
 function refreshOnResume() {
     document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState !== 'visible') {
+            return;
+        }
+
+        interacted = false;
+        if (updateState.available) {
+            applyUpdate();
+
+            return;
+        }
+
         const stale = Date.now() - lastLoadedAt > settings.refreshAfterMinutes * MINUTE_MS;
-        if (document.visibilityState === 'visible' && stale && navigator.onLine) {
+        if (stale && navigator.onLine) {
             router.reload();
         }
+        checkForUpdate();
     });
 }
 
@@ -207,6 +366,7 @@ function refreshOnResume() {
 export function initPwa(initialPage) {
     settings = { ...settings, ...initialPage.props.pwa };
     installState.standalone = isStandalone();
+    pageVersion = initialPage.version ?? null;
 
     if (settings.serviceWorkerUrl && 'serviceWorker' in navigator) {
         navigator.serviceWorker.register(settings.serviceWorkerUrl, { scope: '/' }).catch(() => undefined);
@@ -242,6 +402,7 @@ export function initPwa(initialPage) {
             warmOfflinePages();
         }
         user = nextUser;
+        pageVersion = event.detail.page.version ?? pageVersion;
         syncUrl = event.detail.page.props.shoppingList?.syncUrl;
         syncAppBadge(event.detail.page.props.notificationCenter);
     });
@@ -252,4 +413,5 @@ export function initPwa(initialPage) {
 
     window.addEventListener('online', () => syncPendingChecks(syncUrl));
     refreshOnResume();
+    watchForUpdates();
 }

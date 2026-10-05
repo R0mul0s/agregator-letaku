@@ -273,6 +273,14 @@ return [
             'stale' => 'Signál zlobí — ukazujeme uloženou verzi.',
             'fetched_at' => 'Stav z :at.',
             'offline_navigation' => 'Jste offline a tahle stránka není uložená. Moje slevy a nákupní seznam fungují i bez signálu.',
+            // Nová verze po nasazení (R78, UpdateBar.vue, PhoneAppSettings.vue)
+            'update_available' => 'Máme pro vás novou verzi Slevohlídky.',
+            'update_apply' => 'Načíst',
+            'version' => 'Verze aplikace :version',
+            'update_check' => 'Zkontrolovat aktualizace',
+            'update_checking' => 'Kontrolujeme…',
+            'update_current' => 'Máte nejnovější verzi, nic čerstvějšího zatím nemáme.',
+            'update_found' => 'Našli jsme novou verzi — hned ji načteme.',
         ],
 
         // Stránka bez připojení (R66, resources/views/pwa/offline.blade.php)

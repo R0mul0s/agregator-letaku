@@ -40,6 +40,8 @@ const props = defineProps({
     marketingConsent: { type: Boolean, required: true },
     /** Upozornění v telefonu (R66, PhoneAppSettings.vue); null = vypnutá na serveru. */
     push: { type: Object, default: null },
+    /** Nasazená verze aplikace (R78); null = vývoj. */
+    appVersion: { type: String, default: null },
 });
 
 const t = useTranslations();
@@ -389,7 +391,7 @@ async function deleteAccount() {
                             <p v-if="digestForm.errors.digest_frequency" class="form-field__error" role="alert">{{ digestForm.errors.digest_frequency }}</p>
                         </fieldset>
 
-                        <PhoneAppSettings :push="push" />
+                        <PhoneAppSettings :push="push" :app-version="appVersion" />
 
                         <div id="novinky" class="account-section__part">
                             <h3 class="account-section__subtitle">{{ t('account.marketing_title') }}</h3>

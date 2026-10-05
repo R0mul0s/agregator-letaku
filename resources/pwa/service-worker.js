@@ -4,7 +4,8 @@
  * Není součástí buildu Vite: musí mít stálou adresu /sw.js v kořeni webu. Server
  * (ServiceWorkerController) před skript doplní `self.SW_CONFIG`: verzi buildu, soubory
  * k uložení, stránky dostupné offline a časový limit sítě. Nový build = nová verze =
- * prohlížeč service worker vymění a staré soubory smaže.
+ * prohlížeč service worker vymění a staré soubory smaže. Otevřená stránka se starým buildem
+ * to pozná podle verze assetů (`assetVersion`, stejná jako u Inertie) a načte se znovu (R78).
  *
  * - Soubory buildu, písmo a obrázky webu: nejdřív z cache (jména souborů buildu mají otisk).
  * - Stránky z `offlinePaths` (Moje slevy, nákupní seznam, Hlídám): nejdřív ze sítě, uloží se;
@@ -287,10 +288,13 @@ function delay(ms) {
 }
 
 // Zprávy z aplikace (resources/js/lib/pwa.js): jestli stránku dostala z cache (lišta „Jste
-// offline“ s časem uložení) a uložení stránek předem po přihlášení
+// offline“ s časem uložení), verze assetů (stránka se starým buildem se načte znovu, R78)
+// a uložení stránek předem po přihlášení
 self.addEventListener('message', (event) => {
     if (event.data?.type === 'offline-status') {
         event.ports[0]?.postMessage({ fetchedAt: servedFromCache.get(event.data.path) ?? null });
+    } else if (event.data?.type === 'asset-version') {
+        event.ports[0]?.postMessage({ assetVersion: CONFIG.assetVersion });
     } else if (event.data?.type === 'warm-pages') {
         event.waitUntil(warmPages());
     }

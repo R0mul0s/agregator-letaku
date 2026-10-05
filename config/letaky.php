@@ -358,6 +358,9 @@ return [
         // Po návratu do aplikace z pozadí se stránka načte znovu, když je starší než tohle —
         // nainstalovaná aplikace nemá tlačítko pro obnovení a v telefonu běží klidně dny
         'refresh_after_minutes' => 30,
+        // Nová verze po nasazení (R78): SPA se sama nenačítá znovu, takže se prohlížeč na nový
+        // service worker zeptá při návratu do aplikace a pak po tolika minutách v popředí
+        'update_check_minutes' => 15,
         // Výzva k přidání na plochu: kolik dní po zavření se znovu neukáže
         'install_prompt_snooze_days' => 30,
         // Úvodní obrazovka iPhonu při spuštění z plochy — iOS ji nebere z manifestu, chce obrázek

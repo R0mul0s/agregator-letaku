@@ -5,7 +5,8 @@
  * je v resources/pwa/service-worker.js (mimo Vite — musí mít stálou adresu /sw.js v kořeni
  * webu); server před něj doplní nastavení: verzi a soubory buildu k uložení podle
  * public/build/manifest.json. Každý nový build změní verzi, prohlížeč service worker
- * aktualizuje a staré soubory z cache smaže.
+ * aktualizuje a staré soubory z cache smaže. Verzi assetů (stejnou jako Inertia) service worker
+ * řekne otevřené stránce — ta podle ní pozná, že běží se starým buildem (R78).
  *
  * @author Roman Hlaváček
  *
@@ -17,7 +18,9 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Enums\Chain;
+use App\Http\Middleware\HandleInertiaRequests;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use JsonException;
 
@@ -51,7 +54,7 @@ class ServiceWorkerController extends Controller
      * Skript service workeru s nastavením. Prohlížeč se na něj ptá při každé návštěvě
      * (no-cache), aby novou verzi poznal hned po nasazení.
      */
-    public function script(): Response
+    public function script(Request $request, HandleInertiaRequests $inertia): Response
     {
         $manifestPath = public_path(self::BUILD_MANIFEST);
         abort_unless(is_file($manifestPath), Response::HTTP_NOT_FOUND);
@@ -61,6 +64,8 @@ class ServiceWorkerController extends Controller
 
         $config = [
             'version' => substr(hash('sha256', $manifest.$source), 0, 16),
+            // Verze assetů jako u Inertie — stránka s jinou běží se starým buildem (R78)
+            'assetVersion' => $inertia->version($request),
             'precache' => [...$this->buildFiles($manifest), ...self::STATIC_FILES, ...$this->chainLogos(), route('offline', absolute: false)],
             'offlineUrl' => route('offline', absolute: false),
             'offlinePaths' => config()->array('letaky.pwa.offline_paths'),

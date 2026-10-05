@@ -40,6 +40,9 @@ class AccountController extends Controller
     /** Sada chyb formuláře zrušení účtu. */
     public const ERROR_BAG_DELETE = 'deleteAccount';
 
+    /** Nasazená verze (commit) — zapisuje ji deploy/build-upload.ps1, lokálně chybí. */
+    private const VERSION_FILE = 'version.txt';
+
     /** Kód stavu po odhlášení ostatních zařízení — toast (R47, lang: ui.toast.messages). */
     public const STATUS_DEVICES_LOGGED_OUT = 'other-devices-logged-out';
 
@@ -116,7 +119,20 @@ class AccountController extends Controller
                         'device' => $subscription->device,
                     ])->all(),
             ] : null,
+            // Verze aplikace u kontroly aktualizací (R78)
+            'appVersion' => $this->appVersion(),
         ]);
+    }
+
+    /**
+     * Nasazená verze aplikace (zkrácený hash commitu), null = vývoj bez balíčku.
+     */
+    private function appVersion(): ?string
+    {
+        $path = public_path(self::VERSION_FILE);
+        $version = is_file($path) ? trim((string) file_get_contents($path)) : '';
+
+        return $version !== '' ? $version : null;
     }
 
     /**

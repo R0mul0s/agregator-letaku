@@ -115,6 +115,7 @@ class HandleInertiaRequests extends Middleware
             'pwa' => fn (): array => [
                 'serviceWorkerUrl' => Vite::isRunningHot() ? null : route('service-worker', absolute: false),
                 'refreshAfterMinutes' => config()->integer('letaky.pwa.refresh_after_minutes'),
+                'updateCheckMinutes' => config()->integer('letaky.pwa.update_check_minutes'),
                 'installSnoozeDays' => config()->integer('letaky.pwa.install_prompt_snooze_days'),
             ],
             // Patička (R51): kontakt, právní stránky — název se nesmí krýt s propem stránky.

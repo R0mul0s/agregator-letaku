@@ -225,3 +225,12 @@
 .phone-app__push-title {
     margin-top: var(--space-2);
 }
+
+// Verze aplikace a kontrola aktualizací (R78)
+.phone-app__version {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+    margin-top: var(--space-2);
+}

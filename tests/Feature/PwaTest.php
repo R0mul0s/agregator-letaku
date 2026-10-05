@@ -3,7 +3,7 @@
 /**
  * Aplikace v telefonu (R66): manifest se zkratkami a maskovatelnou ikonou, iPhone (úvodní
  * obrazovky), service worker se seznamem souborů z buildu, stránka bez připojení a spodní
- * lišta záložek.
+ * lišta záložek. Nová verze po nasazení: verze assetů v service workeru a verze v Můj účet (R78).
  *
  * @author Roman Hlaváček
  *
@@ -105,4 +105,33 @@ it('přihlášený má všechny hlavní stránky ve spodní liště, katalog adm
         ->where('navigation.0.key', 'home')
         ->where('navigation', fn ($items): bool => collect($items)->every(fn (array $item): bool => $item['tab']))
         ->where('auth.catalogUrl', '/katalog'));
+});
+
+it('service worker zná verzi assetů stejnou jako Inertia — stránka podle ní pozná nový build (R78)', function (): void {
+    $this->app->usePublicPath(fakeBuildPublicPath());
+
+    $response = $this->get('/sw.js')->assertOk();
+    preg_match('/^self\.SW_CONFIG = (.+);$/m', (string) $response->getContent(), $match);
+    $config = json_decode($match[1], true, flags: JSON_THROW_ON_ERROR);
+
+    expect($config['assetVersion'])->toBe(hash_file('xxh128', public_path('build/manifest.json')))
+        ->and($response->getContent())->toContain("'asset-version'");
+
+    $this->get(route('offers'))->assertInertia(fn (Assert $page) => $page
+        ->where('pwa.updateCheckMinutes', config('letaky.pwa.update_check_minutes')));
+});
+
+it('Můj účet ukáže nasazenou verzi z version.txt, lokálně žádnou (R78)', function (): void {
+    $this->actingAs(User::factory()->create());
+    $path = fakeBuildPublicPath();
+    $this->app->usePublicPath($path);
+    File::delete($path.'/version.txt');
+
+    $this->get(route('account'))->assertInertia(fn (Assert $page) => $page->where('appVersion', null));
+
+    File::put($path.'/version.txt', "4cf9e35\n");
+
+    $this->get(route('account'))->assertInertia(fn (Assert $page) => $page->where('appVersion', '4cf9e35'));
+
+    File::delete($path.'/version.txt');
 });

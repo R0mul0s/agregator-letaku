@@ -6,7 +6,7 @@
     s provozovatelem a právními stránkami (R51), lišta souhlasu s cookies (R52).
     Aplikace v telefonu (R66): přihlášený má na telefonu hlavní stránky ve spodní liště záložek
     (hamburger jen pro položky mimo lištu — dnes žádné, katalog admina je v menu pod avatarem, R75),
-    lišta „Jste offline“ a výzva k přidání na plochu.
+    lišta „Jste offline“ a výzva k přidání na plochu; lišta „Máme novou verzi“ po nasazení (R78).
 
     @author Roman Hlaváček
     @created 2026-10-02
@@ -24,6 +24,7 @@ import StoresDialog from '@/Components/StoresDialog.vue';
 import TabBar from '@/Components/TabBar.vue';
 import Toaster from '@/Components/Toaster.vue';
 import ThemeSwitch from '@/Components/ThemeSwitch.vue';
+import UpdateBar from '@/Components/UpdateBar.vue';
 import UserMenu from '@/Components/UserMenu.vue';
 import { useTranslations } from '@/lib/i18n';
 import { Link, router, usePage } from '@inertiajs/vue3';
@@ -144,6 +145,7 @@ onBeforeUnmount(() => {
 
     <EmailVerificationBar v-if="page.props.auth.user && !page.props.auth.user.emailVerified" />
     <OfflineBar />
+    <UpdateBar />
 
     <!-- tabindex -1: po odkazu „Přeskočit na obsah" dostane fokus i hlavní obsah -->
     <main id="main" class="page" tabindex="-1">
