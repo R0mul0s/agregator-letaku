@@ -1,7 +1,8 @@
 <!--
-    Záznam centra upozornění (R74) — cíl klepnutí na upozornění v telefonu. Akce po hlídaných
-    položkách jako kompaktní řádky s obchodem a tlačítkem do nákupního seznamu; skončené
-    (nebo stažené obchodem) jsou označené. Po zobrazení stránka záznam označí jako přečtený.
+    Záznam centra upozornění (R74) — cíl klepnutí na upozornění v telefonu. Akce po skupinách
+    (hlídané položky, u končících akcí ze seznamu obchody) jako kompaktní řádky s obchodem
+    a tlačítkem do nákupního seznamu; skončené (nebo stažené obchodem) jsou označené.
+    Po zobrazení stránka záznam označí jako přečtený.
 
     @author Roman Hlaváček
     @created 2026-10-05
@@ -15,12 +16,13 @@ import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { computed, onMounted } from 'vue';
 
 const props = defineProps({
-    /** Shrnutí záznamu { id, title, text, createdAt, unread } (NotificationPresenter). */
+    /** Shrnutí záznamu { id, kind, title, text, createdAt, unread } (NotificationPresenter). */
     notification: { type: Object, required: true },
-    /** Akce po hlídaných položkách [{ watchItem, offers: [{ ...OfferPresenter, userPrice, ended }] }]. */
+    /** Akce po skupinách [{ title, offers: [{ ...OfferPresenter, userPrice, ended }] }]. */
     groups: { type: Array, required: true },
     indexUrl: { type: String, required: true },
     readUrl: { type: String, required: true },
+    shoppingListUrl: { type: String, required: true },
 });
 
 const t = useTranslations();
@@ -52,9 +54,13 @@ onMounted(() => {
         </header>
 
         <p v-if="allEnded" class="notice">{{ t('notifications.all_ended') }}</p>
+        <!-- Končící akce ze seznamu (11b): nákup se odškrtává v seznamu -->
+        <p v-else-if="notification.kind === 'ending_soon'" class="notification-detail__actions">
+            <Link :href="shoppingListUrl" class="button button--primary">{{ t('notifications.open_shopping_list') }}</Link>
+        </p>
 
-        <section v-for="group in groups" :key="group.watchItem" class="card notification-detail__group">
-            <h2 class="notification-detail__title">{{ group.watchItem }}</h2>
+        <section v-for="group in groups" :key="group.title" class="card notification-detail__group">
+            <h2 class="notification-detail__title">{{ group.title }}</h2>
             <ul class="offer-rows">
                 <OfferRow v-for="offer in group.offers" :key="offer.id" :offer="offer" with-chain />
             </ul>

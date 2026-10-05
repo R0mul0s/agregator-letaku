@@ -171,8 +171,17 @@ return [
             'title_one' => ':name je v akci',
             'title_many' => ':count nová akce na hlídané zboží|:count nové akce na hlídané zboží|:count nových akcí na hlídané zboží',
         ],
+        'ending_soon' => [
+            'title' => 'Zítra končí :count akce z vašeho seznamu|Zítra končí :count akce z vašeho seznamu|Zítra končí :count akcí z vašeho seznamu',
+        ],
         'done' => 'Centrum upozornění — zapsáno: :count',
         'failed' => 'Centrum upozornění — chyba: :error',
+    ],
+
+    // Končící akce z nákupního seznamu v centru upozornění (R74, RecordEndingOffers) — výstup cronu
+    'ending_soon' => [
+        'done' => 'Končící akce ze seznamu — zapsáno: :count',
+        'failed' => 'Končící akce ze seznamu — chyba: :error',
     ],
 
     // Upozornění v telefonu — web push (R66, SendPushNotifications)
@@ -689,6 +698,7 @@ return [
             'back' => 'Všechna upozornění',
             'ended' => 'Skončila',
             'all_ended' => 'Tyhle akce už skončily — příště buďte rychlejší než ostatní lovci slev.',
+            'open_shopping_list' => 'Otevřít nákupní seznam',
         ],
 
         'home' => [

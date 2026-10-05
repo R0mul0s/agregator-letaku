@@ -1,5 +1,5 @@
 // _notifications.scss
-// Centrum upozornění (R74): záznamy po dnech (Notifications.vue) a detail záznamu
+// Centrum upozornění (R74): záznamy po dnech s ikonou druhu (Notifications.vue) a detail záznamu
 // s akcemi jako kompaktní řádky (NotificationDetail.vue, řádky z _shopping.scss).
 //
 // @author Roman Hlaváček
@@ -61,6 +61,34 @@
         font-weight: 800;
     }
 
+    // Ikona druhu záznamu v kolečku: cenovka (nové akce), hodiny (končící akce ze seznamu)
+    &__icon {
+        display: inline-flex;
+        flex-shrink: 0;
+        align-items: center;
+        justify-content: center;
+        width: var(--notification-icon-box-size);
+        height: var(--notification-icon-box-size);
+        border-radius: 50%;
+        background: var(--color-accent-soft);
+        color: var(--color-accent-strong);
+
+        &--ending_soon {
+            background: var(--color-warning-soft);
+            color: var(--color-warning-text);
+        }
+
+        svg {
+            width: var(--icon-size);
+            height: var(--icon-size);
+            fill: none;
+            stroke: currentcolor;
+            stroke-width: var(--svg-stroke-icon);
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+    }
+
     &__body {
         display: flex;
         flex: 1;
@@ -97,6 +125,10 @@
     }
 
     &__group {
+        margin-bottom: var(--space-3);
+    }
+
+    &__actions {
         margin-bottom: var(--space-3);
     }
 

@@ -12,6 +12,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Notifications\Actions\RecordEndingOffers;
 use App\Domain\Notifications\Actions\RecordNewOffers;
 use App\Domain\Push\Actions\SendPushNotifications;
 use App\Domain\Push\PushDelivery;
@@ -94,6 +95,7 @@ function fakePushSender(array $deliveries = []): PushSender
 function recordAndPush(): int
 {
     app(RecordNewOffers::class)();
+    app(RecordEndingOffers::class)();
 
     return app(SendPushNotifications::class)();
 }
@@ -265,6 +267,25 @@ describe('upozornění na nové akce', function (): void {
         expect(recordAndPush())->toBe(1)
             ->and($sender->sent)->toHaveCount(2)
             ->and($sender->sent[1]['message']->body)->toStartWith('Máslo nové');
+    });
+
+    it('akce ze seznamu, které zítra končí, pošle zvlášť vedle nových akcí (R74)', function (): void {
+        $sender = fakePushSender();
+        // 14:30 UTC = 16:30 v Praze — odpoledne se zapisují končící akce
+        $this->travelTo('2026-10-02 14:30:00');
+        $this->user->forceFill(['push_sent_at' => now()->subHours(2), 'notified_at' => now()->subHours(2)])->save();
+        $ending = Offer::factory()->create(['chain' => Chain::Lidl, 'name' => 'Pivo 0,5 l', 'price' => 1290, 'valid_from' => '2026-09-29', 'valid_to' => '2026-10-03']);
+        $this->user->shoppingListItems()->create(['offer_id' => $ending->id]);
+        pushImportedOffer(['name' => 'Máslo 250 g']);
+
+        expect(recordAndPush())->toBe(1)
+            ->and($sender->sent)->toHaveCount(2);
+
+        $messages = collect($sender->sent)->pluck('message')->keyBy('tag');
+        expect($messages['new-offers']->title)->toBe('Máslo je v akci')
+            ->and($messages['ending-soon']->title)->toBe('Zítra končí 1 akce z vašeho seznamu')
+            ->and($messages['ending-soon']->body)->toBe("Pivo 0,5 l — 12,90\u{00A0}Kč, Lidl")
+            ->and($messages['ending-soon']->badge)->toBe(2);
     });
 
     it('neověřenému účtu nic nepošle (R67)', function (): void {

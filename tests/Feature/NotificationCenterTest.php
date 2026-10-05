@@ -12,8 +12,10 @@
 declare(strict_types=1);
 
 use App\Domain\Account\Actions\PruneExpiredSessions;
+use App\Domain\Notifications\Actions\RecordEndingOffers;
 use App\Domain\Notifications\Actions\RecordNewOffers;
 use App\Domain\Notifications\NewOffersNotification;
+use App\Domain\Notifications\OffersNotification;
 use App\Enums\Chain;
 use App\Enums\ScrapeStatus;
 use App\Models\FollowedChain;
@@ -49,6 +51,19 @@ function centerRecord(User $user, array $groups): DatabaseNotification
     return $user->notifications()->firstOrFail();
 }
 
+/**
+ * Akce v nákupním seznamu uživatele, výchozí konec zítra (6. 10.).
+ *
+ * @param  array<string, mixed>  $attributes
+ */
+function listedOffer(User $user, array $attributes, bool $checked = false): Offer
+{
+    $offer = Offer::factory()->create(['valid_from' => '2026-09-30', 'valid_to' => '2026-10-06', ...$attributes]);
+    $user->shoppingListItems()->create(['offer_id' => $offer->id, 'checked_at' => $checked ? now() : null]);
+
+    return $offer;
+}
+
 beforeEach(function (): void {
     $this->travelTo('2026-10-05 06:30:00');
     $this->user = User::factory()->create();
@@ -75,7 +90,7 @@ describe('záznamy z cronu', function (): void {
         $record = $this->user->notifications()->sole();
         expect($record->type)->toBe('new_offers')
             ->and($record->read_at)->toBeNull()
-            ->and(NewOffersNotification::groups($record))->toBe([['watchItem' => 'Máslo', 'offerIds' => [$butter->id]]]);
+            ->and(NewOffersNotification::groups($record))->toBe([['title' => 'Máslo', 'offerIds' => [$butter->id]]]);
     });
 
     it('bez nové akce nic nezapíše, čas posune', function (): void {
@@ -110,8 +125,8 @@ describe('záznamy z cronu', function (): void {
 describe('stránka', function (): void {
     it('ukáže vlastní záznamy s nadpisem a hlídanými položkami, cizí ne', function (): void {
         $butter = centerImportedOffer(['name' => 'Máslo 250 g']);
-        $record = centerRecord($this->user, [['watchItem' => 'Máslo', 'offerIds' => [$butter->id]]]);
-        centerRecord(User::factory()->create(), [['watchItem' => 'Pivo', 'offerIds' => [$butter->id]]]);
+        $record = centerRecord($this->user, [['title' => 'Máslo', 'offerIds' => [$butter->id]]]);
+        centerRecord(User::factory()->create(), [['title' => 'Pivo', 'offerIds' => [$butter->id]]]);
 
         $this->actingAs($this->user)->get(route('notifications.index'))
             ->assertOk()
@@ -132,8 +147,8 @@ describe('stránka', function (): void {
     it('víc akcí shrne počtem a vypíše všechny hlídané položky', function (): void {
         $offers = Offer::factory()->count(3)->create(['chain' => Chain::Kaufland]);
         centerRecord($this->user, [
-            ['watchItem' => 'Máslo', 'offerIds' => [$offers[0]->id, $offers[1]->id]],
-            ['watchItem' => 'Pivo', 'offerIds' => [$offers[2]->id]],
+            ['title' => 'Máslo', 'offerIds' => [$offers[0]->id, $offers[1]->id]],
+            ['title' => 'Pivo', 'offerIds' => [$offers[2]->id]],
         ]);
 
         $this->actingAs($this->user)->get(route('notifications.index'))
@@ -146,14 +161,14 @@ describe('stránka', function (): void {
         $running = Offer::factory()->create(['chain' => Chain::Kaufland, 'name' => 'Máslo 250 g', 'price' => 3990]);
         $withdrawn = Offer::factory()->create(['chain' => Chain::Kaufland, 'name' => 'Máslo stažené', 'withdrawn_at' => now()]);
         $expired = Offer::factory()->create(['chain' => Chain::Kaufland, 'name' => 'Máslo staré', 'valid_from' => '2026-09-20', 'valid_to' => '2026-09-27']);
-        $record = centerRecord($this->user, [['watchItem' => 'Máslo', 'offerIds' => [$running->id, $withdrawn->id, $expired->id]]]);
+        $record = centerRecord($this->user, [['title' => 'Máslo', 'offerIds' => [$running->id, $withdrawn->id, $expired->id]]]);
 
         $this->actingAs($this->user)->get(route('notifications.show', $record->id))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('NotificationDetail')
                 ->where('notification.title', '3 nové akce na hlídané zboží')
-                ->where('groups.0.watchItem', 'Máslo')
+                ->where('groups.0.title', 'Máslo')
                 ->where('groups.0.offers.0.name', 'Máslo 250 g')
                 ->where('groups.0.offers.0.chainName', 'Kaufland')
                 ->where('groups.0.offers.0.userPrice', 3990)
@@ -163,14 +178,14 @@ describe('stránka', function (): void {
     });
 
     it('cizí záznam neukáže', function (): void {
-        $record = centerRecord(User::factory()->create(), [['watchItem' => 'Máslo', 'offerIds' => []]]);
+        $record = centerRecord(User::factory()->create(), [['title' => 'Máslo', 'offerIds' => []]]);
 
         $this->actingAs($this->user)->get(route('notifications.show', $record->id))->assertNotFound();
     });
 
     it('označí přečtené jen vlastní záznamy', function (): void {
-        $mine = centerRecord($this->user, [['watchItem' => 'Máslo', 'offerIds' => []]]);
-        $foreign = centerRecord(User::factory()->create(), [['watchItem' => 'Pivo', 'offerIds' => []]]);
+        $mine = centerRecord($this->user, [['title' => 'Máslo', 'offerIds' => []]]);
+        $foreign = centerRecord(User::factory()->create(), [['title' => 'Pivo', 'offerIds' => []]]);
 
         $this->actingAs($this->user)
             ->from(route('notifications.index'))
@@ -182,7 +197,7 @@ describe('stránka', function (): void {
     });
 
     it('zvonek v hlavičce dostane počet nepřečtených', function (): void {
-        centerRecord($this->user, [['watchItem' => 'Máslo', 'offerIds' => []]]);
+        centerRecord($this->user, [['title' => 'Máslo', 'offerIds' => []]]);
 
         $this->actingAs($this->user)->get(route('shopping-list.index'))
             ->assertInertia(fn (Assert $page) => $page
@@ -200,13 +215,78 @@ describe('stránka', function (): void {
     });
 });
 
+describe('akce ze seznamu brzy končí (11b)', function (): void {
+    beforeEach(function (): void {
+        // 14:30 UTC = 16:30 v Praze (letní čas), zítra je 6. 10.
+        $this->travelTo('2026-10-05 14:30:00');
+    });
+
+    it('zapíše neodškrtnuté akce ze seznamu, které zítra končí, po obchodech', function (): void {
+        $butter = listedOffer($this->user, ['chain' => Chain::Kaufland, 'name' => 'Máslo 250 g']);
+        $beer = listedOffer($this->user, ['chain' => Chain::Lidl, 'name' => 'Pivo 0,5 l']);
+        listedOffer($this->user, ['chain' => Chain::Kaufland, 'name' => 'Koupeno'], checked: true);
+        listedOffer($this->user, ['chain' => Chain::Kaufland, 'name' => 'Stažená', 'withdrawn_at' => now()]);
+        listedOffer($this->user, ['chain' => Chain::Kaufland, 'name' => 'Končí pozítří', 'valid_to' => '2026-10-07']);
+        // Billa: konec akce je jen odhad akčního týdne (R48, R54)
+        listedOffer($this->user, ['chain' => Chain::Billa, 'name' => 'Billa máslo']);
+
+        expect(app(RecordEndingOffers::class)())->toBe(1);
+
+        $record = $this->user->notifications()->sole();
+        expect($record->type)->toBe('ending_soon')
+            ->and(OffersNotification::groups($record))->toBe([
+                ['title' => 'Kaufland', 'offerIds' => [$butter->id]],
+                ['title' => 'Lidl', 'offerIds' => [$beer->id]],
+            ]);
+
+        $this->actingAs($this->user)->get(route('notifications.index'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('notifications.0.kind', 'ending_soon')
+                ->where('notifications.0.title', 'Zítra končí 2 akce z vašeho seznamu')
+                ->where('notifications.0.text', 'Kaufland, Lidl'));
+        $this->get(route('notifications.show', $record->id))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('groups.0.title', 'Kaufland')
+                ->where('groups.0.offers.0.name', 'Máslo 250 g')
+                ->where('shoppingListUrl', '/seznam'));
+    });
+
+    it('dopoledne ještě nic nezapíše', function (): void {
+        $this->travelTo('2026-10-05 08:00:00');
+        listedOffer($this->user, ['chain' => Chain::Kaufland]);
+
+        expect(app(RecordEndingOffers::class)())->toBe(0);
+    });
+
+    it('zapíše jednou denně, další den znovu', function (): void {
+        listedOffer($this->user, ['chain' => Chain::Kaufland, 'name' => 'Máslo']);
+        listedOffer($this->user, ['chain' => Chain::Kaufland, 'name' => 'Vejce', 'valid_to' => '2026-10-07']);
+
+        expect(app(RecordEndingOffers::class)())->toBe(1);
+        $this->travelTo('2026-10-05 19:30:00');
+        expect(app(RecordEndingOffers::class)())->toBe(0);
+        $this->travelTo('2026-10-06 14:30:00');
+        expect(app(RecordEndingOffers::class)())->toBe(1)
+            ->and($this->user->notifications()->count())->toBe(2);
+    });
+
+    it('cron souhrnů vypíše končící akce', function (): void {
+        config(['letaky.cron.token' => 'tajny-token']);
+        listedOffer($this->user, ['chain' => Chain::Kaufland]);
+
+        $this->get(route('cron.send-digests', ['token' => 'tajny-token']))
+            ->assertOk()
+            ->assertSeeText('Končící akce ze seznamu — zapsáno: 1');
+    });
+});
+
 it('denní úklid smaže záznamy starší než doba uchování', function (): void {
-    centerRecord($this->user, [['watchItem' => 'Máslo', 'offerIds' => []]]);
+    centerRecord($this->user, [['title' => 'Máslo', 'offerIds' => []]]);
     $this->travelTo('2026-11-04 06:30:00');
-    centerRecord($this->user, [['watchItem' => 'Pivo', 'offerIds' => []]]);
+    centerRecord($this->user, [['title' => 'Pivo', 'offerIds' => []]]);
     $this->travelTo('2026-11-05 06:31:00');
 
     app(PruneExpiredSessions::class)();
 
-    expect($this->user->notifications()->pluck('data')->all())->toBe([['groups' => [['watchItem' => 'Pivo', 'offerIds' => []]]]]);
+    expect($this->user->notifications()->pluck('data')->all())->toBe([['groups' => [['title' => 'Pivo', 'offerIds' => []]]]]);
 });

@@ -17,6 +17,7 @@ use App\Domain\Account\Actions\PruneExpiredSessions;
 use App\Domain\Catalog\Actions\ImportCategories;
 use App\Domain\Chains\Actions\ImportStores;
 use App\Domain\Digest\Actions\SendDigests;
+use App\Domain\Notifications\Actions\RecordEndingOffers;
 use App\Domain\Notifications\Actions\RecordNewOffers;
 use App\Domain\Offers\Actions\ImportChainOffers;
 use App\Domain\Push\Actions\SendPushNotifications;
@@ -99,14 +100,19 @@ class CronController extends Controller
      * Stejný cron zapisuje záznamy centra upozornění (R74) a posílá upozornění v telefonu (R66),
      * ať na hostingu nepřibývá další úloha; chyba jednoho kanálu ostatní nezastaví.
      */
-    public function sendDigests(CronRequest $request, RecordNewOffers $record, SendDigests $send, SendPushNotifications $push): Response
-    {
+    public function sendDigests(
+        CronRequest $request,
+        RecordNewOffers $record,
+        RecordEndingOffers $recordEnding,
+        SendDigests $send,
+        SendPushNotifications $push,
+    ): Response {
         $this->extendTimeLimit();
         $lines = [];
         $failed = false;
 
         // Záznamy centra upozornění (R74) jako první — upozornění v telefonu se z nich skládá
-        foreach (['notifications' => $record, 'digest' => $send, 'push' => $push] as $channel => $action) {
+        foreach (['notifications' => $record, 'ending_soon' => $recordEnding, 'digest' => $send, 'push' => $push] as $channel => $action) {
             try {
                 $lines[] = __("app.$channel.done", ['count' => $action()]);
             } catch (Throwable $error) {

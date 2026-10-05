@@ -73,7 +73,7 @@ final class RecordNewOffers
     private function record(User $user, CarbonImmutable $since): bool
     {
         $groups = array_map(fn (array $group): array => [
-            'watchItem' => $group['watchItem']->name,
+            'title' => $group['watchItem']->name,
             'offerIds' => array_map(fn (Offer $offer): int => $offer->id, $group['offers']),
         ], $this->newOffers->forUser($user, $since));
 

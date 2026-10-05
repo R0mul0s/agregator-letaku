@@ -356,7 +356,8 @@ náhled vlastních slov a „Vrátit“ v toastu. **Tón a kontakt (R72):** př�
 texty „my“ (datum účinnosti 2026-10-05), stránka `/kontakt`, v patičce sekce Kontakt. **České
 adresy (R73):** `/prihlaseni`, `/registrace`, `/zapomenute-heslo`… (staré přesměrované 301), přepínač
 „Ukazovat i akce jen pro e-shop“. **Centrum upozornění (R74):** zvonek v hlavičce, `/upozorneni`,
-upozornění v telefonu vede na záznam; mobilní navigace se spodní lištou do 829 px. **SQL skript
+upozornění v telefonu vede na záznam, odpoledne „Zítra končí…“ s akcemi z nákupního seznamu; mobilní
+navigace se spodní lištou do 829 px. **SQL skript
 `migrations-2026-10-05-centrum-upozorneni.sql`**, `composer.lock` se nezměnil, žádné soubory nezmizely.
 
 1. **Záloha databáze** (viz *Záloha databáze*) a pak v phpMyAdminu
@@ -380,7 +381,8 @@ upozornění v telefonu vede na záznam; mobilní navigace se spodní lištou do
      přihlášení, odhlášení, změna hesla v Mém účtu a „Zapomenuté heslo“ (odkaz v e-mailu vede na `/nove-heslo/…`) fungují
    - v hlavičce je zvonek, `/upozorneni` ukáže „Zatím je tu ticho“; cron `send-digests` vypíše
      „Centrum upozornění — zapsáno: 0“ (první běh jen začne počítat), po dalším stažení s novými akcemi
-     přibude záznam a upozornění v telefonu po klepnutí otevře jeho detail
+     přibude záznam a upozornění v telefonu po klepnutí otevře jeho detail; odpoledne (od 16:00)
+     cron vypíše „Končící akce ze seznamu — zapsáno: N“
 4. Zapiš verzi do *Nasazené verze*.
 
 **Každá nová migrace potřebuje SQL skript** `deploy/migrations-<datum>-<popis>.sql`

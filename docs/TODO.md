@@ -14,9 +14,9 @@ v [PLAN.md](PLAN.md). Větší celky se z toho stávají etapou.
 
 ## Upozornění
 
-**Odkud:** zadání 2026-10-02. E-mailová upozornění hned / denně / týdně (R42, R58), upozornění v telefonu (web push, R66) a centrum upozornění s novými akcemi (R74, etapa 11a) jsou hotová.
+**Odkud:** zadání 2026-10-02. E-mailová upozornění hned / denně / týdně (R42, R58), upozornění v telefonu (web push, R66) a centrum upozornění s novými a končícími akcemi (R74, etapy 11a, 11b) jsou hotová.
 
-- **centrum upozornění, další etapy (R74):** 11b akce z nákupního seznamu brzy končí (jen neodškrtnuté, bez Billy, i do telefonu), 11c akce zlevnila (štítek z `PriceHistory`, snížení ceny běžící akce jen když se na ostrých datech děje), 11d zprávy od nás (formulář admina, propagační jen se souhlasem)
+- **centrum upozornění, další etapy (R74):** 11c akce zlevnila (štítek z `PriceHistory`, snížení ceny běžící akce jen když se na ostrých datech děje), 11d zprávy od nás (formulář admina, propagační jen se souhlasem)
 - e-mailový souhrn s odkazem do centra upozornění (dnes „Otevřít Moje slevy“)
 - tlačítko „Do seznamu“ přímo v upozornění v telefonu — service worker nemá token CSRF, potřeboval by podepsanou adresu jako odhlášení z e-mailů
 - odběr, který prohlížeč sám vymění (`pushsubscriptionchange`), se dnes obnoví až zapnutím v Můj účet — obnovovat ho při startu aplikace

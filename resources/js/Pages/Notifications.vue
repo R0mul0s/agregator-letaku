@@ -1,5 +1,6 @@
 <!--
-    Centrum upozornění (R74) — záznamy o nových akcích na hlídané zboží po dnech, od nejnovějšího.
+    Centrum upozornění (R74) — záznamy po dnech, od nejnovějšího: nové akce na hlídané zboží
+    a akce z nákupního seznamu, které zítra končí (ikona podle druhu).
     Nepřečtené jsou zvýrazněné; po zobrazení je stránka označí jako přečtené (zvonek i číslo
     na ikoně aplikace zmizí), zvýraznění ale zůstane, dokud uživatel stránku neopustí.
 
@@ -23,6 +24,14 @@ const props = defineProps({
 
 /** Milisekund ve dni — pro „Včera“. */
 const DAY_MS = 24 * 60 * 60 * 1000;
+
+/** Ikony druhů záznamu (cesty SVG, viewBox 24 × 24, tah bez výplně); neznámý druh bez ikony. */
+const KIND_ICONS = {
+    // Cenovka — nové akce na hlídané zboží
+    new_offers: ['M3 12V4h8l10 10-8 8L3 12z', 'M7.5 8.5h.01'],
+    // Hodiny — akce ze seznamu brzy končí
+    ending_soon: ['M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z', 'M12 7v5l3 2'],
+};
 
 const t = useTranslations();
 const page = usePage();
@@ -105,6 +114,11 @@ onMounted(() => {
             <ul class="card notifications__list">
                 <li v-for="item in group.items" :key="item.id" class="notification-item" :class="{ 'notification-item--unread': unreadIds.has(item.id) }">
                     <Link :href="item.url" class="notification-item__link">
+                        <span class="notification-item__icon" :class="`notification-item__icon--${item.kind}`" aria-hidden="true">
+                            <svg v-if="KIND_ICONS[item.kind]" viewBox="0 0 24 24">
+                                <path v-for="path in KIND_ICONS[item.kind]" :key="path" :d="path" />
+                            </svg>
+                        </span>
                         <span class="notification-item__body">
                             <span class="notification-item__title">
                                 {{ item.title }}

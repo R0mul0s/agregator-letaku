@@ -234,6 +234,9 @@ return [
             'multibuy_min_quantity' => 2,
             // API nemá platnost akcí — akční týden jako leták: středa (ISO 3) až úterý
             'week_start_iso_day' => 3,
+            // Konec akce je jen odhad (pokračující akce se prodlužují, R54) — neupozorňovat,
+            // že končí (centrum upozornění, R74)
+            'estimated_validity' => true,
             // Platnost odvozujeme sami: akce, která se stejnou cenou pokračuje do dalšího týdne,
             // prodlouží svůj řádek, místo aby vznikla „nová“ (R54, ImportChainOffers::continuePrevious)
             'extends_continuing_offers' => true,
@@ -407,7 +410,8 @@ return [
     /*
     | Centrum upozornění (R74, /upozorneni). Cron /cron/send-digests po stažení s novými akcemi
     | zapíše každému uživateli záznam (i bez zapnutých upozornění v telefonu nebo e-mailu);
-    | upozornění v telefonu se pak skládá ze záznamů. Po dávkách jako souhrny (R54).
+    | upozornění v telefonu se pak skládá ze záznamů. Po dávkách jako souhrny (R54). Odpoledne
+    | zapíše i akce z nákupního seznamu, které zítra končí (bez obchodů s odhadovanou platností).
     | Starší záznamy maže denní úklid (/cron/prune-sessions) — doba je v zásadách (kap. 3).
     */
     'notifications' => [
@@ -415,6 +419,11 @@ return [
         'retention_days' => 30,
         // Kolik posledních záznamů stránka ukáže (za 30 dní jich bývá pár za den)
         'max_listed' => 100,
+        // Akce z nákupního seznamu, které zítra končí (etapa 11b): jednou denně od této hodiny
+        // místního času — cron běží do 22:30, odpoledne je čas akci ještě koupit
+        'ending_soon' => [
+            'from_hour' => 16,
+        ],
     ],
 
     'cron' => [

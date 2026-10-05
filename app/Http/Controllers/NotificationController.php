@@ -16,11 +16,10 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Domain\Matching\MyOffers;
-use App\Domain\Notifications\NewOffersNotification;
 use App\Domain\Notifications\NotificationPresenter;
+use App\Domain\Notifications\OffersNotification;
 use App\Domain\Offers\LocalCalendar;
 use App\Domain\Offers\OfferPresenter;
-use App\Enums\NotificationKind;
 use App\Models\Offer;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
@@ -52,7 +51,7 @@ class NotificationController extends Controller
     }
 
     /**
-     * Detail záznamu: akce po hlídaných položkách, jak jsou teď; skončené označené.
+     * Detail záznamu: akce po skupinách (hlídané položky, obchody), jak jsou teď; skončené označené.
      */
     public function show(
         Request $request,
@@ -66,14 +65,14 @@ class NotificationController extends Controller
         /** @var DatabaseNotification $record */
         $record = $user->notifications()->findOrFail($notification);
         $summary = $presenter->summary($record);
-        abort_if($summary === null || $record->type !== NotificationKind::NewOffers->value, 404);
+        abort_if($summary === null, 404);
 
-        $offers = Offer::query()->with('stores')->findMany(NewOffersNotification::offerIds($record))->keyBy('id');
+        $offers = Offer::query()->with('stores')->findMany(OffersNotification::offerIds($record))->keyBy('id');
         $storeCodes = $user->selectedStoreCodes();
         $today = $calendar->today();
 
         $groups = array_map(fn (array $group): array => [
-            'watchItem' => $group['watchItem'],
+            'title' => $group['title'],
             'offers' => array_values(array_filter(array_map(function (int $id) use ($offers, $offerPresenter, $myOffers, $user, $storeCodes, $today): ?array {
                 $offer = $offers->get($id);
 
@@ -84,13 +83,15 @@ class NotificationController extends Controller
                     'ended' => $offer->withdrawn_at !== null || $offer->valid_to->lessThan($today),
                 ];
             }, $group['offerIds']))),
-        ], NewOffersNotification::groups($record));
+        ], OffersNotification::groups($record));
 
         return Inertia::render('NotificationDetail', [
             'notification' => $summary,
             'groups' => $groups,
             'indexUrl' => route('notifications.index', absolute: false),
             'readUrl' => route('notifications.read', absolute: false),
+            // Končící akce ze seznamu (11b): rovnou do nákupního seznamu
+            'shoppingListUrl' => route('shopping-list.index', absolute: false),
         ]);
     }
 

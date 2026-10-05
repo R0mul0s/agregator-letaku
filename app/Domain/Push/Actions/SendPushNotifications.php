@@ -4,9 +4,10 @@
  * Upozornění v telefonu na nové akce hlídaných položek (web push, R66). Cron /cron/send-digests
  * ho volá spolu s e-mailovými souhrny každou hodinu 6:30–22:30 — v noci tak upozornění nechodí.
  *
- * Skládá se ze záznamů centra upozornění (R74, RecordNewOffers je zapíše těsně předtím):
- * uživatel s aspoň jedním zařízením dostane upozornění na nepřečtené záznamy o nových akcích,
- * které vznikly po jeho posledním upozornění, nejvýš jednou za `letaky.push.interval_hours`.
+ * Skládá se ze záznamů centra upozornění (R74, RecordNewOffers a RecordEndingOffers je zapíšou
+ * těsně předtím): uživatel s aspoň jedním zařízením dostane upozornění na nepřečtené záznamy
+ * (nové akce, končící akce ze seznamu — každý druh zvlášť), které vznikly po jeho posledním
+ * upozornění, nejvýš jednou za `letaky.push.interval_hours`.
  * Klepnutí otevře záznam v centru (víc záznamů = celé centrum), číslo na ikoně aplikace
  * je počet nepřečtených záznamů — stejné jako u zvonku v hlavičce.
  *
@@ -22,7 +23,8 @@ declare(strict_types=1);
 namespace App\Domain\Push\Actions;
 
 use App\Domain\Matching\MyOffers;
-use App\Domain\Notifications\NewOffersNotification;
+use App\Domain\Notifications\NotificationPresenter;
+use App\Domain\Notifications\OffersNotification;
 use App\Domain\Push\PushMessage;
 use App\Domain\Push\PushSubscriptions;
 use App\Domain\Push\Vapid;
@@ -39,14 +41,12 @@ use Throwable;
 
 final class SendPushNotifications
 {
-    /** Značka upozornění na akce — nové nahradí předchozí v liště telefonu. */
-    private const TAG = 'new-offers';
-
     public function __construct(
         private readonly MyOffers $myOffers,
         private readonly PushSubscriptions $subscriptions,
         private readonly Vapid $vapid,
         private readonly PriceFormatter $prices,
+        private readonly NotificationPresenter $presenter,
     ) {}
 
     /**
@@ -92,54 +92,59 @@ final class SendPushNotifications
     }
 
     /**
-     * Záznamy o nových akcích, které vznikly po posledním upozornění uživatele (dotaz uvnitř
-     * whereHas nad users — sloupec push_sent_at je z vnějšího dotazu).
+     * Záznamy, které vznikly po posledním upozornění uživatele (dotaz uvnitř whereHas nad
+     * users — sloupec push_sent_at je z vnějšího dotazu).
      *
      * @param  Builder<DatabaseNotification>  $query
      */
     private function whereNotPushed(Builder $query): void
     {
-        $query->where('type', NotificationKind::NewOffers->value)
+        $query->whereIn('type', array_map(fn (NotificationKind $kind): string => $kind->value, NotificationKind::cases()))
             ->where(fn (Builder $query) => $query
                 ->whereNull('users.push_sent_at')
                 ->orWhereColumn('notifications.created_at', '>', 'users.push_sent_at'));
     }
 
     /**
-     * Pošle uživateli upozornění na všechna jeho zařízení.
+     * Pošle uživateli na všechna jeho zařízení jedno upozornění za každý druh nových záznamů
+     * (nové akce, končící akce ze seznamu) — každý druh má v liště telefonu své místo.
      */
     private function notify(User $user): bool
     {
         /** @var MorphMany<DatabaseNotification, User> $unread */
         $unread = $user->unreadNotifications();
+        $unreadCount = (clone $unread)->count();
         /** @var Collection<int, DatabaseNotification> $records */
         $records = (clone $unread)
-            ->where('type', NotificationKind::NewOffers->value)
             ->when($user->push_sent_at, fn (Builder $query, CarbonImmutable $at) => $query->where('created_at', '>', $at))
             ->get();
 
-        $message = $this->message($user, $records, $unread->count());
-        if ($message === null) {
-            return false;
-        }
-
         $delivered = false;
-        foreach ($user->pushSubscriptions as $subscription) {
-            $delivered = $this->subscriptions->deliver($subscription, $message) || $delivered;
+        foreach (NotificationKind::cases() as $kind) {
+            $ofKind = $records->filter(fn (DatabaseNotification $record): bool => $record->type === $kind->value)->values();
+            $message = $ofKind->isEmpty() ? null : $this->message($user, $kind, $ofKind, $unreadCount);
+            if ($message === null) {
+                continue;
+            }
+
+            foreach ($user->pushSubscriptions as $subscription) {
+                $delivered = $this->subscriptions->deliver($subscription, $message) || $delivered;
+            }
         }
 
         return $delivered;
     }
 
     /**
-     * Text upozornění: jedna akce s názvem hlídané položky v nadpisu, víc akcí s počtem;
-     * v textu prvních pár akcí s cenou a obchodem. Null = záznamy bez akcí.
+     * Text upozornění: nadpis jako v centru upozornění (jedna nová akce s názvem hlídané
+     * položky, jinak s počtem), v textu prvních pár akcí s cenou a obchodem. Null = záznamy
+     * bez akcí.
      *
-     * @param  Collection<int, DatabaseNotification>  $records  Od nejnovějšího
+     * @param  Collection<int, DatabaseNotification>  $records  Jednoho druhu, od nejnovějšího
      */
-    private function message(User $user, Collection $records, int $unreadCount): ?PushMessage
+    private function message(User $user, NotificationKind $kind, Collection $records, int $unreadCount): ?PushMessage
     {
-        $groups = array_merge(...$records->map(NewOffersNotification::groups(...))->all());
+        $groups = array_merge(...$records->map(OffersNotification::groups(...))->all());
         $offerIds = array_values(array_unique(array_merge([], ...array_column($groups, 'offerIds'))));
         $offers = Offer::query()->findMany($offerIds)->keyBy('id');
         $offers = array_values(array_filter(array_map(fn (int $id): ?Offer => $offers->get($id), $offerIds)));
@@ -163,19 +168,19 @@ final class SendPushNotifications
             $lines[] = trans_choice('app.push.more', $count - count($shown));
         }
 
+        // Jedna akce: nadpis podle skupiny (hlídané položky), ke které patří
+        $titleGroups = $count === 1
+            ? array_values(array_filter($groups, fn (array $group): bool => in_array($offers[0]->id, $group['offerIds'], true)))
+            : $groups;
         $single = $records->count() === 1 ? $records->first() : null;
-        // Jedna akce: nadpis s názvem hlídané položky, ke které patří
-        $watchItem = collect($groups)->first(fn (array $group): bool => in_array($offers[0]->id, $group['offerIds'], true));
 
         return new PushMessage(
-            title: $count === 1
-                ? __('app.notifications.new_offers.title_one', ['name' => $watchItem['watchItem'] ?? $offers[0]->name])
-                : trans_choice('app.notifications.new_offers.title_many', $count),
+            title: $this->presenter->title($kind, $titleGroups, $count),
             body: implode("\n", $lines),
             url: $single === null
                 ? route('notifications.index', absolute: false)
                 : route('notifications.show', $single->id, absolute: false),
-            tag: self::TAG,
+            tag: $kind->pushTag(),
             badge: $unreadCount,
         );
     }

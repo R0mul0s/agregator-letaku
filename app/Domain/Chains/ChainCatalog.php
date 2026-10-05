@@ -40,6 +40,15 @@ final class ChainCatalog
     }
 
     /**
+     * Je konec akcí obchodu jen odhad (Billa: akční týden, prodlužování, R48, R54)? Takovým
+     * akcím se neupozorňuje, že končí (R74).
+     */
+    public function hasEstimatedValidity(Chain $chain): bool
+    {
+        return config("letaky.sources.{$chain->value}.estimated_validity") === true;
+    }
+
+    /**
      * Má obchod akce jen v e-shopu?
      */
     public function hasEshop(Chain $chain): bool

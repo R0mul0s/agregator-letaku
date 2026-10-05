@@ -1,8 +1,9 @@
 <?php
 
 /**
- * Záznam centra upozornění (R74) pro stránku: nadpis, text, čas a stav přečtení. Nadpis
- * nových akcí je stejný jako u upozornění v telefonu („Máslo je v akci“, „3 nové akce…“).
+ * Záznam centra upozornění (R74) pro stránku a upozornění v telefonu: nadpis, text, čas a stav
+ * přečtení. Nadpis je stejný na stránce i v telefonu („Máslo je v akci“, „3 nové akce…“,
+ * „Zítra končí 2 akce z vašeho seznamu“).
  *
  * @author Roman Hlaváček
  *
@@ -25,31 +26,37 @@ final class NotificationPresenter
      */
     public function summary(DatabaseNotification $notification): ?array
     {
-        return match (NotificationKind::tryFrom($notification->type)) {
-            NotificationKind::NewOffers => [
-                'id' => $notification->id,
-                'kind' => NotificationKind::NewOffers->value,
-                'title' => $this->newOffersTitle($notification),
-                // Hlídané položky, kterých se akce týkají
-                'text' => implode(', ', array_column(NewOffersNotification::groups($notification), 'watchItem')),
-                'createdAt' => $notification->created_at?->toIso8601String(),
-                'unread' => $notification->read_at === null,
-                'url' => route('notifications.show', $notification->id, absolute: false),
-            ],
-            null => null,
-        };
+        $kind = NotificationKind::tryFrom($notification->type);
+        if ($kind === null) {
+            return null;
+        }
+
+        $groups = OffersNotification::groups($notification);
+
+        return [
+            'id' => $notification->id,
+            'kind' => $kind->value,
+            'title' => $this->title($kind, $groups, count(OffersNotification::offerIds($notification))),
+            // Hlídané položky, nebo obchody, kterých se akce týkají
+            'text' => implode(', ', array_column($groups, 'title')),
+            'createdAt' => $notification->created_at?->toIso8601String(),
+            'unread' => $notification->read_at === null,
+            'url' => route('notifications.show', $notification->id, absolute: false),
+        ];
     }
 
     /**
-     * Nadpis záznamu o nových akcích: jedna akce s názvem hlídané položky, víc s počtem.
+     * Nadpis podle druhu: u jedné nové akce s názvem hlídané položky, jinak s počtem akcí.
+     *
+     * @param  list<array{title: string, offerIds: list<int>}>  $groups
      */
-    private function newOffersTitle(DatabaseNotification $notification): string
+    public function title(NotificationKind $kind, array $groups, int $offerCount): string
     {
-        $groups = NewOffersNotification::groups($notification);
-        $count = count(NewOffersNotification::offerIds($notification));
-
-        return $count === 1
-            ? __('app.notifications.new_offers.title_one', ['name' => $groups[0]['watchItem'] ?? ''])
-            : trans_choice('app.notifications.new_offers.title_many', $count);
+        return match ($kind) {
+            NotificationKind::NewOffers => $offerCount === 1
+                ? __('app.notifications.new_offers.title_one', ['name' => $groups[0]['title'] ?? ''])
+                : trans_choice('app.notifications.new_offers.title_many', $offerCount),
+            NotificationKind::EndingSoon => trans_choice('app.notifications.ending_soon.title', $offerCount),
+        };
     }
 }

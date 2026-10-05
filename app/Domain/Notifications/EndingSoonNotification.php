@@ -1,8 +1,8 @@
 <?php
 
 /**
- * Záznam v centru upozornění (R74): nové akce na hlídané zboží po stažení letáků, skupiny
- * po hlídaných položkách (RecordNewOffers).
+ * Záznam v centru upozornění (R74, etapa 11b): akce z nákupního seznamu, které zítra končí,
+ * skupiny po obchodech (RecordEndingOffers).
  *
  * @author Roman Hlaváček
  *
@@ -15,13 +15,13 @@ namespace App\Domain\Notifications;
 
 use App\Enums\NotificationKind;
 
-final class NewOffersNotification extends OffersNotification
+final class EndingSoonNotification extends OffersNotification
 {
     /**
      * Druh záznamu.
      */
     public function kind(): NotificationKind
     {
-        return NotificationKind::NewOffers;
+        return NotificationKind::EndingSoon;
     }
 }
