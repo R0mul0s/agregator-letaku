@@ -296,6 +296,22 @@ return [
         ],
         // Nabídka hranic minimální slevy v Mých slevách (R41), v procentech
         'min_discount_options' => [10, 20, 30, 50],
+        // Poslední aktivita (R84): zapíše se nejvýš jednou za tolik sekund (ne při každém
+        // požadavku) a „online“ je uživatel s aktivitou za posledních tolik minut
+        'presence' => [
+            'touch_interval_seconds' => 60,
+            'online_minutes' => 5,
+        ],
+    ],
+
+    /*
+    | Přehled uživatelů pro admina (R84, /uzivatele): stránkování, hledání a okna aktivity
+    | v souhrnu nahoře (aktivní za posledních N dní).
+    */
+    'users' => [
+        'per_page' => 50,
+        'search_max_length' => 100,
+        'active_days' => [1, 7, 30],
     ],
 
     /*

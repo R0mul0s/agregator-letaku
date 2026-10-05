@@ -19,6 +19,7 @@ use App\Enums\OffersSort;
 use Carbon\CarbonImmutable;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\AsEnumCollection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -41,6 +42,7 @@ use Illuminate\Support\Collection;
  * @property CarbonImmutable|null $digest_sent_at Poslední zpracovaný souhrn (UTC), i když nebylo co poslat (R54)
  * @property CarbonImmutable|null $push_sent_at Poslední zpracované upozornění v telefonu (UTC), i když nebylo co poslat (R66)
  * @property CarbonImmutable|null $notified_at Do kdy jsou nové akce zapsané v centru upozornění (UTC, R74); null = ještě nezačalo
+ * @property CarbonImmutable|null $last_seen_at Poslední požadavek přihlášeného (UTC, R84); zapisuje TrackLastSeen nejvýš jednou za minutu, null = od zavedení nepřišel
  * @property CarbonImmutable|null $terms_accepted_at Přijetí podmínek užití (R51)
  * @property int|null $terms_version Verze přijatých podmínek (letaky.legal.terms_version)
  * @property CarbonImmutable|null $marketing_consent_at Poslední udělení souhlasu s obchodními sděleními (R51); platí, jen když je novější než odvolání (R69)
@@ -77,6 +79,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'digest_sent_at' => null,
         'push_sent_at' => null,
         'notified_at' => null,
+        'last_seen_at' => null,
         'terms_accepted_at' => null,
         'terms_version' => null,
         'marketing_consent_at' => null,
@@ -108,6 +111,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'digest_sent_at' => 'immutable_datetime',
             'push_sent_at' => 'immutable_datetime',
             'notified_at' => 'immutable_datetime',
+            'last_seen_at' => 'immutable_datetime',
             'terms_accepted_at' => 'immutable_datetime',
             'terms_version' => 'integer',
             'marketing_consent_at' => 'immutable_datetime',
@@ -177,6 +181,20 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->marketing_consent_at !== null
             && ($this->marketing_consent_withdrawn_at === null || $this->marketing_consent_withdrawn_at->lessThan($this->marketing_consent_at));
+    }
+
+    /**
+     * Uživatelé s platným souhlasem s obchodními sděleními — stejná podmínka jako
+     * hasMarketingConsent (R69): udělení novější než poslední odvolání.
+     *
+     * @param  Builder<self>  $query
+     */
+    public function scopeWithMarketingConsent(Builder $query): void
+    {
+        $query->whereNotNull('marketing_consent_at')
+            ->where(fn (Builder $query) => $query
+                ->whereNull('marketing_consent_withdrawn_at')
+                ->orWhereColumn('marketing_consent_withdrawn_at', '<', 'marketing_consent_at'));
     }
 
     /**

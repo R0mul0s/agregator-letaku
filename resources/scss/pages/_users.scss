@@ -1,0 +1,233 @@
+// _users.scss
+// Přehled uživatelů pro admina (R84, Users.vue): dlaždice souhrnu jako filtry, karty uživatelů
+// s tečkou „online“ u avataru, poslední aktivitou, obchody a nastavením.
+//
+// @author Roman Hlaváček
+// @created 2026-10-05
+
+@use '../abstracts/mixins' as *;
+
+// Tečka přítomnosti: šedá = offline, zelená = online, s pulzem v souhrnu
+.presence-dot {
+    display: inline-block;
+    flex: none;
+    width: var(--presence-dot-size);
+    height: var(--presence-dot-size);
+    background: var(--color-border);
+    border-radius: 50%;
+
+    &--online {
+        background: var(--color-success);
+    }
+
+    &--pulse {
+        animation: presence-pulse var(--presence-pulse-duration) ease-out infinite;
+
+        @media (prefers-reduced-motion: reduce) {
+            animation: none;
+        }
+    }
+}
+
+@keyframes presence-pulse {
+    0% {
+        box-shadow: 0 0 0 0 var(--color-success);
+    }
+
+    100% {
+        box-shadow: 0 0 0 var(--presence-pulse-spread) transparent;
+    }
+}
+
+.users-summary {
+    display: grid;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+
+    &__title {
+        margin-bottom: var(--space-2);
+        color: var(--color-text-muted);
+        font-size: var(--font-size-xs);
+        font-weight: 800;
+        letter-spacing: var(--letter-spacing-caps);
+        text-transform: uppercase;
+    }
+
+    &__tiles {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(var(--users-tile-min-width), 1fr));
+        gap: var(--space-2);
+    }
+
+    // Dlaždice je tlačítko filtru — číslo velké, popisek pod ním
+    &__tile {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-1);
+        padding: var(--space-2) var(--space-3);
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-card);
+        color: var(--color-text-muted);
+        font: inherit;
+        text-align: left;
+        cursor: pointer;
+        transition:
+            border-color var(--duration-fast) ease,
+            box-shadow var(--duration-fast) ease;
+
+        &:hover {
+            box-shadow: var(--shadow-card-hover);
+        }
+
+        &--selected {
+            border-color: var(--color-accent);
+            background: var(--color-accent-soft);
+        }
+
+        &--online {
+            border-color: var(--color-success);
+        }
+
+        &--online.users-summary__tile--selected {
+            background: var(--color-success-soft);
+        }
+    }
+
+    &__value {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+        color: var(--color-text);
+        font-size: var(--font-size-users-tile);
+        font-weight: 900;
+        line-height: 1;
+    }
+
+    &__label {
+        font-size: var(--font-size-sm);
+    }
+}
+
+.user-list {
+    display: grid;
+    gap: var(--space-3);
+    margin: 0 0 var(--space-4);
+    padding: 0;
+    list-style: none;
+}
+
+.user-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+
+    &--online {
+        border-color: var(--color-success);
+    }
+
+    &__head {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--space-3);
+    }
+
+    // Tečka přítomnosti v pravém dolním rohu avataru, oddělená prstencem barvy karty
+    &__avatar {
+        position: relative;
+        display: inline-flex;
+    }
+
+    &__presence {
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        box-shadow: 0 0 0 var(--presence-dot-ring) var(--color-surface);
+    }
+
+    &__identity {
+        flex: 1 1 var(--account-avatar-body-min-width);
+        min-width: 0;
+    }
+
+    &__name {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--space-2);
+        margin: 0;
+        font-weight: 800;
+    }
+
+    &__email {
+        margin: 0;
+        overflow: hidden;
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    &__seen {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-1);
+
+        @include from-md {
+            align-items: flex-end;
+            text-align: right;
+        }
+    }
+
+    &__last-seen {
+        font-size: var(--font-size-sm);
+        font-weight: 700;
+
+        &--online {
+            align-self: flex-start;
+            padding: 0 var(--space-2);
+            background: var(--color-success-soft);
+            border-radius: var(--radius-pill);
+            color: var(--color-success-text);
+
+            @include from-md {
+                align-self: flex-end;
+            }
+        }
+    }
+
+    &__registered,
+    &__muted {
+        color: var(--color-text-muted);
+        font-size: var(--font-size-xs);
+    }
+
+    &__chains {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--space-2) var(--space-3);
+    }
+
+    &__chain {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-1);
+    }
+
+    &__chain-detail {
+        color: var(--color-text-muted);
+        font-size: var(--font-size-xs);
+    }
+
+    &__settings {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-1);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+}

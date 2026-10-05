@@ -82,6 +82,7 @@ do telefonu je neposíláme.
 |---|---|---|
 | IP adresa a identifikace prohlížeče u relace (session) | udržení přihlášení, přehled přihlášených zařízení ve vašem účtu | plnění smlouvy, oprávněný zájem na zabezpečení |
 | IP adresa, u přihlášení i e-mail, v omezení počtu požadavků | ochrana proti zneužití (hádání hesel, přetížení, rozesílání e-mailů na cizí adresy) | oprávněný zájem na zabezpečení |
+| čas poslední aktivity v účtu (s přesností na minutu) | přehled o tom, kolik lidí službu používá, a správa účtů | oprávněný zájem na provozu služby |
 | záznamy o chybách aplikace | oprava chyb | oprávněný zájem na provozu služby |
 
 Relace s IP adresou vzniká i u nepřihlášeného návštěvníka, bez ní nefunguje ochrana
@@ -118,7 +119,7 @@ a cílení reklamy (Google signály). Reklamu zatím nezobrazujeme.
 
 | Údaje | Doba |
 |---|---|
-| účet a vše, co k němu patří (hlídané položky, nákupní seznam, obchody, předvolby, obrázek, souhlasy) | do zrušení účtu |
+| účet a vše, co k němu patří (hlídané položky, nákupní seznam, obchody, předvolby, obrázek, souhlasy, čas poslední aktivity) | do zrušení účtu |
 | záznamy v centru upozornění | {notifications_retention_days} dní, potom se smažou nejpozději do 24 hodin |
 | odběr upozornění v telefonu | do vypnutí upozornění, odhlášení na zařízení nebo zrušení účtu; odběr, který push služba přestane přijímat, se smaže při dalším upozornění |
 | relace (IP adresa, prohlížeč) | 2 hodiny od poslední aktivity, potom se smaže nejpozději do 24 hodin |

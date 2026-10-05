@@ -767,6 +767,55 @@ return [
             'with_push' => 'i do telefonu',
         ],
 
+        // Přehled uživatelů pro admina (R84, Users.vue, App\Domain\Account\UserDirectory)
+        'users' => [
+            'title' => 'Uživatelé',
+            'intro' => 'Kdo Slevohlídku používá, kdy u nás byl naposledy a jak si ji nastavil. Online je, kdo u nás byl za posledních :minutes minut.',
+            'search' => 'Hledat',
+            'search_placeholder' => 'Jméno nebo e-mail',
+            'sort' => 'Řadit',
+            'sorts' => [
+                'last_seen' => 'Naposledy online',
+                'registered' => 'Nejnovější registrace',
+                'name' => 'Podle jména',
+                'watch_items' => 'Nejvíc hlídaných',
+            ],
+            'count' => ':count uživatel|:count uživatelé|:count uživatelů',
+            'activity_title' => 'Aktivita',
+            'settings_title' => 'Nastavení',
+            'filters' => [
+                'all' => 'Všichni',
+                'online' => 'Teď online',
+                'active' => 'Za poslední den|Za poslední :count dny|Za posledních :count dní',
+                'telefon' => 'Upozornění v telefonu',
+                'souhrn' => 'E-mailový souhrn',
+                'novinky' => 'Souhlas s novinkami',
+                'neovereni' => 'Neověřený e-mail',
+            ],
+            'filter_label' => 'Filtr :name',
+            'clear_filter' => 'Zrušit filtr',
+            'online' => 'Online',
+            'last_seen' => 'Naposledy :time',
+            'never' => 'Zatím bez aktivity',
+            'registered' => 'Registrace :date',
+            'admin' => 'Admin',
+            'unverified' => 'Neověřený e-mail',
+            'no_chains' => 'Nesleduje žádný obchod',
+            'stores' => ':count prodejna|:count prodejny|:count prodejen',
+            'without_eshop' => 'bez e-shopu',
+            'watch_items' => ':count hlídaná položka|:count hlídané položky|:count hlídaných položek',
+            'shopping_list' => ':count v seznamu|:count v seznamu|:count v seznamu',
+            'push' => 'Telefon: :count zařízení',
+            'no_push' => 'Bez upozornění v telefonu',
+            'digest' => 'E-maily: :frequency',
+            'marketing' => 'Novinky: ano',
+            'no_marketing' => 'Novinky: ne',
+            'offers_sort' => 'Řadí od :sort',
+            'min_discount' => 'slevy od :percent %',
+            'empty' => 'Nikoho takového jsme nenašli.',
+            'load_more' => 'Načíst dalšího :count uživatele|Načíst další :count uživatele|Načíst dalších :count uživatelů',
+        ],
+
         // Centrum upozornění (R74, Notifications.vue, NotificationDetail.vue, NotificationBell.vue)
         'notifications' => [
             'title' => 'Upozornění',
@@ -827,6 +876,7 @@ return [
             'label' => 'Účet a nastavení',
             // Jen admin (R74, 11d)
             'announcements' => 'Zprávy uživatelům',
+            'users' => 'Uživatelé',
         ],
 
         'account' => [

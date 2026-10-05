@@ -30,6 +30,7 @@ use App\Http\Controllers\ServiceWorkerController;
 use App\Http\Controllers\ShoppingListController;
 use App\Http\Controllers\ShoppingPreferencesController;
 use App\Http\Controllers\UnsubscribeController;
+use App\Http\Controllers\UserController;
 use App\Http\Controllers\WatchItemController;
 use App\Http\Middleware\ReadOnlySession;
 use App\Support\RateLimits;
@@ -144,6 +145,12 @@ Route::middleware('auth')->group(function (): void {
     Route::middleware('can:send-announcements')->group(function (): void {
         Route::get('/zpravy', [AnnouncementController::class, 'index'])->name('announcements.index');
         Route::post('/zpravy', [AnnouncementController::class, 'store'])->name('announcements.store');
+    });
+
+    // Přehled uživatelů s poslední aktivitou a nastavením vidí admin (R84)
+    Route::middleware('can:view-users')->group(function (): void {
+        Route::get('/uzivatele', [UserController::class, 'index'])->name('users.index');
+        Route::get('/uzivatele/{user}/obrazek', [UserController::class, 'avatar'])->name('users.avatar');
     });
 
     // Katalog produktů spravuje admin (R29)

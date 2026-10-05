@@ -466,6 +466,7 @@ a ruční opravy katalogu. Před každým SQL skriptem a jinak aspoň jednou mě
 | `migrations-2026-10-04-upozorneni-v-telefonu.sql` | upozornění v telefonu (R66): tabulka `push_subscriptions`, `users.push_sent_at`; opakovatelný, pustit **před** nahráním kódu | 2026-10-04 |
 | `data-2026-10-04-katalog-rozsireni.sql` | rozšíření katalogu (R70): 42 nových produktů a nová pravidla šesti (Minerální voda, Džus, Prací prostředek, Salám, Ovesné vločky, Nealkoholické pivo); podle názvu, opakovatelný, nezávisí na kódu | 2026-10-04 |
 | `migrations-2026-10-05-centrum-upozorneni.sql` | centrum upozornění (R74): tabulky `notifications` a `announcements`, `users.notified_at`; opakovatelný, pustit **před** nahráním kódu | 2026-10-05 |
+| `migrations-2026-10-05-posledni-aktivita.sql` | poslední aktivita (R84): `users.last_seen_at` s indexem, dosavadním účtům doplní z relací; opakovatelný, pustit **před** nahráním kódu | |
 
 ## Nasazené verze
 

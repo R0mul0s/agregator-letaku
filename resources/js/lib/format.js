@@ -107,3 +107,33 @@ export function formatDateTime(isoDateTime, locale, timeZone) {
         new Date(isoDateTime),
     );
 }
+
+/** Hranice relativního času: do hodiny v minutách, do dne v hodinách, do týdne ve dnech. */
+const RELATIVE_UNITS = [
+    { unit: 'minute', seconds: 60, below: 60 * 60 },
+    { unit: 'hour', seconds: 60 * 60, below: 24 * 60 * 60 },
+    { unit: 'day', seconds: 24 * 60 * 60, below: 7 * 24 * 60 * 60 },
+];
+
+/**
+ * Okamžik v minulosti relativně k teď: „před 5 minutami“, „před 3 hodinami“, „včera“;
+ * starší než týden jako datum a čas („2. 10. 20:15“).
+ *
+ * @param {string} isoDateTime
+ * @param {string} locale
+ * @param {string} timeZone Zóna zobrazení starších okamžiků (sdílená vlastnost `timezone`)
+ * @param {number} [now] Teď v milisekundách
+ * @returns {string}
+ */
+export function formatRelativeTime(isoDateTime, locale, timeZone, now = Date.now()) {
+    const elapsedSeconds = Math.max(0, (now - new Date(isoDateTime).getTime()) / 1000);
+    const range = RELATIVE_UNITS.find((candidate) => elapsedSeconds < candidate.below);
+    if (!range) {
+        return formatDateTime(isoDateTime, locale, timeZone);
+    }
+
+    // Aspoň minuta — „před 0 minutami“ by vypadalo jako chyba
+    const amount = Math.max(1, Math.floor(elapsedSeconds / range.seconds));
+
+    return cachedFormatter(Intl.RelativeTimeFormat, locale, { numeric: 'auto' }).format(-amount, range.unit);
+}

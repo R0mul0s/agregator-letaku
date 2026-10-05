@@ -238,6 +238,13 @@
     --empty-mascot-size: 6rem;
     --empty-text-max-width: 32rem;
     --search-text-min-width: 16rem;
+    // Přehled uživatelů (R84): tečka „online“ u avataru a dlaždice souhrnu
+    --presence-dot-size: 0.75rem;
+    --presence-dot-ring: 2px;
+    --presence-pulse-duration: 2s;
+    --presence-pulse-spread: 0.375rem;
+    --users-tile-min-width: 8.5rem;
+    --font-size-users-tile: 1.5rem;
     // Hledání s našeptávačem (R71): panel návrhů, miniatury akcí, ikony produktů, kolečko načítání
     --search-panel-max-height: 34rem;
     --search-thumb-size: 3rem;

@@ -89,11 +89,13 @@ class HandleInertiaRequests extends Middleware
                 // Účet je v menu pod avatarem vpravo nahoře (R40), ne v hlavní navigaci; na stránce
                 // z menu je avatar „aktivní položkou“
                 'accountUrl' => route('account', absolute: false),
-                'accountActive' => $request->routeIs('account', 'catalog.*', 'announcements.*'),
+                'accountActive' => $request->routeIs('account', 'catalog.*', 'announcements.*', 'users.*'),
                 // Admin má v menu pod avatarem i katalog (R29) a zprávy od nás (R74, 11d) — v hlavičce
                 // by se navigace zalamovala (R75)
                 'catalogUrl' => $user instanceof User && $user->is_admin ? route('catalog.index', absolute: false) : null,
                 'announcementsUrl' => $user instanceof User && $user->is_admin ? route('announcements.index', absolute: false) : null,
+                // Přehled uživatelů s poslední aktivitou (R84)
+                'usersUrl' => $user instanceof User && $user->is_admin ? route('users.index', absolute: false) : null,
             ],
             // Nákupní seznam (R61): které akce v něm jsou — tlačítko na kartě akce ukáže stav;
             // název se nesmí krýt s propem stránky

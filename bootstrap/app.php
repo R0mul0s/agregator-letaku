@@ -11,6 +11,7 @@
 declare(strict_types=1);
 
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\TrackLastSeen;
 use App\Http\Responses\ErrorToast;
 use App\Support\RateLimits;
 use Illuminate\Foundation\Application;
@@ -31,6 +32,8 @@ return Application::configure(basePath: dirname(__DIR__))
             // Limit měnících požadavků (R45) — GET propustí, POST/PUT/DELETE počítá
             ThrottleRequests::using(RateLimits::WRITES),
             HandleInertiaRequests::class,
+            // Poslední aktivita přihlášeného pro přehled uživatelů admina (R84)
+            TrackLastSeen::class,
         ]);
 
         // Odhlášení z e-mailů jedním klepnutím (R51) posílá poštovní klient bez CSRF tokenu;

@@ -1,6 +1,6 @@
 <!--
     Menu účtu vpravo nahoře (R40) — avatar otevře nabídku se jménem, odkazem na účet (admin
-    i na katalog a zprávy uživatelům, R75), přepínačem vzhledu a odhlášením. Zavře se Escapem, klepnutím mimo a při přechodu na jinou stránku.
+    i na katalog, přehled uživatelů a zprávy uživatelům, R75, R84), přepínačem vzhledu a odhlášením. Zavře se Escapem, klepnutím mimo a při přechodu na jinou stránku.
 
     @author Roman Hlaváček
     @created 2026-10-02
@@ -99,13 +99,20 @@ onBeforeUnmount(() => {
                 <svg class="user-menu__icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4" /><path d="M4 21c1-4 4.5-6 8-6s7 2 8 6" /></svg>
                 {{ t('account.title') }}
             </Link>
-            <!-- Jen admin: katalog produktů (R29, R75) a zprávy do centra upozornění (R74, 11d) -->
+            <!-- Jen admin: katalog produktů (R29, R75), přehled uživatelů (R84) a zprávy do centra upozornění (R74, 11d) -->
             <Link v-if="page.props.auth.catalogUrl" :href="page.props.auth.catalogUrl" class="user-menu__item">
                 <!-- Kniha -->
                 <svg class="user-menu__icon" viewBox="0 0 24 24" aria-hidden="true">
                     <path d="M4 5a2 2 0 0 1 2-2h14v16H6a2 2 0 0 0-2 2V5z" /><path d="M4 19a2 2 0 0 1 2-2h14" />
                 </svg>
                 {{ t('nav.catalog') }}
+            </Link>
+            <Link v-if="page.props.auth.usersUrl" :href="page.props.auth.usersUrl" class="user-menu__item">
+                <!-- Dvě postavy -->
+                <svg class="user-menu__icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <circle cx="9" cy="8" r="3.5" /><path d="M2 20c.8-3.5 3.6-5.5 7-5.5s6.2 2 7 5.5" /><path d="M15.5 4.6a3.5 3.5 0 0 1 0 6.8M18 14.8c2 .8 3.4 2.6 4 5.2" />
+                </svg>
+                {{ t('user_menu.users') }}
             </Link>
             <Link v-if="page.props.auth.announcementsUrl" :href="page.props.auth.announcementsUrl" class="user-menu__item">
                 <!-- Megafon -->

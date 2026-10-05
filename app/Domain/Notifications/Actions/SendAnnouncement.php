@@ -89,10 +89,6 @@ final class SendAnnouncement
     {
         return User::query()
             ->select('id')
-            ->when($category === AnnouncementCategory::Marketing, fn (Builder $query) => $query
-                ->whereNotNull('marketing_consent_at')
-                ->where(fn (Builder $query) => $query
-                    ->whereNull('marketing_consent_withdrawn_at')
-                    ->orWhereColumn('marketing_consent_withdrawn_at', '<', 'marketing_consent_at')));
+            ->when($category === AnnouncementCategory::Marketing, fn (Builder $query) => $query->withMarketingConsent());
     }
 }
