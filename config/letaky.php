@@ -424,6 +424,14 @@ return [
         'ending_soon' => [
             'from_hour' => 16,
         ],
+        // Zprávy od nás (etapa 11d): délky polí formuláře a kolik znaků textu ukáže seznam
+        // záznamů a upozornění v telefonu
+        'announcement' => [
+            'title_max_length' => 120,
+            'body_max_length' => 1000,
+            'url_max_length' => 500,
+        ],
+        'announcement_excerpt' => 140,
     ],
 
     'cron' => [

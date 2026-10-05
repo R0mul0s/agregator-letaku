@@ -52,6 +52,8 @@ class AppServiceProvider extends ServiceProvider
 
         // Katalog produktů spravuje jen admin (R29)
         Gate::define('manage-catalog', fn (User $user): bool => $user->is_admin);
+        // Zprávy od nás do centra upozornění (R74, etapa 11d) posílá admin
+        Gate::define('send-announcements', fn (User $user): bool => $user->is_admin);
 
         // Omezení počtu požadavků (R45)
         RateLimits::register();

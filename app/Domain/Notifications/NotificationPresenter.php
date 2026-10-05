@@ -16,6 +16,8 @@ namespace App\Domain\Notifications;
 
 use App\Enums\NotificationKind;
 use Illuminate\Notifications\DatabaseNotification;
+use Illuminate\Support\Str;
+use InvalidArgumentException;
 
 final class NotificationPresenter
 {
@@ -31,17 +33,27 @@ final class NotificationPresenter
             return null;
         }
 
-        $groups = OffersNotification::groups($notification);
-        $offerIds = OffersNotification::offerIds($notification);
-        $lowestCount = count(array_intersect($offerIds, OffersNotification::lowestOfferIds($notification)));
+        if ($kind === NotificationKind::Announcement) {
+            // Zpráva od nás (11d): nadpis zprávy a začátek textu
+            $announcement = AnnouncementRecord::read($notification);
+            $title = $announcement['title'];
+            $text = Str::limit($announcement['body'], config()->integer('letaky.notifications.announcement_excerpt'));
+            $lowestCount = 0;
+        } else {
+            $groups = OffersNotification::groups($notification);
+            $offerIds = OffersNotification::offerIds($notification);
+            // Kolik akcí bylo nejlevnějších za sledované období (etapa 11c) — štítek v seznamu
+            $lowestCount = count(array_intersect($offerIds, OffersNotification::lowestOfferIds($notification)));
+            $title = $this->title($kind, $groups, count($offerIds), $lowestCount > 0);
+            // Hlídané položky, nebo obchody, kterých se akce týkají
+            $text = implode(', ', array_column($groups, 'title'));
+        }
 
         return [
             'id' => $notification->id,
             'kind' => $kind->value,
-            'title' => $this->title($kind, $groups, count($offerIds), $lowestCount > 0),
-            // Hlídané položky, nebo obchody, kterých se akce týkají
-            'text' => implode(', ', array_column($groups, 'title')),
-            // Kolik akcí bylo nejlevnějších za sledované období (etapa 11c) — štítek v seznamu
+            'title' => $title,
+            'text' => $text,
             'lowestCount' => $lowestCount,
             'createdAt' => $notification->created_at?->toIso8601String(),
             'unread' => $notification->read_at === null,
@@ -50,8 +62,9 @@ final class NotificationPresenter
     }
 
     /**
-     * Nadpis podle druhu: u jedné nové akce s názvem hlídané položky (a „nejlevněji za N týdnů“,
-     * je-li nejlevnější za sledované období, etapa 11c), jinak s počtem akcí.
+     * Nadpis záznamu s akcemi: u jedné nové akce s názvem hlídané položky (a „nejlevněji za N
+     * týdnů“, je-li nejlevnější za sledované období, etapa 11c), jinak s počtem akcí. Zpráva
+     * od nás má nadpis vlastní (AnnouncementRecord).
      *
      * @param  list<array{title: string, offerIds: list<int>}>  $groups
      */
@@ -69,6 +82,7 @@ final class NotificationPresenter
                 default => trans_choice('app.notifications.new_offers.title_many', $offerCount),
             },
             NotificationKind::EndingSoon => trans_choice('app.notifications.ending_soon.title', $offerCount),
+            NotificationKind::Announcement => throw new InvalidArgumentException('Zpráva od nás má nadpis ve svých datech.'),
         };
     }
 }

@@ -687,6 +687,38 @@ return [
             'wake_lock' => 'Nezhasínat displej',
         ],
 
+        // Zprávy od nás pro admina (R74, etapa 11d, Announcements.vue)
+        'announcements' => [
+            'title' => 'Zprávy uživatelům',
+            'intro' => 'Zpráva se objeví v centru upozornění pod zvonkem. Zpráva o službě jde všem, propagační jen těm, kdo souhlasí s novinkami.',
+            'title_field' => 'Nadpis',
+            'body' => 'Text',
+            'url' => 'Odkaz',
+            'url_hint' => 'Nepovinný. Cesta v aplikaci (/akce) nebo adresa začínající https://.',
+            'url_invalid' => 'Odkaz musí být cesta v aplikaci (/akce) nebo adresa začínající https://.',
+            'category' => 'Druh zprávy',
+            'categories' => [
+                'service' => 'O službě',
+                'marketing' => 'Propagační',
+            ],
+            'category_hints' => [
+                'service' => 'Nový obchod, změna podmínek, výpadek — dostanou všichni (:count).',
+                'marketing' => 'Novinky a nabídky partnerů — jen se souhlasem s novinkami (:count), do telefonu ne.',
+            ],
+            'push' => 'Poslat i do telefonu',
+            'push_hint' => 'Upozornění přijde s dalším během cronu souhrnů těm, kdo mají upozornění v telefonu zapnutá.',
+            'push_marketing' => 'Propagační zprávu do telefonu poslat nejde — souhlas s novinkami platí jen pro e-mail.',
+            'chars' => ':count / :max znaků',
+            'submit' => 'Odeslat zprávu',
+            'confirm_title' => 'Odeslat zprávu?',
+            'confirm' => 'Zprávu dostane :count uživatel do centra upozornění. Odeslanou zprávu už nejde vzít zpět.|Zprávu dostanou :count uživatelé do centra upozornění. Odeslanou zprávu už nejde vzít zpět.|Zprávu dostane :count uživatelů do centra upozornění. Odeslanou zprávu už nejde vzít zpět.',
+            'confirm_label' => 'Odeslat',
+            'sent_title' => 'Odeslané zprávy',
+            'sent_empty' => 'Zatím jsme nic neposlali.',
+            'recipients' => ':count příjemce|:count příjemci|:count příjemců',
+            'with_push' => 'i do telefonu',
+        ],
+
         // Centrum upozornění (R74, Notifications.vue, NotificationDetail.vue, NotificationBell.vue)
         'notifications' => [
             'title' => 'Upozornění',
@@ -703,6 +735,8 @@ return [
             'ended' => 'Skončila',
             'all_ended' => 'Tyhle akce už skončily — příště buďte rychlejší než ostatní lovci slev.',
             'open_shopping_list' => 'Otevřít nákupní seznam',
+            // Zpráva od nás (11d): tlačítko s odkazem ze zprávy
+            'open_link' => 'Více',
         ],
 
         'home' => [
@@ -742,6 +776,8 @@ return [
         // Menu pod avatarem vpravo nahoře (UserMenu.vue, R40)
         'user_menu' => [
             'label' => 'Účet a nastavení',
+            // Jen admin (R74, 11d)
+            'announcements' => 'Zprávy uživatelům',
         ],
 
         'account' => [
@@ -949,6 +985,7 @@ return [
                 'offers-preferences-saved' => 'Předvolby Mých slev jsou uložené.',
                 'digest-saved' => 'Nastavení souhrnu je uložené.',
                 'marketing-saved' => 'Nastavení novinek je uložené.',
+                'announcement-sent' => 'Zpráva je odeslaná do centra upozornění.',
                 // Ověření e-mailu (R51, Fortify a VerifyEmailResponse)
                 'verification-link-sent' => 'Odkaz pro potvrzení e-mailu je na cestě.',
                 'email-verified' => 'E-mail je potvrzený. Díky!',

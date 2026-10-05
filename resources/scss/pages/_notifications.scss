@@ -1,6 +1,7 @@
 // _notifications.scss
-// Centrum upozornění (R74): záznamy po dnech s ikonou druhu (Notifications.vue) a detail záznamu
-// s akcemi jako kompaktní řádky (NotificationDetail.vue, řádky z _shopping.scss).
+// Centrum upozornění (R74): záznamy po dnech s ikonou druhu (Notifications.vue), detail záznamu
+// s akcemi jako kompaktní řádky (NotificationDetail.vue, řádky z _shopping.scss) a zprávy
+// od nás pro admina (Announcements.vue, 11d).
 //
 // @author Roman Hlaváček
 // @created 2026-10-05
@@ -78,6 +79,12 @@
             color: var(--color-warning-text);
         }
 
+        // Zpráva od nás (11d)
+        &--announcement {
+            background: var(--color-success-soft);
+            color: var(--color-success-text);
+        }
+
         svg {
             width: var(--icon-size);
             height: var(--icon-size);
@@ -132,8 +139,63 @@
         margin-bottom: var(--space-3);
     }
 
+    // Text zprávy od nás (11d) — řádky, jak je admin napsal
+    &__body {
+        margin-bottom: var(--space-3);
+        white-space: pre-line;
+        overflow-wrap: anywhere;
+    }
+
     &__title {
         margin-bottom: var(--space-2);
         font-size: var(--font-size-card-title);
+    }
+}
+
+// Zprávy uživatelům pro admina (11d)
+.announcement-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    margin-bottom: var(--space-5);
+
+    &__body {
+        min-height: var(--announcement-body-min-height);
+        resize: vertical;
+        font: inherit;
+    }
+}
+
+.announcements-sent {
+    &__title {
+        margin-bottom: var(--space-3);
+        font-size: var(--font-size-card-title);
+    }
+
+    &__list {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    &__item {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-1);
+        padding: var(--space-3) var(--space-4);
+        border-top: 1px solid var(--color-border);
+
+        &:first-child {
+            border-top: 0;
+        }
+    }
+
+    &__name {
+        font-weight: 700;
+    }
+
+    &__meta {
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
     }
 }

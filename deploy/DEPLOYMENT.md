@@ -357,7 +357,7 @@ texty „my“ (datum účinnosti 2026-10-05), stránka `/kontakt`, v patičce s
 adresy (R73):** `/prihlaseni`, `/registrace`, `/zapomenute-heslo`… (staré přesměrované 301), přepínač
 „Ukazovat i akce jen pro e-shop“. **Centrum upozornění (R74):** zvonek v hlavičce, `/upozorneni`,
 upozornění v telefonu vede na záznam, odpoledne „Zítra končí…“ s akcemi z nákupního seznamu, akce
-nejlevnější za 12 týdnů se štítkem; mobilní navigace se spodní lištou do 829 px. **SQL skript
+nejlevnější za 12 týdnů se štítkem, zprávy od nás na `/zpravy` (admin, v menu pod avatarem); mobilní navigace se spodní lištou do 829 px. **SQL skript
 `migrations-2026-10-05-centrum-upozorneni.sql`**, `composer.lock` se nezměnil, žádné soubory nezmizely.
 
 1. **Záloha databáze** (viz *Záloha databáze*) a pak v phpMyAdminu
@@ -383,6 +383,8 @@ nejlevnější za 12 týdnů se štítkem; mobilní navigace se spodní lištou 
      „Centrum upozornění — zapsáno: 0“ (první běh jen začne počítat), po dalším stažení s novými akcemi
      přibude záznam a upozornění v telefonu po klepnutí otevře jeho detail; odpoledne (od 16:00)
      cron vypíše „Končící akce ze seznamu — zapsáno: N“
+   - `/zpravy` (admin): zpráva o službě s „i do telefonu“ se objeví v centru všem a s dalším během
+     cronu souhrnů přijde do telefonu
 4. Zapiš verzi do *Nasazené verze*.
 
 **Každá nová migrace potřebuje SQL skript** `deploy/migrations-<datum>-<popis>.sql`
@@ -418,7 +420,7 @@ a ruční opravy katalogu. Před každým SQL skriptem a jinak aspoň jednou mě
 | `migrations-2026-10-04-nakupni-seznam.sql` | nákupní seznam (R61): tabulka `shopping_list_items`; opakovatelný, pustit **před** nahráním kódu | 2026-10-04 |
 | `migrations-2026-10-04-upozorneni-v-telefonu.sql` | upozornění v telefonu (R66): tabulka `push_subscriptions`, `users.push_sent_at`; opakovatelný, pustit **před** nahráním kódu | 2026-10-04 |
 | `data-2026-10-04-katalog-rozsireni.sql` | rozšíření katalogu (R70): 42 nových produktů a nová pravidla šesti (Minerální voda, Džus, Prací prostředek, Salám, Ovesné vločky, Nealkoholické pivo); podle názvu, opakovatelný, nezávisí na kódu | 2026-10-04 |
-| `migrations-2026-10-05-centrum-upozorneni.sql` | centrum upozornění (R74): tabulka `notifications`, `users.notified_at`; opakovatelný, pustit **před** nahráním kódu | — |
+| `migrations-2026-10-05-centrum-upozorneni.sql` | centrum upozornění (R74): tabulky `notifications` a `announcements`, `users.notified_at`; opakovatelný, pustit **před** nahráním kódu | — |
 
 ## Nasazené verze
 

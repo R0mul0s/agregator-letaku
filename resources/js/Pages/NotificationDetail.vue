@@ -2,7 +2,7 @@
     Záznam centra upozornění (R74) — cíl klepnutí na upozornění v telefonu. Akce po skupinách
     (hlídané položky, u končících akcí ze seznamu obchody) jako kompaktní řádky s obchodem
     a tlačítkem do nákupního seznamu; skončené (nebo stažené obchodem) jsou označené.
-    Po zobrazení stránka záznam označí jako přečtený.
+    Zpráva od nás (11d) má místo akcí text a odkaz. Po zobrazení stránka záznam označí jako přečtený.
 
     @author Roman Hlaváček
     @created 2026-10-05
@@ -23,6 +23,8 @@ const props = defineProps({
     indexUrl: { type: String, required: true },
     readUrl: { type: String, required: true },
     shoppingListUrl: { type: String, required: true },
+    /** Zpráva od nás (11d) { body, url, external }; null u záznamů s akcemi. */
+    announcement: { type: Object, default: null },
 });
 
 const t = useTranslations();
@@ -30,8 +32,8 @@ const page = usePage();
 
 const createdAt = computed(() => formatDateTime(props.notification.createdAt, page.props.locale, page.props.timezone));
 
-/** Skončily už všechny akce záznamu? */
-const allEnded = computed(() => props.groups.every((group) => group.offers.every((offer) => offer.ended)));
+/** Skončily už všechny akce záznamu? Zpráva od nás akce nemá. */
+const allEnded = computed(() => props.groups.length > 0 && props.groups.every((group) => group.offers.every((offer) => offer.ended)));
 
 onMounted(() => {
     if (props.notification.unread) {
@@ -58,6 +60,17 @@ onMounted(() => {
         <p v-else-if="notification.kind === 'ending_soon'" class="notification-detail__actions">
             <Link :href="shoppingListUrl" class="button button--primary">{{ t('notifications.open_shopping_list') }}</Link>
         </p>
+
+        <!-- Zpráva od nás (11d): text s řádky, jak je admin napsal, a odkaz -->
+        <section v-if="announcement" class="card notification-detail__group">
+            <p class="notification-detail__body">{{ announcement.body }}</p>
+            <p v-if="announcement.url" class="notification-detail__actions">
+                <a v-if="announcement.external" :href="announcement.url" target="_blank" rel="noopener noreferrer" class="button button--primary">{{
+                    t('notifications.open_link')
+                }}</a>
+                <Link v-else :href="announcement.url" class="button button--primary">{{ t('notifications.open_link') }}</Link>
+            </p>
+        </section>
 
         <section v-for="group in groups" :key="group.title" class="card notification-detail__group">
             <h2 class="notification-detail__title">{{ group.title }}</h2>

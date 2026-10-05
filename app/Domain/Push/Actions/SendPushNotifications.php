@@ -6,8 +6,8 @@
  *
  * Skládá se ze záznamů centra upozornění (R74, RecordNewOffers a RecordEndingOffers je zapíšou
  * těsně předtím): uživatel s aspoň jedním zařízením dostane upozornění na nepřečtené záznamy
- * (nové akce, končící akce ze seznamu — každý druh zvlášť), které vznikly po jeho posledním
- * upozornění, nejvýš jednou za `letaky.push.interval_hours`.
+ * (nové akce, končící akce ze seznamu, zprávy od nás se zaškrtnutým „i do telefonu“ — každý
+ * druh zvlášť), které vznikly po jeho posledním upozornění, nejvýš jednou za `letaky.push.interval_hours`.
  * Klepnutí otevře záznam v centru (víc záznamů = celé centrum), číslo na ikoně aplikace
  * je počet nepřečtených záznamů — stejné jako u zvonku v hlavičce.
  *
@@ -23,6 +23,7 @@ declare(strict_types=1);
 namespace App\Domain\Push\Actions;
 
 use App\Domain\Matching\MyOffers;
+use App\Domain\Notifications\AnnouncementRecord;
 use App\Domain\Notifications\NotificationPresenter;
 use App\Domain\Notifications\OffersNotification;
 use App\Domain\Push\PushMessage;
@@ -37,6 +38,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Notifications\DatabaseNotification;
+use Illuminate\Support\Str;
 use Throwable;
 
 final class SendPushNotifications
@@ -99,15 +101,28 @@ final class SendPushNotifications
      */
     private function whereNotPushed(Builder $query): void
     {
-        $query->whereIn('type', array_map(fn (NotificationKind $kind): string => $kind->value, NotificationKind::cases()))
-            ->where(fn (Builder $query) => $query
-                ->whereNull('users.push_sent_at')
-                ->orWhereColumn('notifications.created_at', '>', 'users.push_sent_at'));
+        $this->wherePushable($query);
+        $query->where(fn (Builder $query) => $query
+            ->whereNull('users.push_sent_at')
+            ->orWhereColumn('notifications.created_at', '>', 'users.push_sent_at'));
+    }
+
+    /**
+     * Záznamy, které jdou do telefonu: všechny s akcemi, zprávy od nás jen se zaškrtnutým
+     * „i do telefonu“ (jen zprávy o službě, 11d).
+     *
+     * @param  Builder<DatabaseNotification>  $query
+     */
+    private function wherePushable(Builder $query): void
+    {
+        $query->where(fn (Builder $query) => $query
+            ->where('type', '!=', NotificationKind::Announcement->value)
+            ->orWhere('data->push', true));
     }
 
     /**
      * Pošle uživateli na všechna jeho zařízení jedno upozornění za každý druh nových záznamů
-     * (nové akce, končící akce ze seznamu) — každý druh má v liště telefonu své místo.
+     * (nové akce, končící akce ze seznamu, zpráva od nás) — každý druh má v liště telefonu své místo.
      */
     private function notify(User $user): bool
     {
@@ -116,13 +131,18 @@ final class SendPushNotifications
         $unreadCount = (clone $unread)->count();
         /** @var Collection<int, DatabaseNotification> $records */
         $records = (clone $unread)
+            ->tap(fn (Builder $query) => $this->wherePushable($query))
             ->when($user->push_sent_at, fn (Builder $query, CarbonImmutable $at) => $query->where('created_at', '>', $at))
             ->get();
 
         $delivered = false;
         foreach (NotificationKind::cases() as $kind) {
             $ofKind = $records->filter(fn (DatabaseNotification $record): bool => $record->type === $kind->value)->values();
-            $message = $ofKind->isEmpty() ? null : $this->message($user, $kind, $ofKind, $unreadCount);
+            $message = match (true) {
+                $ofKind->isEmpty() => null,
+                $kind === NotificationKind::Announcement => $this->announcementMessage($ofKind, $unreadCount),
+                default => $this->message($user, $kind, $ofKind, $unreadCount),
+            };
             if ($message === null) {
                 continue;
             }
@@ -184,6 +204,30 @@ final class SendPushNotifications
                 ? route('notifications.index', absolute: false)
                 : route('notifications.show', $single->id, absolute: false),
             tag: $kind->pushTag(),
+            badge: $unreadCount,
+        );
+    }
+
+    /**
+     * Upozornění na zprávu od nás (11d): nejnovější zpráva s nadpisem a začátkem textu,
+     * klepnutí otevře její záznam.
+     *
+     * @param  Collection<int, DatabaseNotification>  $records  Zprávy od nejnovější
+     */
+    private function announcementMessage(Collection $records, int $unreadCount): ?PushMessage
+    {
+        $latest = $records->first();
+        if ($latest === null) {
+            return null;
+        }
+
+        $announcement = AnnouncementRecord::read($latest);
+
+        return new PushMessage(
+            title: $announcement['title'],
+            body: Str::limit($announcement['body'], config()->integer('letaky.notifications.announcement_excerpt')),
+            url: route('notifications.show', $latest->id, absolute: false),
+            tag: NotificationKind::Announcement->pushTag(),
             badge: $unreadCount,
         );
     }

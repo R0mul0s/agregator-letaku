@@ -11,6 +11,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\AnnouncementController;
 use App\Http\Controllers\AvatarController;
 use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\ContactController;
@@ -138,6 +139,12 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/ucet/obrazek', [AvatarController::class, 'show'])->name('account.avatar');
     Route::post('/ucet/obrazek', [AvatarController::class, 'update'])->name('account.avatar.update');
     Route::delete('/ucet/obrazek', [AvatarController::class, 'destroy'])->name('account.avatar.destroy');
+
+    // Zprávy od nás do centra upozornění posílá admin (R74, etapa 11d)
+    Route::middleware('can:send-announcements')->group(function (): void {
+        Route::get('/zpravy', [AnnouncementController::class, 'index'])->name('announcements.index');
+        Route::post('/zpravy', [AnnouncementController::class, 'store'])->name('announcements.store');
+    });
 
     // Katalog produktů spravuje admin (R29)
     Route::middleware('can:manage-catalog')->prefix('katalog')->name('catalog.')->group(function (): void {

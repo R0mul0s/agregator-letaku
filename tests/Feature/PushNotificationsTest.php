@@ -14,12 +14,14 @@ declare(strict_types=1);
 
 use App\Domain\Notifications\Actions\RecordEndingOffers;
 use App\Domain\Notifications\Actions\RecordNewOffers;
+use App\Domain\Notifications\Actions\SendAnnouncement;
 use App\Domain\Push\Actions\SendPushNotifications;
 use App\Domain\Push\PushDelivery;
 use App\Domain\Push\PushMessage;
 use App\Domain\Push\PushSender;
 use App\Domain\Push\Vapid;
 use App\Domain\Push\WebPushSender;
+use App\Enums\AnnouncementCategory;
 use App\Enums\Chain;
 use App\Enums\ScrapeStatus;
 use App\Http\Controllers\PushSubscriptionController;
@@ -298,6 +300,25 @@ describe('upozornění na nové akce', function (): void {
             ->and($messages['ending-soon']->title)->toBe('Zítra končí 1 akce z vašeho seznamu')
             ->and($messages['ending-soon']->body)->toBe("Pivo 0,5 l — 12,90\u{00A0}Kč, Lidl")
             ->and($messages['ending-soon']->badge)->toBe(2);
+    });
+
+    it('zprávu od nás pošle jen se zaškrtnutým „i do telefonu“ (R74, 11d)', function (): void {
+        $sender = fakePushSender();
+        $admin = User::factory()->create(['is_admin' => true]);
+        $input = ['title' => 'Nově sledujeme Makro', 'body' => 'Od dneška hlídáme i Makro.', 'url' => null, 'category' => AnnouncementCategory::Service];
+
+        app(SendAnnouncement::class)($admin, [...$input, 'push' => false]);
+        expect(app(SendPushNotifications::class)())->toBe(0);
+
+        app(SendAnnouncement::class)($admin, [...$input, 'push' => true]);
+        expect(app(SendPushNotifications::class)())->toBe(1);
+
+        $message = $sender->sent[0]['message'];
+        expect($message->title)->toBe('Nově sledujeme Makro')
+            ->and($message->body)->toBe('Od dneška hlídáme i Makro.')
+            ->and($message->tag)->toBe('announcement')
+            ->and($message->url)->toStartWith('/upozorneni/')
+            ->and($message->badge)->toBe(2);
     });
 
     it('neověřenému účtu nic nepošle (R67)', function (): void {

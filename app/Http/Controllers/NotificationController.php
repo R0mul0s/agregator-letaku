@@ -16,11 +16,13 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Domain\Matching\MyOffers;
+use App\Domain\Notifications\AnnouncementRecord;
 use App\Domain\Notifications\NotificationPresenter;
 use App\Domain\Notifications\OffersNotification;
 use App\Domain\Offers\LocalCalendar;
 use App\Domain\Offers\OfferPresenter;
 use App\Domain\Offers\PriceHistory;
+use App\Enums\NotificationKind;
 use App\Models\Offer;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
@@ -98,6 +100,8 @@ class NotificationController extends Controller
             'readUrl' => route('notifications.read', absolute: false),
             // Končící akce ze seznamu (11b): rovnou do nákupního seznamu
             'shoppingListUrl' => route('shopping-list.index', absolute: false),
+            // Zpráva od nás (11d): celý text a odkaz; odkaz mimo aplikaci v novém okně
+            'announcement' => $this->announcement($record),
         ]);
     }
 
@@ -114,6 +118,26 @@ class NotificationController extends Controller
         $this->user($request)->unreadNotifications()->whereIn('id', $validated['ids'])->update(['read_at' => now()]);
 
         return back(fallback: route('notifications.index'));
+    }
+
+    /**
+     * Text a odkaz zprávy od nás; null u záznamů s akcemi.
+     *
+     * @return array{body: string, url: string|null, external: bool}|null
+     */
+    private function announcement(DatabaseNotification $record): ?array
+    {
+        if ($record->type !== NotificationKind::Announcement->value) {
+            return null;
+        }
+
+        $announcement = AnnouncementRecord::read($record);
+
+        return [
+            'body' => $announcement['body'],
+            'url' => $announcement['url'],
+            'external' => $announcement['url'] !== null && AnnouncementRecord::isExternal($announcement['url']),
+        ];
     }
 
     /**

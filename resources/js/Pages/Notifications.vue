@@ -1,6 +1,6 @@
 <!--
     Centrum upozornění (R74) — záznamy po dnech, od nejnovějšího: nové akce na hlídané zboží
-    a akce z nákupního seznamu, které zítra končí (ikona podle druhu).
+    a akce z nákupního seznamu, které zítra končí, zprávy od nás (ikona podle druhu).
     Nepřečtené jsou zvýrazněné; po zobrazení je stránka označí jako přečtené (zvonek i číslo
     na ikoně aplikace zmizí), zvýraznění ale zůstane, dokud uživatel stránku neopustí.
 
@@ -33,6 +33,8 @@ const KIND_ICONS = {
     new_offers: ['M3 12V4h8l10 10-8 8L3 12z', 'M7.5 8.5h.01'],
     // Hodiny — akce ze seznamu brzy končí
     ending_soon: ['M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z', 'M12 7v5l3 2'],
+    // Megafon — zpráva od nás
+    announcement: ['M3 10v4h3l7 4V6L6 10H3z', 'M16 9a4 4 0 0 1 0 6'],
 };
 
 const t = useTranslations();

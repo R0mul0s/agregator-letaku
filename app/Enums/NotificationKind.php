@@ -2,7 +2,7 @@
 
 /**
  * Druh záznamu v centru upozornění (R74) — sloupec notifications.type (databaseType notifikace).
- * Další druhy (akce zlevnila, zprávy od nás) přibudou v dalších etapách.
+ * Záznamy s akcemi dědí z OffersNotification, zprávy od nás zapisuje SendAnnouncement hromadně.
  *
  * @author Roman Hlaváček
  *
@@ -21,6 +21,9 @@ enum NotificationKind: string
     /** Akce z nákupního seznamu zítra končí (etapa 11b). */
     case EndingSoon = 'ending_soon';
 
+    /** Zpráva od nás — o službě, nebo propagační jen se souhlasem (etapa 11d). */
+    case Announcement = 'announcement';
+
     /**
      * Značka upozornění v telefonu — nové nahradí předchozí stejného druhu v liště telefonu,
      * jiný druh ho nepřepíše.
@@ -30,6 +33,7 @@ enum NotificationKind: string
         return match ($this) {
             self::NewOffers => 'new-offers',
             self::EndingSoon => 'ending-soon',
+            self::Announcement => 'announcement',
         };
     }
 }

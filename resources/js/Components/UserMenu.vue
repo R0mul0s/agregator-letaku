@@ -99,6 +99,12 @@ onBeforeUnmount(() => {
                 <svg class="user-menu__icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4" /><path d="M4 21c1-4 4.5-6 8-6s7 2 8 6" /></svg>
                 {{ t('account.title') }}
             </Link>
+            <!-- Jen admin: zprávy do centra upozornění (R74, 11d) -->
+            <Link v-if="page.props.auth.announcementsUrl" :href="page.props.auth.announcementsUrl" class="user-menu__item">
+                <!-- Megafon -->
+                <svg class="user-menu__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10v4h3l7 4V6L6 10H3z" /><path d="M16 9a4 4 0 0 1 0 6" /></svg>
+                {{ t('user_menu.announcements') }}
+            </Link>
             <div class="user-menu__theme">
                 <span class="user-menu__theme-label">{{ t('theme.label') }}</span>
                 <ThemeSwitch />
