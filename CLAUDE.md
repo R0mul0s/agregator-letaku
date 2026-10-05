@@ -59,7 +59,7 @@ Hotové jsou etapy 1–5g, zveřejnění (8), opravy a funkce z kritické revize
 - **Přehled uživatelů (R84):** `/uzivatele` pro admina (v menu pod Katalogem) — kdo je online, kdy byl kdo naposledy
   (`users.last_seen_at`), souhrn v dlaždicích s filtry a nastavení každého uživatele
 
-Produkce běží na `https://slevohlidka.rhsoft.cz` (nasazeno 2026-10-02, naposledy `d22d9ee` 2026-10-05);
+Produkce běží na `https://slevohlidka.rhsoft.cz` (nasazeno 2026-10-02, naposledy `42479f4` 2026-10-05);
 postup aktualizace a nasazené verze jsou v `deploy/DEPLOYMENT.md`. Sleduje se 7 obchodů; Makro
 zatím nejde (ochrana proti robotům). Etapa 6 (LLM) jen když bude potřeba.
 Co z dřívějších rozhodnutí platí a co ne, je v tabulce na začátku PLAN.md.

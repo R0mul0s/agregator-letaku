@@ -466,7 +466,7 @@ a ruční opravy katalogu. Před každým SQL skriptem a jinak aspoň jednou mě
 | `migrations-2026-10-04-upozorneni-v-telefonu.sql` | upozornění v telefonu (R66): tabulka `push_subscriptions`, `users.push_sent_at`; opakovatelný, pustit **před** nahráním kódu | 2026-10-04 |
 | `data-2026-10-04-katalog-rozsireni.sql` | rozšíření katalogu (R70): 42 nových produktů a nová pravidla šesti (Minerální voda, Džus, Prací prostředek, Salám, Ovesné vločky, Nealkoholické pivo); podle názvu, opakovatelný, nezávisí na kódu | 2026-10-04 |
 | `migrations-2026-10-05-centrum-upozorneni.sql` | centrum upozornění (R74): tabulky `notifications` a `announcements`, `users.notified_at`; opakovatelný, pustit **před** nahráním kódu | 2026-10-05 |
-| `migrations-2026-10-05-posledni-aktivita.sql` | poslední aktivita (R84): `users.last_seen_at` s indexem, dosavadním účtům doplní z relací; opakovatelný, pustit **před** nahráním kódu | |
+| | 2026-10-05 |`migrations-2026-10-05-posledni-aktivita.sql` | poslední aktivita (R84): `users.last_seen_at` s indexem, dosavadním účtům doplní z relací; opakovatelný, pustit **před** nahráním kódu | 2026-10-05 |
 
 ## Nasazené verze
 
@@ -489,3 +489,4 @@ Co běží na produkci — pro `git log <commit>..HEAD` při dalším nasazení
 | 2026-10-05 | `400c89b` | dvanácté nasazení: nová verze aplikace v telefonu se po nasazení načte sama nebo lištou „Načíst“, ruční kontrola v Můj účet (R78); kontaktní e-mail `info@slevohlidka.cz` a User-Agent `+slevohlidka.cz` (R80), řádek `LETAKY_USER_AGENT` z `.env` na hostingu smazaný; bez SQL skriptu |
 | 2026-10-05 | `d887463` | třinácté nasazení: patička e-mailů jen s mottem, bez údajů provozovatele (R81); nahrané jen `message.blade.php`, `lang/cs/app.php` a `version.txt`, bez SQL skriptu |
 | 2026-10-05 | `d22d9ee` | čtrnácté nasazení: Všechny akce s výběrem víc obchodů (přihlášený má předvybrané sledované), štítek „Bez e-shopu“, přepínač karty / řádky i v Mých slevách (R82); neutrální tmavý režim — červená jen tlačítka a cenovky slev (R83); celý balíček, bez SQL skriptu |
+| 2026-10-05 | `42479f4` | patnácté nasazení: přehled uživatelů pro admina `/uzivatele` s poslední aktivitou a nastavením (R84), oprava tlačítka na červeném panelu a hrany tlačítek v tmavém režimu (R83, `f43d766`); SQL `migrations-2026-10-05-posledni-aktivita.sql` |
