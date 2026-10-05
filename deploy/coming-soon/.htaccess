@@ -1,0 +1,54 @@
+# Stránka „Brzy spouštíme“ na slevohlidka.cz (R79) — statické soubory, Apache Websupportu.
+# Po přestěhování aplikace na doménu se celá složka nahradí aplikací (deploy/DEPLOYMENT.md).
+#
+# @author Roman Hlaváček
+# @created 2026-10-05
+
+Options -Indexes
+DirectoryIndex index.html
+
+# Neexistující adresa ukáže úvodní stránku (se stavem 404, ať se neindexuje pod cizí adresou)
+ErrorDocument 404 /index.html
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # HTTPS — TLS končí na proxy Websupportu, schéma je jen v X-Forwarded-Proto (jako public/.htaccess)
+    RewriteCond %{HTTP:X-Forwarded-Proto} =http
+    RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301,NE]
+
+    # www.slevohlidka.cz → slevohlidka.cz (jedna adresa pro vyhledávače)
+    RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
+    RewriteRule ^ https://%1%{REQUEST_URI} [L,R=301,NE]
+</IfModule>
+
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "DENY"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
+    Header always set Cross-Origin-Opener-Policy "same-origin"
+    Header always unset X-Powered-By
+    # Vše jen z vlastní domény; data: kvůli fajfce v seznamu příprav (SVG v CSS).
+    # Žádné měření ani cookies — proto ani lišta souhlasu (R52).
+    Header always set Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'"
+
+    <If "req('X-Forwarded-Proto') == 'https'">
+        Header always set Strict-Transport-Security "max-age=31536000"
+    </If>
+
+    # Stránka se mění (texty, odpočet) — vždy ověřit u serveru
+    <FilesMatch "\.html$">
+        Header always set Cache-Control "no-cache"
+    </FilesMatch>
+
+    # Styly a skripty mají v adrese ?v=… (zvýšit při změně) — den v cache
+    <FilesMatch "\.(css|js)$">
+        Header always set Cache-Control "public, max-age=86400" "expr=%{REQUEST_STATUS} == 200"
+    </FilesMatch>
+
+    # Obrázky a písmo se nemění — týden v cache
+    <FilesMatch "\.(png|svg|ico|woff2)$">
+        Header always set Cache-Control "public, max-age=604800" "expr=%{REQUEST_STATUS} == 200"
+    </FilesMatch>
+</IfModule>

@@ -22,6 +22,7 @@ Vychází z nasazení projektu Počasí na stejném účtu.
 | `migrations-*.sql` | změny schématu pro produkci (verzované) |
 | `data-*.sql` | data pro produkci (verzované) — kategorie a produkty katalogu |
 | `root-htaccess-fallback` | nouzové řešení, když nejde nasměrovat document root do `public/` |
+| `coming-soon/` | stránka „Brzy spouštíme“ pro `slevohlidka.cz` do přestěhování aplikace (R79) — viz níž |
 
 ## Předpoklady na hostingu
 - **PHP 8.4** s `pdo_mysql`, `mbstring`, `intl`, `dom` (vektorová vrstva letáku Penny), `openssl`
@@ -173,6 +174,23 @@ curl -si "https://slevohlidka.rhsoft.cz/cron/import-offers?chain=kaufland&token=
 2. [Bing Webmaster Tools](https://www.bing.com/webmasters): import ze Search Console.
 3. Kontrola strukturovaných dat: [Rich Results Test](https://search.google.com/test/rich-results)
    na úvodní stránku (Organization, WebSite).
+
+## Doména `slevohlidka.cz`: stránka „Brzy spouštíme“ (R79)
+
+Do přestěhování aplikace ze zkušební subdomény běží na `slevohlidka.cz` statická stránka
+z `deploy/coming-soon/` (HTML, CSS, JS, bez PHP a databáze).
+
+1. Ve WebAdminu: doména `slevohlidka.cz` (i `www`) s certifikátem Let's Encrypt.
+2. Nahrát **celý obsah** `deploy/coming-soon/` do kořene domény — včetně skrytého `.htaccess`
+   (HTTPS, `www` → bez `www`, bezpečnostní hlavičky, cache).
+3. Ověřit: `https://slevohlidka.cz/` (i v tmavém režimu a na telefonu), `http://` a `www.`
+   přesměrují, neexistující adresa ukáže stránku se stavem 404.
+4. Změna textu: upravit `index.html`; změna stylu nebo skriptu: zvýšit `?v=` v `index.html`
+   (proxy hostingu cachuje statické soubory). Odpočet do spuštění: datum do `LAUNCH_AT`
+   v `js/main.js` (`null` = bez odpočtu).
+
+Po přestěhování aplikace na doménu se obsah složky na hostingu smaže a nahradí aplikací;
+složku `deploy/coming-soon/` pak jde z repozitáře odstranit.
 
 ## Monitoring: hlídání stahování
 

@@ -1,0 +1,258 @@
+<!doctype html>
+<!--
+    Dočasná stránka „Brzy spouštíme“ pro doménu slevohlidka.cz (R79) — než se aplikace
+    přestěhuje ze zkušebního provozu na slevohlidka.rhsoft.cz. Statické HTML bez serveru,
+    vzhled podle aplikace (tokeny z resources/scss/base/_tokens.scss, motivy úvodní stránky R44).
+    Nasazení: obsah složky deploy/coming-soon do kořene domény (deploy/DEPLOYMENT.md).
+
+    @author Roman Hlaváček
+    @created 2026-10-05
+-->
+<html lang="cs">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Slevohlídka – rychlý lovec slev už brzy</title>
+    <meta name="description" content="Slevohlídka hlídá akce z letáků Kauflandu, Tesca, Albertu, Lidlu, Penny, Globusu a Billy na to, co opravdu kupujete. Spouštíme už brzy na slevohlidka.cz.">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://slevohlidka.cz/">
+    <meta name="theme-color" content="#f4f6f8" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
+
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="cs_CZ">
+    <meta property="og:site_name" content="Slevohlídka">
+    <meta property="og:url" content="https://slevohlidka.cz/">
+    <meta property="og:title" content="Slevohlídka – rychlý lovec slev už brzy">
+    <meta property="og:description" content="Akce z letáků sedmi obchodů na to, co opravdu kupujete. Spouštíme už brzy.">
+    <meta property="og:image" content="https://slevohlidka.cz/images/og-image.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" href="/images/icon-32.png" type="image/png" sizes="32x32">
+    <link rel="apple-touch-icon" href="/images/apple-touch-icon.png">
+    <link rel="preload" href="/fonts/nunito-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/fonts/nunito-latin-ext-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="/css/style.css?v=1">
+
+    <!-- Uložený vzhled ještě před vykreslením, jinak by stránka problikla (CSP nedovolí inline skript) -->
+    <script src="/js/theme-init.js?v=1"></script>
+    <script src="/js/main.js?v=1" defer></script>
+</head>
+<body>
+    <a class="skip-link" href="#obsah">Přeskočit na obsah</a>
+
+    <header class="site-header">
+        <div class="site-header__inner">
+            <a class="site-header__brand" href="/" aria-label="Slevohlídka – úvod">
+                <img class="site-header__logo" src="/images/icon-192.png" alt="" width="48" height="48">
+                <span class="site-header__name">
+                    <span class="wordmark"><span class="wordmark__first">Slevo</span>hlídka</span>
+                    <span class="site-header__motto">Rychlý lovec slev</span>
+                </span>
+            </a>
+            <!-- Přepínač vzhledu; bez JavaScriptu zůstane skrytý a platí nastavení systému -->
+            <button class="theme-toggle" type="button" data-theme-toggle hidden>
+                <svg class="theme-toggle__icon theme-toggle__icon--moon" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" />
+                </svg>
+                <svg class="theme-toggle__icon theme-toggle__icon--sun" viewBox="0 0 24 24" aria-hidden="true">
+                    <circle cx="12" cy="12" r="4" />
+                    <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+                </svg>
+                <span class="visually-hidden" data-theme-label>Přepnout vzhled</span>
+            </button>
+        </div>
+    </header>
+
+    <main id="obsah" class="page">
+        <section class="hero">
+            <div class="hero__body">
+                <p class="hero__badge"><span class="hero__pulse" aria-hidden="true"></span>Brzy spouštíme</p>
+                <h1 class="hero__title">Slevohlídka už brzy vyjede na lov</h1>
+                <p class="hero__lead">
+                    Každý den za vás prolistujeme letáky a e-shopy Kauflandu, Tesca, Albertu, Lidlu, Penny,
+                    Globusu a Billy. Vy nám řeknete, co kupujete — my ukážeme, kde je to zrovna ve slevě
+                    a kde nejlevněji za kilo nebo litr.
+                </p>
+                <p class="hero__note">
+                    Teď ještě dotahujeme poslední šroubky. Košík má nahuštěná kola a na
+                    <strong>slevohlidka.cz</strong> vyjede za pár dní.
+                </p>
+
+                <!-- Odpočet se ukáže, jen když je v js/main.js vyplněné datum spuštění (LAUNCH_AT) -->
+                <div class="countdown" data-countdown hidden>
+                    <p class="countdown__label">Do spuštění zbývá</p>
+                    <ol class="countdown__units">
+                        <li class="countdown__unit"><strong class="countdown__value" data-countdown-unit="days">0</strong><span data-countdown-name="days">dní</span></li>
+                        <li class="countdown__unit"><strong class="countdown__value" data-countdown-unit="hours">0</strong><span data-countdown-name="hours">hodin</span></li>
+                        <li class="countdown__unit"><strong class="countdown__value" data-countdown-unit="minutes">0</strong><span data-countdown-name="minutes">minut</span></li>
+                    </ol>
+                </div>
+
+                <div class="hero__actions">
+                    <a class="button button--primary hero__cta" href="mailto:info@slevohlidka.cz?subject=Slevohl%C3%ADdka%20%E2%80%93%20dejte%20mi%20v%C4%9Bd%C4%9Bt%20o%20spu%C5%A1t%C4%9Bn%C3%AD&amp;body=Dobr%C3%BD%20den%2C%0A%0Anapi%C5%A1te%20mi%20pros%C3%ADm%2C%20a%C5%BE%20Slevohl%C3%ADdka%20spust%C3%AD%20na%20slevohlidka.cz.%0A%0AD%C4%9Bkuji">Dejte nám vědět</a>
+                    <a class="button button--ghost" href="https://slevohlidka.rhsoft.cz/">Vyzkoušet zkušební provoz</a>
+                </div>
+                <p class="hero__hint">Zkušební provoz už běží naostro. Účet, který si tam založíte, si vezmete s sebou.</p>
+
+                <ul class="chains" aria-label="Sledované obchody">
+                    <li><img class="chains__logo" src="/images/chains/kaufland.svg" alt="Kaufland" width="36" height="36"></li>
+                    <li><img class="chains__logo" src="/images/chains/tesco.svg" alt="Tesco" width="36" height="36"></li>
+                    <li><img class="chains__logo" src="/images/chains/albert.svg" alt="Albert" width="36" height="36"></li>
+                    <li><img class="chains__logo" src="/images/chains/lidl.svg" alt="Lidl" width="36" height="36"></li>
+                    <li><img class="chains__logo" src="/images/chains/penny.svg" alt="Penny" width="36" height="36"></li>
+                    <li><img class="chains__logo" src="/images/chains/globus.svg" alt="Globus" width="36" height="36"></li>
+                    <li><img class="chains__logo" src="/images/chains/billa.svg" alt="Billa" width="36" height="36"></li>
+                </ul>
+            </div>
+
+            <!-- Košík „jede“: poskakuje, za ním ubíhají čárky rychlosti (při omezení pohybu stojí) -->
+            <div class="hero__art" aria-hidden="true">
+                <div class="hero__circle">
+                    <span class="hero__streak"></span>
+                    <span class="hero__streak"></span>
+                    <span class="hero__streak"></span>
+                    <div class="hero__drive">
+                        <img class="hero__mascot" src="/images/icon-512.png" alt="" width="512" height="512">
+                    </div>
+                </div>
+                <span class="hero__sticker" data-sticker>−50 %</span>
+            </div>
+        </section>
+
+        <section class="section" aria-labelledby="pripravy">
+            <h2 id="pripravy" class="section__title">Jak jsme na tom</h2>
+            <div class="card progress">
+                <div class="progress__head">
+                    <p class="progress__text">Před startem nám zbývá poslední položka na seznamu.</p>
+                    <strong class="progress__percent" data-progress-percent hidden></strong>
+                </div>
+                <div class="progress__bar" data-progress-bar hidden>
+                    <span class="progress__fill" data-progress-fill></span>
+                </div>
+                <ul class="checklist" data-checklist>
+                    <li class="checklist__item checklist__item--done">Akce ze 7 obchodů, stahované dvakrát denně</li>
+                    <li class="checklist__item checklist__item--done">Katalog s víc než 200 produkty, které stačí naklikat</li>
+                    <li class="checklist__item checklist__item--done">Upozornění e-mailem i v telefonu</li>
+                    <li class="checklist__item checklist__item--done">Nákupní seznam, který funguje i bez signálu</li>
+                    <li class="checklist__item checklist__item--pending"><span>Stěhování na slevohlidka.cz <span class="checklist__tag">právě teď</span></span></li>
+                </ul>
+            </div>
+        </section>
+
+        <section class="section" aria-labelledby="umi">
+            <h2 id="umi" class="section__title">Co Slevohlídka umí</h2>
+            <div class="features">
+                <article class="card feature">
+                    <span class="feature__icon">
+                        <svg class="feature-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" /><path d="M15.5 15.5 21 21M7.5 10.5l2 2 3.5-4" /></svg>
+                    </span>
+                    <h3 class="feature__title">Hlídá, co kupujete</h3>
+                    <p class="feature__text">Vyberte z katalogu máslo, pivo nebo Coca-Colu Zero, nebo napište vlastní slova. Ostatní akce vás rušit nebudou — slibujeme.</p>
+                </article>
+                <article class="card feature">
+                    <span class="feature__icon">
+                        <svg class="feature-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v3M5 21h14M7 21l1.5-9h7L17 21M8.5 12a3.5 3.5 0 0 1 7 0" /></svg>
+                    </span>
+                    <h3 class="feature__title">Cena za kilo a litr</h3>
+                    <p class="feature__text">Řadíme podle ceny za jednotku, takže vás obří balení s velkým nápisem AKCE neoblafne.</p>
+                </article>
+                <article class="card feature">
+                    <span class="feature__icon">
+                        <svg class="feature-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5.5" width="18" height="13" rx="2" /><path d="M3 10h18M7 15h4" /></svg>
+                    </span>
+                    <h3 class="feature__title">S vaší kartou</h3>
+                    <p class="feature__text">Clubcard, Lidl Plus, Kaufland Card… Akce jen s kartou uvidíte, jen když kartu máte.</p>
+                </article>
+                <article class="card feature">
+                    <span class="feature__icon">
+                        <svg class="feature-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6zM15 3v4h4" /><path d="M10 11.5a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .8-1 1.5M12.5 18h.01" /></svg>
+                    </span>
+                    <h3 class="feature__title">I to, co je v letáku bez ceny</h3>
+                    <p class="feature__text">Když leták zmíní, co hlídáte, ale cenu z něj přečíst nejde, dostanete odkaz přímo na stránku letáku.</p>
+                </article>
+                <article class="card feature">
+                    <span class="feature__icon">
+                        <svg class="feature-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m3 7 9 6 9-6" /></svg>
+                    </span>
+                    <h3 class="feature__title">Upozornění e-mailem i v telefonu</h3>
+                    <p class="feature__text">Nové akce na to, co hlídáte, přijdou hned, jak se objeví, nebo jako souhrn denně či jednou týdně — jen když je co hlásit.</p>
+                </article>
+                <article class="card feature">
+                    <span class="feature__icon">
+                        <svg class="feature-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12V4a1 1 0 0 1 1-1h8l9 9-9 9z" /><path d="M8 8h.01M9 15l6-6M14 15h.01" /></svg>
+                    </span>
+                    <h3 class="feature__title">Zdarma a bez reklam</h3>
+                    <p class="feature__text">Žádné blikající bannery. Jen akce z letáků, seřazené tak, aby se daly porovnat.</p>
+                </article>
+            </div>
+        </section>
+
+        <section class="section" aria-labelledby="jak">
+            <h2 id="jak" class="section__title">Jak to bude fungovat</h2>
+            <ol class="steps">
+                <li class="steps__item">
+                    <span class="steps__number" aria-hidden="true">1</span>
+                    <h3 class="steps__title">Vyberete obchody</h3>
+                    <p class="steps__text">Kde nakupujete, jaký typ prodejny a které karty máte.</p>
+                </li>
+                <li class="steps__item">
+                    <span class="steps__number" aria-hidden="true">2</span>
+                    <h3 class="steps__title">Řeknete, co hlídat</h3>
+                    <p class="steps__text">Produkty z katalogu jedním klepnutím, nebo vlastní slova.</p>
+                </li>
+                <li class="steps__item">
+                    <span class="steps__number" aria-hidden="true">3</span>
+                    <h3 class="steps__title">Slevohlídka loví</h3>
+                    <p class="steps__text">Každý den pročeše letáky a ukáže vám jen to, co vás zajímá.</p>
+                </li>
+            </ol>
+        </section>
+
+        <section class="cta" aria-labelledby="vyzva">
+            <img class="cta__mascot" src="/images/icon-192.png" alt="" width="64" height="64">
+            <div class="cta__body">
+                <h2 id="vyzva" class="cta__title">Chcete vědět, až vyjedeme?</h2>
+                <p class="cta__text">Napište nám a ozveme se jedním e-mailem, jakmile Slevohlídka na nové adrese poběží. Nic dalšího vám posílat nebudeme.</p>
+            </div>
+            <a class="button cta__button" href="mailto:info@slevohlidka.cz?subject=Slevohl%C3%ADdka%20%E2%80%93%20dejte%20mi%20v%C4%9Bd%C4%9Bt%20o%20spu%C5%A1t%C4%9Bn%C3%AD&amp;body=Dobr%C3%BD%20den%2C%0A%0Anapi%C5%A1te%20mi%20pros%C3%ADm%2C%20a%C5%BE%20Slevohl%C3%ADdka%20spust%C3%AD%20na%20slevohlidka.cz.%0A%0AD%C4%9Bkuji">Dejte nám vědět</a>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="site-footer__inner">
+            <div class="site-footer__columns">
+                <div class="site-footer__brand">
+                    <span class="site-footer__brand-line">
+                        <img class="site-footer__logo" src="/images/icon-192.png" alt="" width="40" height="40">
+                        <span class="wordmark wordmark--footer"><span class="wordmark__first">Slevo</span>hlídka</span>
+                    </span>
+                    <p class="site-footer__about">Akce z letáků sedmi obchodů na jednom místě — jen na to, co opravdu kupujete.</p>
+                </div>
+                <div>
+                    <h2 class="site-footer__heading">Kontakt</h2>
+                    <ul class="site-footer__list">
+                        <li><a class="site-footer__link" href="mailto:info@slevohlidka.cz">info@slevohlidka.cz</a></li>
+                        <li><a class="site-footer__link" href="tel:+420736449607">+420 736 449 607</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h2 class="site-footer__heading">Provozovatel</h2>
+                    <address class="site-footer__address">
+                        Roman Hlaváček · <a class="site-footer__link" href="https://rhsoft.cz/">RHsoft.cz</a><br>
+                        IČO 88688143<br>
+                        Rodov 133, 503 03 Smiřice
+                    </address>
+                </div>
+            </div>
+            <div class="site-footer__bottom">
+                <p>© <span data-year>2026</span> Slevohlídka — rychlý lovec slev</p>
+                <p class="site-footer__disclaimer">Slevohlídka není spojená s uvedenými obchody. Jejich názvy a loga jsou ochranné známky jejich vlastníků.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
