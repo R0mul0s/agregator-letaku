@@ -67,6 +67,27 @@ it('uloží akce z API i z letáku a stránku letáku bez textu přeskočí', fu
         ->and(Offer::query()->whereHas('leaflet', fn ($q) => $q->where('kind', LeafletKind::Leaflet))->count())->toBe(26);
 });
 
+it('najde i leták se složkou s příponou verze (07_10_2026_tl2)', function (): void {
+    $folder = '07_10_2026_tl2';
+    $leafletUrl = str_replace('30_09_2026', $folder, PENNY_LEAFLET_URL);
+    $pages = $leafletUrl.'files/assets/common/page-vectorlayers/';
+
+    Http::fake([
+        'https://www.penny.cz/api/product-discovery/products*' => Http::response(responseFixture('penny/products-2026-10-02.json')),
+        'https://www.penny.cz/nabidky/letaky' => Http::response(str_replace('30_09_2026', $folder, responseFixture('penny/letaky-2026-10-02.html'))),
+        $pages.'0001.svg' => Http::response(responseFixture('penny/page-0001-2026-10-02.svg')),
+        $pages.'0002.svg' => Http::response(responseFixture('penny/page-0004-2026-10-02.svg')),
+        $pages.'0003.svg' => Http::response(responseFixture('penny/page-0030-2026-10-02.svg')),
+        $pages.'0004.svg' => Http::response('Not found', 404),
+        $leafletUrl => Http::response(responseFixture('penny/leaflet-index-2026-10-02.html')),
+    ]);
+
+    $this->artisan('letaky:import-offers', ['chain' => ['penny']])->assertSuccessful();
+
+    expect(Leaflet::query()->where('kind', LeafletKind::Leaflet)->sole()->external_id)->toBe($folder)
+        ->and(Offer::query()->whereHas('leaflet', fn ($q) => $q->where('kind', LeafletKind::Leaflet))->count())->toBe(26);
+});
+
 it('uloží text stránek letáku s textovou vrstvou pro zmínky bez ceny (R27)', function (): void {
     fakePenny();
 

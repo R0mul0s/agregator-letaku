@@ -307,7 +307,7 @@ Implementace: `app/Domain/Sources/Lidl/` — kampaně z úvodní stránky, jen k
 U cen s kartou je navíc `"loyalty":{"value":2490,"tags":["SO"]}` a `regular` pak znamená cenu bez karty.
 
 ### Leták (FlippingBook na files.rewe.co.at)
-- URL letáku: `https://files.rewe.co.at/PennyIntLeaflet/CZ/{DD_MM_YYYY}/`. Odkaz se dá vyčíst ze stránky `https://www.penny.cz/nabidky/letaky` (hledat `PennyIntLeaflet/CZ/`).
+- URL letáku: `https://files.rewe.co.at/PennyIntLeaflet/CZ/{DD_MM_YYYY}/`. Odkaz se dá vyčíst ze stránky `https://www.penny.cz/nabidky/letaky` (hledat `PennyIntLeaflet/CZ/`). **Složka může mít příponu verze** (`07_10_2026_tl2/`, 6. 10. 2026) — vzor ji musí připustit, jinak se leták příštího týdne tiše přeskočí.
 - **Nejlepší zdroj je vektorová vrstva stránek:** `…/files/assets/common/page-vectorlayers/0001.svg` až `00NN.svg`. Obsahuje `<svg:text transform="matrix(a b c d e f)">` s `<svg:tspan x="…" y="…" fill="…">`, tedy každý token se souřadnicemi, velikostí a barvou. Název, gramáž, cena, přeškrtnutá cena a % jdou spárovat podle pozice, nebo se tokeny s pozicemi předají LLM (levnější než vision).
 - **Mezery v textu jsou nezlomitelné (U+00A0)** — `rtrim` ani vzor s obyčejnou mezerou je nechytí (`"500 g | "` končí U+00A0, „cena bez pennykarty“ má U+00A0 mezi slovy). Balení a cena za jednotku bývají **dva tokeny na stejném účaří** (`"500 g |"` a `"100 g 3,98 Kč"` o 17 b. vpravo), takže padnou do různých sloupců; jinde je cena za jednotku na dvou řádcích (`"100g"` / `"31,96 Kč"`) nebo bez haléřů (`"1 kg 49 Kč"`).
 - **Vlastní glyfy ve fontu cen** (odvozeno shodou s API 2. 10. 2026, nedokumentováno):
