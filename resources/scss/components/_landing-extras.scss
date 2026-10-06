@@ -1,0 +1,290 @@
+// _landing-extras.scss
+// Dlaždice „A k tomu navíc“ na úvodní stránce (R90): nahoře miniatura funkce na jemném podkladu
+// hlavního pruhu, pod ní nadpis s ikonou a text. Při najetí se dlaždice nadzvedne a miniatura
+// mírně zvětší.
+//
+// @author Roman Hlaváček
+// @created 2026-10-06
+
+.landing-extras {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--landing-extra-min-width)), 1fr));
+    gap: var(--space-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.landing-extra {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    transition: transform var(--duration-fast), box-shadow var(--duration-fast);
+
+    &:hover {
+        box-shadow: var(--shadow-card-hover);
+        transform: translateY(var(--hover-lift));
+
+        .landing-extra__visual > * {
+            transform: scale(var(--landing-extra-hover-scale));
+        }
+    }
+
+    &__visual {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: var(--landing-extra-visual-height);
+        padding: var(--space-3);
+        overflow: hidden;
+        background: var(--gradient-hero);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-md);
+
+        > * {
+            transition: transform var(--duration-fast);
+        }
+    }
+
+    &__title {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        margin: 0;
+        font-size: var(--font-size-md);
+    }
+
+    &__icon {
+        display: inline-flex;
+        color: var(--color-accent-strong);
+
+        .feature-icon {
+            width: var(--icon-size);
+            height: var(--icon-size);
+        }
+    }
+
+    &__text {
+        margin: var(--space-1) 0 0;
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+    }
+
+    // Akce, která ještě nezačala — řádek akce se štítky
+    &__offer {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-2);
+        padding: var(--space-2) var(--space-3);
+        background: var(--color-surface);
+        border-radius: var(--radius-sm);
+        box-shadow: var(--shadow-card);
+    }
+
+    &__offer-name {
+        font-weight: 700;
+    }
+
+    &__tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-1);
+    }
+
+    // Klesající křivka ceny se zeleným bodem na konci
+    &__history {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: var(--space-2);
+    }
+
+    &__chart {
+        width: var(--landing-extra-chart-width);
+        height: auto;
+        overflow: visible;
+
+        polyline {
+            fill: none;
+            stroke: var(--color-text-muted);
+            stroke-width: var(--svg-stroke-icon);
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        circle {
+            fill: var(--color-success);
+        }
+    }
+
+    // Nákupní seznam k odškrtnutí
+    &__list {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-1);
+        min-width: 60%;
+    }
+
+    &__check {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        padding: var(--space-1) var(--space-2);
+        background: var(--color-surface);
+        border: 0;
+        border-radius: var(--radius-sm);
+        color: var(--color-text);
+        font: inherit;
+        font-size: var(--font-size-sm);
+        text-align: left;
+        cursor: pointer;
+
+        &[aria-pressed='true'] {
+            color: var(--color-text-muted);
+            text-decoration: line-through;
+        }
+
+        &[aria-pressed='true'] .landing-extra__box {
+            background: var(--color-success);
+            border-color: var(--color-success);
+            color: var(--color-on-accent);
+        }
+    }
+
+    &__box {
+        display: inline-grid;
+        flex: none;
+        place-items: center;
+        width: var(--landing-extra-check-size);
+        height: var(--landing-extra-check-size);
+        border: 2px solid var(--color-border);
+        border-radius: var(--radius-sm);
+        color: transparent;
+        font-size: var(--font-size-xs);
+        font-weight: 900;
+        transition: background-color var(--duration-fast), border-color var(--duration-fast);
+    }
+
+    &__hint {
+        color: var(--color-text-muted);
+        font-size: var(--font-size-xs);
+        text-align: center;
+    }
+
+    // Upozornění v telefonu jako bublina systémového oznámení
+    &__push {
+        display: flex;
+        align-items: flex-start;
+        gap: var(--space-2);
+        padding: var(--space-2) var(--space-3);
+        background: var(--color-surface);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-card-hover);
+        font-size: var(--font-size-sm);
+    }
+
+    &__push-icon {
+        flex: none;
+        width: var(--landing-extra-push-icon-size);
+        height: var(--landing-extra-push-icon-size);
+        border-radius: var(--radius-sm);
+    }
+
+    &__push-body {
+        display: flex;
+        flex-direction: column;
+    }
+
+    &__push-head {
+        display: flex;
+        justify-content: space-between;
+        gap: var(--space-2);
+        color: var(--color-text-muted);
+        font-size: var(--font-size-xs);
+
+        strong {
+            color: var(--color-text);
+        }
+    }
+
+    // Stránka letáku se zvýrazněným slovem
+    &__leaflet {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-1);
+        width: var(--landing-extra-leaflet-width);
+        padding: var(--space-2);
+        background: var(--color-surface);
+        border-radius: var(--radius-sm);
+        box-shadow: var(--shadow-card);
+        font-size: var(--font-size-xs);
+    }
+
+    &__leaflet-line {
+        height: var(--space-2);
+        background: var(--gradient-brand);
+        border-radius: var(--radius-pill);
+    }
+
+    &__leaflet-text {
+        color: var(--color-text-muted);
+    }
+
+    &__mark {
+        padding: 0 var(--space-1);
+        background: var(--color-warning-soft);
+        border-radius: var(--radius-sm);
+        color: var(--color-warning-text);
+        font-weight: 700;
+    }
+
+    &__leaflet-link {
+        color: var(--color-accent-strong);
+        font-weight: 700;
+    }
+
+    // Přeškrtnutý reklamní banner a cenovka „0 Kč“
+    &__free {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    &__banner {
+        position: relative;
+        padding: var(--space-2) var(--space-4);
+        background: var(--color-surface);
+        border: 2px dashed var(--color-border);
+        border-radius: var(--radius-sm);
+        color: var(--color-text-muted);
+        font-weight: 900;
+        letter-spacing: var(--letter-spacing-caps);
+        text-transform: uppercase;
+        transform: rotate(var(--landing-extra-banner-rotation));
+
+        &::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            right: calc(-1 * var(--space-2));
+            left: calc(-1 * var(--space-2));
+            height: var(--landing-extra-strike-thickness);
+            background: var(--color-accent);
+            border-radius: var(--radius-pill);
+            transform: rotate(calc(-1 * var(--sticker-rotation)));
+        }
+    }
+
+    &__price-tag {
+        position: absolute;
+        right: calc(-1 * var(--space-4));
+        bottom: calc(-1 * var(--space-3));
+        padding: var(--space-1) var(--space-2);
+        background: var(--gradient-brand);
+        border-radius: var(--radius-sm);
+        color: var(--color-on-brand);
+        font-weight: 900;
+        transform: rotate(var(--sticker-rotation));
+    }
+}

@@ -1,0 +1,222 @@
+// _watch-demo.scss
+// Živá ukázka hlídání na úvodní stránce (R90): tři kroky jako karty — obchody a produkty vedle
+// sebe, výsledek přes celou šířku pod nimi.
+//
+// @author Roman Hlaváček
+// @created 2026-10-06
+
+@use '../abstracts/mixins' as *;
+
+.watch-demo {
+    display: grid;
+    gap: var(--space-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    @include from-md {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    &__step {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-3);
+
+        &--hunt {
+            @include from-md {
+                grid-column: 1 / -1;
+            }
+        }
+    }
+
+    &__head {
+        display: flex;
+        align-items: flex-start;
+        gap: var(--space-3);
+    }
+
+    &__number {
+        display: inline-flex;
+        flex: none;
+        align-items: center;
+        justify-content: center;
+        width: var(--landing-step-size);
+        height: var(--landing-step-size);
+        background: var(--gradient-brand);
+        border-radius: 50%;
+        color: var(--color-on-brand);
+        font-size: var(--font-size-card-title);
+        font-weight: 900;
+    }
+
+    &__title {
+        font-size: var(--font-size-md);
+    }
+
+    &__text {
+        margin: var(--space-1) 0 0;
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+    }
+
+    &__chains,
+    &__products {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-2);
+    }
+
+    // Logo obchodu jako přepínač — vypnutý obchod je šedý a průhledný
+    &__chain {
+        padding: 0;
+        background: none;
+        border: 0;
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        transition: transform var(--duration-fast), opacity var(--duration-fast), filter var(--duration-fast);
+
+        &:hover {
+            transform: translateY(var(--hover-lift));
+        }
+
+        &[aria-pressed='false'] {
+            opacity: var(--watch-demo-chain-off-opacity);
+            filter: grayscale(1);
+        }
+
+        &[aria-pressed='true'] .chain-logo__image {
+            border-color: var(--color-accent);
+            box-shadow: 0 0 0 1px var(--color-accent);
+        }
+    }
+
+    &__product {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-1);
+        min-height: var(--control-size);
+
+        .department-icon {
+            width: var(--icon-size);
+            height: var(--icon-size);
+            fill: none;
+            stroke: currentcolor;
+            stroke-width: var(--svg-stroke-icon);
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+    }
+
+    &__result {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-2);
+    }
+
+    &__count {
+        margin: 0;
+        font-size: var(--font-size-md);
+    }
+
+    &__count-value {
+        color: var(--color-price);
+        font-size: var(--font-size-card-title);
+        font-weight: 900;
+        font-variant-numeric: tabular-nums;
+    }
+
+    &__subtitle {
+        margin: 0;
+        color: var(--color-text-muted);
+        font-size: var(--font-size-xs);
+        font-weight: 700;
+        letter-spacing: var(--letter-spacing-caps);
+        text-transform: uppercase;
+    }
+
+    &__hint {
+        margin: 0;
+        color: var(--color-text-muted);
+    }
+
+    // Tlačítko a vedle něj poznámka, že doopravdy se to nastavuje až po registraci
+    &__cta-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--space-2) var(--space-3);
+        margin-top: var(--space-2);
+    }
+
+    &__cta-note {
+        flex: 1 1 var(--watch-demo-note-min-width);
+        margin: 0;
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+    }
+}
+
+// Pískoviště kolem ukázky (R90): přerušovaný rámeček a štítek „Živá ukázka“ s blikající
+// tečkou — kroky nesmí vypadat jako nastavení účtu, které se neuložilo
+.watch-demo-sandbox {
+    padding: var(--space-3);
+    background: var(--gradient-hero);
+    border: 2px dashed var(--color-accent);
+    border-radius: var(--radius-lg);
+
+    @include from-md {
+        padding: var(--space-4);
+    }
+
+    &__head {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--space-2) var(--space-3);
+        margin: 0 0 var(--space-3);
+    }
+
+    &__badge {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+        padding: var(--space-1) var(--space-3);
+        background: var(--color-accent);
+        border-radius: var(--radius-pill);
+        color: var(--color-on-accent);
+        font-size: var(--font-size-xs);
+        font-weight: 800;
+        letter-spacing: var(--letter-spacing-caps);
+        text-transform: uppercase;
+    }
+
+    // Tečka jako u živého vysílání — pulzuje, s omezeným pohybem stojí
+    &__dot {
+        width: var(--watch-demo-dot-size);
+        height: var(--watch-demo-dot-size);
+        background: var(--color-on-accent);
+        border-radius: 50%;
+        animation: watch-demo-pulse var(--watch-demo-pulse-duration) ease-in-out infinite;
+
+        @media (prefers-reduced-motion: reduce) {
+            animation: none;
+        }
+    }
+
+    &__text {
+        color: var(--color-text-muted);
+        font-weight: 600;
+    }
+}
+
+@keyframes watch-demo-pulse {
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.3;
+    }
+}

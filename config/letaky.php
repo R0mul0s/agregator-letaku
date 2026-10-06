@@ -575,10 +575,26 @@ return [
     /*
     | Úvodní stránka pro nepřihlášené (R44): kolik akcí s nejvyšší slevou ukázat a z kolikrát
     | většího výběru je brát (ať se v ukázce vystřídají obchody).
+    |
+    | Živá ukázka hlídání (R90): nabídne demo_products produktů katalogu s nejvíc akcemi
+    | (prvních demo_preselected je předvybraných), vybrat jde nejvýš demo_max_products a ukáže
+    | nejvýš demo_offers nejlevnějších akcí za jednotku (po jedné na produkt).
+    |
+    | Hra „Co je levnější?“ (R90): quiz_rounds dvojic akcí stejného produktu z různých obchodů
+    | s cenou za kilo nebo litr, jejichž cena za jednotku se liší aspoň o quiz_min_difference_percent;
+    | dvojice se berou z quiz_candidate_products produktů s nejvíc akcemi a mění se každý den.
     */
     'landing' => [
         'top_offers' => 6,
         'top_offers_candidates_factor' => 5,
+        'demo_products' => 8,
+        'demo_preselected' => 2,
+        'demo_max_products' => 8,
+        'demo_offers' => 4,
+        'quiz_rounds' => 5,
+        'quiz_min_difference_percent' => 10,
+        'quiz_candidate_products' => 40,
+        'quiz_units' => ['kg', 'l'],
     ],
 
     /*

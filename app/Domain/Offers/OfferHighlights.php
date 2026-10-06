@@ -63,17 +63,21 @@ final class OfferHighlights
 
         $picked = [];
         $usedChains = [];
-        // Dvě kola: v prvním jen obchody, které v ukázce ještě nejsou, ve druhém kdokoli
+        $usedNames = [];
+        // Dvě kola: v prvním jen obchody, které v ukázce ještě nejsou, ve druhém kdokoli. Stejný
+        // název stejného obchodu jen jednou — Kaufland má akci po prodejnách jako víc řádků (R49)
         foreach ([true, false] as $distinctChains) {
             foreach ($candidates as $offer) {
                 if (count($picked) >= $limit) {
                     break 2;
                 }
-                if (isset($picked[$offer->id]) || ($distinctChains && isset($usedChains[$offer->chain->value]))) {
+                $name = $offer->chain->value.'|'.mb_strtolower($offer->name);
+                if (isset($picked[$offer->id]) || isset($usedNames[$name]) || ($distinctChains && isset($usedChains[$offer->chain->value]))) {
                     continue;
                 }
                 $picked[$offer->id] = $offer;
                 $usedChains[$offer->chain->value] = true;
+                $usedNames[$name] = true;
             }
         }
 

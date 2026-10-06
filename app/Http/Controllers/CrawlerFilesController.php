@@ -29,7 +29,7 @@ class CrawlerFilesController extends Controller
      * a registrace zakázané nejsou: mají „noindex“, který by robot za zákazem neviděl.
      */
     private const DISALLOWED_PATHS = [
-        '/hlidam', '/seznam', '/obchody', '/ucet', '/katalog', '/akce/naseptavac',
+        '/hlidam', '/seznam', '/obchody', '/ucet', '/katalog', '/akce/naseptavac', '/ukazka-hlidani',
         '/cron/', '/health/', '/up', '/odhlaseni/', '/email/',
     ];
 

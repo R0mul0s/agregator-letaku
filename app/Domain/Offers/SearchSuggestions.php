@@ -68,15 +68,16 @@ final class SearchSuggestions
     }
 
     /**
-     * Oblíbené produkty pro prázdné pole — nejvíc aktuálních akcí.
+     * Oblíbené produkty pro prázdné pole — nejvíc aktuálních akcí. Bez limitu tolik, kolik
+     * ukazuje našeptávač (ukázka hlídání na úvodní stránce, R90, chce víc).
      *
      * @return list<array<string, mixed>>
      */
-    public function popular(OfferFilters $filters, ?User $user): array
+    public function popular(OfferFilters $filters, ?User $user, ?int $limit = null): array
     {
         $stats = $this->stats(null, $filters);
         uasort($stats, fn (array $a, array $b): int => $b['count'] <=> $a['count']);
-        $ids = array_slice(array_keys($stats), 0, config()->integer('letaky.search.popular_products'));
+        $ids = array_slice(array_keys($stats), 0, $limit ?? config()->integer('letaky.search.popular_products'));
         $products = Product::query()->whereIn('id', $ids)->get()->keyBy('id');
 
         return $this->productsToPage(array_values(array_filter(array_map(fn (int $id): ?Product => $products->get($id), $ids))), $stats, $filters, $user);

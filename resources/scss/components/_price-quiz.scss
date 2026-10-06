@@ -1,0 +1,195 @@
+// _price-quiz.scss
+// Hra „Co je levnější?“ na úvodní stránce (R90): dvě akce jako velká tlačítka vedle sebe,
+// po tipu zelený rámeček u levnější, ztlumená dražší a řádek s hodnocením a dalším kolem.
+//
+// @author Roman Hlaváček
+// @created 2026-10-06
+
+.price-quiz {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+
+    &__head {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-2);
+    }
+
+    &__round {
+        margin: 0;
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+        font-weight: 700;
+    }
+
+    // Puntíky kol: hotová plná, aktuální s rámečkem
+    &__dots {
+        display: flex;
+        gap: var(--space-1);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    &__dot {
+        width: var(--price-quiz-dot-size);
+        height: var(--price-quiz-dot-size);
+        background: var(--color-border);
+        border-radius: 50%;
+
+        &--current {
+            box-shadow: 0 0 0 2px var(--color-accent);
+        }
+
+        &--done {
+            background: var(--color-accent);
+        }
+    }
+
+    &__question {
+        font-size: var(--font-size-md);
+
+        &:focus {
+            outline: none;
+        }
+    }
+
+    &__options {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--price-quiz-option-min-width)), 1fr));
+        gap: var(--space-3);
+    }
+
+    &__option {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-2);
+        padding: var(--space-3);
+        background: var(--color-surface);
+        border: 2px solid var(--color-border);
+        border-radius: var(--radius-md);
+        color: var(--color-text);
+        font: inherit;
+        text-align: left;
+        cursor: pointer;
+        transition: transform var(--duration-fast), border-color var(--duration-fast), box-shadow var(--duration-fast), opacity var(--duration-fast);
+
+        &:hover:not(:disabled) {
+            border-color: var(--color-accent);
+            box-shadow: var(--shadow-card-hover);
+            transform: translateY(var(--hover-lift));
+        }
+
+        &:disabled {
+            opacity: var(--opacity-disabled);
+            cursor: default;
+        }
+
+        &--picked:disabled {
+            border-color: var(--color-danger);
+        }
+
+        // Levnější plně viditelná se zeleným rámečkem, i když ji návštěvník netipnul
+        &--cheaper:disabled {
+            border-color: var(--color-success);
+            opacity: 1;
+        }
+    }
+
+    &__image {
+        display: block;
+        padding: var(--space-2);
+        background: var(--color-logo-bg);
+        border-radius: var(--radius-sm);
+
+        img {
+            display: block;
+            width: 100%;
+            height: var(--price-quiz-image-height);
+            object-fit: contain;
+        }
+    }
+
+    &__body {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--space-1);
+    }
+
+    &__name {
+        font-weight: 700;
+    }
+
+    &__package {
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+    }
+
+    &__price {
+        color: var(--color-price);
+        font-size: var(--font-size-card-title);
+        font-weight: 900;
+    }
+
+    &__unit-price {
+        font-weight: 700;
+    }
+
+    &__feedback {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-2) var(--space-3);
+        padding: var(--space-2) var(--space-3);
+        border-radius: var(--radius-md);
+
+        &--correct {
+            background: var(--color-success-soft);
+            color: var(--color-success-text);
+        }
+
+        &--wrong {
+            background: var(--color-danger-soft);
+            color: var(--color-danger);
+        }
+    }
+
+    &__verdict {
+        margin: 0;
+        font-weight: 700;
+    }
+
+    &__end {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--space-2);
+    }
+
+    &__score {
+        margin: 0;
+        font-size: var(--font-size-card-title);
+        font-weight: 900;
+
+        &:focus {
+            outline: none;
+        }
+    }
+
+    &__end-text {
+        margin: 0;
+        color: var(--color-text-muted);
+    }
+
+    &__end-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-2);
+        margin-top: var(--space-2);
+    }
+}

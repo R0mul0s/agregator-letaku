@@ -179,11 +179,32 @@
     --font-size-landing-title-mobile: 2rem;
     --font-size-landing-lead: 1.125rem;
     --landing-mascot-size: 16rem;
+    --landing-mascot-size-mobile: 8rem;
     --landing-stat-min-width: 10rem;
     --landing-feature-min-width: 20rem;
+    --landing-extra-min-width: 17rem;
+    --landing-extra-visual-height: 8.5rem;
+    --landing-extra-chart-width: 9rem;
+    --landing-extra-push-icon-size: 2.25rem;
+    --landing-extra-check-size: 1.125rem;
+    --landing-extra-leaflet-width: 11rem;
+    --landing-extra-banner-rotation: -4deg;
+    --landing-extra-strike-thickness: 3px;
+    --landing-extra-hover-scale: 1.04;
     --landing-icon-box-size: 3rem;
     --landing-icon-size: 1.5rem;
     --landing-step-size: 2.75rem;
+    --landing-search-max-width: 34rem;
+    // Živá ukázka hlídání a hra „Co je levnější?“ (R90)
+    --watch-demo-chain-off-opacity: 0.45;
+    --watch-demo-dot-size: 0.5rem;
+    --watch-demo-pulse-duration: 1.6s;
+    --watch-demo-note-min-width: 16rem;
+    --price-quiz-image-height: 7rem;
+    --price-quiz-option-min-width: 14rem;
+    --price-quiz-dot-size: 0.625rem;
+    --duration-sticker-swap: 220ms;
+    --sticker-swap-scale: 0.6;
     // Animace košíku v hlavním pruhu (R44): jízda, hrboly, čárky rychlosti
     --landing-drive-duration: 3.2s;
     --landing-drive-distance: 0.6rem;

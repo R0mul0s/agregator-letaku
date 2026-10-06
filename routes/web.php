@@ -31,6 +31,7 @@ use App\Http\Controllers\ShoppingListController;
 use App\Http\Controllers\ShoppingPreferencesController;
 use App\Http\Controllers\UnsubscribeController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\WatchDemoController;
 use App\Http\Controllers\WatchItemController;
 use App\Http\Middleware\ReadOnlySession;
 use App\Support\RateLimits;
@@ -98,6 +99,11 @@ Route::get('/akce/naseptavac', OfferSuggestionsController::class)
     // Relace jen pro čtení — dotaz při psaní nesmí přepsat zprávu souběžného uložení (R71)
     ->middleware(['throttle:'.RateLimits::SUGGESTIONS, ReadOnlySession::class])
     ->name('offers.suggestions');
+
+// Živá ukázka hlídání na úvodní stránce (R90) — dotaz po každé změně výběru, limit jako našeptávač
+Route::get('/ukazka-hlidani', WatchDemoController::class)
+    ->middleware(['throttle:'.RateLimits::SUGGESTIONS, ReadOnlySession::class])
+    ->name('watch-demo');
 
 Route::middleware('auth')->group(function (): void {
     Route::get('/hlidam', [WatchItemController::class, 'index'])->name('watch-items.index');
