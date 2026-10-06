@@ -100,3 +100,11 @@ v [PLAN.md](PLAN.md). Větší celky se z toho stávají etapou.
 - kompaktní řádky „Jsem v obchodě“ (R62) i ve Všech akcích a Mých slevách (R82) hotové — dál: „Hlídat“ i v řádku
 - „Hlídat“ z karty hotové (R60) — dál: i v Mých slevách a na úvodní stránce
 - nákupní seznam hotový (R61) — dál: sdílení seznamu s rodinou, přidání vlastní položky bez akce
+
+## Přihlášení přes účty
+
+**Odkud:** R96 (2026-10-06) — Google a Facebook jsou hotové.
+
+- **Apple** (Sign in with Apple) — Apple Developer Program 99 USD ročně, balíček `socialiteproviders/apple`, odpověď přichází jako POST z cizí domény (cookie relace `SameSite=Lax` nepřijde → výjimka z CSRF a stav bez relace), klíč klienta je JWT platný nejvýš 6 měsíců, jméno jen při prvním přihlášení; skrytý e-mail (`@privaterelay.appleid.com`) přijímá jen poštu z domény registrované u Applu (SPF/DKIM) — jinak nedojdou souhrny ani ověření
+- Google One Tap (přihlášení bez přesměrování) — skript `accounts.google.com` do CSP a jeho cookies až po souhlasu
+- v přehledu uživatelů pro admina (R84) ukázat, jak se kdo přihlašuje

@@ -16,13 +16,12 @@ use App\Actions\Fortify\CreateNewUser;
 use App\Actions\Fortify\ResetUserPassword;
 use App\Actions\Fortify\UpdateUserPassword;
 use App\Actions\Fortify\UpdateUserProfileInformation;
+use App\Domain\Account\AuthShowcase;
 use App\Domain\Account\RegistrationGuard;
-use App\Domain\Offers\OfferHighlights;
-use App\Domain\Offers\OfferPresenter;
-use App\Enums\Chain;
+use App\Enums\SocialProvider;
+use App\Http\Controllers\SocialLoginController;
 use App\Http\Responses\RegisterResponse;
 use App\Http\Responses\VerifyEmailResponse;
-use App\Models\Offer;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -84,7 +83,10 @@ class FortifyServiceProvider extends ServiceProvider
                 'forgotPassword' => route('password.request', absolute: false),
             ],
             // Panel vedle formuláře (R56): počet akcí, obchody a ukázka akcí s nejvyšší slevou
-            'showcase' => fn (): array => $this->showcase(),
+            'showcase' => fn (): array => app(AuthShowcase::class)->toArray(),
+            // Přihlášení přes Google a Facebook (R96); parametr „Zapamatovat si mě“ přidá stránka
+            'social' => $this->socialProviders(),
+            'rememberParameter' => SocialLoginController::REMEMBER_PARAMETER,
         ]));
 
         Fortify::registerView(function (Request $request): Response {
@@ -107,7 +109,9 @@ class FortifyServiceProvider extends ServiceProvider
                 // Nápověda u hesla (R56) — stejná délka jako Password::defaults() v AppServiceProvider
                 'passwordMinLength' => config()->integer('letaky.auth.password.min_length'),
                 // Panel vedle formuláře (R56): počet akcí, obchody a ukázka akcí s nejvyšší slevou
-                'showcase' => fn (): array => $this->showcase(),
+                'showcase' => fn (): array => app(AuthShowcase::class)->toArray(),
+                // Registrace přes Google a Facebook (R96) — souhlasy potvrdí dokončení registrace
+                'social' => $this->socialProviders(),
             ]);
         });
 
@@ -120,7 +124,7 @@ class FortifyServiceProvider extends ServiceProvider
                 'login' => route('login', absolute: false),
             ],
             // Stejný panel jako u přihlášení (R56) — AuthShowcase bez dat stránku shodí
-            'showcase' => fn (): array => $this->showcase(),
+            'showcase' => fn (): array => app(AuthShowcase::class)->toArray(),
         ]));
 
         Fortify::resetPasswordView(fn (Request $request): Response => Inertia::render('Auth/ResetPassword', [
@@ -129,28 +133,22 @@ class FortifyServiceProvider extends ServiceProvider
             'urls' => [
                 'submit' => route('password.update', absolute: false),
             ],
-            'showcase' => fn (): array => $this->showcase(),
+            'showcase' => fn (): array => app(AuthShowcase::class)->toArray(),
         ]));
     }
 
     /**
-     * Data panelu vedle přihlášení a registrace (AuthShowcase.vue, R56) — skutečné akce
-     * místo obecných slibů: kolik jich právě je, ze kterých obchodů a pár nejvyšších slev.
+     * Tlačítka přihlášení přes Google a Facebook (R96) — jen poskytovatelé s klíči v .env.
+     * Adresa vede mimo Inertii (přesměrování k poskytovateli by XHR nedokončil).
      *
-     * @return array{offers: int, chains: list<string>, deals: list<array<string, mixed>>}
+     * @return list<array{provider: string, url: string, logo: string}>
      */
-    private function showcase(): array
+    private function socialProviders(): array
     {
-        $highlights = app(OfferHighlights::class);
-        $presenter = app(OfferPresenter::class);
-
-        return [
-            'offers' => $highlights->currentCount(),
-            'chains' => array_map(fn (Chain $chain): string => $chain->value, $highlights->chains()),
-            'deals' => array_map(
-                fn (Offer $offer): array => $presenter->toPage($offer),
-                $highlights->topDiscounts(config()->integer('letaky.auth.showcase_deals')),
-            ),
-        ];
+        return array_map(fn (SocialProvider $provider): array => [
+            'provider' => $provider->value,
+            'url' => route('social.redirect', ['provider' => $provider], absolute: false),
+            'logo' => $provider->logoUrl(),
+        ], SocialProvider::configured());
     }
 }

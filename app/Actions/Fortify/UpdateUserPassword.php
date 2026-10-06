@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace App\Actions\Fortify;
 
+use App\Domain\Account\IdentityConfirmation;
 use App\Domain\Account\UserSessions;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
@@ -26,11 +27,15 @@ class UpdateUserPassword implements UpdatesUserPasswords
     /** Pojmenovaná sada chyb — stránka účtu má dva formuláře a chyby se nesmí plést. */
     public const ERROR_BAG = 'updatePassword';
 
-    public function __construct(private readonly UserSessions $sessions) {}
+    public function __construct(
+        private readonly UserSessions $sessions,
+        private readonly IdentityConfirmation $confirmation,
+    ) {}
 
     /**
      * Ověří současné heslo, uloží nové a odhlásí ostatní zařízení (R67) — kdo heslo mění,
-     * protože ho někdo zná, nechce, aby ten zůstal přihlášený.
+     * protože ho někdo zná, nechce, aby ten zůstal přihlášený. Účet bez hesla (R96) si první
+     * heslo nastaví po potvrzení u poskytovatele přihlášení (IdentityConfirmation).
      *
      * @param  array<string, string>  $input
      *
@@ -39,7 +44,7 @@ class UpdateUserPassword implements UpdatesUserPasswords
     public function update(User $user, array $input): void
     {
         Validator::make($input, [
-            'current_password' => ['required', 'string', 'current_password:web'],
+            'current_password' => $this->confirmation->rules($user),
             'password' => $this->passwordRules(),
         ])->validateWithBag(self::ERROR_BAG);
 

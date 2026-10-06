@@ -41,6 +41,8 @@ final class RateLimits
      */
     private const SENSITIVE_ROUTES = [
         'register.store',
+        // Dokončení registrace přes Google a Facebook (R96) zakládá účet a může poslat ověřovací e-mail
+        'social.register.store',
         'password.email',
         'password.update',
         'user-password.update',
@@ -61,6 +63,7 @@ final class RateLimits
      */
     private const MAIL_ROUTES = [
         'register.store',
+        'social.register.store',
         'password.email',
         'verification.send',
         'user-profile-information.update',

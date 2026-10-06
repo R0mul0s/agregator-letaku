@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace App\Actions\Fortify;
 
+use App\Domain\Account\IdentityConfirmation;
 use App\Models\User;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -23,11 +24,13 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
     /** Pojmenovaná sada chyb — stránka účtu má dva formuláře a chyby se nesmí plést. */
     public const ERROR_BAG = 'updateProfileInformation';
 
+    public function __construct(private readonly IdentityConfirmation $confirmation) {}
+
     /**
      * Ověří a uloží jméno a e-mail. Nová adresa se musí znovu ověřit (R51) — do té doby
      * na ni nechodí souhrny, jinak by šlo posílat e-maily na cizí adresu. Změna e-mailu chce
      * současné heslo (R54): kdo by ukradl relaci, by jinak změnil adresu a přes obnovu hesla
-     * převzal účet.
+     * převzal účet. Účet bez hesla ji potvrdí přihlášením u poskytovatele (R96).
      *
      * @param  array<string, string>  $input
      *
@@ -40,7 +43,7 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
         Validator::make($input, [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique(User::class)->ignore($user->id)],
-            'current_password' => $emailChanged ? ['required', 'string', 'current_password:web'] : ['nullable'],
+            'current_password' => $emailChanged ? $this->confirmation->rules($user) : ['nullable'],
         ])->validateWithBag(self::ERROR_BAG);
 
         $user->forceFill([

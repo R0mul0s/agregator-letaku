@@ -14,11 +14,9 @@ declare(strict_types=1);
 
 namespace App\Actions\Fortify;
 
-use App\Domain\Account\MailingSubscriptions;
+use App\Domain\Account\Actions\SetUpNewAccount;
 use App\Domain\Account\RegistrationGuard;
-use App\Domain\Chains\ChainCatalog;
 use App\Models\User;
-use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -30,9 +28,8 @@ class CreateNewUser implements CreatesNewUsers
     use PasswordValidationRules;
 
     public function __construct(
-        private readonly MailingSubscriptions $subscriptions,
         private readonly RegistrationGuard $guard,
-        private readonly ChainCatalog $chains,
+        private readonly SetUpNewAccount $setUp,
     ) {}
 
     /**
@@ -62,17 +59,7 @@ class CreateNewUser implements CreatesNewUsers
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
         ]);
-        $user->forceFill([
-            'terms_accepted_at' => CarbonImmutable::now(),
-            'terms_version' => config()->integer('letaky.legal.terms_version'),
-        ])->save();
-        $this->subscriptions->setMarketingConsent($user, (bool) ($data['marketing'] ?? false));
-
-        // Nový účet sleduje všechny obchody (R55) — k první užitečné informaci stačí přidat
-        // hlídanou položku; upřesnění (typ prodejny, prodejny, karty) přijde až podle potřeby
-        foreach ($this->chains->available() as $chain) {
-            $user->followedChains()->create(['chain' => $chain, 'store_format' => null, 'include_online_only' => true]);
-        }
+        $this->setUp->handle($user, (bool) ($data['marketing'] ?? false));
 
         return $user;
     }

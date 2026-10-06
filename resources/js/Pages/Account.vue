@@ -1,18 +1,20 @@
 <!--
     Můj účet (R12, R40, R41) — profilový obrázek, jméno a e-mail, heslo (Fortify),
     předvolby Mých slev, e-mailový souhrn (R42), aplikace a upozornění v telefonu (R66),
-    novinky a nabídky (souhlas, R51),
+    novinky a nabídky (souhlas, R51), přihlášení přes Google a Facebook (R96),
     přihlášená zařízení a zrušení účtu.
 
     Sekce pod sebou s navigací (R63): nadpis s vysvětlením vlevo, pole vpravo. Volby (souhrn,
     novinky, předvolby Mých slev) se ukládají hned po změně; tlačítko mají jen formuláře, kde
-    se píše. Heslo pro odhlášení zařízení a zrušení účtu se ukáže až po klepnutí.
+    se píše. Heslo pro odhlášení zařízení a zrušení účtu se ukáže až po klepnutí. Účet bez
+    hesla (R96) má místo pole s heslem potvrzení u poskytovatele (IdentityConfirm.vue).
 
     @author Roman Hlaváček
     @created 2026-10-02
 -->
 <script setup>
 import CheckboxField from '@/Components/CheckboxField.vue';
+import IdentityConfirm from '@/Components/IdentityConfirm.vue';
 import PhoneAppSettings from '@/Components/PhoneAppSettings.vue';
 import TextField from '@/Components/TextField.vue';
 import UserAvatar from '@/Components/UserAvatar.vue';
@@ -42,6 +44,11 @@ const props = defineProps({
     push: { type: Object, default: null },
     /** Nasazená verze aplikace (R78); null = vývoj. */
     appVersion: { type: String, default: null },
+    /**
+     * Přihlášení přes Google a Facebook (R96) { hasPassword, identityConfirmed, sectionParameter,
+     * providers: [{ provider, logo, linked, linkUrl, confirmUrl, unlinkUrl }] }.
+     */
+    social: { type: Object, required: true },
 });
 
 const t = useTranslations();
@@ -144,9 +151,20 @@ onBeforeUnmount(() => {
 /** Přihlášení i jinde než tady — jen pak má smysl odhlásit ostatní zařízení. */
 const hasOtherSessions = computed(() => props.sessions.some((session) => !session.current));
 
+/**
+ * Návrat z potvrzení u poskytovatele (R96) do sekce — formulář, kvůli kterému uživatel
+ * odešel, je rovnou otevřený.
+ *
+ * @param {string} section
+ * @returns {boolean}
+ */
+function returnedConfirmed(section) {
+    return props.social.identityConfirmed && window.location.hash === `#${section}`;
+}
+
 /** Pole s heslem pro odhlášení zařízení a zrušení účtu se ukážou až po klepnutí. */
-const devicesFormOpen = ref(false);
-const deleteFormOpen = ref(false);
+const devicesFormOpen = ref(returnedConfirmed('zabezpeceni'));
+const deleteFormOpen = ref(returnedConfirmed('zruseni-uctu'));
 
 const profileForm = useForm({
     name: page.props.auth.user.name,
@@ -270,6 +288,15 @@ function logoutOtherDevices() {
     });
 }
 
+/**
+ * Odpojí Google nebo Facebook (R96); poslední způsob přihlášení server odmítne toastem.
+ *
+ * @param {{ unlinkUrl: string }} provider
+ */
+function unlinkProvider(provider) {
+    router.delete(provider.unlinkUrl, { preserveScroll: true });
+}
+
 /** Po potvrzení zruší účet. */
 async function deleteAccount() {
     const confirmed = await confirmDialog({
@@ -339,8 +366,14 @@ async function deleteAccount() {
                         <form class="form" novalidate @submit.prevent="updateProfile">
                             <TextField id="name" v-model="profileForm.name" :label="t('auth.name')" autocomplete="name" required :error="profileForm.errors.name" />
                             <TextField id="email" v-model="profileForm.email" :label="t('auth.email')" type="email" autocomplete="email" required :error="profileForm.errors.email" />
+                            <IdentityConfirm
+                                v-if="emailChanged && !social.hasPassword"
+                                :social="social"
+                                section="profil"
+                                :error="profileForm.errors.current_password"
+                            />
                             <TextField
-                                v-if="emailChanged"
+                                v-else-if="emailChanged"
                                 id="profile_current_password"
                                 v-model="profileForm.current_password"
                                 :label="t('account.current_password')"
@@ -451,8 +484,13 @@ async function deleteAccount() {
                     </header>
                     <div class="account-section__body">
                         <form class="form" novalidate @submit.prevent="updatePassword">
-                            <h3 class="account-section__subtitle">{{ t('account.password') }}</h3>
+                            <h3 class="account-section__subtitle">{{ social.hasPassword ? t('account.password') : t('account.social.set_password') }}</h3>
+                            <template v-if="!social.hasPassword">
+                                <p class="form-field__hint">{{ t('account.social.no_password') }} {{ t('account.social.set_password_hint') }}</p>
+                                <IdentityConfirm :social="social" section="zabezpeceni" :error="passwordForm.errors.current_password" />
+                            </template>
                             <TextField
+                                v-else
                                 id="current_password"
                                 v-model="passwordForm.current_password"
                                 :label="t('account.current_password')"
@@ -483,9 +521,29 @@ async function deleteAccount() {
                                 :error="passwordForm.errors.password_confirmation"
                             />
                             <div class="form__actions">
-                                <button type="submit" class="button button--primary" :disabled="passwordForm.processing">{{ t('account.password_submit') }}</button>
+                                <button type="submit" class="button button--primary" :disabled="passwordForm.processing">
+                                    {{ social.hasPassword ? t('account.password_submit') : t('account.social.set_password_submit') }}
+                                </button>
                             </div>
                         </form>
+
+                        <div v-if="social.providers.length" class="account-section__part">
+                            <h3 class="account-section__subtitle">{{ t('account.social.title') }}</h3>
+                            <p class="form-field__hint">{{ t('account.social.hint') }}</p>
+                            <ul class="social-accounts">
+                                <li v-for="provider in social.providers" :key="provider.provider" class="social-accounts__item">
+                                    <span class="social-accounts__name">
+                                        <img :src="provider.logo" alt="" class="social-login__logo" />
+                                        {{ t(`auth.social.providers.${provider.provider}`) }}
+                                        <span class="tag" :class="{ 'tag--success': provider.linked }">
+                                            {{ provider.linked ? t('account.social.linked') : t('account.social.not_linked') }}
+                                        </span>
+                                    </span>
+                                    <button v-if="provider.linked" type="button" class="button button--ghost" @click="unlinkProvider(provider)">{{ t('account.social.unlink') }}</button>
+                                    <a v-else :href="provider.linkUrl" class="button button--ghost">{{ t('account.social.link') }}</a>
+                                </li>
+                            </ul>
+                        </div>
 
                         <div class="account-section__part">
                             <h3 class="account-section__subtitle">{{ t('account.devices') }}</h3>
@@ -508,7 +566,9 @@ async function deleteAccount() {
                                     {{ t('account.logout_others_start') }}
                                 </button>
                                 <form v-else class="form account-section__confirm" novalidate @submit.prevent="logoutOtherDevices">
+                                    <IdentityConfirm v-if="!social.hasPassword" :social="social" section="zabezpeceni" :error="devicesForm.errors.password" />
                                     <TextField
+                                        v-else
                                         id="devices_password"
                                         v-model="devicesForm.password"
                                         :label="t('account.confirm_password')"
@@ -538,7 +598,9 @@ async function deleteAccount() {
                     <div class="account-section__body">
                         <button v-if="!deleteFormOpen" type="button" class="button button--danger account-section__action" @click="deleteFormOpen = true">{{ t('account.delete_start') }}</button>
                         <form v-else class="form account-section__confirm" novalidate @submit.prevent="deleteAccount">
+                            <IdentityConfirm v-if="!social.hasPassword" :social="social" section="zruseni-uctu" :error="deleteForm.errors.password" />
                             <TextField
+                                v-else
                                 id="delete_password"
                                 v-model="deleteForm.password"
                                 :label="t('account.confirm_password')"

@@ -124,6 +124,11 @@ return [
         ],
         // Kolik akcí s nejvyšší slevou ukáže panel vedle přihlášení a registrace (R56)
         'showcase_deals' => 5,
+        // Přihlášení přes Google a Facebook (R96): jak dlouho po potvrzení u poskytovatele smí
+        // účet bez hesla měnit e-mail, nastavit heslo, odhlásit zařízení nebo se zrušit
+        'social' => [
+            'confirmation_minutes' => 15,
+        ],
     ],
 
     /*

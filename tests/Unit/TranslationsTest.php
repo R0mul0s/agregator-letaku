@@ -10,10 +10,12 @@
 
 declare(strict_types=1);
 
+use App\Domain\Account\Social\SocialLoginRefused;
 use App\Enums\Chain;
 use App\Enums\LoyaltyProgram;
 use App\Enums\MailingList;
 use App\Enums\OfferType;
+use App\Enums\SocialProvider;
 use App\Enums\StoreFormat;
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\AvatarController;
@@ -21,6 +23,7 @@ use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\ShoppingListController;
 use App\Http\Controllers\ShoppingPreferencesController;
+use App\Http\Controllers\SocialLoginController;
 use App\Http\Controllers\UnsubscribeController;
 use App\Http\Controllers\WatchItemController;
 use App\Http\Responses\ErrorToast;
@@ -75,7 +78,21 @@ it('má text toastu pro každý kód stavu po uložení (R47)', function (string
     CatalogController::STATUS_PRODUCT_SAVED,
     CatalogController::STATUS_PRODUCT_DELETED,
     CatalogController::STATUS_ASSIGNMENT_CHANGED,
+    SocialLoginController::STATUS_LINKED,
+    SocialLoginController::STATUS_UNLINKED,
+    SocialLoginController::STATUS_CONFIRMED,
 ]);
+
+it('má název a důvody odmítnutí pro přihlášení přes poskytovatele (R96)', function (): void {
+    foreach (SocialProvider::cases() as $provider) {
+        expect(trans()->has('app.ui.auth.social.providers.'.$provider->value))->toBeTrue();
+    }
+
+    $reasons = (new ReflectionClass(SocialLoginRefused::class))->getConstants();
+    foreach ($reasons as $reason) {
+        expect(trans()->has('app.ui.auth.social.refused.'.$reason))->toBeTrue();
+    }
+});
 
 it('má název pro každý druh e-mailů k odhlášení (R51)', function (MailingList $list): void {
     expect(trans()->has('app.ui.mailing_lists.'.$list->value))->toBeTrue();

@@ -11,6 +11,7 @@
 declare(strict_types=1);
 
 use App\Domain\Offers\OfferPages;
+use App\Enums\SocialProvider;
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\AnnouncementController;
 use App\Http\Controllers\AvatarController;
@@ -30,6 +31,8 @@ use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\ServiceWorkerController;
 use App\Http\Controllers\ShoppingListController;
 use App\Http\Controllers\ShoppingPreferencesController;
+use App\Http\Controllers\SocialLoginController;
+use App\Http\Controllers\SocialRegistrationController;
 use App\Http\Controllers\UnsubscribeController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WatchDemoController;
@@ -98,6 +101,26 @@ Route::middleware('throttle:'.RateLimits::PUBLIC)->group(function (): void {
     Route::middleware('signed')->group(function (): void {
         Route::get('/odhlaseni/{user}/{list}', [UnsubscribeController::class, 'show'])->name('unsubscribe');
         Route::post('/odhlaseni/{user}/{list}', [UnsubscribeController::class, 'store'])->name('unsubscribe.store');
+    });
+});
+
+// Přihlášení přes Google a Facebook (R96). Odchod k poskytovateli a dokončení registrace jen
+// pro nepřihlášené; návrat má jednu adresu pro přihlášení, propojení i potvrzení (zapsanou
+// u poskytovatele), záměr nese relace
+Route::middleware('throttle:'.RateLimits::PUBLIC)->group(function (): void {
+    $providers = array_column(SocialProvider::cases(), 'value');
+
+    Route::middleware('guest')->group(function () use ($providers): void {
+        Route::get('/prihlaseni/{provider}', [SocialLoginController::class, 'redirect'])->whereIn('provider', $providers)->name('social.redirect');
+        Route::get('/registrace/dokonceni', [SocialRegistrationController::class, 'show'])->name('social.register');
+        Route::post('/registrace/dokonceni', [SocialRegistrationController::class, 'store'])->name('social.register.store');
+    });
+    Route::get('/prihlaseni/{provider}/navrat', [SocialLoginController::class, 'callback'])->whereIn('provider', $providers)->name('social.callback');
+
+    Route::middleware('auth')->group(function () use ($providers): void {
+        Route::get('/ucet/propojit/{provider}', [SocialLoginController::class, 'link'])->whereIn('provider', $providers)->name('social.link');
+        Route::get('/ucet/potvrdit/{provider}', [SocialLoginController::class, 'confirm'])->whereIn('provider', $providers)->name('social.confirm');
+        Route::delete('/ucet/propojeni/{provider}', [SocialLoginController::class, 'unlink'])->whereIn('provider', $providers)->name('social.unlink');
     });
 });
 

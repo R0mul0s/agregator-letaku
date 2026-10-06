@@ -95,6 +95,8 @@ a vyplň místa `<…>`:
 - `LETAKY_VAPID_PUBLIC_KEY` a `LETAKY_VAPID_PRIVATE_KEY` — klíče pro upozornění v telefonu (R66):
   `docker compose exec app php artisan letaky:push-keys`, vygenerovat **jednou** a neměnit (nové klíče
   zneplatní všechny odběry); prázdné = upozornění vypnutá
+- volitelně `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` a `FACEBOOK_CLIENT_ID` / `FACEBOOK_CLIENT_SECRET` —
+  přihlášení přes Google a Facebook (R96, kapitola *Přihlášení přes Google a Facebook*); prázdné = tlačítko se neukáže
 - volitelně `LETAKY_GA_MEASUREMENT_ID` (Google Analytics po souhlasu s cookies, R52) a `LETAKY_USER_AGENT`
   (User-Agent stahování — **bez `https://`**, jinak Albert vrací 400, R65; konfigurace není v cache,
   změna v `.env` platí hned bez nasazení)
@@ -284,6 +286,39 @@ Volby v prohlížeči (vzhled, poslední hledání) se nepřenesou.
     zapnout upozornění v telefonu a přidat aplikaci na plochu.
 14. **Repozitář:** adresa produkce v `README.md` a `CLAUDE.md`, řádek v *Nasazené verze*, složku
     `deploy/coming-soon/` smaž, odškrtni bod v `docs/ZVEREJNENI.md`.
+
+## Přihlášení přes Google a Facebook (R96)
+
+Tlačítka se ukážou, až budou v `.env` klíče aplikace u poskytovatele. Adresa návratu je pro
+přihlášení, propojení účtu i potvrzení totožnosti jedna — **`https://<doména>/prihlaseni/google/navrat`**
+a **`https://<doména>/prihlaseni/facebook/navrat`** (doména z `APP_URL`; při stěhování na
+`slevohlidka.cz`, R93, zapsat novou adresu, starou můžeš nechat do přesměrování). Lokálně
+`http://localhost:54720/prihlaseni/google/navrat` (Google povoluje `http://localhost`, Facebook v režimu vývoje taky).
+
+**Google** ([console.cloud.google.com](https://console.cloud.google.com)):
+
+1. Nový projekt „Slevohlídka“ → *APIs & Services* → *OAuth consent screen*: typ **External**, název
+   Slevohlídka, logo, e-mail podpory `info@slevohlidka.cz`, odkazy na `/`, `/ochrana-udaju` a `/podminky`,
+   autorizovaná doména `slevohlidka.cz` (a `rhsoft.cz`, dokud běží subdoména). Rozsahy jen
+   `openid`, `…/auth/userinfo.email`, `…/auth/userinfo.profile` — nevyžadují ověření aplikace Googlem.
+2. *Publishing status* → **In production** (v režimu Testing se přihlásí jen zapsaní testeři).
+3. *Credentials* → *Create credentials* → *OAuth client ID* → **Web application**, *Authorized redirect URIs*
+   = adresy návratu výše. ID a tajemství do `GOOGLE_CLIENT_ID` a `GOOGLE_CLIENT_SECRET`.
+
+**Facebook** ([developers.facebook.com](https://developers.facebook.com)):
+
+1. *Create app* → případ použití **Authenticate and request data from users with Facebook Login**, typ *Consumer*.
+2. *Facebook Login* → *Settings*: *Valid OAuth Redirect URIs* = adresa návratu výše; *Login with the JavaScript SDK* vypnout.
+3. *App settings* → *Basic*: *Privacy Policy URL* `/ochrana-udaju`, *Terms of Service URL* `/podminky`,
+   *User data deletion* → *Data deletion instructions URL* `/ochrana-udaju#6-vase-prava` (účet se ruší
+   v Mém účtu, propojení zmizí s ním), ikona aplikace, kategorie, kontaktní e-mail.
+4. Oprávnění `email` a `public_profile` mají standardní přístup bez schválení; přepnout aplikaci do režimu **Live**
+   (Meta může chtít ověření firmy/podnikatele — obrátit se na ni, až se ozve).
+5. *App ID* a *App secret* do `FACEBOOK_CLIENT_ID` a `FACEBOOK_CLIENT_SECRET`.
+
+**Ověř:** na `/prihlaseni` jsou tlačítka; přihlášení novým účtem vede na *Dokončení registrace*; v Mém účtu
+v sekci Zabezpečení jde propojit a odpojit. **Na iPhonu z plochy** (R66) ověř, že se po přihlášení přes
+poskytovatele vrátíš do aplikace přihlášený — přesměrování mimo web se otevře v Safari, které má vlastní cookies.
 
 ## Monitoring: hlídání stahování
 
@@ -566,6 +601,30 @@ Soubory `app/Domain/Sources/Albert/AlbertBox.php` a `AlbertTile.php` se přesunu
 3. **Ověř:** `version.txt`, `/health/imports` vrací 200, `/akce?brzy=1&chain=globus` a `…&chain=billa` mají akce od středy.
 4. Zapiš verzi do *Nasazené verze*.
 
+### Aktualizace z `6d328eb` (dvacáté nasazení — přihlášení přes Google a Facebook)
+
+**Přihlášení přes Google a Facebook** (R96). Nový balíček `laravel/socialite` (s `league/oauth1-client`,
+`firebase/php-jwt`, `phpseclib/phpseclib`) — **nahraj i `vendor/`**. Cron beze změny.
+
+1. **SQL skript před nahráním kódu:** v phpMyAdminu pusť `migrations-2026-10-06-prihlaseni-pres-google.sql`
+   (tabulka `social_accounts`, `users.password` nepovinné). Stará verze kódu s ním běží dál.
+2. **`.env` na hostingu:** doplň `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `FACEBOOK_CLIENT_ID`,
+   `FACEBOOK_CLIENT_SECRET` (kapitola *Přihlášení přes Google a Facebook*). Bez nich se tlačítka jen neukážou.
+3. **Nahraj `deploy/upload/`** včetně `vendor/` a `public/build/`; nové jsou `public/images/social/`,
+   `app/Domain/Account/Social/`, `app/Domain/Account/Actions/` (`SetUpNewAccount`, `ResolveSocialLogin`,
+   `RegisterSocialUser`, `LinkSocialAccount`, `UnlinkSocialAccount`), `app/Domain/Account/AuthShowcase.php`,
+   `IdentityConfirmation.php`, `app/Enums/SocialProvider.php`, `app/Models/SocialAccount.php`,
+   `app/Rules/ConfirmedIdentity.php`, `app/Http/Controllers/Social*Controller.php`; změnily se mj. `config/services.php`,
+   `config/letaky.php`, `routes/web.php`, `lang/cs/app.php` a `resources/legal/privacy.md`.
+4. **Ověř:**
+   - `version.txt`;
+   - na `/prihlaseni` jsou tlačítka Google a Facebook;
+   - přihlášení přes Google vede na *Dokončení registrace* (nový účet) nebo rovnou do aplikace (propojený);
+   - v Mém účtu → Zabezpečení jde propojit a odpojit;
+   - z aplikace na ploše iPhonu se po přihlášení přes poskytovatele vrátíš přihlášený.
+5. Facebook přepni na *Live*, až Meta dovolí (ověření firmy); do té doby se přihlásí jen lidé s rolí v aplikaci.
+6. Zapiš verzi do *Nasazené verze*.
+
 **Každá nová migrace potřebuje SQL skript** `deploy/migrations-<datum>-<popis>.sql`
 (opakovatelný: `CREATE TABLE IF NOT EXISTS`, `ADD COLUMN IF NOT EXISTS`) včetně zápisu do
 tabulky `migrations` — ve stejném commitu jako migrace. Nové produkty katalogu jdou na
@@ -600,7 +659,8 @@ a ruční opravy katalogu. Před každým SQL skriptem a jinak aspoň jednou mě
 | `migrations-2026-10-04-upozorneni-v-telefonu.sql` | upozornění v telefonu (R66): tabulka `push_subscriptions`, `users.push_sent_at`; opakovatelný, pustit **před** nahráním kódu | 2026-10-04 |
 | `data-2026-10-04-katalog-rozsireni.sql` | rozšíření katalogu (R70): 42 nových produktů a nová pravidla šesti (Minerální voda, Džus, Prací prostředek, Salám, Ovesné vločky, Nealkoholické pivo); podle názvu, opakovatelný, nezávisí na kódu | 2026-10-04 |
 | `migrations-2026-10-05-centrum-upozorneni.sql` | centrum upozornění (R74): tabulky `notifications` a `announcements`, `users.notified_at`; opakovatelný, pustit **před** nahráním kódu | 2026-10-05 |
-| | 2026-10-05 |`migrations-2026-10-05-posledni-aktivita.sql` | poslední aktivita (R84): `users.last_seen_at` s indexem, dosavadním účtům doplní z relací; opakovatelný, pustit **před** nahráním kódu | 2026-10-05 |
+| `migrations-2026-10-05-posledni-aktivita.sql` | poslední aktivita (R84): `users.last_seen_at` s indexem, dosavadním účtům doplní z relací; opakovatelný, pustit **před** nahráním kódu | 2026-10-05 |
+| `migrations-2026-10-06-prihlaseni-pres-google.sql` | přihlášení přes Google a Facebook (R96): tabulka `social_accounts`, `users.password` nepovinné; opakovatelný, pustit **před** nahráním kódu | |
 
 ## Nasazené verze
 
@@ -627,3 +687,4 @@ Co běží na produkci — pro `git log <commit>..HEAD` při dalším nasazení
 | 2026-10-06 | `d226ba4` | šestnácté nasazení: oprava stažení Kauflandu — stránka má od zveřejnění příštího týdne oba týdny a stažení se stránkami prodejen padalo na paměti (od 5. 10. 13:01 bez nových akcí, „Brzy“ bez Kauflandu); nahrané jen `app/Domain/Sources/Kaufland/`, `config/letaky.php` a `version.txt`, bez SQL skriptu. Ruční stažení po nasazení: 1 465 akcí, 798 od 7. 10. |
 | 2026-10-06 | `034fa36` | sedmnácté nasazení: víc cen z letáků bez LLM — leták Penny s novými pravidly (R85), PDF letáků přes `pdftotext` (R86): Lidl s akcemi ze zbytku potravinového letáku a Albert poprvé s akcemi s cenou (R87, `mentions_only` zrušené); bez SQL skriptu. Ruční stažení po nasazení: Penny 519, Lidl 275, Albert 1 393 nabídek |
 | 2026-10-06 | `7dbe429` | osmnácté nasazení: akce, které ještě nezačaly, i u Globusu a Billy z PDF letáků příštího týdne (R88, R89; převzetí řádku z PDF akcí z API), oprava letáku Penny se složkou `…_tl2` (`60f0211`); bez SQL skriptu, smazané přesunuté `AlbertBox.php` a `AlbertTile.php`. Ruční stažení: Globus 797, Billa 3 596, Penny 906 nabídek; v „Brzy“ Kaufland 798, Albert 772, Penny 413, Billa 189, Lidl 152, Globus 141 |
+| 2026-10-06 | `6d328eb` | devatenácté nasazení: přestěhování na `slevohlidka.cz` (R93, stará subdoména přesměrovává 301), obsah pro roboty a čisté adresy (R94), cache úvodní stránky (R95); doplněno dodatečně podle `version.txt` na produkci |

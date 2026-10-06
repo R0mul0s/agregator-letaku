@@ -1,5 +1,6 @@
 <!--
-    Přihlášení (Fortify, R12) — vedle formuláře panel se skutečnými akcemi (R56).
+    Přihlášení (Fortify, R12) — vedle formuláře panel se skutečnými akcemi (R56),
+    nad formulářem přihlášení přes Google a Facebook (R96).
 
     @author Roman Hlaváček
     @created 2026-10-02
@@ -7,19 +8,25 @@
 <script setup>
 import AuthShowcase from '@/Components/AuthShowcase.vue';
 import CheckboxField from '@/Components/CheckboxField.vue';
+import SocialButtons from '@/Components/SocialButtons.vue';
 import TextField from '@/Components/TextField.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { useTranslations } from '@/lib/i18n';
 import { isStandalone } from '@/lib/pwa';
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
 
 const props = defineProps({
     urls: { type: Object, required: true },
     /** Data panelu vedle formuláře (AuthShowcase.vue, R56). */
     showcase: { type: Object, required: true },
+    /** Přihlášení přes Google a Facebook [{ provider, url, logo }] (R96). */
+    social: { type: Array, default: () => [] },
+    /** Parametr adresy pro „Zapamatovat si mě“ u přihlášení přes poskytovatele. */
+    rememberParameter: { type: String, default: null },
 });
 
 const t = useTranslations();
+const page = usePage();
 
 const form = useForm({
     email: '',
@@ -45,6 +52,9 @@ function submit() {
             <section class="auth-card">
                 <h1 class="auth-card__title">{{ t('auth.login.title') }}</h1>
 
+                <!-- Chyba přihlášení přes poskytovatele (SocialLoginController, R96) -->
+                <p v-if="page.props.errors.social" class="notice notice--error" role="alert">{{ page.props.errors.social }}</p>
+                <SocialButtons :providers="social" :remember="form.remember" :remember-parameter="rememberParameter" />
 
                 <form class="form" novalidate @submit.prevent="submit">
                     <TextField id="email" v-model="form.email" :label="t('auth.email')" type="email" autocomplete="username" required autofocus :error="form.errors.email" />

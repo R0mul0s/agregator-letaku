@@ -2,7 +2,8 @@
     Registrace nového účtu (Fortify, R12) se souhlasem s podmínkami a dobrovolným
     souhlasem s obchodními sděleními (R51), ochrana proti botům skrytým polem a časem (R53).
     Karta ukazuje cestu ve třech krocích a co uživatele čeká; heslo jedno s tlačítkem
-    „Ukázat heslo“ místo zadávání dvakrát (R56).
+    „Ukázat heslo“ místo zadávání dvakrát (R56). Nad formulářem registrace přes Google
+    a Facebook (R96) — souhlasy pak potvrdí dokončení registrace (SocialRegister.vue).
 
     @author Roman Hlaváček
     @created 2026-10-02
@@ -10,6 +11,7 @@
 <script setup>
 import AuthShowcase from '@/Components/AuthShowcase.vue';
 import CheckboxField from '@/Components/CheckboxField.vue';
+import SocialButtons from '@/Components/SocialButtons.vue';
 import TextField from '@/Components/TextField.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { useTranslations } from '@/lib/i18n';
@@ -23,6 +25,8 @@ const props = defineProps({
     passwordMinLength: { type: Number, required: true },
     /** Data panelu vedle formuláře (AuthShowcase.vue, R56). */
     showcase: { type: Object, required: true },
+    /** Registrace přes Google a Facebook [{ provider, url, logo }] (R96). */
+    social: { type: Array, default: () => [] },
 });
 
 const t = useTranslations();
@@ -72,6 +76,7 @@ function submit() {
                 </ol>
                 <h1 class="auth-card__title auth-card__title--tight">{{ t('auth.register.heading') }}</h1>
                 <p class="auth-card__intro">{{ t('auth.register.intro') }}</p>
+                <SocialButtons :providers="social" />
 
                 <form class="form" novalidate @submit.prevent="submit">
                     <TextField id="name" v-model="form.name" :label="t('auth.name')" autocomplete="name" required autofocus :error="form.errors.name" />

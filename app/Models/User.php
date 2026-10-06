@@ -2,7 +2,8 @@
 
 /**
  * Uživatel aplikace — účet přes Fortify (R12) s ověřeným e-mailem (R51), sledované obchody,
- * karty a hlídané položky (R18, R19), souhlasy s podmínkami a obchodními sděleními (R51).
+ * karty a hlídané položky (R18, R19), souhlasy s podmínkami a obchodními sděleními (R51),
+ * propojené účty Google a Facebook (R96).
  *
  * @author Roman Hlaváček
  *
@@ -33,7 +34,7 @@ use Illuminate\Support\Collection;
  * @property string $email
  * @property string|null $avatar_path Profilový obrázek na disku local (R40); null = iniciály
  * @property CarbonImmutable|null $email_verified_at
- * @property string $password
+ * @property string|null $password Otisk hesla; null = účet bez hesla, přihlášení jen přes propojený účet (R96)
  * @property Collection<int, LoyaltyProgram>|null $loyalty_programs
  * @property bool $is_admin Smí spravovat katalog produktů (R29); nastavuje se příkazem, ne formulářem
  * @property OffersSort $offers_sort Řazení akcí v Mých slevách (R41)
@@ -150,6 +151,25 @@ class User extends Authenticatable implements MustVerifyEmail
     public function shoppingListItems(): HasMany
     {
         return $this->hasMany(ShoppingListItem::class);
+    }
+
+    /**
+     * Účty u poskytovatelů přihlášení — Google, Facebook (R96).
+     *
+     * @return HasMany<SocialAccount, $this>
+     */
+    public function socialAccounts(): HasMany
+    {
+        return $this->hasMany(SocialAccount::class);
+    }
+
+    /**
+     * Má účet heslo? Účet založený přes Google nebo Facebook ho mít nemusí (R96) — citlivé
+     * změny pak potvrzuje přihlášením u poskytovatele (IdentityConfirmation).
+     */
+    public function hasPassword(): bool
+    {
+        return $this->password !== null;
     }
 
     /**

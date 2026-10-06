@@ -21,7 +21,7 @@ volné číslo R…). Změna chování obchodu (nový endpoint, jiné pole) pat�
 
 ## Stav
 
-Hotové jsou etapy 1–5g, zveřejnění (8), opravy a funkce z kritické revize (9), aplikace v telefonu (10, aktualizace po nasazení R78), centrum upozornění (11), akce „brzy“ (12) (PLAN.md, kap. 6) a přehled uživatelů pro admina (R84):
+Hotové jsou etapy 1–5g, zveřejnění (8), opravy a funkce z kritické revize (9), aplikace v telefonu (10, aktualizace po nasazení R78), centrum upozornění (11), akce „brzy“ (12) (PLAN.md, kap. 6), přehled uživatelů pro admina (R84) a přihlášení přes Google a Facebook (R96):
 - **Stahování:** Kaufland (i po 149 prodejnách, R49), Tesco, Lidl, Penny (R15–R17, R25, R26, R85), Globus (R46),
   Billa z celého katalogu (R48) a letáky, které ještě nezačaly, z PDF spárované s katalogem API (R89); ceny z PDF letáků Lidlu a Albertu přes `pdftotext` (R86, R87); zmínky v letácích bez ceny — Lidl, Penny, Albert (R27, R36).
   Pojistky importu: nula akcí je chyba, podezřelý propad akce nestáhne (stav `partial`), zámek proti
@@ -34,7 +34,8 @@ Hotové jsou etapy 1–5g, zveřejnění (8), opravy a funkce z kritické revize
   přímo z karty (R60); **nákupní seznam** (`/seznam`, R61)
 - **Účet:** Fortify (R12), menu pod avatarem (R40), Můj účet jako sekce s ukládáním hned (R63), Moje obchody
   (`/obchody`) s ukládáním hned (R64), nový účet sleduje všechny obchody a jde do Hlídám (R55), registrace
-  a přihlášení se skutečnými akcemi a heslem jen jednou (R56), české adresy `/prihlaseni`, `/registrace`… (R73)
+  a přihlášení se skutečnými akcemi a heslem jen jednou (R56), české adresy `/prihlaseni`, `/registrace`… (R73),
+  přihlášení přes Google a Facebook s propojením v Mém účtu (R96)
 - **E-maily:** upozornění na nové akce hned / denně / týdně, po dávkách (R42, R54, R58)
 - **Aplikace v telefonu (R66):** manifest se zkratkami, úvodní obrazovky iPhonu, spodní lišta záložek, výzva
   k přidání na plochu; service worker s offline režimem (Moje slevy, seznam, Hlídám), odškrtávání bez signálu,
@@ -62,7 +63,7 @@ Hotové jsou etapy 1–5g, zveřejnění (8), opravy a funkce z kritické revize
   (`/ukazka-hlidani`, `WatchDemo`) místo kroků a hra „Co je levnější?“ (`UnitPriceQuiz`); Kontakt (R91) s výběrem
   tématu a osnovou e-mailu, kopírováním adresy a holubem
 
-Produkce běží na `https://slevohlidka.rhsoft.cz` (nasazeno 2026-10-02, naposledy `7dbe429` 2026-10-06);
+Produkce běží na `https://slevohlidka.cz` (nasazeno 2026-10-02, přestěhováno ze `slevohlidka.rhsoft.cz` R93, naposledy `6d328eb` 2026-10-06);
 postup aktualizace a nasazené verze jsou v `deploy/DEPLOYMENT.md`. Sleduje se 7 obchodů; Makro
 zatím nejde (ochrana proti robotům). Etapa 6 (LLM) jen když bude potřeba.
 Co z dřívějších rozhodnutí platí a co ne, je v tabulce na začátku PLAN.md.
@@ -153,7 +154,7 @@ powershell -ExecutionPolicy Bypass -File deploy\build-upload.ps1   # jen z commi
 
 ## Stack
 
-PHP 8.4 · Laravel 13 · Inertia 3 · Vue 3 · SCSS (BEM + CSS tokeny) · Fortify ·
+PHP 8.4 · Laravel 13 · Inertia 3 · Vue 3 · SCSS (BEM + CSS tokeny) · Fortify · Socialite (Google, Facebook, R96) ·
 MariaDB 11.4 · Pest 4 · Larastan · Pint. Text s polohou z PDF letáků: `pdftotext` (Poppler, R86). Extrakce letáků přes LLM (etapa 6, jen pokud bude potřeba): Claude API.
 
 ## Nejčastější zdroje chyb v tomhle projektu
@@ -203,6 +204,7 @@ MariaDB 11.4 · Pest 4 · Larastan · Pint. Text s polohou z PDF letáků: `pdft
 43. **Akce, které ještě nezačaly (R76):** `notExpired` pouští i budoucí akce — co má platit **dnes**, musí vyřadit `->upcoming($today)` / `isUpcoming($today)` (místní datum z `LocalCalendar`). `MyOffers::forUser` vrací ve skupině `offers` (platí dnes) a `upcoming` zvlášť — kdo chce všechny (souhrn, `NewOffers`), musí spojit obě. Do Vue jde `startsInDays` (null = platí); štítek skládá `startsLabel` v `lib/offer.js`. Režim „Jsem v obchodě“ budoucí akce i zmínky z budoucích letáků skrývá. `RecordStartingOffers` („Od dneška platí…“) bere jen akce zveřejněné **před** dneškem (`created_at`) — dnes zveřejněné ohlásí `RecordNewOffers`; dávky postupují kurzorem ID v cache (`notifications.starting_today.after_user.<datum>`), v testech je cache prázdná. Billa budoucí akce bere z PDF letáku (R89), API je nevrací.
 44. **Poslední aktivita (R84):** `users.last_seen_at` zapisuje middleware `TrackLastSeen` (skupina web, před vyřízením požadavku) přes `UserPresence::touch` nejvýš jednou za `letaky.account.presence.touch_interval_seconds` a bez `updated_at` — nepřepisovat na `save()` při každém požadavku. Online = aktivita za `online_minutes`. Relace (`sessions`) se pro „naposledy“ nepoužívají, po odhlášení a vypršení mizí. Filtry přehledu (`UserDirectory::filter`) dávají i počty v souhrnu — nový filtr = případ v `UsersIndexRequest`, větev ve `filter` a text v `users.filters`. Platný souhlas s novinkami v SQL je scope `User::withMarketingConsent`.
 45. **PDF letáky (R86–R89):** `PdfTextReader` spouští `pdftotext -bbox-layout` přes Laravel `Process` (v testech `Process::fake` s fixture skutečného výstupu, `tests/Fixtures/{pdf,lidl,albert,globus,billa}`; kontejner má `poppler-utils`). Dlaždice z PDF (`LidlLeafletParser`, `AlbertLeafletParser`, `GlobusLeafletParser`, `BillaLeafletParser`) se přijme jen s ověřením balení × cena za jednotku (jako Penny R26) a se sedícím procentem slevy — neověřitelná zůstane zmínkou. `externalId` je otisk názvu, balení a ceny (stabilní mezi staženími, R16). **Selhání PDF ukončí stažení obchodu chybou** — tichý výpadek by akce z letáku označil jako stažené. Lidl: dlaždici, kterou nese web, vynechá (stejná cena, překryv platnosti, výrazná slova kratšího názvu v delším). Albert: akce v letáku HM i SM má formát null; „• NN Kč“ v popisu je nejnižší cena za 30 dní, ne akční cena. Globus: jen letáky, které ještě nezačaly, cena s kartou je písmo se stínem (každé slovo dvakrát), „KC:“ / „AC:“ u ceny za jednotku; hlavní leták pod `pdf_main_min_offers` ověřenými akcemi = chyba. Billa: jen letáky, které ještě nezačaly (ne speciály prodejen), „běžná cena“ pod velkou cenou = cena s Klubem, platnost z oddílu strany („SUPER STŘEDA 7. 10.“, víkend), glyfy „ż“ = „ž“; velký leták pod `pdf_main_min_items` = chyba; ID ze SKU spárovaného produktu katalogu, ne otisk. Prvky stránky a dlaždice sdílí `Pdf\PdfBox` a `Pdf\PdfTile`. Pravidla neuvolňovat bez měření na celém letáku (nesoulad se štítkem slevy ani s webem 0).
+46. **Přihlášení přes Google a Facebook (R96):** Laravel Socialite, poskytovatel bez klíčů v `.env` se nenabízí (`SocialProvider::configured`; prázdná proměnná je `null` — `config()->string` by spadl). Odkazy na poskytovatele jsou obyčejné `<a>`, ne Inertia `Link` ani formulář (přesměrování na cizí doménu XHR nedokončí, CSP `form-action 'self'`). Návrat `/prihlaseni/{provider}/navrat` je jeden pro přihlášení, propojení i potvrzení — záměr nese relace (`SocialLogin::redirect` / `pullIntent`). K existujícímu účtu se podle e-mailu připojí **jen e-mail ověřený poskytovatelem** (`SocialIdentity::$emailVerified`, jen Google) — Facebook nikdy, jinak převzetí cizího účtu. Nový účet vzniká až po dokončení registrace se souhlasy (`RegisterSocialUser`, výchozí stav sdílí s registrací heslem přes `SetUpNewAccount`) a **nemá heslo** (`users.password` null, `User::hasPassword`). Citlivá akce (změna e-mailu a hesla, odhlášení zařízení, zrušení účtu) ověřuje heslo jen přes `IdentityConfirmation::rules` — účet bez hesla místo něj potvrdí přihlášení u propojeného poskytovatele (implicitní pravidlo `ConfirmedIdentity`). V testech `Socialite::fake(driver, SocialiteUser::fake([...]))` a klíče přes `config()`; Google posílá `email_verified` v surových datech.
 
 ## Jazyk
 

@@ -28,6 +28,21 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    // Přihlášení přes Google a Facebook (R96, Laravel Socialite). Bez klíčů se tlačítko neukáže
+    // (SocialProvider::configured). Adresu návratu skládá SocialLogin z routy social.callback —
+    // stejnou je potřeba zapsat v Google Cloud Console a Meta for Developers (DEPLOYMENT.md).
+    'google' => [
+        'client_id' => env('GOOGLE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+        'redirect' => null,
+    ],
+
+    'facebook' => [
+        'client_id' => env('FACEBOOK_CLIENT_ID'),
+        'client_secret' => env('FACEBOOK_CLIENT_SECRET'),
+        'redirect' => null,
+    ],
+
     'slack' => [
         'notifications' => [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),

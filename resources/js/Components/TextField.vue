@@ -21,6 +21,8 @@ const props = defineProps({
     hint: { type: String, default: undefined },
     /** Chyba validace ze serveru (form.errors.…). */
     error: { type: String, default: undefined },
+    /** Jen ke čtení (e-mail od poskytovatele při dokončení registrace, R96). */
+    readonly: { type: Boolean, default: false },
     /** Tlačítko, které ukáže zadané heslo (jen u type="password"). */
     revealable: { type: Boolean, default: false },
 });
@@ -54,6 +56,7 @@ const describedBy = computed(() => [props.hint ? hintId.value : null, props.erro
                 :autocomplete="autocomplete"
                 :required="required"
                 :autofocus="autofocus"
+                :readonly="readonly"
                 class="form-field__input"
                 :class="{ 'form-field__input--invalid': error, 'form-field__input--revealable': revealable }"
                 :aria-invalid="error ? 'true' : undefined"

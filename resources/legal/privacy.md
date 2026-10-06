@@ -30,12 +30,19 @@ nevyžaduje. Se vším, co se týká vašich údajů, se obracejte na uvedený e
 | Údaje | Účel | Právní základ |
 |---|---|---|
 | jméno, e-mail, heslo (uložené jen jako nevratný otisk) | vedení účtu, přihlášení, ověření e-mailu, obnova hesla | plnění smlouvy, tedy podmínek užití (čl. 6 odst. 1 písm. b GDPR) |
+| identifikátor účtu u Googlu nebo Facebooku (jen když se přes něj přihlašujete) | přihlášení přes Google nebo Facebook, potvrzení, že jste to vy, před změnou e-mailu nebo zrušením účtu | plnění smlouvy |
 | profilový obrázek (nepovinný) | zobrazení ve vašem účtu | plnění smlouvy |
 | hlídané položky, nákupní seznam, vybrané obchody a prodejny, věrnostní programy, které máte (jen název programu, ne číslo karty), předvolby zobrazení | zobrazení slev, které vás zajímají | plnění smlouvy |
 | čas přijetí podmínek a jejich verze | doložení, s jakými podmínkami jste souhlasili | oprávněný zájem (čl. 6 odst. 1 písm. f GDPR) |
 
 Výběr prodejen může prozradit, kde přibližně nakupujete. Slouží jen k zobrazení akcí
 těchto prodejen.
+
+Když se přihlásíte přes **Google nebo Facebook**, přihlásíte se na jejich stránce a oni
+nám pošlou jen identifikátor vašeho účtu, jméno a e-mail. Heslo k účtu u nich ani další
+údaje z profilu (obrázek, přátele, kontakty) nedostáváme a nežádáme o ně. Účet založený
+takhle nemusí mít u nás heslo. Propojení zrušíte v účtu v sekci Zabezpečení; se zrušením
+účtu zmizí.
 
 ### E-mailový souhrn akcí
 
@@ -119,7 +126,7 @@ a cílení reklamy (Google signály). Reklamu zatím nezobrazujeme.
 
 | Údaje | Doba |
 |---|---|
-| účet a vše, co k němu patří (hlídané položky, nákupní seznam, obchody, předvolby, obrázek, souhlasy, čas poslední aktivity) | do zrušení účtu |
+| účet a vše, co k němu patří (hlídané položky, nákupní seznam, obchody, předvolby, obrázek, souhlasy, čas poslední aktivity, propojení s Googlem nebo Facebookem) | do zrušení účtu; propojení s Googlem nebo Facebookem do jeho zrušení |
 | záznamy v centru upozornění | {notifications_retention_days} dní, potom se smažou nejpozději do 24 hodin |
 | odběr upozornění v telefonu | do vypnutí upozornění, odhlášení na zařízení nebo zrušení účtu; odběr, který push služba přestane přijímat, se smaže při dalším upozornění |
 | relace (IP adresa, prohlížeč) | 2 hodiny od poslední aktivity, potom se smaže nejpozději do 24 hodin |
@@ -153,6 +160,11 @@ V zálohách údaje zůstanou nejdéle do smazání zálohy.
   povolíte analytické nebo marketingové cookies: měření návštěvnosti Google Analytics.
   Google může údaje předávat do USA; předání se opírá o rámec EU–USA pro ochranu
   osobních údajů (Data Privacy Framework), ke kterému se Google LLC přihlásila.
+- **Google Ireland Limited** a **Meta Platforms Ireland Limited** (Merrion Road, Dublin 4,
+  Irsko) — jen pokud se přes Google nebo Facebook přihlašujete: přihlášení proběhne na
+  jejich stránce a dozvědí se, že se přihlašujete do Slevohlídky. Jsou to samostatní
+  správci, zpracování na jejich straně se řídí jejich zásadami a jejich cookies; údaje
+  mohou předávat do USA v rámci Data Privacy Framework.
 
 Údaje neprodáváme ani nepředáváme za úplatu. Kromě Google Analytics (se souhlasem)
 a push služby vašeho prohlížeče (jen se zapnutými upozorněními v telefonu) je nepředáváme

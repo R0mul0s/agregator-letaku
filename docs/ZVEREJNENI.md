@@ -73,6 +73,9 @@ Značení: **[R]** = rozhodne nebo zařídí Roman, **[K]** = kód.
 - [ ] **[R] Zálohy:** doplnit `offer_product`, `shopping_list_items` a avatary
   (`storage/app/private/avatars` přes FTP), ověřit, jak dlouho drží automatické zálohy
   Websupportu (zásady slibují nejdéle 6 měsíců); jednou vyzkoušet obnovu.
+- [ ] **[R] Přihlášení přes Google a Facebook** (R96): založit aplikace u Googlu a Mety, klíče do `.env`
+  (postup v DEPLOYMENT.md); Google *In production*, Facebook *Live* s odkazy na zásady, podmínky
+  a pokyny ke smazání dat. Ověřit návrat do aplikace z plochy iPhonu (Safari má vlastní cookies).
 - [ ] **[R] Měkké spuštění:** nejdřív 20–50 lidem z okolí na dva týdny a sledovat, co opravdu
   používají (doporučení revize 4. 10. 2026), teprve pak veřejně.
 

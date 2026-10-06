@@ -2,7 +2,8 @@
 
 /**
  * Stránka účtu (R12, R40) — profilový obrázek, jméno a e-mail, heslo (ukládá Fortify),
- * upozornění e-mailem a v telefonu (R42, R66), přihlášená zařízení a zrušení účtu.
+ * upozornění e-mailem a v telefonu (R42, R66), přihlášená zařízení, propojené účty Google
+ * a Facebook (R96) a zrušení účtu.
  *
  * @author Roman Hlaváček
  *
@@ -15,11 +16,13 @@ namespace App\Http\Controllers;
 
 use App\Actions\Fortify\UpdateUserPassword;
 use App\Actions\Fortify\UpdateUserProfileInformation;
+use App\Domain\Account\IdentityConfirmation;
 use App\Domain\Account\MailingSubscriptions;
 use App\Domain\Account\UserSessions;
 use App\Domain\Push\Vapid;
 use App\Enums\DigestFrequency;
 use App\Enums\OffersSort;
+use App\Enums\SocialProvider;
 use App\Http\Requests\DigestRequest;
 use App\Http\Requests\MarketingRequest;
 use App\Http\Requests\OffersPreferencesRequest;
@@ -58,7 +61,7 @@ class AccountController extends Controller
     /**
      * Zobrazí formuláře účtu; názvy sad chyb musí sedět s akcemi Fortify.
      */
-    public function show(Request $request, UserSessions $sessions, Vapid $vapid): Response
+    public function show(Request $request, UserSessions $sessions, Vapid $vapid, IdentityConfirmation $confirmation): Response
     {
         return Inertia::render('Account', [
             'urls' => [
@@ -121,7 +124,33 @@ class AccountController extends Controller
             ] : null,
             // Verze aplikace u kontroly aktualizací (R78)
             'appVersion' => $this->appVersion(),
+            'social' => $this->social($this->user($request), $request, $confirmation),
         ]);
+    }
+
+    /**
+     * Přihlášení přes Google a Facebook (R96): propojené účty a jestli účet má heslo —
+     * bez hesla potvrzuje citlivé změny přihlášením u poskytovatele (IdentityConfirmation).
+     *
+     * @return array{hasPassword: bool, identityConfirmed: bool, sectionParameter: string, providers: list<array<string, mixed>>}
+     */
+    private function social(User $user, Request $request, IdentityConfirmation $confirmation): array
+    {
+        $linked = $user->socialAccounts()->pluck('provider')->all();
+
+        return [
+            'hasPassword' => $user->hasPassword(),
+            'identityConfirmed' => ! $user->hasPassword() && $confirmation->isFresh($request->session()),
+            'sectionParameter' => SocialLoginController::SECTION_PARAMETER,
+            'providers' => array_map(fn (SocialProvider $provider): array => [
+                'provider' => $provider->value,
+                'logo' => $provider->logoUrl(),
+                'linked' => in_array($provider, $linked, true),
+                'linkUrl' => route('social.link', ['provider' => $provider], absolute: false),
+                'confirmUrl' => route('social.confirm', ['provider' => $provider], absolute: false),
+                'unlinkUrl' => route('social.unlink', ['provider' => $provider], absolute: false),
+            ], SocialProvider::configured()),
+        ];
     }
 
     /**
@@ -174,12 +203,12 @@ class AccountController extends Controller
     }
 
     /**
-     * Odhlásí ostatní zařízení po zadání hesla. Aktuální zařízení zůstane přihlášené;
-     * jeho cookie „Zapamatovat si mě“ dostane nový token.
+     * Odhlásí ostatní zařízení po zadání hesla (účet bez hesla po potvrzení u poskytovatele,
+     * R96). Aktuální zařízení zůstane přihlášené; jeho cookie „Zapamatovat si mě“ dostane nový token.
      */
-    public function logoutOtherDevices(Request $request, UserSessions $sessions): RedirectResponse
+    public function logoutOtherDevices(Request $request, UserSessions $sessions, IdentityConfirmation $confirmation): RedirectResponse
     {
-        $request->validateWithBag(self::ERROR_BAG_DEVICES, ['password' => ['required', 'string', 'current_password:web']]);
+        $request->validateWithBag(self::ERROR_BAG_DEVICES, ['password' => $confirmation->rules($this->user($request))]);
         $user = $this->user($request);
         $remembered = $request->hasCookie(Auth::guard('web')->getRecallerName());
 
@@ -192,12 +221,13 @@ class AccountController extends Controller
     }
 
     /**
-     * Zruší účet po zadání hesla: hlídané položky a sledované obchody smaže databáze
-     * (cizí klíče cascade), profilový obrázek a session smaže aplikace.
+     * Zruší účet po zadání hesla nebo potvrzení u poskytovatele (R96): hlídané položky,
+     * sledované obchody a propojené účty smaže databáze (cizí klíče cascade), profilový
+     * obrázek a session smaže aplikace.
      */
-    public function destroy(Request $request, UserSessions $sessions): RedirectResponse
+    public function destroy(Request $request, UserSessions $sessions, IdentityConfirmation $confirmation): RedirectResponse
     {
-        $request->validateWithBag(self::ERROR_BAG_DELETE, ['password' => ['required', 'string', 'current_password:web']]);
+        $request->validateWithBag(self::ERROR_BAG_DELETE, ['password' => $confirmation->rules($this->user($request))]);
         $user = $this->user($request);
 
         Auth::guard('web')->logout();

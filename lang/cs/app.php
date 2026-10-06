@@ -685,6 +685,36 @@ return [
                 'title' => 'Nové heslo',
                 'submit' => 'Nastavit heslo',
             ],
+
+            // Přihlášení přes Google a Facebook (R96, SocialButtons.vue, SocialRegister.vue)
+            'social' => [
+                'providers' => [
+                    'google' => 'Google',
+                    'facebook' => 'Facebook',
+                ],
+                'continue' => 'Pokračovat přes :provider',
+                'divider' => 'nebo e-mailem',
+                'register' => [
+                    'title' => 'Dokončení registrace',
+                    'heading' => 'Ještě krůček a hlídáme',
+                    'intro' => 'Přihlásili jste se přes :provider. Zkontrolujte, jak vás máme oslovovat, a potvrďte podmínky.',
+                    'email_verified' => 'E-mail z vašeho účtu :provider.',
+                    'email_unverified' => 'E-mail z vašeho účtu :provider. Pošleme vám na něj odkaz k ověření.',
+                    'other' => 'Chcete se zaregistrovat jinak?',
+                    'other_link' => 'Zpět na registraci',
+                ],
+                // SocialLoginRefused — na stránce přihlášení nebo v toastu v Mém účtu
+                'refused' => [
+                    'email_missing' => 'Účet u poskytovatele nám neposlal e-mail — a bez něj vám nemůžeme posílat upozornění. Zaregistrujte se prosím e-mailem.',
+                    'email_taken' => 'Účet s tímto e-mailem už u nás máte. Přihlaste se e-mailem a heslem a propojení zapněte v Mém účtu v sekci Zabezpečení.',
+                    'already_linked_elsewhere' => 'Tenhle účet už je propojený s jiným účtem Slevohlídky.',
+                    'other_account_linked' => 'U tohoto poskytovatele už máte propojený jiný účet. Nejdřív ho odpojte v Mém účtu.',
+                    'last_login_method' => 'Tohle je jediný způsob, jak se přihlásit. Nejdřív si nastavte heslo, pak půjde odpojit.',
+                    'confirmation_mismatch' => 'Potvrdili jste to jiným účtem, než který je propojený. Zkuste to prosím znovu se správným účtem.',
+                    'cancelled' => 'Přihlášení jste zrušili. Nevadí — zkuste to znovu, nebo se přihlaste e-mailem.',
+                    'failed' => 'Přihlášení se nepovedlo dokončit. Zkuste to prosím znovu.',
+                ],
+            ],
         ],
 
         // Úvodní stránka pro nepřihlášené (R44, R90, Landing.vue, WatchDemo.vue, PriceQuiz.vue)
@@ -963,7 +993,7 @@ return [
                 'profile' => ['title' => 'Profil', 'hint' => 'Jak vás máme oslovovat a kam posílat e-maily.'],
                 'notifications' => ['title' => 'Upozornění', 'hint' => 'Kdy vám dáme vědět o nových akcích na hlídané zboží.'],
                 'offers' => ['title' => 'Moje slevy', 'hint' => 'Jak řadit akce u každé hlídané položky a které ukazovat.'],
-                'security' => ['title' => 'Zabezpečení', 'hint' => 'Heslo a zařízení, na kterých jste přihlášeni.'],
+                'security' => ['title' => 'Zabezpečení', 'hint' => 'Heslo, přihlášení přes Google nebo Facebook a zařízení, na kterých jste přihlášeni.'],
                 'delete' => ['title' => 'Zrušení účtu', 'hint' => 'Smaže účet, hlídané položky, nákupní seznam i nastavení obchodů. Vrátit to nepůjde — a bude nám smutno.'],
             ],
             'autosave' => 'Změny se ukládají hned.',
@@ -1015,6 +1045,23 @@ return [
             'delete_confirm_title' => 'Zrušit účet?',
             'delete_confirm' => 'Účet, hlídané položky i nastavení se smažou a nepůjde to vrátit.',
             'deleted' => 'Účet je zrušený. Díky, že jste to se Slevohlídkou zkusili — kdyby se vám zastesklo, víte, kde nás najdete.',
+            // Přihlášení přes Google a Facebook (R96) — propojení a účet bez hesla
+            'social' => [
+                'title' => 'Přihlášení přes účty',
+                'hint' => 'S propojeným účtem se přihlásíte jedním klepnutím. Poskytovatel nám pošle jen jméno a e-mail, heslo k němu se k nám nedostane.',
+                'linked' => 'Propojeno',
+                'not_linked' => 'Nepropojeno',
+                'link' => 'Propojit',
+                'unlink' => 'Odpojit',
+                'no_password' => 'Účet nemá heslo — přihlašujete se přes propojený účet.',
+                'confirm_hint' => 'Změnu e-mailu, nastavení hesla, odhlášení zařízení a zrušení účtu nejdřív potvrďte přihlášením u poskytovatele.',
+                'confirm' => 'Potvrdit přes :provider',
+                'confirmed' => 'Potvrzeno — teď můžete pokračovat.',
+                'confirm_required' => 'Nejdřív potvrďte, že jste to vy — tlačítkem „Potvrdit přes…“.',
+                'set_password' => 'Nastavení hesla',
+                'set_password_hint' => 'S heslem se přihlásíte i e-mailem, bez propojeného účtu.',
+                'set_password_submit' => 'Nastavit heslo',
+            ],
         ],
 
         // Patička (R51, R92, AppFooter.vue) — upozornění, odkazy, obchody a čerstvost akcí
@@ -1200,6 +1247,10 @@ return [
                 'offers-preferences-saved' => 'Předvolby Mých slev jsou uložené.',
                 'digest-saved' => 'Nastavení souhrnu je uložené.',
                 'marketing-saved' => 'Nastavení novinek je uložené.',
+                // SocialLoginController (R96)
+                'social-linked' => 'Hotovo, účet je propojený. Příště stačí jedno klepnutí.',
+                'social-unlinked' => 'Účet je odpojený.',
+                'identity-confirmed' => 'Díky, je to potvrzené. Teď můžete pokračovat.',
                 'announcement-sent' => 'Zpráva je odeslaná do centra upozornění.',
                 // Ověření e-mailu (R51, Fortify a VerifyEmailResponse)
                 'verification-link-sent' => 'Odkaz pro potvrzení e-mailu je na cestě.',

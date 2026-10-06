@@ -291,6 +291,7 @@ CI (GitHub Actions) zatím není, ruční kontroly jsou jediná pojistka ([R14](
 
 - **Přihlášení přes Fortify** ([R12](PLAN.md#8-log-rozhodnutí), [R13](PLAN.md#8-log-rozhodnutí)): hesla hashovaná, limit pokusů o přihlášení na dvojici e-mail + IP a na samotnou IP (R53), hesla kontrolovaná proti únikům (Have I Been Pwned), registrace chráněná skrytým polem a časem vyplnění, odeslání odkazu na obnovu hesla omezuje Laravel (jednou za minutu).
 - **Uživatel vidí a mění jen svá data.** Hlídané položky, nákupní seznam a sledované obchody přes Policy a vazby na uživatele.
+- **Přihlášení přes Google a Facebook** ([R96](PLAN.md#8-log-rozhodnutí)): k existujícímu účtu se připojí jen e-mail, který ověřil poskytovatel (Google `email_verified`), jinak by šlo převzít cizí účet. Účet bez hesla potvrzuje citlivé změny přihlášením u poskytovatele — kontrola hesla k citlivé akci vždy přes `IdentityConfirmation::rules`, ne `current_password` natvrdo.
 - **Změna e-mailu chce současné heslo** a formuláře s heslem nebo odesláním e-mailu mají přísnější limit požadavků (`RateLimits::SENSITIVE_ROUTES`, [R54](PLAN.md#8-log-rozhodnutí)).
 - Tajemství (API klíče obchodů a LLM) jsou v `.env`, nikdy v repu. `.env.example` má prázdné hodnoty.
 - CSRF všude. Cron URL je chráněná tokenem z `.env` a rate limitem; bez tokenu vrací 404.
