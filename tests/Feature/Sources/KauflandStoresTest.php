@@ -121,6 +121,21 @@ it('se starými seznamy akcí prodejen stáhne jen výchozí nabídku a prodejny
     expect(kauflandOfferStores(KAUFLAND_SALMON))->toBe([]);
 });
 
+it('položku bez názvu z výchozí stránky na stránkách prodejen nehledá', function (): void {
+    $this->travelTo('2026-10-06 10:00:00');
+    // Seznam prodejny zná i položku bez názvu (20963057), kterou parser přeskočí
+    Store::query()->create([
+        'chain' => Chain::Kaufland, 'code' => 'CZ4400', 'name' => 'Trutnov', 'city' => 'Trutnov',
+        'offer_keys' => ['00022696|2026-09-30|2026-10-06', '20963057|2026-09-30|2026-10-06', '00021062|2026-10-07|2026-10-13'],
+        'offer_keys_fetched_at' => now(),
+    ]);
+    Http::fake(['https://prodejny.kaufland.cz/nabidka/prehled.html*' => Http::response(responseFixture('kaufland/prehled-2026-10-06.html'))]);
+
+    $this->artisan('letaky:import-offers', ['chain' => ['kaufland']])->assertSuccessful();
+
+    Http::assertSentCount(1);
+});
+
 it('Moje slevy ukážou jen akce vybraných prodejen a u akce prodejny, kde platí', function (): void {
     fakeKauflandStores();
     $this->artisan('letaky:import-stores', ['chain' => ['kaufland']]);

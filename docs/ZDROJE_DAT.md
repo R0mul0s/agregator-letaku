@@ -71,7 +71,7 @@ Nabídka s Kaufland Card:
 Implementace: `KauflandStoreSource` (seznam prodejen a jejich akcí), `KauflandOfferSource` (stránky prodejen a prodejny akce).
 
 - Průzkum 3. 10. 2026 (všech 149 prodejen): **646 akcí je všude stejných** i cenou, **70 jen v některých**, každá prodejna jich má 8–22. Polovina je pultové maso „K-Mistři od fochu“ (`klNr` `630…`; Vrchlabí vepřová pečeně a kližka, Trutnov krkovice a čevapčiči), dál ryby z pultu (losos, pstruh — jen prodejny s rybím pultem, `slf` obsahuje `Fish`) a jednotlivé položky. Vzniká **74 různých kombinací** — nejde o regiony.
-- Seznam prodejny má jen `klNr` a platnost; detail (název, cena) je jen na stránce nabídky s cookie `x-aem-variant={kód}` (~2,5 MB). Výchozí stránka (bez cookie) je CZ3300 Praha-Vypich. Na detail všech akcí všech prodejen stačilo **24 stránek** navíc (výběr: vždy prodejna s nejvíc chybějícími akcemi).
+- Seznam prodejny má jen `klNr` a platnost; detail (název, cena) je jen na stránce nabídky s cookie `x-aem-variant={kód}` (~2,5 MB). Výchozí stránka (bez cookie) je CZ3300 Praha-Vypich. Na detail všech akcí všech prodejen stačilo **24 stránek** navíc (výběr: vždy prodejna s nejvíc chybějícími akcemi), 6. 10. 2026 s oběma týdny **25 stránek** (~30 s).
 - Klíč akce ze seznamu (`klNr|dateFrom|dateTo`) je stejný jako klíč nabídky (`OfferData::key()`).
 - Seznam prodejen `.klstorefinder.json`: `n` kód, `cn` „Kaufland Trutnov“ (ukládá se bez „Kaufland “), `t` město, `slf` vybavení prodejny (`Meat`, `Fish`…).
 - Seznamy a stránky jsou z jiné doby (cron prodejen běží dřív než stažení nabídky) — akce, kterou žádný seznam nezná, platí všude.
@@ -92,6 +92,8 @@ Implementace: `app/Domain/Sources/Kaufland/KauflandOfferParser.php`.
 - Názvy jsou často souhrnné: „Coca-Cola/Fanta/Sprite různé druhy“.
 - URL obrázku obsahuje EAN (`8594061460122_CZ_P`).
 - Příští týden se zveřejňuje 3 dny před začátkem platnosti. Týden začíná ve středu, takže v neděli **(předpoklad z textu webu)**.
+- **Od zveřejnění má stránka v datech oba týdny** (ověřeno 6. 10. 2026): `weekData.nextWeekDates` vyjmenuje dny příštího týdne a `offerData.cycles` má dva cykly — aktuální (kategorie od 30. 9.) a příští (od 7. 10.); `?kloffer-week=current` i `=next` vrací stejná data (~3,3 MB, ~1 400 akcí), liší se jen vykreslené dlaždice. Parser proto dělí kategorie podle `dateFrom` (od prvního dne `nextWeekDates` = příští týden) na dva zdroje `nabidka-{začátek}` a odkazy příštího týdne vedou na `kloffer-week=next` (na `current` by dlaždice nebyla). Stránka `next` se stahuje zvlášť, jen když ji stránka ohlásí a příští týden v datech nemá.
+- **Paměť:** dvojnásobná stránka × 40 stránek prodejen vedla 6. 10. 2026 k pádu stažení na hostingu (lokálně 671 MB, běh zůstal „running“). Ze stránek prodejen se proto drží jen akce, které chyběly (~100 MB), a položky přeskočené parserem (bez názvu) se za chybějící nepočítají — jinak by je hledala každá další prodejna až do `max_store_pages`.
 - robots.txt zakazuje jen detaily (`/nabidka/*/detail`), `/nabidka/prehled.html` je povolená.
 - **Detail akce nemá vlastní adresu** — otevírá se jen jako okno nad stránkou, v datech je jen `offerId` a `klNr`. Odkaz u akce proto vede na stránku její kategorie (`?kloffer-week=current|next&kloffer-category={name kategorie}`, např. `03_Mléčné_výrobky__tuky__vejce`) s textovým fragmentem `#:~:text={title dlaždice}`: prohlížeč na dlaždici odroluje a zvýrazní ji (nadpis je v HTML jako `k-product-tile__title`). Pomlčka se ve fragmentu musí kódovat (`%2D`).
 

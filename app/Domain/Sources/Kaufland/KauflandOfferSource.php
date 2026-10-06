@@ -4,12 +4,13 @@
  * Zdroj akční nabídky Kauflandu — stránka nabídky na prodejny.kaufland.cz (ZDROJE_DAT.md).
  *
  * Nabídka se mírně liší po prodejnách (R49): pultové maso, ryby a pár dalších položek.
- * Zdroj stáhne výchozí variantu (bez cookie prodejny) a příští týden, jen když ho stránka
- * aktuálního týdne ohlásí — jinak by parametr `next` vrátil zase aktuální týden. Když jsou
- * uložené seznamy akcí prodejen (ImportStores), stáhne navíc stránky prodejen (cookie
- * `x-aem-variant`) tak, aby měly detail i akce, které ve výchozí variantě chybí — vždy
- * prodejnu s nejvíc chybějícími akcemi, nejvýš `max_store_pages` stránek. Nakonec u akce,
- * která není ve všech prodejnách, vyplní prodejny, kde platí.
+ * Zdroj stáhne výchozí variantu (bez cookie prodejny). Stránka aktuálního týdne má od
+ * 6. 10. 2026 v datech i ohlášený příští týden; stránku `next` stáhne, jen když ho ohlásí
+ * a nemá — bez ohlášení by `next` vrátil zase aktuální týden. Když jsou uložené seznamy akcí
+ * prodejen (ImportStores), stáhne navíc stránky prodejen (cookie `x-aem-variant`) tak, aby
+ * měly detail i akce, které ve výchozí variantě chybí — vždy prodejnu s nejvíc chybějícími
+ * akcemi, nejvýš `max_store_pages` stránek, a z každé si nechá jen chybějící akce. Nakonec
+ * u akce, která není ve všech prodejnách, vyplní prodejny, kde platí.
  *
  * @author Roman Hlaváček
  *
@@ -55,10 +56,13 @@ final class KauflandOfferSource implements OfferSource
     public function fetch(): array
     {
         $current = $this->page(self::CURRENT_WEEK);
-        $weeks = $current->nextWeekPublished ? [self::CURRENT_WEEK, self::NEXT_WEEK] : [self::CURRENT_WEEK];
-        $batches = [$current->batch];
-        if ($current->nextWeekPublished) {
-            $batches[] = $this->page(self::NEXT_WEEK)->batch;
+        $weeks = $current->nextWeekMissing ? [self::CURRENT_WEEK, self::NEXT_WEEK] : [self::CURRENT_WEEK];
+        $batches = $current->batches;
+        $seen = $current->itemKeys;
+        if ($current->nextWeekMissing) {
+            $next = $this->page(self::NEXT_WEEK);
+            array_push($batches, ...$next->batches);
+            $seen += $next->itemKeys;
         }
 
         $lists = $this->storeLists->fresh(Chain::Kaufland);
@@ -66,7 +70,7 @@ final class KauflandOfferSource implements OfferSource
             return $batches;
         }
 
-        array_push($batches, ...$this->storePages($lists, $this->keys($batches), $weeks));
+        array_push($batches, ...$this->storePages($lists, $seen, $weeks));
 
         return array_map(fn (SourceBatch $batch): SourceBatch => new SourceBatch(
             $batch->leaflet,
@@ -80,17 +84,18 @@ final class KauflandOfferSource implements OfferSource
      * jejíž seznam má nejvíc chybějících akcí; každou nejvýš jednou.
      *
      * @param  array<string, array<string, true>>  $lists  Akce podle prodejny
-     * @param  array<string, true>  $known  Klíče akcí, které už mají detail
+     * @param  array<string, true>  $seen  Klíče položek dosud stažených stránek (i přeskočených — jiná stránka je nedoplní)
      * @param  list<string>  $weeks  Zveřejněné týdny
      * @return list<SourceBatch>
      */
-    private function storePages(array $lists, array $known, array $weeks): array
+    private function storePages(array $lists, array $seen, array $weeks): array
     {
-        $missing = array_diff_key(array_merge(...array_values($lists)), $known);
+        $missing = array_diff_key(array_merge(...array_values($lists)), $seen);
         $maxPages = config()->integer('letaky.sources.kaufland.max_store_pages');
         $batches = [];
+        $pages = 0;
 
-        while ($missing !== [] && count($batches) < $maxPages) {
+        while ($missing !== [] && $pages < $maxPages) {
             $store = $this->storeWithMostMissing($lists, $missing);
             if ($store === null) {
                 break;
@@ -98,15 +103,38 @@ final class KauflandOfferSource implements OfferSource
             unset($lists[$store]);
 
             foreach ($weeks as $week) {
-                if ($missing === [] || count($batches) >= $maxPages) {
+                if ($missing === [] || $pages >= $maxPages) {
                     break;
                 }
-                $batches[] = $batch = $this->page($week, $store)->batch;
-                $missing = array_diff_key($missing, $this->keys([$batch]));
+                $pages++;
+                $page = $this->page($week, $store);
+                foreach ($page->batches as $batch) {
+                    $new = $this->onlyMissing($batch, $missing);
+                    if ($new->offers !== []) {
+                        $batches[] = $new;
+                    }
+                }
+                $missing = array_diff_key($missing, $page->itemKeys);
             }
         }
 
         return $batches;
+    }
+
+    /**
+     * Dávka jen s akcemi, které dosud chybí. Ostatní už mají detail z dřívější stránky
+     * (import bere první výskyt) — stránka prodejny má celou nabídku obou týdnů (~1 400 akcí)
+     * a 40 takových stránek v paměti hosting nezvládl.
+     *
+     * @param  array<string, true>  $missing
+     */
+    private function onlyMissing(SourceBatch $batch, array $missing): SourceBatch
+    {
+        return new SourceBatch(
+            $batch->leaflet,
+            array_values(array_filter($batch->offers, fn (OfferData $offer): bool => isset($missing[$offer->key()]))),
+            $batch->pages,
+        );
     }
 
     /**
@@ -151,24 +179,6 @@ final class KauflandOfferSource implements OfferSource
     }
 
     /**
-     * Klíče akcí v dávkách.
-     *
-     * @param  list<SourceBatch>  $batches
-     * @return array<string, true>
-     */
-    private function keys(array $batches): array
-    {
-        $keys = [];
-        foreach ($batches as $batch) {
-            foreach ($batch->offers as $offer) {
-                $keys[$offer->key()] = true;
-            }
-        }
-
-        return $keys;
-    }
-
-    /**
      * Stránka nabídky týdne — výchozí, nebo prodejny (cookie).
      */
     private function page(string $week, ?string $store = null): KauflandOfferPage
@@ -179,7 +189,11 @@ final class KauflandOfferSource implements OfferSource
             : $this->http->request(config()->integer('letaky.sources.kaufland.store_page_delay_ms'))
                 ->withHeaders(['Cookie' => config()->string('letaky.sources.kaufland.store_cookie').'='.$store]);
 
-        return $this->parser->parse($request->get($url, [self::WEEK_PARAMETER => $week])->body(), $this->weekUrl($url, $week));
+        return $this->parser->parse(
+            $request->get($url, [self::WEEK_PARAMETER => $week])->body(),
+            $this->weekUrl($url, $week),
+            $this->weekUrl($url, self::NEXT_WEEK),
+        );
     }
 
     /**

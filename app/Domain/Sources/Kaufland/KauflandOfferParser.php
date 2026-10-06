@@ -71,31 +71,98 @@ final class KauflandOfferParser
     ) {}
 
     /**
-     * Převede HTML stránky nabídky na dávku nabídek a zjistí, jestli je zveřejněný příští týden.
+     * Převede HTML stránky nabídky na dávky nabídek po týdnech a zjistí, jestli příští týden,
+     * který stránka ohlásila, chybí. Od 6. 10. 2026 má stránka v datech oba týdny (dlaždice
+     * vykreslí jen týden z adresy) — kategorie od prvního dne příštího týdne patří k němu
+     * a jejich odkazy vedou na `$nextWeekUrl`.
+     *
+     * @param  string  $pageUrl  Adresa stažené stránky (s parametrem kloffer-week)
+     * @param  string  $nextWeekUrl  Adresa nabídky příštího týdne
      *
      * @throws SourceResponseChanged
      */
-    public function parse(string $html, string $sourceUrl): KauflandOfferPage
+    public function parse(string $html, string $pageUrl, string $nextWeekUrl): KauflandOfferPage
     {
         $props = $this->offerTemplateProps($html);
-        $categories = $this->categories($props);
+        $nextWeekStart = $this->nextWeekStart($props);
 
+        $weeks = [];
+        foreach ($this->categories($props) as $category) {
+            $isNextWeek = $nextWeekStart !== null && $this->string($category, 'dateFrom') >= $nextWeekStart;
+            $weeks[$isNextWeek ? $nextWeekUrl : $pageUrl][] = $category;
+        }
+
+        $batches = [];
+        foreach ($weeks as $weekUrl => $categories) {
+            $batches[] = $this->batch($categories, (string) $weekUrl);
+        }
+
+        return new KauflandOfferPage(
+            $batches,
+            nextWeekMissing: $nextWeekStart !== null && ! isset($weeks[$nextWeekUrl]),
+            itemKeys: $this->itemKeys(array_merge(...array_values($weeks))),
+        );
+    }
+
+    /**
+     * Klíče všech položek stránky včetně přeskočených (bez názvu nebo ceny) — ve tvaru
+     * `OfferData::key()`, jak je mají i seznamy akcí prodejen.
+     *
+     * @param  list<array<string, mixed>>  $categories
+     * @return array<string, true>
+     *
+     * @throws SourceResponseChanged
+     */
+    private function itemKeys(array $categories): array
+    {
+        $keys = [];
+        foreach ($categories as $category) {
+            foreach ($this->list($category['offers'] ?? null, 'offers') as $item) {
+                $item = $this->array($item, 'offer');
+                $parts = [$this->optionalString($item, 'klNr'), $this->optionalString($item, 'dateFrom'), $this->optionalString($item, 'dateTo')];
+                if (! in_array(null, $parts, true)) {
+                    $keys[implode('|', $parts)] = true;
+                }
+            }
+        }
+
+        return $keys;
+    }
+
+    /**
+     * První den příštího týdne podle `weekData`; null, když ho stránka ještě neohlásila.
+     *
+     * @param  array<string, mixed>  $props
+     */
+    private function nextWeekStart(array $props): ?string
+    {
+        $dates = $props['weekData']['nextWeekDates'] ?? [];
+        $dates = is_array($dates) ? array_filter($dates, is_string(...)) : [];
+
+        return $dates === [] ? null : min($dates);
+    }
+
+    /**
+     * Dávka nabídek jednoho týdne.
+     *
+     * @param  list<array<string, mixed>>  $categories
+     * @param  string  $weekUrl  Stránka nabídky týdne (odkaz u zdroje a základ odkazu u akce)
+     *
+     * @throws SourceResponseChanged
+     */
+    private function batch(array $categories, string $weekUrl): SourceBatch
+    {
         $offers = [];
         foreach ($categories as $category) {
             foreach ($this->list($category['offers'] ?? null, 'offers') as $item) {
-                $offer = $this->offer($this->array($item, 'offer'), $category, $sourceUrl);
+                $offer = $this->offer($this->array($item, 'offer'), $category, $weekUrl);
                 if ($offer !== null) {
                     $offers[$offer->key()] ??= $offer;
                 }
             }
         }
 
-        $nextWeekDates = $props['weekData']['nextWeekDates'] ?? [];
-
-        return new KauflandOfferPage(
-            new SourceBatch($this->leaflet($categories, $sourceUrl), array_values($offers)),
-            nextWeekPublished: is_array($nextWeekDates) && $nextWeekDates !== [],
-        );
+        return new SourceBatch($this->leaflet($categories, $weekUrl), array_values($offers));
     }
 
     /**

@@ -14,6 +14,7 @@ s novým datem.
 | Soubor | Odkud | Co obsahuje |
 |---|---|---|
 | `kaufland/prehled-2026-10-02.html` | `prodejny.kaufland.cz/nabidka/prehled.html?kloffer-week=current` | stav komponenty OfferTemplate s 9 položkami (8 různých): vejce (i duplicitně v Superkaufu), trvanlivé mléko (`specialItems`), Coca-Cola 1,5 l (`smallPrice`, různé druhy), smetana s Kaufland Card a dvojím balením, máslo jen s kartou, položka bez `title` a položka bez názvu, borůvky ze „Startu týdne“ |
+| `kaufland/prehled-2026-10-06.html` | `prodejny.kaufland.cz/nabidka/prehled.html?kloffer-week=current` | stránka s oběma týdny: `nextWeekDates` 7.–13. 10., dva cykly — aktuální (smetana Kunín a položka bez názvu 20963057) a příští (sýr Président od 7. 10.) |
 | `kaufland/stores-2026-10-03.json` | `prodejny.kaufland.cz/.klstorefinder.json` | 3 prodejny ze 149: CZ3300 Praha-Vypich (výchozí), CZ1550 Vrchlabí, CZ4400 Trutnov |
 | `kaufland/store-offers-{CZ3300,CZ1550,CZ4400}-2026-10-03.json` | `…/.kloffers.storeName={kód}.json` | jen akce z fixtures níže: vejce všude, losos jen CZ3300, vepřová pečeně CZ3300 a Vrchlabí, krkovice a čevapčiči jen Trutnov |
 | `kaufland/prehled-default-2026-10-03.html`, `prehled-CZ4400-…` | stránka nabídky bez cookie a s `x-aem-variant=CZ4400` | výchozí: vejce, losos, vepřová pečeně; Trutnov: vejce, krkovice, čevapčiči (R49) |

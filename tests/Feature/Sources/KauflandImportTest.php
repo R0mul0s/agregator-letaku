@@ -162,6 +162,23 @@ it('stáhne i příští týden, když ho stránka ohlásí', function (): void 
     Http::assertSent(fn (Request $request): bool => $request->data()['kloffer-week'] === 'next');
 });
 
+it('stránku s oběma týdny rozdělí po týdnech a příští týden zvlášť nestahuje', function (): void {
+    $this->travelTo('2026-10-06 10:00:00');
+    Http::fake([KAUFLAND_OFFERS_URL => Http::response(responseFixture('kaufland/prehled-2026-10-06.html'))]);
+
+    $this->artisan('letaky:import-offers', ['chain' => ['kaufland']])->assertSuccessful();
+
+    Http::assertSentCount(1);
+    $current = kauflandOffer('00022696');
+    $next = kauflandOffer('00021062');
+    expect($current->leaflet?->external_id)->toBe('nabidka-2026-09-30')
+        ->and($current->source_url)->toContain('kloffer-week=current')
+        ->and($next->leaflet?->external_id)->toBe('nabidka-2026-10-07')
+        ->and($next->leaflet?->valid_to->toDateString())->toBe('2026-10-13')
+        ->and($next->leaflet?->source_url)->toEndWith('kloffer-week=next')
+        ->and($next->source_url)->toContain('kloffer-week=next&kloffer-category=03_');
+});
+
 it('opakovaný import nabídky nezdvojí, jen aktualizuje', function (): void {
     Http::fake([KAUFLAND_OFFERS_URL => Http::response(responseFixture('kaufland/prehled-2026-10-02.html'))]);
 

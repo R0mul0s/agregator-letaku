@@ -152,7 +152,7 @@ return [
             // Stránka nabídky konkrétní prodejny se volí cookie
             'store_cookie' => 'x-aem-variant',
             // Kolik stránek prodejen nejvýš stáhnout navíc k výchozí, aby měly detail všechny akce
-            // všech prodejen (3. 10. 2026 jich stačilo 24)
+            // všech prodejen (3. 10. 2026 jich stačilo 24, 6. 10. s oběma týdny 25)
             'max_store_pages' => 40,
             // Pauza před stránkou prodejny (~2,5 MB) — 24 stránek se musí vejít do limitu hostingu (O8)
             'store_page_delay_ms' => (int) env('LETAKY_KAUFLAND_STORE_PAGE_DELAY_MS', 1000),
