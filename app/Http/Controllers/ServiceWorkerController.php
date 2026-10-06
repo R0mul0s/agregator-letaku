@@ -35,10 +35,9 @@ class ServiceWorkerController extends Controller
     private const BUILD_MANIFEST = 'build/manifest.json';
 
     /**
-     * Písmo se ukládá jen v sadách znaků pro češtinu — azbuka a vietnamština by jen zabíraly místo
-     * (stáhnou se samy, kdyby je stránka potřebovala).
+     * Písmo pro offline: latinka a česká a slovenská písmena (resources/scss/base/_fonts.scss, R97).
      */
-    private const FONT_SUBSETS = ['-latin-wght-', '-latin-ext-wght-'];
+    private const FONT_SUBSETS = ['-latin-wght-', '-czech-wght-'];
 
     private const FONT_EXTENSION = '.woff2';
 

@@ -148,7 +148,10 @@ powershell -ExecutionPolicy Bypass -File deploy\build-upload.ps1   # jen z commi
   **`public/theme-init.js` je vložený do HTML** (R97) a CSP ho pouští podle otisku `sha256-…` — změna
   souboru = nový otisk v `.htaccess` (`tests/Unit/ThemeInitCspTest.php` to hlídá), jinak ho prohlížeč
   zablokuje. Obrázky maskota jsou WebP ve velikosti zobrazení (`mascot-192/288/416.webp`,
-  `logo-mark-128.webp`), PNG jen pro favicony, manifest, upozornění a schema.org.
+  `logo-mark-128.webp`), PNG jen pro favicony, manifest, upozornění a schema.org. Písmo Nunito je
+  v `resources/scss/base/_fonts.scss`: latinka z `@fontsource`, české a slovenské znaky jen jako
+  podmnožina `resources/fonts/nunito-czech-wght-normal.woff2` — jiný znak mimo Latin-1 (např. polské
+  ł) se vykreslí náhradním písmem; rozšířit = nová podmnožina (příkaz v hlavičce souboru).
 - **Dlouhé požadavky:** stažení Tesca trvá ~45 s; limit hostingu se ověří při nasazení (O8).
 - Nepřidávej závislost, kterou hosting nemá (Redis, fronta). Hosting ověřený 2026-10-06 (R86): PHP 8.4 FPM, `memory_limit` 512M,
   `max_execution_time` 600, `proc_open` povolené, `/usr/bin/pdftotext` 22.02 a `gs`, rozšíření GD i Imagick (kontejner GD nemá).

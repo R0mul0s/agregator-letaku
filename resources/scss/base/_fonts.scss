@@ -1,0 +1,33 @@
+// _fonts.scss
+// Písmo Nunito (variabilní, tloušťka 200–1000) — přímo v hlavním CSS, ne přes CSS balíčku
+// @fontsource (samostatný blokující soubor a sady pro azbuku a vietnamštinu, R97).
+// Latinka z balíčku; místo celé sady latin-ext (35 kB, desítky jazyků) jen česká a slovenská
+// písmena (resources/fonts/nunito-czech-wght-normal.woff2, 7,6 kB) — prohlížeč stáhne obě
+// a na pomalém mobilu soutěžily o připojení s kódem stránky. Podmnožina vznikla z balíčku:
+//   pyftsubset node_modules/@fontsource-variable/nunito/files/nunito-latin-ext-wght-normal.woff2 \
+//     --unicodes='U+010C-010F,U+011A-011B,U+0139-013A,U+013D-013E,U+0147-0148,U+0154-0155,U+0158-0161,U+0164-0165,U+016E-016F,U+017D-017E' \
+//     --layout-features='*' --flavor=woff2 --output-file=resources/fonts/nunito-czech-wght-normal.woff2
+// (python:3.12-slim, pip install fonttools brotli). Jiný znak mimo sady se vykreslí náhradním písmem.
+//
+// @author Roman Hlaváček
+// @created 2026-10-06
+
+// Latinka a interpunkce (rozsahy jako v @fontsource-variable/nunito)
+@font-face {
+    font-family: 'Nunito Variable';
+    font-style: normal;
+    font-display: swap;
+    font-weight: 200 1000;
+    src: url('../../../node_modules/@fontsource-variable/nunito/files/nunito-latin-wght-normal.woff2') format('woff2-variations');
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+// Česká a slovenská písmena mimo Latin-1 (č ď ě ĺ ľ ň ŕ ř š ť ů ž a velká)
+@font-face {
+    font-family: 'Nunito Variable';
+    font-style: normal;
+    font-display: swap;
+    font-weight: 200 1000;
+    src: url('../../fonts/nunito-czech-wght-normal.woff2') format('woff2-variations');
+    unicode-range: U+010C-010F, U+011A-011B, U+0139-013A, U+013D-013E, U+0147-0148, U+0154-0155, U+0158-0161, U+0164-0165, U+016E-016F, U+017D-017E;
+}

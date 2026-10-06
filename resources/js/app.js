@@ -4,8 +4,6 @@
  * @author Roman Hlaváček
  * @created 2026-10-02
  */
-// Písmo Nunito (zaoblené jako nápis v logu) — variabilní, latinka i s češtinou, z balíčku, ne z CDN
-import '@fontsource-variable/nunito/wght.css';
 import { initConsent } from '@/lib/consent';
 import { initPwa } from '@/lib/pwa';
 import { installStatusToasts } from '@/lib/toast';
