@@ -12,7 +12,7 @@
 
 @section('content')
     <div class="empty-state">
-        <img src="/images/brand/icon-192.png" alt="" class="empty-state__mascot">
+        <img src="/images/brand/mascot-192.webp" width="192" height="192" alt="" class="empty-state__mascot">
         <p class="empty-state__text">{{ __('app.ui.offline.text') }}</p>
         <div class="empty-state__action offline-page__actions">
             <a href="" class="button button--primary">{{ __('app.ui.offline.retry') }}</a>

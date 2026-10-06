@@ -87,6 +87,12 @@ Options -Indexes
         Header always set Cache-Control "public, max-age=604800" "expr=%{REQUEST_STATUS} == 200"
     </FilesMatch>
 
+    # Skript vzhledu se mění vzácně — den v cache (bez pravidla se stahoval při každém načtení
+    # stránky a blokoval vykreslení, PageSpeed). Změna se projeví nejpozději druhý den.
+    <Files "theme-init.js">
+        Header always set Cache-Control "public, max-age=86400" "expr=%{REQUEST_STATUS} == 200"
+    </Files>
+
     # Sestavené assety mají v názvu hash obsahu (Vite: „app-B9u7YS45.js“) — můžou ležet
     # v cache napořád. Podle jména souboru — URI se při kořenovém .htaccess liší
     # (/public/build/…). Jen pro 200: chybějící soubor (404) se na rok ukládat nesmí.

@@ -85,7 +85,7 @@ onBeforeUnmount(() => {
     >
         <div class="app-header__inner">
             <Link href="/" class="app-header__brand">
-                <img src="/images/brand/logo-mark.png" alt="" class="app-header__logo" />
+                <img src="/images/brand/logo-mark-128.webp" width="128" height="128" alt="" class="app-header__logo" />
                 <!-- Název ve dvou barvách jako v logu; části bez mezery, čtečka přečte jedno slovo -->
                 <span class="app-header__name">
                     <span class="app-header__wordmark"

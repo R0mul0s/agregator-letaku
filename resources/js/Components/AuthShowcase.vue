@@ -43,7 +43,7 @@ function markBroken(id) {
     <div class="auth-showcase">
         <aside class="auth-showcase__panel">
             <div class="auth-showcase__brand">
-                <img src="/images/brand/icon-192.png" alt="" class="auth-showcase__mascot" />
+                <img src="/images/brand/mascot-192.webp" width="192" height="192" alt="" class="auth-showcase__mascot" />
                 <p>
                     <span class="auth-showcase__name">{{ t('app_name') }}</span>
                     <span class="auth-showcase__tagline">{{ t('brand.tagline') }}</span>

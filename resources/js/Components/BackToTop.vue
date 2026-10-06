@@ -31,7 +31,7 @@ onBeforeUnmount(() => window.removeEventListener('scroll', onScroll));
 
 <template>
     <button type="button" class="back-to-top" :class="{ 'back-to-top--visible': visible }" :tabindex="visible ? 0 : -1" :aria-hidden="visible ? undefined : 'true'" @click="scrollToTop">
-        <img src="/images/brand/logo-mark.png" alt="" class="back-to-top__mascot" />
+        <img src="/images/brand/logo-mark-128.webp" width="128" height="128" alt="" class="back-to-top__mascot" />
         <span class="back-to-top__badge" aria-hidden="true">
             <svg class="back-to-top__icon" viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7" /></svg>
         </span>

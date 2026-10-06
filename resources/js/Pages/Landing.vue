@@ -139,7 +139,7 @@ onBeforeUnmount(() => window.clearInterval(stickerTimer));
                     <span class="landing-hero__streak"></span>
                     <span class="landing-hero__streak"></span>
                     <div class="landing-hero__drive">
-                        <img src="/images/brand/icon-512.png" alt="" class="landing-hero__mascot" />
+                        <img src="/images/brand/mascot-416.webp" width="416" height="416" alt="" class="landing-hero__mascot" />
                     </div>
                 </div>
                 <!-- Cenovka střídá skutečné nejvyšší slevy z ukázky akcí -->
@@ -210,7 +210,7 @@ onBeforeUnmount(() => window.clearInterval(stickerTimer));
         </section>
 
         <section class="landing-cta">
-            <img src="/images/brand/icon-192.png" alt="" class="landing-cta__mascot" />
+            <img src="/images/brand/mascot-192.webp" width="192" height="192" alt="" class="landing-cta__mascot" />
             <div class="landing-cta__body">
                 <h2 class="landing-cta__title">{{ t('landing.cta_title') }}</h2>
                 <p class="landing-cta__text">{{ t('landing.cta_text') }}</p>

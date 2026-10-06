@@ -45,8 +45,8 @@ class ServiceWorkerController extends Controller
     /** Obrázky a skripty mimo build, které stránky potřebují i offline. */
     private const STATIC_FILES = [
         '/theme-init.js',
-        '/images/brand/logo-mark.png',
-        '/images/brand/icon-192.png',
+        '/images/brand/logo-mark-128.webp',
+        '/images/brand/mascot-192.webp',
         '/images/brand/badge-96.png',
     ];
 

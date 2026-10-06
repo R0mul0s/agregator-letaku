@@ -108,7 +108,7 @@ function pigeonLanded() {
             <!-- Maskot s cenovkou, jak rychle odpovídáme -->
             <div class="contact-hero__art" aria-hidden="true">
                 <div class="contact-hero__circle">
-                    <img src="/images/brand/icon-512.png" alt="" class="contact-hero__mascot" />
+                    <img src="/images/brand/mascot-416.webp" width="416" height="416" alt="" class="contact-hero__mascot" />
                 </div>
                 <span class="contact-hero__sticker">{{ t('contact.reply_sticker') }}</span>
             </div>

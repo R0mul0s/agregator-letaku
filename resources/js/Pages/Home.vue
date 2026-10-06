@@ -250,7 +250,7 @@ onMounted(async () => {
                 <span class="home-hero__streak"></span>
                 <span class="home-hero__streak"></span>
                 <div class="home-hero__drive">
-                    <img src="/images/brand/icon-192.png" alt="" class="home-hero__mascot" />
+                    <img src="/images/brand/mascot-192.webp" width="192" height="192" alt="" class="home-hero__mascot" />
                 </div>
             </div>
             <div class="home-hero__body">

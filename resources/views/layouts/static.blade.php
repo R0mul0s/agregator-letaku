@@ -23,7 +23,7 @@
         <header class="app-header app-header--guest">
             <div class="app-header__inner">
                 <a href="{{ route('home') }}" class="app-header__brand">
-                    <img src="/images/brand/logo-mark.png" alt="" class="app-header__logo">
+                    <img src="/images/brand/logo-mark-128.webp" width="128" height="128" alt="" class="app-header__logo">
                     <span class="app-header__name">
                         <span class="app-header__wordmark"><span class="app-header__wordmark-first">{{ __('app.ui.brand.first') }}</span>{{ __('app.ui.brand.second') }}</span>
                         <span class="app-header__tagline">{{ __('app.ui.brand.tagline') }}</span>

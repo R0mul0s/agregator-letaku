@@ -14,7 +14,7 @@ defineProps({
 <template>
     <div class="empty-state">
         <!-- Maskot je dekorace, sdělení nese text -->
-        <img src="/images/brand/icon-192.png" alt="" class="empty-state__mascot" />
+        <img src="/images/brand/mascot-192.webp" width="192" height="192" alt="" class="empty-state__mascot" />
         <p class="empty-state__text">{{ text }}</p>
         <div v-if="$slots.default" class="empty-state__action">
             <slot />

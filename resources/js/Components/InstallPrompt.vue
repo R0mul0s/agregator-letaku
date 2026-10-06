@@ -48,7 +48,7 @@ function dismiss() {
 
 <template>
     <aside v-if="visible" class="install-prompt" :aria-label="t('pwa.install_title')">
-        <img src="/images/brand/icon-192.png" alt="" class="install-prompt__icon" />
+        <img src="/images/brand/mascot-192.webp" width="192" height="192" alt="" class="install-prompt__icon" />
         <div class="install-prompt__body">
             <p class="install-prompt__title">{{ t('pwa.install_title') }}</p>
             <p class="install-prompt__text">{{ t('pwa.install_text') }}</p>

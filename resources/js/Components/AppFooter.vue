@@ -36,7 +36,7 @@ const updatedAgo = computed(() => (footer.value.lastImportAt ? formatRelativeTim
             <div class="app-footer__columns">
                 <section class="app-footer__brand">
                     <Link href="/" class="app-footer__brand-link">
-                        <img src="/images/brand/logo-mark.png" alt="" class="app-footer__logo" />
+                        <img src="/images/brand/logo-mark-128.webp" width="128" height="128" alt="" class="app-footer__logo" />
                         <span class="app-footer__wordmark"
                             ><span class="app-footer__wordmark-first">{{ t('brand.first') }}</span>{{ t('brand.second') }}</span
                         >
