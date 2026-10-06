@@ -83,7 +83,7 @@ function toggleItem(index) {
 
                 <!-- Upozornění v telefonu (R66) -->
                 <div v-else-if="extra === 'notify'" class="landing-extra__push">
-                    <img src="/images/brand/mascot-192.webp" width="192" height="192" alt="" class="landing-extra__push-icon" />
+                    <img src="/images/brand/logo-mark-128.webp" width="128" height="128" alt="" class="landing-extra__push-icon" />
                     <span class="landing-extra__push-body">
                         <span class="landing-extra__push-head">
                             <strong>{{ t('landing.extras.notify.app') }}</strong>

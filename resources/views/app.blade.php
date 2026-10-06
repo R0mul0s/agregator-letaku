@@ -67,8 +67,17 @@
             <script type="application/ld+json">{!! json_encode($data, $jsonLdFlags) !!}</script>
         @endforeach
         {{-- Uložený vzhled a třídu has-js nastavit před vykreslením, jinak stránka problikne (viz resources/js/lib/theme.js) --}}
-        <script src="/theme-init.js"></script>
-        @vite(['resources/scss/app.scss', 'resources/js/app.js'])
+        {{-- Vložený, ne soubor — samostatný požadavek blokoval první vykreslení (PageSpeed). CSP ho pouští
+             jen podle otisku SHA-256 v public/.htaccess (test hlídá, že sedí s public/theme-init.js) --}}
+        @php($themeInit = public_path('theme-init.js'))
+        @if (is_file($themeInit))
+            <script>{!! trim((string) file_get_contents($themeInit)) !!}</script>
+        @else
+            <script src="/theme-init.js"></script>
+        @endif
+        {{-- Kód aktuální stránky (a co importuje) přednačíst hned s HTML — jinak ho prohlížeč objeví až
+             po spuštění app.js a první vykreslení čeká o kolo síťových požadavků déle --}}
+        @vite(['resources/scss/app.scss', 'resources/js/app.js', "resources/js/Pages/{$page['component']}.vue"])
         @inertiaHead
     </head>
     <body>

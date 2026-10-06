@@ -108,7 +108,16 @@ function pigeonLanded() {
             <!-- Maskot s cenovkou, jak rychle odpovídáme -->
             <div class="contact-hero__art" aria-hidden="true">
                 <div class="contact-hero__circle">
-                    <img src="/images/brand/mascot-416.webp" width="416" height="416" alt="" class="contact-hero__mascot" />
+                    <!-- Velikost podle displeje: na telefonu ~73 px, od středního 112 px (70 % kruhu) -->
+                    <img
+                        src="/images/brand/mascot-416.webp"
+                        srcset="/images/brand/mascot-192.webp 192w, /images/brand/mascot-288.webp 288w, /images/brand/mascot-416.webp 416w"
+                        sizes="(min-width: 768px) 112px, 73px"
+                        width="416"
+                        height="416"
+                        alt=""
+                        class="contact-hero__mascot"
+                    />
                 </div>
                 <span class="contact-hero__sticker">{{ t('contact.reply_sticker') }}</span>
             </div>

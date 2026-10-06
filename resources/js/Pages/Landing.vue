@@ -139,7 +139,16 @@ onBeforeUnmount(() => window.clearInterval(stickerTimer));
                     <span class="landing-hero__streak"></span>
                     <span class="landing-hero__streak"></span>
                     <div class="landing-hero__drive">
-                        <img src="/images/brand/mascot-416.webp" width="416" height="416" alt="" class="landing-hero__mascot" />
+                        <!-- Velikost podle displeje: na telefonu ~96 px, od středního 208 px (kruh minus okraj) -->
+                        <img
+                            src="/images/brand/mascot-416.webp"
+                            srcset="/images/brand/mascot-192.webp 192w, /images/brand/mascot-288.webp 288w, /images/brand/mascot-416.webp 416w"
+                            sizes="(min-width: 768px) 208px, 96px"
+                            width="416"
+                            height="416"
+                            alt=""
+                            class="landing-hero__mascot"
+                        />
                     </div>
                 </div>
                 <!-- Cenovka střídá skutečné nejvyšší slevy z ukázky akcí -->

@@ -23,7 +23,9 @@ function onScroll() {
 
 onMounted(() => {
     window.addEventListener('scroll', onScroll, { passive: true });
-    onScroll();
+    // Až v dalším snímku — hned po připojení aplikace by čtení posunu vynutilo přepočet
+    // rozvržení celé stránky (PageSpeed „vynucené přeformátování“)
+    window.requestAnimationFrame(onScroll);
 });
 
 onBeforeUnmount(() => window.removeEventListener('scroll', onScroll));

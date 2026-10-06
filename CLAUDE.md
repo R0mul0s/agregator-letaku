@@ -145,6 +145,10 @@ powershell -ExecutionPolicy Bypass -File deploy\build-upload.ps1   # jen z commi
   `migrations-2026-10-02-init.sql`, katalog `data-2026-10-02-katalog.sql`.
 - **Bezpečnostní hlavičky a HTTPS** jsou v `public/.htaccess` (CSP: skripty jen vlastní,
   obrázky `https:` kvůli CDN obchodů). Nový externí zdroj ve stránce = úprava CSP.
+  **`public/theme-init.js` je vložený do HTML** (R97) a CSP ho pouští podle otisku `sha256-…` — změna
+  souboru = nový otisk v `.htaccess` (`tests/Unit/ThemeInitCspTest.php` to hlídá), jinak ho prohlížeč
+  zablokuje. Obrázky maskota jsou WebP ve velikosti zobrazení (`mascot-192/288/416.webp`,
+  `logo-mark-128.webp`), PNG jen pro favicony, manifest, upozornění a schema.org.
 - **Dlouhé požadavky:** stažení Tesca trvá ~45 s; limit hostingu se ověří při nasazení (O8).
 - Nepřidávej závislost, kterou hosting nemá (Redis, fronta). Hosting ověřený 2026-10-06 (R86): PHP 8.4 FPM, `memory_limit` 512M,
   `max_execution_time` 600, `proc_open` povolené, `/usr/bin/pdftotext` 22.02 a `gs`, rozšíření GD i Imagick (kontejner GD nemá).
