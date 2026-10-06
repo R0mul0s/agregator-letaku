@@ -13,9 +13,11 @@ declare(strict_types=1);
 use App\Enums\Chain;
 use App\Enums\MatchStatus;
 use App\Enums\OfferType;
+use App\Enums\ScrapeStatus;
 use App\Models\Offer;
 use App\Models\OfferProduct;
 use App\Models\Product;
+use App\Models\ScrapeRun;
 use App\Models\User;
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -109,4 +111,20 @@ it('ukázka hlídání nabídne produkty s nejvíc akcemi a předvybrané spoč�
         ->where('demo.preselected', [$beer->id])
         ->where('demo.initial.count', 2)
         ->has('demo.initial.offers', 1));
+});
+
+it('data úvodní stránky drží v cache a po novém stažení akcí je spočítá znovu (R95)', function (): void {
+    Offer::factory()->create();
+    $offers = fn (): int => $this->get('/')->viewData('page')['props']['stats']['offers'];
+
+    expect($offers())->toBe(1);
+
+    // Další akce bez nového stažení — úvodní stránka ukazuje data z cache
+    Offer::factory()->create();
+    expect($offers())->toBe(1);
+
+    // Nové úspěšné stažení = nový klíč cache
+    $this->travel(1)->minutes();
+    ScrapeRun::factory()->create(['status' => ScrapeStatus::Succeeded, 'finished_at' => now()]);
+    expect($offers())->toBe(2);
 });

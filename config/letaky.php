@@ -593,8 +593,12 @@ return [
     | Hra „Co je levnější?“ (R90): quiz_rounds dvojic akcí stejného produktu z různých obchodů
     | s cenou za kilo nebo litr, jejichž cena za jednotku se liší aspoň o quiz_min_difference_percent;
     | dvojice se berou z quiz_candidate_products produktů s nejvíc akcemi a mění se každý den.
+    |
+    | Cache (R95, LandingSnapshot): data z akcí do dalšího stažení, nejdéle cache_minutes —
+    | pojistka pro úpravy katalogu a akce stažené obchodem mezi staženími.
     */
     'landing' => [
+        'cache_minutes' => 15,
         'top_offers' => 6,
         'top_offers_candidates_factor' => 5,
         'demo_products' => 8,

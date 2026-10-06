@@ -73,10 +73,6 @@ Značení: **[R]** = rozhodne nebo zařídí Roman, **[K]** = kód.
 - [ ] **[R] Zálohy:** doplnit `offer_product`, `shopping_list_items` a avatary
   (`storage/app/private/avatars` přes FTP), ověřit, jak dlouho drží automatické zálohy
   Websupportu (zásady slibují nejdéle 6 měsíců); jednou vyzkoušet obnovu.
-- [ ] **[K] Cache pro úvodní stránku.** Je vstupem pro všechny nové návštěvníky a od R90 dělá víc
-  dotazů: počty, nejvyšší slevy, produkty s nejvíc akcemi pro živou ukázku (přes všechny akce —
-  lokálně ~270 ms, nejdražší část) a hra. Výsledky se mění jen se staženími — držet je v cache
-  (např. do dalšího stažení nebo 15 minut), dřív než přijdou návštěvníci.
 - [ ] **[R] Měkké spuštění:** nejdřív 20–50 lidem z okolí na dva týdny a sledovat, co opravdu
   používají (doporučení revize 4. 10. 2026), teprve pak veřejně.
 
@@ -84,7 +80,7 @@ Značení: **[R]** = rozhodne nebo zařídí Roman, **[K]** = kód.
 
 - [ ] Export dat tlačítkem v Účtu (zatím stačí vyřídit žádost e-mailem do měsíce).
 - [ ] Rušení dlouho neaktivních účtů (např. po 2 letech s upozorněním) — pak doplnit do zásad.
-- [ ] Cache pro Moje slevy, až přibudou uživatelé (úvodní stránka už v kap. 2).
+- [ ] Cache pro Moje slevy, až přibudou uživatelé (úvodní stránka je v cache od R95).
 - [ ] **[K] První obchodní sdělení:** Mailable jen uživatelům s `hasMarketingConsent()`
   (v SQL: `marketing_consent_at` vyplněné a novější než `marketing_consent_withdrawn_at` —
   odvolání čas udělení nemaže, R69) a ověřeným e-mailem, v předmětu nebo úvodu označené jako obchodní sdělení, patička
