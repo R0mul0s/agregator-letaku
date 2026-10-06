@@ -12,9 +12,6 @@
 .app-footer {
     position: relative;
     margin-top: var(--space-5);
-    // Pod první obrazovkou — rozvrhne se až při posunu k ní (R97); nic z ní nepřečnívá
-    content-visibility: auto;
-    contain-intrinsic-size: auto var(--footer-estimate);
     background: var(--color-footer-bg);
     color: var(--color-footer-text);
     font-size: var(--font-size-sm);
