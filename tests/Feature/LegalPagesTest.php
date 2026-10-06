@@ -10,7 +10,9 @@
 
 declare(strict_types=1);
 
+use App\Enums\ScrapeStatus;
 use App\Http\Responses\ErrorToast;
+use App\Models\ScrapeRun;
 use App\Support\Legal\LegalDocuments;
 use Illuminate\Http\Request;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -45,15 +47,19 @@ it('chybějící údaj provozovatele na právní stránce označí k doplnění'
         ->assertInertia(fn (Assert $page) => $page->where('html', fn (string $html): bool => str_contains($html, 'IČO [doplnit]')));
 });
 
-it('sdílí patičku s kontaktem — značka, sídlo po řádcích (bez prázdných) a odkazy (R72)', function (): void {
-    config(['letaky.operator.address' => ['Hlavní 1', ' ', '110 00 Praha']]);
+it('sdílí patičku s obchody, časem posledního stažení a odkazy, bez adresy provozovatele (R92)', function (): void {
+    $this->travelTo('2026-10-06 11:05:00');
+    ScrapeRun::factory()->create(['status' => ScrapeStatus::Succeeded, 'finished_at' => '2026-10-06 11:00:00']);
+    ScrapeRun::factory()->create(['status' => ScrapeStatus::Failed, 'finished_at' => '2026-10-06 11:04:00']);
 
     $this->get(route('offers'))
         ->assertInertia(fn (Assert $page) => $page
-            ->where('siteFooter.brand', 'RHsoft.cz')
+            ->where('siteFooter.chains.0', ['chain' => 'kaufland', 'url' => '/akce?chain=kaufland'])
+            ->has('siteFooter.chains', 7)
+            ->where('siteFooter.lastImportAt', '2026-10-06T11:00:00+00:00')
             ->where('siteFooter.contactUrl', '/kontakt')
-            ->where('siteFooter.addressLines', ['Hlavní 1', '110 00 Praha'])
-            ->missing('siteFooter.companyId')
+            ->missing('siteFooter.addressLines')
+            ->missing('siteFooter.email')
             ->where('siteFooter.termsUrl', '/podminky')
             ->where('siteFooter.privacyUrl', '/ochrana-udaju'));
 });

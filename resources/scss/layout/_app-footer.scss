@@ -1,6 +1,7 @@
 // _app-footer.scss
 // Patička webu (AppFooter.vue, R51) — tmavá antracitová jako logo, s červenou linkou nahoře
-// (zrcadlo hlavičky): sloupce značka, navigace, informace, provozovatel; dole copyright
+// (zrcadlo hlavičky): sloupce značka s čerstvostí akcí (R92),
+// navigace, informace a loga obchodů; dole copyright
 // a upozornění. Barvy z vlastních tokenů --color-footer-*, patička je tmavá v obou režimech.
 //
 // @author Roman Hlaváček
@@ -53,6 +54,13 @@
         }
     }
 
+    // Značka, popis, čerstvost a tlačítko pod sebou
+    &__brand {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
     &__brand-link {
         display: inline-flex;
         align-items: center;
@@ -85,6 +93,68 @@
         margin-top: var(--space-3);
         color: var(--color-footer-muted);
     }
+
+    // Čerstvost akcí s pulzující zelenou tečkou
+    &__fresh {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+        margin-top: var(--space-3);
+        color: var(--color-footer-text);
+    }
+
+    &__fresh-dot {
+        flex: none;
+        width: var(--watch-demo-dot-size);
+        height: var(--watch-demo-dot-size);
+        background: var(--color-footer-fresh);
+        border-radius: 50%;
+        box-shadow: 0 0 0 0 var(--color-footer-fresh);
+        animation: app-footer-pulse var(--footer-fresh-pulse-duration) ease-out infinite;
+
+        @media (prefers-reduced-motion: reduce) {
+            animation: none;
+        }
+    }
+
+    &__cta {
+        margin-top: var(--space-3);
+    }
+
+    // Loga obchodů jako dlaždičky — odkazy na jejich akce
+    &__chains {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-2);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    &__chain {
+        display: block;
+        border-radius: var(--radius-sm);
+        transition: transform var(--duration-fast);
+
+        &:hover {
+            transform: translateY(var(--hover-lift));
+        }
+
+        &:focus-visible {
+            outline: none;
+            box-shadow: var(--focus-ring);
+        }
+
+        .chain-logo__image {
+            border-color: transparent;
+        }
+    }
+
+    &__made {
+        display: block;
+        margin-top: var(--space-1);
+    }
+
 
     &__title {
         margin-bottom: var(--space-3);
@@ -166,5 +236,16 @@
         @include from-md {
             text-align: right;
         }
+    }
+}
+
+// Tečka „vysílá“ — kolem ní se rozbíhá kroužek
+@keyframes app-footer-pulse {
+    70% {
+        box-shadow: 0 0 0 var(--watch-demo-dot-size) transparent;
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 transparent;
     }
 }

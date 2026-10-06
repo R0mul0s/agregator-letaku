@@ -12,11 +12,13 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Domain\Offers\OfferFilters;
+use App\Domain\Sources\ImportFreshness;
+use App\Domain\Sources\SourceRegistry;
 use App\Enums\Chain;
 use App\Http\Controllers\WatchItemController;
 use App\Models\User;
 use App\Support\Legal\LegalDocuments;
-use App\Support\Operator;
 use App\Support\Seo\SeoMeta;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Vite;
@@ -120,13 +122,15 @@ class HandleInertiaRequests extends Middleware
                 'updateCheckMinutes' => config()->integer('letaky.pwa.update_check_minutes'),
                 'installSnoozeDays' => config()->integer('letaky.pwa.install_prompt_snooze_days'),
             ],
-            // Patička (R51): kontakt, právní stránky — název se nesmí krýt s propem stránky.
-            // Sekce Kontakt se značkou provozovatele (R72); jméno a IČO jsou na /kontakt a v podmínkách
+            // Patička (R51, R92): právní stránky, obchody s odkazy na jejich akce a čas posledního
+            // stažení — název se nesmí krýt s propem stránky. Údaje provozovatele jsou na /kontakt
+            // a v podmínkách (§ 435 OZ), patička na ně odkazuje
             'siteFooter' => fn (): array => [
-                'brand' => config('letaky.operator.brand'),
-                // Sídlo pod sebou po řádcích
-                'addressLines' => app(Operator::class)->addressLines(),
-                'email' => config('letaky.operator.email'),
+                'chains' => array_map(fn (Chain $chain): array => [
+                    'chain' => $chain->value,
+                    'url' => route('offers', [OfferFilters::CHAIN_PARAMETER => $chain->value], absolute: false),
+                ], app(SourceRegistry::class)->chainsWithOffers()),
+                'lastImportAt' => app(ImportFreshness::class)->lastSucceededAt()?->toIso8601String(),
                 'contactUrl' => route('contact', absolute: false),
                 'termsUrl' => route('legal.terms', absolute: false),
                 'privacyUrl' => route('legal.privacy', absolute: false),

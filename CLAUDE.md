@@ -55,7 +55,7 @@ Hotové jsou etapy 1–5g, zveřejnění (8), opravy a funkce z kritické revize
   počkat“, štítek „Od čt 8. 10.“, filtr „Brzy začnou“ ve Všech akcích, v seznamu za platnými s potvrzením
   odškrtnutí; upozornění s datem začátku a ráno „Od dneška platí N akcí, na které čekáte“
 - **Tón a kontakt (R72):** web mluví přátelsky „my“ s jemným humorem, právní texty jako firma (genderově
-  neutrálně), stránka `/kontakt` s rozcestníkem a častými otázkami, v patičce sekce Kontakt (RHsoft.cz)
+  neutrálně), stránka `/kontakt` s rozcestníkem a častými otázkami, v patičce odkaz na ni (sekce Kontakt zrušena R92)
 - **Přehled uživatelů (R84):** `/uzivatele` pro admina (v menu pod Katalogem) — kdo je online, kdy byl kdo naposledy
   (`users.last_seen_at`), souhrn v dlaždicích s filtry a nastavení každého uživatele
 - **Úvodní stránka (R44, R90):** hledání v hlavním pruhu, napočítávané počty, živá ukázka hlídání

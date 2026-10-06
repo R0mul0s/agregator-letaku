@@ -1,5 +1,6 @@
 // _back-to-top.scss
-// Tlačítko „Nahoru“ vpravo dole (BackToTop.vue) — kulaté, v akcentu, vyjede až po odscrollování.
+// Tlačítko „Nahoru“ vpravo dole (BackToTop.vue) — košík maskota na světlém kruhu s červeným
+// okrajem a šipkou v rohu (R92), vyjede až po odscrollování; při najetí košík poskakuje.
 //
 // @author Roman Hlaváček
 // @created 2026-10-02
@@ -15,12 +16,11 @@
     justify-content: center;
     width: var(--back-to-top-size);
     height: var(--back-to-top-size);
-    padding: 0;
-    background: var(--color-accent);
-    border: 0;
+    padding: var(--logo-mark-padding);
+    background: var(--color-logo-bg);
+    border: 2px solid var(--color-accent);
     border-radius: 50%;
     box-shadow: var(--shadow-card-hover);
-    color: var(--color-on-accent);
     cursor: pointer;
     opacity: 0;
     pointer-events: none;
@@ -37,17 +37,63 @@
         transform: translateY(var(--hover-lift));
     }
 
+    &:hover &__mascot {
+        animation: back-to-top-bump var(--landing-bump-duration) ease-in-out infinite;
+    }
+
+    &:focus-visible {
+        outline: none;
+        box-shadow: var(--focus-ring);
+    }
+
     @media (prefers-reduced-motion: reduce) {
         transition: none;
+
+        &:hover .back-to-top__mascot {
+            animation: none;
+        }
+    }
+
+    &__mascot {
+        display: block;
+        width: 100%;
+        height: auto;
+        transform-origin: 50% 85%;
+    }
+
+    // Červená šipka v rohu — říká, kam košík odveze
+    &__badge {
+        position: absolute;
+        top: calc(-1 * var(--space-2));
+        right: calc(-1 * var(--space-2));
+        display: inline-grid;
+        place-items: center;
+        width: var(--back-to-top-badge-size);
+        height: var(--back-to-top-badge-size);
+        background: var(--color-accent);
+        border-radius: 50%;
+        color: var(--color-on-accent);
     }
 
     &__icon {
-        width: var(--icon-size);
-        height: var(--icon-size);
+        width: var(--icon-size-sm);
+        height: var(--icon-size-sm);
         fill: none;
         stroke: currentcolor;
         stroke-width: var(--svg-stroke-icon);
         stroke-linecap: round;
         stroke-linejoin: round;
+    }
+}
+
+// Košík poskakuje na hrbolech jako v hlavním pruhu úvodní stránky
+@keyframes back-to-top-bump {
+    0%,
+    100% {
+        transform: translateY(0) rotate(0);
+    }
+
+    50% {
+        transform: translateY(calc(-1 * var(--landing-bump-height))) rotate(calc(-1 * var(--landing-bump-tilt)));
     }
 }

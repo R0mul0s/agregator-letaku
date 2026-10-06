@@ -988,12 +988,16 @@ return [
             'deleted' => 'Účet je zrušený. Díky, že jste to se Slevohlídkou zkusili — kdyby se vám zastesklo, víte, kde nás najdete.',
         ],
 
-        // Patička (R51, AppFooter.vue) — upozornění, provozovatel, odkazy
+        // Patička (R51, R92, AppFooter.vue) — upozornění, odkazy, obchody a čerstvost akcí
         'footer' => [
-            'about' => 'Každý den za vás prolistujeme letáky a e-shopy sedmi obchodů a ukážeme, kde je to, co kupujete, zrovna ve slevě — a kde nejlevněji za kilo nebo litr.',
+            'about' => 'Každý den za vás prolistujeme letáky a e-shopy velkých obchodů a ukážeme, kde je to, co kupujete, zrovna ve slevě — a kde nejlevněji za kilo nebo litr.',
             'nav_title' => 'Slevohlídka',
             'info_title' => 'Informace',
-            'contact_title' => 'Kontakt',
+            'chains_title' => 'Hlídáme letáky',
+            // „před 2 hodinami“ skládá Intl.RelativeTimeFormat
+            'updated' => 'Akce aktualizované :when',
+            'start' => 'Začít zdarma',
+            'made' => 'Vyrobeno v Česku, s láskou ke slevám.',
             'disclaimer' => 'Slevohlídka není oficiálním webem žádného obchodu. Názvy a loga obchodů jsou ochranné známky jejich vlastníků. Ceny jsou orientační, závazná je vždy cena v obchodě.',
             'copyright' => '© :year Slevohlídka',
             'terms' => 'Podmínky užití',
