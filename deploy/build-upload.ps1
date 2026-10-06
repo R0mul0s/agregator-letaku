@@ -122,7 +122,7 @@ if (-not (Test-Path "$upload\resources\pwa\service-worker.js")) {
     throw 'V balíčku chybí resources\pwa\service-worker.js — /sw.js by na hostingu spadl (R66).'
 }
 
-# Verze pro ověření po nasazení: https://slevohlidka.rhsoft.cz/version.txt?v=… (proxy
+# Verze pro ověření po nasazení: https://slevohlidka.cz/version.txt?v=… (proxy
 # hostingu statické soubory cachuje — bez unikátního ?v= může ukázat starou)
 [IO.File]::WriteAllText((Join-Path $upload 'public\version.txt'), "$version`n")
 

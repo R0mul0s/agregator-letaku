@@ -8,6 +8,13 @@ Options -Indexes
 
     RewriteEngine On
 
+    # www → adresa bez www (R93), rovnou na HTTPS — jedna adresa pro vyhledávače i přihlášení
+    # (cookie relace platí jen pro jednu adresu). Cesta podle THE_REQUEST jako u HTTPS níž;
+    # druhá podmínka skládá „cesta<>host“, aby šla vzít cesta (%1) i host bez www (%2) najednou.
+    RewriteCond %{THE_REQUEST} ^[A-Z]+\ (/[^?\ ]*)
+    RewriteCond %1<>%{HTTP_HOST} ^(.*)<>www\.(.+)$ [NC]
+    RewriteRule ^ https://%2%1 [L,R=301,NE]
+
     # Přesměrování na HTTPS (R38). TLS končí na proxy Websupportu, schéma požadavku je
     # jen v X-Forwarded-Proto; bez hlavičky (lokální Apache) se nepřesměrovává nic.
     # Cílová adresa podle THE_REQUEST (původní řádek požadavku), ne REQUEST_URI —

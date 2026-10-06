@@ -15,8 +15,12 @@ v [R53](PLAN.md#8-log-rozhodnutí); opravy a funkce z revize (souhrny po dávká
 importu, heslo při změně e-mailu, první kroky po registraci, nákupní seznam…)
 v [R54–R65](PLAN.md#8-log-rozhodnutí); zabezpečení, SEO a soukromí z revize připravenosti
 (adresy bez `/public`, odhlášení zařízení po změně hesla, limit e-mailů, `security.txt`, GA bez
-tokenů, datum účinnosti textů…) v [R67–R69](PLAN.md#8-log-rozhodnutí). Hotové body se odsud mažou a popisují
-v [PLAN.md](PLAN.md); technické nápady z revize jsou v [TODO.md](TODO.md#provoz-a-údržba).
+tokenů, datum účinnosti textů…) v [R67–R69](PLAN.md#8-log-rozhodnutí); tón webu a stránka Kontakt (R72),
+přehled uživatelů (R84), úvodní stránka, kontakt a patička pro veřejnost (R90–R92) a postup
+přestěhování na `slevohlidka.cz` (R93, [DEPLOYMENT.md](../deploy/DEPLOYMENT.md#přestěhování-na-slevohlidkacz-r93)).
+Revize checklistu 6. 10. 2026: úložiště v prohlížeči i kategorie cookies sedí se zásadami.
+Hotové body se odsud mažou a popisují v [PLAN.md](PLAN.md); technické nápady z revize jsou
+v [TODO.md](TODO.md#provoz-a-údržba).
 
 Značení: **[R]** = rozhodne nebo zařídí Roman, **[K]** = kód.
 
@@ -28,13 +32,13 @@ Značení: **[R]** = rozhodne nebo zařídí Roman, **[K]** = kód.
 - [ ] **[R] Obory živnosti:** pokrývá živnostenský list provoz webového portálu a reklamu?
   (volná živnost, obory „Poskytování software… a webové portály“ a „Reklamní činnost,
   marketing…“) — doplnění oboru je ohlášení v RŽP.
-- [ ] **[R] Doména a schránka `info@slevohlidka.cz`.** Doména koupená (2026-10-05), do
-  přestěhování na ní běží stránka „Brzy spouštíme“ (`deploy/coming-soon`, R79).
-  `letaky.operator.email` je `info@slevohlidka.cz` a User-Agent `+slevohlidka.cz` (R80, hotovo).
-  Zbývá přestěhování na `slevohlidka.cz`: aplikace místo stránky „Brzy“, přesměrování 301
-  ze subdomény, `APP_URL`, cron a ověřovací adresy v DEPLOYMENT.md, Search Console.
-- [ ] **[R] SPF, DKIM a DMARC** pro odesílací doménu (DNS). Bez nich souhrny i odkazy
-  na ověření e-mailu padají do spamu.
+- [ ] **[R] Přestěhování na `slevohlidka.cz`** (R93). Doména i hosting jsou připravené, zatím na nich
+  běží stránka „Brzy spouštíme“ (R79); kontaktní e-mail a User-Agent už jsou na nové doméně (R80).
+  Postup krok za krokem v [DEPLOYMENT.md](../deploy/DEPLOYMENT.md#přestěhování-na-slevohlidkacz-r93):
+  kontrola hostingu `hosting-check.php`, celá databáze (v ní se nic nemění), `.env` se stejným
+  `APP_KEY` a klíči VAPID, cron přepnout (ne zdvojit), stará subdoména přesměruje 301,
+  Search Console *Změna adresy*. **SPF, DKIM (selektor `mail`) a DMARC pro `slevohlidka.cz`
+  v DNS jsou** (ověřeno 6. 10. 2026) — po přesunu poslat zkušební e-mail na mail-tester.com.
 - [ ] **[R] Zpracovatelská smlouva s Websupportem** — ověřit, že je součástí jejich VOP,
   a přesný název společnosti v zásadách (`resources/legal/privacy.md`, kap. 4).
 - [ ] **[R] Záznamy o činnostech zpracování** (čl. 30 GDPR) — jednostránkový interní
@@ -48,8 +52,18 @@ Značení: **[R]** = rozhodne nebo zařídí Roman, **[K]** = kód.
   Nastavení účtu); Google signály zapnout jen pokud bude reklama. Měření změn historie
   prohlížeče v rozšířeném měření je vypnuté (R69, hotovo 4. 10. 2026). Po nasazení ověřit v Realtime,
   že měření běží až po „Přijmout“ a že po „Přijmout vše“ nevznikají jiné cookies než `_ga`, `_ga_<ID>`.
-- [ ] **[R] `www.slevohlidka.rhsoft.cz`** odpovídá s certifikátem jiné domény (chyba TLS) — DNS
-  záznam odstranit, nebo nastavit certifikát a přesměrování na adresu bez `www`.
+- [ ] **[R] `www.slevohlidka.rhsoft.cz`** odpovídá s certifikátem jiné domény (chyba TLS, ověřeno
+  znovu 6. 10. 2026) — při přestěhování smazat záznam DNS `www` subdomény.
+- [ ] **[R]+[K] Nařízení o digitálních službách (DSA, 2022/2065).** Uživatelé u nás ukládají vlastní
+  obsah (názvy hlídaných položek, profilový obrázek), služba je tedy technicky hostingem. I malého
+  provozovatele se týká: jednotné kontaktní místo pro úřady a uživatele s uvedeným jazykem (čl. 11,
+  12), v podmínkách popsat, jaký obsah omezujeme a jak (čl. 14), a způsob oznámení nezákonného obsahu
+  (čl. 16). Prakticky pár vět do `resources/legal/terms.md` (kontakt `info@slevohlidka.cz`, čeština,
+  oznámení e-mailem) — ověřit s advokátem (kap. 5, otázka 7), změna podmínek = zvýšit
+  `letaky.legal.terms_version`.
+- [ ] **[R] Název „Slevohlídka“:** rešerše v rejstřících ochranných známek
+  ([ÚPV](https://isdv.upv.gov.cz), [EUIPO eSearch](https://euipo.europa.eu/eSearch)) před veřejným
+  spuštěním, ať nás nedožene cizí starší známka; zvážit vlastní přihlášku (třídy 35 a 42).
 
 ## 2. Doporučené před spuštěním
 
@@ -59,6 +73,10 @@ Značení: **[R]** = rozhodne nebo zařídí Roman, **[K]** = kód.
 - [ ] **[R] Zálohy:** doplnit `offer_product`, `shopping_list_items` a avatary
   (`storage/app/private/avatars` přes FTP), ověřit, jak dlouho drží automatické zálohy
   Websupportu (zásady slibují nejdéle 6 měsíců); jednou vyzkoušet obnovu.
+- [ ] **[K] Cache pro úvodní stránku.** Je vstupem pro všechny nové návštěvníky a od R90 dělá víc
+  dotazů: počty, nejvyšší slevy, produkty s nejvíc akcemi pro živou ukázku (přes všechny akce —
+  lokálně ~270 ms, nejdražší část) a hra. Výsledky se mění jen se staženími — držet je v cache
+  (např. do dalšího stažení nebo 15 minut), dřív než přijdou návštěvníci.
 - [ ] **[R] Měkké spuštění:** nejdřív 20–50 lidem z okolí na dva týdny a sledovat, co opravdu
   používají (doporučení revize 4. 10. 2026), teprve pak veřejně.
 
@@ -66,7 +84,7 @@ Značení: **[R]** = rozhodne nebo zařídí Roman, **[K]** = kód.
 
 - [ ] Export dat tlačítkem v Účtu (zatím stačí vyřídit žádost e-mailem do měsíce).
 - [ ] Rušení dlouho neaktivních účtů (např. po 2 letech s upozorněním) — pak doplnit do zásad.
-- [ ] Cache pro Moje slevy a počty na úvodní stránce, až přibudou uživatelé.
+- [ ] Cache pro Moje slevy, až přibudou uživatelé (úvodní stránka už v kap. 2).
 - [ ] **[K] První obchodní sdělení:** Mailable jen uživatelům s `hasMarketingConsent()`
   (v SQL: `marketing_consent_at` vyplněné a novější než `marketing_consent_withdrawn_at` —
   odvolání čas udělení nemaže, R69) a ověřeným e-mailem, v předmětu nebo úvodu označené jako obchodní sdělení, patička
@@ -115,6 +133,7 @@ Orientační rozbor ze 3. 10. 2026, ne právní rada. Slouží jako podklad ke k
 | Fotky produktů (odkaz na CDN obchodu, R22) | střední | Fotky jsou díla. Vložení volně dostupného díla odkazem není nové sdělení veřejnosti, pokud se neobchází technická ochrana (C-466/12 *Svensson*, C-392/19 *VG Bild-Kunst*). `referrerpolicy="no-referrer"` je kvůli soukromí, ne obcházení — ověřit, že žádné CDN neblokuje cizí weby podle Referer. |
 | Loga a názvy obchodů | nízké | Popisné užití ochranné známky, které nevzbuzuje dojem spolupráce; upozornění v patičce. Loga jsou citlivější než názvy — případně nahradit textem. |
 | Podmínky webů: Tesco jen osobní užití, Albert zákaz stahování | střední | U volně přístupného webu bez výslovného přijetí podmínek je smluvní vazba slabá; databázi, kterou zákon nechrání, ale smí provozovatel omezit smlouvou (C-30/14 *Ryanair*). Tesco: voláme API s klíčem z jejich webu (veřejný, ale horší dojem než čtení stránky). |
+| Stahování celých PDF letáků (R86–R89: Lidl, Albert, Globus, Billa) | nízké až střední | Leták jako celek (grafika, texty) je dílo; bereme z něj jen fakta (název, cena, balení, platnost), PDF se neukládá (R5), po zpracování zmizí. Pro dočasnou kopii k vytěžení dat je výjimka pro vytěžování textů a dat (§ 39c AZ, čl. 4 směrnice 2019/790) — **neplatí, když si ji autor vhodně vyhradí** (strojově čitelně, u webu typicky v podmínkách nebo robots.txt). Albert má zákaz stahování v podmínkách webu. |
 | Nekalá soutěž (§ 2976 OZ) | nízké | Hrozila by při klamání nebo parazitování na pověsti; Slevohlídka jen odkazuje na obchod. |
 
 ### Realistický scénář
@@ -128,7 +147,8 @@ kanálů jako Kupi.
 
 - [ ] **[R] Hodina u advokáta** před monetizací — s touto kapitolou a [ZDROJE_DAT.md](ZDROJE_DAT.md).
 - [ ] **[R] Zvážit vypnutí nebo omezení obchodů s výslovným zákazem** (Tesco, Albert),
-  případně u nich nezobrazovat fotky. Albert už teď jen zmínky z textu letáku (R36).
+  případně u nich nezobrazovat fotky. Albert má od R87 i akce s cenou z PDF letáku (dřív jen
+  zmínky z textu letáku, R36) — návrat jen ke zmínkám je úprava zdroje `AlbertOfferSource`, ne konfigurace.
 - [ ] **[R] Oslovit obchody** (souhlas, partnerství, affiliate) — nejčistší cesta a zdroj
   příjmu; dává smysl, až budou čísla návštěvnosti.
 - Co už platí: jen fakta s odkazem na zdroj, fotky se neukládají (R5, R22), robots.txt
@@ -142,3 +162,7 @@ kanálů jako Kupi.
 3. Smíme zobrazovat fotky produktů odkazem na CDN obchodu? A loga obchodů?
 4. Co se změní s reklamou nebo partnerskými nabídkami na webu (komerční užití)?
 5. Jak formulovat podmínky a postup pro žádost obchodu o stažení obsahu?
+6. Stačí na výjimku pro vytěžování textů a dat (§ 39c AZ) při čtení cen z PDF letáků, že PDF
+   neukládáme? Je zákaz stahování v podmínkách webu Alberta „vhodná výhrada“, která ji vylučuje?
+7. Které povinnosti nařízení o digitálních službách (DSA) se nás týkají a stačí kontakt
+   a postup oznámení v podmínkách? (Uživatelský obsah: názvy hlídaných položek, profilový obrázek.)

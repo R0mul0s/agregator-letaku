@@ -6,8 +6,9 @@
 
 # Nasazení na webhosting
 
-Postup pro shared hosting **Websupport** a subdoménu `slevohlidka.rhsoft.cz` (R20, R38).
-Vychází z nasazení projektu Počasí na stejném účtu.
+Postup pro shared hosting **Websupport** a doménu `slevohlidka.cz` (R20, R38). Do přestěhování
+(R93, viz *Přestěhování na slevohlidka.cz*) běžela aplikace na zkušební subdoméně `slevohlidka.rhsoft.cz`.
+Vychází z nasazení projektu Počasí.
 
 > **Na hostingu nejdou spouštět příkazy** — není tam SSH ani composer. Nic
 > z `php artisan …` se na produkci nepouští: schéma a data katalogu se zakládají
@@ -23,14 +24,16 @@ Vychází z nasazení projektu Počasí na stejném účtu.
 | `data-*.sql` | data pro produkci (verzované) — kategorie a produkty katalogu |
 | `root-htaccess-fallback` | nouzové řešení, když nejde nasměrovat document root do `public/` |
 | `coming-soon/` | stránka „Brzy spouštíme“ pro `slevohlidka.cz` do přestěhování aplikace (R79) — viz níž |
+| `hosting-check.php` | jednorázová kontrola hostingu (PHP, rozšíření, limity, `pdftotext`, odchozí HTTPS) — nahrát, přečíst, smazat |
+| `subdomain-redirect/` | `.htaccess` a „samozničující“ `sw.js` pro starou subdoménu po přestěhování (R93) |
 
 ## Předpoklady na hostingu
 - **PHP 8.4** s `pdo_mysql`, `mbstring`, `intl`, `dom` (vektorová vrstva letáku Penny, výstup pdftotext), `openssl`
 - **`pdftotext` (Poppler) a povolené `proc_open`** — text s polohou z PDF letáků Lidlu a Albertu (R86). Ověřeno
-  2026-10-06 diagnostickým skriptem: `/usr/bin/pdftotext` 22.02, `memory_limit` 512M, `max_execution_time` 600,
+  2026-10-06 na hostingu subdomény (`hosting-check.php`; nový hosting ověřit stejně): `/usr/bin/pdftotext` 22.02, `memory_limit` 512M, `max_execution_time` 600,
   žádné `disable_functions`, `open_basedir` dovoluje `/tmp/` (dočasný soubor s PDF), rozšíření GD i Imagick
 - **MariaDB 11.4**
-- **Document root** subdomény nasměrovaný do `public/` (WebAdmin → Web → Služby → Upravit)
+- **Document root** domény nasměrovaný do `public/` (WebAdmin → Web → Služby → Upravit)
 - **Odchozí HTTPS** k obchodům (prodejny.kaufland.cz, xapi.tesco.com, api.prod.retail.tesco.com,
   www.lidl.cz, endpoints.leaflets.schwarz, assets.leaflets.schwarz (PDF), www.penny.cz, files.rewe.co.at, www.albert.cz,
   letaky.albert.cz, view.publitas.com (PDF), www.globus.cz, gapi.globus.cz (PDF), www.billa.cz) — Websupport ho povoluje
@@ -72,7 +75,7 @@ katalogu se dopočítá při každém stažení samo.
 
 ## 3) Nahraj soubory
 
-Obsah `deploy/upload/` nahraj přes FTP do kořene aplikace (např. `/rhsoft.cz/sub/slevohlidka/`).
+Obsah `deploy/upload/` nahraj přes FTP do kořene aplikace (např. `/slevohlidka.cz/web/`).
 Document root má mířit do `.../public`.
 
 > **Nejde změnit docroot?** Nahraj do kořene aplikace `deploy/root-htaccess-fallback`
@@ -101,7 +104,7 @@ a vyplň místa `<…>`:
 
 ## 5) Účet a správce katalogu
 
-1. Na `https://slevohlidka.rhsoft.cz/registrace` si založ účet.
+1. Na `https://slevohlidka.cz/registrace` si založ účet.
 2. Správu katalogu (`/katalog`, R29) mu dej v phpMyAdminu — `letaky:admin` na hostingu nejde:
    ```sql
    UPDATE `users` SET `is_admin` = 1 WHERE `email` = '<tvůj e-mail>';
@@ -116,8 +119,8 @@ pole *Opakovat* je zápis cronu (`minuta hodina den měsíc den_v_týdnu`). URL 
 
 | Poznámka | Opakovat | URL |
 |---|---|---|
-| Slevohlídka – Kaufland prodejny | `45 4,12 * * *` | `https://slevohlidka.rhsoft.cz/cron/import-stores?chain=kaufland&token=<LETAKY_CRON_TOKEN>` (~1,5 min; seznam prodejen a jejich akcí, R49 — před stažením Kauflandu) |
-| Slevohlídka – Kaufland | `0 5,13 * * *` | `https://slevohlidka.rhsoft.cz/cron/import-offers?chain=kaufland&token=<LETAKY_CRON_TOKEN>` |
+| Slevohlídka – Kaufland prodejny | `45 4,12 * * *` | `https://slevohlidka.cz/cron/import-stores?chain=kaufland&token=<LETAKY_CRON_TOKEN>` (~1,5 min; seznam prodejen a jejich akcí, R49 — před stažením Kauflandu) |
+| Slevohlídka – Kaufland | `0 5,13 * * *` | `https://slevohlidka.cz/cron/import-offers?chain=kaufland&token=<LETAKY_CRON_TOKEN>` |
 | Slevohlídka – Tesco | `10 5,13 * * *` | `…/cron/import-offers?chain=tesco&token=…` (~45 s, nejdelší) |
 | Slevohlídka – Lidl | `20 5,13 * * *` | `…/cron/import-offers?chain=lidl&token=…` (~30 s) |
 | Slevohlídka – Penny | `30 5,13 * * *` | `…/cron/import-offers?chain=penny&token=…` (~25 s) |
@@ -147,11 +150,11 @@ i proxy — potřeboval by malý PHP skript, který stažení spustí (zatím ne
 ## 7) Ověř
 
 ```bash
-curl -I  "http://slevohlidka.rhsoft.cz/prihlaseni"
-curl -I  "https://slevohlidka.rhsoft.cz/prihlaseni"
-curl -s  "https://slevohlidka.rhsoft.cz/version.txt?v=$(date +%s)"
-curl -s  "https://slevohlidka.rhsoft.cz/health/imports"
-curl -si "https://slevohlidka.rhsoft.cz/cron/import-offers?chain=kaufland&token=spatny" | head -1
+curl -I  "http://slevohlidka.cz/prihlaseni"
+curl -I  "https://slevohlidka.cz/prihlaseni"
+curl -s  "https://slevohlidka.cz/version.txt?v=$(date +%s)"
+curl -s  "https://slevohlidka.cz/health/imports"
+curl -si "https://slevohlidka.cz/cron/import-offers?chain=kaufland&token=spatny" | head -1
 ```
 1. HTTP vrací **301** na `https://…`.
 2. HTTPS odpověď obsahuje `Strict-Transport-Security` a `Content-Security-Policy`
@@ -162,18 +165,18 @@ curl -si "https://slevohlidka.rhsoft.cz/cron/import-offers?chain=kaufland&token=
 6. Asset z `/build/assets/` má `Cache-Control: … immutable`.
 7. Soubory pro roboty (R45) — `APP_ENV=production`, jinak `robots.txt` zakáže celý web:
    ```bash
-   curl -s "https://slevohlidka.rhsoft.cz/robots.txt"     # Allow: /, Disallow soukromých cest, Sitemap: https://…
-   curl -s "https://slevohlidka.rhsoft.cz/sitemap.xml"    # adresy s https:// (jinak nefunguje trustProxies)
-   curl -s "https://slevohlidka.rhsoft.cz/llms.txt"
-   curl -s "https://slevohlidka.rhsoft.cz/" | grep -E 'canonical|og:image'   # https://, ne http://
+   curl -s "https://slevohlidka.cz/robots.txt"     # Allow: /, Disallow soukromých cest, Sitemap: https://…
+   curl -s "https://slevohlidka.cz/sitemap.xml"    # adresy s https:// (jinak nefunguje trustProxies)
+   curl -s "https://slevohlidka.cz/llms.txt"
+   curl -s "https://slevohlidka.cz/" | grep -E 'canonical|og:image'   # https://, ne http://
    ```
 8. Náhled odkazu: sdílet adresu v chatu, nebo ověřit v [opengraph.xyz](https://www.opengraph.xyz).
 
 ## Vyhledávače (jednou po prvním nasazení)
 
 1. [Google Search Console](https://search.google.com/search-console): přidat vlastnost
-   `https://slevohlidka.rhsoft.cz/` (ověření DNS záznamem TXT ve WebAdminu), odeslat
-   `https://slevohlidka.rhsoft.cz/sitemap.xml`.
+   `https://slevohlidka.cz/` (ověření DNS záznamem TXT ve WebAdminu), odeslat
+   `https://slevohlidka.cz/sitemap.xml`.
 2. [Bing Webmaster Tools](https://www.bing.com/webmasters): import ze Search Console.
 3. Kontrola strukturovaných dat: [Rich Results Test](https://search.google.com/test/rich-results)
    na úvodní stránku (Organization, WebSite).
@@ -200,9 +203,89 @@ složku `deploy/coming-soon/` pak jde z repozitáře odstranit.
 — řádek `LETAKY_USER_AGENT` se starou adresou v `.env` na hostingu (oprava R65) ho přebije,
 při nasazení ho smaž nebo přepiš na novou hodnotu.
 
+## Přestěhování na `slevohlidka.cz` (R93)
+
+Aplikace se stěhuje ze zkušební subdomény `slevohlidka.rhsoft.cz` (hosting účtu rhsoft.cz) na
+vlastní hosting domény `slevohlidka.cz`, kde zatím běží stránka „Brzy“. **V databázi se nic
+nemění** — adresa webu v ní není, odkazy se skládají z `APP_URL` (ověřeno 2026-10-06 na výpisu
+vývojové databáze). Mění se jen `.env`, cron a soubory na obou hostinzích.
+
+**Co uživatelé po přesunu poznají:** musí se znovu přihlásit (cookie relace patří ke staré
+adrese), upozornění v telefonu zapnout znovu v Můj účet a aplikaci z plochy přidat znovu (stará
+se otevře a přesměruje, „samozničující“ service worker na staré adrese smaže její uložená data).
+Volby v prohlížeči (vzhled, poslední hledání) se nepřenesou.
+
+### Příprava (kdykoli předem)
+
+1. **Ověř nový hosting:** nahraj `deploy/hosting-check.php` pod náhodným jménem do kořene
+   `slevohlidka.cz`, otevři ho v prohlížeči a **hned smaž**. Žádný řádek `CHYBA` — hlavně PHP 8.4,
+   `proc_open` a `pdftotext` (bez nich spadne stažení Lidlu, Albertu, Globusu a Billy z PDF).
+   Jiný výsledek než na starém hostingu zapiš do *Předpoklady na hostingu*.
+2. **WebAdmin nového hostingu:** PHP **8.4**, databáze **MariaDB 11.4** (zapiš si host, název,
+   uživatele a heslo), schránka `info@slevohlidka.cz` (heslo do `.env`). Cron zatím nezakládej.
+3. **Sestav balíček** z commitnutého stavu (`deploy\build-upload.ps1`, krok 1).
+4. **Připrav `.env`:** stáhni přes FTP `.env` ze starého hostingu a změň v něm jen:
+   - `APP_URL=https://slevohlidka.cz`
+   - `DB_*` — údaje nové databáze
+   - `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_FROM_ADDRESS` — schránka `info@slevohlidka.cz`
+     (pro doménu jsou v DNS SPF, DKIM a DMARC; odesílatel z jiné domény by padal do spamu)
+   - řádek `LETAKY_USER_AGENT` se starou adresou smaž (výchozí je `+slevohlidka.cz`, R80)
+
+   **Beze změny nech** `APP_KEY` (šifruje relace a tokeny), `LETAKY_VAPID_*` (klíče upozornění
+   v telefonu), `TESCO_API_KEY`, `LETAKY_CRON_TOKEN` a `LETAKY_GA_MEASUREMENT_ID`.
+
+### Den přesunu
+
+5. **Na starém hostingu vypni všechny crony** Slevohlídky (WebAdmin → Cron). Jinak by během
+   přesunu stahovaly a posílaly e-maily do staré databáze a po přesunu by běžely dvakrát —
+   dvojí stažení a dvojité souhrny.
+6. **Export celé databáze** ze starého hostingu: phpMyAdmin → *Exportovat* → *Vlastní*, **všechny
+   tabulky** (včetně `migrations`; ne jen výběr z *Záloha databáze*), SQL, gzip, *Přidat příkaz
+   DROP TABLE*. Přes FTP stáhni i profilové obrázky `storage/app/private/avatars/`.
+7. **Nový hosting:**
+   1. smaž obsah stránky „Brzy“ (i skrytý `.htaccess`) a nahraj `deploy/upload/` (krok 3) a `.env`
+   2. document root domény nasměruj do `public/` (WebAdmin → Web → Služby → Upravit);
+      `www.slevohlidka.cz` přesměruje na adresu bez `www` `public/.htaccess` (R93)
+   3. avatary nahraj do `storage/app/private/avatars/`
+   4. v phpMyAdminu importuj export z kroku 6 a pak vyprázdni přihlášení a cache staré adresy:
+      ```sql
+      TRUNCATE TABLE `sessions`;
+      TRUNCATE TABLE `cache`;
+      TRUNCATE TABLE `cache_locks`;
+      ```
+8. **Ověř** podle kroku 7 *Ověř* (adresy `https://slevohlidka.cz/…`), navíc:
+   - `curl -I https://www.slevohlidka.cz/akce` → **301** na `https://slevohlidka.cz/akce`
+   - přihlášení, Moje slevy, profilový obrázek v Můj účet
+   - obnova hesla nebo zkušební souhrn → e-mail dorazí od `info@slevohlidka.cz`; jednou ho pošli
+     na [mail-tester.com](https://www.mail-tester.com) (SPF, DKIM a DMARC v pořádku)
+9. **Cron na novém hostingu** podle tabulky v kroku 6 (adresy `https://slevohlidka.cz/cron/…`)
+   a hned jednou ručně kategorie, prodejny Kauflandu a stažení všech obchodů. `/health/imports`
+   musí vrátit **200**.
+10. **Stará subdoména:** smaž přes FTP celou aplikaci včetně `.env` (hesla k databázi a e-mailu)
+    a do document rootu subdomény nahraj obsah `deploy/subdomain-redirect/` (`.htaccess`
+    a `sw.js`). Ověř:
+    ```bash
+    curl -sI "https://slevohlidka.rhsoft.cz/akce?chain=lidl" | grep -i location   # https://slevohlidka.cz/akce?chain=lidl
+    curl -s  "https://slevohlidka.rhsoft.cz/sw.js" | head -3                         # „samozničující“ service worker
+    ```
+    Starou databázi nech pár týdnů jako zálohu a pak ji smaž (zásady slibují zálohy nejdéle
+    6 měsíců). Chybu certifikátu `www.slevohlidka.rhsoft.cz` vyřeší smazání záznamu DNS `www`.
+
+### Po přesunu
+
+11. **Search Console:** přidej vlastnost domény `slevohlidka.cz` (záznam TXT v DNS), odešli
+    `https://slevohlidka.cz/sitemap.xml` a ve staré vlastnosti `https://slevohlidka.rhsoft.cz/`
+    spusť *Nastavení → Změna adresy* na novou doménu. Bing: import ze Search Console.
+12. **UptimeRobot** na `https://slevohlidka.cz/health/imports` (a `/up`); **Google Analytics:**
+    adresu datového streamu změň na `https://slevohlidka.cz` (ID měření zůstává).
+13. **Testovacím uživatelům** napiš (Zprávy od nás, `/zpravy`): nová adresa, znovu se přihlásit,
+    zapnout upozornění v telefonu a přidat aplikaci na plochu.
+14. **Repozitář:** adresa produkce v `README.md` a `CLAUDE.md`, řádek v *Nasazené verze*, složku
+    `deploy/coming-soon/` smaž, odškrtni bod v `docs/ZVEREJNENI.md`.
+
 ## Monitoring: hlídání stahování
 
-URL **`https://slevohlidka.rhsoft.cz/health/imports`** (veřejná, bez tokenu) vrací **200**,
+URL **`https://slevohlidka.cz/health/imports`** (veřejná, bez tokenu) vrací **200**,
 když má každý obchod úspěšné stažení za posledních 26 hodin (`letaky.health.max_import_age_hours`),
 jinak **503**. Na každém řádku jeden obchod, např. `Tesco — VÝPADEK: poslední úspěšné stažení 30. 9. 12:00`.
 

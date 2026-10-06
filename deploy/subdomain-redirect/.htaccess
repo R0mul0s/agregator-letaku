@@ -1,0 +1,25 @@
+# Stará zkušební subdoména slevohlidka.rhsoft.cz po přestěhování na slevohlidka.cz (R93):
+# každá adresa přesměruje trvale (301) na stejnou cestu na nové doméně, i s parametry
+# (Apache je připojí sám). Výjimka je /sw.js — skript service workeru se přesměrovat nesmí
+# (prohlížeč by ho odmítl), proto tu leží „samozničující“ verze, která aplikaci uloženou
+# na staré adrese smaže a otevřená okna pošle na novou doménu.
+#
+# @author Roman Hlaváček
+# @created 2026-10-06
+
+Options -Indexes
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    RewriteCond %{REQUEST_URI} !^/sw\.js$
+    RewriteCond %{THE_REQUEST} ^[A-Z]+\ (/[^?\ ]*)
+    RewriteRule ^ https://slevohlidka.cz%1 [L,R=301,NE]
+</IfModule>
+
+# Service worker se kontroluje při každém otevření — nesmí ležet v cache proxy ani prohlížeče
+<Files "sw.js">
+    <IfModule mod_headers.c>
+        Header set Cache-Control "no-cache, no-store, must-revalidate"
+    </IfModule>
+</Files>

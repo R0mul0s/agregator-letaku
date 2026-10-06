@@ -126,7 +126,7 @@ Testy běží proti MariaDB `agregator_test`, ne SQLite, a **nikdy nesahají na 
 ## Produkce
 
 Sdílený hosting **Websupport** (R20), stejně jako Počasí: Apache 2.4 + PHP 8.4,
-MariaDB 11.4, `https://slevohlidka.rhsoft.cz`. **Není tam SSH ani composer** — nic
+MariaDB 11.4, `https://slevohlidka.rhsoft.cz` — stěhuje se na `https://slevohlidka.cz` (R93, postup v DEPLOYMENT.md, v databázi se nic nemění). **Není tam SSH ani composer** — nic
 z `php artisan` se na produkci nespustí. Nasazeno 2026-10-02 (R38) — postup aktualizace a nasazené verze v **[deploy/DEPLOYMENT.md](deploy/DEPLOYMENT.md)**:
 
 ```powershell
