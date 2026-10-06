@@ -57,6 +57,7 @@ v [PLAN.md](PLAN.md). Větší celky se z toho stávají etapou.
 - **Lidl: nepotravinové akce** (R25) — dnes se ukládají jen `category: Food`
 - **Penny: neověřené dlaždice letáku** (R26, R85) — ~85 cen z ~575 (nepotraviny bez balení, velké dlaždice ovoce a zeleniny, drogerie na tmavém pozadí)
 - **Tesco „Super ceny“ z letáku** (R17): položky letáku bez akce v e-shopu chybí — doplnit z obrázků stránek letáku (vision LLM, etapa 6)
+- **Tesco: akce příštího týdne z PDF letáku** (R17, R86) — e-shop ukazuje akci až od začátku, proto Tesco v „Brzy“ nemá nic. Ověřeno 6. 10. 2026 na letáku HM od 7. 10.: `pdftotext -bbox-layout` dá **ceny čitelně** („Běžná cena 399,90“, „20 %“, „319 90“, „Clubcard cena“, „7. 10.–13 10.“), ale **názvy produktů jsou rozbité** („ě“, „e l“, „de“). Šlo by: názvy z hotspotů `leafletBySlug` (`positions[].calculatedPositionX/Y` + `products[].promoOfferName`, odkaz do e-shopu) a k bodu přiřadit nejbližší cenu z PDF; po začátku převzetí řádku akcí z e-shopu (`supersedes`, R88). Rizika: přiřazení bodu k ceně bez ověření cenou za jednotku (není-li čitelná), sloučení s e-shopem
 - **řazení výsledků hledání** podle shody nebo slevy — dnes podle začátku platnosti, takže dlouhodobé akce e-shopu jsou nahoře
 
 ## Provoz a údržba
