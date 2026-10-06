@@ -130,6 +130,19 @@
     --legal-accent-width: 4px;
     // Úvodní věta stránky Kontakt (R72) — kratší řádek se čte líp
     --contact-lead-max-width: 44rem;
+    // Kontakt hravě (R91): maskot v pruhu, holub z úvodní věty, otazníky otázek
+    --contact-mascot-size: 10rem;
+    --contact-mascot-size-mobile: 6.5rem;
+    --contact-faq-mark-size: 1.75rem;
+    --contact-panel-swap-shift: 0.5rem;
+    --pigeon-size: 6.5rem;
+    --pigeon-flight-duration: 2.8s;
+    --pigeon-flap-duration: 0.22s;
+    --pigeon-flight-lift: 6rem;
+    --color-pigeon-body: #8d97a8;
+    --color-pigeon-neck: #4f9d87;
+    --color-pigeon-beak: #f2a33a;
+    --z-pigeon: 42;
     --footer-logo-size: 2.5rem;
     --footer-brand-column: minmax(0, 1.6fr);
     --footer-about-max-width: 22rem;

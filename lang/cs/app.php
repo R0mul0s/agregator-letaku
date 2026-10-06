@@ -1022,45 +1022,65 @@ return [
             'marketing_text' => 'Dovolí Googlu použít data z návštěvy pro měření a cílení reklamy. Reklamu zatím nezobrazujeme.',
         ],
 
-        // Stránka Kontakt (R72, Contact.vue) — předmět e-mailu se u témat předvyplní
+        // Stránka Kontakt (R72, R91, Contact.vue) — předmět i osnova e-mailu se u témat předvyplní
         'contact' => [
             'title' => 'Kontakt',
-            'lead' => 'Napište nám, zavolejte, pošlete holuba. O slevách si povídáme moc rádi — a o chybách v cenách ještě raději, protože je pak můžeme opravit.',
+            // „pošlete holuba“ je tlačítko s letícím holubem (R91) — věta je rozdělená kolem něj
+            'lead_before' => 'Napište nám, zavolejte, nebo',
+            'pigeon' => 'pošlete holuba',
+            'lead_after' => '. O slevách si povídáme moc rádi — a o chybách v cenách ještě raději, protože je pak můžeme opravit.',
+            'pigeon_lost' => 'Holub bohužel zabloudil — naposledy ho viděli u pečiva. Zkuste radši e-mail.',
+            'reply_sticker' => 'Do 2 dnů',
             'operator_title' => 'Kdo Slevohlídku provozuje',
             'company_id' => 'IČO :id',
             'registered_office' => 'se sídlem :address',
             'trade_register' => 'Fyzická osoba zapsaná v živnostenském rejstříku (:office)',
             'email' => 'E-mail',
             'phone' => 'Telefon',
+            'copy' => 'Zkopírovat',
+            'copy_email' => 'Zkopírovat e-mail',
+            'copy_phone' => 'Zkopírovat telefon',
+            'copied_email' => 'E-mail je zkopírovaný.',
+            'copied_phone' => 'Telefon je zkopírovaný.',
+            'copied_template' => 'Text je zkopírovaný — vložte ho do e-mailu na :email.',
+            'copy_failed' => 'Zkopírovat se to nepodařilo. Označte text a zkopírujte ho ručně.',
             'reply' => 'Odpovídáme zpravidla do dvou pracovních dnů. Rychleji, když nesháníme slevy na kafe.',
             'topics_title' => 'S čím se ozvat',
+            'topics_label' => 'Téma zprávy',
+            'template_label' => 'Co nám napsat',
             'write' => 'Napsat e-mail',
+            'copy_template' => 'Zkopírovat text',
             'topics' => [
                 'price' => [
                     'title' => 'Cena nesedí',
-                    'text' => 'V obchodě je to jinak než u nás? Pošlete název akce a obchod — podíváme se na to a opravíme.',
+                    'text' => 'V obchodě je to jinak než u nás? Pošlete nám pár údajů — podíváme se na to a opravíme.',
                     'subject' => 'Slevohlídka: cena nesedí',
+                    'template' => "Obchod (a prodejna):\nNázev akce:\nCena u vás:\nCena v obchodě:\nKdy jsem byl(a) nakoupit:",
                 ],
                 'idea' => [
                     'title' => 'Nápad nebo chyba webu',
                     'text' => 'Něco nefunguje, něco by šlo udělat líp, nebo vám chybí obchod? Každý nápad si přečteme.',
                     'subject' => 'Slevohlídka: nápad',
+                    'template' => "Co se stalo, nebo co by šlo líp:\nNa jaké stránce:\nTelefon, nebo počítač (a prohlížeč):",
                 ],
                 'chains' => [
                     'title' => 'Obchody a partneři',
                     'text' => 'Zastupujete obchod nebo značku? Rádi se domluvíme na spolupráci — a když nesouhlasíte se zobrazením svého obsahu, vyřídíme to bez zbytečného odkladu.',
                     'subject' => 'Slevohlídka: obchody a partneři',
+                    'template' => "Obchod nebo značka:\nO co jde:\nKontakt na vás:",
                 ],
                 'privacy' => [
                     'title' => 'Osobní údaje',
                     'text' => 'Chcete vědět, co o vás víme, nebo údaje smazat? Žádost vyřídíme nejpozději do měsíce.',
                     'subject' => 'Slevohlídka: osobní údaje',
+                    'template' => "Co chcete (výpis údajů, oprava, nebo smazání):\nE-mail účtu:",
                     'link' => 'Zásady zpracování osobních údajů',
                 ],
                 'security' => [
                     'title' => 'Bezpečnost',
                     'text' => 'Našli jste ve Slevohlídce bezpečnostní chybu? Napište nám dřív, než o ní řeknete světu — rádi poděkujeme.',
                     'subject' => 'Slevohlídka: bezpečnost',
+                    'template' => "Co jste našli:\nJak to zopakovat:\nJak vás uvést v poděkování (nebo vůbec):",
                 ],
             ],
             'faq_title' => 'Časté otázky',
@@ -1072,6 +1092,22 @@ return [
                 'source' => [
                     'question' => 'Odkud berete ceny?',
                     'answer' => 'Z veřejných letáků a e-shopů obchodů. Stahujeme je dvakrát denně, takže máte přehled dřív, než doběhnete do schránky pro leták.',
+                ],
+                'upcoming' => [
+                    'question' => 'Kdy uvidím leták na příští týden?',
+                    'answer' => 'Hned, jak ho obchod zveřejní a my ho stáhneme. Akce, které ještě nezačaly, mají štítek s datem začátku, takže poznáte, jestli se vyplatí s nákupem počkat.',
+                ],
+                'cards' => [
+                    'question' => 'Ukazujete i ceny s kartou?',
+                    'answer' => 'Ano. U akce vidíte běžnou cenu i cenu s kartou (Clubcard, Lidl Plus, Kaufland Card, PENNY karta…). V Mých obchodech si zaškrtnete, které karty máte, a akce jen pro držitele jiných karet vám nebudou překážet.',
+                ],
+                'stores' => [
+                    'question' => 'Platí akce ve všech prodejnách?',
+                    'answer' => 'Většinou ano. Kaufland má některé akce jen v části prodejen — u takové akce to uvidíte a v Mých obchodech si vyberete prodejny, kam chodíte.',
+                ],
+                'app' => [
+                    'question' => 'Funguje Slevohlídka v telefonu jako aplikace?',
+                    'answer' => 'Ano. V prohlížeči zvolte „Přidat na plochu“ a Slevohlídka se otevře jako aplikace — s upozorněními na nové akce a s nákupním seznamem, který funguje i bez signálu. Na iPhonu chodí upozornění jen do aplikace přidané na plochu.',
                 ],
                 'different' => [
                     'question' => 'Proč v obchodě stojí zboží jinak?',

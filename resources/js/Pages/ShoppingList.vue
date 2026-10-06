@@ -14,6 +14,7 @@
 import ChainLogo from '@/Components/ChainLogo.vue';
 import EmptyState from '@/Components/EmptyState.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
+import { copyText } from '@/lib/clipboard';
 import { confirmDialog } from '@/lib/confirm';
 import { formatDate, formatPrice } from '@/lib/format';
 import { useTranslations } from '@/lib/i18n';
@@ -205,12 +206,7 @@ async function share() {
         return;
     }
 
-    try {
-        await navigator.clipboard.writeText(text);
-        showToast(t('shopping.share_copied'));
-    } catch {
-        showToast(t('shopping.share_failed'));
-    }
+    await copyText(text, t('shopping.share_copied'), t('shopping.share_failed'));
 }
 </script>
 

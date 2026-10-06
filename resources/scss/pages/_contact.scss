@@ -1,19 +1,174 @@
 // _contact.scss
-// Stránka Kontakt (Contact.vue, R72): velké klepací plochy pro e-mail a telefon, karta
-// provozovatele, rozcestník „S čím se ozvat“ a rozbalovací časté otázky.
+// Stránka Kontakt (Contact.vue, R72, R91): hlavní pruh s maskotem a cenovkou, holub z úvodní
+// věty, e-mail a telefon se zkopírováním, karta provozovatele, výběr tématu s osnovou e-mailu
+// a rozbalovací časté otázky.
 //
 // @author Roman Hlaváček
 // @created 2026-10-05
 
 @use '../abstracts/mixins' as *;
 
-// Úvodní věta pod nadpisem, ne vedle něj (page__header je jinak řádek nadpis — akce)
+// Hlavní pruh jako na úvodní stránce: text vlevo, maskot s cenovkou „Do 2 dnů“ vpravo
 .contact-hero {
-    flex-direction: column;
-    align-items: flex-start;
+    display: grid;
+    align-items: center;
+    gap: var(--space-4);
+    margin-bottom: var(--space-4);
+    padding: var(--space-4);
+    background: var(--gradient-hero);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+
+    @include from-md {
+        grid-template-columns: 1fr auto;
+        padding: var(--space-5);
+    }
+
+    &__body {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-3);
+    }
+
+    &__title {
+        margin: 0;
+    }
 
     &__lead {
         max-width: var(--contact-lead-max-width);
+        margin: 0;
+        font-size: var(--font-size-landing-lead);
+    }
+
+    // „pošlete holuba“ — odkaz uprostřed věty, písmo věty
+    &__pigeon {
+        font-weight: 700;
+    }
+
+    &__reply {
+        margin: 0;
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+    }
+
+    // Na telefonu menší maskot nad textem
+    &__art {
+        position: relative;
+        justify-self: center;
+        order: -1;
+
+        @include from-md {
+            order: 0;
+            margin-right: var(--space-4);
+        }
+    }
+
+    &__circle {
+        display: grid;
+        place-items: center;
+        width: var(--contact-mascot-size-mobile);
+        height: var(--contact-mascot-size-mobile);
+        background: var(--color-logo-bg);
+        border-radius: 50%;
+        box-shadow: var(--shadow-card-hover);
+
+        @include from-md {
+            width: var(--contact-mascot-size);
+            height: var(--contact-mascot-size);
+        }
+    }
+
+    &__mascot {
+        width: 70%;
+        height: auto;
+    }
+
+    &__sticker {
+        position: absolute;
+        top: 0;
+        right: calc(-1 * var(--space-4));
+        padding: var(--space-1) var(--space-2);
+        background: var(--gradient-brand);
+        border-radius: var(--radius-sm);
+        box-shadow: var(--shadow-card-hover);
+        color: var(--color-on-brand);
+        font-weight: 900;
+        white-space: nowrap;
+        transform: rotate(var(--sticker-rotation));
+    }
+}
+
+// Holub letí přes obrazovku zleva doprava obloukem, křídlo mává
+.contact-pigeon {
+    position: fixed;
+    z-index: var(--z-pigeon);
+    top: 40%;
+    left: 0;
+    width: var(--pigeon-size);
+    pointer-events: none;
+    animation: contact-pigeon-fly var(--pigeon-flight-duration) ease-in forwards;
+
+    &__bird {
+        display: block;
+        width: 100%;
+        height: auto;
+    }
+
+    &__body,
+    &__tail {
+        fill: var(--color-pigeon-body);
+    }
+
+    &__neck {
+        fill: var(--color-pigeon-neck);
+    }
+
+    &__eye {
+        fill: var(--color-text);
+    }
+
+    &__beak {
+        fill: var(--color-pigeon-beak);
+    }
+
+    &__letter {
+        fill: var(--color-logo-bg);
+        stroke: var(--color-accent);
+        stroke-width: 1;
+    }
+
+    &__wing {
+        fill: var(--color-pigeon-body);
+        stroke: var(--color-logo-bg);
+        stroke-width: 1;
+        transform-origin: 40% 80%;
+        transform-box: fill-box;
+        animation: contact-pigeon-flap var(--pigeon-flap-duration) ease-in-out infinite alternate;
+    }
+}
+
+@keyframes contact-pigeon-fly {
+    0% {
+        transform: translate(calc(-1 * var(--pigeon-size)), 0);
+    }
+
+    50% {
+        transform: translate(50vw, calc(-1 * var(--pigeon-flight-lift)));
+    }
+
+    100% {
+        transform: translate(100vw, calc(-2 * var(--pigeon-flight-lift)));
+    }
+}
+
+@keyframes contact-pigeon-flap {
+    from {
+        transform: scaleY(1);
+    }
+
+    to {
+        transform: scaleY(-0.6);
     }
 }
 
@@ -43,19 +198,17 @@
     display: grid;
     gap: var(--space-3);
 
+    // Ikona vlevo přes dva řádky, štítek a hodnota uprostřed, Zkopírovat vpravo
     &__item {
         display: grid;
-        grid-template-columns: auto 1fr;
+        grid-template-columns: auto minmax(0, 1fr) auto;
         grid-template-rows: auto auto;
         column-gap: var(--space-3);
         align-items: center;
-        color: inherit;
-        text-decoration: none;
-        transition: transform var(--duration-fast), box-shadow var(--duration-fast);
+        transition: box-shadow var(--duration-fast);
 
         &:hover {
             box-shadow: var(--shadow-card-hover);
-            transform: translateY(var(--hover-lift));
         }
     }
 
@@ -71,25 +224,32 @@
     }
 
     &__label {
+        grid-column: 2;
         color: var(--color-text-muted);
         font-size: var(--font-size-sm);
     }
 
     // Na telefonu menší písmo, ať se e-mail vejde na řádek a nezlomí se uprostřed
     &__value {
+        grid-column: 2;
         overflow-wrap: anywhere;
         color: var(--color-accent-strong);
         font-size: var(--font-size-md);
         font-weight: var(--font-weight-heading);
+        text-decoration: none;
+
+        &:hover {
+            text-decoration: underline;
+        }
 
         @include from-md {
             font-size: var(--font-size-card-title);
         }
     }
 
-    &__reply {
-        margin: 0;
-        color: var(--color-text-muted);
+    &__copy {
+        grid-row: 1 / 3;
+        grid-column: 3;
         font-size: var(--font-size-sm);
     }
 }
@@ -141,22 +301,73 @@
     }
 }
 
+// Výběr tématu jako řada štítků (záložky); na telefonu se posouvají do strany
 .contact-topics {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--landing-feature-min-width)), 1fr));
-    gap: var(--space-3);
-    margin: 0;
-    padding: 0;
-    list-style: none;
+    display: flex;
+    gap: var(--space-2);
+    margin-bottom: var(--space-3);
+    padding-bottom: var(--space-1);
+    overflow-x: auto;
+    scrollbar-width: none;
+
+    @include from-md {
+        flex-wrap: wrap;
+    }
+
+    &__tab {
+        display: inline-flex;
+        flex: none;
+        align-items: center;
+        gap: var(--space-2);
+        min-height: var(--control-size);
+        padding: var(--space-1) var(--space-3);
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-pill);
+        color: var(--color-text-muted);
+        font: inherit;
+        font-weight: 600;
+        cursor: pointer;
+        transition: border-color var(--duration-fast), background-color var(--duration-fast), color var(--duration-fast);
+
+        .contact-icon {
+            width: var(--icon-size);
+            height: var(--icon-size);
+        }
+
+        &:hover {
+            border-color: var(--color-accent);
+            color: var(--color-text);
+        }
+
+        &[aria-selected='true'] {
+            background: var(--color-accent);
+            border-color: var(--color-accent);
+            color: var(--color-on-accent);
+        }
+    }
 }
 
-.contact-topic {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
+// Panel vybraného tématu: popis vlevo, „dopis“ s osnovou vpravo, tlačítka pod nimi
+.contact-panel {
+    &__content {
+        display: grid;
+        gap: var(--space-3) var(--space-4);
+
+        @include from-md {
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        }
+    }
+
+    &__intro {
+        display: flex;
+        align-items: flex-start;
+        gap: var(--space-3);
+    }
 
     &__icon {
         display: inline-grid;
+        flex: none;
         place-items: center;
         width: var(--landing-icon-box-size);
         height: var(--landing-icon-box-size);
@@ -166,41 +377,102 @@
     }
 
     &__title {
+        margin: 0 0 var(--space-1);
         font-size: var(--font-size-md);
     }
 
     &__text {
-        flex: 1;
         margin: 0;
         color: var(--color-text-muted);
+    }
+
+    &__link {
+        display: inline-block;
+        margin-top: var(--space-2);
         font-size: var(--font-size-sm);
+    }
+
+    // Osnova jako lísteček dopisu s červeným okrajem nahoře
+    &__letter {
+        padding: var(--space-3);
+        background: var(--color-bg);
+        border-top: var(--legal-accent-width) solid var(--color-accent);
+        border-radius: var(--radius-sm);
+        font-size: var(--font-size-sm);
+    }
+
+    &__letter-label {
+        margin: 0 0 var(--space-1);
+        color: var(--color-text-muted);
+        font-size: var(--font-size-xs);
+        font-weight: 700;
+        letter-spacing: var(--letter-spacing-caps);
+        text-transform: uppercase;
+    }
+
+    &__subject {
+        margin: 0 0 var(--space-2);
+        font-weight: 700;
+    }
+
+    &__template {
+        margin: 0;
+        white-space: pre-line;
     }
 
     &__actions {
         display: flex;
         flex-wrap: wrap;
-        align-items: center;
-        gap: var(--space-2) var(--space-3);
-        font-size: var(--font-size-sm);
+        gap: var(--space-2);
+
+        @include from-md {
+            grid-column: 1 / -1;
+        }
     }
 }
 
+// Třídy přechodu <Transition name="contact-panel-swap"> (Vue)
+.contact-panel-swap-enter-active,
+.contact-panel-swap-leave-active {
+    transition:
+        opacity var(--duration-fast) ease-out,
+        transform var(--duration-fast) ease-out;
+}
+
+.contact-panel-swap-enter-from {
+    opacity: 0;
+    transform: translateY(var(--contact-panel-swap-shift));
+}
+
+.contact-panel-swap-leave-to {
+    opacity: 0;
+}
+
 .contact-faq {
-    display: flex;
-    flex-direction: column;
+    display: grid;
     gap: var(--space-2);
+
+    @include from-md {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        align-items: start;
+    }
 
     &__item {
         padding: 0;
+        transition: box-shadow var(--duration-fast);
+
+        &:hover,
+        &[open] {
+            box-shadow: var(--shadow-card-hover);
+        }
     }
 
-    // Otázka jako řádek s šipkou, která se po rozbalení otočí
+    // Otázka jako řádek s otazníkem a šipkou, která se po rozbalení otočí
     &__question {
         display: flex;
         align-items: center;
-        justify-content: space-between;
         gap: var(--space-3);
-        padding: var(--space-3) var(--space-4);
+        padding: var(--space-3);
         font-weight: 700;
         list-style: none;
         cursor: pointer;
@@ -214,6 +486,7 @@
             flex: none;
             width: var(--space-2);
             height: var(--space-2);
+            margin-left: auto;
             border-right: calc(var(--svg-stroke-icon) * 1px) solid currentcolor;
             border-bottom: calc(var(--svg-stroke-icon) * 1px) solid currentcolor;
             transform: rotate(45deg);
@@ -225,10 +498,40 @@
         transform: rotate(-135deg);
     }
 
+    &__mark {
+        display: inline-grid;
+        flex: none;
+        place-items: center;
+        width: var(--contact-faq-mark-size);
+        height: var(--contact-faq-mark-size);
+        background: var(--color-accent-soft);
+        border-radius: 50%;
+        color: var(--color-accent-strong);
+        font-weight: 900;
+        transition: background-color var(--duration-fast), color var(--duration-fast);
+    }
+
+    &__item[open] &__mark {
+        background: var(--color-accent);
+        color: var(--color-on-accent);
+    }
+
     &__answer {
         margin: 0;
-        padding: 0 var(--space-4) var(--space-3);
+        padding: 0 var(--space-3) var(--space-3) calc(var(--space-3) * 2 + var(--contact-faq-mark-size));
         color: var(--color-text-muted);
+    }
+
+    // Odpověď se po rozbalení plynule objeví
+    &__item[open] &__answer {
+        animation: contact-faq-open var(--duration-toast) ease-out;
+    }
+}
+
+@keyframes contact-faq-open {
+    from {
+        opacity: 0;
+        transform: translateY(calc(-1 * var(--contact-panel-swap-shift)));
     }
 }
 
@@ -236,4 +539,11 @@
     margin-top: var(--space-3);
     color: var(--color-text-muted);
     font-size: var(--font-size-sm);
+}
+
+// Kdo si vypnul animace: holub se nevypustí (Contact.vue), panel a odpovědi se jen ukážou
+@media (prefers-reduced-motion: reduce) {
+    .contact-faq__item[open] .contact-faq__answer {
+        animation: none;
+    }
 }

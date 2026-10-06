@@ -44,3 +44,10 @@ it('právní texty doplní živnostenský úřad provozovatele a píší za prov
             ->where('html', fn (string $html): bool => str_contains($html, 'živnostenském rejstříku (Magistrát města Hradec Králové)')
                 && ! str_contains($html, '[doplnit]')));
 });
+
+it('každé téma rozcestníku má název, předmět i osnovu e-mailu (R91)', function (): void {
+    foreach (trans('app.ui.contact.topics') as $topic => $texts) {
+        expect($texts)->toHaveKeys(['title', 'text', 'subject', 'template'], "téma {$topic}")
+            ->and($texts['template'])->toContain("\n");
+    }
+});

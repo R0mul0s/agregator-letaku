@@ -59,7 +59,8 @@ Hotové jsou etapy 1–5g, zveřejnění (8), opravy a funkce z kritické revize
 - **Přehled uživatelů (R84):** `/uzivatele` pro admina (v menu pod Katalogem) — kdo je online, kdy byl kdo naposledy
   (`users.last_seen_at`), souhrn v dlaždicích s filtry a nastavení každého uživatele
 - **Úvodní stránka (R44, R90):** hledání v hlavním pruhu, napočítávané počty, živá ukázka hlídání
-  (`/ukazka-hlidani`, `WatchDemo`) místo kroků a hra „Co je levnější?“ (`UnitPriceQuiz`)
+  (`/ukazka-hlidani`, `WatchDemo`) místo kroků a hra „Co je levnější?“ (`UnitPriceQuiz`); Kontakt (R91) s výběrem
+  tématu a osnovou e-mailu, kopírováním adresy a holubem
 
 Produkce běží na `https://slevohlidka.rhsoft.cz` (nasazeno 2026-10-02, naposledy `7dbe429` 2026-10-06);
 postup aktualizace a nasazené verze jsou v `deploy/DEPLOYMENT.md`. Sleduje se 7 obchodů; Makro
