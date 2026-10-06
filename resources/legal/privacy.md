@@ -38,11 +38,32 @@ nevyžaduje. Se vším, co se týká vašich údajů, se obracejte na uvedený e
 Výběr prodejen může prozradit, kde přibližně nakupujete. Slouží jen k zobrazení akcí
 těchto prodejen.
 
-Když se přihlásíte přes **Google nebo Facebook**, přihlásíte se na jejich stránce a oni
-nám pošlou jen identifikátor vašeho účtu, jméno a e-mail. Heslo k účtu u nich ani další
-údaje z profilu (obrázek, přátele, kontakty) nedostáváme a nežádáme o ně. Účet založený
-takhle nemusí mít u nás heslo. Propojení zrušíte v účtu v sekci Zabezpečení; se zrušením
-účtu zmizí.
+### Přihlášení přes Google nebo Facebook
+
+Účet si můžete založit a přihlašovat se do něj i přes svůj účet u Googlu nebo Facebooku.
+Přihlásíte se na jejich stránce a oni nám s vaším svolením předají jen tyto údaje:
+
+| Údaje od Googlu nebo Facebooku | K čemu je používáme | Právní základ |
+|---|---|---|
+| identifikátor vašeho účtu u Googlu nebo Facebooku | abychom vás při příštím přihlášení poznali a abyste před změnou e-mailu nebo zrušením účtu mohli potvrdit, že jste to vy | plnění smlouvy |
+| jméno | oslovení ve Slevohlídce (při registraci ho můžete změnit) | plnění smlouvy |
+| e-mailová adresa | adresa vašeho účtu: přihlášení, upozornění na akce, které si zapnete, a obnova hesla | plnění smlouvy |
+
+Žádáme jen o základní oprávnění (u Googlu `openid`, `email` a `profile`, u Facebooku
+`public_profile` a `email`). Heslo k vašemu účtu u Googlu nebo Facebooku k nám nikdy
+nedorazí. Profilový obrázek, kontakty, přátele, e-maily, kalendář ani žádná jiná data
+z vašeho účtu nedostáváme a nežádáme o ně.
+
+Údaje od Googlu a Facebooku **nikomu nepředáváme, neprodáváme a nepoužíváme k reklamě**,
+k profilování ani k trénování modelů umělé inteligence. Ukládáme je na našich serverech
+v EU u ostatních údajů vašeho účtu (kap. 7 Zabezpečení) a uchováváme je, dokud propojení
+nezrušíte (Můj účet → Zabezpečení) nebo nezrušíte účet — pak je okamžitě smažeme. Přístup
+Slevohlídky můžete kdykoli odebrat i u poskytovatele: v nastavení účtu Google (Zabezpečení →
+Aplikace a služby třetích stran) nebo na Facebooku (Nastavení → Aplikace a weby).
+
+Využití údajů, které Slevohlídka získá z rozhraní Google API, se řídí
+[Zásadami pro uživatelská data služeb Google API](https://developers.google.com/terms/api-services-user-data-policy)
+(Google API Services User Data Policy), včetně požadavků na omezené použití (Limited Use).
 
 ### E-mailový souhrn akcí
 

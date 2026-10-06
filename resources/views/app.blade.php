@@ -66,7 +66,7 @@
         @foreach ($seo['jsonLd'] as $data)
             <script type="application/ld+json">{!! json_encode($data, $jsonLdFlags) !!}</script>
         @endforeach
-        {{-- Uložený vzhled nastavit před vykreslením, jinak stránka problikne (viz resources/js/lib/theme.js) --}}
+        {{-- Uložený vzhled a třídu has-js nastavit před vykreslením, jinak stránka problikne (viz resources/js/lib/theme.js) --}}
         <script src="/theme-init.js"></script>
         @vite(['resources/scss/app.scss', 'resources/js/app.js'])
         @inertiaHead

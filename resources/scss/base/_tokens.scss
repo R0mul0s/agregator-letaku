@@ -153,6 +153,8 @@
     --cookie-text-max-width: 44rem;
     --cookie-dialog-max-width: 36rem;
     --auth-card-max-width: 28rem;
+    // Obsah ze serveru bez JavaScriptu (.seo-content, R94) — čitelná délka řádku
+    --seo-content-max-width: 48rem;
     --auth-showcase-max-width: 60rem;
     // Panel vedle přihlášení a registrace (R56): maskot u názvu, nadpis, cenovky akcí, kroky
     --auth-brand-mascot-size: 3rem;

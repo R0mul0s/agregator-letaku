@@ -21,6 +21,17 @@
         @switch($component)
             @case('Landing')
                 <p>{{ __('app.ui.landing.lead') }}</p>
+                {{-- Účel aplikace přímo na úvodní stránce — ověření značky u Googlu (R96) ho bez JavaScriptu nenašlo --}}
+                <h2>{{ __('app.ui.landing.features_title') }}</h2>
+                <ul>
+                    @foreach (__('app.ui.landing.features') as $feature)
+                        <li><strong>{{ $feature['title'] }}</strong> — {{ $feature['text'] }}</li>
+                    @endforeach
+                </ul>
+                <p>
+                    <a href="{{ route('register') }}">{{ __('app.ui.landing.register') }}</a> ·
+                    <a href="{{ route('offers') }}">{{ __('app.ui.landing.browse') }}</a>
+                </p>
                 @include('seo.offers', ['offers' => $props['topOffers'] ?? [], 'title' => __('app.ui.landing.top_title')])
                 @break
 
@@ -66,5 +77,13 @@
                 @endforeach
             </ul>
         @endif
+
+        {{-- Patička jako ve Vue (AppFooter.vue): provozovatel a právní stránky z každé stránky --}}
+        <p>
+            <a href="{{ route('legal.terms') }}">{{ __('app.ui.footer.terms') }}</a> ·
+            <a href="{{ route('legal.privacy') }}">{{ __('app.ui.footer.privacy') }}</a> ·
+            <a href="{{ route('contact') }}">{{ __('app.ui.footer.contact') }}</a>
+        </p>
+        <p>{{ __('app.ui.footer.disclaimer') }}</p>
     </div>
 @endif

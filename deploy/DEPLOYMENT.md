@@ -615,7 +615,9 @@ Soubory `app/Domain/Sources/Albert/AlbertBox.php` a `AlbertTile.php` se přesunu
    `RegisterSocialUser`, `LinkSocialAccount`, `UnlinkSocialAccount`), `app/Domain/Account/AuthShowcase.php`,
    `IdentityConfirmation.php`, `app/Enums/SocialProvider.php`, `app/Models/SocialAccount.php`,
    `app/Rules/ConfirmedIdentity.php`, `app/Http/Controllers/Social*Controller.php`; změnily se mj. `config/services.php`,
-   `config/letaky.php`, `routes/web.php`, `lang/cs/app.php` a `resources/legal/privacy.md`.
+   `config/letaky.php`, `routes/web.php`, `lang/cs/app.php`, `resources/legal/privacy.md`,
+   `resources/views/seo/content.blade.php`, `resources/views/app.blade.php` a `public/theme-init.js`
+   (obsah bez JavaScriptu je vidět — ověření značky u Googlu).
 4. **Ověř:**
    - `version.txt`;
    - na `/prihlaseni` jsou tlačítka Google a Facebook;
@@ -623,7 +625,11 @@ Soubory `app/Domain/Sources/Albert/AlbertBox.php` a `AlbertTile.php` se přesunu
    - v Mém účtu → Zabezpečení jde propojit a odpojit;
    - z aplikace na ploše iPhonu se po přihlášení přes poskytovatele vrátíš přihlášený.
 5. Facebook přepni na *Live*, až Meta dovolí (ověření firmy); do té doby se přihlásí jen lidé s rolí v aplikaci.
-6. Zapiš verzi do *Nasazené verze*.
+6. **Google — znovu odeslat ověření značky** (*Google Auth Platform → Verification Center*). Předtím ověř
+   `https://slevohlidka.cz/ochrana-udaju` (část *Přihlášení přes Google nebo Facebook* s Limited Use) a že
+   úvodní stránka bez JavaScriptu ukazuje „Co Slevohlídka umí“ a odkazy na zásady a podmínky. Doména musí být
+   ověřená v Search Console pod účtem, který je vlastníkem projektu v Google Cloud.
+7. Zapiš verzi do *Nasazené verze*.
 
 **Každá nová migrace potřebuje SQL skript** `deploy/migrations-<datum>-<popis>.sql`
 (opakovatelný: `CREATE TABLE IF NOT EXISTS`, `ADD COLUMN IF NOT EXISTS`) včetně zápisu do

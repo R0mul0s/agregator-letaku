@@ -102,7 +102,21 @@ select {
 }
 
 // Obsah stránky ze serveru pro roboty bez JavaScriptu (R94, resources/views/seo/content.blade.php).
-// Stejný obsah jako aplikace; než ho app.js po spuštění odstraní, nesmí stránka problikávat
+// Bez JavaScriptu je vidět — automatická kontrola webu (ověření značky u Googlu, R96) jinak
+// viděla prázdnou stránku. S JavaScriptem ho skryje třída has-js z theme-init.js ještě před
+// vykreslením a app.js ho po spuštění odstraní, takže stránka neproblikne
 .seo-content {
-    @include visually-hidden;
+    max-width: var(--seo-content-max-width);
+    margin: 0 auto;
+    padding: var(--space-4) var(--space-3);
+
+    > * + * {
+        margin-top: var(--space-3);
+    }
+
+    .has-js & {
+        @include visually-hidden;
+
+        padding: 0;
+    }
 }

@@ -233,3 +233,12 @@ it('obsah pro roboty bez JavaScriptu: nadpis, akce s cenou a odkazy na obchody a
     $this->actingAs(User::factory()->create());
     expect($this->get('/hlidam')->getContent())->not->toContain('data-seo-content');
 });
+
+it('úvodní stránka bez JavaScriptu vysvětlí účel aplikace a odkáže na zásady a podmínky (R96)', function (): void {
+    $html = (string) $this->get('/')->getContent();
+
+    expect($html)->toContain(e(__('app.ui.landing.features_title')))
+        ->and($html)->toContain(e(__('app.ui.landing.features.watch.text')))
+        ->and($html)->toContain('href="'.route('legal.privacy').'"')
+        ->and($html)->toContain('href="'.route('legal.terms').'"');
+});
