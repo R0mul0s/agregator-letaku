@@ -290,31 +290,42 @@ Volby v prohlížeči (vzhled, poslední hledání) se nepřenesou.
 ## Přihlášení přes Google a Facebook (R96)
 
 Tlačítka se ukážou, až budou v `.env` klíče aplikace u poskytovatele. Adresa návratu je pro
-přihlášení, propojení účtu i potvrzení totožnosti jedna — **`https://<doména>/prihlaseni/google/navrat`**
-a **`https://<doména>/prihlaseni/facebook/navrat`** (doména z `APP_URL`; při stěhování na
-`slevohlidka.cz`, R93, zapsat novou adresu, starou můžeš nechat do přesměrování). Lokálně
-`http://localhost:54720/prihlaseni/google/navrat` (Google povoluje `http://localhost`, Facebook v režimu vývoje taky).
+přihlášení, propojení účtu i potvrzení totožnosti jedna — **`https://slevohlidka.cz/prihlaseni/google/navrat`**
+a **`https://slevohlidka.cz/prihlaseni/facebook/navrat`** (doména z `APP_URL`). Nastaveno 2026-10-06,
+Google aplikaci ověřil (značka i název na přihlašovací obrazovce).
 
-**Google** ([console.cloud.google.com](https://console.cloud.google.com)):
+**Google** ([console.cloud.google.com](https://console.cloud.google.com) → *Google Auth Platform*), projekt „Slevohlidka“:
 
-1. Nový projekt „Slevohlídka“ → *APIs & Services* → *OAuth consent screen*: typ **External**, název
-   Slevohlídka, logo, e-mail podpory `info@slevohlidka.cz`, odkazy na `/`, `/ochrana-udaju` a `/podminky`,
-   autorizovaná doména `slevohlidka.cz` (a `rhsoft.cz`, dokud běží subdoména). Rozsahy jen
-   `openid`, `…/auth/userinfo.email`, `…/auth/userinfo.profile` — nevyžadují ověření aplikace Googlem.
-2. *Publishing status* → **In production** (v režimu Testing se přihlásí jen zapsaní testeři).
-3. *Credentials* → *Create credentials* → *OAuth client ID* → **Web application**, *Authorized redirect URIs*
-   = adresy návratu výše. ID a tajemství do `GOOGLE_CLIENT_ID` a `GOOGLE_CLIENT_SECRET`.
+1. *Branding*: název Slevohlídka, e-mail podpory, home page `https://slevohlidka.cz/`, zásady `/ochrana-udaju`,
+   podmínky `/podminky`, autorizovaná doména `slevohlidka.cz`. Logo jen s vědomím, že spustí ověření značky.
+   **Ověření značky** kontroluje stránky bez JavaScriptu — úvodní stránka musí v obsahu ze serveru (R94)
+   vysvětlovat účel a odkazovat na zásady, zásady musí popsat údaje od Googlu a prohlásit Limited Use
+   (Google API Services User Data Policy). Doména musí být ověřená v Search Console pod účtem vlastníka projektu.
+2. *Data Access*: jen `openid`, `…/auth/userinfo.email`, `…/auth/userinfo.profile` (nevyžadují bezpečnostní posouzení).
+3. *Audience*: **In production** (v režimu Testing se přihlásí jen zapsaní testeři).
+4. *Clients* → Web application „Slevohlídka web“, *Authorized redirect URIs* **jen** produkční adresa návratu.
+   **Žádný `http://localhost`** — Project Checkup pak hlásí „Use secure flows“ (loopback redirect v produkčním
+   klientovi). Tajemství klienta Google ukáže jen při vytvoření. ID a tajemství do `.env` na hostingu.
+5. **Vývoj má vlastní projekt** „Slevohlidka vyvoj“: *Audience* v režimu **Testing** se svým Gmailem jako
+   testerem, klient s redirect URI `http://localhost:54720/prihlaseni/google/navrat`; jeho klíče jen do lokálního `.env`.
 
-**Facebook** ([developers.facebook.com](https://developers.facebook.com)):
+**Facebook** ([developers.facebook.com](https://developers.facebook.com)), aplikace „Slevohlídka“ (App ID `2052716665448427`):
 
-1. *Create app* → případ použití **Authenticate and request data from users with Facebook Login**, typ *Consumer*.
-2. *Facebook Login* → *Settings*: *Valid OAuth Redirect URIs* = adresa návratu výše; *Login with the JavaScript SDK* vypnout.
-3. *App settings* → *Basic*: *Privacy Policy URL* `/ochrana-udaju`, *Terms of Service URL* `/podminky`,
-   *User data deletion* → *Data deletion instructions URL* `/ochrana-udaju#6-vase-prava` (účet se ruší
-   v Mém účtu, propojení zmizí s ním), ikona aplikace, kategorie, kontaktní e-mail.
-4. Oprávnění `email` a `public_profile` mají standardní přístup bez schválení; přepnout aplikaci do režimu **Live**
-   (Meta může chtít ověření firmy/podnikatele — obrátit se na ni, až se ozve).
-5. *App ID* a *App secret* do `FACEBOOK_CLIENT_ID` a `FACEBOOK_CLIENT_SECRET`.
+1. *Create app* → případ použití **Authenticate and request data from users with Facebook Login**, bez firmy.
+2. *Případy použití* → Facebook Login → *Customize*: oprávnění `email` přidat (`public_profile` je tam);
+   *Settings*: Client a Web OAuth login ano, Enforce HTTPS ano, Strict Mode ano, *Valid OAuth Redirect URIs*
+   = produkční adresa návratu (potvrdit Enterem), JavaScript SDK ne. Localhost se nezapisuje — v režimu
+   vývoje ho Meta povoluje sama.
+3. *App settings* → *Basic*: *App domains* jen `slevohlidka.cz` (bez `https://`; doména mimo Site URL platformy
+   Website uložení zablokuje), *Privacy Policy URL* `/ochrana-udaju`, *Terms of Service URL* `/podminky`,
+   *User data deletion* → *Data deletion instructions URL* `/ochrana-udaju` (bez kotvy), ikona 1024×1024
+   **s průhledným pozadím** (bílé Meta odmítne; zmenšené `resources/brand/slevohlidka-logo.png`), kategorie
+   Nakupování, platforma *Website* `https://slevohlidka.cz/`. Sekce *Data Protection Officer* zůstává prázdná
+   (pověřence nemáme, zásady kap. 1). Červený rámeček „Currently ineligible for submission“ se po uložení
+   přepočítá se zpožděním.
+4. Dokud aplikace není **Live** (*Zveřejnit*), přihlásí se jen lidé s rolí v *App roles*. Live může chtít
+   ověření firmy (výpis z živnostenského rejstříku, ověření domény nebo `info@slevohlidka.cz`).
+5. *App ID* a *App secret* do `FACEBOOK_CLIENT_ID` a `FACEBOOK_CLIENT_SECRET` (stejné lokálně i na produkci).
 
 **Ověř:** na `/prihlaseni` jsou tlačítka; přihlášení novým účtem vede na *Dokončení registrace*; v Mém účtu
 v sekci Zabezpečení jde propojit a odpojit. **Na iPhonu z plochy** (R66) ověř, že se po přihlášení přes
@@ -601,7 +612,7 @@ Soubory `app/Domain/Sources/Albert/AlbertBox.php` a `AlbertTile.php` se přesunu
 3. **Ověř:** `version.txt`, `/health/imports` vrací 200, `/akce?brzy=1&chain=globus` a `…&chain=billa` mají akce od středy.
 4. Zapiš verzi do *Nasazené verze*.
 
-### Aktualizace z `6d328eb` (dvacáté nasazení — přihlášení přes Google a Facebook)
+### Aktualizace z `6d328eb` (dvacáté nasazení — provedeno, `2a4e112`)
 
 **Přihlášení přes Google a Facebook** (R96). Nový balíček `laravel/socialite` (s `league/oauth1-client`,
 `firebase/php-jwt`, `phpseclib/phpseclib`) — **nahraj i `vendor/`**. Cron beze změny.
@@ -666,7 +677,7 @@ a ruční opravy katalogu. Před každým SQL skriptem a jinak aspoň jednou mě
 | `data-2026-10-04-katalog-rozsireni.sql` | rozšíření katalogu (R70): 42 nových produktů a nová pravidla šesti (Minerální voda, Džus, Prací prostředek, Salám, Ovesné vločky, Nealkoholické pivo); podle názvu, opakovatelný, nezávisí na kódu | 2026-10-04 |
 | `migrations-2026-10-05-centrum-upozorneni.sql` | centrum upozornění (R74): tabulky `notifications` a `announcements`, `users.notified_at`; opakovatelný, pustit **před** nahráním kódu | 2026-10-05 |
 | `migrations-2026-10-05-posledni-aktivita.sql` | poslední aktivita (R84): `users.last_seen_at` s indexem, dosavadním účtům doplní z relací; opakovatelný, pustit **před** nahráním kódu | 2026-10-05 |
-| `migrations-2026-10-06-prihlaseni-pres-google.sql` | přihlášení přes Google a Facebook (R96): tabulka `social_accounts`, `users.password` nepovinné; opakovatelný, pustit **před** nahráním kódu | |
+| `migrations-2026-10-06-prihlaseni-pres-google.sql` | přihlášení přes Google a Facebook (R96): tabulka `social_accounts`, `users.password` nepovinné; opakovatelný, pustit **před** nahráním kódu | 2026-10-06 |
 
 ## Nasazené verze
 
@@ -694,3 +705,4 @@ Co běží na produkci — pro `git log <commit>..HEAD` při dalším nasazení
 | 2026-10-06 | `034fa36` | sedmnácté nasazení: víc cen z letáků bez LLM — leták Penny s novými pravidly (R85), PDF letáků přes `pdftotext` (R86): Lidl s akcemi ze zbytku potravinového letáku a Albert poprvé s akcemi s cenou (R87, `mentions_only` zrušené); bez SQL skriptu. Ruční stažení po nasazení: Penny 519, Lidl 275, Albert 1 393 nabídek |
 | 2026-10-06 | `7dbe429` | osmnácté nasazení: akce, které ještě nezačaly, i u Globusu a Billy z PDF letáků příštího týdne (R88, R89; převzetí řádku z PDF akcí z API), oprava letáku Penny se složkou `…_tl2` (`60f0211`); bez SQL skriptu, smazané přesunuté `AlbertBox.php` a `AlbertTile.php`. Ruční stažení: Globus 797, Billa 3 596, Penny 906 nabídek; v „Brzy“ Kaufland 798, Albert 772, Penny 413, Billa 189, Lidl 152, Globus 141 |
 | 2026-10-06 | `6d328eb` | devatenácté nasazení: přestěhování na `slevohlidka.cz` (R93, stará subdoména přesměrovává 301), obsah pro roboty a čisté adresy (R94), cache úvodní stránky (R95); doplněno dodatečně podle `version.txt` na produkci |
+| 2026-10-06 | `2a4e112` | dvacáté nasazení: přihlášení přes Google a Facebook (R96) — tlačítka, dokončení registrace se souhlasy, propojení v Mém účtu, potvrzení u poskytovatele pro účty bez hesla; zásady s částí o údajích od Googlu a Facebooku (Limited Use), obsah ze serveru viditelný bez JavaScriptu; SQL `migrations-2026-10-06-prihlaseni-pres-google.sql`, klíče `GOOGLE_*` / `FACEBOOK_*` v `.env`, `vendor/` se Socialite. Google aplikaci ověřil, Facebook zatím Unpublished |
