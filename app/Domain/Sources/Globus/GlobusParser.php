@@ -11,6 +11,8 @@
  * - popis bere z položky letáku (`actionProducts`, „různé druhy“) spárované podle EAN —
  *   popis z katalogu je dlouhý reklamní text, ve kterém by hlídání chytalo cizí slova
  * - balení ze `sellUnitSizeText`; zboží na váhu ho nemá, cena je pak za `unitAmount` `unitId` (1 kg)
+ * - název položky letáku se stejným EAN a cena dají předběžné ID, pod kterým akci uložil PDF letáku
+ *   před začátkem platnosti (`supersedes`, R88)
  *
  * @author Roman Hlaváček
  *
@@ -31,6 +33,7 @@ use App\Domain\Sources\Exceptions\SourceResponseChanged;
 use App\Enums\Chain;
 use App\Enums\LoyaltyProgram;
 use App\Enums\OfferType;
+use Carbon\CarbonImmutable;
 
 final class GlobusParser
 {
@@ -51,6 +54,7 @@ final class GlobusParser
         private readonly PackageParser $packages,
         private readonly VariantNote $variants,
         private readonly LocalCalendar $calendar,
+        private readonly GlobusLeafletKey $keys,
     ) {}
 
     /**
@@ -71,6 +75,46 @@ final class GlobusParser
         }
 
         return ['products' => array_values(array_filter($products, is_array(...))), 'hasMore' => $hasMore];
+    }
+
+    /**
+     * Stránka seznamu letáků a katalogů (`actionOffers`, R88): ID, název, typ, místní platnost
+     * a odkaz na PDF prvního dokumentu. Leták bez platnosti nebo PDF se vynechá.
+     *
+     * @param  array<mixed>  $response
+     * @return list<array{id: string, name: string, type: string, validFrom: CarbonImmutable, validTo: CarbonImmutable, pdfUrl: string}>
+     *
+     * @throws SourceResponseChanged
+     */
+    public function leafletsPage(array $response): array
+    {
+        $items = $response['actionOffers'] ?? null;
+        if (! is_array($items) || ! array_is_list($items)) {
+            throw SourceResponseChanged::because(Chain::Globus, 'seznam letáků nemá actionOffers');
+        }
+
+        $leaflets = [];
+        foreach (array_filter($items, is_array(...)) as $item) {
+            $documents = is_array($item['storeDocuments'] ?? null) ? $item['storeDocuments'] : [];
+            $pdfUrl = is_array($documents[0] ?? null) ? ($documents[0]['pdfAsset'] ?? null) : null;
+            $fields = [$item['actionOfferId'] ?? null, $item['actionOfferName'] ?? null, $item['offerType'] ?? null, $item['validFrom'] ?? null, $item['validTo'] ?? null, $pdfUrl];
+            if (in_array(false, array_map(fn (mixed $field): bool => is_string($field) && $field !== '', $fields), true)) {
+                continue;
+            }
+
+            /** @var array{string, string, string, string, string, string} $fields */
+            [$id, $name, $type, $from, $to, $pdfUrl] = $fields;
+            $leaflets[] = [
+                'id' => $id,
+                'name' => $name,
+                'type' => $type,
+                'validFrom' => $this->calendar->startFromInstant($from),
+                'validTo' => $this->calendar->endFromInstant($to),
+                'pdfUrl' => $pdfUrl,
+            ];
+        }
+
+        return $leaflets;
     }
 
     /**
@@ -113,13 +157,34 @@ final class GlobusParser
     }
 
     /**
+     * Názvy položek letáku podle EAN („VÁŠ VÝBĚR Mléko čerstvé“); první vyhrává.
+     *
+     * @param  list<array<string, mixed>>  $items
+     * @return array<string, string>
+     */
+    public function leafletNamesByEan(array $items): array
+    {
+        $names = [];
+        foreach ($items as $item) {
+            $ean = $item['ean'] ?? null;
+            $name = Text::clean(is_string($item['name'] ?? null) ? $item['name'] : null);
+            if (is_string($ean) && $name !== null) {
+                $names[$ean] ??= $name;
+            }
+        }
+
+        return $names;
+    }
+
+    /**
      * Jedna nabídka; null, když položka není akce (jiný typ ceny), je ze skupiny zboží, která
      * se nesleduje, nebo nemá cenu, název či platnost.
      *
      * @param  array<string, mixed>  $product  Položka katalogu akcí
      * @param  array<string, string>  $descriptions  Popisy z letáku podle EAN
+     * @param  array<string, string>  $leafletNames  Názvy položek letáku podle EAN
      */
-    public function offer(array $product, array $descriptions): ?OfferData
+    public function offer(array $product, array $descriptions, array $leafletNames = []): ?OfferData
     {
         $inHouse = is_array($product['productInHouse'] ?? null) ? $product['productInHouse'] : [];
         $price = $this->halers($inHouse['actualPrice'] ?? null);
@@ -140,7 +205,8 @@ final class GlobusParser
         $loyaltyPrice = $bonus !== null && $bonus < $price ? $bonus : null;
         $discount = $inHouse['discountPercentage'] ?? null;
 
-        $description = $this->leafletDescription($product, $descriptions);
+        $description = $this->byEan($product, $descriptions);
+        $leafletName = $this->byEan($product, $leafletNames);
         $packageText = $this->packageText($product);
         $placement = is_array($inHouse['placements'][0] ?? null) ? $inHouse['placements'][0] : [];
         $brand = is_array($product['commonBrand'] ?? null) ? ($product['commonBrand']['name'] ?? null) : null;
@@ -164,6 +230,7 @@ final class GlobusParser
             package: $this->packages->parse($packageText),
             sourceCategory: Text::clean(is_string($placement['category'] ?? null) ? $placement['category'] : null),
             imageUrl: is_string($product['imgThumbnail'] ?? null) ? $product['imgThumbnail'] : null,
+            supersedes: $leafletName === null ? null : $this->keys->for($leafletName, $price),
         );
     }
 
@@ -180,16 +247,16 @@ final class GlobusParser
     }
 
     /**
-     * Popis položky letáku se stejným EAN.
+     * Údaj položky letáku (popis, název) se stejným EAN.
      *
      * @param  array<string, mixed>  $product
-     * @param  array<string, string>  $descriptions
+     * @param  array<string, string>  $byEan
      */
-    private function leafletDescription(array $product, array $descriptions): ?string
+    private function byEan(array $product, array $byEan): ?string
     {
         foreach (is_array($product['ean'] ?? null) ? $product['ean'] : [] as $ean) {
-            if (is_string($ean) && isset($descriptions[$ean])) {
-                return $descriptions[$ean];
+            if (is_string($ean) && isset($byEan[$ean])) {
+                return $byEan[$ean];
             }
         }
 

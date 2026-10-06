@@ -13,6 +13,7 @@
  * - zboží na kusy vážené (`weightPieceArticle`): `value` je cena odhadovaného kusu, bere se
  *   cena za kg (`perStandardizedQuantity`); vážené zboží (`weightArticle`) má `value` za kg
  * - API nemá platnost akce — dodá ji zdroj (akční týden)
+ * - každá akce nese předběžné ID stejné akce z PDF letáku (`supersedes`, R89) — import ji převezme
  *
  * @author Roman Hlaváček
  *
@@ -138,6 +139,45 @@ final class BillaParser
             package: $this->packages->parse($packageText),
             onlineOnly: in_array(config()->string('letaky.sources.billa.eshop_only_badge'), $badges, true),
             sourceCategory: Text::clean(is_string($product['category'] ?? null) ? $product['category'] : null),
+            imageUrl: is_string($product['images'][0] ?? null) ? $product['images'][0] : null,
+            sourceUrl: is_string($slug) ? $productUrlBase.$slug : null,
+            // Akce z PDF letáku s jinou platností než akční týden je uložená pod předběžným ID (R89)
+            supersedes: config()->string('letaky.sources.billa.pdf_provisional_prefix').$sku,
+        );
+    }
+
+    /**
+     * Produkt katalogu pro párování s letákem (R89), i bez akce; null bez ceny, názvu nebo SKU.
+     * Běžná cena je přeškrtnutá cena (`standard`), když je vyšší než aktuální, jinak aktuální cena.
+     *
+     * @param  array<string, mixed>  $product
+     */
+    public function catalogProduct(array $product, string $productUrlBase): ?BillaCatalogProduct
+    {
+        $price = is_array($product['price'] ?? null) ? $product['price'] : [];
+        $byWeight = ($product['weightPieceArticle'] ?? false) === true;
+        $current = $this->amount(is_array($price['regular'] ?? null) ? $price['regular'] : [], $byWeight);
+        $standard = $this->amount(is_array($price['standard'] ?? null) ? $price['standard'] : [], $byWeight);
+        $name = Text::clean(is_string($product['name'] ?? null) ? $product['name'] : null);
+        $sku = $product['sku'] ?? null;
+        if ($current === null || $name === null || ! is_string($sku)) {
+            return null;
+        }
+
+        $packageText = $this->packageText($product);
+        $package = $this->packages->parse($packageText);
+        $slug = $product['slug'] ?? null;
+        $brand = is_array($product['brand'] ?? null) ? ($product['brand']['name'] ?? null) : null;
+
+        return new BillaCatalogProduct(
+            sku: $sku,
+            name: $name,
+            brand: Text::clean(is_string($brand) ? $brand : null),
+            packageText: $packageText,
+            quantity: $package?->quantity,
+            unit: $package?->unit->value,
+            usualPrice: $standard !== null && $standard > $current ? $standard : $current,
+            category: Text::clean(is_string($product['category'] ?? null) ? $product['category'] : null),
             imageUrl: is_string($product['images'][0] ?? null) ? $product['images'][0] : null,
             sourceUrl: is_string($slug) ? $productUrlBase.$slug : null,
         );

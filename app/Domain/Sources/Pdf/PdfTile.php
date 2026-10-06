@@ -1,8 +1,8 @@
 <?php
 
 /**
- * Textová část dlaždice letáku Albertu — řádky názvu (větší písmo) a pod nimi řádky
- * popisu s odrážkami (balení, cena za jednotku, platnost, nejnižší cena za 30 dní).
+ * Textová část dlaždice PDF letáku — řádky názvu (větší písmo) a pod nimi řádky
+ * popisu (balení, cena za jednotku, platnost; Albert, Globus).
  *
  * @author Roman Hlaváček
  *
@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Sources\Albert;
+namespace App\Domain\Sources\Pdf;
 
-final readonly class AlbertTile
+final readonly class PdfTile
 {
     /**
      * @param  list<string>  $nameLines
@@ -22,7 +22,7 @@ final readonly class AlbertTile
     public function __construct(
         public array $nameLines,
         public array $detailLines,
-        public AlbertBox $box,
+        public PdfBox $box,
     ) {}
 
     /**

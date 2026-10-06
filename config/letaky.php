@@ -225,6 +225,22 @@ return [
             'excluded_ware_groups' => ['654', '661', '675', '700', '701', '706', '707', '710'],
             'ware_group_prefix_length' => 3,
             'offers_page_url' => 'https://www.globus.cz/globus/hypermarket/akcni-nabidka',
+            // Akce budoucích letáků z PDF (R88): API vrací jen akce, které už platí. Stahuje se PDF
+            // jen u letáků, které ještě nezačaly (začátek po místním dnešku); seznam má ~25 letáků
+            'leaflets_path' => 'actionOffers',
+            'leaflets_page_size' => 50,
+            // Typy letáků z PDF. „theme“ je část hlavního letáku (ID „<hlavní>-N“, 2–15 jeho stran,
+            // isComplete false) — stáhne se, jen když jeho hlavní leták v seznamu není
+            'pdf_leaflet_types' => ['mainFlyer', 'theme', 'catalogue'],
+            'pdf_main_type' => 'mainFlyer',
+            'pdf_theme_type' => 'theme',
+            'pdf_catalogue_type' => 'catalogue',
+            // Katalogy jen s potravinami, drogerií, úklidem a krmivy (název „41_26_K2_Nápoje“); elektro,
+            // textil, hračky ani zahrada ne — oblečení a textil vyřazuje i R46, zbytek nemá cenu za jednotku
+            'pdf_catalogue_pattern' => '/_(Nápoje|Úklid|PET|Drogerie|Potraviny|Káva|Vín)/iu',
+            // Hlavní leták má 170–250 ověřených akcí (měření R88); méně = změněné rozvržení nebo rozbitý
+            // parser. Stažení pak skončí chybou, aby import akce letáku neoznačil jako stažené (R16)
+            'pdf_main_min_offers' => 50,
         ],
         'billa' => [
             // Product-discovery API jako Penny, ale s celým katalogem (R48); akce vybere parser
@@ -254,6 +270,26 @@ return [
             'offers_page_url' => 'https://www.billa.cz/akcni-letaky',
             // ~25 stránek po ~1 MB — pauza kratší než výchozí, ať stažení nepřesáhne limit hostingu (O8)
             'request_delay_ms' => (int) env('LETAKY_BILLA_REQUEST_DELAY_MS', 1000),
+            // Akce letáků, které ještě nezačaly, z PDF (R89): API ukazuje jen dnešní stav. Seznam letáků
+            // je stránka offers_page_url (karty „Platí od středy 7. 10. do úterý 13. 10. 2026“), PDF se stáhne
+            // jen u letáku se začátkem po místním dnešku. Odkaz karty vede na stránku letáku s přímým
+            // odkazem na PDF (view.publitas.com, 8–55 MB)
+            'pdf_url_pattern' => '#https://view\.publitas\.com/\d+/\d+/pdfs/[0-9a-f-]+\.pdf#',
+            // Karty letáků: velký a malý leták, leták BILLA klub a katalogy. Speciály jsou otevření
+            // jednotlivých prodejen (/akcni-letaky/special-…) — místní akce, ne celostátní
+            'pdf_leaflet_paths' => ['#^/letaky-billa\?tab=#', '#^/akcni-letaky/letak-billa-klub#', '#^/akcni-letaky/katalog-#'],
+            // Katalogy bez potravin (podle názvu karty „Katalog: …“) se nestahují — nemají cenu
+            // za jednotku a v katalogu API by se párovaly špatně (jako R46 u Globusu)
+            'pdf_excluded_titles' => '/(drogerie|kosmetik|elektro|textil|oblečen|hračk|zahrad|domácnost|škol|sport|dekorac|nádobí|vánoční\s+dekor)/iu',
+            // Velký leták má ~240 ověřených dlaždic (měření R89); méně = změněné rozvržení nebo rozbitý
+            // parser. Stažení pak skončí chybou, aby import akce letáku neoznačil jako stažené (R16)
+            'pdf_main_title' => 'Velký leták',
+            'pdf_main_min_items' => 40,
+            // Text akce na množství z letáku ve tvaru API („od 2 ks: 13,90 Kč“, R48)
+            'pdf_multibuy_text' => 'od %d ks',
+            // Předběžné ID akce z letáku s jinou platností než akční týden (víkend, katalog) — API ji
+            // po začátku převezme (OfferData::$supersedes, R88, R89)
+            'pdf_provisional_prefix' => 'letak-',
         ],
         'albert' => [
             // Akce s cenou z PDF letáku (R86) a text stránek pro zmínky bez ceny (R27, R36) z prohlížeče

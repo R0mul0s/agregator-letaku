@@ -7,7 +7,8 @@
  * (CODING_GUIDELINES, sekce 3), i když zdroj vrátil stránky letáku (R54). Nabídky se nemažou
  * (R10): opakované stažení stejnou nabídku podle obchodu, ID položky a platnosti jen aktualizuje.
  * Neskončená nabídka, která v novém stažení chybí, se označí jako stažená obchodem (R16) —
- * ale ne, když jich chybí podezřele mnoho (R54). Nakonec se nabídky obchodu znovu přiřadí
+ * ale ne, když jich chybí podezřele mnoho (R54). Akce uložená dřív pod předběžným ID (Globus, Billa: PDF
+ * budoucího letáku) převezme ID akce ze zdroje (R88). Nakonec se nabídky obchodu znovu přiřadí
  * k produktům katalogu (R30).
  *
  * @author Roman Hlaváček
@@ -163,6 +164,8 @@ final class ImportChainOffers
         $leaflet = $this->storeLeaflet($chain, $batch->leaflet);
         $skip = array_fill_keys($alreadyStored, true);
 
+        $this->adoptProvisional($chain, $batch->offers);
+
         $rows = [];
         $storeCodes = [];
         foreach ($this->continuePrevious($chain, $batch->offers) as $offer) {
@@ -233,11 +236,74 @@ final class ImportChainOffers
     }
 
     /**
+     * Řádek uložený pod předběžným ID (`OfferData::$supersedes`) převezme ID a platnost akce
+     * ze zdroje (R88): Globus ukládá akce budoucího letáku z PDF, a když začnou platit, vrátí
+     * je API pod vlastním ID. Upsert pak řádek jen aktualizuje — zůstane jeho `created_at`
+     * (souhrn ani centrum upozornění akci neohlásí podruhé jako novou, R74, R76), přiřazení
+     * k produktům katalogu i ID v uložených upozorněních. Převezme se jen řádek s překrývající
+     * se platností a jen když akce se stejným klíčem ještě uložená není.
+     *
+     * @param  list<OfferData>  $offers
+     */
+    private function adoptProvisional(Chain $chain, array $offers): void
+    {
+        $claims = [];
+        foreach ($offers as $offer) {
+            if ($offer->supersedes !== null && $offer->supersedes !== $offer->externalId) {
+                $claims[$offer->supersedes][] = $offer;
+            }
+        }
+        if ($claims === []) {
+            return;
+        }
+
+        $provisional = Offer::query()
+            ->where('chain', $chain)
+            ->whereIn('external_id', array_keys($claims))
+            ->get(['id', 'external_id', 'valid_from', 'valid_to']);
+        if ($provisional->isEmpty()) {
+            return;
+        }
+
+        // Akce, které už jsou uložené pod ID ze zdroje — ty žádný řádek nepřevezmou
+        $targets = [];
+        foreach ($provisional as $row) {
+            foreach ($claims[$row->external_id] as $offer) {
+                $targets[$offer->externalId] = true;
+            }
+        }
+        $existing = Offer::query()
+            ->where('chain', $chain)
+            ->whereIn('external_id', array_map(strval(...), array_keys($targets)))
+            ->get(['external_id', 'valid_from', 'valid_to'])
+            ->mapWithKeys(fn (Offer $row): array => [$row->external_id.'|'.$row->valid_from->toDateString().'|'.$row->valid_to->toDateString() => true])
+            ->all();
+
+        foreach ($provisional as $row) {
+            foreach ($claims[$row->external_id] as $index => $offer) {
+                if (isset($existing[$offer->key()]) || $row->valid_from->greaterThan($offer->validTo) || $row->valid_to->lessThan($offer->validFrom)) {
+                    continue;
+                }
+
+                Offer::query()->whereKey($row->id)->update([
+                    'external_id' => $offer->externalId,
+                    'valid_from' => $offer->validFrom->toDateString(),
+                    'valid_to' => $offer->validTo->toDateString(),
+                ]);
+                $existing[$offer->key()] = true;
+                unset($claims[$row->external_id][$index]);
+
+                break;
+            }
+        }
+    }
+
+    /**
      * Akce, která navazuje na uloženou akci se stejnou cenou, převezme její začátek platnosti,
      * takže upsert prodlouží existující řádek místo založení nového (R54). Jinak by pokračující
      * akce každý týden dostala nové ID — souhrn by ji poslal jako novou a ruční opravy katalogu
      * by se ztratily. Jen u zdrojů, které platnost samy odvozují (Billa: akční týden, R48);
-     * u ostatních by se slily skutečně odlišné akce.
+     * u ostatních by se slily skutečně odlišné akce. Akce, které ještě nezačaly, se neprodlužují (R89).
      *
      * @param  list<OfferData>  $offers
      * @return list<OfferData>
@@ -255,10 +321,14 @@ final class ImportChainOffers
             ->get(['id', 'external_id', 'valid_from', 'valid_to', 'price', 'loyalty_price'])
             ->groupBy('external_id');
 
+        $today = $this->calendar->today();
         $result = [];
         $extended = [];
         foreach ($offers as $offer) {
-            $row = $previous->get($offer->externalId)?->first(fn (Offer $row): bool => $this->continues($row, $offer));
+            // Akce, která ještě nezačala (Billa: PDF letáku dalšího týdne, R89), nic neprodlužuje —
+            // pokračování pozná zdroj sám a prodlouží ho až akce z API v novém týdnu
+            $row = $offer->validFrom->greaterThan($today) ? null
+                : $previous->get($offer->externalId)?->first(fn (Offer $row): bool => $this->continues($row, $offer));
             if ($row instanceof Offer) {
                 if ($row->valid_to->toDateString() !== $offer->validTo->toDateString()) {
                     $extended[$offer->validTo->toDateString()][] = $row->id;

@@ -33,7 +33,7 @@ Vychází z nasazení projektu Počasí na stejném účtu.
 - **Document root** subdomény nasměrovaný do `public/` (WebAdmin → Web → Služby → Upravit)
 - **Odchozí HTTPS** k obchodům (prodejny.kaufland.cz, xapi.tesco.com, api.prod.retail.tesco.com,
   www.lidl.cz, endpoints.leaflets.schwarz, assets.leaflets.schwarz (PDF), www.penny.cz, files.rewe.co.at, www.albert.cz,
-  letaky.albert.cz, view.publitas.com (PDF), www.globus.cz, www.billa.cz) — Websupport ho povoluje
+  letaky.albert.cz, view.publitas.com (PDF), www.globus.cz, gapi.globus.cz (PDF), www.billa.cz) — Websupport ho povoluje
 - `mod_rewrite` a `mod_headers` — na HTTPS přesměrovává a bezpečnostní hlavičky nastavuje
   `public/.htaccess` (TLS končí na proxy hostingu, schéma je v `X-Forwarded-Proto`)
 
@@ -459,6 +459,26 @@ přes `pdftotext` (R86) — Lidl s akcemi ze zbytku potravinového letáku a **A
    - `version.txt?v=<cokoli>`, `/health/imports` vrací 200
    - `/akce?chain=albert` ukáže akce s cenou (dřív prázdné), hlavička stránky má `index, follow`
    - `/akce?chain=lidl&brzy=1` má akce od čtvrtka i mimo kampaně webu; odkaz akce z letáku vede na stránku letáku
+4. Zapiš verzi do *Nasazené verze*.
+
+### Aktualizace z `034fa36` / `60f0211` (osmnácté nasazení)
+
+**Akce, které ještě nezačaly, i u Globusu a Billy** z PDF letáků příštího týdne (R88, R89); obsahuje i opravu
+letáku Penny se složkou `…_tl2` (`60f0211`), pokud ještě není nahraná. Když akce začne a vrátí ji API, převezme
+řádek z PDF — upozornění nepřijde dvakrát. Bez SQL skriptu, `composer.lock` se nezměnil, cron beze změny.
+Soubory `app/Domain/Sources/Albert/AlbertBox.php` a `AlbertTile.php` se přesunuly do `app/Domain/Sources/Pdf/`
+(`PdfBox.php`, `PdfTile.php`) — **staré na hostingu smaž**.
+
+1. **Nahraj `deploy/upload/`** bez `vendor/`; `public/build/` se nezměnil. Nové soubory v `app/Domain/Sources/Globus/`
+   (`GlobusLeafletParser.php`, `GlobusLeafletKey.php`), `app/Domain/Sources/Billa/` (`BillaLeafletParser.php`,
+   `BillaLeafletList.php`, `BillaCatalogMatcher.php`, `BillaCatalogProduct.php`, `BillaLeafletItem.php`) a
+   `app/Domain/Sources/Pdf/` (`PdfBox.php`, `PdfTile.php`); změnily se `config/letaky.php`, `ImportChainOffers`,
+   `OfferData` a zdroje Albertu, Globusu, Billy a Penny.
+2. **Hned ručně zavolej stažení** (lokálně Globus ~26 s, Billa ~60 s, v úterý se 4 budoucími letáky ~90 s):
+   - `/cron/import-offers?chain=globus&token=…` → `Globus — uloženo nabídek: ~800`
+   - `/cron/import-offers?chain=billa&token=…` → `Billa — uloženo nabídek: ~3 600`
+   - `/cron/import-offers?chain=penny&token=…` → `Penny — uloženo nabídek: ~900` (jen pokud `60f0211` ještě nebyl nahraný)
+3. **Ověř:** `version.txt`, `/health/imports` vrací 200, `/akce?brzy=1&chain=globus` a `…&chain=billa` mají akce od středy.
 4. Zapiš verzi do *Nasazené verze*.
 
 **Každá nová migrace potřebuje SQL skript** `deploy/migrations-<datum>-<popis>.sql`

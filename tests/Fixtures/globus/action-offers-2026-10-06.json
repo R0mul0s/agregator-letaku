@@ -1,0 +1,165 @@
+{
+    "actionOffers": [
+        {
+            "actionOfferId": "6abe9f02194391fb3f605e47-2",
+            "actionOfferName": "41_26_L1-2",
+            "validFrom": "2026-10-07T00:00:00.000+02:00",
+            "validTo": "2026-11-02T23:59:59.000+01:00",
+            "offerType": "theme",
+            "storeDocuments": [
+                {
+                    "isComplete": false,
+                    "validFrom": "2026-10-07T00:00:00.000+02:00",
+                    "validTo": "2026-11-02T23:59:59.000+01:00",
+                    "pdfAsset": "https://gapi.globus.cz/OnlineAsset/3/asset?assetID=b5aaae62-5d28-40bf-959d-780a9aeaa11d",
+                    "jpgAssets": [
+                        "https://gapi.globus.cz/OnlineAsset/3/asset?assetID=c94277de-5d71-4064-b8dd-457ce96df7bc"
+                    ],
+                    "jpgAssetsProcessed": [
+                        {
+                            "original": "https://gapi.globus.cz/OnlineAsset/3/asset?assetID=c94277de-5d71-4064-b8dd-457ce96df7bc",
+                            "optimized": {
+                                "original": "https://action-offers.globus.cz/26f4dba2908f6cbaecb1f4d42a2c168e",
+                                "1540": "https://action-offers.globus.cz/26f4dba2908f6cbaecb1f4d42a2c168e-1540",
+                                "1218": "https://action-offers.globus.cz/26f4dba2908f6cbaecb1f4d42a2c168e-1218",
+                                "866": "https://action-offers.globus.cz/26f4dba2908f6cbaecb1f4d42a2c168e-866",
+                                "770": "https://action-offers.globus.cz/26f4dba2908f6cbaecb1f4d42a2c168e-770"
+                            }
+                        }
+                    ]
+                }
+            ],
+            "modified": "2026-10-01T19:58:12.000+02:00",
+            "slug": "akcni-letak-07-10-2026-2"
+        },
+        {
+            "actionOfferId": "6abec9f1194391fb3f6062d7",
+            "actionOfferName": "41_26_K2_Elektro",
+            "validFrom": "2026-10-07T00:00:00.000+02:00",
+            "validTo": "2026-11-02T23:59:59.000+01:00",
+            "offerType": "catalogue",
+            "storeDocuments": [
+                {
+                    "isComplete": true,
+                    "validFrom": "2026-10-07T00:00:00.000+02:00",
+                    "validTo": "2026-11-02T23:59:59.000+01:00",
+                    "pdfAsset": "https://gapi.globus.cz/OnlineAsset/3/asset?assetID=854d769d-25b0-4cad-8b44-957577c63a5e",
+                    "jpgAssets": [
+                        "https://gapi.globus.cz/OnlineAsset/3/asset?assetID=2040e871-add6-433b-9734-9c02b3f05c8e"
+                    ],
+                    "jpgAssetsProcessed": [
+                        {
+                            "original": "https://gapi.globus.cz/OnlineAsset/3/asset?assetID=2040e871-add6-433b-9734-9c02b3f05c8e",
+                            "optimized": {
+                                "original": "https://action-offers.globus.cz/a3fa98f272a18ab45cc88597310f9494",
+                                "1540": "https://action-offers.globus.cz/a3fa98f272a18ab45cc88597310f9494-1540",
+                                "1218": "https://action-offers.globus.cz/a3fa98f272a18ab45cc88597310f9494-1218",
+                                "866": "https://action-offers.globus.cz/a3fa98f272a18ab45cc88597310f9494-866",
+                                "770": "https://action-offers.globus.cz/a3fa98f272a18ab45cc88597310f9494-770"
+                            }
+                        }
+                    ]
+                }
+            ],
+            "modified": "2026-10-01T23:00:41.000+02:00",
+            "slug": "akcni-letak-07-10-2026-6"
+        },
+        {
+            "actionOfferId": "6ab58f83194391fb3f605e2b",
+            "actionOfferName": "40_26_K2_Úklid",
+            "validFrom": "2026-09-30T00:00:00.000+02:00",
+            "validTo": "2026-10-27T23:59:59.000+01:00",
+            "offerType": "catalogue",
+            "storeDocuments": [
+                {
+                    "isComplete": true,
+                    "validFrom": "2026-09-30T00:00:00.000+02:00",
+                    "validTo": "2026-10-27T23:59:59.000+01:00",
+                    "pdfAsset": "https://gapi.globus.cz/OnlineAsset/3/asset?assetID=1adf7bed-79be-4bdf-9475-88dd444ec120",
+                    "jpgAssets": [
+                        "https://gapi.globus.cz/OnlineAsset/3/asset?assetID=df2baaae-2d9a-488e-aeb6-d2177557ce41"
+                    ],
+                    "jpgAssetsProcessed": [
+                        {
+                            "original": "https://gapi.globus.cz/OnlineAsset/3/asset?assetID=df2baaae-2d9a-488e-aeb6-d2177557ce41",
+                            "optimized": {
+                                "original": "https://action-offers.globus.cz/5bc5067a606168658632e7a6b98731f8",
+                                "1540": "https://action-offers.globus.cz/5bc5067a606168658632e7a6b98731f8-1540",
+                                "1218": "https://action-offers.globus.cz/5bc5067a606168658632e7a6b98731f8-1218",
+                                "866": "https://action-offers.globus.cz/5bc5067a606168658632e7a6b98731f8-866",
+                                "770": "https://action-offers.globus.cz/5bc5067a606168658632e7a6b98731f8-770"
+                            }
+                        }
+                    ]
+                }
+            ],
+            "modified": "2026-09-24T23:00:58.000+02:00",
+            "slug": "akcni-letak-30-09-2026-6"
+        },
+        {
+            "actionOfferId": "6abe9f02194391fb3f605e47",
+            "actionOfferName": "41_26_L1",
+            "validFrom": "2026-10-07T00:00:00.000+02:00",
+            "validTo": "2026-10-13T23:59:59.000+02:00",
+            "offerType": "mainFlyer",
+            "storeDocuments": [
+                {
+                    "isComplete": true,
+                    "validFrom": "2026-10-07T00:00:00.000+02:00",
+                    "validTo": "2026-10-13T23:59:59.000+02:00",
+                    "pdfAsset": "https://gapi.globus.cz/OnlineAsset/3/asset?assetID=e06b9817-3ce1-49dc-9541-0455cb28b5f2",
+                    "jpgAssets": [
+                        "https://gapi.globus.cz/OnlineAsset/3/asset?assetID=a789b3bd-9ca0-4939-b8e7-bc3ca06d489c"
+                    ],
+                    "jpgAssetsProcessed": [
+                        {
+                            "original": "https://gapi.globus.cz/OnlineAsset/3/asset?assetID=a789b3bd-9ca0-4939-b8e7-bc3ca06d489c",
+                            "optimized": {
+                                "original": "https://action-offers.globus.cz/f0cf35a6a0b3ae19b5fb6721e00b935f",
+                                "1540": "https://action-offers.globus.cz/f0cf35a6a0b3ae19b5fb6721e00b935f-1540",
+                                "1218": "https://action-offers.globus.cz/f0cf35a6a0b3ae19b5fb6721e00b935f-1218",
+                                "866": "https://action-offers.globus.cz/f0cf35a6a0b3ae19b5fb6721e00b935f-866",
+                                "770": "https://action-offers.globus.cz/f0cf35a6a0b3ae19b5fb6721e00b935f-770"
+                            }
+                        }
+                    ]
+                }
+            ],
+            "modified": "2026-10-01T19:58:12.000+02:00",
+            "slug": "akcni-letak-07-10-2026"
+        },
+        {
+            "actionOfferId": "6ab56546194391fb3f60599f",
+            "actionOfferName": "40_26_L1",
+            "validFrom": "2026-09-30T00:00:00.000+02:00",
+            "validTo": "2026-10-06T23:59:59.000+02:00",
+            "offerType": "mainFlyer",
+            "storeDocuments": [
+                {
+                    "isComplete": true,
+                    "validFrom": "2026-09-30T00:00:00.000+02:00",
+                    "validTo": "2026-10-06T23:59:59.000+02:00",
+                    "pdfAsset": "https://gapi.globus.cz/OnlineAsset/3/asset?assetID=95a2ab8a-f9d2-4115-85cf-353723570112",
+                    "jpgAssets": [
+                        "https://gapi.globus.cz/OnlineAsset/3/asset?assetID=2244db9b-532c-46c8-9c64-4957de5214db"
+                    ],
+                    "jpgAssetsProcessed": [
+                        {
+                            "original": "https://gapi.globus.cz/OnlineAsset/3/asset?assetID=2244db9b-532c-46c8-9c64-4957de5214db",
+                            "optimized": {
+                                "original": "https://action-offers.globus.cz/5ca26ac30872da737ca86f30def9e8f5",
+                                "1540": "https://action-offers.globus.cz/5ca26ac30872da737ca86f30def9e8f5-1540",
+                                "1218": "https://action-offers.globus.cz/5ca26ac30872da737ca86f30def9e8f5-1218",
+                                "866": "https://action-offers.globus.cz/5ca26ac30872da737ca86f30def9e8f5-866",
+                                "770": "https://action-offers.globus.cz/5ca26ac30872da737ca86f30def9e8f5-770"
+                            }
+                        }
+                    ]
+                }
+            ],
+            "modified": "2026-09-24T20:01:25.000+02:00",
+            "slug": "akcni-letak-30-09-2026"
+        }
+    ],
+    "totalCount": 24
+}

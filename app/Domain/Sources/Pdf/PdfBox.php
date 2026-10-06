@@ -1,8 +1,8 @@
 <?php
 
 /**
- * Prvek stránky PDF letáku Albertu s polohou — cena, přeškrtnutá cena, sleva v procentech
- * nebo řádek textu dlaždice (AlbertLeafletParser).
+ * Prvek stránky PDF letáku s polohou — cena, přeškrtnutá cena, sleva v procentech
+ * nebo řádek textu dlaždice (AlbertLeafletParser, GlobusLeafletParser).
  *
  * @author Roman Hlaváček
  *
@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Sources\Albert;
+namespace App\Domain\Sources\Pdf;
 
-final readonly class AlbertBox
+final readonly class PdfBox
 {
     /**
      * @param  int  $value  Haléře u ceny, procenta u slevy, jinak 0

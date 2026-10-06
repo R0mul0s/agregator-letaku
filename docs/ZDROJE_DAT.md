@@ -432,7 +432,8 @@ text s polohou dá `PdfTextReader` (pdftotext) a akce přidá do dávky letáku 
 ## Billa
 
 **Cesta:** product-discovery API webu (stejná platforma REWE jako Penny, Nuxt a commercetools) s **celým katalogem**,
-bez LLM — implementováno (R48, `app/Domain/Sources/Billa`). Náročnost nízká až střední (bez platnosti akcí).
+bez LLM — implementováno (R48, `app/Domain/Sources/Billa`); API ukazuje jen dnešní stav, **letáky, které ještě
+nezačaly, z PDF** (`pdftotext`, R89) spárované s katalogem. Náročnost nízká až střední (bez platnosti akcí).
 `robots.txt` jen odkazuje na sitemap (žádné Disallow), bez WAF, cookies ani zvláštních hlaviček.
 
 ### Endpointy
@@ -441,7 +442,10 @@ bez LLM — implementováno (R48, `app/Domain/Sources/Billa`). Náročnost nízk
 | **Celý katalog (hlavní zdroj)** | `GET https://www.billa.cz/api/product-discovery/products?page={n}&pageSize=500` — 12 184 produktů, 25 požadavků po ~1,2 MB, ~2 s každý |
 | Jen akce (nepoužívá se) | totéž s `&inPromotion=true` — 3 042 položek, ale **bez akcí jen s BILLA Klubem** |
 | Detail (nepoužívá se) | `GET /api/product-discovery/products/{sku}` (`82-100073`; se slugem 404) — platnost akce také nemá |
-| Leták (Publitas, jako Albert R36) — zatím ne | `https://view.publitas.com/billa-cz/{slug}/spreads.json` (`pages[].text`) |
+| Seznam letáků (R89) | `GET https://www.billa.cz/akcni-letaky` — karty `<a class="ws-teaser …" data-teaser-name="Velký leták">` s textem „Platí od středy 7. 10. do úterý 13. 10. 2026“ (i „od středa“) |
+| Stránka letáku (R89) | odkaz karty: `/letaky-billa?tab=letaky-billa/velky-letak`, `…/maly-letak`, `…/velky-letak-nasledujici`, `/akcni-letaky/letak-billa-klub`, `/akcni-letaky/katalog-{název}`, `/akcni-letaky/special-{prodejna}` — tlačítko „Stáhnout PDF“ s přímým odkazem |
+| PDF letáku (R89) | `https://view.publitas.com/64069/{id}/pdfs/{uuid}.pdf` — velký leták 41 stran, 50–54 MB, ~4 s; Publitas skupina `billa-cz` |
+| Text stránek letáku — nepoužívá se | `https://view.publitas.com/billa-cz/{slug}/spreads.json` (`pages[].text`) |
 
 `page` od 0, `pageSize` nejvýš 500 (víc = 400). Odpověď `{facets, count, offset, total, results, isTotalTruncated}`;
 stránkuje se do `total`. Celé stažení lokálně ~47 s (pauza `LETAKY_BILLA_REQUEST_DELAY_MS`, výchozí 1 s).
@@ -474,6 +478,97 @@ Detail produktu na webu: `https://www.billa.cz/produkt/{slug}` (`/produkty/` i `
   — převezme začátek platnosti uložené akce (`extends_continuing_offers`, R54); se změnou ceny je to nová akce.
   Bez toho by měla každý týden nový řádek a souhrn by ji poslal znovu jako novou. Stahuje se denně (kvůli dřívějším koncům), cron až po
   ranní výměně akcí (6:00) — ve středu brzy ráno by API mohlo ještě ukazovat minulý týden **(předpoklad)**.
+- Leták uvádí skutečnou platnost i oddílů („SUPER STŘEDA 7. 10.“, víkend čt–ne, „PONDĚLÍ A ÚTERÝ“), API ne — dopočítaná
+  platnost zůstává i u akcí, které už platí (rozbor v R89: platnost z letáku by měnila klíč akcí a rozbila R54).
+
+### PDF budoucích letáků (R89)
+Implementace: `BillaLeafletList` (seznam letáků, odkaz na PDF), `BillaLeafletParser` nad `PdfTextReader`
+(`pdftotext -bbox-layout`), `BillaCatalogMatcher` (párování s katalogem) a zapojení v `BillaOfferSource`.
+
+**Výběr letáků:** karty stránky `/akcni-letaky` se začátkem po místním dnešku a s odkazem podle `pdf_leaflet_paths`
+(velký a malý leták, leták BILLA klub, katalogy) — ne speciály prodejen (`/akcni-letaky/special-…`, otevření jedné
+prodejny) a ne katalogy s názvem podle `pdf_excluded_titles` (drogerie, elektro, textil, hračky…). Ke každé kartě stránka
+letáku (1 požadavek) a PDF (1 požadavek, `letaky.http.pdf_timeout_seconds`), pauza `request_delay_ms`. Stránka
+`/letaky-billa?tab=…` má v datech Nuxtu odkazy na PDF všech záložek (se znaky `/`) — bere se první obyčejný odkaz,
+tlačítko aktivní záložky. Stejné PDF se stahuje jednou. 6. 10. 2026 byl budoucí jen velký leták od 7. 10. (malý leták
+dalšího týdne stránka ještě neodkazovala, katalogy a leták Klub platily od 30. 9. / 23. 9.).
+
+**Rozvržení** (strana 567 × 794 b.):
+- název ~10,9 b. (na titulní a hlavních dlaždicích až ~33 b.), druh nebo značka ~7,8 b. nad i pod ním („Olma“ /
+  „Klasik jogurt bílý“, „Božkov“ / „Standard“), popis ~8,7 b. („volná, 1 kg“, „130 g“, „více druhů“, „2 druhy“),
+  cena za jednotku ~7,4 b. („100 g = 7,11 Kč“, „100 g = 13 Kč“, „100 g = od 24,91 Kč“); řádky zarovnané vlevo nebo vpravo
+  (text bývá vlevo od ceny a zarovnaný k ní);
+- sleva „-52%“ (~25 b.) nad velkou cenou „11,90“ (~22 b., jedno slovo) a pod ní vpravo přeškrtnutá cena „24,90/“ (~6 b.);
+- **cena s BILLA Klubem:** velká cena je cena s Klubem, pod ní „běžná cena 23,90“ (cena bez Klubu, ~5–6 b., „běžná cena“
+  menším písmem než číslo) a cena za jednotku dvojí „100 g = 13 Kč s Klubem/ 18,38 Kč bez Klubu“; logo Klubu je obrázek;
+- **akce na množství:** velká cena je cena kusu při koupi více kusů, v popisu „při koupi 1 ks 29,90“ s vlastní cenou
+  za jednotku, u ceny štítek „PŘI KOUPI OD 3 KS“, u „1+1“ „KUPTE 2 ZAPLAŤTE 1“; „KUPTE 3 ZAPLAŤTE 2“ bez ceny kusu
+  v popisu (velká cena 13,27 Kč) se vynechá;
+- „NAŠE CENA“ / „SUPER CENA“ = akční cena bez přeškrtnuté ceny (R8; API ji po začátku vrací jako slevu s `crossed`);
+- **oddíly s platností:** „SUPER STŘEDA“ / „7. 10.“, „PŘIPRAVTE SE NA VÍKEND UŽ VE ČTVRTEK“ / „OD 8. 10. DO 11. 10.“,
+  „PLATNOST OD 8. 10.“, rámeček „SUPER PÁTEK 9. 10.“, hlavička přes celou stranu „ČTVRTEK–NEDĚLE 8. 10. – 11. 10. 2026“
+  (strana 36) a „SUPER PONDĚLÍ A ÚTERÝ 12. 10. – 13. 10. 2026“ (strana 38); strana 37 víkend pokračuje bez hlavičky;
+  „Akce platí 12. 8. – 27. 10. 2026.“ je poznámka pod dlaždicemi (dlouhodobá akce, nese ji API);
+- strana kupónů aplikace „s kupónem/ 19,85 Kč bez kupónu“ (strana 40) — nejsou to akce obchodu;
+- glyfy písma: „ż“ = „ž“ („Petrżel“, „Cibule żlutá“), „ŭ“ = „ů“ („Mŭj skyr“), „ǜ“ = apostrof („Hellmannǜs“).
+
+**Pravidla dlaždic** (`BillaLeafletParser`):
+- Cena se přijme, jen když ji ověří balení × cena za jednotku (tolerance R26); u Klubu cena s Klubem „s Klubem“
+  a cena pod ní „bez Klubu“; u akce na množství každou cenu za jednotku dá velká cena nebo cena kusu. Ze sedících dvojic
+  cena–dlaždice vyhrávají nejbližší. Sleva „-N%“ musí sedět na přeškrtnutou (běžnou) cenu — Billa zaokrouhluje.
+- Typ: „běžná cena“ nebo cena za jednotku „s Klubem“ = `LoyaltyOnly` (cena bez Klubu + `loyalty_price`, `BillaKlub` —
+  jako akce jen s Klubem v API), přeškrtnutá cena = `Discount`, „při koupi 1 ks“ = `Multibuy` (cena = cena kusu, text
+  „od 3 ks: 19,90 Kč“ jako API, R48), jinak `PromoPrice`.
+- Platnost: nejbližší oddíl s datem nad dlaždicí ve stejném sloupci (nadpis nad datem rozšíří sloupec, sahá nejvýš
+  0,3 výšky strany) nebo hlavička přes celou stranu, jinak platnost letáku. Strana za stranou s hlavičkou s vlastní
+  platností, která nemá vlastní velký nadpis, má platnost nejistou — dlaždice bez oddílu nad sebou se vynechají.
+- Neověřitelné (vynechají se): zelenina, ovoce a maso „volná, 1 kg“, „1 ks“, „cena za 1 kg“, pult „cena za 100 g“,
+  víc velikostí „od 270 g“ (největší balení leták neuvádí), cena za jednotku z hmotnosti po odkapání bez ní v balení.
+- Velký leták s méně než `pdf_main_min_items` (40) ověřenými dlaždicemi a chyba stažení nebo převodu PDF
+  (`PdfTextFailed`, HTTP) ukončí stažení celé Billy — jinak by akce letáku byly „stažené“ (R16).
+
+**Totožnost s katalogem** (`BillaCatalogMatcher`): PDF nemá kód zboží, ale API vrací celý katalog i s produkty, které
+dnes v akci nejsou, a jejich běžnou cenu (`standard.value`, když je vyšší než aktuální, jinak `regular.value`; u zboží
+na kusy vážené za kg). Přeškrtnutá cena, „běžná cena“ u Klubu nebo cena kusu u akce na množství = běžná cena produktu.
+- Kandidáti: stejná běžná cena a stejné balení (±1 %, u „od“ i větší); vyhrají ti s nejvíc slovy názvu z letáku
+  v názvu nebo značce produktu (bez diakritiky, začátek slova, slova ≥ 3 znaky bez „z naší pece“, „z teplého pultu“),
+  aspoň 60 %. Procenta v názvu („12%“, „31%“) musí být i v katalogu.
+- „NAŠE CENA“ (bez běžné ceny): všechna slova názvu (aspoň dvě), první slovo je značka produktu, běžná cena vyšší
+  než akční a všechny kandidáti se stejnou běžnou cenou (Bohemia Sekt za 179,90 i 279,90 = dvě řady → nespárovat).
+- Dlaždice „více druhů“ / „N druhy“ dostane všechny kandidáty (každý druh je v API samostatné SKU); bez druhů jen
+  jediného (nebo víc SKU se stejným názvem — katalog má zboží dvakrát).
+- Akce dostane z katalogu název, značku, balení, kategorii (filtr krmiv R50), obrázek a odkaz; ceny, typ a platnost
+  z letáku. **ID:** platí-li akce přesně akční týden st–út, je to SKU — stejný klíč, jaký dá API po začátku, upsert řádek
+  jen aktualizuje (`created_at` zůstane, souhrn ani centrum upozornění ho neohlásí podruhé, R74, R76). Jiná platnost
+  (oddíl „SUPER STŘEDA“, víkend, katalog na tři týdny) = předběžné ID `letak-{SKU}` a akce z API nese
+  `supersedes` = `letak-{SKU}` → `ImportChainOffers::adoptProvisional` (R88) řádek převezme, jakmile se platnosti překryjí.
+  Akce, která začne až uprostřed týdne (víkend), ve středu v API ještě není — R16 ji ve středu označí jako staženou
+  a ve čtvrtek ji převzetí vrátí (bez nového upozornění).
+- **Pokračující akce (R54):** má-li produkt dnes v API akci se stejnou cenou (i s Klubem), dlaždice se nezaloží —
+  ve středu dnešní řádek prodlouží API (`continuePrevious`). `continuePrevious` neprodlužuje akce, které ještě nezačaly.
+- Nespárovaná dlaždice se **neuloží**: ID, které by API později převzalo, z ní nejde odvodit (název v letáku se
+  od katalogu liší) — po začátku by se ohlásila podruhé jako nová.
+
+**Výsledek 6. 10. 2026:**
+
+| Leták | Stran | Velkých cen | Ověřeno | Spárováno | Akcí uloženo |
+|---|---|---|---|---|---|
+| velký od 7. 10. (budoucí) | 41 | 382 | 255 dvojic → 243 dlaždic | 123 dlaždic → 238 produktů | 189 (8 s předběžným ID) |
+| velký od 30. 9. (proti API týž den) | 41 | — | 163 dlaždic | 81 → 170 produktů | — |
+
+- Nevzaté velké ceny letáku od 7. 10.: bez ceny za jednotku 84 (zelenina, maso, pult), cena za jednotku nesedí nebo patří
+  jiné dlaždici 39, bez dlaždice v okolí 4; z 255 ověřených dvojic ubyly opakované dlaždice a vyřazené (sleva nesedí, kupóny, „KUPTE 3 ZAPLAŤTE 2“ bez ceny kusu)
+  a nejistá platnost. Nespárováno 120 dlaždic: 90 „NAŠE CENA“ (slova názvu nebo značka nesedí, víc řad), 30 s běžnou
+  cenou (jiný název v katalogu — „Salko“ ↔ „Tatra Salko Tradiční“, změna běžné ceny — Kinder Maxi King 69,90 v letáku,
+  71,90 v API, víc kandidátů).
+- **Přesnost proti API** (leták od 30. 9. v jeho poslední den, 170 dvojic dlaždice–produkt): 156 stejná cena (102 s běžnou
+  cenou i se stejným typem, 54 „NAŠE CENA“ — API je vrací jako slevu s `crossed`), 2 nesoulady (Actimel 12 × 100 g: leták
+  89,90, API 99,90, stejná přeškrtnutá 136,90), 12 produktů dnes bez akce (druhy, na které akce neplatí nebo skončila:
+  Kofola Bez cukru, Activia meruňka, Coca-Cola a Red Bull z víkendu).
+- Ruční kontrola 15 náhodných uložených akcí proti textu strany (ceny, cena za jednotku, procento, platnost): vše správně;
+  „Coca-cola 1,5 l více druhů“ se spárovala i s Fantou Zero (značka Coca-Cola v katalogu).
+- Stažení Billy 6. 10. s letákem od 7. 10.: 3 596 akcí (3 407 z API, 189 z PDF), ~60 s (dřív ~47 s): 25 stránek katalogu,
+  stránka letáků, stránka letáku a PDF 50 MB (~4 s) a pdftotext (~3 s). V úterý se 4 budoucími letáky odhad ~90 s.
 
 ### Pole a pasti
 - Velký leták (36 stran) pro větší prodejny, malý (8 stran) pro menší; API má jednu celostátní cenu.
@@ -484,19 +579,21 @@ Detail produktu na webu: `https://www.billa.cz/produkt/{slug}` (`/produkty/` i `
 ## Globus
 
 **Cesta:** veřejné REST API webu (Nuxt 3), bez klíče a bez WAF — implementováno (R46,
-`app/Domain/Sources/Globus`), bez LLM. Náročnost nízká. `robots.txt` povoluje `/` včetně `/api/`; zakazuje jen
+`app/Domain/Sources/Globus`), bez LLM; API má jen akce, které už platí, **budoucí letáky z PDF** (`pdftotext`, R88). Náročnost nízká až střední. `robots.txt` povoluje `/` včetně `/api/`; zakazuje jen
 detaily produktů `…/p/` a podstránky akční nabídky jednotlivých hypermarketů (API je nepotřebuje).
 
 ### Endpointy (`B = https://www.globus.cz/api/v1/gsoa/actionOffers`)
 | Účel | Požadavek |
 |---|---|
 | **Akce s cenou v prodejně (hlavní zdroj)** | `GET {B}/houses/4005/actionProductsCatalog?page=0&pageSize=200` — 913 položek, 5 požadavků |
-| Položky letáku (popis „různé druhy“) | `GET {B}/houses/4005/actionProducts?page=0&pageSize=200` — 1 025 položek, 6 požadavků |
-| Letáky a katalogy (PDF, JPG, platnost) — nepoužívá se | `GET {B}/houses/4005/actionOffers?page=0&pageSize=50` |
+| Položky letáku (popis „různé druhy“, název pro ID z letáku) | `GET {B}/houses/4005/actionProducts?page=0&pageSize=200` — 1 025 položek, 6 požadavků |
+| Letáky a katalogy (PDF, JPG, platnost) | `GET {B}/houses/4005/actionOffers?page=0&pageSize=50` — ~25 letáků, 1 požadavek (R88) |
+| PDF letáku | `storeDocuments[0].pdfAsset` = `https://gapi.globus.cz/OnlineAsset/3/asset?assetID={uuid}` — ~38 MB, ~4 s |
+| Detail letáku — nepoužívá se | `GET {B}/houses/4005/actionOffers/{actionOfferId}` (produkty nemá), `…/actionOffers/slug/{slug}` |
 
 `page` od 0, `pageSize` nejvýš 200. Katalog: **`totalCount` nesedí** (869 vs. 913) — stránkuje se, dokud
 `paginationShowMore` je `true`. Položky letáku `paginationShowMore` nemají — stránkuje se do kratší stránky. Celé
-stažení ~11 požadavků, ~23 s. 16 hypermarketů (`gsoaId` v `__NUXT_DATA__`), stahuje se 4005 Čakovice
+stažení ~11 požadavků, ~23 s; s PDF budoucího letáku 13 požadavků, ~26 s. 16 hypermarketů (`gsoaId` v `__NUXT_DATA__`), stahuje se 4005 Čakovice
 (`letaky.sources.globus.house_id`); mezi prodejnami se liší jen krátké místní akce (Brno × Čakovice: 900 z 912
 stejně).
 
@@ -531,7 +628,74 @@ stejně).
 - **Krátké místní akce** jsou jen v katalogu (jogurt 4,90 na 1.–3. 10. vs. leták 7,90) — proto denní stahování;
   klíč nabídky `vanr` + platnost.
 - `raw` neukládá `description`, `contains`, `allergens`, `nutritionValues`, `storage` a `regulatedName` (dlouhé texty).
-- Leták na příští týden je v `actionOffers` dřív než jeho produkty v API.
+- Leták na příští týden je v `actionOffers` dřív než jeho produkty v API — `actionProducts` ani katalog **budoucí
+  položky nevrací** (6. 10. 2026: 805 položek, žádná od 7. 10.; parametry `filter`, `actionOfferId`, `date` API ignoruje,
+  detail letáku produkty nemá). Budoucí akce proto z PDF (níže).
+- Katalog má u akcí letáku často začátek o den dřív než leták (`priceValidFrom` 29. 9. u letáku od 30. 9.).
+
+### PDF budoucích letáků (R88)
+Implementace: `GlobusLeafletParser` nad `PdfTextReader` (`pdftotext -bbox-layout`), výběr letáků a zapojení
+v `GlobusOfferSource`. Každý leták je vlastní zdroj (`kind` leaflet, ID `actionOfferId`, název `actionOfferName`).
+
+**Výběr letáků** (`actionOffers`): jen ty, které ještě nezačaly (`validFrom` po místním dnešku). `offerType`:
+- `mainFlyer` — hlavní leták (`41_26_L1`, 47 stran, `isComplete` true);
+- `theme` — část hlavního letáku (`41_26_L1-2` … `-5`, ID `<hlavní>-N`, 2–15 jeho stran, `isComplete` false);
+  stáhne se jen bez svého hlavního letáku v seznamu, jinak by šlo o stejné strany;
+- `catalogue` — jen s názvem podle `pdf_catalogue_pattern` (`K2_Nápoje`, `K2_Úklid`, `K5_…_PET_…`; ne
+  `K2_Elektro`, `K3_Textil` — R46, elektro nemá cenu za jednotku). Rozvržení katalogů neověřené — 6. 10. žádný
+  budoucí potravinový katalog nebyl.
+
+**Rozvržení** (strana 666 × 893 b.):
+- název ~12,6 b. na 1–4 řádcích, privátní značka „VÁŠ VÝBĚR“ na řádku nad ním (patří do názvu, `actionProducts`
+  ho má také: „VÁŠ VÝBĚR Rozinky“);
+- popis ~9,6 b. („plnotučné 3,5%“, „různé druhy“, balení „1 l“, „150 g“, „3× 56 g“, „p. p. 156-240 g“);
+- cena za jednotku ~7,2 b. o ~3 b. odsazená, **bez „Kč“**: „100 g = 6,63“, „1 l = 57,-“, „1 dávka = 4,80“,
+  „100 g od 14,94“ (víc velikostí balení — počítá se s největším);
+- cenovka nad názvem: sleva „-17 %“ a přeškrtnutá cena „27“ „90“ (~21 b., haléře ~10 b.), velká cena „22“ (~42 b.)
+  a haléře „90“ (~16 b.) jako samostatná slova; celé koruny „239“ „,-“ nebo „213,-“;
+- **Můj Globus:** velká cena je cena s kartou písmem se stínem — pdftotext vrátí každé slovo dvakrát (posun ~6 b.
+  vpravo, ~2 b. svisle) a pootočené číslice jako samostatná slova („1“ „1“ „4“ „4“ „5“ „5“ = 145). Cena za jednotku
+  je dvojí „AC: 100 g = 6,60 KC: 100 g = 5,93“ (AC = akční cena, KC = cena s kartou, vysvětlivka v patičce).
+  Běžná akční cena leží pod cenou s kartou menším písmem (~30 b., „-44 %“ a přeškrtnutá „17“ „90“ ~16 b.) nebo stejně
+  velká (Persil „429“ nad „479“);
+- platnost v hlavičce strany: „Platí od 7. 10. do 2. 11. 2026.“, „platnost 7. 10. – 20. 10. 2026“, „PLATNOST STRANY“ /
+  „7. 10. – 20. 10.“, strany „DELŠÍ PLATNOST“ / „od 30. 9. do 26. 10. 2026“ (akce minulého letáku, které už platí a nese
+  je API); jinak platnost letáku.
+
+**Pravidla** (`GlobusLeafletParser`):
+- Cena se přijme, jen když ji ověří balení × cena za jednotku (tolerance R26); u karty „KC“ cenu s kartou
+  (`loyalty_price`, `LoyaltyProgram::MujGlobus`) a „AC“ běžnou akční cenu. Ze sedících dvojic cena–dlaždice vyhrávají nejbližší.
+- „-N %“ musí sedět na přeškrtnutou cenu (Globus uřezává: 27,90 → 22,90 = 17,9 % → „-17 %“), u karty obě slevy;
+  sleva bez přeškrtnuté ceny dlaždici vyřadí. Bez štítku je to akční cena (R8), ne sleva.
+- Neověřitelné (vynechají se): maso, ovoce a zelenina „1 kg“ / „1 ks“, pult a lahůdky za „100 g“, mléko „1 l“ bez ceny
+  za jednotku, restaurace, elektro, textil, varianty s více cenami (kaiserka 1 / 3 / 5 ks).
+- ID = otisk názvu v letáku a běžné ceny (`GlobusLeafletKey`, bez diakritiky, velikosti písmen a interpunkce).
+  Odkaz akce i zdroje je stránka akční nabídky (PDF má 38 MB).
+- Uloží se jen akce se začátkem po dnešku; akci, kterou API už vrací (stejný otisk, překrývající se platnost), PDF nezdvojí.
+- Hlavní leták s méně než `pdf_main_min_offers` (50) ověřenými akcemi a chyba stažení nebo převodu PDF (`PdfTextFailed`)
+  ukončí stažení celého Globusu — jinak by akce z letáku byly „stažené“ (R16).
+
+**Převzetí akcí z API:** až leták začne, API vrátí akci pod vlastním ID (`vanr`) a s platností katalogu. Akce z API nese
+v `OfferData::$supersedes` otisk z názvu spárované položky `actionProducts` a ceny; `ImportChainOffers::adoptProvisional`
+řádek z PDF s tímto ID a překrývající se platností přejmenuje na ID z API a převezme platnost. Řádek si nechá `created_at`
+(souhrn, centrum upozornění ani „Od dneška platí“ ho neohlásí jako novou akci, R74, R76), přiřazení ke katalogu i ID
+v uložených upozorněních. Nepřevzatý řádek z PDF stáhne R16.
+
+**Výsledek 6. 10. 2026:**
+
+| Leták | Stran | Velkých cen | Ověřeno | Z toho budoucích | Stejný otisk v API |
+|---|---|---|---|---|---|
+| od 7. 10. (41_26_L1) | 47 | 381 | 195 (20 s kartou, 106 se slevou) | 143 | — (API budoucí nemá) |
+| od 30. 9. (40_26_L1, měřeno v jeho poslední den) | 51 | 420 | 244 (24 s kartou) | — | 210 |
+
+- Nevzaté velké ceny letáku od 7. 10.: bez ceny za jednotku 164, cena za jednotku nesedí 4 (víc velikostí s pevným
+  podílem, varianty), bez dlaždice v okolí 4; procento slevy nesedí 0. Ruční kontrola 15 náhodných akcí proti textu
+  strany: vše správně.
+- Leták od 30. 9. proti API týž den: u 210 akcí se stejným otiskem cena s kartou 23/23 a původní cena 125/126 stejná
+  (Lenor: PDF „299 90“ „-16 %“ → 249,90, API 279,90); u žádné dvojice podobného názvu se cena neliší. 13 akcí má
+  v `actionProducts` kratší název („VÁŠ VÝBĚR“, „Fine Dog“, „Tento“) — otisk se liší a akce se po začátku ohlásí znovu;
+  21 v katalogu prodejny 4005 chybí (hlavně krmiva ze stran 15–18).
+- Stažení Globusu 6. 10. s letákem od 7. 10.: 797 akcí (656 z API, 141 z PDF), ~26 s.
 
 ## Makro (průzkum 2026-10-02 — zatím bez zdroje)
 

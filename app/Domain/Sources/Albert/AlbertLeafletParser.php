@@ -39,8 +39,10 @@ use App\Domain\Offers\Parsing\PackageParser;
 use App\Domain\Offers\Parsing\PriceParser;
 use App\Domain\Offers\Parsing\Text;
 use App\Domain\Offers\Parsing\VariantNote;
+use App\Domain\Sources\Pdf\PdfBox;
 use App\Domain\Sources\Pdf\PdfLine;
 use App\Domain\Sources\Pdf\PdfPage;
+use App\Domain\Sources\Pdf\PdfTile;
 use App\Domain\Sources\Pdf\PdfWord;
 use App\Enums\LoyaltyProgram;
 use App\Enums\OfferType;
@@ -234,7 +236,7 @@ final class AlbertLeafletParser
     {
         $words = $page->words();
         $prices = $this->prices($words);
-        $big = array_values(array_filter($prices, fn (AlbertBox $price): bool => $price->height() >= self::PRICE_MIN_HEIGHT));
+        $big = array_values(array_filter($prices, fn (PdfBox $price): bool => $price->height() >= self::PRICE_MIN_HEIGHT));
         $crossedPrices = $this->crossedPrices($words);
         $tiles = $this->tiles($words, [...$prices, ...$crossedPrices]);
         $crossed = $this->nearest($big, $crossedPrices, $this->crossedDistance(...));
@@ -256,11 +258,11 @@ final class AlbertLeafletParser
      * Ověřené dvojice cena–dlaždice: ze všech sedících vyhrávají nejbližší, každá cena
      * i dlaždice nejvýš jednou.
      *
-     * @param  list<AlbertBox>  $big  Akční ceny
-     * @param  list<AlbertTile>  $tiles
-     * @param  list<AlbertBox>  $prices  Všechny ceny (i menší ceny bez aplikace)
-     * @param  array<int, AlbertBox>  $crossed  Index akční ceny => přeškrtnutá cena u ní
-     * @return list<array{int, AlbertTile, array{price: int, loyalty: int|null}}>
+     * @param  list<PdfBox>  $big  Akční ceny
+     * @param  list<PdfTile>  $tiles
+     * @param  list<PdfBox>  $prices  Všechny ceny (i menší ceny bez aplikace)
+     * @param  array<int, PdfBox>  $crossed  Index akční ceny => přeškrtnutá cena u ní
+     * @return list<array{int, PdfTile, array{price: int, loyalty: int|null}}>
      */
     private function matches(array $big, array $tiles, array $prices, array $crossed): array
     {
@@ -301,7 +303,7 @@ final class AlbertLeafletParser
      * Ceny na stránce: koruny a vedle nich haléře („49“ „90“) nebo „599,“ „-“.
      *
      * @param  list<PdfWord>  $words
-     * @return list<AlbertBox>
+     * @return list<PdfBox>
      */
     private function prices(array $words): array
     {
@@ -328,7 +330,7 @@ final class AlbertLeafletParser
                     default => null,
                 };
                 if ($halers !== null) {
-                    $prices[] = new AlbertBox(
+                    $prices[] = new PdfBox(
                         $crowns->text.' '.$fraction->text,
                         $this->priceParser->parse($m[1].','.$halers),
                         $crowns->xMin, min($crowns->yMin, $fraction->yMin), max($crowns->xMax, $fraction->xMax), max($crowns->yMax, $fraction->yMax),
@@ -347,14 +349,14 @@ final class AlbertLeafletParser
      * slova za sebou („19,90 Kč“ je nejnižší cena za 30 dní, „0,75 l“ balení).
      *
      * @param  list<PdfWord>  $words
-     * @return list<AlbertBox>
+     * @return list<PdfBox>
      */
     private function crossedPrices(array $words): array
     {
         $crossed = [];
         foreach ($words as $word) {
             if (preg_match(self::CROSSED_PATTERN, $word->text, $m) === 1 && ! $this->followedByWord($word, $words)) {
-                $crossed[] = new AlbertBox(
+                $crossed[] = new PdfBox(
                     $word->text,
                     $this->priceParser->parse($m[1].','.($m[2] === '-' ? '00' : $m[2])),
                     $word->xMin, $word->yMin, $word->xMax, $word->yMax,
@@ -369,7 +371,7 @@ final class AlbertLeafletParser
      * Slevy v procentech: číslo (případně „-“ před ním) a hned za ním „%“.
      *
      * @param  list<PdfWord>  $words
-     * @return list<AlbertBox>
+     * @return list<PdfBox>
      */
     private function percents(array $words): array
     {
@@ -383,7 +385,7 @@ final class AlbertLeafletParser
                 $gap = $sign->xMin - $number->xMax;
                 if ($gap >= -self::ROW_TOLERANCE && $gap <= self::PERCENT_GAP && $number->yMax > $sign->yMin && $number->yMin < $sign->yMax
                     && preg_match(self::PERCENT_NUMBER_PATTERN, $number->text, $m) === 1) {
-                    $percents[] = new AlbertBox($number->text.' %', (int) $m[1], $number->xMin, min($number->yMin, $sign->yMin), $sign->xMax, max($number->yMax, $sign->yMax));
+                    $percents[] = new PdfBox($number->text.' %', (int) $m[1], $number->xMin, min($number->yMin, $sign->yMin), $sign->xMax, max($number->yMax, $sign->yMax));
 
                     break;
                 }
@@ -414,10 +416,10 @@ final class AlbertLeafletParser
      * Ke každé ceně nejbližší prvek (přeškrtnutou cenu, slevu), který k ní podle polohy
      * může patřit; každý prvek nejvýš k jedné ceně.
      *
-     * @param  list<AlbertBox>  $prices
-     * @param  list<AlbertBox>  $candidates
-     * @param  callable(AlbertBox, AlbertBox): ?float  $distance
-     * @return array<int, AlbertBox> Index ceny => prvek
+     * @param  list<PdfBox>  $prices
+     * @param  list<PdfBox>  $candidates
+     * @param  callable(PdfBox, PdfBox): ?float  $distance
+     * @return array<int, PdfBox> Index ceny => prvek
      */
     private function nearest(array $prices, array $candidates, callable $distance): array
     {
@@ -447,7 +449,7 @@ final class AlbertLeafletParser
     /**
      * Vzdálenost přeškrtnuté ceny od ceny, nebo null, když nad ní neleží.
      */
-    private function crossedDistance(AlbertBox $price, AlbertBox $crossed): ?float
+    private function crossedDistance(PdfBox $price, PdfBox $crossed): ?float
     {
         $fits = $crossed->yMax >= $price->yMin - self::CROSSED_ABOVE
             && $crossed->yMax <= $price->yMin + $price->height() * self::CROSSED_OVERLAP_RATIO
@@ -460,7 +462,7 @@ final class AlbertLeafletParser
     /**
      * Vzdálenost slevy v procentech od ceny, nebo null, když nad ní (vedle ní nahoře) neleží.
      */
-    private function percentDistance(AlbertBox $price, AlbertBox $percent): ?float
+    private function percentDistance(PdfBox $price, PdfBox $percent): ?float
     {
         $fits = $percent->yMax >= $price->yMin - self::PERCENT_ABOVE
             && $percent->yMax <= $price->yMin + $price->height() * self::PERCENT_OVERLAP_RATIO
@@ -475,8 +477,8 @@ final class AlbertLeafletParser
      * popisu se vynechá — cenu by nebylo čím ověřit.
      *
      * @param  list<PdfWord>  $words
-     * @param  list<AlbertBox>  $prices  Ceny a přeškrtnuté ceny — jejich slova do textu dlaždice nepatří
-     * @return list<AlbertTile>
+     * @param  list<PdfBox>  $prices  Ceny a přeškrtnuté ceny — jejich slova do textu dlaždice nepatří
+     * @return list<PdfTile>
      */
     private function tiles(array $words, array $prices): array
     {
@@ -499,11 +501,11 @@ final class AlbertLeafletParser
                 continue;
             }
 
-            $box = array_reduce($detailLines, fn (AlbertBox $box, AlbertBox $line): AlbertBox => $box->merge($line), $first);
-            $tiles[] = new AlbertTile(
-                array_map(fn (AlbertBox $line): string => $line->text, $nameLines),
-                array_map(fn (AlbertBox $line): string => $line->text, $detailLines),
-                array_reduce($nameLines, fn (AlbertBox $box, AlbertBox $line): AlbertBox => $box->merge($line), $box),
+            $box = array_reduce($detailLines, fn (PdfBox $box, PdfBox $line): PdfBox => $box->merge($line), $first);
+            $tiles[] = new PdfTile(
+                array_map(fn (PdfBox $line): string => $line->text, $nameLines),
+                array_map(fn (PdfBox $line): string => $line->text, $detailLines),
+                array_reduce($nameLines, fn (PdfBox $box, PdfBox $line): PdfBox => $box->merge($line), $box),
             );
         }
 
@@ -513,11 +515,11 @@ final class AlbertLeafletParser
     /**
      * Řádky pod `$last` zarovnané vlevo s prvním řádkem dlaždice, jeden pod druhým.
      *
-     * @param  list<AlbertBox>  $rows
+     * @param  list<PdfBox>  $rows
      * @param  array<int, true>  $used  Řádky, které už patří jiné dlaždici
-     * @return list<AlbertBox>
+     * @return list<PdfBox>
      */
-    private function below(array $rows, AlbertBox $first, AlbertBox $last, array &$used): array
+    private function below(array $rows, PdfBox $first, PdfBox $last, array &$used): array
     {
         $column = [];
         while (true) {
@@ -543,7 +545,7 @@ final class AlbertLeafletParser
     /**
      * Je slovo částí některé ceny (koruny, haléře, přeškrtnutá cena)?
      *
-     * @param  list<AlbertBox>  $prices
+     * @param  list<PdfBox>  $prices
      */
     private function isPricePart(PdfWord $word, array $prices): bool
     {
@@ -561,16 +563,16 @@ final class AlbertLeafletParser
      * se nepoužijí — slučuje do nich slova sousedních dlaždic („- 32 % Vepřová“).
      *
      * @param  list<PdfWord>  $words
-     * @return list<AlbertBox>
+     * @return list<PdfBox>
      */
     private function rows(array $words): array
     {
         usort($words, fn (PdfWord $a, PdfWord $b): int => $a->xMin <=> $b->xMin);
 
-        /** @var list<AlbertBox> $rows */
+        /** @var list<PdfBox> $rows */
         $rows = [];
         foreach ($words as $word) {
-            $box = new AlbertBox($word->text, 0, $word->xMin, $word->yMin, $word->xMax, $word->yMax);
+            $box = new PdfBox($word->text, 0, $word->xMin, $word->yMin, $word->xMax, $word->yMax);
             foreach ($rows as $index => $row) {
                 $gap = $word->xMin - $row->xMax;
                 if (abs($row->yMin - $word->yMin) <= self::ROW_TOLERANCE && $gap >= -self::ROW_TOLERANCE && $gap <= self::WORD_GAP) {
@@ -582,7 +584,7 @@ final class AlbertLeafletParser
             $rows[] = $box;
         }
 
-        usort($rows, fn (AlbertBox $a, AlbertBox $b): int => $a->yMin <=> $b->yMin ?: $a->xMin <=> $b->xMin);
+        usort($rows, fn (PdfBox $a, PdfBox $b): int => $a->yMin <=> $b->yMin ?: $a->xMin <=> $b->xMin);
 
         return $rows;
     }
@@ -592,7 +594,7 @@ final class AlbertLeafletParser
      *
      * @return array{unitPrices: list<array{unit: string, quantity: float, from: bool, value: int, appValue: int|null}>, packages: array<string, list<float>>}
      */
-    private function tileFacts(AlbertTile $tile): array
+    private function tileFacts(PdfTile $tile): array
     {
         $text = $tile->detailText();
         preg_match_all(self::UNIT_PRICE_PATTERN, $text, $matches, PREG_SET_ORDER);
@@ -660,11 +662,11 @@ final class AlbertLeafletParser
      * se hledá pod ní, jinak je to přeškrtnutá cena u ní.
      *
      * @param  array{unitPrices: list<array{unit: string, quantity: float, from: bool, value: int, appValue: int|null}>, packages: array<string, list<float>>}  $facts
-     * @param  list<AlbertBox>  $prices
-     * @param  AlbertBox|null  $crossed  Přeškrtnutá cena u ceny
+     * @param  list<PdfBox>  $prices
+     * @param  PdfBox|null  $crossed  Přeškrtnutá cena u ceny
      * @return array{price: int, loyalty: int|null}|null
      */
-    private function verify(AlbertBox $price, array $facts, array $prices, ?AlbertBox $crossed): ?array
+    private function verify(PdfBox $price, array $facts, array $prices, ?PdfBox $crossed): ?array
     {
         $comparable = array_values(array_filter($facts['unitPrices'], fn (array $unitPrice): bool => ($facts['packages'][$unitPrice['unit']] ?? []) !== []));
         if ($comparable === []) {
@@ -704,17 +706,17 @@ final class AlbertLeafletParser
     /**
      * Kandidáti na cenu bez aplikace: menší cena těsně pod cenou s aplikací, nejbližší první.
      *
-     * @param  list<AlbertBox>  $prices
-     * @return list<AlbertBox>
+     * @param  list<PdfBox>  $prices
+     * @return list<PdfBox>
      */
-    private function regularPrices(AlbertBox $price, array $prices): array
+    private function regularPrices(PdfBox $price, array $prices): array
     {
-        $candidates = array_values(array_filter($prices, fn (AlbertBox $candidate): bool => $candidate->height() <= $price->height() * self::REGULAR_PRICE_MAX_RATIO
+        $candidates = array_values(array_filter($prices, fn (PdfBox $candidate): bool => $candidate->height() <= $price->height() * self::REGULAR_PRICE_MAX_RATIO
             && $candidate->yMin >= $price->yMax - self::REGULAR_PRICE_OVERLAP
             && $candidate->yMin <= $price->yMax + self::REGULAR_PRICE_BELOW
             && $candidate->xMin < $price->xMax + self::REGULAR_PRICE_OVERLAP
             && $candidate->xMax > $price->xMin - self::REGULAR_PRICE_OVERLAP));
-        usort($candidates, fn (AlbertBox $a, AlbertBox $b): int => $price->distanceTo($a) <=> $price->distanceTo($b));
+        usort($candidates, fn (PdfBox $a, PdfBox $b): int => $price->distanceTo($a) <=> $price->distanceTo($b));
 
         return $candidates;
     }
@@ -817,7 +819,7 @@ final class AlbertLeafletParser
      * @param  array{page: array{CarbonImmutable, CarbonImmutable}, section: array{float, array{CarbonImmutable, CarbonImmutable}}|null, footnotes: array<int, array{CarbonImmutable, CarbonImmutable|null}>}  $context
      * @return array{CarbonImmutable, CarbonImmutable}
      */
-    private function tileValidity(AlbertTile $tile, int $stars, array $context): array
+    private function tileValidity(PdfTile $tile, int $stars, array $context): array
     {
         [$from, $to] = $context['page'];
         if ($context['section'] !== null && $tile->box->yMin > $context['section'][0]) {
@@ -854,7 +856,7 @@ final class AlbertLeafletParser
      * @param  array{price: int, loyalty: int|null}  $verified
      * @param  array{page: array{CarbonImmutable, CarbonImmutable}, section: array{float, array{CarbonImmutable, CarbonImmutable}}|null, footnotes: array<int, array{CarbonImmutable, CarbonImmutable|null}>}  $context
      */
-    private function offer(AlbertTile $tile, array $verified, ?AlbertBox $crossed, ?AlbertBox $percent, array $context, int $page, string $pageUrl): ?OfferData
+    private function offer(PdfTile $tile, array $verified, ?PdfBox $crossed, ?PdfBox $percent, array $context, int $page, string $pageUrl): ?OfferData
     {
         $price = $verified['price'];
         $loyalty = $verified['loyalty'];
@@ -920,7 +922,7 @@ final class AlbertLeafletParser
      *
      * @return list<string>
      */
-    private function details(AlbertTile $tile): array
+    private function details(PdfTile $tile): array
     {
         $details = [];
         foreach (preg_split(self::BULLET_PATTERN, $tile->detailText()) ?: [] as $item) {

@@ -27,6 +27,8 @@ final readonly class OfferData
      * @param  CarbonImmutable  $validTo  Místní datum včetně (R7)
      * @param  array<string, mixed>  $raw  Původní položka od obchodu
      * @param  list<string>|null  $storeCodes  Prodejny, ve kterých akce platí (R49); null = všechny
+     * @param  string|null  $supersedes  Předběžné ID stejné akce uložené dřív z jiného zdroje (Globus: PDF letáku
+     *                                   před začátkem platnosti, R88) — import ten řádek převezme
      */
     public function __construct(
         public string $externalId,
@@ -52,6 +54,7 @@ final readonly class OfferData
         public ?string $imageUrl = null,
         public ?string $sourceUrl = null,
         public ?array $storeCodes = null,
+        public ?string $supersedes = null,
     ) {}
 
     /**
@@ -83,6 +86,7 @@ final readonly class OfferData
             imageUrl: $this->imageUrl,
             sourceUrl: $this->sourceUrl,
             storeCodes: $this->storeCodes,
+            supersedes: $this->supersedes,
         );
     }
 
