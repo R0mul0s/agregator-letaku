@@ -42,7 +42,18 @@ it('zobrazí stránku nového hesla s tokenem a e-mailem z odkazu', function ():
         ->assertInertia(fn (Assert $page) => $page
             ->component('Auth/ResetPassword')
             ->where('token', 'abc')
-            ->where('email', 'roman@example.com'));
+            ->where('email', 'roman@example.com')
+            ->has('showcase.offers'));
+});
+
+it('stránka zapomenutého hesla má data panelu s akcemi — bez nich spadne (R56)', function (): void {
+    $this->get(route('password.request'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Auth/ForgotPassword')
+            ->has('showcase.offers')
+            ->has('showcase.chains')
+            ->has('showcase.deals'));
 });
 
 it('nastaví nové heslo tokenem z e-mailu', function (): void {

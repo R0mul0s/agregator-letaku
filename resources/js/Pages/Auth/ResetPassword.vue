@@ -16,6 +16,8 @@ const props = defineProps({
     token: { type: String, required: true },
     email: { type: String, default: '' },
     urls: { type: Object, required: true },
+    /** Data panelu vedle formuláře (AuthShowcase.vue, R56). */
+    showcase: { type: Object, required: true },
 });
 
 const t = useTranslations();
@@ -39,7 +41,7 @@ function submit() {
     <AppLayout>
         <Head :title="t('auth.reset.title')" />
 
-        <AuthShowcase>
+        <AuthShowcase :showcase="showcase">
             <section class="auth-card">
                 <h1 class="auth-card__title">{{ t('auth.reset.title') }}</h1>
 

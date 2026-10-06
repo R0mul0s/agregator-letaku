@@ -119,6 +119,8 @@ class FortifyServiceProvider extends ServiceProvider
                 'submit' => route('password.email', absolute: false),
                 'login' => route('login', absolute: false),
             ],
+            // Stejný panel jako u přihlášení (R56) — AuthShowcase bez dat stránku shodí
+            'showcase' => fn (): array => $this->showcase(),
         ]));
 
         Fortify::resetPasswordView(fn (Request $request): Response => Inertia::render('Auth/ResetPassword', [
@@ -127,6 +129,7 @@ class FortifyServiceProvider extends ServiceProvider
             'urls' => [
                 'submit' => route('password.update', absolute: false),
             ],
+            'showcase' => fn (): array => $this->showcase(),
         ]));
     }
 

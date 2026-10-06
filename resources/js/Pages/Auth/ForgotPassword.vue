@@ -13,6 +13,8 @@ import { Head, Link, useForm } from '@inertiajs/vue3';
 
 const props = defineProps({
     urls: { type: Object, required: true },
+    /** Data panelu vedle formuláře (AuthShowcase.vue, R56). */
+    showcase: { type: Object, required: true },
 });
 
 const t = useTranslations();
@@ -31,7 +33,7 @@ function submit() {
     <AppLayout>
         <Head :title="t('auth.forgot.title')" />
 
-        <AuthShowcase>
+        <AuthShowcase :showcase="showcase">
             <section class="auth-card">
                 <h1 class="auth-card__title">{{ t('auth.forgot.title') }}</h1>
                 <p class="auth-card__intro">{{ t('auth.forgot.intro') }}</p>
