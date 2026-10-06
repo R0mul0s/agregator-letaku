@@ -93,6 +93,16 @@ return [
     ],
 
     /*
+    | Ověření webu v nástrojích pro webmastery — kód se vloží jako <meta> do hlavičky každé
+    | stránky (resources/views/app.blade.php). Kód je veřejný (je ve zdroji stránky), prázdný
+    | = značka se nevloží. Search Console se ověřuje záznamem TXT v DNS, značku nepotřebuje.
+    */
+    'site_verification' => [
+        // Seznam Webmaster (webmaster.seznam.cz), web https://slevohlidka.cz, ověřeno 2026-10-06
+        'seznam' => env('LETAKY_SEZNAM_WMT', 'kl1RlphL80Y3tuX7hTOTuG68ytbhphLp'),
+    ],
+
+    /*
     | Přihlášení a registrace (R12, R53).
     | - Pokusy o přihlášení za minutu: pro dvojici e-mail + IP (hádání hesla k jednomu účtu)
     |   a pro samotnou IP (zkoušení uniklých přihlašovacích údajů přes různé e-maily).

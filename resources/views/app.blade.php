@@ -20,6 +20,10 @@
         <meta name="description" content="{{ $seo['description'] }}">
         <meta name="robots" content="{{ $seo['robots'] }}">
         <link rel="canonical" href="{{ $seo['canonical'] }}">
+        {{-- Ověření webu v Seznam Webmasteru (letaky.site_verification) --}}
+        @if (filled(config('letaky.site_verification.seznam')))
+            <meta name="seznam-wmt" content="{{ config('letaky.site_verification.seznam') }}">
+        @endif
         {{-- Náhled odkazu na sociálních sítích a v chatech (Open Graph, X/Twitter) --}}
         <meta property="og:type" content="website">
         <meta property="og:site_name" content="{{ __('app.ui.app_name') }}">

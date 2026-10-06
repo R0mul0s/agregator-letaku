@@ -41,6 +41,14 @@ it('úvodní stránka má titulek, popis, canonical, Open Graph a schema.org', f
         ->and($html)->toContain('"urlTemplate":"'.route('offers').'?q={search_term_string}"');
 });
 
+it('hlavička má ověření pro Seznam Webmaster, prázdný kód značku vynechá', function (): void {
+    config(['letaky.site_verification.seznam' => 'kod123']);
+    expect(metaContent($this->get('/')->getContent(), 'seznam-wmt'))->toBe('kod123');
+
+    config(['letaky.site_verification.seznam' => '']);
+    expect($this->get('/')->getContent())->not->toContain('seznam-wmt');
+});
+
 it('Všechny akce: obchod a stránka v canonical, rozsah a hledání ne; hledání se neindexuje', function (): void {
     $html = $this->get('/akce?chain=kaufland&od=1&strana=2')->getContent();
     expect($html)->toContain('<link rel="canonical" href="'.route('offers').'?chain=kaufland&amp;strana=2">')

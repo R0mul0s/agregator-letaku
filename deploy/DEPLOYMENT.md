@@ -178,7 +178,9 @@ curl -si "https://slevohlidka.cz/cron/import-offers?chain=kaufland&token=spatny"
    `https://slevohlidka.cz/` (ověření DNS záznamem TXT ve WebAdminu), odeslat
    `https://slevohlidka.cz/sitemap.xml`.
 2. [Bing Webmaster Tools](https://www.bing.com/webmasters): import ze Search Console.
-3. Kontrola strukturovaných dat: [Rich Results Test](https://search.google.com/test/rich-results)
+3. [Seznam Webmaster](https://webmaster.seznam.cz): ověření značkou `seznam-wmt` v hlavičce — kód je
+   v `letaky.site_verification.seznam` (jiný jde nastavit `LETAKY_SEZNAM_WMT` v `.env`); pak odeslat sitemap.
+4. Kontrola strukturovaných dat: [Rich Results Test](https://search.google.com/test/rich-results)
    na úvodní stránku (Organization, WebSite).
 
 ## Doména `slevohlidka.cz`: stránka „Brzy spouštíme“ (R79)
