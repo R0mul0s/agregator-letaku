@@ -37,12 +37,4 @@ enum Chain: string
     {
         return __('app.chains_genitive.'.$this->value);
     }
-
-    /**
-     * Má obchod jen zmínky v letácích bez cen (Albert, R36)? Jeho výpis akcí je prázdný.
-     */
-    public function mentionsOnly(): bool
-    {
-        return config("letaky.sources.{$this->value}.mentions_only") === true;
-    }
 }

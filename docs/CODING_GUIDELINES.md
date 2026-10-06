@@ -128,7 +128,7 @@ Eloquent model                 ← perzistence
 - URL, hlavičky, pauzy mezi požadavky a API klíče jsou v `config/letaky.php` (klíče v `.env`). V kódu zdroje nejsou natvrdo.
 - **Mezi požadavky na stejný obchod je pauza** (`config('letaky.request_delay_ms')`). Respektuj robots.txt, viz [ZDROJE_DAT.md](ZDROJE_DAT.md).
 - Parsování odpovědi je samostatná metoda nebo třída, která přijímá řetězec nebo pole. Kvůli testům s fixtures nesmí sama stahovat.
-- **Neočekávaný tvar odpovědi = výjimka**, ne prázdná kolekce. Nula položek se zapíše do `scrape_runs` jako chyba (výjimkou je jen obchod s `mentions_only`). Podezřele velký propad akcí oproti minulému stažení akce nestáhne a stažení skončí jako `partial`; stažení obchodu drží zámek, souběžné neběží ([R54](PLAN.md#8-log-rozhodnutí), [R57](PLAN.md#8-log-rozhodnutí)).
+- **Neočekávaný tvar odpovědi = výjimka**, ne prázdná kolekce. Nula položek se zapíše do `scrape_runs` jako chyba. Podezřele velký propad akcí oproti minulému stažení akce nestáhne a stažení skončí jako `partial`; stažení obchodu drží zámek, souběžné neběží ([R54](PLAN.md#8-log-rozhodnutí), [R57](PLAN.md#8-log-rozhodnutí)).
 - Původní položka se ukládá do `offers.raw`, aby se data dala přepočítat bez nového stažení.
 
 ### Normalizace dat od obchodů

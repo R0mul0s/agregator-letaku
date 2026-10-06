@@ -4,7 +4,7 @@
  * Stáhne akční nabídku obchodu a uloží ji — zdroje (leaflets) a nabídky (offers).
  *
  * Každé stažení má záznam v scrape_runs. Nula nabídek je chyba zdroje, ne „žádné akce“
- * (CODING_GUIDELINES, sekce 3); výjimkou je obchod jen se zmínkami (Albert). Nabídky se nemažou
+ * (CODING_GUIDELINES, sekce 3), i když zdroj vrátil stránky letáku (R54). Nabídky se nemažou
  * (R10): opakované stažení stejnou nabídku podle obchodu, ID položky a platnosti jen aktualizuje.
  * Neskončená nabídka, která v novém stažení chybí, se označí jako stažená obchodem (R16) —
  * ale ne, když jich chybí podezřele mnoho (R54). Nakonec se nabídky obchodu znovu přiřadí
@@ -108,9 +108,8 @@ final class ImportChainOffers
                     $stored += $this->storeBatch($chain, $batch, $run, array_keys($stored));
                 }
 
-                // Zdroj jen se zmínkami (Albert, R36) nabídky nemá — u ostatních je nula chyba,
-                // i když vrátily stránky letáku (rozbitý parser Lidlu nebo Penny, R54)
-                if ($stored === [] && (! $chain->mentionsOnly() || ! array_any($batches, fn (SourceBatch $batch): bool => $batch->pages !== []))) {
+                // Nula je chyba, i když zdroj vrátil stránky letáku (rozbitý parser letáku, R54)
+                if ($stored === []) {
                     throw SourceReturnedNoOffers::for($chain);
                 }
 

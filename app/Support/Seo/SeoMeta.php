@@ -6,7 +6,7 @@
  * vidět robot bez JavaScriptu nebo náhled odkazu, musí být v šabloně ze serveru.
  *
  * Indexovat se smí jen veřejné stránky: úvodní stránka, Všechny akce (bez hledání)
- * a právní stránky (R51), kontakt (R72). Výpis obchodu jen se zmínkami bez cen (Albert) ne — je prázdný.
+ * a právní stránky (R51), kontakt (R72).
  * Přihlášení a registrace „noindex, follow“, vše za přihlášením „noindex, nofollow“.
  *
  * @author Roman Hlaváček
@@ -54,7 +54,7 @@ final class SeoMeta
         $routeName = (string) $request->route()?->getName();
         $chain = $this->chain($request, $routeName);
         $page = $this->page($request, $routeName, $chain);
-        $robots = $this->robots($routeName, $page, $chain, $request);
+        $robots = $this->robots($routeName, $page, $request);
 
         return [
             'title' => $this->title($request),
@@ -120,14 +120,11 @@ final class SeoMeta
     /**
      * Pravidlo pro roboty: veřejné stránky indexovat, výsledky hledání ne (nekonečně
      * kombinací, slabý obsah), přihlášení a registraci ne, vše ostatní ani sledovat.
-     * Obchod jen se zmínkami v letácích (Albert, R36) má výpis akcí prázdný — neindexovat (R68).
      */
-    private function robots(string $routeName, string $page, ?Chain $chain, Request $request): string
+    private function robots(string $routeName, string $page, Request $request): string
     {
         if ($page === 'home' || $page === 'offers_chain' || $page === 'offers') {
-            $emptyListing = $chain !== null && $chain->mentionsOnly();
-
-            return $this->isFiltered($request) || $emptyListing ? self::NOINDEX_FOLLOW : self::INDEX;
+            return $this->isFiltered($request) ? self::NOINDEX_FOLLOW : self::INDEX;
         }
         if (in_array($page, ['terms', 'privacy', 'contact'], true)) {
             return self::INDEX;

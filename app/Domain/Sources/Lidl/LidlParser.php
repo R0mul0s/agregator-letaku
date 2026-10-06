@@ -161,6 +161,22 @@ final class LidlParser
     }
 
     /**
+     * Adresa PDF letáku z API letáků Schwarz (`flyer.pdfUrl`) — z PDF se čtou ceny (R86).
+     *
+     * @param  array<mixed>  $response
+     *
+     * @throws SourceResponseChanged
+     */
+    public function pdfUrl(array $response, string $slug): string
+    {
+        $url = is_array($response['flyer'] ?? null) ? ($response['flyer']['pdfUrl'] ?? null) : null;
+
+        return is_string($url) && str_starts_with($url, 'https://')
+            ? $url
+            : throw SourceResponseChanged::because(Chain::Lidl, "leták {$slug} bez odkazu na PDF");
+    }
+
+    /**
      * Nabídky stránky kampaně z povolených kategorií; bez produktů prázdné pole.
      *
      * @param  list<string>  $categories

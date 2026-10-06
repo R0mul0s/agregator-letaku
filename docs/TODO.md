@@ -51,11 +51,11 @@ v [PLAN.md](PLAN.md). Větší celky se z toho stávají etapou.
 
 **Odkud:** etapa 2, R15–R17 v PLAN.md.
 
-- **Albert: ceny z textu stránek** (R36) — text Publitas má názvy, balení i ceny, ale ceny rozsekané („31“ „90“) a bez polohy; zkusit párování podle pořadí bloků, nebo vision LLM nad obrázkem stránky (etapa 6)
-- **Lidl: ceny ze zbytku letáku** (R23, R25) — potraviny jen v letáku dnes ukazujeme jako zmínky bez ceny (R27); cenu by dal až text PDF nebo obrázek stránky přes LLM
+- **Albert a Lidl: neověřené dlaždice PDF** (R86, R87) — balení 1 kg / 1 l / 1 ks bez ceny za jednotku, „cena za 100 g“, konzervy s cenou z hmotnosti po odkapání (Albert ~30 %, Lidl ~40 % velkých cen); případně ověřit polohou jako Penny (R85) nebo LLM
+- **Lidl: leták zmizí ze seznamu dřív, než jeho akce skončí** (R86) — akce z PDF by se označily jako stažené obchodem (R16); sledovat
 - **Zmínky bez ceny (R27):** ověřit, jestli najdou něco u položek z katalogu — zmínky hledají celá slova, pravidla katalogu jsou začátky slov („eidamsk“), takže nejspíš ne (revize 4. 10. 2026); u zmínky ukázat, které slovo ji našlo; víc frází pro stránky bez akcí (recepty, soutěže); zmínky i pro Kaufland (`keyWords` v API letáků Schwarz) a Tesco (seznam produktů letáku)
 - **Lidl: nepotravinové akce** (R25) — dnes se ukládají jen `category: Food`
-- **Penny: neověřené dlaždice letáku** (R26) — ~260 cen z ~560 bez ověření cenou za jednotku; tokeny stránky s polohami předat LLM
+- **Penny: neověřené dlaždice letáku** (R26, R85) — ~85 cen z ~575 (nepotraviny bez balení, velké dlaždice ovoce a zeleniny, drogerie na tmavém pozadí)
 - **Tesco „Super ceny“ z letáku** (R17): položky letáku bez akce v e-shopu chybí — doplnit z obrázků stránek letáku (vision LLM, etapa 6)
 - **řazení výsledků hledání** podle shody nebo slevy — dnes podle začátku platnosti, takže dlouhodobé akce e-shopu jsou nahoře
 
@@ -69,7 +69,7 @@ v [PLAN.md](PLAN.md). Větší celky se z toho stávají etapou.
 - **retence:** smazat `offers.raw` u akcí skončených před N měsíci (Billa ~400 MB ročně), čistit `offer_stores` a `leaflet_pages` skončených akcí
 - **cron „Spuštění PHP souboru“ místo URL** (DEPLOYMENT.md) — bez limitu délky požadavku a tokenu v URL, vyřešilo by O8; ověřit, jestli ho Websupport umí
 - **nasazení přes FTP není atomické** — režim údržby (`storage/framework/down`) během nahrávání, případně nová složka a přepnutí kořene webu
-- **rozhodnout o parseru letáku Penny** (glyfy fontu SVG, ~590 řádků, ~55 % cen) a o **Albertovi jen se zmínkami** — nejhorší poměr údržby k užitku; kandidáti na vypnutí nebo LLM (etapa 6)
+- **parsery letáků (Penny SVG, Lidl a Albert PDF) jsou křehké vůči změně rozvržení** — po každé změně měřit na celém letáku (R85–R87); hlídat propad počtu akcí z letáku
 
 ## Katalog produktů — rozšíření
 

@@ -64,10 +64,10 @@ it('víc obchodů najednou a bez e-shopu se neindexuje (R82)', function (): void
         ->and(metaContent($this->get('/akce?bez-eshopu=1')->getContent(), 'robots'))->toBe('noindex, follow');
 });
 
-it('výpis obchodu jen se zmínkami v letácích (Albert) se neindexuje (R68)', function (): void {
+it('výpis Albertu se indexuje jako ostatní obchody — má akce s cenou z PDF letáku (R86)', function (): void {
     $html = $this->get('/akce?chain=albert')->getContent();
 
-    expect(metaContent($html, 'robots'))->toBe('noindex, follow');
+    expect(metaContent($html, 'robots'))->toBe('index, follow');
 });
 
 it('titulek ze serveru dostane i Vue, aby ho <Head> nepřepsal (R68)', function (): void {

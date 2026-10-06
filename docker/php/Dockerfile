@@ -8,7 +8,9 @@
 
 FROM php:8.4-fpm-alpine
 
+# poppler-utils: pdftotext pro text s polohou z PDF letáků (R86), na hostingu je taky
 RUN apk add --no-cache \
+        poppler-utils \
         git \
         unzip \
         curl \

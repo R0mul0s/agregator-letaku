@@ -182,11 +182,19 @@ final class PennyOfferSource implements OfferSource
             throw SourceResponseChanged::because(Chain::Penny, "leták {$folder} neuvádí platnost");
         }
 
+        // Rozvržení dlaždic celého letáku z ověřených dlaždic všech stránek (R85) — druhé kolo
+        // přiřadí podle něj i bloky bez ceny za jednotku
+        $offsets = [];
+        foreach ($pages as $tokens) {
+            array_push($offsets, ...$this->leaflet->tileOffsets($tokens));
+        }
+        $leafletOffsets = $this->leaflet->commonOffsets($offsets);
+
         $offers = [];
         $pageTexts = [];
         foreach ($pages as $page => $tokens) {
             $validity = $this->leaflet->pageValidity($tokens) ?? $default;
-            array_push($offers, ...$this->leaflet->offers($tokens, $validity, $page, $baseUrl.$page.'/'));
+            array_push($offers, ...$this->leaflet->offers($tokens, $validity, $page, $baseUrl.$page.'/', $leafletOffsets));
             $text = $this->leaflet->pageText($tokens);
             if ($text !== null) {
                 $pageTexts[] = new LeafletPageData(number: $page, text: $text, pageUrl: $baseUrl.$page.'/');

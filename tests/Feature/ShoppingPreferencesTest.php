@@ -23,7 +23,7 @@ beforeEach(function (): void {
 });
 
 it('ukáže všechny obchody, sledovatelné jen ty se zdrojem nabídek', function (): void {
-    // Obchod bez zdroje nabídek (dnes mají zdroj všechny — Albert jen zmínky, R36)
+    // Obchod bez zdroje nabídek (dnes mají zdroj všechny)
     config(['letaky.sources.albert.offers_source' => null]);
 
     $this->get(route('preferences'))

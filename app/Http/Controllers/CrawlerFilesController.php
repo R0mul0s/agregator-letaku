@@ -117,8 +117,7 @@ class CrawlerFilesController extends Controller
     }
 
     /**
-     * Obchody, které teď mají akce s cenou — Albert má jen zmínky v letácích (R36),
-     * jeho výpis by byl prázdný.
+     * Obchody, které teď mají akce s cenou — výpis obchodu bez nich by byl prázdný.
      *
      * @return list<Chain>
      */

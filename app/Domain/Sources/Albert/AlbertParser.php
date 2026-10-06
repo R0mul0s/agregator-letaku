@@ -6,7 +6,8 @@
  * Seznam letáků je GraphQL `getLeaflets` na albert.cz, stránky letáku jsou v `spreads.json`
  * prohlížeče Publitas: každá stránka má `text` (text stránky v pořadí čtení — z něj prohlížeč
  * skládá i atribut alt obrázku) a náhledy v několika velikostech. Ceny jsou v textu rozsekané
- * („31“ „90“, „3490“) a k produktu je přiřadit nejde, proto jen zmínky.
+ * („31“ „90“, „3490“) a bez polohy je k produktu přiřadit nejde — akce s cenou čte
+ * AlbertLeafletParser z PDF letáku (R86).
  *
  * @author Roman Hlaváček
  *

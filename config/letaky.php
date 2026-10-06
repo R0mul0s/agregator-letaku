@@ -128,6 +128,17 @@ return [
         'retry_delay_ms' => 2000,
         // Pauza mezi požadavky na stejný obchod
         'request_delay_ms' => (int) env('LETAKY_REQUEST_DELAY_MS', 1500),
+        // Stažení PDF letáku (25–35 MB) trvá déle než běžná odpověď
+        'pdf_timeout_seconds' => 120,
+    ],
+
+    /*
+    | Text s polohou z PDF letáků (R86): pdftotext z Poppleru, na hostingu /usr/bin/pdftotext
+    | 22.02, v kontejneru balíček poppler-utils. Celý leták (~55 stran) trvá ~7 s.
+    */
+    'pdf' => [
+        'pdftotext_binary' => env('LETAKY_PDFTOTEXT_BINARY', 'pdftotext'),
+        'timeout_seconds' => 120,
     ],
 
     /*
@@ -245,10 +256,10 @@ return [
             'request_delay_ms' => (int) env('LETAKY_BILLA_REQUEST_DELAY_MS', 1000),
         ],
         'albert' => [
-            // Jen zmínky v letácích bez ceny (R27, R36): text stránek z prohlížeče Publitas
+            // Akce s cenou z PDF letáku (R86) a text stránek pro zmínky bez ceny (R27, R36) z prohlížeče
+            // Publitas. Nula akcí je chyba jako u ostatních obchodů (R54) — rozbitý parser by jinak
+            // všechny akce Albertu označil jako stažené (R16)
             'offers_source' => AlbertOfferSource::class,
-            // Stažení bez akcí s cenou není chyba, stačí stránky letáku (u ostatních obchodů je, R54)
-            'mentions_only' => true,
             'has_store_formats' => true,
             'has_eshop' => false,
             'api_url' => 'https://www.albert.cz/api/v1/',
@@ -256,6 +267,9 @@ return [
             'location_types' => ['HYPERMARKET' => 'hypermarket', 'SUPERMARKET' => 'supermarket'],
             // Soubory prohlížeče letáku (viewUrl z GraphQL + cesta)
             'spreads_path' => 'spreads.json',
+            // Metadata letáku s odkazem na PDF (config.downloadPdfUrl); PDF má 25–45 MB a stahuje se
+            // s letaky.http.pdf_timeout_seconds
+            'data_path' => 'data.json',
             'page_path' => 'page/%d',
             'page_image_base_url' => 'https://letaky.albert.cz',
             // Náhled stránky (151 × 263 px) — stačí na kartu zmínky

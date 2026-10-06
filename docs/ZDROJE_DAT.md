@@ -173,7 +173,7 @@ Implementace: `app/Domain/Sources/Tesco/TescoParser.php` a `TescoOfferSource.php
 
 ## Lidl
 
-**Cesta:** JSON z kampaňových stránek webu (~1/3 letáku) a text stránek letáku z API letáků pro zmínky bez ceny (R27); ceny ze zbytku letáku jen přes LLM. Náročnost střední.
+**Cesta:** JSON z kampaňových stránek webu (~1/3 letáku), akce z PDF potravinových letáků přes `pdftotext -bbox-layout` ověřené cenou za jednotku (R86) a text stránek letáku z API letáků pro zmínky bez ceny (R27). Náročnost střední.
 
 ### Web lidl.cz
 - Kampaně najdeš na homepage v sekcích `data-id="…-Current_Sales_Week"` a `…-Next_Sales_Week`. Dlaždice mají `href="/c/ctvrtecni-nabidka/a10103788"` a `subheadline="V prodejnách od 1. 10."`.
@@ -198,11 +198,75 @@ Implementace: `app/Domain/Sources/Tesco/TescoParser.php` a `TescoOfferSource.php
 - Seznam letáků: odkazy `/l/cs/letak/{slug}/ar/0` na `https://www.lidl.cz/c/akcni-letak/s10008644`, nebo `relatedFlyers` v JSON letáku.
 - Detail: `GET https://endpoints.leaflets.schwarz/v4/flyer?flyer_identifier={slug}&region_id=0&region_code=0`. Vrací `offerStartDate` / `offerEndDate`, `pdfUrl`, `pages[]` (obrázek, `zoom` 2400 px, `keyWords`) a `relatedFlyers`.
 - **Potravinové letáky mají `products` prázdné.** Produkty mají jen nepotravinové letáky.
-- PDF (25–34 MB) má použitelnou textovou vrstvu (`pdftotext -layout`), ale sloupce se míchají. Přiřazení ceny a Lidl Plus k produktu proto spolehlivě zvládne až LLM, případně vision nad obrázkem stránky.
+- PDF (25–34 MB) má použitelnou textovou vrstvu. `pdftotext -layout` sloupce míchá, `-bbox-layout` dá každé slovo s polohou — z ní se dlaždice skládají, viz [PDF letáku](#pdf-letáku-r86).
 - Týdně jsou zhruba 4 potravinové letáky × 50–60 stran.
 - **Vyhledávání v prohlížeči letáku** (`…/view/search/page/1`) prohledává jen `keyWords` stránek — žádný seznam produktů s cenami v JS není.
-- **Zmínky bez ceny (R27, implementováno):** `LidlOfferSource::leafletPages` vezme ze stránky letáků slugy s předponou `akcni-letak-od-` (bez „spotrebni-zbozi“, „hity-tydne“, „…cen-v-klidu…“), pro každý stáhne detail a uloží stránky do `leaflet_pages`: `keyWords` + `altText` (popis stránky větou), náhled `thumbnail` (400 px), odkaz `/l/cs/letak/{slug}/view/flyer/page/{n}`. Leták je zdroj `kind = leaflet` bez nabídek. Název = `name` + `title` („Akční leták OD ČTVRTKA 8. 10. - 11. 10. 2026“), platnost `offerStartDate` / `offerEndDate` (místní data).
+- **Zmínky bez ceny (R27, implementováno):** `LidlOfferSource::leaflets` vezme ze stránky letáků slugy s předponou `akcni-letak-od-` (bez „spotrebni-zbozi“, „hity-tydne“, „…cen-v-klidu…“), pro každý stáhne detail a uloží stránky do `leaflet_pages`: `keyWords` + `altText` (popis stránky větou), náhled `thumbnail` (400 px), odkaz `/l/cs/letak/{slug}/view/flyer/page/{n}`. Leták je zdroj `kind = leaflet` s akcemi z PDF (R86). Název = `name` + `title` („Akční leták OD ČTVRTKA 8. 10. - 11. 10. 2026“), platnost `offerStartDate` / `offerEndDate` (místní data).
 - **Pasti `keyWords`:** slova bez pořadí, s velkými počátečními písmeny, čísla bez čárky („05“ = 0,5 l, „2997“ = 29,97); stránky s receptem vyjmenovávají suroviny („Vejce“, „Máslo“ — 8. 10. str. 18 a 49) a poznají se podle „Postup přípravy“, „Nákupní seznam“ nebo `altText` „Recept na…“. Coca-Cola bez „Zero“ na str. 28 je jen „možná“.
+
+### PDF letáku (R86)
+Implementace: `LidlLeafletParser` nad `PdfTextReader` (`pdftotext -bbox-layout`). `LidlOfferSource::leaflets` stáhne
+`flyer.pdfUrl` (timeout `letaky.http.pdf_timeout_seconds`), převede ho a akce přidá do dávky letáku se stránkami.
+
+**Rozvržení** (strana 601 × 1002 b.): dlaždice je sloupec zarovnaný vlevo, od shora:
+- název ~15 b., značka a produkt na 1–3 řádcích („BARON“ / „Pravá uzená slanina“);
+- popis ~12 b. (podmínky akce na více kusů ~9 b.): balení, druh a cena za jednotku — „125 g, 100 g = 20,72 Kč“,
+  „500 g, s chráněným zeměpisným označením, 1 kg = 179,80 Kč“, „6 x 0,5 l, 1 l = 29,97 Kč“, „cena za 1 kg, chlazené“;
+- štítek ~25–37 b.: „Super cena“ (i na dvou řádcích „Super“ / „cena“), „-28% 34.90“ (sleva a původní cena),
+  „-66%“ a vedle malé „209.90**“ (doporučená cena výrobce), „Ušetřete *“ + „33%“, „4+2“ + „zdarma“, „Novinka“;
+- Lidl Plus: malé „S Lidl Plus“ (~9 b.) a pod ním „-25%“ nebo „-10 Kč“;
+- velká cena ~35–110 b. („25.90“); u Lidl Plus je to cena s aplikací.
+
+Pasti:
+- **Velké ceny sousedních dlaždic bývají v jednom řádku** („179.90 119.90 99.90“), štítek a vedle něj název jiné
+  dlaždice taky („-40% 49.90 Mandarinky“). Řádky se proto dělí na úseky podle mezery (> 0,6 × výška písma) a velikosti
+  písma (poměr > 1,5) a dlaždice se skládá z úseků nad velkou cenou s levým okrajem do 8 b. od ceny a mezerou do 20 b.
+- **Běžná cena u Lidl Plus** je buď menší cena (~34–41 b.) nad „S Lidl Plus“ (sleva i bez aplikace, sekt „-33% 179.90**“
+  119.90 a s aplikací 109.90), nebo malá cena (~15 b.) vpravo vedle velké nebo pod jejími desetinami („*standardní cena
+  bez Lidl Plus“ = akce jen s aplikací). Cena za jednotku v popisu patří k ceně s aplikací, někdy k běžné.
+- Akce na více kusů: velká cena je cena kusu při koupi více kusů, běžná cena kusu je malá cena vedle „zdarma“.
+- Balení s desetinnou čárkou („0,7 l, alk. 25 % obj.“) — části popisu se dělí jen čárkou, za kterou není číslice.
+- Cena za jednotku „/PP“ je za pevný podíl (okurky 330 g = 190 g) — s balením nesedí a dlaždice se vynechá.
+- Hlavička strany „Od čtvrtka 8. 10. do 11. 10.“ chybí asi na polovině stran a jinde je rozbitá překrývajícími
+  se vrstvami („Od pondělí čtvrtka xx. 8. 10.…“); patička „Nabídka zboží platí od 8. 10. do 11. 10. 2026“ je skoro
+  všude. Pondělní leták (`offerEndDate` 11. 10.) má strany do 7. 10. i do 11. 10.
+- Stejná dlaždice bývá na více stranách (bryndza str. 6 a 22).
+- Strany s nepotravinovým zbožím (oblečení, nářadí) dlaždice nemají — popis nezačíná balením.
+
+**Pravidla** (`LidlLeafletParser`):
+- Cena se přijme, jen když ji ověří balení × cena za jednotku s tolerancí jako u Penny (2 haléře nebo 1,5 %, R26).
+  Balení o jedné jednotce bez ceny za jednotku (1 kg, 1 l, kus, 100 g, „cena za 1 kg“, „cena za 100 g“) se přijme
+  jen přímo nad štítkem. Neověřitelná dlaždice (bez názvu ve sloupci, „98 g / 100 g“, „⌀ 12 cm“, „balení“) zůstane zmínkou.
+- „-NN% původní“ = sleva, procento musí sedět na ±1; jinak se dlaždice vynechá. „-50 Kč“ s původní cenou vedle musí
+  sedět přesně. „Super cena“, „Ušetřete* NN%“ a cena bez štítku = akční cena, ne sleva (R8).
+- Lidl Plus = `loyalty_price` vedle běžné ceny; s běžnou cenou nad štítkem typ podle ní (sleva / akční cena), se
+  standardní cenou vedle nebo bez ní `LoyaltyOnly` jako na webu. Štítek s aplikací musí sedět k původní, jinak k běžné ceně.
+- „N+M zdarma“ = `Multibuy`, cena je běžná cena kusu (jako `LidlParser`).
+- Platnost: hlavička strany (rok z patičky nebo letáku), jinak patička, jinak leták; „jen v sobotu“ v dlaždici ji zkrátí
+  (v letácích 5. a 8. 10. 2026 se nevyskytlo).
+- Název = řádky názvu („Hladká/ Polohrubá“ bez mezery za lomítkem), popis = celý popis, balení = první část popisu.
+  `source_url` = stránka v prohlížeči letáku, obrázek není. ID `letak-` + otisk názvu, balení a velké ceny (R16).
+- **Duplicity s webem** (CLAUDE.md bod 7): dlaždice se vynechá, když akce z webu má stejnou cenu (bez aplikace nebo
+  s ní), překrývající se platnost a všechna výrazná slova (≥ 4 znaky, ne čísla) kratšího názvu jsou v delším. Jedno
+  společné slovo nestačí — „PIKOK Kladenská pečeně“ a „PIKOK PURE Dušená šunka“ za 19,90 by splynuly.
+- Chyba stažení nebo převodu PDF (`PdfTextFailed`) ukončí stažení celého Lidlu — jinak by akce z letáku byly „stažené“ (R16).
+
+**Výsledek 6. 10. 2026** (měřeno na celých letácích proti kampaním webu staženým týž den, 104 potravinových akcí):
+
+| Leták | Stran | Velkých cen | Ověřeno | Duplicita webu | Nových akcí |
+|---|---|---|---|---|---|
+| od čtvrtka 8. 10. | 50 | 247 | 147 | 54 | 93 (11 s Lidl Plus) |
+| od pondělí 5. 10. | 51 | 207 | 116 | 33 | 83 |
+
+- Ceny proti webu: 87 dlaždic odpovídá akci z webu (stejný výrobek podle názvu), cena sedí u všech; 5 dvojic podobných
+  názvů byly jiné výrobky (listové těsto 400 g / s máslem 230 g, lískové / vlašské ořechy, Kozel 11 / 10…). Leták často
+  uvádí původní cenu, kterou web nemá („-50% 49.90“ u hroznů, web jen 24,90).
+- Ruční kontrola 20 náhodných přijatých dlaždic (10 z každého letáku) proti textu strany: všech 20 správně.
+- Nevzaté velké ceny: nepotravinové strany (oblečení, nářadí — popis bez balení), „Ceny v klidu“, dlaždice s názvem
+  mimo sloupec ceny (mandarinky, okurka na str. 1), balení s více variantami („90 g /95 g /97 g“), „/PP“, vejce „30 ks“
+  bez ceny za jednotku. Uloží se i drogerie a svíčky z potravinového letáku — PDF kategorii nemá.
+- Pondělní leták má 18 ověřených akcí platných do 11. 10.; zmizí-li leták ze seznamu dřív, označí se jako stažené (R16)
+  — pojistka R54 to zastaví jen při propadu nad 40 %.
 
 ### Pole a pasti
 Implementace: `app/Domain/Sources/Lidl/` — kampaně z úvodní stránky, jen kategorie `Food` (R23).
@@ -245,6 +309,7 @@ U cen s kartou je navíc `"loyalty":{"value":2490,"tags":["SO"]}` a `regular` pa
 ### Leták (FlippingBook na files.rewe.co.at)
 - URL letáku: `https://files.rewe.co.at/PennyIntLeaflet/CZ/{DD_MM_YYYY}/`. Odkaz se dá vyčíst ze stránky `https://www.penny.cz/nabidky/letaky` (hledat `PennyIntLeaflet/CZ/`).
 - **Nejlepší zdroj je vektorová vrstva stránek:** `…/files/assets/common/page-vectorlayers/0001.svg` až `00NN.svg`. Obsahuje `<svg:text transform="matrix(a b c d e f)">` s `<svg:tspan x="…" y="…" fill="…">`, tedy každý token se souřadnicemi, velikostí a barvou. Název, gramáž, cena, přeškrtnutá cena a % jdou spárovat podle pozice, nebo se tokeny s pozicemi předají LLM (levnější než vision).
+- **Mezery v textu jsou nezlomitelné (U+00A0)** — `rtrim` ani vzor s obyčejnou mezerou je nechytí (`"500 g | "` končí U+00A0, „cena bez pennykarty“ má U+00A0 mezi slovy). Balení a cena za jednotku bývají **dva tokeny na stejném účaří** (`"500 g |"` a `"100 g 3,98 Kč"` o 17 b. vpravo), takže padnou do různých sloupců; jinde je cena za jednotku na dvou řádcích (`"100g"` / `"31,96 Kč"`) nebo bez haléřů (`"1 kg 49 Kč"`).
 - **Vlastní glyfy ve fontu cen** (odvozeno shodou s API 2. 10. 2026, nedokumentováno):
   - velká cena „24Ǻ“: `Ǻ` (U+01FA) = „,90“ — 560 výskytů, jiné haléře se v letáku neobjevily (výjimečně `Ƿ`, `ɏ` — přeskočí se)
   - malá cena „49“ „,“+U+E00A+U+E009 = „49,90“; U+E00A = „9“, U+E009 = „0“
@@ -253,12 +318,17 @@ U cen s kartou je navíc `"loyalty":{"value":2490,"tags":["SO"]}` a `regular` pa
 - PDF (`…/files/assets/common/downloads/{DD_MM_YYYY}.pdf`) má kvůli fontu rozbité ceny, nepoužívat.
 - Obrázky stran jsou jen pozadí bez textu.
 
-### Parser letáku (bez LLM, R23)
+### Parser letáku (bez LLM, R23, R26, R85)
 Implementace: `app/Domain/Sources/Penny/PennyLeafletParser.php`, podrobný postup v jeho popisu.
 
 - Rozvržení dlaždic se liší stránku od stránky (název nad cenou, vedle ní, bílý na barevném pruhu), pevné okno kolem ceny nefunguje.
-- **Přiřazení ceny k dlaždici je ověřené cenou za jednotku**, kterou leták u potravin uvádí: „250 g“ + „100 g 5,16 Kč“ sedí jen k 12,90 Kč. Sousední dlaždice se tak nespletou. Blok textu bez ceny za jednotku se přijme jen u balení 1 kg / 1 l / 1 ks přímo nad cenou.
-- Výsledek 2. 10. 2026: **~300 ověřených akcí z ~560 cen** (35 stran). Zbytek (hlavně dlaždice bez ceny za jednotku, s PENNY kartou, kombinace) se neuloží — raději chybějící akce než špatná cena. Dlaždice s PENNY kartou nese API.
+- **Řádek končící „|“ pokračuje** nejbližším tokenem vpravo na stejném účaří (do 60 b.) — spojí se před skládáním bloků.
+- **První kolo: přiřazení ověřené cenou za jednotku**, kterou leták u potravin uvádí: „250 g“ + „100 g 5,16 Kč“ sedí jen k 12,90 Kč. Sousední dlaždice se tak nespletou. Varianty „270/280 g“ + „100 g 7,37/7,11 Kč“ musí sedět obě. Blok textu bez ceny za jednotku se v prvním kole přijme jen u balení 1 kg / 1 l / 1 ks přímo nad cenou. Každá cena i blok nejvýš jednou: nejbližší dvojice, pak rozšiřující cesty (dvě sousední stejné ceny 34,90 Kč u Oreo a Skittles).
+- **Druhé kolo: rozvržení (R85).** Blok bez ceny za jednotku (sýr 100 g, „cena za 1kg“ vedle ceny, nepotraviny „1ks“) se přijme, když vůči ceně leží se stejným posunem (±3 b.) jako aspoň 3 ověřené dlaždice téže stránky nebo 8 v celém letáku, a cena i blok mají jediného kandidáta. Posuny celého letáku sbírá `PennyOfferSource` prvním průchodem přes všechny stránky (`tileOffsets`, `commonOffsets`) — stránka se zeleninou sama nic neověří. Blok s nesedící cenou za jednotku se nepřijme nikdy.
+- **PENNY karta:** dlaždici pozná drobný štítek „PENNY Karta“ u ceny (ne nadpis oddílu „MOJE PENNY KARTA“, 10,2 b.). Velká cena je cena s kartou (`loyalty_price`, `LoyaltyOnly`), běžná je malé číslo u popisku „cena bez pennykarty“; bez něj se dlaždice neuloží.
+- **Cena za více kusů** (Jägermeister: „při koupi 1 ks cena 169,90 Kč od 2 ks cena 149,90 Kč“, u ceny „při koupi 2 a více ks“): jako u Billy `Multibuy`, cena kusu a v `promotion_text` „od 2 ks: 149,90 Kč“. Bez čitelné ceny kusu se dlaždice neuloží.
+- **Přeškrtnutá cena bez čáry:** titulní strana glyf čáry nemá — malé číslo vpravo pod cenou se uzná, jen když sedí procento ze štítku slevy („40 %“, ±1 procentní bod).
+- Výsledek na letáku 30. 9. 2026 (35 stran, 574 velkých cen): **dřív 297, teď 489 akcí** (R85), žádná dřívější nezmizela; kontrola štítku slevy u 337 akcí bez nesouladu. Zbytek (~85: nepotraviny bez balení, velké dlaždice zeleniny mimo mřížku, chyby letáku jako kefír 500 ml „100 ml 19,80 Kč“, „+25 % navíc“) se neuloží — raději chybějící akce než špatná cena.
 - Položka letáku, kterou nese i API (stejná cena, stejné balení, společné slovo názvu), se neuloží podruhé. Samotná shoda slov nestačí — „Karlova Koruna“ je u desítek položek.
 - Externí ID akce z letáku je otisk názvu, balení a ceny (`letak-…`), leták kód zboží nemá.
 - **Text stránek pro zmínky bez ceny (R27):** `PennyLeafletParser::pageText` spojí tokeny shora dolů a zleva doprava; ukládá se do `leaflet_pages` s odkazem `…/{DD_MM_YYYY}/{n}/`, bez náhledu. Zmínka se ukáže jen tam, kde k položce Penny v tom období nemá akci s cenou.
@@ -276,7 +346,7 @@ Implementace: `app/Domain/Sources/Penny/PennyLeafletParser.php`, podrobný postu
 
 ## Albert
 
-**Cesta:** jen leták. Metadata z GraphQL, **text stránek z Publitas** (`spreads.json`, R36) — zatím zmínky bez ceny; ceny případně z textu nebo vision LLM. Náročnost střední.
+**Cesta:** jen leták. Metadata z GraphQL, **akce s cenou z PDF letáku** (`pdftotext -bbox-layout`, R86) a **text stránek z Publitas** (`spreads.json`, R36) pro zmínky bez ceny. Náročnost střední.
 
 Albert nemá HTML výpis akcí a e-shop už neprovozuje. Katalog `productSearch`
 v GraphQL má `potentialPromotions` vždy prázdné, takže **není zdrojem akcí**.
@@ -300,19 +370,58 @@ Content-Type: application/json
 Publitas (Albert CZ, groupId 90263):
 | Účel | URL |
 |---|---|
-| Metadata | `https://letaky.albert.cz/{slug}/data.json` |
+| Metadata | `https://letaky.albert.cz/{slug}/data.json` — `numPages` a **`config.downloadPdfUrl`** (odkaz na PDF) |
+| PDF letáku | `https://view.publitas.com/90263/{id}/pdfs/{uuid}.pdf?response-content-disposition=…` — 28 MB (HM, 54 stran), 42 MB (SM, 45 stran); číslo strany PDF = `page/{n}` prohlížeče |
 | Stránky | `https://letaky.albert.cz/{slug}/spreads.json` — pole dvoustran, u každé stránky `number`, **`text`** (text stránky v pořadí čtení) a `images` (`at200` 151×263 … `at2400` 1818×3169, cesty relativní k `https://letaky.albert.cz`) |
 | Stránka v prohlížeči | `https://letaky.albert.cz/{slug}/page/{n}` |
 | Hotspoty | `https://letaky.albert.cz/{slug}/page/{n}/hotspots_data.json` (jen pár externích odkazů, **žádné produkty**) |
 
+### Akce z PDF letáku (bez LLM, R86)
+Implementace: `app/Domain/Sources/Albert/AlbertLeafletParser.php`, podrobný postup v jeho popisu. `AlbertOfferSource`
+stáhne ke každému hlavnímu letáku `data.json` a PDF (`letaky.http.pdf_timeout_seconds`, pauza `request_delay_ms`),
+text s polohou dá `PdfTextReader` (pdftotext) a akce přidá do dávky letáku vedle stránek pro zmínky.
+
+- **Dlaždice:** název písmem ~14,6 b., pod ním popis ~10,5 b. s odrážkami — balení, cena za jednotku
+  („100 ml = 33,27 Kč“, „1 ks od 4,99 Kč“, „1 dávka = 1,11 Kč“), „vybrané druhy“, „platí do 13. 10. 2026“
+  a **▼ nejnižší cena za 30 dní** („▼ 44,90 Kč“ — není to akční cena, do popisu se neukládá).
+- **Akční cena** ~31–50 b.: koruny a haléře jako dvě slova („49“ „90“, haléře menší a nahoře, někdy dva bloky)
+  nebo „599,“ „-“. **Přeškrtnutá / běžná cena** („BĚŽNÁ CENA“ je obrázek) je jedno slovo bez dalšího za sebou:
+  „69,90“, „169,-“, „1199,-/“. Sleva „- 50 %“ jsou tři slova; Albert procento uřezává (37,6 % → „- 37 %“).
+- **Cena s aplikací Můj Albert:** velká cena je ta s aplikací, menší „BEZ APLIKACE 39 90“ pod ní je běžná
+  a cena za jednotku je dvojí („1 l = 53,20 Kč bez Aplikace / 46,54 Kč Aplikace“). Bez menší ceny (Mlynářské
+  pečivo) je cenou bez aplikace přeškrtnutá cena. Ukládá se `loyalty_price` (`muj_albert`) vedle `price`;
+  procento na cenovce patří k ceně s aplikací, proto se `discount_percent` u ní neukládá.
+- **Cena leží nad názvem, pod ním i vedle něj** — přiřadí se jen ověřená: cena přepočtená na balení musí dát
+  každou cenu za jednotku dlaždice (tolerance jako Penny, R26), u „od“ s největším balením. Ze sedících dvojic
+  vyhrávají nejbližší (do 120 b.). Sleva v procentech u ceny musí sedět na přeškrtnutou cenu, jinak se dlaždice vynechá.
+- **Řádky pdftotext se nepoužívají** — slučují slova sousedních dlaždic („- 32 % Vepřová“, „debrecínka 21,90/“);
+  řádky se skládají ze slov podle výšky písma a polohy.
+- **Neověřitelné (zůstanou zmínkou):** balení 1 kg / 1 l / 1 ks bez ceny za jednotku (ovoce, maso, mouka),
+  „cena za 100 g“ (uzeniny, lahůdky), zboží bez ceny za jednotku (elektro, květiny), konzervy s cenou za jednotku
+  z hmotnosti po odkapání (sardinky, tuňák — nesedí na balení), akce „CENA ZA 1 bal. PŘI KOUPI 2 bal.“.
+  „1 BOD NAVÍC při koupi 2 kusů“ a „+1 KREDIT NAVÍC“ jsou body věrnostního programu, cena platí.
+- **Platnost:** „platí do …“ v dlaždici, poznámka „*Tato nabídka platí od čtvrtka …“ pro názvy s hvězdičkou,
+  oddíl „PLATÍ POUZE PÁ–NE“ s daty velkým písmem (dlaždice pod ním), „Nabídka na této straně platí od … do …“,
+  jinak platnost letáku.
+- **Externí ID** je otisk názvu, balení a cen (`letak-…`); titulní strana opakuje další strany a strana 54
+  je kopie strany 8 — stejná akce se uloží jednou. Akce se stejným klíčem v letáku HM i SM platí ve všech
+  prodejnách (bez formátu).
+- **Výsledek 6. 10. 2026 (týden 40):** HM 596 akčních cen → 416 ověřených (405 akcí po odstranění duplicit),
+  SM 452 → 323 (311). Nevzaté: balení 1 kg / 1 l / 1 ks bez ceny za jednotku 66 + 44, jiné dlaždice bez ceny
+  za jednotku 58 + 28, cena bez dlaždice v okolí (titulní strany, soutěže) 24 + 24, „cena za 100 g“ 17 + 19,
+  cena za jednotku nesedí 14 + 12, akce na více kusů 1 + 1, dlaždici vzala bližší cena 0 + 1. Ruční kontrola 15 náhodných akcí: vše správně;
+  procento slevy u ceny nesedí 0×. Převod celého letáku pdftotext ~7 s.
+
 ### Pole a pasti
-- **Text stránek (R36, implementováno):** `AlbertOfferSource` stáhne hlavní letáky HM a SM (`isDefault`, lokální varianty ne) a text stránek uloží pro zmínky bez ceny. Text obsahuje názvy, balení i ceny, ale ceny jsou rozsekané („-34 %“ „31“ „90“, „3490“ = 34,90, „48,90/“ = původní cena) a pořadí bloků neodpovídá dlaždicím; titulní strana opakuje obsah další strany a některé strany jsou v letáku dvakrát.
+- **Text stránek (R36, implementováno):** `AlbertOfferSource` stáhne hlavní letáky HM a SM (`isDefault`, lokální varianty ne) a text stránek uloží pro zmínky bez ceny. Text obsahuje názvy, balení i ceny, ale ceny jsou rozsekané („-34 %“ „31“ „90“, „3490“ = 34,90, „48,90/“ = původní cena) a pořadí bloků neodpovídá dlaždicím; titulní strana opakuje obsah další strany a některé strany jsou v letáku dvakrát. Akce s cenou proto z PDF s polohou slov (výše).
+- **Selhání PDF ukončí celé stažení chybou** (`PdfTextFailed`, HTTP, `data.json` bez odkazu) — bez akcí jednoho letáku by je import označil jako stažené obchodem (R16). Nula akcí je chyba jako u ostatních obchodů (R54); `mentions_only` už Albert nemá.
+- `isDefault` mají i letáky dalšího týdne a katalogy (`41sm_akcni_letak`, `41sm_akcni_katalog_brand`) — stahuje se PDF každého z nich (v úterý až 6 PDF po 25–45 MB).
 - Platnost je v UTC a ve formátu `DD/MM/YYYY HH:MM:SS` (`22:00` = půlnoc místního času).
 - **Hypermarket a supermarket mají odlišné letáky** (`40hm_akcni_letak`, `40sm_akcni_letak`). Existují i lokální varianty (`40sm_akcni_letak_frenstat`, `isDefault=false`) a výjimky prodejen.
 - **Dvojí cena:** s aplikací Můj Albert (modrá cenovka) a „BEZ APLIKACE xx,xx“.
 - Platnost bloků uvnitř letáku: „PLATÍ POUZE PÁ–NE 2.–4. 10.“, „do 27. 10.“.
 - Další pole jen v obsahu stránky: „BĚŽNÁ CENA“, „▼ xx Kč“ (nejnižší cena za 30 dní), limity („MAXIMÁLNĚ 25 ks/den“), štítky „NEPORAZITELNÉ“ a „vybrané druhy“.
-- Textová vrstva PDF existuje, ale ceny ztrácejí desetinnou čárku (haléře v horním indexu: „9490“ = 94,90) a sloupce jsou rozházené. **Spolehlivý je vision LLM nad obrázkem stránky**, text PDF slouží jako kontrola.
+- Textová vrstva PDF bez polohy ztrácí desetinnou čárku (haléře v horním indexu: „9490“ = 94,90) a sloupce jsou rozházené; s polohou (`-bbox-layout`) jsou haléře samostatné slovo menším písmem nahoře a dlaždice jdou poskládat (výše). Vlastní fonty dávají řídicí znak U+0007, `PdfTextReader` ho vynechá.
 - Slug dalšího týdne je `{týden}{hm|sm}_akcni_letak` a dá se zkoušet dopředu **(předpoklad)**.
 - Doména má Akamai Bot Manager, ale požadavky (GraphQL, Publitas, obrázky) prošly i s výchozím UA. Při vyšší frekvenci může blokovat **(předpoklad)**.
 - **User-Agent s adresou `https://…` jde přes prerender** (ověřeno 4. 10. 2026, R65): Albert ho bere jako robota vyhledávače a pošle na prerender, který zahodí `Content-Type` — Apollo GraphQL pak dotaz zablokuje jako CSRF a vrátí 400 se stránkou HTML. UA proto bez schématu: `Slevohlidka/1.0 (+slevohlidka.rhsoft.cz)` projde (200).

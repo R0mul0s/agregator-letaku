@@ -25,12 +25,15 @@ Vychází z nasazení projektu Počasí na stejném účtu.
 | `coming-soon/` | stránka „Brzy spouštíme“ pro `slevohlidka.cz` do přestěhování aplikace (R79) — viz níž |
 
 ## Předpoklady na hostingu
-- **PHP 8.4** s `pdo_mysql`, `mbstring`, `intl`, `dom` (vektorová vrstva letáku Penny), `openssl`
+- **PHP 8.4** s `pdo_mysql`, `mbstring`, `intl`, `dom` (vektorová vrstva letáku Penny, výstup pdftotext), `openssl`
+- **`pdftotext` (Poppler) a povolené `proc_open`** — text s polohou z PDF letáků Lidlu a Albertu (R86). Ověřeno
+  2026-10-06 diagnostickým skriptem: `/usr/bin/pdftotext` 22.02, `memory_limit` 512M, `max_execution_time` 600,
+  žádné `disable_functions`, `open_basedir` dovoluje `/tmp/` (dočasný soubor s PDF), rozšíření GD i Imagick
 - **MariaDB 11.4**
 - **Document root** subdomény nasměrovaný do `public/` (WebAdmin → Web → Služby → Upravit)
 - **Odchozí HTTPS** k obchodům (prodejny.kaufland.cz, xapi.tesco.com, api.prod.retail.tesco.com,
-  www.lidl.cz, endpoints.leaflets.schwarz, www.penny.cz, files.rewe.co.at, www.albert.cz,
-  letaky.albert.cz, www.globus.cz, www.billa.cz) — Websupport ho povoluje
+  www.lidl.cz, endpoints.leaflets.schwarz, assets.leaflets.schwarz (PDF), www.penny.cz, files.rewe.co.at, www.albert.cz,
+  letaky.albert.cz, view.publitas.com (PDF), www.globus.cz, www.billa.cz) — Websupport ho povoluje
 - `mod_rewrite` a `mod_headers` — na HTTPS přesměrovává a bezpečnostní hlavičky nastavuje
   `public/.htaccess` (TLS končí na proxy hostingu, schéma je v `X-Forwarded-Proto`)
 
@@ -431,6 +434,32 @@ platí N akcí, na které čekáte“. **„Jen slevy“ ve Všech akcích zruš
    - nákupní seznam: budoucí akce je za platnými s „platí až od …“, odškrtnutí se zeptá
    - cron `send-digests` vypíše řádek „Dnes začínající akce — zapsáno: N“ (záznamy vznikají od 7:00)
 3. Zapiš verzi do *Nasazené verze*.
+
+### Aktualizace z `d226ba4` (sedmnácté nasazení)
+
+**Víc cen z letáků bez LLM:** leták Penny s novými pravidly parseru (R85, ~490 akcí místo ~300), PDF letáků
+přes `pdftotext` (R86) — Lidl s akcemi ze zbytku potravinového letáku a **Albert poprvé s akcemi s cenou**
+(R87; `mentions_only` zrušené, výpis Albertu se indexuje). Bez SQL skriptu, `composer.lock` se nezměnil,
+žádné soubory nezmizely, cron beze změny. Hosting má `pdftotext` (viz *Předpoklady na hostingu*).
+
+1. **Nahraj `deploy/upload/`** bez `vendor/`; `public/build/` nejdřív smaž. Nové soubory:
+   `app/Domain/Sources/Pdf/` (celá složka), `app/Domain/Sources/Exceptions/PdfTextFailed.php`,
+   `app/Domain/Sources/Lidl/LidlLeafletParser.php`, `app/Domain/Sources/Albert/AlbertLeafletParser.php`,
+   `AlbertBox.php`, `AlbertTile.php`; změnily se `config/letaky.php`, zdroje Penny, Lidlu a Albertu,
+   `ImportChainOffers`, `Chain`, `SeoMeta`, `LandingController`.
+2. **Hned ručně zavolej stažení** a ověř, že se vejdou do limitu požadavku (O8; lokálně ~25–35 s každé):
+   - `/cron/import-offers?chain=penny&token=…` → `Penny — uloženo nabídek: ~500`
+   - `/cron/import-offers?chain=lidl&token=…` → `Lidl — uloženo nabídek: ~270` (2 PDF po ~28 MB)
+   - `/cron/import-offers?chain=albert&token=…` → `Albert — uloženo nabídek: ~1 400` (až 6 PDF: letáky HM
+     a SM tohoto a příštího týdne a katalog)
+
+   Chyba „Text PDF letáku: …“ = `pdftotext` na hostingu nejde spustit; stažení obchodu skončí chybou
+   a dosavadní akce zůstanou (nic se neoznačí jako stažené).
+3. **Ověř:**
+   - `version.txt?v=<cokoli>`, `/health/imports` vrací 200
+   - `/akce?chain=albert` ukáže akce s cenou (dřív prázdné), hlavička stránky má `index, follow`
+   - `/akce?chain=lidl&brzy=1` má akce od čtvrtka i mimo kampaně webu; odkaz akce z letáku vede na stránku letáku
+4. Zapiš verzi do *Nasazené verze*.
 
 **Každá nová migrace potřebuje SQL skript** `deploy/migrations-<datum>-<popis>.sql`
 (opakovatelný: `CREATE TABLE IF NOT EXISTS`, `ADD COLUMN IF NOT EXISTS`) včetně zápisu do
