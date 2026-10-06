@@ -461,7 +461,7 @@ přes `pdftotext` (R86) — Lidl s akcemi ze zbytku potravinového letáku a **A
    - `/akce?chain=lidl&brzy=1` má akce od čtvrtka i mimo kampaně webu; odkaz akce z letáku vede na stránku letáku
 4. Zapiš verzi do *Nasazené verze*.
 
-### Aktualizace z `034fa36` / `60f0211` (osmnácté nasazení)
+### Aktualizace z `034fa36` / `60f0211` (osmnácté nasazení — provedeno, `7dbe429`)
 
 **Akce, které ještě nezačaly, i u Globusu a Billy** z PDF letáků příštího týdne (R88, R89); obsahuje i opravu
 letáku Penny se složkou `…_tl2` (`60f0211`), pokud ještě není nahraná. Když akce začne a vrátí ji API, převezme
@@ -541,3 +541,4 @@ Co běží na produkci — pro `git log <commit>..HEAD` při dalším nasazení
 | 2026-10-05 | `42479f4` | patnácté nasazení: přehled uživatelů pro admina `/uzivatele` s poslední aktivitou a nastavením (R84), oprava tlačítka na červeném panelu a hrany tlačítek v tmavém režimu (R83, `f43d766`); SQL `migrations-2026-10-05-posledni-aktivita.sql` |
 | 2026-10-06 | `d226ba4` | šestnácté nasazení: oprava stažení Kauflandu — stránka má od zveřejnění příštího týdne oba týdny a stažení se stránkami prodejen padalo na paměti (od 5. 10. 13:01 bez nových akcí, „Brzy“ bez Kauflandu); nahrané jen `app/Domain/Sources/Kaufland/`, `config/letaky.php` a `version.txt`, bez SQL skriptu. Ruční stažení po nasazení: 1 465 akcí, 798 od 7. 10. |
 | 2026-10-06 | `034fa36` | sedmnácté nasazení: víc cen z letáků bez LLM — leták Penny s novými pravidly (R85), PDF letáků přes `pdftotext` (R86): Lidl s akcemi ze zbytku potravinového letáku a Albert poprvé s akcemi s cenou (R87, `mentions_only` zrušené); bez SQL skriptu. Ruční stažení po nasazení: Penny 519, Lidl 275, Albert 1 393 nabídek |
+| 2026-10-06 | `7dbe429` | osmnácté nasazení: akce, které ještě nezačaly, i u Globusu a Billy z PDF letáků příštího týdne (R88, R89; převzetí řádku z PDF akcí z API), oprava letáku Penny se složkou `…_tl2` (`60f0211`); bez SQL skriptu, smazané přesunuté `AlbertBox.php` a `AlbertTile.php`. Ruční stažení: Globus 797, Billa 3 596, Penny 906 nabídek; v „Brzy“ Kaufland 798, Albert 772, Penny 413, Billa 189, Lidl 152, Globus 141 |
