@@ -36,6 +36,8 @@ const ALL_CHAINS = 'vse';
 const CHAIN_SEPARATOR = ',';
 
 const props = defineProps({
+    /** Nadpis podle obchodu nebo produktu („Pivo v akci“), stejný jako pro vyhledávače (SeoMeta, R94). */
+    heading: { type: String, required: true },
     searchUrl: { type: String, required: true },
     /** Adresa našeptávače a od kolika znaků se ptá. */
     suggestUrl: { type: String, required: true },
@@ -167,7 +169,7 @@ onBeforeUnmount(() => window.clearTimeout(liveTimer));
         <Head :title="page.props.seoTitle" />
 
         <header class="page__header">
-            <h1 class="page__title">{{ t('offers.title') }}</h1>
+            <h1 class="page__title">{{ heading }}</h1>
             <p class="page__subtitle">{{ t('offers.count', { count: offers.total }) }}</p>
         </header>
 

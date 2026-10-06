@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Domain\Offers\LocalCalendar;
+use App\Domain\Offers\OfferPages;
 use App\Enums\Chain;
 use App\Enums\ScrapeStatus;
 use App\Models\Offer;
@@ -36,7 +37,10 @@ class CrawlerFilesController extends Controller
     /** Jak dlouho smí odpověď ležet v cache (sekundy) — obsah se mění jen se staženými akcemi. */
     private const CACHE_SECONDS = 3600;
 
-    public function __construct(private readonly LocalCalendar $calendar) {}
+    public function __construct(
+        private readonly LocalCalendar $calendar,
+        private readonly OfferPages $pages,
+    ) {}
 
     /**
      * robots.txt: na produkci veřejné stránky ano, soukromé a technické ne; jinde nic.
@@ -56,7 +60,8 @@ class CrawlerFilesController extends Controller
     }
 
     /**
-     * sitemap.xml: úvodní stránka, Všechny akce, akce jednotlivých obchodů a právní stránky (R51).
+     * sitemap.xml: úvodní stránka, Všechny akce, akce jednotlivých obchodů a produktů katalogu
+     * s akcemi na čistých adresách (R94), právní stránky (R51) a kontakt.
      * Datum změny akcí je poslední úspěšné stažení, právních stránek datum jejich účinnosti (R68)
      * — jinak by se „měnily“ dvakrát denně a Google by datu přestal věřit.
      */
@@ -68,9 +73,13 @@ class CrawlerFilesController extends Controller
             ['loc' => SeoMeta::homeUrl(), 'lastmod' => $offersModified],
             ['loc' => route('offers'), 'lastmod' => $offersModified],
             ...array_map(fn (Chain $chain): array => [
-                'loc' => route('offers', ['chain' => $chain->value]),
+                'loc' => $this->pages->chainUrl($chain, absolute: true),
                 'lastmod' => $offersModified,
             ], $this->chainsWithCurrentOffers()),
+            ...array_map(fn (int $productId): array => [
+                'loc' => $this->pages->productUrl($productId, absolute: true),
+                'lastmod' => $offersModified,
+            ], $this->pages->productsWithOffers()),
             ['loc' => route('legal.terms'), 'lastmod' => $legalModified],
             ['loc' => route('legal.privacy'), 'lastmod' => $legalModified],
             ['loc' => route('contact'), 'lastmod' => $legalModified],
@@ -92,7 +101,7 @@ class CrawlerFilesController extends Controller
             'homeUrl' => SeoMeta::homeUrl(),
             'chains' => array_map(fn (Chain $chain): array => [
                 'name' => $chain->genitive(),
-                'url' => route('offers', ['chain' => $chain->value]),
+                'url' => $this->pages->chainUrl($chain, absolute: true),
             ], $this->chainsWithCurrentOffers()),
         ])->render();
 

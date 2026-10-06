@@ -10,6 +10,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Offers\OfferPages;
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\AnnouncementController;
 use App\Http\Controllers\AvatarController;
@@ -68,6 +69,11 @@ Route::middleware('throttle:'.RateLimits::PUBLIC)->group(function (): void {
     // Veřejné (R44): úvodní stránka pro nepřihlášené (přihlášený tu má Moje slevy) a Všechny akce
     Route::get('/', HomeController::class)->name('home');
     Route::get('/akce', OffersController::class)->name('offers');
+    // Čisté adresy pro vyhledávače (R94): obchod /akce/lidl, produkt katalogu /akce/pivo (OfferPages).
+    // Našeptávač /akce/naseptavac je registrovaný až níž — tady se z části adresy vylučuje
+    Route::get('/akce/{slug}', OffersController::class)
+        ->where('slug', '(?!naseptavac$)[a-z0-9]+(?:-[a-z0-9]+)*')
+        ->name(OfferPages::PAGE_ROUTE);
 
     // Právní stránky (R51)
     Route::get('/podminky', [LegalController::class, 'terms'])->name('legal.terms');

@@ -54,7 +54,7 @@ it('sdílí patičku s obchody, časem posledního stažení a odkazy, bez adres
 
     $this->get(route('offers'))
         ->assertInertia(fn (Assert $page) => $page
-            ->where('siteFooter.chains.0', ['chain' => 'kaufland', 'url' => '/akce?chain=kaufland'])
+            ->where('siteFooter.chains.0', ['chain' => 'kaufland', 'url' => '/akce/kaufland'])
             ->has('siteFooter.chains', 7)
             ->where('siteFooter.lastImportAt', '2026-10-06T11:00:00+00:00')
             ->where('siteFooter.contactUrl', '/kontakt')

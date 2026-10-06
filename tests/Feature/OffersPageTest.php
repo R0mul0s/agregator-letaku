@@ -39,7 +39,8 @@ beforeEach(function (): void {
 function offerNames(array $query = []): array
 {
     $names = [];
-    test()->get(route('offers', $query))
+    // Jeden obchod nebo produkt přesměruje na čistou adresu (R94)
+    test()->followingRedirects()->get(route('offers', $query))
         ->assertOk()
         ->assertInertia(function (Assert $page) use (&$names): void {
             $page->component('Offers');
@@ -239,7 +240,7 @@ it('akce produktu z našeptávače; zrušený filtr jen slev (R77) staré odkazy
     expect(offerNames(['produkt' => $product->id]))->toBe(['Tatra máslo'])
         ->and(offerNames(['sleva' => 1]))->toEqualCanonicalizing(['Tatra máslo', 'Máslo bez produktu', 'Rama']);
 
-    $this->get(route('offers', ['produkt' => $product->id]))
+    $this->get('/akce/maslo')
         ->assertInertia(fn (Assert $page) => $page->where('product', 'Máslo')->where('filters.produkt', $product->id));
 });
 
@@ -254,8 +255,37 @@ it('když text nic nenajde, ukáže výsledky opraveného překlepu (R71)', func
             ->where('filters.q', 'pyzza'));
 });
 
-it('výpis zúžený produktem se neindexuje (R71)', function (): void {
-    $product = Product::factory()->create();
+it('stránka produktu bez akcí ani produkt omezený na obchod se neindexují (R71, R94)', function (): void {
+    $product = Product::factory()->create(['name' => 'Máslo']);
 
-    expect($this->get(route('offers', ['produkt' => $product->id]))->getContent())->toContain('<meta name="robots" content="noindex, follow">');
+    expect($this->get('/akce/maslo')->getContent())->toContain('<meta name="robots" content="noindex, follow">');
+
+    Offer::factory()->create(['name' => 'Tatra máslo'])->productAssignments()->create(['product_id' => $product->id, 'status' => MatchStatus::Match, 'is_manual' => false]);
+
+    expect($this->get('/akce/maslo')->getContent())->toContain('<meta name="robots" content="index, follow">')
+        ->and($this->get('/akce/maslo?chain=lidl')->getContent())->toContain('<meta name="robots" content="noindex, follow">');
+});
+
+it('čisté adresy obchodu a produktu, staré přesměruje, neznámá 404 (R94)', function (): void {
+    $product = Product::factory()->create(['name' => 'Minerální voda']);
+
+    $this->get('/akce/lidl')->assertOk()->assertInertia(fn (Assert $page) => $page->where('filters.chain', ['lidl'])->where('heading', 'Akce z letáku Lidlu'));
+    $this->get('/akce/mineralni-voda')->assertOk()->assertInertia(fn (Assert $page) => $page->where('filters.produkt', $product->id)->where('heading', 'Minerální voda v akci'));
+    $this->get('/akce?chain=lidl&strana=2')->assertRedirect('/akce/lidl?strana=2')->assertStatus(301);
+    $this->get('/akce?produkt='.$product->id.'&chain=tesco')->assertRedirect('/akce/mineralni-voda?chain=tesco');
+    // Víc obchodů a změny filtru ve Vue (požadavek Inertie) zůstanou na /akce bez přesměrování
+    $this->get('/akce?chain=lidl,tesco')->assertOk();
+    $this->get('/akce?chain=lidl', ['X-Inertia' => 'true'])->assertStatus(409);
+    $this->get('/akce/neexistuje')->assertNotFound();
+});
+
+it('akce produktu řadí od nejnižší ceny za jednotku, bez balení na konec (R94)', function (): void {
+    $product = Product::factory()->create(['name' => 'Pivo']);
+    foreach ([['Pivo 2 l', 5990, 2000], ['Pivo 0,5 l', 1990, 500], ['Pivo bez balení', 990, null], ['Pivo 1,5 l', 3990, 1500]] as [$name, $price, $quantity]) {
+        Offer::factory()->create(['name' => $name, 'price' => $price, 'quantity' => $quantity, 'unit' => PackageUnit::Milliliter])
+            ->productAssignments()->create(['product_id' => $product->id, 'status' => MatchStatus::Match, 'is_manual' => false]);
+    }
+
+    // 2 l = 29,95 Kč/l, 1,5 l = 26,60 Kč/l, 0,5 l = 39,80 Kč/l
+    expect(offerNames(['produkt' => $product->id]))->toBe(['Pivo 1,5 l', 'Pivo 2 l', 'Pivo 0,5 l', 'Pivo bez balení']);
 });

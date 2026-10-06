@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Domain\Offers\OfferPages;
 use App\Domain\Push\PushSender;
 use App\Domain\Push\WebPushSender;
 use App\Models\User;
@@ -25,11 +26,14 @@ use Illuminate\Validation\Rules\Password;
 class AppServiceProvider extends ServiceProvider
 {
     /**
-     * Registrace služeb: odeslání upozornění v telefonu (R66) přes push služby prohlížečů.
+     * Registrace služeb: odeslání upozornění v telefonu (R66) přes push služby prohlížečů,
+     * čisté adresy výpisu akcí (R94).
      */
     public function register(): void
     {
         $this->app->singleton(PushSender::class, WebPushSender::class);
+        // Čisté adresy výpisu akcí (R94) — produkty katalogu se načtou jednou za požadavek
+        $this->app->scoped(OfferPages::class);
     }
 
     /**

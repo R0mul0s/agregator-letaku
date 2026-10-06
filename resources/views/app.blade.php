@@ -72,6 +72,8 @@
         @inertiaHead
     </head>
     <body>
+        {{-- Obsah pro roboty bez JavaScriptu (R94) — app.js ho po spuštění aplikace odstraní --}}
+        @include('seo.content')
         @inertia
     </body>
 </html>

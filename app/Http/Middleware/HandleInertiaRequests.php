@@ -12,7 +12,7 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
-use App\Domain\Offers\OfferFilters;
+use App\Domain\Offers\OfferPages;
 use App\Domain\Sources\ImportFreshness;
 use App\Domain\Sources\SourceRegistry;
 use App\Enums\Chain;
@@ -128,7 +128,7 @@ class HandleInertiaRequests extends Middleware
             'siteFooter' => fn (): array => [
                 'chains' => array_map(fn (Chain $chain): array => [
                     'chain' => $chain->value,
-                    'url' => route('offers', [OfferFilters::CHAIN_PARAMETER => $chain->value], absolute: false),
+                    'url' => app(OfferPages::class)->chainUrl($chain),
                 ], app(SourceRegistry::class)->chainsWithOffers()),
                 'lastImportAt' => app(ImportFreshness::class)->lastSucceededAt()?->toIso8601String(),
                 'contactUrl' => route('contact', absolute: false),

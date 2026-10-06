@@ -50,7 +50,7 @@ it('navrhne produkty katalogu s počtem akcí a nejnižší cenou, produkt bez a
         ->assertJsonPath('products.0.name', 'Máslo')
         ->assertJsonPath('products.0.offersCount', 2)
         ->assertJsonPath('products.0.lowestPrice', 3990)
-        ->assertJsonPath('products.0.url', '/akce?produkt='.$butter->id)
+        ->assertJsonPath('products.0.url', '/akce/maslo')
         ->assertJsonPath('products.0.watched', true)
         ->assertJsonPath('total', 2)
         ->assertJsonPath('corrected', null);

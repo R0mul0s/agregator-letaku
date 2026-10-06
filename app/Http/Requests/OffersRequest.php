@@ -4,9 +4,10 @@
  * Parametry přehledu nabídek — hledaný text, obchody, produkt katalogu (R71), jen budoucí
  * akce (R76), bez akcí jen z e-shopu (R82) a načtené stránky (R43).
  *
- * Obchody jsou v parametru `chain` oddělené čárkou (`?chain=kaufland,lidl`), jeden obchod
- * má stejnou adresu jako dřív (indexované `?chain=kaufland`, R45). Bez parametru vidí
- * přihlášený své sledované obchody, nepřihlášený všechny; `?chain=vse` jsou vždy všechny.
+ * Obchody jsou v parametru `chain` oddělené čárkou (`?chain=kaufland,lidl`); jeden obchod
+ * a produkt katalogu mají i čistou adresu `/akce/lidl`, `/akce/pivo` (R94, OfferPages). Bez
+ * parametru vidí přihlášený své sledované obchody, nepřihlášený všechny; `?chain=vse` jsou
+ * vždy všechny.
  *
  * @author Roman Hlaváček
  *
@@ -18,6 +19,7 @@ declare(strict_types=1);
 namespace App\Http\Requests;
 
 use App\Domain\Offers\OfferFilters;
+use App\Domain\Offers\OfferPages;
 use App\Enums\Chain;
 use App\Http\Requests\Concerns\HasPageWindow;
 use App\Models\User;
@@ -106,14 +108,29 @@ class OffersRequest extends FormRequest
     }
 
     /**
-     * Vybrané obchody; prázdný seznam = všechny. Bez parametru sledované obchody přihlášeného.
+     * Obchod nebo produkt z části adresy (`/akce/lidl`, `/akce/pivo`, R94); bez ní oba null.
+     * Neznámou část adresy hlásí kontroler jako 404.
+     *
+     * @return array{chain: Chain|null, productId: int|null}|null null = část adresy neexistuje
+     */
+    public function pathTarget(): ?array
+    {
+        $slug = $this->route('slug');
+
+        return is_string($slug) ? app(OfferPages::class)->resolve($slug) : ['chain' => null, 'productId' => null];
+    }
+
+    /**
+     * Vybrané obchody; prázdný seznam = všechny. Parametr má přednost před obchodem v adrese
+     * (`/akce/lidl`); bez obou sledované obchody přihlášeného.
      *
      * @return list<Chain>
      */
     public function chains(): array
     {
-        if ($this->filled(self::CHAIN)) {
-            return self::parseChains($this->string(self::CHAIN)->toString()) ?? [];
+        $explicit = $this->explicitChains();
+        if ($explicit !== null) {
+            return $explicit;
         }
 
         $user = $this->user();
@@ -127,20 +144,36 @@ class OffersRequest extends FormRequest
     }
 
     /**
-     * Hodnota parametru obchodů pro odkazy stránkování — jen když ji uživatel zvolil
-     * (bez parametru zůstanou přihlášenému sledované obchody).
+     * Obchody, které uživatel zvolil parametrem nebo adresou (`/akce/lidl`); null = nezvolil
+     * (přihlášenému pak zůstanou sledované obchody).
+     *
+     * @return list<Chain>|null
      */
-    public function chainParameter(): ?string
+    private function explicitChains(): ?array
     {
-        return $this->filled(self::CHAIN) ? (new OfferFilters($this->chains()))->chainParameter() : null;
+        if ($this->filled(self::CHAIN)) {
+            return self::parseChains($this->string(self::CHAIN)->toString()) ?? [];
+        }
+        $pathChain = $this->pathTarget()['chain'] ?? null;
+
+        return $pathChain === null ? null : [$pathChain];
     }
 
     /**
-     * ID produktu katalogu, jehož akce ukázat, nebo null.
+     * ID produktu katalogu, jehož akce ukázat (parametr, nebo `/akce/pivo`), nebo null.
      */
     public function productId(): ?int
     {
-        return $this->integer(self::PRODUCT) ?: null;
+        return ($this->integer(self::PRODUCT) ?: null) ?? $this->pathTarget()['productId'] ?? null;
+    }
+
+    /**
+     * Filtry, které uživatel zvolil — pro odkazy stránkování a čistou adresu (R94). Na rozdíl
+     * od filters() bez sledovaných obchodů přihlášeného, ty v adrese nebývají.
+     */
+    public function chosenFilters(): OfferFilters
+    {
+        return new OfferFilters($this->explicitChains() ?? [], $this->productId(), $this->upcomingOnly(), $this->withoutEshop());
     }
 
     /**

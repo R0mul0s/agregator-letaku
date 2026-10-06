@@ -5,8 +5,8 @@
  * Open Graph a schema.org. Aplikace je SPA bez SSR (hosting nemá Node, R20) — co má
  * vidět robot bez JavaScriptu nebo náhled odkazu, musí být v šabloně ze serveru.
  *
- * Indexovat se smí jen veřejné stránky: úvodní stránka, Všechny akce (bez hledání)
- * a právní stránky (R51), kontakt (R72).
+ * Indexovat se smí jen veřejné stránky: úvodní stránka, Všechny akce (bez hledání), akce
+ * obchodu a produktu katalogu na čisté adrese (R94), právní stránky (R51), kontakt (R72).
  * Přihlášení a registrace „noindex, follow“, vše za přihlášením „noindex, nofollow“.
  *
  * @author Roman Hlaváček
@@ -18,6 +18,9 @@ declare(strict_types=1);
 
 namespace App\Support\Seo;
 
+use App\Domain\Offers\OfferFilters;
+use App\Domain\Offers\OfferPages;
+use App\Domain\Offers\OfferSearch;
 use App\Enums\Chain;
 use App\Http\Requests\OffersRequest;
 use Illuminate\Http\Request;
@@ -25,6 +28,14 @@ use Illuminate\Support\Arr;
 
 final class SeoMeta
 {
+    /** Routy výpisu akcí — `/akce` a čistá adresa obchodu nebo produktu (R94). */
+    private const OFFERS_ROUTES = ['offers', OfferPages::PAGE_ROUTE];
+
+    public function __construct(
+        private readonly OfferPages $pages,
+        private readonly OfferSearch $search,
+    ) {}
+
     private const INDEX = 'index, follow';
 
     private const NOINDEX_FOLLOW = 'noindex, follow';
@@ -45,21 +56,24 @@ final class SeoMeta
     private const LOGO_PATH = 'images/brand/icon-512.png';
 
     /**
-     * Metadata stránky podle routy a parametrů.
+     * Metadata stránky podle routy a parametrů. `heading` je nadpis stránky pro obsah
+     * pro roboty bez JavaScriptu (resources/views/seo/content.blade.php, R94).
      *
-     * @return array{title: string, description: string, canonical: string, robots: string, image: array{url: string, width: int, height: int, alt: string}, jsonLd: list<array<string, mixed>>}
+     * @return array{title: string, heading: string, description: string, canonical: string, robots: string, image: array{url: string, width: int, height: int, alt: string}, jsonLd: list<array<string, mixed>>}
      */
     public function forRequest(Request $request): array
     {
         $routeName = (string) $request->route()?->getName();
-        $chain = $this->chain($request, $routeName);
-        $page = $this->page($request, $routeName, $chain);
-        $robots = $this->robots($routeName, $page, $request);
+        [$chain, $productId] = $this->target($request, $routeName);
+        $page = $this->page($request, $routeName, $chain, $productId);
+        $robots = $this->robots($routeName, $page, $request, $productId);
+        $replace = $this->replacements($chain, $productId);
 
         return [
-            'title' => $this->title($request),
-            'description' => __("app.seo.pages.{$page}.description", ['chain' => $chain?->genitive() ?? '']),
-            'canonical' => $this->canonical($request, $routeName),
+            'title' => __("app.seo.pages.{$page}.title", $replace),
+            'heading' => __("app.seo.pages.{$page}.heading", $replace),
+            'description' => __("app.seo.pages.{$page}.description", $replace),
+            'canonical' => $this->canonical($request, $routeName, $chain, $productId),
             'robots' => $robots,
             'image' => [
                 'url' => asset(self::OG_IMAGE_PATH),
@@ -79,9 +93,21 @@ final class SeoMeta
     public function title(Request $request): string
     {
         $routeName = (string) $request->route()?->getName();
-        $chain = $this->chain($request, $routeName);
+        [$chain, $productId] = $this->target($request, $routeName);
 
-        return __("app.seo.pages.{$this->page($request, $routeName, $chain)}.title", ['chain' => $chain?->genitive() ?? '']);
+        return __("app.seo.pages.{$this->page($request, $routeName, $chain, $productId)}.title", $this->replacements($chain, $productId));
+    }
+
+    /**
+     * Nadpis stránky (h1) — výpis akcí ho ukazuje i ve Vue („Pivo v akci“, „Akce z letáku
+     * Lidlu“, R94), aby nadpis seděl s titulkem pro vyhledávače.
+     */
+    public function heading(Request $request): string
+    {
+        $routeName = (string) $request->route()?->getName();
+        [$chain, $productId] = $this->target($request, $routeName);
+
+        return __("app.seo.pages.{$this->page($request, $routeName, $chain, $productId)}.heading", $this->replacements($chain, $productId));
     }
 
     /**
@@ -96,12 +122,13 @@ final class SeoMeta
     /**
      * Druh stránky pro texty v app.seo.pages.
      */
-    private function page(Request $request, string $routeName, ?Chain $chain): string
+    private function page(Request $request, string $routeName, ?Chain $chain, ?int $productId): string
     {
         return match (true) {
             $routeName === 'home' && $request->user() === null => 'home',
-            $routeName === 'offers' && $chain !== null => 'offers_chain',
-            $routeName === 'offers' => 'offers',
+            $this->isOffers($routeName) && $productId !== null => 'offers_product',
+            $this->isOffers($routeName) && $chain !== null => 'offers_chain',
+            $this->isOffers($routeName) => 'offers',
             $routeName === 'legal.terms' => 'terms',
             $routeName === 'legal.privacy' => 'privacy',
             $routeName === 'contact' => 'contact',
@@ -110,21 +137,61 @@ final class SeoMeta
     }
 
     /**
-     * Obchod vybraný ve Všech akcích, jinak null.
+     * Obchod a produkt katalogu výpisu akcí — z čisté adresy (`/akce/lidl`, `/akce/pivo`)
+     * nebo z parametru jednoho obchodu či produktu; jinde [null, null].
+     *
+     * @return array{0: Chain|null, 1: int|null}
      */
-    private function chain(Request $request, string $routeName): ?Chain
+    private function target(Request $request, string $routeName): array
     {
-        return $routeName === 'offers' ? $request->enum('chain', Chain::class) : null;
+        if (! $this->isOffers($routeName)) {
+            return [null, null];
+        }
+
+        $slug = $request->route('slug');
+        $path = is_string($slug) ? $this->pages->resolve($slug) : null;
+        $chain = $request->enum(OffersRequest::CHAIN, Chain::class) ?? $path['chain'] ?? null;
+        $productId = ($request->integer(OffersRequest::PRODUCT) ?: null) ?? $path['productId'] ?? null;
+
+        return [$chain, $productId !== null && $this->pages->productName($productId) !== null ? $productId : null];
+    }
+
+    /**
+     * Doplňované hodnoty textů: obchod ve 2. pádě a název produktu.
+     *
+     * @return array<string, string>
+     */
+    private function replacements(?Chain $chain, ?int $productId): array
+    {
+        return [
+            'chain' => $chain?->genitive() ?? '',
+            'product' => $productId === null ? '' : (string) $this->pages->productName($productId),
+        ];
+    }
+
+    /**
+     * Je to výpis akcí (`/akce` nebo čistá adresa)?
+     */
+    private function isOffers(string $routeName): bool
+    {
+        return in_array($routeName, self::OFFERS_ROUTES, true);
     }
 
     /**
      * Pravidlo pro roboty: veřejné stránky indexovat, výsledky hledání ne (nekonečně
-     * kombinací, slabý obsah), přihlášení a registraci ne, vše ostatní ani sledovat.
+     * kombinací, slabý obsah), produkt bez akcí ne (prázdná stránka), přihlášení
+     * a registraci ne, vše ostatní ani sledovat.
      */
-    private function robots(string $routeName, string $page, Request $request): string
+    private function robots(string $routeName, string $page, Request $request, ?int $productId): string
     {
-        if ($page === 'home' || $page === 'offers_chain' || $page === 'offers') {
-            return $this->isFiltered($request) ? self::NOINDEX_FOLLOW : self::INDEX;
+        if ($page === 'home' || $this->isOffers($routeName)) {
+            if ($this->isFiltered($request)) {
+                return self::NOINDEX_FOLLOW;
+            }
+
+            return $productId !== null && ! $this->search->query(null, new OfferFilters(productId: $productId))->exists()
+                ? self::NOINDEX_FOLLOW
+                : self::INDEX;
         }
         if (in_array($page, ['terms', 'privacy', 'contact'], true)) {
             return self::INDEX;
@@ -134,41 +201,50 @@ final class SeoMeta
     }
 
     /**
-     * Kanonická adresa: bez parametrů kromě obchodu a stránky ve Všech akcích. Rozsah
-     * „Načíst další“ (?od=) je stejný obsah jako jeho poslední stránka. Výsledky hledání
-     * (noindex) odkazují samy na sebe — noindex a canonical jinam jsou protichůdné signály.
-     * Adresa z APP_URL (url()->current()), ne z požadavku — s kořenovým .htaccess by
-     * nesla /public (R67).
+     * Kanonická adresa: výpis akcí na čisté adrese obchodu nebo produktu (R94), z parametrů
+     * jen stránka. Rozsah „Načíst další“ (?od=) je stejný obsah jako jeho poslední stránka.
+     * Výsledky hledání (noindex) odkazují samy na sebe — noindex a canonical jinam jsou
+     * protichůdné signály. Adresa z APP_URL (url()->current()), ne z požadavku — s kořenovým
+     * .htaccess by nesla /public (R67).
      */
-    private function canonical(Request $request, string $routeName): string
+    private function canonical(Request $request, string $routeName, ?Chain $chain, ?int $productId): string
     {
-        if ($routeName !== 'offers') {
+        if (! $this->isOffers($routeName)) {
             // Úvodní stránka s koncovým lomítkem ("https://…/"), ostatní bez
             return $request->is('/') ? self::homeUrl() : url()->current();
         }
 
-        $parameters = $this->isFiltered($request)
-            ? $request->query()
-            : array_filter([
-                'chain' => $request->enum('chain', Chain::class)?->value,
-                OffersRequest::PAGE => $request->integer(OffersRequest::PAGE) > 1 ? $request->integer(OffersRequest::PAGE) : null,
-            ]);
-        $query = Arr::query($parameters);
+        if ($this->isFiltered($request)) {
+            $query = Arr::query($request->query());
 
-        return url()->current().($query === '' ? '' : '?'.$query);
+            return url()->current().($query === '' ? '' : '?'.$query);
+        }
+
+        $page = $request->integer(OffersRequest::PAGE);
+
+        return $this->pages->url(
+            new OfferFilters($chain === null ? [] : [$chain], $productId),
+            [OffersRequest::PAGE => $page > 1 ? $page : null],
+            absolute: true,
+        );
     }
 
     /**
-     * Výpis zúžený hledáním, produktem z našeptávače (R71), jen budoucími akcemi (R76), bez
-     * e-shopu nebo víc obchody najednou (R82) — nekonečně kombinací, do výsledků hledání
-     * nepatří. Indexuje se jen celý výpis a výpis jednoho obchodu.
+     * Výpis zúžený hledáním, jen budoucími akcemi (R76), bez e-shopu nebo víc obchody
+     * najednou (R82), produkt omezený na obchod — nekonečně kombinací, do výsledků hledání
+     * nepatří. Indexuje se celý výpis, výpis jednoho obchodu a výpis produktu (R94).
      */
     private function isFiltered(Request $request): bool
     {
         $multipleChains = $request->filled(OffersRequest::CHAIN) && $request->enum(OffersRequest::CHAIN, Chain::class) === null;
+        $slug = $request->route('slug');
+        $path = is_string($slug) ? $this->pages->resolve($slug) : null;
+        // Produkt v adrese i s obchodem (/akce/pivo?chain=lidl), nebo obchod v adrese s jiným v parametru
+        $combined = $path !== null && $request->filled(OffersRequest::CHAIN)
+            || $request->filled(OffersRequest::PRODUCT) && $request->filled(OffersRequest::CHAIN);
 
-        return $request->filled('q') || $request->filled(OffersRequest::PRODUCT) || $request->boolean(OffersRequest::UPCOMING)
-            || $request->boolean(OffersRequest::WITHOUT_ESHOP) || $multipleChains;
+        return $request->filled('q') || $request->boolean(OffersRequest::UPCOMING)
+            || $request->boolean(OffersRequest::WITHOUT_ESHOP) || $multipleChains || $combined;
     }
 
     /**

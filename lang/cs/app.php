@@ -25,32 +25,61 @@ return [
         'pages' => [
             'home' => [
                 'title' => 'Slevohlídka — akce z letáků Kauflandu, Tesca, Lidlu a dalších',
+                'heading' => 'Slevy z letáků na to, co opravdu kupujete',
                 'description' => 'Akce z letáků Kauflandu, Tesca, Albertu, Lidlu, Penny, Globusu a Billy na jednom místě. Hlídá, co kupujete, a ukáže nejnižší cenu za kilo nebo litr. Zdarma.',
             ],
             'offers' => [
                 'title' => 'Všechny akce z letáků · Slevohlídka',
+                'heading' => 'Všechny akce z letáků',
                 'description' => 'Aktuální akce z letáků a e-shopů Kauflandu, Tesca, Lidlu, Penny, Globusu a Billy na jednom místě — s cenou za kilo nebo litr a cenou s věrnostní kartou.',
             ],
             'offers_chain' => [
-                'title' => 'Aktuální akce :chain · Slevohlídka',
+                'title' => 'Akce z letáku :chain tento týden · Slevohlídka',
+                'heading' => 'Akce z letáku :chain',
                 'description' => 'Aktuální akce :chain na jednom místě — s cenou za kilo nebo litr a cenou s věrnostní kartou. Přehled od Slevohlídky.',
+            ],
+            // Akce produktu katalogu na čisté adrese /akce/pivo (R94)
+            'offers_product' => [
+                'title' => ':product v akci — kde je nejlevněji · Slevohlídka',
+                'heading' => ':product v akci',
+                'description' => ':product v akci: kde je právě nejlevněji a za kolik. Aktuální ceny z letáků Kauflandu, Tesca, Albertu, Lidlu, Penny, Globusu a Billy, i za kilo nebo litr.',
             ],
             'terms' => [
                 'title' => 'Podmínky užití · Slevohlídka',
+                'heading' => 'Podmínky užití',
                 'description' => 'Podmínky užití služby Slevohlídka — co služba dělá a co ne, správnost cen převzatých z letáků, uživatelský účet, e-maily a upozornění.',
             ],
             'privacy' => [
                 'title' => 'Zásady zpracování osobních údajů · Slevohlídka',
+                'heading' => 'Zásady zpracování osobních údajů',
                 'description' => 'Jaké osobní údaje Slevohlídka zpracovává, proč a jak dlouho, komu je předává, jaké používá cookies a jaká máte práva.',
             ],
             'contact' => [
                 'title' => 'Kontakt · Slevohlídka',
+                'heading' => 'Kontakt',
                 'description' => 'Kdo Slevohlídku provozuje a jak se nám ozvat — chybná cena, nápad, spolupráce s obchody nebo dotaz k osobním údajům.',
             ],
             'default' => [
                 'title' => 'Slevohlídka',
+                'heading' => 'Slevohlídka',
                 'description' => 'Slevohlídka — rychlý lovec slev. Hlídá akce z letáků obchodů Kaufland, Tesco, Albert, Lidl, Penny, Globus a Billa.',
             ],
+        ],
+        // Obsah stránky pro roboty bez JavaScriptu (R94, resources/views/seo/content.blade.php) —
+        // Vue ho po načtení odstraní, lidé ho nevidí
+        'content' => [
+            'offers_title' => 'Aktuální akce',
+            'offers_empty' => 'Teď tu žádná akce není — Slevohlídka hlídá dál.',
+            'with_card' => 's kartou :program',
+            'unit_price' => ':price za :unit',
+            'valid' => 'platí :from – :to',
+            'next_page' => 'Další stránka',
+            'chains_title' => 'Akce podle obchodů',
+            'products_title' => 'Akce podle produktů',
+            'chain_link' => 'Akce z letáku :chain',
+            'product_link' => ':product v akci',
+            'faq_title' => 'Časté otázky',
+            'operator_title' => 'Kdo Slevohlídku provozuje',
         ],
         'og_image_alt' => 'Slevohlídka — rychlý lovec slev. Maskot s nákupním košíkem a cenovkou.',
         'organization_description' => 'Slevohlídka hlídá akce z letáků obchodů Kaufland, Tesco, Albert, Lidl, Penny, Globus a Billa.',

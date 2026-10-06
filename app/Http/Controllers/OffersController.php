@@ -5,7 +5,8 @@
  * načtený rozsah stránek je v adrese (?od=1&strana=3), takže obnovení i návrat zpět
  * ukážou totéž. Hledání podle relevance, filtr produktu z našeptávače a oprava
  * překlepu, když text nic nenajde (R71); jen akce, které ještě nezačaly (R76); víc obchodů
- * najednou (přihlášený má předvybrané sledované) a bez akcí jen z e-shopu (R82).
+ * najednou (přihlášený má předvybrané sledované) a bez akcí jen z e-shopu (R82). Jeden
+ * obchod a produkt katalogu mají čistou adresu `/akce/lidl`, `/akce/pivo` (R94).
  *
  * @author Roman Hlaváček
  *
@@ -17,6 +18,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Domain\Catalog\WatchTargets;
+use App\Domain\Offers\OfferPages;
 use App\Domain\Offers\OfferPresenter;
 use App\Domain\Offers\OfferSearch;
 use App\Domain\Offers\PriceHistory;
@@ -28,16 +30,27 @@ use App\Models\Offer;
 use App\Models\Product;
 use App\Models\User;
 use App\Support\Pagination\PaginationLinks;
+use App\Support\Seo\SeoMeta;
+use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
+use Inertia\Support\Header;
+use Symfony\Component\HttpFoundation\Response as HttpResponse;
 
 class OffersController extends Controller
 {
     /**
-     * Zobrazí neskončené akce odpovídající hledání, v načteném rozsahu stránek.
+     * Zobrazí neskončené akce odpovídající hledání, v načteném rozsahu stránek. Stará adresa
+     * jednoho obchodu nebo produktu (`?chain=lidl`, `?produkt=12`) přesměruje na čistou (R94).
      */
-    public function __invoke(OffersRequest $request, OfferSearch $search, OfferPresenter $presenter, PriceHistory $priceHistory, WatchTargets $watchTargets, SearchVocabulary $vocabulary): Response
+    public function __invoke(OffersRequest $request, OfferSearch $search, OfferPresenter $presenter, PriceHistory $priceHistory, WatchTargets $watchTargets, SearchVocabulary $vocabulary, OfferPages $pages): Response|RedirectResponse
     {
+        abort_if($request->pathTarget() === null, HttpResponse::HTTP_NOT_FOUND);
+        $cleanUrl = $this->cleanUrl($request, $pages);
+        if ($cleanUrl !== null) {
+            return redirect($cleanUrl, HttpResponse::HTTP_MOVED_PERMANENTLY);
+        }
+
         $text = $request->searchText();
         $productId = $request->productId();
         $offerFilters = $request->filters();
@@ -60,14 +73,9 @@ class OffersController extends Controller
         $storeCodes = $request->user()?->selectedStoreCodes() ?? [];
         $window = $request->pageWindow(config()->integer('letaky.offers.per_page'));
         $window = $window->within($window->lastPage($total));
-        // Hledání, které odkazy stránkování zachovají
-        $filters = array_filter([
-            'q' => $correction['corrected'] ?? $text,
-            OffersRequest::CHAIN => $request->chainParameter(),
-            OffersRequest::PRODUCT => $productId,
-            OffersRequest::UPCOMING => $request->upcomingOnly() ? 1 : null,
-            OffersRequest::WITHOUT_ESHOP => $request->withoutEshop() ? 1 : null,
-        ]);
+        // Hledání a zvolené filtry, které odkazy stránkování zachovají (obchod a produkt v čisté adrese)
+        $chosenFilters = $request->chosenFilters();
+        $searchText = $correction['corrected'] ?? $text;
         $offers = $query->offset($window->offset())->limit($window->limit())->get();
         // „Je to opravdu sleva?“ (R59) — jedním dotazem pro celou stránku
         $history = $priceHistory->forOffers($offers);
@@ -76,6 +84,8 @@ class OffersController extends Controller
         $targets = $watchTargets->forOffers($offers, $user instanceof User ? $user : null);
 
         return Inertia::render('Offers', [
+            // Nadpis podle obchodu nebo produktu, stejný jako pro vyhledávače (R94)
+            'heading' => app(SeoMeta::class)->heading($request),
             'searchUrl' => route('offers', absolute: false),
             'suggestUrl' => route('offers.suggestions', absolute: false),
             'suggestMinLength' => config()->integer('letaky.offers.suggest_min_length'),
@@ -96,10 +106,10 @@ class OffersController extends Controller
                     ->all(),
                 'total' => $total,
             ],
-            'pagination' => PaginationLinks::for($window, $total, fn (int $page, ?int $from): string => route('offers', [
-                ...$filters,
+            'pagination' => PaginationLinks::for($window, $total, fn (int $page, ?int $from): string => $pages->url($chosenFilters, [
+                'q' => $searchText,
                 ...PaginationLinks::parameters($page, $from, OffersRequest::PAGE, OffersRequest::FROM_PAGE),
-            ], absolute: false)),
+            ])),
             'filters' => [
                 'q' => $text ?? '',
                 // Vybrané obchody (prázdné = všechny) — přihlášený bez volby vidí své sledované
@@ -116,5 +126,28 @@ class OffersController extends Controller
                 'name' => $chain->label(),
             ], Chain::cases()),
         ]);
+    }
+
+    /**
+     * Čistá adresa pro starou adresu jednoho obchodu nebo produktu (`/akce?chain=lidl` →
+     * `/akce/lidl`, `/akce?produkt=12&q=x` → `/akce/pivo?q=x`); null = adresa už je čistá.
+     * Jen pro celé načtení stránky (odkaz, vyhledávač) — filtry ve Vue posílají parametry
+     * na `/akce` a přesměrování by každou změnu zdvojilo.
+     */
+    private function cleanUrl(OffersRequest $request, OfferPages $pages): ?string
+    {
+        if ($request->route()?->getName() !== 'offers' || $request->hasHeader(Header::INERTIA)) {
+            return null;
+        }
+
+        $filters = $request->chosenFilters();
+        if ($filters->productId === null && count($filters->chains) !== 1) {
+            return null;
+        }
+
+        // Hledání a stránky zůstanou jako parametry, filtry složí OfferPages
+        $extra = array_map(fn (mixed $value): string => is_scalar($value) ? (string) $value : '', $request->only(['q', OffersRequest::PAGE, OffersRequest::FROM_PAGE]));
+
+        return $pages->url($filters, $extra);
     }
 }

@@ -39,7 +39,7 @@ const props = defineProps({
     stats: { type: Object, required: true },
     /** Obchody se zdrojem dat (hodnoty App\Enums\Chain). */
     chains: { type: Array, required: true },
-    /** Adresy akcí obchodů { kaufland: '/akce?chain=kaufland' }. */
+    /** Adresy akcí obchodů { kaufland: '/akce/kaufland' } (R94). */
     chainUrls: { type: Object, default: () => ({}) },
     /** Akce s nejvyšší slevou z různých obchodů (OfferPresenter). */
     topOffers: { type: Array, required: true },

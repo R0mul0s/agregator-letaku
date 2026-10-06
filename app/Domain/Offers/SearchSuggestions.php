@@ -34,6 +34,7 @@ final class SearchSuggestions
         private readonly SearchVocabulary $vocabulary,
         private readonly LocalCalendar $calendar,
         private readonly CategoryPaths $categories,
+        private readonly OfferPages $pages,
     ) {}
 
     /**
@@ -163,7 +164,8 @@ final class SearchSuggestions
             'icon' => CatalogBrowseTree::icon($this->categories->department($product->category_id)),
             'offersCount' => $stats[$product->id]['count'] ?? 0,
             'lowestPrice' => $stats[$product->id]['lowestPrice'] ?? null,
-            'url' => route('offers', (new OfferFilters($filters->chains, $product->id, withoutEshop: $filters->withoutEshop))->urlParameters(), absolute: false),
+            // Čistá adresa produktu (R94), vybrané obchody jako parametr
+            'url' => $this->pages->url(new OfferFilters($filters->chains, $product->id, withoutEshop: $filters->withoutEshop)),
             'watched' => isset($watched[$product->id]),
         ], $products);
     }

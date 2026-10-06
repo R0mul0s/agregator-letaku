@@ -100,3 +100,9 @@ select {
 .visually-hidden {
     @include visually-hidden;
 }
+
+// Obsah stránky ze serveru pro roboty bez JavaScriptu (R94, resources/views/seo/content.blade.php).
+// Stejný obsah jako aplikace; než ho app.js po spuštění odstraní, nesmí stránka problikávat
+.seo-content {
+    @include visually-hidden;
+}

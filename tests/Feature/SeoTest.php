@@ -11,7 +11,10 @@
 declare(strict_types=1);
 
 use App\Enums\Chain;
+use App\Enums\MatchStatus;
+use App\Enums\PackageUnit;
 use App\Models\Offer;
+use App\Models\Product;
 use App\Models\User;
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -50,15 +53,15 @@ it('hlavička má ověření pro Seznam Webmaster, prázdný kód značku vynech
 });
 
 it('Všechny akce: obchod a stránka v canonical, rozsah a hledání ne; hledání se neindexuje', function (): void {
-    $html = $this->get('/akce?chain=kaufland&od=1&strana=2')->getContent();
-    expect($html)->toContain('<link rel="canonical" href="'.route('offers').'?chain=kaufland&amp;strana=2">')
+    $html = $this->get('/akce/kaufland?od=1&strana=2')->getContent();
+    expect($html)->toContain('<link rel="canonical" href="'.url('/akce/kaufland').'?strana=2">')
         ->and(metaContent($html, 'robots'))->toBe('index, follow')
-        ->and(metaContent($html, 'og:title'))->toBe('Aktuální akce Kauflandu · Slevohlídka');
+        ->and(metaContent($html, 'og:title'))->toBe('Akce z letáku Kauflandu tento týden · Slevohlídka');
 
     // Hledání (noindex) odkazuje samo na sebe, ne na výpis bez hledání (R68)
-    $search = $this->get('/akce?q=vejce&chain=lidl')->getContent();
+    $search = $this->get('/akce/lidl?q=vejce')->getContent();
     expect(metaContent($search, 'robots'))->toBe('noindex, follow')
-        ->and($search)->toContain('<link rel="canonical" href="'.route('offers').'?q=vejce&amp;chain=lidl">')
+        ->and($search)->toContain('<link rel="canonical" href="'.url('/akce/lidl').'?q=vejce">')
         ->and($search)->not->toContain('application/ld+json');
 });
 
@@ -73,13 +76,13 @@ it('víc obchodů najednou a bez e-shopu se neindexuje (R82)', function (): void
 });
 
 it('výpis Albertu se indexuje jako ostatní obchody — má akce s cenou z PDF letáku (R86)', function (): void {
-    $html = $this->get('/akce?chain=albert')->getContent();
+    $html = $this->get('/akce/albert')->getContent();
 
     expect(metaContent($html, 'robots'))->toBe('index, follow');
 });
 
 it('titulek ze serveru dostane i Vue, aby ho <Head> nepřepsal (R68)', function (): void {
-    $this->get('/akce?chain=billa')->assertInertia(fn (Assert $page) => $page->where('seoTitle', 'Aktuální akce Billy · Slevohlídka'));
+    $this->get('/akce/billa')->assertInertia(fn (Assert $page) => $page->where('seoTitle', 'Akce z letáku Billy tento týden · Slevohlídka'));
     $this->get('/')->assertInertia(fn (Assert $page) => $page->where('seoTitle', __('app.seo.pages.home.title')));
 });
 
@@ -124,8 +127,8 @@ it('sitemap.xml a llms.txt obsahují jen obchody s aktuálními akcemi', functio
         ->assertOk()
         ->assertHeader('Content-Type', 'application/xml; charset=utf-8')
         ->assertSee('<loc>'.url('/').'/</loc>', false)
-        ->assertSee('chain=lidl', false)
-        ->assertDontSee('chain=albert', false);
+        ->assertSee('<loc>'.url('/akce/lidl').'</loc>', false)
+        ->assertDontSee('/akce/albert', false);
 
     $this->get('/llms.txt')
         ->assertOk()
@@ -195,4 +198,38 @@ it('manifest pro plochu telefonu má název, barvu webu a existující ikony (R5
     }
 
     $this->get(route('home'))->assertSee('<link rel="manifest" href="/manifest.webmanifest">', escape: false);
+});
+
+it('stránka produktu a sitemap: titulek s produktem, čistá adresa v sitemap jen s akcemi (R94)', function (): void {
+    $beer = Product::factory()->create(['name' => 'Pivo']);
+    Product::factory()->create(['name' => 'Máslo']);
+    Offer::factory()->create(['chain' => Chain::Lidl, 'name' => 'Braník 0,5 l'])
+        ->productAssignments()->create(['product_id' => $beer->id, 'status' => MatchStatus::Match, 'is_manual' => false]);
+
+    $html = $this->get('/akce/pivo')->getContent();
+    expect(metaContent($html, 'og:title'))->toBe('Pivo v akci — kde je nejlevněji · Slevohlídka')
+        ->and($html)->toContain('<link rel="canonical" href="'.url('/akce/pivo').'">');
+
+    $this->get('/sitemap.xml')
+        ->assertSee('<loc>'.url('/akce/pivo').'</loc>', false)
+        ->assertDontSee('/akce/maslo', false);
+});
+
+it('obsah pro roboty bez JavaScriptu: nadpis, akce s cenou a odkazy na obchody a produkty (R94)', function (): void {
+    $beer = Product::factory()->create(['name' => 'Pivo']);
+    Offer::factory()->create(['chain' => Chain::Lidl, 'name' => 'Braník 0,5 l', 'price' => 1990, 'quantity' => 500, 'unit' => PackageUnit::Milliliter])
+        ->productAssignments()->create(['product_id' => $beer->id, 'status' => MatchStatus::Match, 'is_manual' => false]);
+
+    $html = $this->get('/akce/lidl')->getContent();
+    expect($html)->toContain('data-seo-content')
+        ->and($html)->toContain('<h1>Akce z letáku Lidlu</h1>')
+        ->and($html)->toContain('<strong>Braník 0,5 l</strong>')
+        ->and($html)->toContain("19,90\u{00A0}Kč")
+        ->and($html)->toContain('href="/akce/pivo"');
+
+    expect($this->get('/kontakt')->getContent())->toContain(e(__('app.ui.contact.faq.free.question')));
+
+    // Stránky za přihlášením obsah pro roboty nemají
+    $this->actingAs(User::factory()->create());
+    expect($this->get('/hlidam')->getContent())->not->toContain('data-seo-content');
 });

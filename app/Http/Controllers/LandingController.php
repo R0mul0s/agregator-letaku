@@ -15,6 +15,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Domain\Offers\OfferHighlights;
+use App\Domain\Offers\OfferPages;
 use App\Domain\Offers\OfferPresenter;
 use App\Domain\Offers\UnitPriceQuiz;
 use App\Domain\Offers\WatchDemo;
@@ -31,6 +32,7 @@ class LandingController extends Controller
         private readonly OfferPresenter $presenter,
         private readonly WatchDemo $demo,
         private readonly UnitPriceQuiz $quiz,
+        private readonly OfferPages $pages,
     ) {}
 
     /**
@@ -63,7 +65,7 @@ class LandingController extends Controller
             // v sitemap (výběr obchodu ve Všech akcích jsou tlačítka)
             'chainUrls' => array_reduce(
                 $chains,
-                fn (array $urls, Chain $chain): array => [...$urls, $chain->value => route('offers', ['chain' => $chain->value], absolute: false)],
+                fn (array $urls, Chain $chain): array => [...$urls, $chain->value => $this->pages->chainUrl($chain)],
                 [],
             ),
             'topOffers' => array_map(fn (Offer $offer): array => $this->presenter->toPage($offer), $topOffers),

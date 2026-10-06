@@ -18,6 +18,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Offers;
 
+use App\Enums\PackageUnit;
 use App\Models\Offer;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -26,6 +27,12 @@ final class OfferSearch
 {
     /** Sloupce, ve kterých se hledá text. */
     private const SEARCHED_COLUMNS = ['name', 'brand', 'description'];
+
+    /**
+     * Cena za jednotku v SQL jako UnitPrice::of (bez ceny cena s kartou); jedna větev CASE na
+     * každou PackageUnit — hodnoty doplní unitPriceBindings(). Bez balení NULL.
+     */
+    private const UNIT_PRICE_SQL = 'COALESCE(price, loyalty_price) * CASE unit WHEN ? THEN ? WHEN ? THEN ? WHEN ? THEN ? END / NULLIF(quantity, 0)';
 
     public function __construct(private readonly LocalCalendar $calendar) {}
 
@@ -59,6 +66,13 @@ final class OfferSearch
             ->with('stores');
 
         if ($text === null || WordStart::words($text) === []) {
+            // Akce produktu (R94, „kde je nejlevněji“): od nejnižší ceny za kilo, litr nebo kus,
+            // akce bez balení na konec
+            if ($filters->productId !== null) {
+                $bindings = $this->unitPriceBindings();
+                $query->orderByRaw(self::UNIT_PRICE_SQL.' IS NULL', $bindings)->orderByRaw(self::UNIT_PRICE_SQL, $bindings);
+            }
+
             return $query->orderBy('valid_from')->orderBy('chain')->orderBy('name')->orderBy('id');
         }
 
@@ -71,6 +85,16 @@ final class OfferSearch
             ->orderByDesc('discount_percent')
             ->orderBy('name')
             ->orderBy('id');
+    }
+
+    /**
+     * Hodnoty pro UNIT_PRICE_SQL: jednotka a její základ (g a ml × 1000, ks × 1).
+     *
+     * @return list<int|string>
+     */
+    private function unitPriceBindings(): array
+    {
+        return array_merge(...array_map(fn (PackageUnit $unit): array => [$unit->value, $unit->unitPriceBase()], PackageUnit::cases()));
     }
 
     /**
