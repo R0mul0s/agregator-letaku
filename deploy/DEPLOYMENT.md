@@ -435,7 +435,7 @@ platí N akcí, na které čekáte“. **„Jen slevy“ ve Všech akcích zruš
    - cron `send-digests` vypíše řádek „Dnes začínající akce — zapsáno: N“ (záznamy vznikají od 7:00)
 3. Zapiš verzi do *Nasazené verze*.
 
-### Aktualizace z `d226ba4` (sedmnácté nasazení)
+### Aktualizace z `d226ba4` (sedmnácté nasazení — provedeno, `034fa36`)
 
 **Víc cen z letáků bez LLM:** leták Penny s novými pravidly parseru (R85, ~490 akcí místo ~300), PDF letáků
 přes `pdftotext` (R86) — Lidl s akcemi ze zbytku potravinového letáku a **Albert poprvé s akcemi s cenou**
@@ -520,3 +520,4 @@ Co běží na produkci — pro `git log <commit>..HEAD` při dalším nasazení
 | 2026-10-05 | `d22d9ee` | čtrnácté nasazení: Všechny akce s výběrem víc obchodů (přihlášený má předvybrané sledované), štítek „Bez e-shopu“, přepínač karty / řádky i v Mých slevách (R82); neutrální tmavý režim — červená jen tlačítka a cenovky slev (R83); celý balíček, bez SQL skriptu |
 | 2026-10-05 | `42479f4` | patnácté nasazení: přehled uživatelů pro admina `/uzivatele` s poslední aktivitou a nastavením (R84), oprava tlačítka na červeném panelu a hrany tlačítek v tmavém režimu (R83, `f43d766`); SQL `migrations-2026-10-05-posledni-aktivita.sql` |
 | 2026-10-06 | `d226ba4` | šestnácté nasazení: oprava stažení Kauflandu — stránka má od zveřejnění příštího týdne oba týdny a stažení se stránkami prodejen padalo na paměti (od 5. 10. 13:01 bez nových akcí, „Brzy“ bez Kauflandu); nahrané jen `app/Domain/Sources/Kaufland/`, `config/letaky.php` a `version.txt`, bez SQL skriptu. Ruční stažení po nasazení: 1 465 akcí, 798 od 7. 10. |
+| 2026-10-06 | `034fa36` | sedmnácté nasazení: víc cen z letáků bez LLM — leták Penny s novými pravidly (R85), PDF letáků přes `pdftotext` (R86): Lidl s akcemi ze zbytku potravinového letáku a Albert poprvé s akcemi s cenou (R87, `mentions_only` zrušené); bez SQL skriptu. Ruční stažení po nasazení: Penny 519, Lidl 275, Albert 1 393 nabídek |
