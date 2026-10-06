@@ -104,7 +104,10 @@ select {
 // Obsah stránky ze serveru pro roboty bez JavaScriptu (R94, resources/views/seo/content.blade.php).
 // Bez JavaScriptu je vidět — automatická kontrola webu (ověření značky u Googlu, R96) jinak
 // viděla prázdnou stránku. S JavaScriptem ho skryje třída has-js z theme-init.js ještě před
-// vykreslením a app.js ho po spuštění odstraní, takže stránka neproblikne
+// vykreslením a app.js ho po spuštění odstraní, takže stránka neproblikne. Skrytý úplně
+// (display: none), ne jen vizuálně — jinak ho slabý procesor telefonu celý rozvrhoval, než
+// naběhla aplikace (desítky kB a stovky položek, PageSpeed R97); robot bez JavaScriptu třídu
+// has-js nemá a obsah vidí
 .seo-content {
     max-width: var(--seo-content-max-width);
     margin: 0 auto;
@@ -115,8 +118,6 @@ select {
     }
 
     .has-js & {
-        @include visually-hidden;
-
-        padding: 0;
+        display: none;
     }
 }

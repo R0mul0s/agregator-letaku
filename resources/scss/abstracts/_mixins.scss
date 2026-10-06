@@ -113,3 +113,16 @@
         }
     }
 }
+
+/// Část stránky pod první obrazovkou rozvrhne a vykreslí prohlížeč až při posunu k ní
+/// (content-visibility, R97) — slabý procesor telefonu jinak rozvrhuje celou dlouhou stránku,
+/// než cokoli ukáže. Containment ořízne obsah na hranu prvku, proto vnitřní okraj vyrovnaný
+/// záporným vnějším: stíny a nadzvednutí karet zůstanou vidět a rozvržení se neposune.
+/// $height = odhad výšky, dokud prvek prohlížeč nerozvrhl (posuvník neskáče).
+@mixin render-when-visible($height, $edge: var(--space-2)) {
+    content-visibility: auto;
+    contain-intrinsic-size: auto $height;
+    padding: $edge;
+    margin-right: calc(-1 * #{$edge});
+    margin-left: calc(-1 * #{$edge});
+}

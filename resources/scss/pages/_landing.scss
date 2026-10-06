@@ -307,7 +307,11 @@
 }
 
 .landing-section {
-    margin-bottom: var(--space-5);
+    // Pod první obrazovkou se rozvrhne až při posunu (R97); vnitřní okraj mixinu se odečte od mezery
+    @include render-when-visible(var(--landing-section-estimate));
+
+    margin-top: calc(-1 * var(--space-2));
+    margin-bottom: calc(var(--space-5) - var(--space-2));
 
     &__header {
         display: flex;

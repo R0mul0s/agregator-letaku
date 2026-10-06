@@ -12,6 +12,9 @@
 .app-footer {
     position: relative;
     margin-top: var(--space-5);
+    // Pod první obrazovkou — rozvrhne se až při posunu k ní (R97); nic z ní nepřečnívá
+    content-visibility: auto;
+    contain-intrinsic-size: auto var(--footer-estimate);
     background: var(--color-footer-bg);
     color: var(--color-footer-text);
     font-size: var(--font-size-sm);
@@ -103,17 +106,31 @@
         color: var(--color-footer-text);
     }
 
+    // Tečka „vysílá“ — kolem ní se rozbíhá kroužek. Kroužek je pseudoprvek animovaný jen
+    // transformací a průhledností (skládá grafická karta); animovaný stín se překresloval
+    // v každém snímku (PageSpeed „neskládaná animace“, R97)
     &__fresh-dot {
+        position: relative;
         flex: none;
         width: var(--watch-demo-dot-size);
         height: var(--watch-demo-dot-size);
         background: var(--color-footer-fresh);
         border-radius: 50%;
-        box-shadow: 0 0 0 0 var(--color-footer-fresh);
-        animation: app-footer-pulse var(--footer-fresh-pulse-duration) ease-out infinite;
+
+        &::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: var(--color-footer-fresh);
+            border-radius: 50%;
+            animation: app-footer-pulse var(--footer-fresh-pulse-duration) ease-out infinite;
+        }
 
         @media (prefers-reduced-motion: reduce) {
-            animation: none;
+            &::after {
+                animation: none;
+                opacity: 0;
+            }
         }
     }
 
@@ -241,11 +258,14 @@
 
 // Tečka „vysílá“ — kolem ní se rozbíhá kroužek
 @keyframes app-footer-pulse {
-    70% {
-        box-shadow: 0 0 0 var(--watch-demo-dot-size) transparent;
+    0% {
+        opacity: 0.8;
+        transform: scale(1);
     }
 
+    70%,
     100% {
-        box-shadow: 0 0 0 0 transparent;
+        opacity: 0;
+        transform: scale(var(--footer-fresh-pulse-scale));
     }
 }
