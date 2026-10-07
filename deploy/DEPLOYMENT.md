@@ -696,6 +696,17 @@ a drobnosti vzhledu. Bez SQL skriptu a bez `vendor/` (`composer.lock` beze změn
    jde v síti požadavek na `www.clarity.ms` a v konzoli není chyba CSP.
 4. Zapiš verzi do *Nasazené verze*.
 
+### Aktualizace z `9324560` (dvacáté páté nasazení — provedeno, `2f60395`)
+
+**IndexNow** (R105). Bez SQL skriptu, bez `vendor/` a bez `public/build/`, cron i `.env` beze změny.
+
+1. **Nahraj** `app/Domain/Offers/Actions/ImportChainOffers.php`, nové `app/Domain/Offers/ChangedOfferPages.php`
+   a `app/Support/Seo/IndexNow.php`, `app/Http/Controllers/CrawlerFilesController.php`, `config/letaky.php`,
+   `routes/web.php` a `public/version.txt`.
+2. **Ověř:** `https://slevohlidka.cz/<klíč>.txt` vrací samotný klíč, jiný název 404; po nejbližším cronu
+   stažení jsou v Bing Webmaster Tools → *IndexNow* ohlášené adresy (jinak hledej `IndexNow:` v logu).
+3. Zapiš verzi do *Nasazené verze*.
+
 **Každá nová migrace potřebuje SQL skript** `deploy/migrations-<datum>-<popis>.sql`
 (opakovatelný: `CREATE TABLE IF NOT EXISTS`, `ADD COLUMN IF NOT EXISTS`) včetně zápisu do
 tabulky `migrations` — ve stejném commitu jako migrace. Nové produkty katalogu jdou na
@@ -764,3 +775,4 @@ Co běží na produkci — pro `git log <commit>..HEAD` při dalším nasazení
 | 2026-10-07 | `6d0e140` | dvacáté druhé nasazení: přihlášení přes Seznam (R98) — tlačítko podle manuálu Seznamu, `SEZNAM_CLIENT_ID` / `SEZNAM_CLIENT_SECRET` v `.env`, bez SQL skriptu a bez `vendor/`; přesměrování na `login.seznam.cz` ověřeno |
 | 2026-10-07 | `16b4832` | dvacáté třetí nasazení: audit přístupnosti, SEO a zobrazení (R99) — strukturovaná data v jednom grafu (organizace, drobečková navigace, akce jako `Offer`, `FAQPage` kontaktu), `/index.php` přesměruje 301, texty UI jen při celém načtení (odpověď přechodu na `/akce` 52 kB místo 104 kB), vložený `theme-init.js` bez komentářů s novým otiskem v CSP (ověřeno, že sedí), fokus, kontrasty a čtečky; bez SQL skriptu a bez `vendor/` |
 | 2026-10-07 | `9324560` | dvacáté čtvrté nasazení: řazení a nastavení Mých obchodů ve Všech akcích, štítky filtrů, kategorie, Moje slevy podle obchodů a filtry na telefonu v okně (R100–R102); Microsoft Clarity po souhlasu s analytickými cookies, verze souhlasu 2, CSP a zásady (R103); náhled vlastních slov s poslední akcí z historie (R104); čitelná lišta ověření e-mailu, šipka výběrů a seznam selectu v tmavém režimu; bez SQL skriptu a bez `vendor/` |
+| 2026-10-07 | `2f60395` | dvacáté páté nasazení: IndexNow (R105) — stažení obchodu ohlásí změněné stránky Bingu, Seznamu a dalším, klíč na `/<klíč>.txt` (ověřeno: 200 s klíčem, jiný název 404); nahraných šest souborů v `app/`, `config/` a `routes/`, bez SQL skriptu, bez `vendor/` a `public/build/` |
