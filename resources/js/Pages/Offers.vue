@@ -4,7 +4,8 @@
     po krátké pauze v psaní, bez tlačítka; štítky filtrů (produkt z našeptávače, jen akce,
     které ještě nezačaly — R76, bez e-shopu — R82) a upozornění na opravený překlep. Když nic
     není v akci, nabídne to pohlídat. Obchodů jde vybrat víc, přihlášený má předvybrané své
-    sledované; akce jako karty, nebo kompaktní řádky (R82).
+    sledované; akce jako karty, nebo kompaktní řádky (R82). Řazení na výběr a přihlášenému
+    štítek „Podle Mých obchodů“ (prodejny, karty, e-shop) s počtem skrytých akcí (R100).
 
     @author Roman Hlaváček
     @created 2026-10-02
@@ -17,6 +18,7 @@ import OfferRow from '@/Components/OfferRow.vue';
 import Pagination from '@/Components/Pagination.vue';
 import SearchSuggest from '@/Components/SearchSuggest.vue';
 import ShoppingToggle from '@/Components/ShoppingToggle.vue';
+import SortSelect from '@/Components/SortSelect.vue';
 import ViewToggle from '@/Components/ViewToggle.vue';
 import WatchOfferButton from '@/Components/WatchOfferButton.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
@@ -35,6 +37,9 @@ const ALL_CHAINS = 'vse';
 /** Oddělovač obchodů v parametru (OfferFilters::CHAIN_SEPARATOR). */
 const CHAIN_SEPARATOR = ',';
 
+/** Parametr nastavení Mých obchodů (OfferFilters::SHOPPING_PREFERENCES_PARAMETER, R100). */
+const SHOPPING_PREFERENCES = 'moje-obchody';
+
 const props = defineProps({
     /** Nadpis podle obchodu nebo produktu („Pivo v akci“), stejný jako pro vyhledávače (SeoMeta, R94). */
     heading: { type: String, required: true },
@@ -46,8 +51,13 @@ const props = defineProps({
     offers: { type: Object, required: true },
     /** Odkazy stránkování a „Načíst další“ (OffersController::pagination, R43). */
     pagination: { type: Object, required: true },
-    /** { q, chain: [obchody] (prázdné = všechny), produkt, brzy, 'bez-eshopu' } */
+    /** { q, chain: [obchody] (prázdné = všechny), produkt, brzy, 'bez-eshopu', razeni ('' = podle situace), 'moje-obchody' } */
     filters: { type: Object, required: true },
+    /** Řazení, podle kterého výpis řadí, a možnosti [{ value, label }] (OfferListSort, R100). */
+    sort: { type: String, required: true },
+    sortOptions: { type: Array, required: true },
+    /** Nastavení Mých obchodů přihlášeného { hidden: skryté akce, url } (R100); nepřihlášený null. */
+    shoppingPreferences: { type: Object, default: null },
     chains: { type: Array, required: true },
     /** Adresy pro „Hlídat“ z karty (R60, WatchOfferButton). */
     watchUrls: { type: Object, required: true },
@@ -77,8 +87,18 @@ const chainParameter = computed(() => {
     return page.props.auth.user ? ALL_CHAINS : '';
 });
 
-/** Parametry našeptávače — návrhy ze stejných obchodů a bez e-shopu jako výsledky. */
-const suggestParams = computed(() => ({ chain: chainParameter.value, 'bez-eshopu': filters['bez-eshopu'] ? 1 : '' }));
+/**
+ * Parametr nastavení Mých obchodů do adresy (R100): výchozí je zapnuté, do adresy jde jen
+ * vypnutí jako 0; nepřihlášený nastavení nemá.
+ */
+const shoppingPreferencesParameter = computed(() => (props.shoppingPreferences && !filters[SHOPPING_PREFERENCES] ? 0 : ''));
+
+/** Parametry našeptávače — návrhy ze stejných obchodů, bez e-shopu a podle Mých obchodů jako výsledky. */
+const suggestParams = computed(() => ({
+    chain: chainParameter.value,
+    'bez-eshopu': filters['bez-eshopu'] ? 1 : '',
+    [SHOPPING_PREFERENCES]: shoppingPreferencesParameter.value,
+}));
 
 let liveTimer = null;
 /** Text posledního hledání — živé hledání se stejným textem nespouští znovu. */
@@ -93,7 +113,7 @@ function search({ live = false } = {}) {
     window.clearTimeout(liveTimer);
     searchedText = filters.q.trim();
     const query = Object.fromEntries(
-        Object.entries({ ...filters, chain: chainParameter.value })
+        Object.entries({ ...filters, chain: chainParameter.value, [SHOPPING_PREFERENCES]: shoppingPreferencesParameter.value })
             .filter(([, value]) => value !== '' && value !== false && value !== null)
             .map(([key, value]) => [key, value === true ? 1 : value]),
     );
@@ -145,6 +165,32 @@ function toggleUpcoming() {
 /** Přepne „Bez e-shopu“ — bez akcí, které platí jen v e-shopu (R82). */
 function toggleWithoutEshop() {
     filters['bez-eshopu'] = !filters['bez-eshopu'];
+    search();
+}
+
+/** Přepne „Podle Mých obchodů“ — vybrané prodejny, karty a e-shop přihlášeného (R100). */
+function toggleShoppingPreferences() {
+    filters['moje-obchody'] = !filters['moje-obchody'];
+    search();
+}
+
+/**
+ * Řazení ve výběru: podle kterého výpis opravdu řadí (server ho určí i bez volby). Vlastní
+ * hodnota, aby výběr během načítání neskočil zpátky na předchozí.
+ */
+const sortValue = ref(props.sort);
+watch(
+    () => props.sort,
+    (sort) => (sortValue.value = sort),
+);
+
+/**
+ * Zvolené řazení — platí i pro další hledání, dokud ho uživatel nezmění.
+ *
+ * @param {string} sort
+ */
+function changeSort(sort) {
+    filters.razeni = sort;
     search();
 }
 
@@ -226,9 +272,31 @@ onBeforeUnmount(() => window.clearTimeout(liveTimer));
                     <span class="visually-hidden">{{ t('search.remove_filter') }}</span>
                 </button>
             </span>
-            <!-- Karty, nebo kompaktní řádky (R82) -->
-            <ViewToggle v-model="compact" class="search-chips__view" />
+            <!-- Akce podle Mých obchodů: prodejny, karty, e-shop (R100) — jen přihlášený -->
+            <button
+                v-if="shoppingPreferences"
+                type="button"
+                class="search-chip"
+                :class="{ 'search-chip--on': filters['moje-obchody'] }"
+                :aria-pressed="filters['moje-obchody'] ? 'true' : 'false'"
+                @click="toggleShoppingPreferences"
+            >
+                {{ t('search.shopping_preferences') }}
+            </button>
+            <!-- Řazení (R100) a karty, nebo kompaktní řádky (R82) -->
+            <div class="search-chips__display">
+                <SortSelect id="sort" v-model="sortValue" :label="t('offers.sort')" :options="sortOptions" @change="changeSort" />
+                <ViewToggle v-model="compact" />
+            </div>
         </div>
+
+        <!-- Kolik akcí nastavení Mých obchodů skrylo — s nabídkou ukázat všechny (R100) -->
+        <p v-if="shoppingPreferences && filters['moje-obchody'] && shoppingPreferences.hidden > 0" class="search-preferences">
+            {{ t('search.shopping_preferences_hidden', { count: shoppingPreferences.hidden }) }}
+            <button type="button" class="link-button" @click="toggleShoppingPreferences">{{ t('search.shopping_preferences_show_all') }}</button>
+            ·
+            <Link :href="shoppingPreferences.url" class="link">{{ t('search.shopping_preferences_edit') }}</Link>
+        </p>
 
         <p v-if="correction" class="search-correction" role="status">{{ t('search.correction', { original: correction.original, corrected: correction.corrected }) }}</p>
 

@@ -171,9 +171,14 @@ it('Všechny akce u akce jen v některých prodejnách ukážou kde platí', fun
     $this->get(route('offers', ['q' => 'vejce']))->assertInertia(fn (Assert $page) => $page
         ->where('offers.data.0.stores', null));
 
-    // Přihlášený s Trutnovem: losos v jeho prodejně není
+    // Přihlášený s Trutnovem: losos v jeho prodejně není — podle Mých obchodů schovaný (R100),
+    // po vypnutí s „jinde“
     $user = User::factory()->create();
     FollowedChain::query()->create(['user_id' => $user->id, 'chain' => Chain::Kaufland, 'include_online_only' => true, 'store_codes' => ['CZ4400']]);
     $this->actingAs($user)->get(route('offers', ['q' => 'losos']))->assertInertia(fn (Assert $page) => $page
+        ->where('offers.total', 0)
+        ->where('shoppingPreferences.hidden', 1));
+    $this->get(route('offers', ['q' => 'losos', 'moje-obchody' => 0]))->assertInertia(fn (Assert $page) => $page
+        ->where('filters.moje-obchody', false)
         ->where('offers.data.0.stores', ['names' => [], 'count' => 1, 'elsewhere' => true, 'list' => [['name' => 'Praha-Vypich', 'selected' => false]]]));
 });

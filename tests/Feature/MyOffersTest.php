@@ -333,3 +333,18 @@ it('krmivo pro zvířata ukáže jen u hlídání o zvířatech (R50)', function
         'Krmivo pro psy' => ['Konzerva pro psy s hovězím', 'Pedigree kapsička s hovězím'],
     ]);
 });
+
+it('pošle řazení na výběr a adresu, kam se hned uloží (R100)', function (): void {
+    $this->user->forceFill(['offers_sort' => OffersSort::Discount, 'min_discount_percent' => 20])->save();
+
+    $this->get(route('home'))->assertInertia(fn (Assert $page) => $page
+        ->where('offersPreferences.sort', 'discount')
+        ->where('offersPreferences.minDiscountPercent', 20)
+        ->where('offersPreferences.updateUrl', '/ucet/moje-slevy')
+        ->where('offersPreferences.sortOptions.0', ['value' => 'unit_price', 'label' => 'nejnižší ceny za jednotku']));
+
+    $this->from(route('home'))
+        ->put('/ucet/moje-slevy', ['offers_sort' => 'ending_soon', 'min_discount_percent' => 20])
+        ->assertRedirect(route('home'));
+    expect($this->user->refresh()->offers_sort)->toBe(OffersSort::EndingSoon);
+});

@@ -1,0 +1,35 @@
+// _sort-select.scss
+// Výběr řazení akcí (SortSelect.vue, R100) — popisek a select v rámečku jako přepínač
+// karty / řádky, aby seděly vedle sebe v jednom řádku.
+//
+// @author Roman Hlaváček
+// @created 2026-10-07
+
+.sort-select {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    gap: var(--space-2);
+    max-width: 100%;
+
+    &__label {
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+        font-weight: 600;
+    }
+
+    &__input {
+        min-width: 0;
+        max-width: 100%;
+        min-height: var(--control-size);
+        padding: 0 var(--space-3);
+        background: var(--color-surface);
+        border: 1px solid var(--color-input-border);
+        border-radius: var(--radius-pill);
+        color: var(--color-text);
+        font: inherit;
+        font-size: var(--font-size-sm);
+        font-weight: 600;
+        cursor: pointer;
+    }
+}

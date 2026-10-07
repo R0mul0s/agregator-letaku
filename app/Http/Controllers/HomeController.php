@@ -19,6 +19,7 @@ use App\Domain\Offers\MentionPresenter;
 use App\Domain\Offers\OfferPresenter;
 use App\Domain\Offers\PriceHistory;
 use App\Enums\DigestFrequency;
+use App\Enums\OffersSort;
 use App\Models\User;
 use App\Support\CzechVocative;
 use Illuminate\Http\Request;
@@ -67,10 +68,16 @@ class HomeController extends Controller
             ],
             // E-mailový souhrn (R42) — prázdná skupina na něj upozorní; null = vypnutý
             'digestFrequency' => $user->digest_frequency === DigestFrequency::Off ? null : mb_strtolower($user->digest_frequency->label()),
-            // Předvolby řazení a minimální slevy (R41) — stránka je ukazuje u souhrnu
+            // Předvolby řazení a minimální slevy (R41) — řazení jde změnit přímo na stránce (R100),
+            // uloží se hned do účtu (stejný požadavek jako Můj účet, s celým stavem)
             'offersPreferences' => [
-                'sortLabel' => $user->offers_sort->label(),
+                'sort' => $user->offers_sort->value,
+                'sortOptions' => array_map(
+                    fn (OffersSort $sort): array => ['value' => $sort->value, 'label' => $sort->label()],
+                    OffersSort::cases(),
+                ),
                 'minDiscountPercent' => $user->min_discount_percent,
+                'updateUrl' => route('account.offers-preferences', absolute: false),
             ],
             'watchItems' => array_map(fn (array $group): array => [
                 'id' => $group['watchItem']->id,

@@ -5,6 +5,8 @@
     seznamu je teď v Lidlu“, když člověk stojí v obchodě (R55). Akce, které ještě nezačaly,
     jsou ve sbalené sekci Brzy pod skupinami; v obchodě se neukazují vůbec (R76). Akce jako
     karty, nebo kompaktní řádky — volba společná se Všemi akcemi, v obchodě vlastní (R62, R82).
+    Položky bez akcí jsou ve sbalené sekci Zatím bez akce na konci a řazení jde změnit přímo
+    nad skupinami, uloží se do účtu (R100).
 
     @author Roman Hlaváček
     @created 2026-10-02
@@ -12,21 +14,26 @@
 <script setup>
 import ChainSelect from '@/Components/ChainSelect.vue';
 import EmptyState from '@/Components/EmptyState.vue';
+import SortSelect from '@/Components/SortSelect.vue';
 import UpcomingSection from '@/Components/UpcomingSection.vue';
 import ViewToggle from '@/Components/ViewToggle.vue';
+import WaitingSection from '@/Components/WaitingSection.vue';
 import WatchGroup from '@/Components/WatchGroup.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { useTranslations } from '@/lib/i18n';
 import { discountPercent } from '@/lib/offer';
 import { useCompactView } from '@/lib/viewMode';
-import { Head, Link, usePage } from '@inertiajs/vue3';
-import { computed, nextTick, onMounted, ref } from 'vue';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
+import { computed, nextTick, onMounted, ref, watch } from 'vue';
 
 /** Klíč v localStorage s rozbalenými položkami — jen pohodlí prohlížeče, ne nastavení účtu. */
 const EXPANDED_STORAGE_KEY = 'slevohlidka.home.expanded';
 
 /** Sekce Brzy mezi rozbalenými (R76) — vedle ID položek ve stejném klíči localStorage. */
 const UPCOMING_ID = 'brzy';
+
+/** Sekce Zatím bez akce mezi rozbalenými (R100) — ve stejném klíči localStorage. */
+const WAITING_ID = 'bez-akce';
 
 /** Kotva skupiny v adrese (odkaz z dlaždice v Hlídám): #polozka-{id}. */
 const GROUP_HASH_PATTERN = /^#polozka-(\d+)$/;
@@ -36,7 +43,7 @@ const props = defineProps({
     /** Křestní jméno v 5. pádě do pozdravu („Romane“, R47). */
     greetingName: { type: String, required: true },
     urls: { type: Object, required: true },
-    /** Předvolby uživatele { sortLabel, minDiscountPercent } (R41). */
+    /** Předvolby uživatele { sort, sortOptions, minDiscountPercent, updateUrl } (R41, řazení na stránce R100). */
     offersPreferences: { type: Object, required: true },
     /** Jak často chodí e-mailový souhrn („denně“), null = vypnutý (R42). */
     digestFrequency: { type: String, default: null },
@@ -74,12 +81,24 @@ const filterChains = computed(() => {
 });
 
 /**
- * Položky k zobrazení: po výběru obchodu jen ty s jeho akcemi nebo zmínkami, a jen ty, které
- * dnes platí — budoucí akce za akční cenu v obchodě zatím nekoupíte (R76).
+ * Má položka akci nebo zmínku v letáku? Bez nich je v sekci Zatím bez akce (R100).
+ *
+ * @param {object} item
+ * @returns {boolean}
+ */
+const hasFinds = (item) => item.offers.length > 0 || item.mentions.length > 0;
+
+/** Položky bez akcí a zmínek — sbalená sekce pod ostatními (R100); v obchodě se neukazují. */
+const waitingItems = computed(() => (chainFilter.value ? [] : props.watchItems.filter((item) => !hasFinds(item))));
+
+/**
+ * Skupiny k zobrazení: položky s akcemi nebo zmínkami; po výběru obchodu jen ty s jeho akcemi
+ * nebo zmínkami, a jen ty, které dnes platí — budoucí akce za akční cenu v obchodě zatím
+ * nekoupíte (R76).
  */
 const visibleItems = computed(() => {
     if (!chainFilter.value) {
-        return props.watchItems;
+        return props.watchItems.filter(hasFinds);
     }
 
     const inChain = (entry) => entry.chain === chainFilter.value;
@@ -92,7 +111,7 @@ const visibleItems = computed(() => {
             upcoming: [],
             waitTip: null,
         }))
-        .filter((item) => item.offers.length || item.mentions.length);
+        .filter(hasFinds);
 });
 
 /** Položky s akcemi, které ještě nezačaly — sekce Brzy (R76). */
@@ -189,7 +208,10 @@ function setExpanded(id, value) {
     saveExpanded();
 }
 
-/** Rozbalí všechny skupiny, nebo — když už jsou všechny rozbalené — všechny sbalí. Sekce Brzy zůstane, jak je. */
+/**
+ * Rozbalí všechny skupiny s akcemi, nebo — když už jsou všechny rozbalené — všechny sbalí.
+ * Sekce Brzy a Zatím bez akce zůstanou, jak jsou.
+ */
 function toggleAll() {
     if (chainFilter.value) {
         filterCollapsedIds.value = allExpanded.value ? new Set(visibleItems.value.map((item) => item.id)) : new Set();
@@ -197,28 +219,62 @@ function toggleAll() {
         return;
     }
 
-    const next = new Set(allExpanded.value ? [] : props.watchItems.map((item) => item.id));
-    if (expandedIds.value.has(UPCOMING_ID)) {
-        next.add(UPCOMING_ID);
+    const next = new Set(allExpanded.value ? [] : visibleItems.value.map((item) => item.id));
+    for (const sectionId of [UPCOMING_ID, WAITING_ID]) {
+        if (expandedIds.value.has(sectionId)) {
+            next.add(sectionId);
+        }
     }
     expandedIds.value = next;
     saveExpanded();
 }
 
-/** Rozbalená sekce Brzy (R76); ve výchozím stavu sbalená, stav si prohlížeč pamatuje. */
-const upcomingExpanded = computed({
-    get: () => expandedIds.value.has(UPCOMING_ID),
-    set: (value) => {
-        const next = new Set(expandedIds.value);
-        if (value) {
-            next.add(UPCOMING_ID);
-        } else {
-            next.delete(UPCOMING_ID);
-        }
-        expandedIds.value = next;
-        saveExpanded();
-    },
-});
+/**
+ * Rozbalení sekce pod skupinami (Brzy, Zatím bez akce); ve výchozím stavu sbalená, stav si
+ * prohlížeč pamatuje. Sekce se v obchodě neukazují, proto vždy mezi zapamatovanými.
+ *
+ * @param {string} sectionId
+ */
+const sectionExpanded = (sectionId) =>
+    computed({
+        get: () => expandedIds.value.has(sectionId),
+        set: (value) => {
+            const next = new Set(expandedIds.value);
+            if (value) {
+                next.add(sectionId);
+            } else {
+                next.delete(sectionId);
+            }
+            expandedIds.value = next;
+            saveExpanded();
+        },
+    });
+
+/** Rozbalená sekce Brzy (R76). */
+const upcomingExpanded = sectionExpanded(UPCOMING_ID);
+
+/** Rozbalená sekce Zatím bez akce (R100). */
+const waitingExpanded = sectionExpanded(WAITING_ID);
+
+/** Řazení akcí ve skupinách (R41) — změna na stránce se hned uloží do účtu (R100). */
+const sort = ref(props.offersPreferences.sort);
+watch(
+    () => props.offersPreferences.sort,
+    (value) => (sort.value = value),
+);
+
+/**
+ * Uloží řazení s celým stavem předvoleb (jako Můj účet, R63); server akce seřadí znovu.
+ *
+ * @param {string} value
+ */
+function saveSort(value) {
+    router.put(
+        props.offersPreferences.updateUrl,
+        { offers_sort: value, min_discount_percent: props.offersPreferences.minDiscountPercent },
+        { preserveScroll: true, preserveState: true },
+    );
+}
 
 onMounted(async () => {
     try {
@@ -231,7 +287,12 @@ onMounted(async () => {
     // Odkaz z Hlídám vede na konkrétní skupinu — rozbalit ji a posunout se k ní
     const match = window.location.hash.match(GROUP_HASH_PATTERN);
     if (match) {
-        setExpanded(Number(match[1]), true);
+        // Položka bez akcí je v sekci Zatím bez akce — rozbalit tu (R100)
+        if (waitingItems.value.some((item) => item.id === Number(match[1]))) {
+            waitingExpanded.value = true;
+        } else {
+            setExpanded(Number(match[1]), true);
+        }
         await nextTick();
         document.getElementById(`polozka-${match[1]}`)?.scrollIntoView({ block: 'start' });
     }
@@ -256,10 +317,9 @@ onMounted(async () => {
             <div class="home-hero__body">
                 <h1 class="home-hero__title">{{ greetingName ? t('home.hello', { name: greetingName }) : t('home.title') }}</h1>
                 <p class="home-hero__text">{{ t('home.hero_text') }}</p>
-                <p v-if="watchItems.length" class="home-hero__preferences">
-                    {{ t('home.sorted_by', { sort: offersPreferences.sortLabel }) }}<template v-if="offersPreferences.minDiscountPercent"
-                        >, {{ t('home.min_discount_note', { percent: offersPreferences.minDiscountPercent }) }}</template
-                    >
+                <!-- Řazení je v panelu nad skupinami (R100); tady jen hranice slevy, která akce schovává -->
+                <p v-if="watchItems.length && offersPreferences.minDiscountPercent" class="home-hero__preferences">
+                    {{ t('home.min_discount_filter', { percent: offersPreferences.minDiscountPercent }) }}
                     · <Link :href="urls.offersPreferences" class="link">{{ t('home.change_preferences') }}</Link>
                 </p>
                 <ul v-if="watchItems.length" class="home-hero__stats">
@@ -300,9 +360,11 @@ onMounted(async () => {
                     :all-label="t('offers.all_chains')"
                     @change="onChainChange"
                 />
+                <!-- Řazení akcí ve skupinách — uloží se hned do účtu (R41, R100) -->
+                <SortSelect id="home-sort" v-model="sort" :label="t('home.sort')" :options="offersPreferences.sortOptions" @change="saveSort" />
                 <!-- Karty s obrázkem, nebo řádky (R62, R82) -->
                 <ViewToggle v-model="compact" />
-                <button type="button" class="button button--ghost" @click="toggleAll">
+                <button v-if="visibleItems.length" type="button" class="button button--ghost" @click="toggleAll">
                     {{ allExpanded ? t('home.collapse_all') : t('home.expand_all') }}
                 </button>
             </div>
@@ -310,8 +372,6 @@ onMounted(async () => {
                 v-for="item in visibleItems"
                 :key="item.id"
                 :item="item"
-                :digest-frequency="digestFrequency"
-                :digest-url="urls.digest"
                 :expanded="isExpanded(item.id)"
                 :compact="compact"
                 :with-chain="!chainFilter"
@@ -319,6 +379,8 @@ onMounted(async () => {
             />
             <!-- Akce, které ještě nezačaly (R76) — v obchodě (výběr obchodu) se neukazují -->
             <UpcomingSection v-if="!chainFilter && upcomingItems.length" v-model:expanded="upcomingExpanded" :items="upcomingItems" />
+            <!-- Položky, které teď v akci nejsou (R100) — v obchodě se neukazují -->
+            <WaitingSection v-if="waitingItems.length" v-model:expanded="waitingExpanded" :items="waitingItems" :digest-frequency="digestFrequency" :digest-url="urls.digest" />
         </template>
     </AppLayout>
 </template>

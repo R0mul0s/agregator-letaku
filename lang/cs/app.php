@@ -483,6 +483,15 @@ return [
             'ending_soon' => 'konce platnosti',
         ],
 
+        // App\Enums\OfferListSort — řazení Všech akcí (R100)
+        'offer_list_sort' => [
+            'doporucene' => 'Doporučené',
+            'relevance' => 'Nejlépe odpovídá',
+            'sleva' => 'Největší sleva',
+            'cena' => 'Nejlevnější za kg, l, ks',
+            'konci' => 'Končí nejdřív',
+        ],
+
         // App\Enums\DigestFrequency — e-mailový souhrn (R42)
         'digest_frequency' => [
             'off' => 'Neposílat',
@@ -546,6 +555,11 @@ return [
             'upcoming_only' => 'Brzy začnou',
             // Bez akcí jen z e-shopu (R82)
             'without_eshop' => 'Bez e-shopu',
+            // Nastavení Mých obchodů přihlášeného — prodejny, karty, e-shop (R100)
+            'shopping_preferences' => 'Podle Mých obchodů',
+            'shopping_preferences_hidden' => 'Podle Mých obchodů (vaše prodejny, karty a e-shopy) jsme schovali :count akci.|Podle Mých obchodů (vaše prodejny, karty a e-shopy) jsme schovali :count akce.|Podle Mých obchodů (vaše prodejny, karty a e-shopy) jsme schovali :count akcí.',
+            'shopping_preferences_show_all' => 'Ukázat všechny',
+            'shopping_preferences_edit' => 'Upravit Moje obchody',
             'product_filter' => 'Produkt: :name',
             'remove_filter' => 'Zrušit filtr',
             'correction' => '„:original“ jsme nenašli, tak ukazujeme „:corrected“. Prsty někdy kliknou vedle.',
@@ -562,6 +576,8 @@ return [
             'more_chains' => '+:count',
             'submit' => 'Hledat',
             'count' => ':count nabídka|:count nabídky|:count nabídek',
+            // Výběr řazení (R100)
+            'sort' => 'Řadit',
             'empty' => 'Tentokrát jsme nic neulovili. Zkuste jiné slovo nebo jiný obchod.',
             'with_card' => 's kartou :program',
             'regular_price' => 'běžně :price',
@@ -965,8 +981,6 @@ return [
             'no_chains_link' => 'Vybrat obchody',
             'no_watch_items' => 'Zatím nic nehlídáte.',
             'no_watch_items_link' => 'Přidat hlídanou položku',
-            'no_offers' => 'Teď v akci není.',
-            'no_offers_hint' => 'Hlídáme dál — jakmile bude v akci, objeví se tady.',
             'no_offers_digest_on' => 'Dáme vědět i e-mailem, souhrn chodí :frequency.',
             'no_offers_digest_off' => 'Můžeme vám to poslat i e-mailem v denním nebo týdenním souhrnu.',
             'no_offers_digest_link' => 'Zapnout v účtu',
@@ -975,9 +989,14 @@ return [
             'chain_filter' => 'Jsem v obchodě',
             'expand_all' => 'Rozbalit vše',
             'collapse_all' => 'Sbalit vše',
-            'sorted_by' => 'Řazeno od :sort',
-            'min_discount_note' => 'jen slevy od :percent %',
+            // Řazení přímo na stránce, ukládá se do účtu (R100)
+            'sort' => 'Řadit od',
+            'min_discount_filter' => 'Ukazujeme jen slevy od :percent %',
             'change_preferences' => 'Změnit',
+            // Položky, které teď v akci nejsou — sbalená sekce pod ostatními (R100)
+            'waiting_title' => 'Zatím bez akce',
+            'waiting_count' => ':count položka|:count položky|:count položek',
+            'waiting_hint' => 'Tyhle položky teď v akci nejsou. Hlídáme dál — jakmile se některá objeví, přesune se nahoru.',
             'mentions_title' => 'V letáku, ale bez ceny',
             'mentions_hint' => 'Leták o tom píše, ale cenu z něj přečíst neumíme — mrkněte přímo na stránku letáku.',
             'mention_maybe_hint' => 'Stránka hledanou variantu neuvádí — ověřte v letáku.',

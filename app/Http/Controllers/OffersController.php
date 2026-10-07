@@ -6,7 +6,8 @@
  * ukážou totéž. Hledání podle relevance, filtr produktu z našeptávače a oprava
  * překlepu, když text nic nenajde (R71); jen akce, které ještě nezačaly (R76); víc obchodů
  * najednou (přihlášený má předvybrané sledované) a bez akcí jen z e-shopu (R82). Jeden
- * obchod a produkt katalogu mají čistou adresu `/akce/lidl`, `/akce/pivo` (R94).
+ * obchod a produkt katalogu mají čistou adresu `/akce/lidl`, `/akce/pivo` (R94). Řazení na výběr
+ * a přihlášenému nastavení Mých obchodů — prodejny, karty, e-shop — s počtem skrytých akcí (R100).
  *
  * @author Roman Hlaváček
  *
@@ -18,12 +19,14 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Domain\Catalog\WatchTargets;
+use App\Domain\Offers\OfferFilters;
 use App\Domain\Offers\OfferPages;
 use App\Domain\Offers\OfferPresenter;
 use App\Domain\Offers\OfferSearch;
 use App\Domain\Offers\PriceHistory;
 use App\Domain\Offers\SearchVocabulary;
 use App\Enums\Chain;
+use App\Enums\OfferListSort;
 use App\Http\Requests\OffersRequest;
 use App\Http\Responses\RegisterResponse;
 use App\Models\Offer;
@@ -76,6 +79,10 @@ class OffersController extends Controller
         // Hledání a zvolené filtry, které odkazy stránkování zachovají (obchod a produkt v čisté adrese)
         $chosenFilters = $request->chosenFilters();
         $searchText = $correction['corrected'] ?? $text;
+        // Kolik akcí skrylo nastavení Mých obchodů (R100) — výpis to řekne s nabídkou ukázat všechny
+        $preferencesHidden = $offerFilters->preferencesOf === null ? 0
+            : $search->query($searchText, $offerFilters->withPreferencesOf(null))->count() - $total;
+        $sort = OfferSearch::sortFor($searchText, $offerFilters);
         $offers = $query->offset($window->offset())->limit($window->limit())->get();
         // „Je to opravdu sleva?“ (R59) — jedním dotazem pro celou stránku
         $history = $priceHistory->forOffers($offers);
@@ -107,6 +114,8 @@ class OffersController extends Controller
                 'total' => $total,
             ],
             'pagination' => PaginationLinks::for($window, $total, fn (int $page, ?int $from): string => $pages->url($chosenFilters, [
+                // Zvolené „všechny obchody“ — bez parametru by přihlášený na další stránce dostal sledované
+                OffersRequest::CHAIN => $request->allChainsChosen() ? OfferFilters::ALL_CHAINS : null,
                 'q' => $searchText,
                 ...PaginationLinks::parameters($page, $from, OffersRequest::PAGE, OffersRequest::FROM_PAGE),
             ])),
@@ -117,7 +126,21 @@ class OffersController extends Controller
                 OffersRequest::PRODUCT => $productId ?? '',
                 OffersRequest::UPCOMING => $request->upcomingOnly(),
                 OffersRequest::WITHOUT_ESHOP => $request->withoutEshop(),
+                // Zvolené řazení ('' = podle situace) a zapnuté nastavení Mých obchodů (R100)
+                OffersRequest::SORT => $request->sort()->value ?? '',
+                OffersRequest::SHOPPING_PREFERENCES => $offerFilters->preferencesOf !== null,
             ],
+            // Řazení, podle kterého výpis opravdu řadí, a na výběr (relevance jen s textem, R100)
+            'sort' => $sort->value,
+            'sortOptions' => array_map(
+                fn (OfferListSort $option): array => ['value' => $option->value, 'label' => $option->label()],
+                OfferListSort::available($searchText !== null),
+            ),
+            // Nastavení Mých obchodů (R100) — jen přihlášený; kolik akcí skrylo a kde se mění
+            'shoppingPreferences' => $user instanceof User ? [
+                'hidden' => $preferencesHidden,
+                'url' => route('preferences', absolute: false),
+            ] : null,
             // Filtr produktu z našeptávače jako štítek nad výsledky (R71)
             'product' => $productId === null ? null : Product::query()->whereKey($productId)->value('name'),
             'correction' => $correction,

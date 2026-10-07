@@ -12,7 +12,9 @@
 declare(strict_types=1);
 
 use App\Enums\Chain;
+use App\Enums\LoyaltyProgram;
 use App\Enums\MatchStatus;
+use App\Enums\OfferType;
 use App\Models\Offer;
 use App\Models\OfferProduct;
 use App\Models\Product;
@@ -120,4 +122,18 @@ it('našeptávač relaci nezapisuje — souběžné uložení nepřijde o zpráv
         ->assertOk();
 
     expect(app('session.store')->getHandler())->toBeInstanceOf(NullSessionHandler::class);
+});
+
+it('počty produktů a akce v návrzích podle Mých obchodů jako výsledky (R100)', function (): void {
+    $butter = Product::factory()->create(['name' => 'Máslo']);
+    assignToProduct(Offer::factory()->create(['name' => 'Tatra máslo', 'price' => 4990]), $butter);
+    assignToProduct(Offer::factory()->create(['name' => 'Madeta máslo s kartou', 'price' => 5990, 'loyalty_price' => 3990, 'offer_type' => OfferType::LoyaltyOnly, 'loyalty_program' => LoyaltyProgram::KauflandCard]), $butter);
+
+    // Uživatel kartu Kauflandu nemá — akce jen s ní se nepočítá
+    $this->getJson(route('offers.suggestions', ['q' => 'maslo']))
+        ->assertJsonPath('products.0.offersCount', 1)
+        ->assertJsonPath('total', 1);
+    $this->getJson(route('offers.suggestions', ['q' => 'maslo', 'moje-obchody' => 0]))
+        ->assertJsonPath('products.0.offersCount', 2)
+        ->assertJsonPath('total', 2);
 });

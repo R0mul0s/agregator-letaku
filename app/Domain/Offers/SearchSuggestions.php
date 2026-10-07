@@ -18,6 +18,7 @@ namespace App\Domain\Offers;
 
 use App\Domain\Catalog\CatalogBrowseTree;
 use App\Domain\Catalog\CategoryPaths;
+use App\Domain\Chains\ShoppingPreferencesScope;
 use App\Models\Offer;
 use App\Models\OfferProduct;
 use App\Models\Product;
@@ -35,6 +36,7 @@ final class SearchSuggestions
         private readonly LocalCalendar $calendar,
         private readonly CategoryPaths $categories,
         private readonly OfferPages $pages,
+        private readonly ShoppingPreferencesScope $preferences,
     ) {}
 
     /**
@@ -131,6 +133,11 @@ final class SearchSuggestions
             ->whereDate('offers.valid_to', '>=', $this->calendar->today()->toDateString())
             ->when($filters->chains !== [], fn (Builder $query) => $query->whereIn('offers.chain', $filters->chains))
             ->when($filters->withoutEshop, fn (Builder $query) => $query->where('offers.online_only', false))
+            // Nastavení Mých obchodů (R100) poddotazem — podmínky na prodejny a karty jsou nad modelem Offer
+            ->when($filters->preferencesOf, fn (Builder $query, User $user) => $query->whereIn(
+                'offer_product.offer_id',
+                Offer::query()->select('id')->tap(fn (Builder $offers) => $this->preferences->apply($offers, $user)),
+            ))
             ->groupBy('offer_product.product_id')
             ->selectRaw('offer_product.product_id, COUNT(DISTINCT offer_product.offer_id) AS offers_count, MIN(offers.price) AS lowest_price')
             ->toBase()

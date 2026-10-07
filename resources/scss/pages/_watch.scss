@@ -68,6 +68,34 @@
         border-color: var(--color-info-text);
     }
 
+    // Sekce Zatím bez akce (R100): pod ostatními, odsazená jako Brzy; hlavička bez stínu, ať
+    // nesoutěží se skupinami s akcemi
+    &--waiting {
+        margin-top: var(--space-4);
+    }
+
+    &--waiting &__header {
+        box-shadow: none;
+    }
+
+    // Názvy položek ve sbalené hlavičce — jeden řádek, zbytek tři tečky
+    &__names {
+        flex: 1 1 0;
+        min-width: 0;
+        overflow: hidden;
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+        font-weight: 400;
+        letter-spacing: normal;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    // Logo obchodu s nejnižší cenou za cenou v hlavičce (R100)
+    &__chain {
+        margin-left: var(--space-1);
+    }
+
     &__heading {
         flex: 1;
         min-width: 0;
@@ -186,11 +214,6 @@
             stroke-linecap: round;
             stroke-linejoin: round;
         }
-    }
-
-    &__empty-title {
-        display: block;
-        color: var(--color-text);
     }
 
     &__empty-hint {
@@ -581,7 +604,33 @@
     margin-bottom: var(--space-3);
 }
 
-// Moje slevy: výběr obchodu (R55) a „Rozbalit vše / Sbalit vše“ nad skupinami (R43)
+// Řádky položek v sekci Zatím bez akce (R100): název, počet budoucích akcí, upravit / přestat
+.waiting-items {
+    margin: var(--space-3) 0 0;
+    padding: 0;
+    list-style: none;
+
+    &__item {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        padding: var(--space-1) 0 var(--space-1) var(--space-3);
+        border-bottom: 1px solid var(--color-border);
+
+        &:last-child {
+            border-bottom: 0;
+        }
+    }
+
+    &__name {
+        flex: 1;
+        min-width: 0;
+        font-weight: 700;
+        overflow-wrap: anywhere;
+    }
+}
+
+// Moje slevy: výběr obchodu (R55), řazení (R100) a „Rozbalit vše / Sbalit vše“ nad skupinami (R43)
 .watch-groups__toolbar {
     display: flex;
     flex-wrap: wrap;

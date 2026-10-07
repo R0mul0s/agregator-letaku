@@ -1,22 +1,24 @@
 <!--
-    Skupina hlídané položky v Mých slevách — sbalitelná. Hlavička ukazuje souhrn (počet akcí,
-    nejnižší cenu, nejvyšší slevu) a akce upravit / přestat hlídat; po rozbalení akce a zmínky.
-    Akce, které ještě nezačaly, jsou v sekci Brzy (UpcomingSection) — tady jen jejich počet
-    a „Vyplatí se počkat“, když je některá výrazně levnější (R76).
+    Skupina hlídané položky s akcemi nebo zmínkami v Mých slevách — sbalitelná. Hlavička ukazuje
+    souhrn (počet akcí, nejnižší cenu s obchodem — R100, nejvyšší slevu) a akce upravit / přestat
+    hlídat; po rozbalení akce a zmínky. Akce, které ještě nezačaly, jsou v sekci Brzy
+    (UpcomingSection) — tady jen jejich počet a „Vyplatí se počkat“, když je některá výrazně
+    levnější (R76). Položky bez akcí jsou v sekci Zatím bez akce (WaitingSection, R100).
 
     @author Roman Hlaváček
     @created 2026-10-02
 -->
 <script setup>
+import ChainLogo from '@/Components/ChainLogo.vue';
 import MentionCard from '@/Components/MentionCard.vue';
 import OfferCard from '@/Components/OfferCard.vue';
 import OfferRow from '@/Components/OfferRow.vue';
 import ShoppingToggle from '@/Components/ShoppingToggle.vue';
+import WatchItemActions from '@/Components/WatchItemActions.vue';
 import { formatDate, formatPrice } from '@/lib/format';
-import { confirmDialog } from '@/lib/confirm';
 import { useTranslations } from '@/lib/i18n';
 import { discountPercent } from '@/lib/offer';
-import { Link, router, usePage } from '@inertiajs/vue3';
+import { usePage } from '@inertiajs/vue3';
 import { computed, useId } from 'vue';
 
 const props = defineProps({
@@ -25,10 +27,6 @@ const props = defineProps({
      * zmínky, adresy úprav); po výběru obchodu jen jeho akce, bez budoucích.
      */
     item: { type: Object, required: true },
-    /** Jak často chodí e-mailový souhrn („denně“), null = vypnutý (R42). */
-    digestFrequency: { type: String, default: null },
-    /** Nastavení souhrnu v účtu. */
-    digestUrl: { type: String, required: true },
     /** Akce jako kompaktní řádky místo karet — „Jsem v obchodě“ (R62) nebo volba zobrazení (R82). */
     compact: { type: Boolean, default: false },
     /** U řádku i obchod — mimo „Jsem v obchodě“ jsou v řádcích akce víc obchodů (R82). */
@@ -42,12 +40,13 @@ const t = useTranslations();
 const page = usePage();
 const bodyId = useId();
 
-/** Nejnižší cena, kterou uživatel za některou z akcí zaplatí (userPrice z HomeController), nebo null. */
-const lowestPrice = computed(() => {
-    const prices = props.item.offers.map((offer) => offer.userPrice).filter((price) => price !== null);
-
-    return prices.length ? Math.min(...prices) : null;
-});
+/**
+ * Akce s nejnižší cenou, kterou uživatel zaplatí (userPrice z HomeController), nebo null — její
+ * cena a obchod jsou v hlavičce („od 19,90 Kč“ s logem, R100).
+ */
+const cheapestOffer = computed(() =>
+    props.item.offers.filter((offer) => offer.userPrice !== null).reduce((cheapest, offer) => (cheapest && cheapest.userPrice <= offer.userPrice ? cheapest : offer), null),
+);
 
 /**
  * „Vyplatí se počkat“ (R76, App\Domain\Matching\WaitAdvice): obchod, od kdy, za kolik a o kolik
@@ -77,17 +76,6 @@ const bestDiscount = computed(() => {
     return discounts.length ? Math.max(...discounts) : null;
 });
 
-/** Po potvrzení položku přestane hlídat; stránka zůstane na Mých slevách. */
-async function remove() {
-    const confirmed = await confirmDialog({
-        title: t('watch.delete_confirm_title'),
-        message: t('watch.delete_confirm', { name: props.item.name }),
-        confirmLabel: t('watch.stop'),
-    });
-    if (confirmed) {
-        router.delete(props.item.deleteUrl, { preserveScroll: true });
-    }
-}
 </script>
 
 <template>
@@ -98,8 +86,10 @@ async function remove() {
                     <span class="watch-group__chevron" aria-hidden="true">▸</span>
                     <span class="watch-group__name">{{ item.name }}</span>
                     <span class="watch-group__count">{{ t('home.count', { count: item.offers.length }) }}</span>
-                    <span v-if="lowestPrice !== null" class="watch-group__summary">
-                        {{ t('watch.lowest_price', { price: formatPrice(lowestPrice, page.props.locale) }) }}
+                    <span v-if="cheapestOffer" class="watch-group__summary">
+                        {{ t('watch.lowest_price', { price: formatPrice(cheapestOffer.userPrice, page.props.locale) }) }}
+                        <!-- Kde je nejlevněji (R100) — v obchodě je obchod jasný -->
+                        <ChainLogo v-if="withChain" :chain="cheapestOffer.chain" class="watch-group__chain" />
                     </span>
                     <span v-if="bestDiscount" class="watch-group__discount">−{{ bestDiscount }} %</span>
                     <span v-if="!item.offers.length && item.mentions.length" class="watch-group__summary">
@@ -110,18 +100,7 @@ async function remove() {
                     <span v-if="waitTipText" class="watch-group__wait">{{ t('watch.wait_tip') }}</span>
                 </button>
             </h2>
-            <div class="watch-group__actions">
-                <Link v-if="!item.fromCatalog" :href="item.editUrl" class="icon-button" :title="t('watch.edit')">
-                    <!-- Tužka -->
-                    <svg class="icon-button__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4zM14 6l4 4" /></svg>
-                    <span class="visually-hidden">{{ t('watch.edit') }} {{ item.name }}</span>
-                </Link>
-                <button type="button" class="icon-button icon-button--danger" :title="t('watch.stop')" @click="remove">
-                    <!-- Koš -->
-                    <svg class="icon-button__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6" /></svg>
-                    <span class="visually-hidden">{{ t('watch.stop') }} {{ item.name }}</span>
-                </button>
-            </div>
+            <WatchItemActions :item="item" />
         </div>
 
         <!-- Karty se vykreslí až po rozbalení — sbalené skupiny nenačítají obrázky -->
@@ -130,21 +109,6 @@ async function remove() {
                 <p v-if="waitTipText" class="notice notice--success">
                     <strong>{{ t('watch.wait_tip') }}:</strong> {{ waitTipText }}
                 </p>
-                <div v-if="!item.offers.length && !item.mentions.length" class="watch-group__empty">
-                    <span class="watch-group__empty-icon" aria-hidden="true">
-                        <!-- Oko — Slevohlídka hlídá dál -->
-                        <svg viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" /><circle cx="12" cy="12" r="3" /></svg>
-                    </span>
-                    <p>
-                        <strong class="watch-group__empty-title">{{ t('home.no_offers') }}</strong>
-                        <span class="watch-group__empty-hint">{{ t('home.no_offers_hint') }}</span>
-                        <span v-if="digestFrequency" class="watch-group__empty-hint">{{ t('home.no_offers_digest_on', { frequency: digestFrequency }) }}</span>
-                        <span v-else class="watch-group__empty-hint">
-                            {{ t('home.no_offers_digest_off') }}
-                            <Link :href="digestUrl" class="link">{{ t('home.no_offers_digest_link') }}</Link>
-                        </span>
-                    </p>
-                </div>
                 <ul v-if="item.offers.length && compact" class="offer-rows">
                     <OfferRow v-for="offer in item.offers" :key="offer.id" :offer="offer" :with-chain="withChain" />
                 </ul>

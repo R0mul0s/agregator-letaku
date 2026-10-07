@@ -142,6 +142,8 @@ it('bez e-shopu vynechá akce jen z e-shopu a filtr zůstane v odkazech (R82)', 
 });
 
 it('pošle ceny v haléřích, cenu za jednotku a názvy z lang', function (): void {
+    // Akce jen s kartou — uživatel ji má, jinak by ji nastavení Mých obchodů schovalo (R100)
+    $this->actingAs(User::factory()->create(['loyalty_programs' => [LoyaltyProgram::Clubcard]]));
     Offer::factory()->create([
         'chain' => Chain::Tesco,
         'name' => 'Tesco Mléko UHT polotučné 1,5% 1l',
@@ -288,4 +290,79 @@ it('akce produktu řadí od nejnižší ceny za jednotku, bez balení na konec (
 
     // 2 l = 29,95 Kč/l, 1,5 l = 26,60 Kč/l, 0,5 l = 39,80 Kč/l
     expect(offerNames(['produkt' => $product->id]))->toBe(['Pivo 1,5 l', 'Pivo 2 l', 'Pivo 0,5 l', 'Pivo bez balení']);
+});
+
+it('bez volby řadí doporučeně: čerstvé skutečné slevy, starší slevy, pak ostatní od nejnovějších (R100)', function (): void {
+    $now = CarbonImmutable::now();
+    Offer::factory()->create(['name' => 'Stará sleva 50 %', 'discount_percent' => 50, 'created_at' => $now->subDays(10)]);
+    Offer::factory()->create(['name' => 'Čerstvá sleva 20 %', 'discount_percent' => 20, 'created_at' => $now->subHour()]);
+    Offer::factory()->create(['name' => 'Čerstvá sleva 40 %', 'discount_percent' => 40, 'created_at' => $now]);
+    // Sleva dopočtená z původní ceny (R8) — 50 %
+    Offer::factory()->create(['name' => 'Sleva z původní ceny', 'discount_percent' => null, 'price' => 1000, 'original_price' => 2000, 'created_at' => $now]);
+    Offer::factory()->create(['name' => 'Akční cena stará', 'offer_type' => OfferType::PromoPrice, 'discount_percent' => null, 'original_price' => null, 'created_at' => $now->subDays(5)]);
+    Offer::factory()->create(['name' => 'Akční cena nová', 'offer_type' => OfferType::PromoPrice, 'discount_percent' => null, 'original_price' => null, 'created_at' => $now]);
+    // Akce, která teprve začne (R76), až za vším, co platí dnes
+    Offer::factory()->create(['name' => 'Brzy sleva 70 %', 'discount_percent' => 70, 'created_at' => $now, 'valid_from' => '2026-10-05', 'valid_to' => '2026-10-11']);
+
+    expect(offerNames())->toBe(['Sleva z původní ceny', 'Čerstvá sleva 40 %', 'Čerstvá sleva 20 %', 'Stará sleva 50 %', 'Akční cena nová', 'Akční cena stará', 'Brzy sleva 70 %']);
+    $this->get(route('offers'))->assertInertia(fn (Assert $page) => $page
+        ->where('sort', 'doporucene')
+        ->where('filters.razeni', '')
+        ->where('sortOptions', [
+            ['value' => 'doporucene', 'label' => 'Doporučené'],
+            ['value' => 'sleva', 'label' => 'Největší sleva'],
+            ['value' => 'cena', 'label' => 'Nejlevnější za kg, l, ks'],
+            ['value' => 'konci', 'label' => 'Končí nejdřív'],
+        ]));
+});
+
+it('řadí podle volby — sleva, konec platnosti — a volba zůstane v odkazech; relevance jen s textem (R100)', function (): void {
+    config(['letaky.offers.per_page' => 2]);
+    $today = CarbonImmutable::parse('2026-10-03');
+    Offer::factory()->create(['name' => 'Vejce 10 %', 'discount_percent' => 10, 'valid_to' => $today->addDays(1)]);
+    Offer::factory()->create(['name' => 'Vejce bez slevy', 'offer_type' => OfferType::PromoPrice, 'discount_percent' => null, 'original_price' => null, 'valid_to' => $today]);
+    Offer::factory()->create(['name' => 'Vejce 30 %', 'discount_percent' => 30, 'valid_to' => $today->addDays(5)]);
+
+    expect(offerNames(['razeni' => 'sleva']))->toBe(['Vejce 30 %', 'Vejce 10 %'])
+        ->and(offerNames(['razeni' => 'konci']))->toBe(['Vejce bez slevy', 'Vejce 10 %']);
+    $this->get(route('offers', ['razeni' => 'sleva']))->assertInertia(fn (Assert $page) => $page
+        ->where('sort', 'sleva')
+        ->where('filters.razeni', 'sleva')
+        ->where('pagination.nextUrl', '/akce?razeni=sleva&strana=2'));
+    // S textem je výchozí relevance a jde vybrat; bez textu se volba relevance nepoužije
+    $this->get(route('offers', ['q' => 'vejce']))->assertInertia(fn (Assert $page) => $page
+        ->where('sort', 'relevance')
+        ->where('sortOptions.1.value', 'relevance'));
+    $this->get(route('offers', ['razeni' => 'relevance']))->assertInertia(fn (Assert $page) => $page->where('sort', 'doporucene'));
+    $this->get(route('offers', ['razeni' => 'nahodne']))->assertSessionHasErrors('razeni');
+});
+
+it('podle Mých obchodů schová akce jen z e-shopu a s kartou, kterou uživatel nemá; vypnout jde parametrem (R100)', function (): void {
+    $user = User::factory()->create(['loyalty_programs' => [LoyaltyProgram::LidlPlus]]);
+    FollowedChain::query()->create(['user_id' => $user->id, 'chain' => Chain::Tesco, 'store_format' => null, 'include_online_only' => false]);
+    $this->actingAs($user);
+    Offer::factory()->create(['name' => 'Tesco z prodejny', 'chain' => Chain::Tesco]);
+    Offer::factory()->create(['name' => 'Tesco z e-shopu', 'chain' => Chain::Tesco, 'online_only' => true]);
+    Offer::factory()->create(['name' => 'Tesco s Clubcard', 'chain' => Chain::Tesco, 'offer_type' => OfferType::LoyaltyOnly, 'loyalty_program' => LoyaltyProgram::Clubcard]);
+    // Nesledovaný obchod vybraný ve výpisu: celý, jen bez akcí s kartou, kterou uživatel nemá
+    Offer::factory()->create(['name' => 'Lidl z letáku', 'chain' => Chain::Lidl]);
+    Offer::factory()->create(['name' => 'Lidl s Lidl Plus', 'chain' => Chain::Lidl, 'offer_type' => OfferType::LoyaltyOnly, 'loyalty_program' => LoyaltyProgram::LidlPlus]);
+    Offer::factory()->create(['name' => 'Penny s kartou', 'chain' => Chain::Penny, 'offer_type' => OfferType::LoyaltyOnly, 'loyalty_program' => LoyaltyProgram::PennyKarta]);
+
+    expect(offerNames(['chain' => 'vse']))->toEqualCanonicalizing(['Tesco z prodejny', 'Lidl z letáku', 'Lidl s Lidl Plus'])
+        ->and(offerNames(['chain' => 'vse', 'moje-obchody' => 0]))->toHaveCount(6);
+    $this->get(route('offers', ['chain' => 'vse']))->assertInertia(fn (Assert $page) => $page
+        ->where('filters.moje-obchody', true)
+        ->where('shoppingPreferences', ['hidden' => 3, 'url' => '/obchody']));
+    config(['letaky.offers.per_page' => 1]);
+    $this->get(route('offers', ['chain' => 'vse', 'moje-obchody' => 0]))->assertInertia(fn (Assert $page) => $page
+        ->where('filters.moje-obchody', false)
+        ->where('shoppingPreferences.hidden', 0)
+        ->where('pagination.nextUrl', '/akce?moje-obchody=0&chain=vse&strana=2'));
+
+    // Nepřihlášený žádné nastavení nemá — vidí vše a štítek nedostane
+    auth()->logout();
+    $this->get(route('offers'))->assertInertia(fn (Assert $page) => $page
+        ->where('offers.total', 6)
+        ->where('shoppingPreferences', null));
 });

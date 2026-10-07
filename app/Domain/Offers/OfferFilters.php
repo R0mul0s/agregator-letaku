@@ -2,8 +2,9 @@
 
 /**
  * Filtry výpisu akcí (Všechny akce a jejich našeptávač): obchody, produkt katalogu (R71),
- * jen akce, které ještě nezačaly (R76), a bez akcí jen z e-shopu (R82). Zná i názvy
- * parametrů adresy Všech akcí — čte je OffersRequest, odkazy skládá urlParameters().
+ * jen akce, které ještě nezačaly (R76), bez akcí jen z e-shopu (R82), řazení a nastavení
+ * Mých obchodů přihlášeného (R100). Zná i názvy parametrů adresy Všech akcí — čte je
+ * OffersRequest, odkazy skládá urlParameters().
  *
  * @author Roman Hlaváček
  *
@@ -15,6 +16,8 @@ declare(strict_types=1);
 namespace App\Domain\Offers;
 
 use App\Enums\Chain;
+use App\Enums\OfferListSort;
+use App\Models\User;
 
 final readonly class OfferFilters
 {
@@ -36,18 +39,38 @@ final readonly class OfferFilters
     /** Parametr adresy: bez akcí jen z e-shopu (R82). */
     public const WITHOUT_ESHOP_PARAMETER = 'bez-eshopu';
 
+    /** Parametr adresy: řazení (OfferListSort, R100). */
+    public const SORT_PARAMETER = 'razeni';
+
+    /** Parametr adresy: `0` = bez nastavení Mých obchodů přihlášeného (R100); výchozí je s nimi. */
+    public const SHOPPING_PREFERENCES_PARAMETER = 'moje-obchody';
+
     /**
      * @param  list<Chain>  $chains  Jen akce těchto obchodů; prázdné = všechny obchody
      * @param  int|null  $productId  Jen akce přiřazené k produktu katalogu
      * @param  bool  $upcomingOnly  Jen akce, které ještě nezačaly
      * @param  bool  $withoutEshop  Bez akcí jen z e-shopu (`online_only`)
+     * @param  OfferListSort|null  $sort  Zvolené řazení; null = podle situace (OfferListSort::defaultFor)
+     * @param  User|null  $preferencesOf  Uplatnit nastavení Mých obchodů tohoto uživatele (ShoppingPreferencesScope)
+     * @param  bool  $preferencesOff  Přihlášený nastavení vypnul — jen pro adresu (urlParameters)
      */
     public function __construct(
         public array $chains = [],
         public ?int $productId = null,
         public bool $upcomingOnly = false,
         public bool $withoutEshop = false,
+        public ?OfferListSort $sort = null,
+        public ?User $preferencesOf = null,
+        public bool $preferencesOff = false,
     ) {}
+
+    /**
+     * Stejné filtry s nastavením Mých obchodů jiného uživatele, nebo bez něj (null).
+     */
+    public function withPreferencesOf(?User $user): self
+    {
+        return new self($this->chains, $this->productId, $this->upcomingOnly, $this->withoutEshop, $this->sort, $user, $this->preferencesOff);
+    }
 
     /**
      * Hodnota parametru obchodů; prázdný výběr = „vse“ (bez parametru by přihlášený
@@ -72,6 +95,8 @@ final readonly class OfferFilters
             self::PRODUCT_PARAMETER => $this->productId,
             self::UPCOMING_PARAMETER => $this->upcomingOnly ? 1 : null,
             self::WITHOUT_ESHOP_PARAMETER => $this->withoutEshop ? 1 : null,
+            self::SORT_PARAMETER => $this->sort?->value,
+            self::SHOPPING_PREFERENCES_PARAMETER => $this->preferencesOff ? 0 : null,
         ], fn (int|string|null $value): bool => $value !== null);
     }
 }

@@ -29,8 +29,9 @@ class OfferSuggestionsController extends Controller
         $text = $request->searchText();
         $user = $request->user();
         $user = $user instanceof User ? $user : null;
-        // Návrhy jen z vybraných obchodů a bez e-shopu jako výsledky; produkt ani „brzy“ je nezužují
-        $filters = new OfferFilters($request->chains(), withoutEshop: $request->withoutEshop());
+        // Návrhy jen z vybraných obchodů, bez e-shopu a s nastavením Mých obchodů (R100) jako
+        // výsledky; produkt ani „brzy“ je nezužují
+        $filters = new OfferFilters($request->chains(), withoutEshop: $request->withoutEshop(), preferencesOf: $request->preferencesOf());
 
         if ($text === null) {
             return response()->json(['corrected' => null, 'total' => 0, 'products' => $suggestions->popular($filters, $user), 'offers' => [], 'popular' => true]);

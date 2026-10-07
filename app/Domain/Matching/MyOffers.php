@@ -20,6 +20,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Matching;
 
+use App\Domain\Chains\ShoppingPreferencesScope;
 use App\Domain\Offers\LocalCalendar;
 use App\Domain\Offers\UnitPrice;
 use App\Enums\LeafletKind;
@@ -42,6 +43,7 @@ final class MyOffers
         private readonly TextNormalizer $normalizer,
         private readonly WatchItemMatcher $matcher,
         private readonly LocalCalendar $calendar,
+        private readonly ShoppingPreferencesScope $preferences,
     ) {}
 
     /**
@@ -308,7 +310,7 @@ final class MyOffers
             ->notExpired($this->calendar->today())
             ->where(function (Builder $query) use ($followed): void {
                 foreach ($followed as $chain) {
-                    $query->orWhere(fn (Builder $query) => $this->whereFollowed($query, $chain));
+                    $query->orWhere(fn (Builder $query) => $this->preferences->whereFollowed($query, $chain));
                 }
             });
     }
@@ -381,29 +383,6 @@ final class MyOffers
     private function prefilterWords(array $rules): array
     {
         return array_values(array_unique(array_merge(...array_map(fn (WatchRule $rule): array => $rule->prefilterTerm(), array_values($rules)))));
-    }
-
-    /**
-     * Nabídky jednoho sledovaného obchodu: typ prodejny (nabídka bez typu platí všude),
-     * akce jen z e-shopu a vybrané prodejny (R49; akce bez prodejen platí všude) podle volby uživatele.
-     *
-     * @param  Builder<Offer>  $query
-     */
-    private function whereFollowed(Builder $query, FollowedChain $chain): void
-    {
-        $query->where('chain', $chain->chain);
-
-        if ($chain->store_format !== null) {
-            $query->where(fn (Builder $query) => $query->whereNull('store_format')->orWhere('store_format', $chain->store_format));
-        }
-
-        if (! $chain->include_online_only) {
-            $query->where('online_only', false);
-        }
-
-        if ($chain->store_codes !== null && $chain->store_codes !== []) {
-            $query->availableInStores($chain->store_codes);
-        }
     }
 
     /**

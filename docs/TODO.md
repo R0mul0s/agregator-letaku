@@ -101,6 +101,17 @@ v [PLAN.md](PLAN.md). Větší celky se z toho stávají etapou.
 - „Hlídat“ z karty hotové (R60) — dál: i v Mých slevách a na úvodní stránce
 - nákupní seznam hotový (R61) — dál: sdílení seznamu s rodinou, přidání vlastní položky bez akce
 
+## Filtry a přehlednost výpisů
+
+**Odkud:** návrh 7. 10. 2026 (situace: upozornění, plánování nákupu, v obchodě, brouzdání, hledání, příchod z Googlu). Hotové P1 (R100): řazení ve Všech akcích, „Podle Mých obchodů“, řazení na stránce Mých slev, položky bez akce dole, obchod u nejnižší ceny.
+
+- **P2 Všechny akce:** štítky platnosti („Končí do 2 dnů“, „Nové za 2 dny“), „Jen skutečné slevy“ s hranicí −20 / −30 / −50 %, „Nejlevnější za 12 týdnů“ (`PriceHistory::LOWEST`); aktivní filtry jako štítky s × a „Zrušit vše“; na telefonu filtry v panelu „Filtry (3)“ s tlačítkem „Zobrazit N akcí“
+- **P2 Moje slevy:** filtr „Nové“ (od poslední návštěvy nebo upozornění), „Končí brzy“, „Jen jisté shody“ (bez „možná“); štítek „Kaufland: moje 2 prodejny“ s dočasným přepnutím na všechny prodejny
+- **P2 karta akce na více kusů:** `promotion_text` verzálkami („PECIVO+NAPOJ“) na místě ceny vypadá jako chyba — normální písmo jako štítek a běžná cena na hlavním místě
+- **P3 kategorie** (Maso, Nápoje, Drogerie…): přes katalog má kategorii jen ~65 % akcí (7. 10. 2026: 3 985 z 6 151), zbytek by při filtru zmizel; lepší pokrytí = převodní tabulka kategorií obchodů na naše (Billa 86, Tesco 87, Globus 49 kategorií, Albert žádné)
+- **P3 pohled „Podle obchodů“ v Mých slevách:** pro každý obchod kolik hlídaných položek je tam nejlevněji a kolik v akci — „kam jet nakoupit“
+- **P3 menší úvodní pruh Mých slev** při další návštěvě; dlaždice souhrnu klikatelné (rozbalit vše, skok na nejvyšší slevu, filtr Nové)
+
 ## Přihlášení přes účty
 
 **Odkud:** R96 (2026-10-06) — Google a Facebook jsou hotové.

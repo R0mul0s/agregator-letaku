@@ -673,6 +673,8 @@ return [
         'search_max_length' => 100,
         // Našeptávač a živé hledání: od kolika znaků (počty návrhů v search, R71)
         'suggest_min_length' => 2,
+        // Řazení „Doporučené“ (R100): skutečné slevy zveřejněné za posledních tolik dní jsou nahoře
+        'recommended_fresh_days' => 2,
     ],
 
     /*

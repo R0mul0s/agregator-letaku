@@ -2,7 +2,11 @@
 
 /**
  * Parametry přehledu nabídek — hledaný text, obchody, produkt katalogu (R71), jen budoucí
- * akce (R76), bez akcí jen z e-shopu (R82) a načtené stránky (R43).
+ * akce (R76), bez akcí jen z e-shopu (R82), řazení, nastavení Mých obchodů (R100) a načtené
+ * stránky (R43).
+ *
+ * Přihlášenému výpis uplatní nastavení Mých obchodů (prodejny, karty, e-shop) — `?moje-obchody=0`
+ * ho vypne.
  *
  * Obchody jsou v parametru `chain` oddělené čárkou (`?chain=kaufland,lidl`); jeden obchod
  * a produkt katalogu mají i čistou adresu `/akce/lidl`, `/akce/pivo` (R94, OfferPages). Bez
@@ -21,6 +25,7 @@ namespace App\Http\Requests;
 use App\Domain\Offers\OfferFilters;
 use App\Domain\Offers\OfferPages;
 use App\Enums\Chain;
+use App\Enums\OfferListSort;
 use App\Http\Requests\Concerns\HasPageWindow;
 use App\Models\User;
 use Closure;
@@ -43,6 +48,12 @@ class OffersRequest extends FormRequest
     /** Parametr adresy: bez akcí jen z e-shopu (R82). */
     public const WITHOUT_ESHOP = OfferFilters::WITHOUT_ESHOP_PARAMETER;
 
+    /** Parametr adresy: řazení (R100). */
+    public const SORT = OfferFilters::SORT_PARAMETER;
+
+    /** Parametr adresy: `0` = bez nastavení Mých obchodů přihlášeného (R100). */
+    public const SHOPPING_PREFERENCES = OfferFilters::SHOPPING_PREFERENCES_PARAMETER;
+
     /**
      * Pravidla validace.
      *
@@ -60,6 +71,8 @@ class OffersRequest extends FormRequest
             self::PRODUCT => ['nullable', 'integer', Rule::exists('products', 'id')],
             self::UPCOMING => ['nullable', 'boolean'],
             self::WITHOUT_ESHOP => ['nullable', 'boolean'],
+            self::SORT => ['nullable', Rule::enum(OfferListSort::class)],
+            self::SHOPPING_PREFERENCES => ['nullable', 'boolean'],
             ...$this->pageWindowRules(),
         ];
     }
@@ -144,6 +157,15 @@ class OffersRequest extends FormRequest
     }
 
     /**
+     * Zvolil uživatel výslovně všechny obchody (`?chain=vse`)? Odkazy to musí zachovat —
+     * přihlášený by bez parametru dostal své sledované.
+     */
+    public function allChainsChosen(): bool
+    {
+        return $this->string(self::CHAIN)->toString() === OfferFilters::ALL_CHAINS;
+    }
+
+    /**
      * Obchody, které uživatel zvolil parametrem nebo adresou (`/akce/lidl`); null = nezvolil
      * (přihlášenému pak zůstanou sledované obchody).
      *
@@ -169,11 +191,12 @@ class OffersRequest extends FormRequest
 
     /**
      * Filtry, které uživatel zvolil — pro odkazy stránkování a čistou adresu (R94). Na rozdíl
-     * od filters() bez sledovaných obchodů přihlášeného, ty v adrese nebývají.
+     * od filters() bez sledovaných obchodů a nastavení Mých obchodů přihlášeného, ty v adrese
+     * nebývají (jen jejich vypnutí).
      */
     public function chosenFilters(): OfferFilters
     {
-        return new OfferFilters($this->explicitChains() ?? [], $this->productId(), $this->upcomingOnly(), $this->withoutEshop());
+        return new OfferFilters($this->explicitChains() ?? [], $this->productId(), $this->upcomingOnly(), $this->withoutEshop(), $this->sort(), preferencesOff: $this->preferencesOff());
     }
 
     /**
@@ -193,10 +216,37 @@ class OffersRequest extends FormRequest
     }
 
     /**
+     * Zvolené řazení (R100), nebo null = podle situace.
+     */
+    public function sort(): ?OfferListSort
+    {
+        return $this->enum(self::SORT, OfferListSort::class);
+    }
+
+    /**
+     * Vypnul přihlášený nastavení Mých obchodů (`?moje-obchody=0`, R100)? Nepřihlášený žádné nemá.
+     */
+    public function preferencesOff(): bool
+    {
+        return $this->user() instanceof User && $this->filled(self::SHOPPING_PREFERENCES) && ! $this->boolean(self::SHOPPING_PREFERENCES);
+    }
+
+    /**
+     * Uživatel, jehož nastavení Mých obchodů (prodejny, karty, e-shop) výpis uplatní — přihlášený,
+     * pokud ho nevypnul (R100).
+     */
+    public function preferencesOf(): ?User
+    {
+        $user = $this->user();
+
+        return $user instanceof User && ! $this->preferencesOff() ? $user : null;
+    }
+
+    /**
      * Všechny filtry výpisu.
      */
     public function filters(): OfferFilters
     {
-        return new OfferFilters($this->chains(), $this->productId(), $this->upcomingOnly(), $this->withoutEshop());
+        return new OfferFilters($this->chains(), $this->productId(), $this->upcomingOnly(), $this->withoutEshop(), $this->sort(), $this->preferencesOf(), $this->preferencesOff());
     }
 }
