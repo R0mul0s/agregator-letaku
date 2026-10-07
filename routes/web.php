@@ -39,6 +39,7 @@ use App\Http\Controllers\WatchDemoController;
 use App\Http\Controllers\WatchItemController;
 use App\Http\Middleware\ReadOnlySession;
 use App\Support\RateLimits;
+use App\Support\Seo\IndexNow;
 use Illuminate\Support\Facades\Route;
 
 // Cron WebAdminu umí jen zavolat URL (R20, R38) — chráněné tokenem, bez něj 404;
@@ -58,6 +59,10 @@ Route::middleware('throttle:'.RateLimits::PUBLIC)->group(function (): void {
     Route::get('/llms.txt', [CrawlerFilesController::class, 'llms'])->name('llms');
     // Kontakt pro hlášení bezpečnostních chyb (RFC 9116, R68)
     Route::get('/.well-known/security.txt', [CrawlerFilesController::class, 'securityTxt'])->name('security-txt');
+    // Klíč IndexNow (R105) — vyhledávač si podle něj ověří, že ohlášení stránek posílá web sám
+    Route::get('/{key}.txt', [CrawlerFilesController::class, 'indexNowKey'])
+        ->where('key', IndexNow::KEY_PATTERN)
+        ->name('indexnow-key');
 
     // Manifest pro přidání na plochu telefonu (R55)
     Route::get('/manifest.webmanifest', ManifestController::class)->name('manifest');

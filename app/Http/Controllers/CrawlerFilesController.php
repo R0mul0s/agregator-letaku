@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Soubory pro roboty (R45): robots.txt, sitemap.xml, llms.txt a security.txt (R68). Generují se z rout, aby
+ * Soubory pro roboty (R45): robots.txt, sitemap.xml, llms.txt, security.txt (R68) a klíč IndexNow (R105). Generují se z rout, aby
  * nesly správnou doménu (APP_URL) a mimo produkci zakázaly indexaci celého webu.
  *
  * @author Roman Hlaváček
@@ -19,6 +19,7 @@ use App\Enums\Chain;
 use App\Enums\ScrapeStatus;
 use App\Models\Offer;
 use App\Models\ScrapeRun;
+use App\Support\Seo\IndexNow;
 use App\Support\Seo\SeoMeta;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Response;
@@ -123,6 +124,17 @@ class CrawlerFilesController extends Controller
         ];
 
         return $this->text(implode("\n", $lines)."\n", 'text/plain');
+    }
+
+    /**
+     * Klíč IndexNow (R105) na /{klíč}.txt — soubor s klíčem v kořeni webu dokazuje vyhledávači,
+     * že ohlášení stránek posílá web sám. Jiný název než klíč z konfigurace = 404.
+     */
+    public function indexNowKey(string $key, IndexNow $indexNow): Response
+    {
+        abort_unless($indexNow->key() !== null && hash_equals($indexNow->key(), $key), Response::HTTP_NOT_FOUND);
+
+        return $this->text($key, 'text/plain');
     }
 
     /**

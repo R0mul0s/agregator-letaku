@@ -179,7 +179,9 @@ curl -si "https://slevohlidka.cz/cron/import-offers?chain=kaufland&token=spatny"
 1. [Google Search Console](https://search.google.com/search-console): přidat vlastnost
    `https://slevohlidka.cz/` (ověření DNS záznamem TXT ve WebAdminu), odeslat
    `https://slevohlidka.cz/sitemap.xml`.
-2. [Bing Webmaster Tools](https://www.bing.com/webmasters): import ze Search Console.
+2. [Bing Webmaster Tools](https://www.bing.com/webmasters): import ze Search Console (založeno 2026-10-07).
+   Ohlášení stránek přes IndexNow (R105) jsou v *IndexNow* — posílá je stažení obchodu samo, klíč
+   z `letaky.indexnow.key` je na `https://slevohlidka.cz/<klíč>.txt` (jiný `LETAKY_INDEXNOW_KEY`, prázdný vypne).
 3. [Seznam Webmaster](https://webmaster.seznam.cz): ověření značkou `seznam-wmt` v hlavičce — kód je
    v `letaky.site_verification.seznam` (jiný jde nastavit `LETAKY_SEZNAM_WMT` v `.env`); pak odeslat sitemap.
 4. Kontrola strukturovaných dat: [Rich Results Test](https://search.google.com/test/rich-results)

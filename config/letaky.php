@@ -107,6 +107,19 @@ return [
     ],
 
     /*
+    | IndexNow (R105) — po stažení obchodu se vyhledávačům (Bing, Seznam, Yandex, Naver; sdílí si
+    | adresy mezi sebou) ohlásí změněné veřejné stránky. Jen na produkci. Klíč je veřejný
+    | (vystavený na /{klíč}.txt), prázdný = vypnuto. Každá adresa nejvýš jednou za
+    | min_interval_hours — opakované ohlášení stejné adresy vyhledávače berou jako spam.
+    */
+    'indexnow' => [
+        'key' => env('LETAKY_INDEXNOW_KEY', 'e95b18a32d1f9a6d13a434d40f8cccb7'),
+        'endpoint' => 'https://api.indexnow.org/indexnow',
+        'min_interval_hours' => 6,
+        'timeout_seconds' => 10,
+    ],
+
+    /*
     | Přihlášení a registrace (R12, R53).
     | - Pokusy o přihlášení za minutu: pro dvojici e-mail + IP (hádání hesla k jednomu účtu)
     |   a pro samotnou IP (zkoušení uniklých přihlašovacích údajů přes různé e-maily).

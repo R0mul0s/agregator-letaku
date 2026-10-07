@@ -9,7 +9,8 @@
  * Neskončená nabídka, která v novém stažení chybí, se označí jako stažená obchodem (R16) —
  * ale ne, když jich chybí podezřele mnoho (R54). Akce uložená dřív pod předběžným ID (Globus, Billa: PDF
  * budoucího letáku) převezme ID akce ze zdroje (R88). Nakonec se nabídky obchodu znovu přiřadí
- * k produktům katalogu (R30).
+ * k produktům katalogu (R30) a po uvolnění zámku se změněné veřejné stránky ohlásí vyhledávačům
+ * přes IndexNow (R105).
  *
  * @author Roman Hlaváček
  *
@@ -21,6 +22,7 @@ declare(strict_types=1);
 namespace App\Domain\Offers\Actions;
 
 use App\Domain\Catalog\Actions\AssignProducts;
+use App\Domain\Offers\ChangedOfferPages;
 use App\Domain\Offers\Data\LeafletData;
 use App\Domain\Offers\Data\LeafletPageData;
 use App\Domain\Offers\Data\OfferData;
@@ -38,6 +40,7 @@ use App\Models\LeafletPage;
 use App\Models\Offer;
 use App\Models\OfferStore;
 use App\Models\ScrapeRun;
+use App\Support\Seo\IndexNow;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -66,6 +69,8 @@ final class ImportChainOffers
         private readonly SourceRegistry $sources,
         private readonly LocalCalendar $calendar,
         private readonly AssignProducts $assignProducts,
+        private readonly ChangedOfferPages $changedPages,
+        private readonly IndexNow $indexNow,
     ) {}
 
     /**
@@ -84,10 +89,30 @@ final class ImportChainOffers
 
         try {
             $this->failStuckRuns($chain);
-
-            return $this->import($chain);
+            $run = $this->import($chain);
         } finally {
             $lock->release();
+        }
+
+        $this->notifySearchEngines($run);
+
+        return $run;
+    }
+
+    /**
+     * Ohlásí vyhledávačům stránky, které stažení změnilo (IndexNow, R105). Uložené akce to
+     * neovlivní — chyba se jen zapíše.
+     */
+    private function notifySearchEngines(ScrapeRun $run): void
+    {
+        if (! $this->indexNow->enabled()) {
+            return;
+        }
+
+        try {
+            $this->indexNow->submit($this->changedPages->forRun($run));
+        } catch (Throwable $error) {
+            report($error);
         }
     }
 
