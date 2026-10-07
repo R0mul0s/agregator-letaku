@@ -3,8 +3,8 @@
 /**
  * Filtry výpisu akcí (Všechny akce a jejich našeptávač): obchody, produkt katalogu (R71),
  * jen akce, které ještě nezačaly (R76), bez akcí jen z e-shopu (R82), řazení a nastavení
- * Mých obchodů přihlášeného (R100). Zná i názvy parametrů adresy Všech akcí — čte je
- * OffersRequest, odkazy skládá urlParameters().
+ * Mých obchodů přihlášeného (R100), končí brzy, nové a sleva od (R101). Zná i názvy
+ * parametrů adresy Všech akcí — čte je OffersRequest, odkazy skládá urlParameters().
  *
  * @author Roman Hlaváček
  *
@@ -45,6 +45,15 @@ final readonly class OfferFilters
     /** Parametr adresy: `0` = bez nastavení Mých obchodů přihlášeného (R100); výchozí je s nimi. */
     public const SHOPPING_PREFERENCES_PARAMETER = 'moje-obchody';
 
+    /** Parametr adresy: jen akce, které končí do `letaky.offers.ending_soon_days` dní (R101). */
+    public const ENDING_SOON_PARAMETER = 'konci-brzy';
+
+    /** Parametr adresy: jen akce zveřejněné za posledních `letaky.offers.fresh_days` dní (R101). */
+    public const FRESH_PARAMETER = 'nove';
+
+    /** Parametr adresy: jen skutečné slevy od tolika procent (R101). */
+    public const MIN_DISCOUNT_PARAMETER = 'sleva-od';
+
     /**
      * @param  list<Chain>  $chains  Jen akce těchto obchodů; prázdné = všechny obchody
      * @param  int|null  $productId  Jen akce přiřazené k produktu katalogu
@@ -53,6 +62,9 @@ final readonly class OfferFilters
      * @param  OfferListSort|null  $sort  Zvolené řazení; null = podle situace (OfferListSort::defaultFor)
      * @param  User|null  $preferencesOf  Uplatnit nastavení Mých obchodů tohoto uživatele (ShoppingPreferencesScope)
      * @param  bool  $preferencesOff  Přihlášený nastavení vypnul — jen pro adresu (urlParameters)
+     * @param  bool  $endingSoon  Jen akce, které už platí a brzy končí
+     * @param  bool  $freshOnly  Jen nově zveřejněné akce
+     * @param  int|null  $minDiscount  Jen skutečné slevy (R8) od tolika procent
      */
     public function __construct(
         public array $chains = [],
@@ -62,6 +74,9 @@ final readonly class OfferFilters
         public ?OfferListSort $sort = null,
         public ?User $preferencesOf = null,
         public bool $preferencesOff = false,
+        public bool $endingSoon = false,
+        public bool $freshOnly = false,
+        public ?int $minDiscount = null,
     ) {}
 
     /**
@@ -69,7 +84,18 @@ final readonly class OfferFilters
      */
     public function withPreferencesOf(?User $user): self
     {
-        return new self($this->chains, $this->productId, $this->upcomingOnly, $this->withoutEshop, $this->sort, $user, $this->preferencesOff);
+        return new self(
+            $this->chains,
+            $this->productId,
+            $this->upcomingOnly,
+            $this->withoutEshop,
+            $this->sort,
+            $user,
+            $this->preferencesOff,
+            $this->endingSoon,
+            $this->freshOnly,
+            $this->minDiscount,
+        );
     }
 
     /**
@@ -95,6 +121,9 @@ final readonly class OfferFilters
             self::PRODUCT_PARAMETER => $this->productId,
             self::UPCOMING_PARAMETER => $this->upcomingOnly ? 1 : null,
             self::WITHOUT_ESHOP_PARAMETER => $this->withoutEshop ? 1 : null,
+            self::ENDING_SOON_PARAMETER => $this->endingSoon ? 1 : null,
+            self::FRESH_PARAMETER => $this->freshOnly ? 1 : null,
+            self::MIN_DISCOUNT_PARAMETER => $this->minDiscount,
             self::SORT_PARAMETER => $this->sort?->value,
             self::SHOPPING_PREFERENCES_PARAMETER => $this->preferencesOff ? 0 : null,
         ], fn (int|string|null $value): bool => $value !== null);

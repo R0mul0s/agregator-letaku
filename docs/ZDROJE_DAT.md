@@ -157,7 +157,7 @@ Implementace: `app/Domain/Sources/Tesco/TescoParser.php` a `TescoOfferSource.php
 
 - **Párování letáku s e-shopem: posledních 8 číslic ID.** Leták `…/products/2001019279706`, e-shop `219279706`. Ověřeno 2. 10. 2026 na celém letáku: HM 880 z 1 210 produktů, SM 237 z 277, v 5 139 produktech e-shopu žádná kolize. Nespárované jsou hlavně „Super ceny“ (bez akce v e-shopu) a zboží, které online není.
 - **Zboží na váhu:** `afterDiscount` / `beforeDiscount` jsou ceny **za kg** (nebo za kus u okurky), `price.actual` je cena odhadovaného kusu (mandarinky 3,91 Kč). Balení se pak bere z jednotky v `unitSellingInfo` („27,90 Kč/kg“ = 1 kg).
-- **Akce bez `price`** (95 položek): „3 za cenu 2“, „MENU BAGETY“, „PECIVO+NAPOJ“, „2 za 799 Kč“. Cena produktu je jen `price.actual`.
+- **Akce bez `price`** (95 položek): „3 za cenu 2“, „MENU BAGETY“, „PECIVO+NAPOJ“, „2 za 799 Kč“. Cena produktu je jen `price.actual`. Text akce se ukládá, jak přišel; verzálky převádí na větu až zobrazení (`PromotionText`, R101), slova bez diakritiky doplňuje `letaky.offers.promotion_text_words`.
 - Typy popisů Clubcard (2. 10. 2026): „N Kč s Clubcard“ (4 045×), „N Kč Ušetřete N% s Clubcard“, „N Kč Ušetřete 1/3 s Clubcard“, „N Kč Poloviční cena s Clubcard“, „Ušetřete 1/3 99,00 Kč/kg s Clubcard“. Cena s kartou je vždy první částka v Kč.
 - „Super cena“ může mít `beforeDiscount` vyšší než `afterDiscount`, pak je to normální sleva.
 - Konec platnosti bývá půlnoc dalšího dne (`2026-10-04T22:00:00Z` = do 4. 10.) i poslední sekunda dne (`21:59:59Z`); v zimním čase o hodinu posunuté.

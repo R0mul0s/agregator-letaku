@@ -24,6 +24,7 @@ use App\Models\FollowedChain;
 use App\Models\Leaflet;
 use App\Models\LeafletPage;
 use App\Models\Offer;
+use App\Models\OfferStore;
 use App\Models\Product;
 use App\Models\User;
 use App\Models\WatchItem;
@@ -347,4 +348,40 @@ it('pošle řazení na výběr a adresu, kam se hned uloží (R100)', function (
         ->put('/ucet/moje-slevy', ['offers_sort' => 'ending_soon', 'min_discount_percent' => 20])
         ->assertRedirect(route('home'));
     expect($this->user->refresh()->offers_sort)->toBe(OffersSort::EndingSoon);
+});
+
+it('u akcí pošle příznaky pro štítky Nové a Končí brzy (R101)', function (): void {
+    follow(Chain::Kaufland);
+    watch('Máslo', ['keywords' => 'máslo']);
+    $now = CarbonImmutable::now();
+    // Místní dnešek 2. 10., konec do 2 dnů = nejpozději 4. 10.
+    Offer::factory()->create(['name' => 'Máslo nové', 'valid_from' => '2026-10-01', 'valid_to' => '2026-10-08', 'created_at' => $now->subHour()]);
+    Offer::factory()->create(['name' => 'Máslo končí', 'valid_from' => '2026-09-28', 'valid_to' => '2026-10-04', 'created_at' => $now->subDays(5)]);
+
+    $this->get(route('home'))->assertInertia(function (Assert $page): void {
+        $offers = collect($page->toArray()['props']['watchItems'][0]['offers'])->keyBy('name');
+        expect($offers['Máslo nové'])->toMatchArray(['isNew' => true, 'endsSoon' => false])
+            ->and($offers['Máslo končí'])->toMatchArray(['isNew' => false, 'endsSoon' => true]);
+        $page->where('offerFilterDays', ['fresh' => 2, 'endingSoon' => 2]);
+    });
+});
+
+it('s vybranými prodejnami jde dočasně ukázat akce všech prodejen, nastavení zůstane (R101)', function (): void {
+    FollowedChain::query()->create(['user_id' => $this->user->id, 'chain' => Chain::Kaufland, 'include_online_only' => true, 'store_codes' => ['CZ4400']]);
+    watch('Losos', ['keywords' => 'losos']);
+    $elsewhere = Offer::factory()->create(['name' => 'Losos jen v Praze']);
+    OfferStore::query()->create(['offer_id' => $elsewhere->id, 'store_code' => 'CZ1550']);
+
+    expect(myOffers())->toBe(['Losos' => []]);
+    $this->get(route('home'))->assertInertia(fn (Assert $page) => $page->where('stores', ['count' => 1, 'all' => false, 'parameter' => 'prodejny', 'allValue' => 'vse', 'url' => '/']));
+    $this->get(route('home', ['prodejny' => 'vse']))->assertInertia(fn (Assert $page) => $page
+        ->where('stores.all', true)
+        ->where('watchItems.0.offers.0.name', 'Losos jen v Praze'));
+    expect(FollowedChain::query()->firstOrFail()->store_codes)->toBe(['CZ4400']);
+});
+
+it('bez vybraných prodejen přepínač prodejen nenabídne (R101)', function (): void {
+    follow(Chain::Kaufland);
+
+    $this->get(route('home', ['prodejny' => 'vse']))->assertInertia(fn (Assert $page) => $page->where('stores', null));
 });

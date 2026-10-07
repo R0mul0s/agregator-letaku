@@ -53,12 +53,18 @@ final class MyOffers
      * v letácích bez ceny.
      *
      * @param  bool  $withMentions  Hledat i zmínky v letácích (souhrn je nepotřebuje)
+     * @param  bool  $allStores  Akce všech prodejen, ne jen vybraných (R49) — dočasné přepnutí
+     *                           v Mých slevách, třeba na cestách (R101); nastavení se nemění
      * @return list<array{watchItem: WatchItem, offers: list<array{offer: Offer, status: MatchStatus}>, upcoming: list<array{offer: Offer, status: MatchStatus}>, mentions: list<array{page: LeafletPage, status: MatchStatus}>}>
      */
-    public function forUser(User $user, bool $withMentions = true): array
+    public function forUser(User $user, bool $withMentions = true, bool $allStores = false): array
     {
         $watchItems = $user->watchItems()->with('product')->orderBy('name')->get();
         $followed = $user->followedChains()->get();
+        if ($allStores) {
+            // Jen v paměti pro tento výpis, neukládá se
+            $followed->each(fn (FollowedChain $chain) => $chain->store_codes = null);
+        }
 
         $rules = [];
         $keywordRules = [];

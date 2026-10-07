@@ -6,7 +6,8 @@
     jsou ve sbalené sekci Brzy pod skupinami; v obchodě se neukazují vůbec (R76). Akce jako
     karty, nebo kompaktní řádky — volba společná se Všemi akcemi, v obchodě vlastní (R62, R82).
     Položky bez akcí jsou ve sbalené sekci Zatím bez akce na konci a řazení jde změnit přímo
-    nad skupinami, uloží se do účtu (R100).
+    nad skupinami, uloží se do účtu (R100). Štítky Nové, Končí brzy a Jen jisté shody ukážou jen
+    odpovídající akce rozbalené jako v obchodě; „Jen moje prodejny“ jde dočasně vypnout (R101).
 
     @author Roman Hlaváček
     @created 2026-10-02
@@ -24,7 +25,7 @@ import { useTranslations } from '@/lib/i18n';
 import { discountPercent } from '@/lib/offer';
 import { useCompactView } from '@/lib/viewMode';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
-import { computed, nextTick, onMounted, ref, watch } from 'vue';
+import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue';
 
 /** Klíč v localStorage s rozbalenými položkami — jen pohodlí prohlížeče, ne nastavení účtu. */
 const EXPANDED_STORAGE_KEY = 'slevohlidka.home.expanded';
@@ -34,6 +35,9 @@ const UPCOMING_ID = 'brzy';
 
 /** Sekce Zatím bez akce mezi rozbalenými (R100) — ve stejném klíči localStorage. */
 const WAITING_ID = 'bez-akce';
+
+/** Stav shody „možná“ (App\Enums\MatchStatus, R9) — štítek „Jen jisté“ ho schová. */
+const MATCH_MAYBE = 'maybe';
 
 /** Kotva skupiny v adrese (odkaz z dlaždice v Hlídám): #polozka-{id}. */
 const GROUP_HASH_PATTERN = /^#polozka-(\d+)$/;
@@ -47,6 +51,10 @@ const props = defineProps({
     offersPreferences: { type: Object, required: true },
     /** Jak často chodí e-mailový souhrn („denně“), null = vypnutý (R42). */
     digestFrequency: { type: String, default: null },
+    /** Vybrané prodejny { count, all, parameter, allValue, url } a dočasně všechny (R101); bez vybraných null. */
+    stores: { type: Object, default: null },
+    /** Dny do popisků štítků { fresh, endingSoon } — stejné jako ve Všech akcích (R101). */
+    offerFilterDays: { type: Object, required: true },
     /** Hlídané položky s nabídkami od nejnižší ceny za jednotku a zmínkami v letácích (App\Domain\Matching\MyOffers). */
     watchItems: { type: Array, required: true },
 });
@@ -89,25 +97,81 @@ const filterChains = computed(() => {
 const hasFinds = (item) => item.offers.length > 0 || item.mentions.length > 0;
 
 /** Položky bez akcí a zmínek — sbalená sekce pod ostatními (R100); v obchodě se neukazují. */
-const waitingItems = computed(() => (chainFilter.value ? [] : props.watchItems.filter((item) => !hasFinds(item))));
+const waitingItems = computed(() => (focused.value ? [] : props.watchItems.filter((item) => !hasFinds(item))));
+
+/**
+ * Štítky filtrů akcí (R101): nové, brzy končící, jen jisté shody (bez „možná“, R9). Nepamatují
+ * se — po návratu na stránku je zase vše.
+ */
+const offerFilters = reactive({ fresh: false, endingSoon: false, sure: false });
+
+/** Podmínka akce pro každý štítek (příznaky z HomeController). */
+const OFFER_FILTER_TESTS = {
+    fresh: (offer) => offer.isNew,
+    endingSoon: (offer) => offer.endsSoon,
+    sure: (offer) => offer.matchStatus !== MATCH_MAYBE,
+};
+
+/** Je zapnutý některý štítek filtru? */
+const offerFilterActive = computed(() => Object.values(offerFilters).some(Boolean));
+
+/**
+ * Výběr obchodu nebo štítek: skupiny rozbalené, jen akce, které výběru odpovídají, sekce Brzy
+ * a Zatím bez akce schované.
+ */
+const focused = computed(() => Boolean(chainFilter.value) || offerFilterActive.value);
+
+/**
+ * Akce položky pro štítky: dnešní, bez výběru obchodu i ty, které teprve začnou — „Nové“ jsou
+ * často z letáků zveřejněných dopředu (R76); v obchodě jen dnešní.
+ *
+ * @param {object} item
+ * @returns {object[]}
+ */
+const chipOffers = (item) => (chainFilter.value ? item.offers.filter((offer) => offer.chain === chainFilter.value) : [...item.offers, ...item.upcoming]);
+
+/** Kolik akcí by který štítek ukázal — štítek bez akcí se nenabízí. */
+const offerFilterCounts = computed(() =>
+    Object.fromEntries(Object.entries(OFFER_FILTER_TESTS).map(([key, test]) => [key, props.watchItems.flatMap(chipOffers).filter(test).length])),
+);
+
+/** Štítky k zobrazení — bez akcí se nenabízí, zapnutý zůstane, aby šel vypnout. */
+const offerFilterChips = computed(() =>
+    [
+        { key: 'fresh', label: t('search.fresh', { count: props.offerFilterDays.fresh }) },
+        { key: 'endingSoon', label: t('search.ending_soon', { count: props.offerFilterDays.endingSoon }) },
+        { key: 'sure', label: t('home.filter_sure') },
+    ].filter((chip) => offerFilters[chip.key] || offerFilterCounts.value[chip.key] > 0),
+);
+
+/**
+ * Přepne štítek filtru a rozbalí skupiny jako nový výběr.
+ *
+ * @param {string} key fresh | endingSoon | sure
+ */
+function toggleOfferFilter(key) {
+    offerFilters[key] = !offerFilters[key];
+    filterCollapsedIds.value = new Set();
+}
 
 /**
  * Skupiny k zobrazení: položky s akcemi nebo zmínkami; po výběru obchodu jen ty s jeho akcemi
  * nebo zmínkami, a jen ty, které dnes platí — budoucí akce za akční cenu v obchodě zatím
- * nekoupíte (R76).
+ * nekoupíte (R76). Se štítkem jen akce, které mu odpovídají, bez zmínek (R101).
  */
 const visibleItems = computed(() => {
-    if (!chainFilter.value) {
+    if (!focused.value) {
         return props.watchItems.filter(hasFinds);
     }
 
-    const inChain = (entry) => entry.chain === chainFilter.value;
+    const passes = (offer) => Object.entries(OFFER_FILTER_TESTS).every(([key, test]) => !offerFilters[key] || test(offer));
+    const inChain = (entry) => !chainFilter.value || entry.chain === chainFilter.value;
 
     return props.watchItems
         .map((item) => ({
             ...item,
-            offers: item.offers.filter(inChain),
-            mentions: item.mentions.filter((mention) => inChain(mention) && isCurrentMention(mention)),
+            offers: (offerFilterActive.value ? chipOffers(item) : item.offers.filter(inChain)).filter(passes),
+            mentions: offerFilterActive.value ? [] : item.mentions.filter((mention) => inChain(mention) && isCurrentMention(mention)),
             upcoming: [],
             waitTip: null,
         }))
@@ -117,6 +181,15 @@ const visibleItems = computed(() => {
 /** Položky s akcemi, které ještě nezačaly — sekce Brzy (R76). */
 const upcomingItems = computed(() => props.watchItems.filter((item) => item.upcoming.length));
 
+/**
+ * Dočasně akce všech prodejen, ne jen vybraných (R101) — na cestách; server výpis složí znovu,
+ * nastavení Mých obchodů se nemění.
+ */
+function toggleAllStores() {
+    const { parameter, allValue, all, url } = props.stores;
+    router.get(url, all ? {} : { [parameter]: allValue }, { preserveScroll: true, preserveState: true, replace: true });
+}
+
 /** Rozbalené skupiny (id položek); ve výchozím stavu je vše sbalené. */
 const expandedIds = ref(new Set());
 
@@ -124,13 +197,13 @@ const expandedIds = ref(new Set());
 const filterCollapsedIds = ref(new Set());
 
 /**
- * Je skupina rozbalená? Po výběru obchodu ano, dokud ji uživatel nesbalí.
+ * Je skupina rozbalená? Po výběru obchodu nebo štítku ano, dokud ji uživatel nesbalí.
  *
  * @param {number} id
  * @returns {boolean}
  */
 function isExpanded(id) {
-    return chainFilter.value ? !filterCollapsedIds.value.has(id) : expandedIds.value.has(id);
+    return focused.value ? !filterCollapsedIds.value.has(id) : expandedIds.value.has(id);
 }
 
 const allExpanded = computed(() => visibleItems.value.every((item) => isExpanded(item.id)));
@@ -186,7 +259,7 @@ function saveExpanded() {
  * @param {boolean} value
  */
 function setExpanded(id, value) {
-    if (chainFilter.value) {
+    if (focused.value) {
         const collapsed = new Set(filterCollapsedIds.value);
         if (value) {
             collapsed.delete(id);
@@ -213,7 +286,7 @@ function setExpanded(id, value) {
  * Sekce Brzy a Zatím bez akce zůstanou, jak jsou.
  */
 function toggleAll() {
-    if (chainFilter.value) {
+    if (focused.value) {
         filterCollapsedIds.value = allExpanded.value ? new Set(visibleItems.value.map((item) => item.id)) : new Set();
 
         return;
@@ -368,6 +441,33 @@ onMounted(async () => {
                     {{ allExpanded ? t('home.collapse_all') : t('home.expand_all') }}
                 </button>
             </div>
+            <!-- Štítky filtrů akcí (R101) — jen ty, které by něco ukázaly; prodejny jen s vybranými -->
+            <div v-if="offerFilterChips.length || stores" class="search-chips watch-groups__chips">
+                <div class="search-chips__filters" role="group" :aria-label="t('search.filters')">
+                    <button
+                        v-for="chip in offerFilterChips"
+                        :key="chip.key"
+                        type="button"
+                        class="search-chip"
+                        :class="{ 'search-chip--on': offerFilters[chip.key] }"
+                        :aria-pressed="offerFilters[chip.key] ? 'true' : 'false'"
+                        @click="toggleOfferFilter(chip.key)"
+                    >
+                        {{ chip.label }}
+                        <span class="search-chip__count">{{ offerFilterCounts[chip.key] }}</span>
+                    </button>
+                    <button
+                        v-if="stores"
+                        type="button"
+                        class="search-chip"
+                        :class="{ 'search-chip--on': !stores.all }"
+                        :aria-pressed="stores.all ? 'false' : 'true'"
+                        @click="toggleAllStores"
+                    >
+                        {{ t('home.my_stores', { count: stores.count }) }}
+                    </button>
+                </div>
+            </div>
             <WatchGroup
                 v-for="item in visibleItems"
                 :key="item.id"
@@ -378,7 +478,7 @@ onMounted(async () => {
                 @update:expanded="(value) => setExpanded(item.id, value)"
             />
             <!-- Akce, které ještě nezačaly (R76) — v obchodě (výběr obchodu) se neukazují -->
-            <UpcomingSection v-if="!chainFilter && upcomingItems.length" v-model:expanded="upcomingExpanded" :items="upcomingItems" />
+            <UpcomingSection v-if="!focused && upcomingItems.length" v-model:expanded="upcomingExpanded" :items="upcomingItems" />
             <!-- Položky, které teď v akci nejsou (R100) — v obchodě se neukazují -->
             <WaitingSection v-if="waitingItems.length" v-model:expanded="waitingExpanded" :items="waitingItems" :digest-frequency="digestFrequency" :digest-url="urls.digest" />
         </template>

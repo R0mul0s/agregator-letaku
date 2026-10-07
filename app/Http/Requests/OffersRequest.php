@@ -2,8 +2,8 @@
 
 /**
  * Parametry přehledu nabídek — hledaný text, obchody, produkt katalogu (R71), jen budoucí
- * akce (R76), bez akcí jen z e-shopu (R82), řazení, nastavení Mých obchodů (R100) a načtené
- * stránky (R43).
+ * akce (R76), bez akcí jen z e-shopu (R82), řazení, nastavení Mých obchodů (R100), končí brzy,
+ * nové, slevy od procent (R101) a načtené stránky (R43).
  *
  * Přihlášenému výpis uplatní nastavení Mých obchodů (prodejny, karty, e-shop) — `?moje-obchody=0`
  * ho vypne.
@@ -48,6 +48,15 @@ class OffersRequest extends FormRequest
     /** Parametr adresy: bez akcí jen z e-shopu (R82). */
     public const WITHOUT_ESHOP = OfferFilters::WITHOUT_ESHOP_PARAMETER;
 
+    /** Parametr adresy: jen akce, které brzy končí (R101). */
+    public const ENDING_SOON = OfferFilters::ENDING_SOON_PARAMETER;
+
+    /** Parametr adresy: jen nově zveřejněné akce (R101). */
+    public const FRESH = OfferFilters::FRESH_PARAMETER;
+
+    /** Parametr adresy: jen skutečné slevy od procent (R101). */
+    public const MIN_DISCOUNT = OfferFilters::MIN_DISCOUNT_PARAMETER;
+
     /** Parametr adresy: řazení (R100). */
     public const SORT = OfferFilters::SORT_PARAMETER;
 
@@ -71,6 +80,9 @@ class OffersRequest extends FormRequest
             self::PRODUCT => ['nullable', 'integer', Rule::exists('products', 'id')],
             self::UPCOMING => ['nullable', 'boolean'],
             self::WITHOUT_ESHOP => ['nullable', 'boolean'],
+            self::ENDING_SOON => ['nullable', 'boolean'],
+            self::FRESH => ['nullable', 'boolean'],
+            self::MIN_DISCOUNT => ['nullable', 'integer', Rule::in(config()->array('letaky.account.min_discount_options'))],
             self::SORT => ['nullable', Rule::enum(OfferListSort::class)],
             self::SHOPPING_PREFERENCES => ['nullable', 'boolean'],
             ...$this->pageWindowRules(),
@@ -196,7 +208,17 @@ class OffersRequest extends FormRequest
      */
     public function chosenFilters(): OfferFilters
     {
-        return new OfferFilters($this->explicitChains() ?? [], $this->productId(), $this->upcomingOnly(), $this->withoutEshop(), $this->sort(), preferencesOff: $this->preferencesOff());
+        return new OfferFilters(
+            $this->explicitChains() ?? [],
+            $this->productId(),
+            $this->upcomingOnly(),
+            $this->withoutEshop(),
+            $this->sort(),
+            preferencesOff: $this->preferencesOff(),
+            endingSoon: $this->boolean(self::ENDING_SOON),
+            freshOnly: $this->boolean(self::FRESH),
+            minDiscount: $this->minDiscount(),
+        );
     }
 
     /**
@@ -213,6 +235,14 @@ class OffersRequest extends FormRequest
     public function withoutEshop(): bool
     {
         return $this->boolean(self::WITHOUT_ESHOP);
+    }
+
+    /**
+     * Jen skutečné slevy od tolika procent (R101), nebo null = všechny akce.
+     */
+    public function minDiscount(): ?int
+    {
+        return $this->integer(self::MIN_DISCOUNT) ?: null;
     }
 
     /**
@@ -247,6 +277,17 @@ class OffersRequest extends FormRequest
      */
     public function filters(): OfferFilters
     {
-        return new OfferFilters($this->chains(), $this->productId(), $this->upcomingOnly(), $this->withoutEshop(), $this->sort(), $this->preferencesOf(), $this->preferencesOff());
+        return new OfferFilters(
+            $this->chains(),
+            $this->productId(),
+            $this->upcomingOnly(),
+            $this->withoutEshop(),
+            $this->sort(),
+            $this->preferencesOf(),
+            $this->preferencesOff(),
+            $this->boolean(self::ENDING_SOON),
+            $this->boolean(self::FRESH),
+            $this->minDiscount(),
+        );
     }
 }

@@ -673,8 +673,17 @@ return [
         'search_max_length' => 100,
         // Našeptávač a živé hledání: od kolika znaků (počty návrhů v search, R71)
         'suggest_min_length' => 2,
-        // Řazení „Doporučené“ (R100): skutečné slevy zveřejněné za posledních tolik dní jsou nahoře
-        'recommended_fresh_days' => 2,
+        // Čerstvé akce: zveřejněné za posledních tolik dní — nahoře v řazení „Doporučené“ (R100)
+        // a filtr „Nové“ (R101)
+        'fresh_days' => 2,
+        // Filtr „Končí brzy“ (R101): platnost končí dnes nebo do tolika dní
+        'ending_soon_days' => 2,
+        // Text akce na více kusů verzálkami bez diakritiky (Tesco menu e-shopu „PECIVO+NAPOJ“):
+        // slova, která před převodem na větu dostanou diakritiku (PromotionText, R101)
+        'promotion_text_words' => [
+            'PECIVO' => 'PEČIVO',
+            'NAPOJ' => 'NÁPOJ',
+        ],
     ],
 
     /*

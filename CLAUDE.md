@@ -21,7 +21,7 @@ volné číslo R…). Změna chování obchodu (nový endpoint, jiné pole) pat�
 
 ## Stav
 
-Hotové jsou etapy 1–5g, zveřejnění (8), opravy a funkce z kritické revize (9), aplikace v telefonu (10, aktualizace po nasazení R78), centrum upozornění (11), akce „brzy“ (12) (PLAN.md, kap. 6), přehled uživatelů pro admina (R84) a přihlášení přes Google, Seznam a Facebook (R96, R98) a audit přístupnosti, SEO a zobrazení se strukturovanými daty (R99) a řazení a filtry výpisů (R100):
+Hotové jsou etapy 1–5g, zveřejnění (8), opravy a funkce z kritické revize (9), aplikace v telefonu (10, aktualizace po nasazení R78), centrum upozornění (11), akce „brzy“ (12) (PLAN.md, kap. 6), přehled uživatelů pro admina (R84) a přihlášení přes Google, Seznam a Facebook (R96, R98) a audit přístupnosti, SEO a zobrazení se strukturovanými daty (R99) a řazení a filtry výpisů (R100, R101):
 - **Stahování:** Kaufland (i po 149 prodejnách, R49), Tesco, Lidl, Penny (R15–R17, R25, R26, R85), Globus (R46),
   Billa z celého katalogu (R48) a letáky, které ještě nezačaly, z PDF spárované s katalogem API (R89); ceny z PDF letáků Lidlu a Albertu přes `pdftotext` (R86, R87); zmínky v letácích bez ceny — Lidl, Penny, Albert (R27, R36).
   Pojistky importu: nula akcí je chyba, podezřelý propad akce nestáhne (stav `partial`), zámek proti
@@ -29,11 +29,12 @@ Hotové jsou etapy 1–5g, zveřejnění (8), opravy a funkce z kritické revize
 - **Hlídání a Moje slevy (`/`):** Hlídám (`/hlidam`, produkt z katalogu nebo vlastní slova, R39, R47),
   katalog 206 produktů se stromem Tesca a tabulkou pro admina (`/katalog`, R24, R28–R31, R37, R70), sbalitelné
   skupiny (R43), „Jsem v obchodě“ s kompaktními řádky (R55, R62), „Je to opravdu sleva?“ (R59), řazení přímo
-  na stránce, položky bez akce ve sbalené sekci dole a obchod u nejnižší ceny (R100)
+  na stránce, položky bez akce ve sbalené sekci dole a obchod u nejnižší ceny (R100), štítky Nové, Končí brzy,
+  Jen jisté shody a dočasně všechny prodejny (R101)
 - **Všechny akce (`/akce`):** veřejné, našeptávač, výběr víc obchodů s logy (přihlášený má předvybrané sledované), „Bez e-shopu“,
   karty nebo řádky (R82, i v Mých slevách), stránkování (R43, R44), „Hlídat“
   přímo z karty (R60), řazení na výběr (výchozí „Doporučené“) a přihlášenému „Podle Mých obchodů“ — prodejny,
-  karty a e-shop (R100); **nákupní seznam** (`/seznam`, R61)
+  karty a e-shop (R100), štítky Nové, Končí brzy, Sleva od a Zrušit filtry (R101); **nákupní seznam** (`/seznam`, R61)
 - **Účet:** Fortify (R12), menu pod avatarem (R40), Můj účet jako sekce s ukládáním hned (R63), Moje obchody
   (`/obchody`) s ukládáním hned (R64), nový účet sleduje všechny obchody a jde do Hlídám (R55), registrace
   a přihlášení se skutečnými akcemi a heslem jen jednou (R56), české adresy `/prihlaseni`, `/registrace`… (R73),

@@ -520,6 +520,61 @@
     }
 }
 
+// Štítky filtrů (R101): na telefonu jeden řádek k posunutí do strany — tři řádky štítků
+// by odsunuly výsledky pod první obrazovku; od středního displeje se zalamují
+.search-chips__filters {
+    display: flex;
+    flex: 1 1 100%;
+    gap: var(--space-2);
+    align-items: center;
+    min-width: 0;
+    // Místo pro rámeček fokusu, který by posuvná oblast ořízla
+    margin: calc(var(--space-1) * -1);
+    padding: var(--space-1);
+    overflow-x: auto;
+    scrollbar-width: none;
+
+    > * {
+        flex: none;
+    }
+
+    @include from-md {
+        flex: 0 1 auto;
+        flex-wrap: wrap;
+        overflow-x: visible;
+    }
+}
+
+// Výběr „Sleva od“ ve tvaru štítku (R101) — padding má select, aby šel klepnout celý
+.search-chip--select {
+    padding: 0;
+}
+
+.search-chip__select {
+    padding: var(--space-1) var(--space-3);
+    background: none;
+    border: 0;
+    border-radius: var(--radius-pill);
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+}
+
+// Počet akcí ve štítku (Moje slevy, R101)
+.search-chip__count {
+    color: var(--color-text-muted);
+    font-weight: 800;
+}
+
+.search-chip--on .search-chip__count {
+    color: inherit;
+}
+
+.search-chips__clear {
+    font-size: var(--font-size-sm);
+    white-space: nowrap;
+}
+
 // Řazení (R100) a přepínač karty / řádky (R82) vpravo v řádku štítků
 .search-chips__display {
     display: flex;

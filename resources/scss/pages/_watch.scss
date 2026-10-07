@@ -604,6 +604,12 @@
     margin-bottom: var(--space-3);
 }
 
+// Štítky filtrů pod panelem nástrojů Mých slev (R101) — bez záporného okraje, který mají
+// štítky pod polem hledání
+.watch-groups__chips {
+    margin: 0 0 var(--space-3);
+}
+
 // Řádky položek v sekci Zatím bez akce (R100): název, počet budoucích akcí, upravit / přestat
 .waiting-items {
     margin: var(--space-3) 0 0;

@@ -555,6 +555,14 @@ return [
             'upcoming_only' => 'Brzy začnou',
             // Bez akcí jen z e-shopu (R82)
             'without_eshop' => 'Bez e-shopu',
+            // Filtry Všech akcí (R101): skupina štítků pro čtečky, nové, končí brzy, sleva od
+            'filters' => 'Filtry akcí',
+            'fresh' => 'Nové za :count den|Nové za :count dny|Nové za :count dní',
+            'ending_soon' => 'Končí do :count dne|Končí do :count dnů|Končí do :count dnů',
+            'min_discount_label' => 'Jen slevy od',
+            'min_discount_any' => 'Sleva od…',
+            'min_discount' => 'Sleva od :percent %',
+            'clear_filters' => 'Zrušit filtry',
             // Nastavení Mých obchodů přihlášeného — prodejny, karty, e-shop (R100)
             'shopping_preferences' => 'Podle Mých obchodů',
             'shopping_preferences_hidden' => 'Podle Mých obchodů (vaše prodejny, karty a e-shopy) jsme schovali :count akci.|Podle Mých obchodů (vaše prodejny, karty a e-shopy) jsme schovali :count akce.|Podle Mých obchodů (vaše prodejny, karty a e-shopy) jsme schovali :count akcí.',
@@ -993,6 +1001,9 @@ return [
             'sort' => 'Řadit od',
             'min_discount_filter' => 'Ukazujeme jen slevy od :percent %',
             'change_preferences' => 'Změnit',
+            // Štítky filtrů (R101): bez shod „možná“ a jen vybrané prodejny (vypnutím dočasně všechny)
+            'filter_sure' => 'Jen jisté shody',
+            'my_stores' => 'Jen moje prodejny (:count)',
             // Položky, které teď v akci nejsou — sbalená sekce pod ostatními (R100)
             'waiting_title' => 'Zatím bez akce',
             'waiting_count' => ':count položka|:count položky|:count položek',

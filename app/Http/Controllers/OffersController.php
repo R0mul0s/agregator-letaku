@@ -7,7 +7,8 @@
  * překlepu, když text nic nenajde (R71); jen akce, které ještě nezačaly (R76); víc obchodů
  * najednou (přihlášený má předvybrané sledované) a bez akcí jen z e-shopu (R82). Jeden
  * obchod a produkt katalogu mají čistou adresu `/akce/lidl`, `/akce/pivo` (R94). Řazení na výběr
- * a přihlášenému nastavení Mých obchodů — prodejny, karty, e-shop — s počtem skrytých akcí (R100).
+ * a přihlášenému nastavení Mých obchodů — prodejny, karty, e-shop — s počtem skrytých akcí (R100);
+ * jen brzy končící, nové a slevy od procent (R101).
  *
  * @author Roman Hlaváček
  *
@@ -129,6 +130,16 @@ class OffersController extends Controller
                 // Zvolené řazení ('' = podle situace) a zapnuté nastavení Mých obchodů (R100)
                 OffersRequest::SORT => $request->sort()->value ?? '',
                 OffersRequest::SHOPPING_PREFERENCES => $offerFilters->preferencesOf !== null,
+                // Končí brzy, nové, sleva od ('' = všechny akce) (R101)
+                OffersRequest::ENDING_SOON => $offerFilters->endingSoon,
+                OffersRequest::FRESH => $offerFilters->freshOnly,
+                OffersRequest::MIN_DISCOUNT => $offerFilters->minDiscount ?? '',
+            ],
+            // Hodnoty do popisků a voleb filtrů (R101): „Končí do 2 dnů“, „Nové za 2 dny“, „Sleva od 20 %“
+            'filterOptions' => [
+                'endingSoonDays' => config()->integer('letaky.offers.ending_soon_days'),
+                'freshDays' => config()->integer('letaky.offers.fresh_days'),
+                'minDiscounts' => config()->array('letaky.account.min_discount_options'),
             ],
             // Řazení, podle kterého výpis opravdu řadí, a na výběr (relevance jen s textem, R100)
             'sort' => $sort->value,

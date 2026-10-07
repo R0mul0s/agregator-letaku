@@ -366,3 +366,32 @@ it('podle Mých obchodů schová akce jen z e-shopu a s kartou, kterou uživatel
         ->where('offers.total', 6)
         ->where('shoppingPreferences', null));
 });
+
+it('filtruje nové, brzy končící a slevy od procent; filtry zůstanou v odkazech a neindexují se (R101)', function (): void {
+    // Místní dnešek je 3. 10. (beforeEach), konec do 2 dnů = nejpozději 5. 10.
+    $now = CarbonImmutable::now();
+    Offer::factory()->create(['name' => 'Končí zítra 10 %', 'discount_percent' => 10, 'valid_from' => '2026-09-28', 'valid_to' => '2026-10-04', 'created_at' => $now->subDays(6)]);
+    Offer::factory()->create(['name' => 'Končí za týden 40 %', 'discount_percent' => 40, 'valid_from' => '2026-09-28', 'valid_to' => '2026-10-10', 'created_at' => $now->subDays(6)]);
+    Offer::factory()->create(['name' => 'Nová 30 %', 'discount_percent' => 30, 'valid_from' => '2026-10-03', 'valid_to' => '2026-10-09', 'created_at' => $now->subHour()]);
+    // Dopočtená sleva 50 % z původní ceny (R8) a akční cena bez slevy
+    Offer::factory()->create(['name' => 'Nová z původní ceny', 'discount_percent' => null, 'price' => 1000, 'original_price' => 2000, 'valid_to' => '2026-10-05', 'created_at' => $now]);
+    Offer::factory()->create(['name' => 'Nová akční cena', 'offer_type' => OfferType::PromoPrice, 'discount_percent' => null, 'original_price' => null, 'created_at' => $now]);
+    // Budoucí akce brzy nekončí, i když je krátká
+    Offer::factory()->create(['name' => 'Budoucí krátká', 'valid_from' => '2026-10-04', 'valid_to' => '2026-10-05', 'created_at' => $now->subDays(6)]);
+
+    expect(offerNames(['konci-brzy' => 1]))->toEqualCanonicalizing(['Končí zítra 10 %', 'Nová z původní ceny'])
+        ->and(offerNames(['nove' => 1]))->toEqualCanonicalizing(['Nová 30 %', 'Nová z původní ceny', 'Nová akční cena'])
+        ->and(offerNames(['sleva-od' => 30]))->toEqualCanonicalizing(['Končí za týden 40 %', 'Nová 30 %', 'Nová z původní ceny'])
+        ->and(offerNames(['nove' => 1, 'sleva-od' => 50]))->toBe(['Nová z původní ceny']);
+
+    config(['letaky.offers.per_page' => 1]);
+    $response = $this->get(route('offers', ['nove' => 1, 'sleva-od' => 20]));
+    $response->assertInertia(fn (Assert $page) => $page
+        ->where('filters.nove', true)
+        ->where('filters.sleva-od', 20)
+        ->where('filters.konci-brzy', false)
+        ->where('filterOptions', ['endingSoonDays' => 2, 'freshDays' => 2, 'minDiscounts' => [10, 20, 30, 50]])
+        ->where('pagination.nextUrl', '/akce?nove=1&sleva-od=20&strana=2'));
+    expect($response->getContent())->toContain('<meta name="robots" content="noindex, follow">');
+    $this->get(route('offers', ['sleva-od' => 15]))->assertSessionHasErrors('sleva-od');
+});

@@ -26,7 +26,10 @@ final class OfferPresenter
     /** @var array<string, string>|null Názvy prodejen podle kódu, načtené při prvním použití */
     private ?array $storeNames = null;
 
-    public function __construct(private readonly LocalCalendar $calendar) {}
+    public function __construct(
+        private readonly LocalCalendar $calendar,
+        private readonly PromotionText $promotionText,
+    ) {}
 
     /**
      * Data jedné nabídky pro Vue.
@@ -56,7 +59,8 @@ final class OfferPresenter
             'loyaltyProgramName' => $offer->loyalty_program?->label(),
             'discountPercent' => $offer->discount_percent,
             'offerType' => $offer->offer_type->value,
-            'promotionText' => $offer->promotion_text,
+            // Verzálky od obchodu jako věta (R101)
+            'promotionText' => $this->promotionText->forDisplay($offer->promotion_text),
             'onlineOnly' => $offer->online_only,
             'storeFormatName' => $offer->store_format?->label(),
             'unitPrice' => UnitPrice::of($offer->price, $offer->quantity, $offer->unit),

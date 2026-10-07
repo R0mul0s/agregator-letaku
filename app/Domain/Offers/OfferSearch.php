@@ -3,7 +3,8 @@
 /**
  * Hledání v aktuálních nabídkách — slova jako začátky slov v názvu, značce a popisu (R71),
  * volitelně jen vybrané obchody, produkt katalogu, budoucí akce, bez e-shopu a podle
- * nastavení Mých obchodů přihlášeného (OfferFilters, R100).
+ * nastavení Mých obchodů přihlášeného (R100), jen brzy končící, nové a slevy od procent
+ * (OfferFilters, R101).
  *
  * Bez ohledu na diakritiku a velikost písmen („mleko“ najde „Mléko“) díky collation
  * utf8mb4_unicode_ci tabulek. Řazení volí uživatel (OfferListSort, R100); bez volby
@@ -80,6 +81,12 @@ final class OfferSearch
             ->when($filters->withoutEshop, fn (Builder $query) => $query->where('online_only', false))
             ->when($filters->productId, fn (Builder $query, int $productId) => $query->whereHas('productAssignments', fn (Builder $query) => $query->where('product_id', $productId)))
             ->when($filters->preferencesOf, fn (Builder $query, $user) => $this->preferences->apply($query, $user))
+            // Končí brzy (R101): už platí a konec je do `ending_soon_days` dní
+            ->when($filters->endingSoon, fn (Builder $query) => $query
+                ->whereDate('valid_from', '<=', $today->toDateString())
+                ->whereDate('valid_to', '<=', $today->addDays(config()->integer('letaky.offers.ending_soon_days'))->toDateString()))
+            ->when($filters->freshOnly, fn (Builder $query) => $query->where('created_at', '>=', $this->freshSince()->toDateTimeString()))
+            ->when($filters->minDiscount, fn (Builder $query, int $percent) => $query->whereRaw(self::DISCOUNT_SQL.' >= ?', [...$this->discountBindings(), $percent]))
             ->with('stores');
 
         foreach (WordStart::words($text ?? '') as $word) {
@@ -111,7 +118,7 @@ final class OfferSearch
 
     /**
      * Doporučené (R100): akce, které platí dnes, před těmi, které teprve začnou (R76); uvnitř
-     * nejdřív skutečné slevy — zveřejněné za posledních `letaky.offers.recommended_fresh_days`
+     * nejdřív skutečné slevy — zveřejněné za posledních `letaky.offers.fresh_days`
      * dní, pak starší, obojí od nejvyšší slevy; zbytek (akční ceny, akce s kartou, na více kusů)
      * od nejnovějších. Bez textu tak výpis neotevírá nejstarší akce e-shopu, ale to
      * nejzajímavější, co se dá koupit hned.
@@ -121,13 +128,20 @@ final class OfferSearch
      */
     private function orderByRecommended(Builder $query, CarbonImmutable $today): Builder
     {
-        $freshSince = CarbonImmutable::now()->subDays(config()->integer('letaky.offers.recommended_fresh_days'));
-
         return $query->orderByRaw('valid_from > ?', [$today->toDateString()])
             ->orderByRaw(self::DISCOUNT_SQL.' IS NULL', $this->discountBindings())
-            ->orderByRaw('created_at >= ? DESC', [$freshSince->toDateTimeString()])
+            ->orderByRaw('created_at >= ? DESC', [$this->freshSince()->toDateTimeString()])
             ->orderByRaw(self::DISCOUNT_SQL.' DESC', $this->discountBindings())
             ->orderByDesc('created_at');
+    }
+
+    /**
+     * Od kdy je akce čerstvá (zveřejněná za posledních `letaky.offers.fresh_days` dní) — řazení
+     * Doporučené a filtr Nové (R100, R101). Čas zveřejnění je v UTC.
+     */
+    public function freshSince(): CarbonImmutable
+    {
+        return CarbonImmutable::now()->subDays(config()->integer('letaky.offers.fresh_days'));
     }
 
     /**
