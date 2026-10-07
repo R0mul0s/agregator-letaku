@@ -91,6 +91,13 @@ select {
     font: inherit;
 }
 
+// Rozbalený seznam selectu bere barvu textu ze selectu, pozadí ale ne: u průhledného selectu
+// (výběr ve štítku) ho Chrome kreslí bílé a světlý text tmavého režimu na něm nejde přečíst
+option {
+    background-color: var(--color-surface);
+    color: var(--color-text);
+}
+
 :focus-visible {
     @include focus-ring;
 }

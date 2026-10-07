@@ -24,7 +24,16 @@
         flex: 1 1 auto;
     }
 
+    // Obrys a text v barvě lišty — šedý okraj tlačítka ghost na tmavě hnědém pozadí splýval
     &__button {
         flex: none;
+        border-color: currentcolor;
+        color: var(--color-warning-text);
+        font-weight: 700;
+
+        &:hover:not(:disabled) {
+            background: var(--color-warning-text);
+            color: var(--color-warning-soft);
+        }
     }
 }

@@ -97,6 +97,32 @@
     }
 }
 
+/// Vlastní šipka rozbalovacího výběru. Nativní šipka sedí u zaobleného rámečku na hraně
+/// a každý prohlížeč ji odsadí jinak. Mixin patří na obal selectu (select pseudoprvky nemá),
+/// selectu vypne nativní vzhled a nechá vpravo místo. Šipka má barvu textu obalu.
+/// $select — selektor selectu uvnitř obalu.
+@mixin select-chevron($select) {
+    position: relative;
+
+    #{$select} {
+        appearance: none;
+        padding-right: calc(var(--select-chevron-inset) * 2 + var(--select-chevron-size));
+    }
+
+    &::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        right: var(--select-chevron-inset);
+        width: var(--select-chevron-size);
+        height: var(--select-chevron-size);
+        border-right: var(--select-chevron-stroke) solid currentcolor;
+        border-bottom: var(--select-chevron-stroke) solid currentcolor;
+        transform: translateY(-75%) rotate(45deg);
+        pointer-events: none;
+    }
+}
+
 /// Okno nad ztmaveným pozadím (nativní <dialog>, R47) — karta uprostřed, náběh zespodu.
 /// Animace confirm-dialog-in / confirm-backdrop-in jsou v components/_confirm-dialog.scss.
 @mixin dialog-surface($max-width) {

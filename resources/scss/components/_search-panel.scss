@@ -540,6 +540,8 @@
 
 // Výběr „Sleva od“ ve tvaru štítku (R101) — padding má select, aby šel klepnout celý
 .search-chip--select {
+    @include select-chevron('.search-chip__select');
+
     padding: 0;
 }
 

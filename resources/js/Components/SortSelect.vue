@@ -24,8 +24,10 @@ const emit = defineEmits(['change']);
 <template>
     <div class="sort-select">
         <label :for="id" class="sort-select__label">{{ label }}</label>
-        <select :id="id" v-model="sort" class="sort-select__input" @change="emit('change', sort)">
-            <option v-for="option in options" :key="option.value" :value="option.value">{{ option.label }}</option>
-        </select>
+        <span class="sort-select__field">
+            <select :id="id" v-model="sort" class="sort-select__input" @change="emit('change', sort)">
+                <option v-for="option in options" :key="option.value" :value="option.value">{{ option.label }}</option>
+            </select>
+        </span>
     </div>
 </template>

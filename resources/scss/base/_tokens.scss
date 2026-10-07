@@ -336,6 +336,10 @@
     // Cenovka slevy: bílý text na červené potřebuje „velký text“ (≥ 18,66 px tučně) pro kontrast 3 : 1
     --font-size-sticker: 1.25rem;
     --control-size: 2.5rem;
+    // Vlastní šipka rozbalovacího výběru (mixin select-chevron) — velikost, tloušťka a odsazení zprava
+    --select-chevron-size: 0.45rem;
+    --select-chevron-stroke: 2px;
+    --select-chevron-inset: 1rem;
     // Odsazení tlačítek přepínače karty / řádky od rámečku (R82)
     --view-toggle-inset: 3px;
     --checkbox-size: 1.125rem;
