@@ -671,6 +671,16 @@ Soubory `app/Domain/Sources/Albert/AlbertBox.php` a `AlbertTile.php` se přesunu
    - v Mém účtu → Zabezpečení jde Seznam propojit a odpojit.
 5. Zapiš verzi do *Nasazené verze*.
 
+### Aktualizace z `6d0e140` (dvacáté třetí nasazení — provedeno, `16b4832`)
+
+**Přístupnost, SEO a zobrazení** (R99). Bez SQL skriptu a bez `vendor/`, cron i `.env` beze změny.
+
+1. **Nahraj `deploy/upload/`** bez `vendor/`, s `public/build/`, `public/.htaccess` (nový otisk CSP a přesměrování `/index.php`)
+   a `public/version.txt`; nové jsou `app/Support/InlineScript.php` a `app/Support/Seo/StructuredData.php`.
+2. **Ověř:** `version.txt`; otisk vloženého skriptu v HTML sedí s `sha256-…` v hlavičce CSP (jinak se vzhled
+   nepřepne a stránka problikne); `/index.php` vrací 301 na `/`; `/akce/pivo` a `/kontakt` v Google Rich Results Test.
+3. Zapiš verzi do *Nasazené verze*.
+
 **Každá nová migrace potřebuje SQL skript** `deploy/migrations-<datum>-<popis>.sql`
 (opakovatelný: `CREATE TABLE IF NOT EXISTS`, `ADD COLUMN IF NOT EXISTS`) včetně zápisu do
 tabulky `migrations` — ve stejném commitu jako migrace. Nové produkty katalogu jdou na
@@ -737,3 +747,4 @@ Co běží na produkci — pro `git log <commit>..HEAD` při dalším nasazení
 | 2026-10-06 | `2a4e112` | dvacáté nasazení: přihlášení přes Google a Facebook (R96) — tlačítka, dokončení registrace se souhlasy, propojení v Mém účtu, potvrzení u poskytovatele pro účty bez hesla; zásady s částí o údajích od Googlu a Facebooku (Limited Use), obsah ze serveru viditelný bez JavaScriptu; SQL `migrations-2026-10-06-prihlaseni-pres-google.sql`, klíče `GOOGLE_*` / `FACEBOOK_*` v `.env`, `vendor/` se Socialite. Google aplikaci ověřil, Facebook zatím Unpublished |
 | 2026-10-07 | `7b56244` | jednadvacáté nasazení: výkon (R97) — maskot a logo ve WebP, přednačtení kódu stránky, vložený `theme-init.js` s otiskem v CSP, písmo Nunito s českou podmnožinou, obsah pro roboty se zapnutým JavaScriptem `display: none`; doplněno dodatečně podle `version.txt` |
 | 2026-10-07 | `6d0e140` | dvacáté druhé nasazení: přihlášení přes Seznam (R98) — tlačítko podle manuálu Seznamu, `SEZNAM_CLIENT_ID` / `SEZNAM_CLIENT_SECRET` v `.env`, bez SQL skriptu a bez `vendor/`; přesměrování na `login.seznam.cz` ověřeno |
+| 2026-10-07 | `16b4832` | dvacáté třetí nasazení: audit přístupnosti, SEO a zobrazení (R99) — strukturovaná data v jednom grafu (organizace, drobečková navigace, akce jako `Offer`, `FAQPage` kontaktu), `/index.php` přesměruje 301, texty UI jen při celém načtení (odpověď přechodu na `/akce` 52 kB místo 104 kB), vložený `theme-init.js` bez komentářů s novým otiskem v CSP (ověřeno, že sedí), fokus, kontrasty a čtečky; bez SQL skriptu a bez `vendor/` |

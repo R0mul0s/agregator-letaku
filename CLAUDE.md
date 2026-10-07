@@ -63,7 +63,7 @@ Hotové jsou etapy 1–5g, zveřejnění (8), opravy a funkce z kritické revize
   (`/ukazka-hlidani`, `WatchDemo`) místo kroků a hra „Co je levnější?“ (`UnitPriceQuiz`); Kontakt (R91) s výběrem
   tématu a osnovou e-mailu, kopírováním adresy a holubem
 
-Produkce běží na `https://slevohlidka.cz` (nasazeno 2026-10-02, přestěhováno ze `slevohlidka.rhsoft.cz` R93, naposledy `6d0e140` 2026-10-07);
+Produkce běží na `https://slevohlidka.cz` (nasazeno 2026-10-02, přestěhováno ze `slevohlidka.rhsoft.cz` R93, naposledy `16b4832` 2026-10-07);
 postup aktualizace a nasazené verze jsou v `deploy/DEPLOYMENT.md`. Sleduje se 7 obchodů; Makro
 zatím nejde (ochrana proti robotům). Etapa 6 (LLM) jen když bude potřeba.
 Co z dřívějších rozhodnutí platí a co ne, je v tabulce na začátku PLAN.md.
