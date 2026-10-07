@@ -45,3 +45,21 @@
         }
     }
 }
+
+// Seznam (R98): text i „esko“ podle manuálu tlačítka — červené na světlém, bílé na tmavém podkladu
+.social-login__button--seznam {
+    color: var(--color-social-seznam);
+}
+
+// Logo barvené barvou textu (SocialLogo.vue) — tvar dává maska ze souboru loga
+.social-login__logo--tinted {
+    display: inline-block;
+    background-color: currentColor;
+    mask-position: center;
+    mask-repeat: no-repeat;
+    mask-size: contain;
+}
+
+.social-login__logo--seznam {
+    mask-image: url('/images/social/seznam.svg');
+}

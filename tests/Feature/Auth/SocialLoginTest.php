@@ -81,6 +81,39 @@ it('nabídne na přihlášení a registraci jen poskytovatele s klíči', functi
     $this->get('/prihlaseni/facebook')->assertNotFound();
 });
 
+it('Seznam nabídne mezi Googlem a Facebookem s logem barveným podle manuálu (R98)', function (): void {
+    config(['services.seznam.client_id' => 'seznam-client', 'services.seznam.client_secret' => 'seznam-secret']);
+
+    $this->get(route('login'))->assertInertia(fn (Assert $page) => $page
+        ->has('social', 3)
+        ->where('social.0.provider', 'google')
+        ->where('social.1.provider', 'seznam')
+        ->where('social.1.url', '/prihlaseni/seznam')
+        ->where('social.1.tinted', true)
+        ->where('social.2.provider', 'facebook')
+        ->where('social.2.tinted', false));
+});
+
+it('e-mail od Seznamu bere jako neověřený: nový účet dostane odkaz, existující se sám nepřipojí (R98)', function (): void {
+    Notification::fake();
+    config(['services.seznam.client_id' => 'seznam-client', 'services.seznam.client_secret' => 'seznam-secret']);
+    fakeSocialUser(SocialProvider::Seznam, ['id' => 'szn-1', 'email' => 'jan@seznam.cz']);
+
+    $this->get(route('social.callback', ['provider' => 'seznam']))->assertRedirect(route('social.register'));
+    $this->post(route('social.register.store'), ['name' => 'Jan', 'terms' => true]);
+
+    $user = User::query()->sole();
+    expect($user->email_verified_at)->toBeNull()
+        ->and($user->socialAccounts()->sole()->provider)->toBe(SocialProvider::Seznam);
+    Notification::assertSentTo($user, VerifyEmail::class);
+
+    // Jiný účet Seznamu se stejným e-mailem se k účtu sám nepřipojí
+    auth()->logout();
+    fakeSocialUser(SocialProvider::Seznam, ['id' => 'szn-2', 'email' => 'jan@seznam.cz']);
+    $this->get(route('social.callback', ['provider' => 'seznam']))
+        ->assertSessionHasErrors([SocialLoginController::ERROR_KEY => __('app.ui.auth.social.refused.'.SocialLoginRefused::EMAIL_TAKEN)]);
+});
+
 it('bez klíčů v .env (null) přihlášení funguje bez tlačítek', function (): void {
     config(['services.google.client_id' => null, 'services.facebook.client_id' => null]);
 

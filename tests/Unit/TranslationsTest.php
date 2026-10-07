@@ -85,7 +85,8 @@ it('má text toastu pro každý kód stavu po uložení (R47)', function (string
 
 it('má název a důvody odmítnutí pro přihlášení přes poskytovatele (R96)', function (): void {
     foreach (SocialProvider::cases() as $provider) {
-        expect(trans()->has('app.ui.auth.social.providers.'.$provider->value))->toBeTrue();
+        expect(trans()->has('app.ui.auth.social.providers.'.$provider->value))->toBeTrue()
+            ->and(trans()->has('app.ui.auth.social.buttons.'.$provider->value))->toBeTrue();
     }
 
     $reasons = (new ReflectionClass(SocialLoginRefused::class))->getConstants();

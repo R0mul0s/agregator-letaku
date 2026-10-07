@@ -42,6 +42,7 @@ final class SocialLogin
     private const CONFIRM_PARAMETERS = [
         'google' => ['prompt' => 'select_account'],
         'facebook' => ['auth_type' => 'reauthenticate'],
+        // Seznam vynucené přihlášení nemá — potvrzení projde přes jeho přihlašovací okno nebo uloženou relaci
     ];
 
     public function __construct(private readonly Socialite $socialite) {}
@@ -63,7 +64,7 @@ final class SocialLogin
 
         $driver = $this->driver($provider);
         if ($intent === SocialIntent::Confirm && $driver instanceof AbstractProvider) {
-            $driver->with(self::CONFIRM_PARAMETERS[$provider->value]);
+            $driver->with(self::CONFIRM_PARAMETERS[$provider->value] ?? []);
         }
 
         return $driver->redirect();

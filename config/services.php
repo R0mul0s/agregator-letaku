@@ -37,6 +37,13 @@ return [
         'redirect' => null,
     ],
 
+    // Seznam.cz (R98) — služba na vyvojari.seznam.cz/oauth/admin, ovladač App\Domain\Account\Social\SeznamProvider
+    'seznam' => [
+        'client_id' => env('SEZNAM_CLIENT_ID'),
+        'client_secret' => env('SEZNAM_CLIENT_SECRET'),
+        'redirect' => null,
+    ],
+
     'facebook' => [
         'client_id' => env('FACEBOOK_CLIENT_ID'),
         'client_secret' => env('FACEBOOK_CLIENT_SECRET'),

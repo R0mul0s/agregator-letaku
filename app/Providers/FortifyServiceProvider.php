@@ -141,7 +141,7 @@ class FortifyServiceProvider extends ServiceProvider
      * Tlačítka přihlášení přes Google a Facebook (R96) — jen poskytovatelé s klíči v .env.
      * Adresa vede mimo Inertii (přesměrování k poskytovateli by XHR nedokončil).
      *
-     * @return list<array{provider: string, url: string, logo: string}>
+     * @return list<array{provider: string, url: string, logo: string, tinted: bool}>
      */
     private function socialProviders(): array
     {
@@ -149,6 +149,8 @@ class FortifyServiceProvider extends ServiceProvider
             'provider' => $provider->value,
             'url' => route('social.redirect', ['provider' => $provider], absolute: false),
             'logo' => $provider->logoUrl(),
+            // Logo barvené barvou textu (Seznam, R98) — SocialLogo.vue ho kreslí maskou
+            'tinted' => $provider->hasTintedLogo(),
         ], SocialProvider::configured());
     }
 }

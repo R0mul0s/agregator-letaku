@@ -7,6 +7,7 @@
     @created 2026-10-06
 -->
 <script setup>
+import SocialLogo from '@/Components/SocialLogo.vue';
 import { useTranslations } from '@/lib/i18n';
 import { computed } from 'vue';
 
@@ -39,8 +40,8 @@ const buttons = computed(() =>
         <template v-else>
             <p class="form-field__hint">{{ t('account.social.confirm_hint') }}</p>
             <div class="identity-confirm__actions">
-                <a v-for="button in buttons" :key="button.provider" :href="button.href" class="button social-login__button">
-                    <img :src="button.logo" alt="" class="social-login__logo" />
+                <a v-for="button in buttons" :key="button.provider" :href="button.href" class="button social-login__button" :class="`social-login__button--${button.provider}`">
+                    <SocialLogo :provider="button.provider" :logo="button.logo" :tinted="button.tinted" />
                     {{ button.label }}
                 </a>
             </div>

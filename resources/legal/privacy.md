@@ -30,7 +30,7 @@ nevyžaduje. Se vším, co se týká vašich údajů, se obracejte na uvedený e
 | Údaje | Účel | Právní základ |
 |---|---|---|
 | jméno, e-mail, heslo (uložené jen jako nevratný otisk) | vedení účtu, přihlášení, ověření e-mailu, obnova hesla | plnění smlouvy, tedy podmínek užití (čl. 6 odst. 1 písm. b GDPR) |
-| identifikátor účtu u Googlu nebo Facebooku (jen když se přes něj přihlašujete) | přihlášení přes Google nebo Facebook, potvrzení, že jste to vy, před změnou e-mailu nebo zrušením účtu | plnění smlouvy |
+| identifikátor účtu u Googlu, Seznamu nebo Facebooku (jen když se přes něj přihlašujete) | přihlášení přes Google, Seznam nebo Facebook, potvrzení, že jste to vy, před změnou e-mailu nebo zrušením účtu | plnění smlouvy |
 | profilový obrázek (nepovinný) | zobrazení ve vašem účtu | plnění smlouvy |
 | hlídané položky, nákupní seznam, vybrané obchody a prodejny, věrnostní programy, které máte (jen název programu, ne číslo karty), předvolby zobrazení | zobrazení slev, které vás zajímají | plnění smlouvy |
 | čas přijetí podmínek a jejich verze | doložení, s jakými podmínkami jste souhlasili | oprávněný zájem (čl. 6 odst. 1 písm. f GDPR) |
@@ -38,28 +38,29 @@ nevyžaduje. Se vším, co se týká vašich údajů, se obracejte na uvedený e
 Výběr prodejen může prozradit, kde přibližně nakupujete. Slouží jen k zobrazení akcí
 těchto prodejen.
 
-### Přihlášení přes Google nebo Facebook
+### Přihlášení přes Google, Seznam nebo Facebook
 
-Účet si můžete založit a přihlašovat se do něj i přes svůj účet u Googlu nebo Facebooku.
+Účet si můžete založit a přihlašovat se do něj i přes svůj účet u Googlu, Seznamu nebo Facebooku.
 Přihlásíte se na jejich stránce a oni nám s vaším svolením předají jen tyto údaje:
 
-| Údaje od Googlu nebo Facebooku | K čemu je používáme | Právní základ |
+| Údaje od Googlu, Seznamu nebo Facebooku | K čemu je používáme | Právní základ |
 |---|---|---|
-| identifikátor vašeho účtu u Googlu nebo Facebooku | abychom vás při příštím přihlášení poznali a abyste před změnou e-mailu nebo zrušením účtu mohli potvrdit, že jste to vy | plnění smlouvy |
+| identifikátor vašeho účtu u Googlu, Seznamu nebo Facebooku | abychom vás při příštím přihlášení poznali a abyste před změnou e-mailu nebo zrušením účtu mohli potvrdit, že jste to vy | plnění smlouvy |
 | jméno | oslovení ve Slevohlídce (při registraci ho můžete změnit) | plnění smlouvy |
 | e-mailová adresa | adresa vašeho účtu: přihlášení, upozornění na akce, které si zapnete, a obnova hesla | plnění smlouvy |
 
-Žádáme jen o základní oprávnění (u Googlu `openid`, `email` a `profile`, u Facebooku
-`public_profile` a `email`). Heslo k vašemu účtu u Googlu nebo Facebooku k nám nikdy
+Žádáme jen o základní oprávnění (u Googlu `openid`, `email` a `profile`, u Seznamu `identity`, u Facebooku
+`public_profile` a `email`). Heslo k vašemu účtu u Googlu, Seznamu nebo Facebooku k nám nikdy
 nedorazí. Profilový obrázek, kontakty, přátele, e-maily, kalendář ani žádná jiná data
 z vašeho účtu nedostáváme a nežádáme o ně.
 
-Údaje od Googlu a Facebooku **nikomu nepředáváme, neprodáváme a nepoužíváme k reklamě**,
+Údaje od Googlu, Seznamu a Facebooku **nikomu nepředáváme, neprodáváme a nepoužíváme k reklamě**,
 k profilování ani k trénování modelů umělé inteligence. Ukládáme je na našich serverech
 v EU u ostatních údajů vašeho účtu (kap. 7 Zabezpečení) a uchováváme je, dokud propojení
 nezrušíte (Můj účet → Zabezpečení) nebo nezrušíte účet — pak je okamžitě smažeme. Přístup
 Slevohlídky můžete kdykoli odebrat i u poskytovatele: v nastavení účtu Google (Zabezpečení →
-Aplikace a služby třetích stran) nebo na Facebooku (Nastavení → Aplikace a weby).
+Aplikace a služby třetích stran), v nastavení účtu Seznam nebo na Facebooku (Nastavení →
+Aplikace a weby).
 
 Využití údajů, které Slevohlídka získá z rozhraní Google API, se řídí
 [Zásadami pro uživatelská data služeb Google API](https://developers.google.com/terms/api-services-user-data-policy)
@@ -186,6 +187,9 @@ V zálohách údaje zůstanou nejdéle do smazání zálohy.
   jejich stránce a dozvědí se, že se přihlašujete do Slevohlídky. Jsou to samostatní
   správci, zpracování na jejich straně se řídí jejich zásadami a jejich cookies; údaje
   mohou předávat do USA v rámci Data Privacy Framework.
+- **Seznam.cz, a.s.** (Radlická 3294/10, 150 00 Praha 5) — jen pokud se přes Seznam
+  přihlašujete: přihlášení proběhne na jeho stránce a dozví se, že se přihlašujete do
+  Slevohlídky. Je samostatným správcem, zpracování na jeho straně se řídí jeho zásadami.
 
 Údaje neprodáváme ani nepředáváme za úplatu. Kromě Google Analytics (se souhlasem)
 a push služby vašeho prohlížeče (jen se zapnutými upozorněními v telefonu) je nepředáváme

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Poskytovatelé přihlášení cizím účtem (R96). Název driveru Socialite = hodnota případu.
+ * Poskytovatelé přihlášení cizím účtem (R96, Seznam R98). Název driveru Socialite = hodnota případu.
  * Poskytovatel bez klíčů v .env (services.<poskytovatel>.client_id) se nenabízí.
  *
  * @author Roman Hlaváček
@@ -16,6 +16,8 @@ namespace App\Enums;
 enum SocialProvider: string
 {
     case Google = 'google';
+    // Seznam.cz (R98) — vlastní ovladač Socialite SeznamProvider
+    case Seznam = 'seznam';
     case Facebook = 'facebook';
 
     /**
@@ -44,6 +46,15 @@ enum SocialProvider: string
     public function logoUrl(): string
     {
         return asset('images/social/'.$this->value.'.svg');
+    }
+
+    /**
+     * Barví se logo barvou textu tlačítka? Seznam podle manuálu tlačítka smí mít „esko“
+     * jen červené na světlém a bílé na tmavém podkladu — barvu dává token, ne obrázek.
+     */
+    public function hasTintedLogo(): bool
+    {
+        return $this === self::Seznam;
     }
 
     /**

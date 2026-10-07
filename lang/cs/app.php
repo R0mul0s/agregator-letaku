@@ -686,13 +686,19 @@ return [
                 'submit' => 'Nastavit heslo',
             ],
 
-            // Přihlášení přes Google a Facebook (R96, SocialButtons.vue, SocialRegister.vue)
+            // Přihlášení přes Google, Seznam a Facebook (R96, R98, SocialButtons.vue, SocialRegister.vue)
             'social' => [
                 'providers' => [
                     'google' => 'Google',
+                    'seznam' => 'Seznam',
                     'facebook' => 'Facebook',
                 ],
-                'continue' => 'Pokračovat přes :provider',
+                // Text tlačítka — Seznam ho má předepsaný v manuálu tlačítka (R98)
+                'buttons' => [
+                    'google' => 'Pokračovat přes Google',
+                    'seznam' => 'Přihlásit přes Seznam',
+                    'facebook' => 'Pokračovat přes Facebook',
+                ],
                 'divider' => 'nebo e-mailem',
                 'register' => [
                     'title' => 'Dokončení registrace',
@@ -993,7 +999,7 @@ return [
                 'profile' => ['title' => 'Profil', 'hint' => 'Jak vás máme oslovovat a kam posílat e-maily.'],
                 'notifications' => ['title' => 'Upozornění', 'hint' => 'Kdy vám dáme vědět o nových akcích na hlídané zboží.'],
                 'offers' => ['title' => 'Moje slevy', 'hint' => 'Jak řadit akce u každé hlídané položky a které ukazovat.'],
-                'security' => ['title' => 'Zabezpečení', 'hint' => 'Heslo, přihlášení přes Google nebo Facebook a zařízení, na kterých jste přihlášeni.'],
+                'security' => ['title' => 'Zabezpečení', 'hint' => 'Heslo, přihlášení přes Google, Seznam nebo Facebook a zařízení, na kterých jste přihlášeni.'],
                 'delete' => ['title' => 'Zrušení účtu', 'hint' => 'Smaže účet, hlídané položky, nákupní seznam i nastavení obchodů. Vrátit to nepůjde — a bude nám smutno.'],
             ],
             'autosave' => 'Změny se ukládají hned.',
@@ -1045,7 +1051,7 @@ return [
             'delete_confirm_title' => 'Zrušit účet?',
             'delete_confirm' => 'Účet, hlídané položky i nastavení se smažou a nepůjde to vrátit.',
             'deleted' => 'Účet je zrušený. Díky, že jste to se Slevohlídkou zkusili — kdyby se vám zastesklo, víte, kde nás najdete.',
-            // Přihlášení přes Google a Facebook (R96) — propojení a účet bez hesla
+            // Přihlášení přes Google, Seznam a Facebook (R96, R98) — propojení a účet bez hesla
             'social' => [
                 'title' => 'Přihlášení přes účty',
                 'hint' => 'S propojeným účtem se přihlásíte jedním klepnutím. Poskytovatel nám pošle jen jméno a e-mail, heslo k němu se k nám nedostane.',

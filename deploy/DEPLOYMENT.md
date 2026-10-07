@@ -96,7 +96,7 @@ a vyplň místa `<…>`:
   `docker compose exec app php artisan letaky:push-keys`, vygenerovat **jednou** a neměnit (nové klíče
   zneplatní všechny odběry); prázdné = upozornění vypnutá
 - volitelně `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` a `FACEBOOK_CLIENT_ID` / `FACEBOOK_CLIENT_SECRET` —
-  přihlášení přes Google a Facebook (R96, kapitola *Přihlášení přes Google a Facebook*); prázdné = tlačítko se neukáže
+  přihlášení přes Google a Facebook (R96, kapitola *Přihlášení přes Google, Seznam a Facebook*); prázdné = tlačítko se neukáže
 - volitelně `LETAKY_GA_MEASUREMENT_ID` (Google Analytics po souhlasu s cookies, R52) a `LETAKY_USER_AGENT`
   (User-Agent stahování — **bez `https://`**, jinak Albert vrací 400, R65; konfigurace není v cache,
   změna v `.env` platí hned bez nasazení)
@@ -287,7 +287,7 @@ Volby v prohlížeči (vzhled, poslední hledání) se nepřenesou.
 14. **Repozitář:** adresa produkce v `README.md` a `CLAUDE.md`, řádek v *Nasazené verze*, složku
     `deploy/coming-soon/` smaž, odškrtni bod v `docs/ZVEREJNENI.md`.
 
-## Přihlášení přes Google a Facebook (R96)
+## Přihlášení přes Google, Seznam a Facebook (R96, R98)
 
 Tlačítka se ukážou, až budou v `.env` klíče aplikace u poskytovatele. Adresa návratu je pro
 přihlášení, propojení účtu i potvrzení totožnosti jedna — **`https://slevohlidka.cz/prihlaseni/google/navrat`**
@@ -308,6 +308,17 @@ Google aplikaci ověřil (značka i název na přihlašovací obrazovce).
    klientovi). Tajemství klienta Google ukáže jen při vytvoření. ID a tajemství do `.env` na hostingu.
 5. **Vývoj má vlastní projekt** „Slevohlidka vyvoj“: *Audience* v režimu **Testing** se svým Gmailem jako
    testerem, klient s redirect URI `http://localhost:54720/prihlaseni/google/navrat`; jeho klíče jen do lokálního `.env`.
+
+**Seznam** ([vyvojari.seznam.cz/oauth/admin](https://vyvojari.seznam.cz/oauth/admin), R98), přihlásit se účtem Seznam:
+
+1. Nová služba „Slevohlídka“: ikona čtvercová (zobrazí se 32×32, stačí `public/images/brand/icon-192.png`), odkaz
+   na web `https://slevohlidka.cz/`, zásady `/ochrana-udaju`.
+2. *Adresy pro přesměrování* (každá na řádek, za doménou cesta): `https://slevohlidka.cz/prihlaseni/seznam/navrat`
+   a pro vývoj `http://localhost:54720/prihlaseni/seznam/navrat` (localhost Seznam pouští i přes http).
+   Ne `/prihlaseni/seznam` — to je odchod k Seznamu, Seznam vrací na `…/navrat`.
+3. *Client ID* a *OAuth secret* do `SEZNAM_CLIENT_ID` a `SEZNAM_CLIENT_SECRET` (stejné lokálně i na produkci).
+4. Rozsah je jen `identity` (posílá ho `SeznamProvider`). Tlačítko je podle manuálu Seznamu
+   („Přihlásit přes Seznam“, červené „esko“, na tmavém bílé) — barvy ani text neměnit (zakázaná použití v manuálu).
 
 **Facebook** ([developers.facebook.com](https://developers.facebook.com)), aplikace „Slevohlídka“ (App ID `2052716665448427`):
 
@@ -620,7 +631,7 @@ Soubory `app/Domain/Sources/Albert/AlbertBox.php` a `AlbertTile.php` se přesunu
 1. **SQL skript před nahráním kódu:** v phpMyAdminu pusť `migrations-2026-10-06-prihlaseni-pres-google.sql`
    (tabulka `social_accounts`, `users.password` nepovinné). Stará verze kódu s ním běží dál.
 2. **`.env` na hostingu:** doplň `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `FACEBOOK_CLIENT_ID`,
-   `FACEBOOK_CLIENT_SECRET` (kapitola *Přihlášení přes Google a Facebook*). Bez nich se tlačítka jen neukážou.
+   `FACEBOOK_CLIENT_SECRET` (kapitola *Přihlášení přes Google, Seznam a Facebook*). Bez nich se tlačítka jen neukážou.
 3. **Nahraj `deploy/upload/`** včetně `vendor/` a `public/build/`; nové jsou `public/images/social/`,
    `app/Domain/Account/Social/`, `app/Domain/Account/Actions/` (`SetUpNewAccount`, `ResolveSocialLogin`,
    `RegisterSocialUser`, `LinkSocialAccount`, `UnlinkSocialAccount`), `app/Domain/Account/AuthShowcase.php`,
@@ -641,6 +652,24 @@ Soubory `app/Domain/Sources/Albert/AlbertBox.php` a `AlbertTile.php` se přesunu
    úvodní stránka bez JavaScriptu ukazuje „Co Slevohlídka umí“ a odkazy na zásady a podmínky. Doména musí být
    ověřená v Search Console pod účtem, který je vlastníkem projektu v Google Cloud.
 7. Zapiš verzi do *Nasazené verze*.
+
+### Aktualizace z `7b56244` (přihlášení přes Seznam)
+
+**Přihlášení přes Seznam** (R98). Bez SQL skriptu a bez nového balíčku (`vendor/` se nemění), cron beze změny.
+
+1. **Služba u Seznamu** podle kapitoly *Přihlášení přes Google, Seznam a Facebook* (adresa návratu
+   `https://slevohlidka.cz/prihlaseni/seznam/navrat`).
+2. **`.env` na hostingu:** doplň `SEZNAM_CLIENT_ID` a `SEZNAM_CLIENT_SECRET`. Bez nich se tlačítko neukáže.
+3. **Nahraj `deploy/upload/`** bez `vendor/`, s `public/build/`; nové jsou `app/Domain/Account/Social/SeznamProvider.php`
+   a `public/images/social/seznam.svg`; změnily se `app/Enums/SocialProvider.php`, `app/Providers/AppServiceProvider.php`,
+   `app/Domain/Account/Social/SocialLogin.php`, `app/Providers/FortifyServiceProvider.php`,
+   `app/Http/Controllers/AccountController.php`, `config/services.php`, `lang/cs/app.php` a `resources/legal/privacy.md`.
+4. **Ověř:**
+   - `version.txt`;
+   - na `/prihlaseni` je mezi Googlem a Facebookem „Přihlásit přes Seznam“ s červeným „eskem“ (v tmavém režimu bílým);
+   - přihlášení novým účtem Seznamu vede na *Dokončení registrace* a přijde ověřovací e-mail;
+   - v Mém účtu → Zabezpečení jde Seznam propojit a odpojit.
+5. Zapiš verzi do *Nasazené verze*.
 
 **Každá nová migrace potřebuje SQL skript** `deploy/migrations-<datum>-<popis>.sql`
 (opakovatelný: `CREATE TABLE IF NOT EXISTS`, `ADD COLUMN IF NOT EXISTS`) včetně zápisu do

@@ -40,6 +40,8 @@
     --color-success-text: #1e6b2c;
     --color-danger: #c92a2a;
     --color-danger-soft: #fff0f0;
+    // Tlačítko Přihlásit přes Seznam (R98): manuál Seznamu — červená #CC0000 na světlém podkladu, bílá na tmavém
+    --color-social-seznam: #cc0000;
     --color-warning-soft: #fff4e0;
     --color-warning-text: #9a5b00;
     // Akce, která ještě nezačala (R76) — modrá odliší „brzy“ od slevy (červená) i varování (oranžová)
@@ -384,6 +386,7 @@
         --color-success-text: #8ce99a;
         --color-danger: #ff6b6b;
         --color-danger-soft: #3a1717;
+        --color-social-seznam: #ffffff;
         --color-warning-soft: #3a2a0c;
         --color-warning-text: #fab005;
         --color-info-soft: #12273d;

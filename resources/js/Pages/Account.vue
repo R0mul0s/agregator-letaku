@@ -16,6 +16,7 @@
 import CheckboxField from '@/Components/CheckboxField.vue';
 import IdentityConfirm from '@/Components/IdentityConfirm.vue';
 import PhoneAppSettings from '@/Components/PhoneAppSettings.vue';
+import SocialLogo from '@/Components/SocialLogo.vue';
 import TextField from '@/Components/TextField.vue';
 import UserAvatar from '@/Components/UserAvatar.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
@@ -46,7 +47,7 @@ const props = defineProps({
     appVersion: { type: String, default: null },
     /**
      * Přihlášení přes Google a Facebook (R96) { hasPassword, identityConfirmed, sectionParameter,
-     * providers: [{ provider, logo, linked, linkUrl, confirmUrl, unlinkUrl }] }.
+     * providers: [{ provider, logo, tinted, linked, linkUrl, confirmUrl, unlinkUrl }] }.
      */
     social: { type: Object, required: true },
 });
@@ -533,7 +534,7 @@ async function deleteAccount() {
                             <ul class="social-accounts">
                                 <li v-for="provider in social.providers" :key="provider.provider" class="social-accounts__item">
                                     <span class="social-accounts__name">
-                                        <img :src="provider.logo" alt="" class="social-login__logo" />
+                                        <SocialLogo :provider="provider.provider" :logo="provider.logo" :tinted="provider.tinted" />
                                         {{ t(`auth.social.providers.${provider.provider}`) }}
                                         <span class="tag" :class="{ 'tag--success': provider.linked }">
                                             {{ provider.linked ? t('account.social.linked') : t('account.social.not_linked') }}

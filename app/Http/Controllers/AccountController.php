@@ -145,6 +145,7 @@ class AccountController extends Controller
             'providers' => array_map(fn (SocialProvider $provider): array => [
                 'provider' => $provider->value,
                 'logo' => $provider->logoUrl(),
+                'tinted' => $provider->hasTintedLogo(),
                 'linked' => in_array($provider, $linked, true),
                 'linkUrl' => route('social.link', ['provider' => $provider], absolute: false),
                 'confirmUrl' => route('social.confirm', ['provider' => $provider], absolute: false),

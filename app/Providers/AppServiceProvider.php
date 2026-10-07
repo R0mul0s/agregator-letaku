@@ -12,9 +12,11 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Domain\Account\Social\SeznamProvider;
 use App\Domain\Offers\OfferPages;
 use App\Domain\Push\PushSender;
 use App\Domain\Push\WebPushSender;
+use App\Enums\SocialProvider;
 use App\Models\User;
 use App\Support\RateLimits;
 use Illuminate\Database\Eloquent\Model;
@@ -22,6 +24,8 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
+use Laravel\Socialite\Facades\Socialite;
+use Laravel\Socialite\Two\AbstractProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -37,7 +41,8 @@ class AppServiceProvider extends ServiceProvider
     }
 
     /**
-     * Přísnější Eloquent při vývoji a v testech, jednotný zápis čísel v JSON, adresy z APP_URL.
+     * Přísnější Eloquent při vývoji a v testech, jednotný zápis čísel v JSON, adresy z APP_URL,
+     * oprávnění admina, limity požadavků, síla hesla a ovladač přihlášení přes Seznam.
      */
     public function boot(): void
     {
@@ -66,6 +71,12 @@ class AppServiceProvider extends ServiceProvider
 
         // Síla hesla (R53) — Password::default() v registraci, změně a obnově hesla
         Password::defaults(fn (): Password => $this->passwordRule());
+
+        // Přihlášení přes Seznam (R98) — Socialite ho nezná, ovladač je vlastní
+        Socialite::extend(SocialProvider::Seznam->value, fn (): AbstractProvider => Socialite::buildProvider(
+            SeznamProvider::class,
+            config()->array('services.'.SocialProvider::Seznam->value),
+        ));
     }
 
     /**
