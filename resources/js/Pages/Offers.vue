@@ -12,12 +12,14 @@
     @created 2026-10-02
 -->
 <script setup>
+import ActiveFilters from '@/Components/ActiveFilters.vue';
 import BottomSheet from '@/Components/BottomSheet.vue';
 import ChainLogo from '@/Components/ChainLogo.vue';
 import ChainSelect from '@/Components/ChainSelect.vue';
 import DepartmentIcon from '@/Components/DepartmentIcon.vue';
 import EmptyState from '@/Components/EmptyState.vue';
 import FilterBar from '@/Components/FilterBar.vue';
+import FilterChip from '@/Components/FilterChip.vue';
 import OfferCard from '@/Components/OfferCard.vue';
 import OfferRow from '@/Components/OfferRow.vue';
 import Pagination from '@/Components/Pagination.vue';
@@ -366,97 +368,76 @@ onBeforeUnmount(() => window.clearTimeout(liveTimer));
         <FilterBar :sort-label="sortLabel" :filter-count="activeFilterChips.length" @sort="sortOpen = true" @filters="filtersOpen = true">
             <ViewToggle v-model="compact" />
         </FilterBar>
-        <div v-if="activeFilterChips.length" class="active-filters" role="group" :aria-label="t('search.filters')">
-            <button v-for="chip in activeFilterChips" :key="chip.key" type="button" class="search-chip search-chip--on" @click="chip.action">
-                {{ chip.label }}
-                <svg v-if="chip.removable" class="search-chip__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
-                <span v-if="chip.removable" class="visually-hidden">{{ t('search.remove_filter') }}</span>
-            </button>
-        </div>
+        <ActiveFilters :chips="activeFilterChips" />
         <SortSheet v-model:open="sortOpen" :options="sortOptions" :value="sortValue" @change="changeSort" />
         <BottomSheet v-model:open="filtersOpen" :title="t('sheet.filters')">
             <div class="filter-sheet">
                 <section class="filter-sheet__section">
                     <h3 class="filter-sheet__heading">{{ t('offers.chain') }}</h3>
                     <div class="filter-sheet__options">
-                        <button
+                        <FilterChip
                             v-for="chain in chains"
                             :key="chain.value"
-                            type="button"
-                            class="search-chip"
-                            :class="{ 'search-chip--on': filters.chain.includes(chain.value) }"
-                            :aria-pressed="filters.chain.includes(chain.value) ? 'true' : 'false'"
+                            :on="filters.chain.includes(chain.value)"
                             @click="toggleChain(chain.value)"
                         >
                             <ChainLogo :chain="chain.value" with-name />
-                        </button>
+                        </FilterChip>
                     </div>
                     <p class="filter-sheet__hint">{{ t('sheet.chains_hint') }}</p>
                 </section>
                 <section class="filter-sheet__section">
                     <h3 class="filter-sheet__heading">{{ t('sheet.period') }}</h3>
                     <div class="filter-sheet__options">
-                        <button
+                        <FilterChip
                             v-for="chip in periodChips"
                             :key="chip.key"
-                            type="button"
-                            class="search-chip"
-                            :class="{ 'search-chip--on': filters[chip.key] }"
-                            :aria-pressed="filters[chip.key] ? 'true' : 'false'"
+                            :on="filters[chip.key]"
                             @click="toggleFilter(chip.key)"
                         >
                             {{ chip.label }}
-                        </button>
+                        </FilterChip>
                     </div>
                 </section>
                 <section class="filter-sheet__section">
                     <h3 class="filter-sheet__heading">{{ t('sheet.discount') }}</h3>
                     <div class="filter-sheet__options">
-                        <button
+                        <FilterChip
                             v-for="percent in filterOptions.minDiscounts"
                             :key="percent"
-                            type="button"
-                            class="search-chip"
-                            :class="{ 'search-chip--on': filters[MIN_DISCOUNT] === percent }"
-                            :aria-pressed="filters[MIN_DISCOUNT] === percent ? 'true' : 'false'"
+                            :on="filters[MIN_DISCOUNT] === percent"
                             @click="chooseFilter(MIN_DISCOUNT, percent)"
                         >
                             {{ t('search.min_discount', { percent }) }}
-                        </button>
+                        </FilterChip>
                     </div>
                 </section>
                 <section v-if="filterOptions.departments.length" class="filter-sheet__section">
                     <h3 class="filter-sheet__heading">{{ t('search.department_label') }}</h3>
                     <div class="filter-sheet__options">
-                        <button
+                        <FilterChip
                             v-for="department in filterOptions.departments"
                             :key="department.slug"
-                            type="button"
-                            class="search-chip"
-                            :class="{ 'search-chip--on': filters[DEPARTMENT] === department.slug }"
-                            :aria-pressed="filters[DEPARTMENT] === department.slug ? 'true' : 'false'"
+                            :on="filters[DEPARTMENT] === department.slug"
                             @click="chooseFilter(DEPARTMENT, department.slug)"
                         >
                             <DepartmentIcon :name="department.icon" class="filter-sheet__icon" />
                             {{ department.name }}
-                        </button>
+                        </FilterChip>
                     </div>
                     <p class="filter-sheet__hint">{{ t('sheet.department_hint') }}</p>
                 </section>
                 <section class="filter-sheet__section">
                     <h3 class="filter-sheet__heading">{{ t('sheet.place') }}</h3>
                     <div class="filter-sheet__options">
-                        <button
+                        <FilterChip
                             v-for="chip in placeChips"
                             :key="chip.key"
-                            type="button"
-                            class="search-chip"
-                            :class="{ 'search-chip--on': filters[chip.key] }"
-                            :aria-pressed="filters[chip.key] ? 'true' : 'false'"
+                            :on="filters[chip.key]"
                             @click="toggleFilter(chip.key)"
                         >
                             {{ chip.label }}
-                        </button>
+                        </FilterChip>
                     </div>
                     <p v-if="shoppingPreferences" class="filter-sheet__hint">{{ t('sheet.shopping_preferences_hint') }}</p>
                 </section>
@@ -472,17 +453,14 @@ onBeforeUnmount(() => window.clearTimeout(liveTimer));
         <!-- Štítky filtrů (R71, R101) — široký displej; na telefonu lišta a okna výš -->
         <div class="search-chips search-chips--desktop">
             <div class="search-chips__filters" role="group" :aria-label="t('search.filters')">
-                <button
+                <FilterChip
                     v-for="chip in toggleChips"
                     :key="chip.key"
-                    type="button"
-                    class="search-chip"
-                    :class="{ 'search-chip--on': filters[chip.key] }"
-                    :aria-pressed="filters[chip.key] ? 'true' : 'false'"
+                    :on="filters[chip.key]"
                     @click="toggleFilter(chip.key)"
                 >
                     {{ chip.label }}
-                </button>
+                </FilterChip>
                 <!-- Jen skutečné slevy od procent (R101) — výběr ve tvaru štítku -->
                 <label class="search-chip search-chip--select" :class="{ 'search-chip--on': filters['sleva-od'] }">
                     <span class="visually-hidden">{{ t('search.min_discount_label') }}</span>

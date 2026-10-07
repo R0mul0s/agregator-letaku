@@ -15,11 +15,13 @@
     @created 2026-10-02
 -->
 <script setup>
+import ActiveFilters from '@/Components/ActiveFilters.vue';
 import BottomSheet from '@/Components/BottomSheet.vue';
 import ChainOverview from '@/Components/ChainOverview.vue';
 import ChainSelect from '@/Components/ChainSelect.vue';
 import EmptyState from '@/Components/EmptyState.vue';
 import FilterBar from '@/Components/FilterBar.vue';
+import FilterChip from '@/Components/FilterChip.vue';
 import SortSelect from '@/Components/SortSelect.vue';
 import SortSheet from '@/Components/SortSheet.vue';
 import UpcomingSection from '@/Components/UpcomingSection.vue';
@@ -27,6 +29,7 @@ import ViewToggle from '@/Components/ViewToggle.vue';
 import WaitingSection from '@/Components/WaitingSection.vue';
 import WatchGroup from '@/Components/WatchGroup.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
+import { useExpandedGroups } from '@/lib/expandedGroups';
 import { useTranslations } from '@/lib/i18n';
 import { discountPercent } from '@/lib/offer';
 import { readStored, writeStored } from '@/lib/storage';
@@ -169,7 +172,7 @@ const offerFilterChips = computed(() =>
  */
 function toggleOfferFilter(key) {
     offerFilters[key] = !offerFilters[key];
-    filterCollapsedIds.value = new Set();
+    groups.resetFocus();
 }
 
 /**
@@ -208,34 +211,26 @@ function toggleAllStores() {
     router.get(url, all ? {} : { [parameter]: allValue }, { preserveScroll: true, preserveState: true, replace: true });
 }
 
-/** Rozbalené skupiny (id položek); ve výchozím stavu je vše sbalené. */
-const expandedIds = ref(new Set());
-
-/** Po výběru obchodu jsou skupiny rozbalené; sbalené klepnutím (bez zapamatování). */
-const filterCollapsedIds = ref(new Set());
-
 /**
- * Je skupina rozbalená? Po výběru obchodu nebo štítku ano, dokud ji uživatel nesbalí.
- *
- * @param {number} id
- * @returns {boolean}
+ * Rozbalené skupiny (lib/expandedGroups.js): zapamatované, po výběru obchodu nebo štítku
+ * rozbalené všechny, dokud je uživatel nesbalí.
  */
-function isExpanded(id) {
-    return focused.value ? !filterCollapsedIds.value.has(id) : expandedIds.value.has(id);
-}
-
-const allExpanded = computed(() => visibleItems.value.every((item) => isExpanded(item.id)));
-
-/** Nový výběr obchodu začne se vším rozbaleným. */
-function onChainChange() {
-    filterCollapsedIds.value = new Set();
-}
+const groups = useExpandedGroups({
+    storageKey: EXPANDED_STORAGE_KEY,
+    sectionIds: [UPCOMING_ID, WAITING_ID],
+    focused,
+    visibleIds: computed(() => visibleItems.value.map((item) => item.id)),
+});
+const { isExpanded, allExpanded, setExpanded, toggleAll } = groups;
 
 /** Klíč v localStorage: v obchodě akce jako řádky (výchozí), nebo karty (R62). */
 const ROWS_STORAGE_KEY = 'slevohlidka.home.rows';
 
-/** Po výběru obchodu akce jako kompaktní řádky — v obchodě se míň posouvá (R62). */
-const rowsInStore = ref(true);
+/**
+ * Po výběru obchodu akce jako kompaktní řádky — v obchodě se míň posouvá (R62). Dřív se
+ * ukládalo jako „0“ / „1“, proto se nula bere jako karty.
+ */
+const rowsInStore = ref(![0, false].includes(readStored(ROWS_STORAGE_KEY, true)));
 
 /** Mimo obchod karty, nebo řádky podle volby společné se Všemi akcemi (R82). */
 const compactView = useCompactView();
@@ -253,99 +248,15 @@ const compact = computed({
             return;
         }
         rowsInStore.value = value;
-        try {
-            localStorage.setItem(ROWS_STORAGE_KEY, value ? '1' : '0');
-        } catch {
-            // volba platí jen do zavření stránky
-        }
+        writeStored(ROWS_STORAGE_KEY, value);
     },
 });
 
-/** Uloží rozbalené skupiny; bez přístupu k localStorage (anonymní okno) se stav jen nezapamatuje. */
-function saveExpanded() {
-    try {
-        localStorage.setItem(EXPANDED_STORAGE_KEY, JSON.stringify([...expandedIds.value]));
-    } catch {
-        // stav platí jen do zavření stránky
-    }
-}
-
-/**
- * Rozbalí nebo sbalí jednu skupinu.
- *
- * @param {number} id
- * @param {boolean} value
- */
-function setExpanded(id, value) {
-    if (focused.value) {
-        const collapsed = new Set(filterCollapsedIds.value);
-        if (value) {
-            collapsed.delete(id);
-        } else {
-            collapsed.add(id);
-        }
-        filterCollapsedIds.value = collapsed;
-
-        return;
-    }
-
-    const next = new Set(expandedIds.value);
-    if (value) {
-        next.add(id);
-    } else {
-        next.delete(id);
-    }
-    expandedIds.value = next;
-    saveExpanded();
-}
-
-/**
- * Rozbalí všechny skupiny s akcemi, nebo — když už jsou všechny rozbalené — všechny sbalí.
- * Sekce Brzy a Zatím bez akce zůstanou, jak jsou.
- */
-function toggleAll() {
-    if (focused.value) {
-        filterCollapsedIds.value = allExpanded.value ? new Set(visibleItems.value.map((item) => item.id)) : new Set();
-
-        return;
-    }
-
-    const next = new Set(allExpanded.value ? [] : visibleItems.value.map((item) => item.id));
-    for (const sectionId of [UPCOMING_ID, WAITING_ID]) {
-        if (expandedIds.value.has(sectionId)) {
-            next.add(sectionId);
-        }
-    }
-    expandedIds.value = next;
-    saveExpanded();
-}
-
-/**
- * Rozbalení sekce pod skupinami (Brzy, Zatím bez akce); ve výchozím stavu sbalená, stav si
- * prohlížeč pamatuje. Sekce se v obchodě neukazují, proto vždy mezi zapamatovanými.
- *
- * @param {string} sectionId
- */
-const sectionExpanded = (sectionId) =>
-    computed({
-        get: () => expandedIds.value.has(sectionId),
-        set: (value) => {
-            const next = new Set(expandedIds.value);
-            if (value) {
-                next.add(sectionId);
-            } else {
-                next.delete(sectionId);
-            }
-            expandedIds.value = next;
-            saveExpanded();
-        },
-    });
-
 /** Rozbalená sekce Brzy (R76). */
-const upcomingExpanded = sectionExpanded(UPCOMING_ID);
+const upcomingExpanded = groups.section(UPCOMING_ID);
 
 /** Rozbalená sekce Zatím bez akce (R100). */
-const waitingExpanded = sectionExpanded(WAITING_ID);
+const waitingExpanded = groups.section(WAITING_ID);
 
 /** Řazení akcí ve skupinách (R41) — změna na stránce se hned uloží do účtu (R100). */
 const sort = ref(props.offersPreferences.sort);
@@ -442,12 +353,7 @@ function clearOfferFilters() {
 
 onMounted(async () => {
     writeStored(HERO_SEEN_KEY, true);
-    try {
-        expandedIds.value = new Set(JSON.parse(localStorage.getItem(EXPANDED_STORAGE_KEY) ?? '[]'));
-        rowsInStore.value = localStorage.getItem(ROWS_STORAGE_KEY) !== '0';
-    } catch {
-        expandedIds.value = new Set();
-    }
+    groups.restore();
 
     // Odkaz z Hlídám vede na konkrétní skupinu — rozbalit ji a posunout se k ní
     const match = window.location.hash.match(GROUP_HASH_PATTERN);
@@ -535,7 +441,7 @@ onMounted(async () => {
                     :label="t('home.chain_filter')"
                     :chains="filterChains"
                     :all-label="t('offers.all_chains')"
-                    @change="onChainChange"
+                    @change="groups.resetFocus"
                 />
                 <!-- Podle položek, nebo Podle obchodů — kam jet nakoupit (R102); v obchodě jen položky -->
                 <div v-if="!chainFilter && byChain.length" class="view-toggle watch-groups__view" role="group" :aria-label="t('home.view_label')">
@@ -565,46 +471,29 @@ onMounted(async () => {
                 <FilterBar :sort-label="sortLabel" :filter-count="activeFilterChips.length" @sort="sortOpen = true" @filters="filtersOpen = true">
                     <ViewToggle v-model="compact" />
                 </FilterBar>
-                <div v-if="activeFilterChips.length" class="active-filters" role="group" :aria-label="t('search.filters')">
-                    <button v-for="chip in activeFilterChips" :key="chip.key" type="button" class="search-chip search-chip--on" @click="chip.action">
-                        {{ chip.label }}
-                        <svg class="search-chip__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
-                        <span class="visually-hidden">{{ t('search.remove_filter') }}</span>
-                    </button>
-                </div>
+                <ActiveFilters :chips="activeFilterChips" />
                 <SortSheet v-model:open="sortOpen" :options="offersPreferences.sortOptions" :value="sort" @change="(value) => ((sort = value), saveSort(value))" />
                 <BottomSheet v-model:open="filtersOpen" :title="t('sheet.filters')">
                     <div class="filter-sheet">
                         <section class="filter-sheet__section">
                             <h3 class="filter-sheet__heading">{{ t('home.filter_offers') }}</h3>
                             <div class="filter-sheet__options">
-                                <button
+                                <FilterChip
                                     v-for="chip in offerFilterChips"
                                     :key="chip.key"
-                                    type="button"
-                                    class="search-chip"
-                                    :class="{ 'search-chip--on': offerFilters[chip.key] }"
-                                    :aria-pressed="offerFilters[chip.key] ? 'true' : 'false'"
+                                    :on="offerFilters[chip.key]"
+                                    :count="offerFilterCounts[chip.key]"
                                     @click="toggleOfferFilter(chip.key)"
                                 >
                                     {{ chip.label }}
-                                    <span class="search-chip__count">{{ offerFilterCounts[chip.key] }}</span>
-                                </button>
+                                </FilterChip>
                             </div>
                             <p v-if="!offerFilterChips.length" class="filter-sheet__hint">{{ t('home.filter_none') }}</p>
                         </section>
                         <section v-if="stores" class="filter-sheet__section">
                             <h3 class="filter-sheet__heading">{{ t('home.filter_stores') }}</h3>
                             <div class="filter-sheet__options">
-                                <button
-                                    type="button"
-                                    class="search-chip"
-                                    :class="{ 'search-chip--on': !stores.all }"
-                                    :aria-pressed="stores.all ? 'false' : 'true'"
-                                    @click="toggleAllStores"
-                                >
-                                    {{ t('home.my_stores', { count: stores.count }) }}
-                                </button>
+                                <FilterChip :on="!stores.all" @click="toggleAllStores">{{ t('home.my_stores', { count: stores.count }) }}</FilterChip>
                             </div>
                             <p class="filter-sheet__hint">{{ t('home.my_stores_hint') }}</p>
                         </section>
@@ -617,28 +506,16 @@ onMounted(async () => {
                 <!-- Štítky filtrů akcí (R101) — široký displej; jen ty, které by něco ukázaly -->
                 <div v-if="offerFilterChips.length || stores" class="search-chips search-chips--desktop watch-groups__chips">
                     <div class="search-chips__filters" role="group" :aria-label="t('search.filters')">
-                        <button
+                        <FilterChip
                             v-for="chip in offerFilterChips"
                             :key="chip.key"
-                            type="button"
-                            class="search-chip"
-                            :class="{ 'search-chip--on': offerFilters[chip.key] }"
-                            :aria-pressed="offerFilters[chip.key] ? 'true' : 'false'"
+                            :on="offerFilters[chip.key]"
+                            :count="offerFilterCounts[chip.key]"
                             @click="toggleOfferFilter(chip.key)"
                         >
                             {{ chip.label }}
-                            <span class="search-chip__count">{{ offerFilterCounts[chip.key] }}</span>
-                        </button>
-                        <button
-                            v-if="stores"
-                            type="button"
-                            class="search-chip"
-                            :class="{ 'search-chip--on': !stores.all }"
-                            :aria-pressed="stores.all ? 'false' : 'true'"
-                            @click="toggleAllStores"
-                        >
-                            {{ t('home.my_stores', { count: stores.count }) }}
-                        </button>
+                        </FilterChip>
+                        <FilterChip v-if="stores" :on="!stores.all" @click="toggleAllStores">{{ t('home.my_stores', { count: stores.count }) }}</FilterChip>
                     </div>
                 </div>
                 <WatchGroup
