@@ -154,7 +154,7 @@ Eloquent model                 ← perzistence
 - `Model::preventLazyLoading()` pro `local` a `testing`.
 - Žádné raw queries kromě odůvodněných agregací, a tam vždy parametrizovaně.
 - Dotazy na data uživatele vždy přes vazbu (`$user->watchItems()`), nikdy podle ID z requestu bez kontroly vlastníka (Policy).
-- **Sloupce `date` (`valid_from`, `valid_to`) porovnávat přes `where()` s `Y-m-d`, nikdy `whereDate()`** — ten obalí sloupec funkcí `date()` a databáze nepoužije index ([R106](ROZHODNUTI.md)).
+- **Sloupce `date` (`valid_from`, `valid_to`) porovnávat přes `where()` s `Y-m-d`, nikdy `whereDate()`** — sloupec už je datum a `date()` kolem něj je zbytečné. Na výkon to v MariaDB 11.4 vliv nemá (index použije i s funkcí, ověřeno EXPLAIN v R54 a R106), jde o jednotný zápis ([R106](ROZHODNUTI.md)).
 - **Výpisy a párování akcí načítají akce přes `->withoutRaw()`** (i v `with(['offer' => …])`) — surová odpověď obchodu má u Billy a Globusu ~2 kB na řádek a mimo import se nepoužívá ([R106](ROZHODNUTI.md)).
 
 ### Komentáře
