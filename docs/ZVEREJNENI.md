@@ -96,7 +96,7 @@ Značení: **[R]** = rozhodne nebo zařídí Roman, **[K]** = kód.
 
 ## 4. Až přijde monetizace
 
-- **Cookie lišta a Google Analytics jsou hotové** (R52). **Reklamní a affiliate sítě s cookies**
+- **Cookie lišta, Google Analytics a Microsoft Clarity jsou hotové** (R52, R103). **Reklamní a affiliate sítě s cookies**
   se smí načíst jen za souhlasem v kategorii Marketingové (`consentState.marketing`),
   s úpravou CSP, zásad a zvýšením `letaky.cookie_consent.version`.
 - **Úvodní stránka slibuje „Zdarma a bez reklam“ a registrace „Žádné reklamy“** (`lang/cs/app.php`,

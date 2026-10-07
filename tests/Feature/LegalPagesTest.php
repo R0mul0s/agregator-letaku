@@ -90,12 +90,16 @@ it('vypršelou relaci a limit požadavků u Inertie vrátí zpět s toastem, ost
     expect(ErrorToast::respond(response('', 419), Request::create('/ucet', 'PUT'))->getStatusCode())->toBe(419);
 });
 
-it('sdílí nastavení souhlasu s cookies; ID měření Google Analytics jen na produkci (R52)', function (): void {
-    config(['letaky.cookie_consent.google_measurement_id' => 'G-TEST123']);
+it('sdílí nastavení souhlasu s cookies; ID Google Analytics a Clarity jen na produkci (R52, R103)', function (): void {
+    config([
+        'letaky.cookie_consent.google_measurement_id' => 'G-TEST123',
+        'letaky.cookie_consent.clarity_project_id' => 'clarity123',
+    ]);
 
     $this->get(route('offers'))
         ->assertInertia(fn (Assert $page) => $page
             ->where('cookieConsent.measurementId', null)
+            ->where('cookieConsent.clarityProjectId', null)
             ->where('cookieConsent.version', config('letaky.cookie_consent.version'))
             // Odkaz z cookie lišty vede rovnou na kapitolu o cookies (R69)
             ->where('cookieConsent.privacyUrl', '/ochrana-udaju#'.LegalDocuments::COOKIES_SECTION)
@@ -103,7 +107,9 @@ it('sdílí nastavení souhlasu s cookies; ID měření Google Analytics jen na 
 
     $this->app['env'] = 'production';
     $this->get(route('offers'))
-        ->assertInertia(fn (Assert $page) => $page->where('cookieConsent.measurementId', 'G-TEST123'));
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('cookieConsent.measurementId', 'G-TEST123')
+            ->where('cookieConsent.clarityProjectId', 'clarity123'));
 });
 
 it('z kapitol dokumentu sestaví obsah a nadpisům dá id pro odkazy', function (): void {

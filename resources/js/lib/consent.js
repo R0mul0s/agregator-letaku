@@ -1,5 +1,5 @@
 /**
- * Souhlas s cookies (R52) a Google Analytics 4 podle něj.
+ * Souhlas s cookies (R52) a podle něj Google Analytics 4 a Microsoft Clarity (R103).
  *
  * Volba se ukládá do cookie `slevohlidka-consent` (verze, kategorie, čas) na dobu
  * z konfigurace (letaky.cookie_consent). Bez platné volby se ukáže lišta (CookieConsent.vue).
@@ -10,6 +10,10 @@
  * Zobrazení stránek posílá aplikace sama po každém přechodu Inertie (R69), s adresou bez
  * tokenů: odkaz na obnovu hesla nese token a e-mail, odkaz na odhlášení z e-mailů podpis —
  * do Googlu nesmí. Měření změn historie v GA4 (rozšířené měření) proto musí být vypnuté.
+ * Clarity (nahrávky a heatmapy, R103) se načte stejně až po analytickém souhlasu a dostane ho
+ * přes `consentv2`. Adresu si měří sama i při přechodech, proto se na stránce s tokenem v adrese
+ * vůbec nespustí — ty se otevírají jen z e-mailu, tedy načtením celé stránky. Po odvolání
+ * souhlasu se stránka načte znovu, aby Clarity nenahrávala dál v režimu bez cookies.
  *
  * @author Roman Hlaváček
  * @created 2026-10-03
@@ -20,12 +24,14 @@ import { reactive } from 'vue';
 /** Název cookie se souhlasem — popsaný v zásadách (resources/legal/privacy.md). */
 const CONSENT_COOKIE = 'slevohlidka-consent';
 
-/** Cookies Google Analytics (_ga, _ga_<ID>) — po odvolání souhlasu se smažou. */
-const ANALYTICS_COOKIE_PREFIX = '_ga';
+/** Cookies Google Analytics (_ga, _ga_<ID>) a Clarity (_clck, _clsk) — po odvolání souhlasu se smažou. */
+const ANALYTICS_COOKIE_PREFIXES = ['_ga', '_clck', '_clsk'];
 
 const SECONDS_PER_DAY = 86400;
 
 const GTAG_URL = 'https://www.googletagmanager.com/gtag/js';
+
+const CLARITY_URL = 'https://www.clarity.ms/tag/';
 
 /** Stav souhlasu pro lištu a nastavení. */
 export const consentState = reactive({
@@ -38,9 +44,11 @@ export const consentState = reactive({
 });
 
 /** Konfigurace ze serveru (sdílený prop cookieConsent). */
-let config = { measurementId: null, version: 1, maxAgeDays: 180, redactedPaths: [] };
+let config = { measurementId: null, clarityProjectId: null, version: 1, maxAgeDays: 180, redactedPaths: [] };
 
 let analyticsLoaded = false;
+
+let clarityLoaded = false;
 
 /** Adresa naposledy změřené stránky — počáteční načtení se nezměří dvakrát. */
 let lastMeasuredLocation = null;
@@ -105,14 +113,14 @@ function storeChoice({ analytics, marketing }) {
 }
 
 /**
- * Smaže cookies Google Analytics — GA je zakládá na nejvyšší možné doméně
+ * Smaže cookies Google Analytics a Clarity — GA je zakládá na nejvyšší možné doméně
  * (slevohlidka.rhsoft.cz → .rhsoft.cz), proto se maže na všech úrovních adresy.
  */
 function deleteAnalyticsCookies() {
     const names = document.cookie
         .split('; ')
         .map((part) => part.split('=')[0])
-        .filter((name) => name.startsWith(ANALYTICS_COOKIE_PREFIX));
+        .filter((name) => ANALYTICS_COOKIE_PREFIXES.some((prefix) => name.startsWith(prefix)));
     const labels = window.location.hostname.split('.');
     const domains = [''];
     for (let i = 0; i < labels.length - 1; i++) {
@@ -147,17 +155,71 @@ function loadAnalytics() {
 }
 
 /**
- * Adresa aktuální stránky pro měření: u stránek s tokenem v adrese (obnova hesla, ověření
- * e-mailu, odhlášení z e-mailů — letaky.cookie_consent.redacted_paths) jen jejich začátek
+ * Začátek cesty stránky s tokenem nebo e-mailem v adrese (obnova hesla, ověření e-mailu,
+ * odhlášení z e-mailů — letaky.cookie_consent.redacted_paths), na které cesta je; jinak null.
+ *
+ * @param {string} pathname
+ * @returns {string|null}
+ */
+function redactedPrefix(pathname) {
+    return config.redactedPaths.find((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)) ?? null;
+}
+
+/**
+ * Adresa aktuální stránky pro měření: u stránek s tokenem v adrese jen jejich začátek
  * bez zbytku cesty a parametrů.
  *
  * @returns {string}
  */
 function pageLocation() {
     const url = new URL(window.location.href);
-    const redacted = config.redactedPaths.find((prefix) => url.pathname === prefix || url.pathname.startsWith(`${prefix}/`));
+    const redacted = redactedPrefix(url.pathname);
 
     return redacted ? `${url.origin}${redacted}` : url.href;
+}
+
+/**
+ * Stav souhlasu pro Clarity (consentv2) podle volby uživatele — stejný jako Consent Mode Googlu.
+ *
+ * @param {{ analytics: boolean, marketing: boolean }} choice
+ * @returns {{ ad_Storage: 'granted'|'denied', analytics_Storage: 'granted'|'denied' }}
+ */
+function clarityConsentFor(choice) {
+    const mode = consentModeFor(choice);
+
+    return { ad_Storage: mode.ad_storage, analytics_Storage: mode.analytics_storage };
+}
+
+/**
+ * Příkaz pro Clarity — do načtení knihovny se ukládá do fronty, kterou knihovna pak zpracuje.
+ *
+ * @param {...unknown} args
+ */
+function clarity(...args) {
+    window.clarity =
+        window.clarity ||
+        function queue() {
+            (window.clarity.q = window.clarity.q || []).push(arguments);
+        };
+    window.clarity(...args);
+}
+
+/**
+ * Načte Clarity a předá jí souhlas (jen jednou, jen s ID projektu — mimo produkci ho server
+ * nepošle). Na stránce s tokenem v adrese se nespustí, zkusí to až další přechod.
+ */
+function loadClarity() {
+    if (clarityLoaded || !config.clarityProjectId || redactedPrefix(window.location.pathname)) {
+        return;
+    }
+    clarityLoaded = true;
+
+    clarity('consentv2', clarityConsentFor(consentState));
+
+    const script = document.createElement('script');
+    script.async = true;
+    script.src = `${CLARITY_URL}${encodeURIComponent(config.clarityProjectId)}`;
+    document.head.appendChild(script);
 }
 
 /**
@@ -185,23 +247,42 @@ function applyChoice(choice) {
     gtag('consent', 'update', consentModeFor(choice));
 
     if (choice.analytics) {
+        if (clarityLoaded) {
+            clarity('consentv2', clarityConsentFor(choice));
+        }
         loadAnalytics();
-    } else {
-        deleteAnalyticsCookies();
+        loadClarity();
+
+        return;
+    }
+
+    deleteAnalyticsCookies();
+    if (clarityLoaded) {
+        // Bez souhlasu by Clarity nahrávala dál v režimu bez cookies — smazat a zastavit načtením stránky
+        clarity('consent', false);
+        window.location.reload();
     }
 }
 
 /**
  * Spustí se při startu aplikace: výchozí Consent Mode (vše zakázané) a uložená volba.
  *
- * @param {{ measurementId: string|null, version: number, maxAgeDays: number, redactedPaths: string[] } | undefined} serverConfig
+ * @param {{ measurementId: string|null, clarityProjectId: string|null, version: number, maxAgeDays: number, redactedPaths: string[] } | undefined} serverConfig
  */
 export function initConsent(serverConfig) {
     config = { ...config, ...serverConfig };
     gtag('consent', 'default', consentModeFor({ analytics: false, marketing: false }));
 
     // Přechod mezi stránkami SPA — titulek nastaví <Head> až po vykreslení nové stránky
-    router.on('navigate', () => window.setTimeout(measurePageView));
+    router.on('navigate', () =>
+        window.setTimeout(() => {
+            measurePageView();
+            // Start na stránce s tokenem v adrese načtení Clarity odložil
+            if (consentState.analytics) {
+                loadClarity();
+            }
+        }),
+    );
 
     const stored = readStoredChoice();
     if (stored) {

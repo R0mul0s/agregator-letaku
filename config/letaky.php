@@ -78,17 +78,21 @@ return [
     ],
 
     /*
-    | Souhlas s cookies a Google Analytics 4 (R52). GA se načte jen na produkci a jen po souhlasu
-    | s analytickými cookies (resources/js/lib/consent.js); jiné ID nebo prázdné (vypnuto)
-    | jde nastavit v .env. Verze souhlasu: při změně kategorií nebo nástrojů zvýšit — všichni
-    | se pak vyberou znovu. Platnost volby 6 měsíců, pak se lišta ukáže znovu (doporučení ÚOOÚ).
+    | Souhlas s cookies, Google Analytics 4 (R52) a Microsoft Clarity (R103). Oba nástroje se načtou
+    | jen na produkci a jen po souhlasu s analytickými cookies (resources/js/lib/consent.js); jiné ID
+    | nebo prázdné (vypnuto) jde nastavit v .env. Verze souhlasu: při změně kategorií nebo nástrojů
+    | zvýšit — všichni se pak vyberou znovu (2 = přibyla Clarity). Platnost volby 6 měsíců, pak se
+    | lišta ukáže znovu (doporučení ÚOOÚ).
     */
     'cookie_consent' => [
         'google_measurement_id' => env('LETAKY_GA_MEASUREMENT_ID', 'G-BM3CZ7M4PD'),
-        'version' => 1,
+        // Microsoft Clarity — nahrávky a heatmapy (R103), stejně jen na produkci a po souhlasu
+        'clarity_project_id' => env('LETAKY_CLARITY_PROJECT_ID', 'ytzznafiw5'),
+        'version' => 2,
         'max_age_days' => 180,
         // Stránky s tokenem nebo e-mailem v adrese (R69): do GA jde jen tento začátek cesty,
-        // bez zbytku a parametrů — obnova hesla, ověření e-mailu, odhlášení z e-mailů
+        // bez zbytku a parametrů — obnova hesla, ověření e-mailu, odhlášení z e-mailů;
+        // Clarity se na nich vůbec nespustí (R103)
         'redacted_paths' => ['/nove-heslo', '/overeni-emailu', '/odhlaseni'],
     ],
 

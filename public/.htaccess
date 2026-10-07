@@ -83,8 +83,10 @@ Options -Indexes
     # Písmo je přibalené (build), API obchodů volá jen server.
     # Google Analytics 4 (R52, jen po souhlasu s cookies): knihovna z googletagmanager.com,
     # měření na google-analytics.com (region1.… apod., proto *.).
+    # Microsoft Clarity (R103, stejně jen po souhlasu): knihovna z www.clarity.ms a scripts.clarity.ms,
+    # data na [a-z].clarity.ms a c.bing.com (výčet domén z dokumentace Clarity k CSP).
     # Service worker a manifest aplikace v telefonu (R66) jen vlastní (worker-src, manifest-src).
-    Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'sha256-oAUPszyolVGQLG1eBAeRpxCy02izZwENBGtPHAcI5hg=' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'"
+    Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'sha256-oAUPszyolVGQLG1eBAeRpxCy02izZwENBGtPHAcI5hg=' https://www.googletagmanager.com https://*.clarity.ms; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://*.clarity.ms https://c.bing.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'"
 
     # HSTS jen na HTTPS odpovědi; max-age = 1 rok.
     <If "req('X-Forwarded-Proto') == 'https'">

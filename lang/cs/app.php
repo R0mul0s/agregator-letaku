@@ -1165,7 +1165,7 @@ return [
         // Souhlas s cookies (R52, CookieConsent.vue) — odmítnout stejně snadno jako přijmout
         'cookies' => [
             'title' => 'Dáte si cookies?',
-            'intro' => 'Bez nezbytných cookies by web nefungoval. S vaším souhlasem použijeme i analytické (Google Analytics), abychom věděli, co na webu používáte, a marketingové pro měření reklamy. Volbu můžete kdykoli změnit v patičce.',
+            'intro' => 'Bez nezbytných cookies by web nefungoval. S vaším souhlasem použijeme i analytické (Google Analytics a Microsoft Clarity), abychom věděli, co na webu používáte a kde se v něm ztrácíte, a marketingové pro měření reklamy. Volbu můžete kdykoli změnit v patičce.',
             'more' => 'Více o cookies',
             'settings' => 'Nastavení',
             'accept_all' => 'Přijmout vše',
@@ -1177,7 +1177,7 @@ return [
             'necessary_title' => 'Nezbytné',
             'necessary_text' => 'Přihlášení, ochrana formulářů, vaše volba cookies a vzhled webu. Bez nich web nefunguje.',
             'analytics_title' => 'Analytické',
-            'analytics_text' => 'Google Analytics — statistiky návštěvnosti (které stránky se čtou, z jakého zařízení), podle kterých Slevohlídku vylepšujeme.',
+            'analytics_text' => 'Google Analytics — statistiky návštěvnosti (které stránky se čtou, z jakého zařízení). Microsoft Clarity — záznam, kam na stránce klepete a jak se posouváte, bez toho, co píšete do polí. Podle obojího Slevohlídku vylepšujeme.',
             'marketing_title' => 'Marketingové',
             'marketing_text' => 'Dovolí Googlu použít data z návštěvy pro měření a cílení reklamy. Reklamu zatím nezobrazujeme.',
         ],

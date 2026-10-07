@@ -134,13 +134,21 @@ Analytics vůbec nenačte a na Google se nic neposílá. U stránek, jejichž ad
 váš e-mail nebo bezpečnostní kód (odkaz pro obnovu hesla, ověření e-mailu, odhlášení
 z e-mailů), posíláme jen začátek adresy bez těchto údajů.
 
+Se stejným souhlasem používáme i **Microsoft Clarity**: zaznamená, jak se stránkou
+pracujete (pohyb a klepnutí, posouvání, rozvržení stránky), a z toho vznikají záznamy
+návštěv a teplotní mapy, podle kterých hledáme, co je na webu nepřehledné. Texty stránek
+i vše, co píšete do polí, se v záznamu zakryjí, takže v něm není váš e-mail, jméno ani
+hledaná slova. Clarity dostane také typ zařízení a prohlížeče, přibližné místo podle IP
+adresy a náhodný identifikátor prohlížeče v cookies. Na stránkách, jejichž adresa obsahuje
+váš e-mail nebo bezpečnostní kód, se Clarity nespustí.
+
 Pokud povolíte i marketingové cookies, smí Google data z návštěvy použít pro měření
 a cílení reklamy (Google signály). Reklamu zatím nezobrazujeme.
 
 - Právní základ je váš souhlas (čl. 6 odst. 1 písm. a GDPR, § 89 odst. 3 zákona
   č. 127/2005 Sb.).
 - Souhlas změníte nebo odvoláte kdykoli odkazem **Nastavení cookies** v patičce webu.
-  Po odvolání se cookies Google Analytics smažou.
+  Po odvolání se cookies Google Analytics a Clarity smažou a měření se zastaví.
 
 Údaje nepoužíváme k profilování ani automatizovanému rozhodování.
 
@@ -158,6 +166,7 @@ a cílení reklamy (Google signály). Reklamu zatím nezobrazujeme.
 | záznamy o chybách | 14 dní |
 | volba cookies | 6 měsíců, pak se vás zeptáme znovu |
 | data Google Analytics | 14 měsíců (nastavení uchování v Google Analytics) |
+| záznamy návštěv v Microsoft Clarity | 30 dní; teplotní mapy a souhrny 13 měsíců |
 | e-mailová a telefonická komunikace | po dobu vyřízení, potom nejdéle 3 roky kvůli případným nárokům; žádosti podle GDPR 3 roky od vyřízení |
 | zálohy databáze | nejdéle 6 měsíců, potom se mažou |
 
@@ -182,6 +191,10 @@ V zálohách údaje zůstanou nejdéle do smazání zálohy.
   povolíte analytické nebo marketingové cookies: měření návštěvnosti Google Analytics.
   Google může údaje předávat do USA; předání se opírá o rámec EU–USA pro ochranu
   osobních údajů (Data Privacy Framework), ke kterému se Google LLC přihlásila.
+- **Microsoft Ireland Operations Limited** (One Microsoft Place, South County Business
+  Park, Leopardstown, Dublin 18, Irsko) — jen pokud povolíte analytické cookies: záznamy
+  návštěv a teplotní mapy Microsoft Clarity. Microsoft může údaje předávat do USA v rámci
+  Data Privacy Framework, ke kterému se Microsoft Corporation přihlásila.
 - **Google Ireland Limited** a **Meta Platforms Ireland Limited** (Merrion Road, Dublin 4,
   Irsko) — jen pokud se přes Google nebo Facebook přihlašujete: přihlášení proběhne na
   jejich stránce a dozvědí se, že se přihlašujete do Slevohlídky. Jsou to samostatní
@@ -191,7 +204,7 @@ V zálohách údaje zůstanou nejdéle do smazání zálohy.
   přihlašujete: přihlášení proběhne na jeho stránce a dozví se, že se přihlašujete do
   Slevohlídky. Je samostatným správcem, zpracování na jeho straně se řídí jeho zásadami.
 
-Údaje neprodáváme ani nepředáváme za úplatu. Kromě Google Analytics (se souhlasem)
+Údaje neprodáváme ani nepředáváme za úplatu. Kromě Google Analytics a Microsoft Clarity (se souhlasem)
 a push služby vašeho prohlížeče (jen se zapnutými upozorněními v telefonu) je nepředáváme
 mimo EU. Orgánům veřejné moci je poskytneme jen tehdy, když to ukládá zákon.
 
@@ -224,12 +237,15 @@ snadno jako přijmout.
 | `slevohlidka-static-…` | úložiště aplikace (Cache Storage) | soubory webu, aby se aplikace v telefonu načetla rychle a bez signálu | do další verze webu |
 | `slevohlidka-pages` | úložiště aplikace (Cache Storage) | poslední verze Mých slev, nákupního seznamu a Hlídám pro použití bez signálu | do odhlášení |
 
-**Analytické (se souhlasem)** — Google Analytics 4
+**Analytické (se souhlasem)** — Google Analytics 4 a Microsoft Clarity
 
 | Název | Typ | K čemu slouží | Platnost |
 |---|---|---|---|
 | `_ga` | cookie | rozlišení návštěvníků (náhodný identifikátor) | 2 roky |
 | `_ga_<ID>` | cookie | udržení stavu návštěvy | 2 roky |
+| `_clck` | cookie | Clarity: rozlišení návštěvníků (náhodný identifikátor) | 1 rok |
+| `_clsk` | cookie | Clarity: spojení stránek jedné návštěvy do jednoho záznamu | 1 den |
+| `CLID`, `MUID`, `ANONCHK`, `MR`, `SM` | cookie Microsoftu (na doménách clarity.ms a bing.com) | Clarity: rozlišení prohlížeče napříč weby s Clarity; řídí se zásadami Microsoftu | až 1 rok |
 
 **Marketingové (se souhlasem)** — vlastní cookies nezakládají; Googlu dovolí použít data
 z Google Analytics pro měření a cílení reklamy.

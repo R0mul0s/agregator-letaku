@@ -150,9 +150,10 @@ class HandleInertiaRequests extends Middleware
                 'termsUrl' => route('legal.terms', absolute: false),
                 'privacyUrl' => route('legal.privacy', absolute: false),
             ],
-            // Souhlas s cookies a Google Analytics (R52) — měření jen na produkci, jinde bez ID
+            // Souhlas s cookies, Google Analytics (R52) a Clarity (R103) — měření jen na produkci, jinde bez ID
             'cookieConsent' => fn (): array => [
                 'measurementId' => app()->isProduction() ? config('letaky.cookie_consent.google_measurement_id') : null,
+                'clarityProjectId' => app()->isProduction() ? config('letaky.cookie_consent.clarity_project_id') : null,
                 'version' => config()->integer('letaky.cookie_consent.version'),
                 'maxAgeDays' => config()->integer('letaky.cookie_consent.max_age_days'),
                 'redactedPaths' => config('letaky.cookie_consent.redacted_paths'),
