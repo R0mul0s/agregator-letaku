@@ -193,6 +193,8 @@
     --watch-tile-min-width: 15rem;
     // Nákupní seznam (R61): řádek a zaškrtávátko dost velké pro palec v obchodě
     --shopping-row-min-height: 3rem;
+    // Text akce na více kusů místo ceny v řádku akce — šířka, ve které se zalomí
+    --offer-row-text-max-width: 9rem;
     --shopping-check-target: 2.75rem;
     // Dlaždice oddělení katalogu v Hlídám (R47)
     --department-tile-min-width: 14rem;

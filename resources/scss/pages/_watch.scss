@@ -684,6 +684,9 @@
 // Moje slevy „Podle obchodů“ (R102): karta za obchod, nahoře logo a kolik položek je tam nejlevněji
 .chain-overview {
     display: grid;
+    // Sloupec smí být užší než obsah — řádky akcí (mřížka s 1fr) by jinak kartu roztáhly podle
+    // nejdelšího názvu bez zalomení a stránka by na telefonu ujížděla do strany
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--space-3);
 
     &__header {

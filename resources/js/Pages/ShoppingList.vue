@@ -137,13 +137,23 @@ async function clearChecked(url) {
 }
 
 /**
+ * Je místo ceny text akce na více kusů? Zalamuje se v omezené šířce (R102).
+ *
+ * @param {object} item
+ * @returns {boolean}
+ */
+function isPromotionText(item) {
+    return item.offer.offerType === 'multibuy' && Boolean(item.offer.promotionText);
+}
+
+/**
  * Cena položky: u akce na více kusů text akce („3 za cenu 2“), jinak cena, kterou uživatel zaplatí.
  *
  * @param {object} item
  * @returns {string}
  */
 function priceLabel(item) {
-    if (item.offer.offerType === 'multibuy' && item.offer.promotionText) {
+    if (isPromotionText(item)) {
         return item.offer.promotionText;
     }
 
@@ -268,7 +278,7 @@ async function share() {
                                 <span v-else>{{ t('shopping.valid_to', { date: formatDate(item.offer.validTo, locale) }) }}</span>
                             </p>
                         </div>
-                        <span class="shopping-item__price">{{ priceLabel(item) }}</span>
+                        <span class="shopping-item__price" :class="{ 'shopping-item__price--text': isPromotionText(item) }">{{ priceLabel(item) }}</span>
                         <button
                             type="button"
                             class="icon-button icon-button--danger"

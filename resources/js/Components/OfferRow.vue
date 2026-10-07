@@ -43,9 +43,12 @@ const withoutUserPrice = computed(() => props.offer.userPrice === undefined);
 /** Akce jen s kartou bez ceny uživatele — hlavní cena je cena s kartou jako na kartě akce. */
 const loyaltyOnly = computed(() => withoutUserPrice.value && props.offer.offerType === 'loyalty_only');
 
+/** Místo ceny text akce na více kusů („3 za cenu 2“) — zalamuje se v omezené šířce. */
+const isPromotionText = computed(() => props.offer.offerType === 'multibuy' && Boolean(props.offer.promotionText));
+
 /** Cena: u akce na více kusů text akce („3 za cenu 2“), jinak cena, kterou uživatel zaplatí. */
 const price = computed(() => {
-    if (props.offer.offerType === 'multibuy' && props.offer.promotionText) {
+    if (isPromotionText.value) {
         return props.offer.promotionText;
     }
     if (loyaltyOnly.value) {
@@ -103,7 +106,8 @@ const unitPrice = computed(() => {
             </p>
         </div>
         <div class="offer-row__prices">
-            <span class="offer-row__price">{{ price }}</span>
+            <!-- Text akce na více kusů se zalomí v omezené šířce, jinak by roztáhl řádek přes displej -->
+            <span class="offer-row__price" :class="{ 'offer-row__price--text': isPromotionText }">{{ price }}</span>
             <span v-if="discount" class="offer-row__discount">−{{ discount }} %</span>
         </div>
         <ShoppingToggle v-if="!offer.ended" :offer-id="offer.id" compact />

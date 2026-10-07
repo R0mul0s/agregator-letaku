@@ -91,6 +91,14 @@
         color: var(--color-price);
         font-weight: 900;
         white-space: nowrap;
+
+        // Text akce na více kusů — zalomí se jako v řádku akce (R102)
+        &--text {
+            max-width: var(--offer-row-text-max-width);
+            font-size: var(--font-size-sm);
+            text-align: right;
+            white-space: normal;
+        }
     }
 
     // Koupené: přeškrtnuté a tlumené, v obchodě je na konci
@@ -168,6 +176,15 @@
         color: var(--color-price);
         font-weight: 900;
         white-space: nowrap;
+
+        // Text akce na více kusů („3 za cenu 2 Clubcard cena - …“) — dlouhý by bez zalomení
+        // roztáhl řádek i stránku přes displej
+        &--text {
+            max-width: var(--offer-row-text-max-width);
+            font-size: var(--font-size-sm);
+            text-align: right;
+            white-space: normal;
+        }
     }
 
     &__discount {
