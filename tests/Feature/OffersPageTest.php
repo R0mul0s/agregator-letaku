@@ -15,12 +15,14 @@ use App\Enums\LoyaltyProgram;
 use App\Enums\MatchStatus;
 use App\Enums\OfferType;
 use App\Enums\PackageUnit;
+use App\Http\Middleware\HandleInertiaRequests;
 use App\Models\Category;
 use App\Models\FollowedChain;
 use App\Models\Offer;
 use App\Models\OfferProduct;
 use App\Models\Product;
 use App\Models\User;
+use App\Support\Pagination\PaginationLinks;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Cache;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -206,6 +208,35 @@ it('„Načíst další“ načte celý rozsah stránek z adresy a označí ho (
                 ['number' => 4, 'url' => '/akce?strana=4', 'current' => false],
                 ['number' => 5, 'url' => '/akce?strana=5', 'current' => false],
             ]));
+});
+
+it('„Načíst další“ pošle jen novou stránku a Inertia ji připojí (R106)', function (): void {
+    config(['letaky.offers.per_page' => 2]);
+    Offer::factory()->count(5)->create();
+    $partial = [
+        'X-Inertia' => 'true',
+        'X-Inertia-Version' => (string) app(HandleInertiaRequests::class)->version(request()),
+        'X-Inertia-Partial-Component' => 'Offers',
+        'X-Inertia-Partial-Data' => 'offers,pagination',
+    ];
+
+    $fullIds = [];
+    $this->get('/akce?od=1&strana=2')->assertInertia(function (Assert $page) use (&$fullIds): void {
+        $page->where('pagination.append', ['only' => ['offers', 'pagination'], 'headers' => [PaginationLinks::LOAD_MORE_HEADER => '1']]);
+        $fullIds = array_column($page->toArray()['props']['offers']['data'], 'id');
+    });
+
+    $response = $this->withHeaders([...$partial, PaginationLinks::LOAD_MORE_HEADER => '1'])->get('/akce?od=1&strana=2')->assertOk();
+    expect(array_column($response->json('props.offers.data'), 'id'))->toBe(array_slice($fullIds, 2))
+        ->and($response->json('mergeProps'))->toBe(['offers.data'])
+        ->and($response->json('matchPropsOn'))->toBe(['offers.data.id'])
+        ->and($response->json('props.pagination.shownTo'))->toBe(4)
+        ->and($response->json('props'))->not->toHaveKey('filterOptions');
+
+    // Jiné částečné načtení (bez hlavičky) dostane celý rozsah bez slučování
+    $response = $this->withHeaders([...$partial, PaginationLinks::LOAD_MORE_HEADER => null])->get('/akce?od=1&strana=2')->assertOk();
+    expect($response->json('props.offers.data'))->toHaveCount(4)
+        ->and($response->json('mergeProps'))->toBeNull();
 });
 
 it('stránku za koncem výpisu zkrátí na poslední a rozsah omezí stropem (R43)', function (): void {

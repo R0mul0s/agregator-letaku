@@ -623,6 +623,8 @@ return [
             'stores_dialog_count' => ':chain — :count prodejna|:chain — :count prodejny|:chain — :count prodejen',
             'stores_dialog_mine' => 'vaše prodejna',
             'stores_dialog_close' => 'Zavřít',
+            'stores_dialog_loading' => 'Načítáme prodejny…',
+            'stores_dialog_failed' => 'Seznam prodejen se teď nepodařilo načíst. Zkuste to prosím, až budete mít signál.',
             'maybe' => 'Možná',
             'maybe_hint' => 'Akce je na více druhů a hledanou variantu neuvádí — ověřte u obchodu.',
             // „Je to opravdu sleva?“ (R59) — srovnání s dřívějšími akcemi stejné položky u obchodu

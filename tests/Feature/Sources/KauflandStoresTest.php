@@ -145,9 +145,11 @@ it('Moje slevy ukážou jen akce vybraných prodejen a u akce prodejny, kde plat
     WatchItem::factory()->for($user)->create(['name' => 'Vepřové', 'keywords' => 'vepřov']);
     WatchItem::factory()->for($user)->create(['name' => 'Losos', 'keywords' => 'losos']);
 
-    $this->actingAs($user)->get(route('home'))->assertInertia(function (Assert $page): void {
+    $storesUrl = null;
+    $this->actingAs($user)->get(route('home'))->assertInertia(function (Assert $page) use (&$storesUrl): void {
         $groups = collect($page->toArray()['props']['watchItems'])->keyBy('name');
         $pork = collect($groups['Vepřové']['offers'])->keyBy('name');
+        $storesUrl = $pork['K-Mistři od fochu Vepřová krkovice bez kosti pultový prodej']['stores']['url'];
 
         // Losos je jen v Praze-Vypichu, kterou uživatel nemá
         expect($groups['Losos']['offers'])->toBe([])
@@ -156,9 +158,12 @@ it('Moje slevy ukážou jen akce vybraných prodejen a u akce prodejny, kde plat
                 'K-Mistři od fochu Vepřová pečeně bez kosti pultový prodej',
                 'K-Mistři od fochu Vepřové čevapčiči',
             ])
-            ->and($pork['K-Mistři od fochu Vepřová krkovice bez kosti pultový prodej']['stores'])->toMatchArray(['names' => ['Trutnov'], 'count' => 1, 'elsewhere' => false, 'list' => [['name' => 'Trutnov', 'selected' => true]]])
+            ->and($pork['K-Mistři od fochu Vepřová krkovice bez kosti pultový prodej']['stores'])->toMatchArray(['names' => ['Trutnov'], 'count' => 1, 'elsewhere' => false])
             ->and($pork['K-Mistři od fochu Vepřová pečeně bez kosti pultový prodej']['stores'])->toMatchArray(['names' => ['Vrchlabí'], 'count' => 2, 'elsewhere' => false]);
     });
+
+    // Seznam prodejen pro okno se načte až po otevření (R106) — vybraná prodejna je označená
+    $this->getJson((string) $storesUrl)->assertOk()->assertExactJson(['stores' => [['name' => 'Trutnov', 'selected' => true]]]);
 });
 
 it('Všechny akce u akce jen v některých prodejnách ukážou kde platí', function (): void {
@@ -167,7 +172,9 @@ it('Všechny akce u akce jen v některých prodejnách ukážou kde platí', fun
     $this->artisan('letaky:import-offers', ['chain' => ['kaufland']]);
 
     $this->get(route('offers', ['q' => 'losos']))->assertInertia(fn (Assert $page) => $page
-        ->where('offers.data.0.stores', ['names' => ['Praha-Vypich'], 'count' => 1, 'elsewhere' => false, 'list' => [['name' => 'Praha-Vypich', 'selected' => false]]]));
+        ->where('offers.data.0.stores.names', ['Praha-Vypich'])
+        ->where('offers.data.0.stores.count', 1)
+        ->where('offers.data.0.stores.elsewhere', false));
     $this->get(route('offers', ['q' => 'vejce']))->assertInertia(fn (Assert $page) => $page
         ->where('offers.data.0.stores', null));
 
@@ -180,5 +187,6 @@ it('Všechny akce u akce jen v některých prodejnách ukážou kde platí', fun
         ->where('shoppingPreferences.hidden', 1));
     $this->get(route('offers', ['q' => 'losos', 'moje-obchody' => 0]))->assertInertia(fn (Assert $page) => $page
         ->where('filters.moje-obchody', false)
-        ->where('offers.data.0.stores', ['names' => [], 'count' => 1, 'elsewhere' => true, 'list' => [['name' => 'Praha-Vypich', 'selected' => false]]]));
+        ->where('offers.data.0.stores.names', [])
+        ->where('offers.data.0.stores.elsewhere', true));
 });

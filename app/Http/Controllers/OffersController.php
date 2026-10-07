@@ -81,16 +81,26 @@ class OffersController extends Controller
         // Hledání a zvolené filtry, které odkazy stránkování zachovají (obchod a produkt v čisté adrese)
         $chosenFilters = $request->chosenFilters();
         $searchText = $correction['corrected'] ?? $text;
-        // Kolik akcí skrylo nastavení Mých obchodů (R100) — výpis to řekne s nabídkou ukázat všechny
-        $preferencesHidden = $offerFilters->preferencesOf === null ? 0
-            : $search->query($searchText, $offerFilters->withPreferencesOf(null))->count() - $total;
         $sort = OfferSearch::sortFor($searchText, $offerFilters);
-        $offers = $query->offset($window->offset())->limit($window->limit())->get();
+        // „Načíst další“ (R106): jen nová stránka, Inertia ji připojí pod načtené — dřív se
+        // posílal celý rozsah znovu (na desáté stránce ~420 kB)
+        $appending = $request->appendsPage($window, 'offers');
+        $fetched = $appending ? $window->lastOnly() : $window;
+        $offers = $query->offset($fetched->offset())->limit($fetched->limit())->get();
         // „Je to opravdu sleva?“ (R59) — jedním dotazem pro celou stránku
         $history = $priceHistory->forOffers($offers);
         // „Hlídat“ z karty (R60): produkt katalogu akce, nebo její název jako vlastní slova
         $user = $request->user();
         $targets = $watchTargets->forOffers($offers, $user instanceof User ? $user : null);
+        $offersPage = [
+            'data' => $offers
+                ->map(fn (Offer $offer): array => [
+                    ...$presenter->toPage($offer, $storeCodes, $history[$offer->id] ?? null),
+                    'watchTarget' => $targets[$offer->id] ?? null,
+                ])
+                ->all(),
+            'total' => $total,
+        ];
 
         return Inertia::render('Offers', [
             // Nadpis podle obchodu nebo produktu, stejný jako pro vyhledávače (R94)
@@ -106,21 +116,18 @@ class OffersController extends Controller
                 'watchParameter' => RegisterResponse::WATCH_PARAMETER,
                 'stayField' => WatchItemController::STAY_FIELD,
             ],
-            'offers' => [
-                'data' => $offers
-                    ->map(fn (Offer $offer): array => [
-                        ...$presenter->toPage($offer, $storeCodes, $history[$offer->id] ?? null),
-                        'watchTarget' => $targets[$offer->id] ?? null,
-                    ])
-                    ->all(),
-                'total' => $total,
+            'offers' => $appending
+                ? Inertia::merge($offersPage)->append('data', 'id')
+                : $offersPage,
+            'pagination' => [
+                ...PaginationLinks::for($window, $total, fn (int $page, ?int $from): string => $pages->url($chosenFilters, [
+                    // Zvolené „všechny obchody“ — bez parametru by přihlášený na další stránce dostal sledované
+                    OffersRequest::CHAIN => $request->allChainsChosen() ? OfferFilters::ALL_CHAINS : null,
+                    'q' => $searchText,
+                    ...PaginationLinks::parameters($page, $from, OffersRequest::PAGE, OffersRequest::FROM_PAGE),
+                ])),
+                'append' => PaginationLinks::append(['offers', 'pagination']),
             ],
-            'pagination' => PaginationLinks::for($window, $total, fn (int $page, ?int $from): string => $pages->url($chosenFilters, [
-                // Zvolené „všechny obchody“ — bez parametru by přihlášený na další stránce dostal sledované
-                OffersRequest::CHAIN => $request->allChainsChosen() ? OfferFilters::ALL_CHAINS : null,
-                'q' => $searchText,
-                ...PaginationLinks::parameters($page, $from, OffersRequest::PAGE, OffersRequest::FROM_PAGE),
-            ])),
             'filters' => [
                 'q' => $text ?? '',
                 // Vybrané obchody (prázdné = všechny) — přihlášený bez volby vidí své sledované
@@ -138,8 +145,9 @@ class OffersController extends Controller
                 // Oddělení katalogu jako část adresy ('' = všechna, R102)
                 OffersRequest::DEPARTMENT => $offerFilters->department === null ? '' : OfferDepartments::slug($offerFilters->department),
             ],
-            // Hodnoty do popisků a voleb filtrů (R101): „Končí do 2 dnů“, „Nové za 2 dny“, „Sleva od 20 %“
-            'filterOptions' => [
+            // Hodnoty do popisků a voleb filtrů (R101): „Končí do 2 dnů“, „Nové za 2 dny“, „Sleva od 20 %“.
+            // Closure: „Načíst další“ (částečné načtení, R106) dotazy na oddělení nespouští
+            'filterOptions' => fn (): array => [
                 'endingSoonDays' => config()->integer('letaky.offers.ending_soon_days'),
                 'freshDays' => config()->integer('letaky.offers.fresh_days'),
                 'minDiscounts' => config()->array('letaky.account.min_discount_options'),
@@ -153,8 +161,9 @@ class OffersController extends Controller
                 OfferListSort::available($searchText !== null),
             ),
             // Nastavení Mých obchodů (R100) — jen přihlášený; kolik akcí skrylo a kde se mění
-            'shoppingPreferences' => $user instanceof User ? [
-                'hidden' => $preferencesHidden,
+            'shoppingPreferences' => fn (): ?array => $user instanceof User ? [
+                'hidden' => $offerFilters->preferencesOf === null ? 0
+                    : $search->query($searchText, $offerFilters->withPreferencesOf(null))->count() - $total,
                 'url' => route('preferences', absolute: false),
             ] : null,
             // Filtr produktu z našeptávače jako štítek nad výsledky (R71)

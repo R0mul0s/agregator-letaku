@@ -120,7 +120,7 @@ final class MyOffers
         $offersByProduct = [];
         $assignments = OfferProduct::query()
             ->whereHas('offer', fn (Builder $query) => $this->whereCurrentFollowed($query, $followed))
-            ->with('offer')
+            ->with(['offer' => fn ($query) => $query->withoutRaw()])
             ->get();
         foreach ($assignments as $assignment) {
             if ($this->isAvailableTo($user, $assignment->offer) && $this->meetsMinDiscount($user, $assignment->offer)) {
@@ -223,7 +223,7 @@ final class MyOffers
         return OfferProduct::query()
             ->whereIn('product_id', $productIds)
             ->whereHas('offer', fn (Builder $query) => $this->whereCurrentFollowed($query, $followed))
-            ->with('offer.stores')
+            ->with(['offer' => fn ($query) => $query->withoutRaw(), 'offer.stores'])
             ->get();
     }
 
@@ -296,6 +296,7 @@ final class MyOffers
     private function candidates(Collection $followed, array $rules): array
     {
         $offers = Offer::query()
+            ->withoutRaw()
             ->tap(fn (Builder $query) => $this->whereCurrentFollowed($query, $followed))
             ->tap(fn (Builder $query) => OfferPrefilter::containingAny($query, $this->prefilterWords($rules)))
             ->with('stores')
@@ -340,7 +341,7 @@ final class MyOffers
             ->with('leaflet')
             ->whereHas('leaflet', function (Builder $query) use ($followed): void {
                 $query->where('kind', LeafletKind::Leaflet)
-                    ->whereDate('valid_to', '>=', $this->calendar->today()->toDateString())
+                    ->where('valid_to', '>=', $this->calendar->today()->toDateString())
                     ->where(function (Builder $query) use ($followed): void {
                         foreach ($followed as $chain) {
                             $query->orWhere(fn (Builder $query) => $this->whereLeafletFollowed($query, $chain));

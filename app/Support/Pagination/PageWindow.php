@@ -69,6 +69,14 @@ final readonly class PageWindow
     }
 
     /**
+     * Jen poslední stránka rozsahu — „Načíst další“ ji připojí pod už načtené (R106).
+     */
+    public function lastOnly(): self
+    {
+        return new self($this->to, $this->to, $this->perPage);
+    }
+
+    /**
      * Patří stránka do načteného rozsahu?
      */
     public function contains(int $page): bool

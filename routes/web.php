@@ -26,6 +26,7 @@ use App\Http\Controllers\LegalController;
 use App\Http\Controllers\ManifestController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OffersController;
+use App\Http\Controllers\OfferStoresController;
 use App\Http\Controllers\OfferSuggestionsController;
 use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\ServiceWorkerController;
@@ -133,6 +134,12 @@ Route::get('/akce/naseptavac', OfferSuggestionsController::class)
     // Relace jen pro čtení — dotaz při psaní nesmí přepsat zprávu souběžného uložení (R71)
     ->middleware(['throttle:'.RateLimits::SUGGESTIONS, ReadOnlySession::class])
     ->name('offers.suggestions');
+
+// Prodejny akce pro okno „Kde akce platí“ (R49) — až po otevření okna, ne s každou akcí (R106)
+Route::get('/akce/{offer}/prodejny', OfferStoresController::class)
+    ->whereNumber('offer')
+    ->middleware(['throttle:'.RateLimits::SUGGESTIONS, ReadOnlySession::class])
+    ->name('offers.stores');
 
 // Živá ukázka hlídání na úvodní stránce (R90) — dotaz po každé změně výběru, limit jako našeptávač
 Route::get('/ukazka-hlidani', WatchDemoController::class)

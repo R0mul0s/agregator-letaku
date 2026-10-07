@@ -130,7 +130,7 @@ final class SearchSuggestions
             ->join('offers', 'offers.id', '=', 'offer_product.offer_id')
             ->when($productIds !== null, fn (Builder $query) => $query->whereIn('offer_product.product_id', $productIds ?? []))
             ->whereNull('offers.withdrawn_at')
-            ->whereDate('offers.valid_to', '>=', $this->calendar->today()->toDateString())
+            ->where('offers.valid_to', '>=', $this->calendar->today()->toDateString())
             ->when($filters->chains !== [], fn (Builder $query) => $query->whereIn('offers.chain', $filters->chains))
             ->when($filters->withoutEshop, fn (Builder $query) => $query->where('offers.online_only', false))
             // Nastavení Mých obchodů (R100) poddotazem — podmínky na prodejny a karty jsou nad modelem Offer

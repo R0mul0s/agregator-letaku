@@ -7,11 +7,12 @@
     @created 2026-10-02
 -->
 <script setup>
+import { formatNumber as formatLocaleNumber } from '@/lib/format';
 import { useTranslations } from '@/lib/i18n';
 import { Link, usePage } from '@inertiajs/vue3';
 
 defineProps({
-    /** { from, to, lastPage, pages: [{ number, url, current } | { gap }], previousUrl, nextUrl, loadMoreUrl, loadMoreCount, shownFrom, shownTo }. */
+    /** { from, to, lastPage, pages: [{ number, url, current } | { gap }], previousUrl, nextUrl, loadMoreUrl, loadMoreCount, shownFrom, shownTo, append?: { only, headers } }. */
     pagination: { type: Object, required: true },
     /** Celkový počet položek. */
     total: { type: Number, required: true },
@@ -29,14 +30,23 @@ const page = usePage();
  * @returns {string}
  */
 function formatNumber(value) {
-    return value.toLocaleString(page.props.locale);
+    return formatLocaleNumber(value, page.props.locale);
 }
 </script>
 
 <template>
     <div v-if="total" class="pagination">
-        <!-- Načtené akce zůstanou, nová stránka se připojí pod ně a posun stránky se nezmění -->
-        <Link v-if="pagination.loadMoreUrl" :href="pagination.loadMoreUrl" class="button button--primary" preserve-scroll preserve-state>
+        <!-- Načtené akce zůstanou, nová stránka se připojí pod ně a posun stránky se nezmění.
+             Výpis s `append` (Všechny akce, R106) načte jen novou stránku, Inertia ji připojí sama. -->
+        <Link
+            v-if="pagination.loadMoreUrl"
+            :href="pagination.loadMoreUrl"
+            :only="pagination.append?.only"
+            :headers="pagination.append?.headers"
+            class="button button--primary"
+            preserve-scroll
+            preserve-state
+        >
             {{ t(loadMoreKey, { count: pagination.loadMoreCount }) }}
         </Link>
 

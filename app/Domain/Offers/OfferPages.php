@@ -114,7 +114,7 @@ final class OfferPages
         $ids = OfferProduct::query()
             ->join('offers', 'offers.id', '=', 'offer_product.offer_id')
             ->whereNull('offers.withdrawn_at')
-            ->whereDate('offers.valid_to', '>=', $this->calendar->today()->toDateString())
+            ->where('offers.valid_to', '>=', $this->calendar->today()->toDateString())
             ->distinct()
             ->pluck('offer_product.product_id')
             ->map(fn (mixed $id): int => (int) $id)

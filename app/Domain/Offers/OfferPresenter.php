@@ -91,12 +91,13 @@ final class OfferPresenter
     /**
      * Kde akce platí, když neplatí ve všech prodejnách (R49): `names` = prodejny ke zobrazení,
      * `count` = počet všech prodejen akce, `elsewhere` = není v žádné vybrané prodejně,
-     * `list` = všechny prodejny akce pro okno se seznamem (`selected` = vybraná uživatelem).
+     * `url` = seznam všech prodejen pro okno (storeList) — načte se až po otevření okna, celý
+     * seznam u každé akce byl skoro polovina dat Mých slev (R106).
      * Null = platí všude, nebo ve všech vybraných prodejnách (pak to uživatele nezajímá),
      * nebo prodejny nejsou načtené.
      *
      * @param  list<string>  $selectedStoreCodes
-     * @return array{names: list<string>, count: int, elsewhere: bool, list: list<array{name: string, selected: bool}>}|null
+     * @return array{names: list<string>, count: int, elsewhere: bool, url: string}|null
      */
     private function stores(Offer $offer, array $selectedStoreCodes): ?array
     {
@@ -104,38 +105,48 @@ final class OfferPresenter
             return null;
         }
 
-        $codes = array_values($offer->stores->map(fn (OfferStore $store): string => $store->store_code)->all());
-        $list = $this->storeList($codes, $selectedStoreCodes);
+        $codes = $this->storeCodes($offer);
+        $url = route('offers.stores', $offer);
         if ($selectedStoreCodes !== []) {
             $mine = array_values(array_intersect($codes, $selectedStoreCodes));
             if (count($mine) === count($selectedStoreCodes)) {
                 return null;
             }
 
-            return ['names' => $this->storeNames($mine), 'count' => count($codes), 'elsewhere' => $mine === [], 'list' => $list];
+            return ['names' => $this->storeNames($mine), 'count' => count($codes), 'elsewhere' => $mine === [], 'url' => $url];
         }
 
-        return ['names' => count($codes) <= self::MAX_LISTED_STORES ? $this->storeNames($codes) : [], 'count' => count($codes), 'elsewhere' => false, 'list' => $list];
+        return ['names' => count($codes) <= self::MAX_LISTED_STORES ? $this->storeNames($codes) : [], 'count' => count($codes), 'elsewhere' => false, 'url' => $url];
     }
 
     /**
-     * Prodejny akce pro okno se seznamem; řadí frontend (české řazení podle prohlížeče).
+     * Všechny prodejny akce pro okno se seznamem (`selected` = vybraná uživatelem); řadí
+     * frontend (české řazení podle prohlížeče). Akce bez omezení na prodejny nemá žádnou.
      *
-     * @param  list<string>  $codes
      * @param  list<string>  $selectedStoreCodes
      * @return list<array{name: string, selected: bool}>
      */
-    private function storeList(array $codes, array $selectedStoreCodes): array
+    public function storeList(Offer $offer, array $selectedStoreCodes): array
     {
         $this->storeNames ??= Store::query()->pluck('name', 'code')->all();
         $list = [];
-        foreach ($codes as $code) {
+        foreach ($this->storeCodes($offer) as $code) {
             if (isset($this->storeNames[$code])) {
                 $list[] = ['name' => $this->storeNames[$code], 'selected' => in_array($code, $selectedStoreCodes, true)];
             }
         }
 
         return $list;
+    }
+
+    /**
+     * Kódy prodejen, ve kterých akce platí (R49).
+     *
+     * @return list<string>
+     */
+    private function storeCodes(Offer $offer): array
+    {
+        return array_values($offer->stores->map(fn (OfferStore $store): string => $store->store_code)->all());
     }
 
     /**

@@ -95,6 +95,6 @@ final class OfferHighlights
      */
     private function currentOffers(): Builder
     {
-        return Offer::query()->active()->notExpired($this->calendar->today())->with('stores');
+        return Offer::query()->withoutRaw()->active()->notExpired($this->calendar->today())->with('stores');
     }
 }

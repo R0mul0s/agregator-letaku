@@ -169,6 +169,21 @@ class Offer extends Model
     }
 
     /**
+     * Všechny sloupce kromě surové odpovědi obchodu (`raw`, u Billy a Globusu ~2 kB na řádek) —
+     * výpisy a párování ji nepotřebují, slouží jen k ladění zdroje (R106). S `Model::shouldBeStrict`
+     * hodí přístup k `raw` u takto načtené nabídky výjimku, takže se na ni nedá omylem spolehnout.
+     *
+     * @param  Builder<self>  $query
+     */
+    public function scopeWithoutRaw(Builder $query): void
+    {
+        $table = $this->getTable();
+        $columns = array_values(array_diff([$this->getKeyName(), ...$this->fillable, self::CREATED_AT, self::UPDATED_AT], ['raw']));
+
+        $query->select(array_map(fn (string $column): string => $table.'.'.$column, $columns));
+    }
+
+    /**
      * Nabídky, které obchod nestáhl před koncem platnosti (R16).
      *
      * @param  Builder<self>  $query
@@ -185,7 +200,7 @@ class Offer extends Model
      */
     public function scopeNotExpired(Builder $query, CarbonImmutable $localToday): void
     {
-        $query->whereDate('valid_to', '>=', $localToday->toDateString());
+        $query->where('valid_to', '>=', $localToday->toDateString());
     }
 
     /**
@@ -195,7 +210,7 @@ class Offer extends Model
      */
     public function scopeUpcoming(Builder $query, CarbonImmutable $localToday): void
     {
-        $query->whereDate('valid_from', '>', $localToday->toDateString());
+        $query->where('valid_from', '>', $localToday->toDateString());
     }
 
     /**

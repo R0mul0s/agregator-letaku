@@ -75,6 +75,7 @@ final class OfferSearch
     {
         $today = $this->calendar->today();
         $query = Offer::query()
+            ->withoutRaw()
             ->active()
             ->notExpired($today)
             ->when($filters->upcomingOnly, fn (Builder $query) => $query->upcoming($today))
@@ -84,8 +85,8 @@ final class OfferSearch
             ->when($filters->preferencesOf, fn (Builder $query, $user) => $this->preferences->apply($query, $user))
             // Končí brzy (R101): už platí a konec je do `ending_soon_days` dní
             ->when($filters->endingSoon, fn (Builder $query) => $query
-                ->whereDate('valid_from', '<=', $today->toDateString())
-                ->whereDate('valid_to', '<=', $today->addDays(config()->integer('letaky.offers.ending_soon_days'))->toDateString()))
+                ->where('valid_from', '<=', $today->toDateString())
+                ->where('valid_to', '<=', $today->addDays(config()->integer('letaky.offers.ending_soon_days'))->toDateString()))
             ->when($filters->freshOnly, fn (Builder $query) => $query->where('created_at', '>=', $this->freshSince()->toDateTimeString()))
             // Oddělení (R102): přes produkt katalogu, ke kterému je akce přiřazená
             ->when($filters->department, fn (Builder $query, string $department) => $query->whereHas(

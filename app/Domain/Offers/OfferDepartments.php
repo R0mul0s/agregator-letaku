@@ -55,7 +55,7 @@ final class OfferDepartments
             ->join('offers', 'offers.id', '=', 'offer_product.offer_id')
             ->join('products', 'products.id', '=', 'offer_product.product_id')
             ->whereNull('offers.withdrawn_at')
-            ->whereDate('offers.valid_to', '>=', $this->calendar->today()->toDateString())
+            ->where('offers.valid_to', '>=', $this->calendar->today()->toDateString())
             ->whereNotNull('products.category_id')
             ->distinct()
             ->pluck('products.category_id')

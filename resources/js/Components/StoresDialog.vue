@@ -1,7 +1,7 @@
 <!--
     Okno „Kde akce platí“ (R49) — prodejny, ve kterých akce platí, české řazení, vybrané
     prodejny uživatele nahoře s fajfkou; u delšího seznamu hledání podle názvu. Nativní
-    <dialog>: Esc a klik vedle zavřou. Obsah řídí lib/storesDialog.js.
+    <dialog>: Esc a klik vedle zavřou. Obsah (načtený až po otevření, R106) řídí lib/storesDialog.js.
 
     @author Roman Hlaváček
     @created 2026-10-03
@@ -66,7 +66,7 @@ function onClick(event) {
                 <h2 id="stores-dialog-title" class="stores-dialog__title">{{ t('offers.stores_dialog_title') }}</h2>
                 <p class="stores-dialog__offer">{{ storesDialogState.offerName }}</p>
                 <p class="stores-dialog__count">
-                    {{ t('offers.stores_dialog_count', { count: storesDialogState.stores.length, chain: storesDialogState.chainName }) }}
+                    {{ t('offers.stores_dialog_count', { count: storesDialogState.count, chain: storesDialogState.chainName }) }}
                 </p>
             </div>
             <button ref="closeButton" type="button" class="stores-dialog__close" :title="t('offers.stores_dialog_close')" @click="closeStoresDialog">
@@ -76,7 +76,7 @@ function onClick(event) {
         </header>
 
         <input
-            v-if="storesDialogState.stores.length >= SEARCH_FROM"
+            v-if="storesDialogState.count >= SEARCH_FROM"
             v-model="query"
             type="search"
             class="form-field__input stores-dialog__search"
@@ -84,13 +84,15 @@ function onClick(event) {
             :aria-label="t('preferences.stores_search')"
         />
 
-        <ul class="stores-dialog__list">
+        <p v-if="storesDialogState.loading" class="form-field__hint" role="status">{{ t('offers.stores_dialog_loading') }}</p>
+        <p v-else-if="storesDialogState.failed" class="form-field__hint" role="status">{{ t('offers.stores_dialog_failed') }}</p>
+        <ul v-else class="stores-dialog__list">
             <li v-for="store in filtered" :key="store.name" class="stores-dialog__store" :class="{ 'stores-dialog__store--selected': store.selected }">
                 <svg v-if="store.selected" class="stores-dialog__check" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>
                 {{ store.name }}
                 <span v-if="store.selected" class="visually-hidden">({{ t('offers.stores_dialog_mine') }})</span>
             </li>
         </ul>
-        <p v-if="!filtered.length" class="form-field__hint">{{ t('preferences.stores_none_found') }}</p>
+        <p v-if="!storesDialogState.loading && !storesDialogState.failed && !filtered.length" class="form-field__hint">{{ t('preferences.stores_none_found') }}</p>
     </dialog>
 </template>

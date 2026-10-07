@@ -19,6 +19,21 @@ use Closure;
 
 final class PaginationLinks
 {
+    /** Hlavička „Načíst další“, které připojí jen novou stránku (R106, HasPageWindow::appendsPage). */
+    public const LOAD_MORE_HEADER = 'X-Load-More';
+
+    /**
+     * Jak má „Načíst další“ načíst jen novou stránku a připojit ji (R106): které props stránky
+     * znovu načíst a s jakou hlavičkou. Jen pro výpis, jehož kontroler připojení umí.
+     *
+     * @param  list<string>  $only  Props výpisu a stránkování
+     * @return array{only: list<string>, headers: array<string, string>}
+     */
+    public static function append(array $only): array
+    {
+        return ['only' => $only, 'headers' => [self::LOAD_MORE_HEADER => '1']];
+    }
+
     /**
      * Data stránkování pro stránku.
      *

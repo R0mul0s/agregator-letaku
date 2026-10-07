@@ -43,9 +43,10 @@ final class WatchHistory
         }
 
         $offers = Offer::query()
+            ->withoutRaw()
             ->where(fn (Builder $query) => $query
                 ->whereNotNull('withdrawn_at')
-                ->orWhereDate('valid_to', '<', $this->calendar->today()->toDateString()))
+                ->orWhere('valid_to', '<', $this->calendar->today()->toDateString()))
             ->tap(fn (Builder $query) => OfferPrefilter::containingAny($query, $rule->prefilterTerm()))
             ->orderByDesc('valid_to')
             ->orderByDesc('id')

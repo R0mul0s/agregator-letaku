@@ -14,6 +14,8 @@ declare(strict_types=1);
 namespace App\Http\Requests\Concerns;
 
 use App\Support\Pagination\PageWindow;
+use App\Support\Pagination\PaginationLinks;
+use Inertia\Support\Header;
 
 trait HasPageWindow
 {
@@ -47,5 +49,21 @@ trait HasPageWindow
             $perPage,
             config()->integer('letaky.pagination.max_loaded_pages'),
         );
+    }
+
+    /**
+     * Je to „Načíst další“, které jen připojí poslední stránku rozsahu pod už načtené (R106)?
+     * Částečné načtení Inertie s hlavičkou z PaginationLinks::append a rozsah, který strop
+     * nezkrátil zepředu — jinak by připojené akce neseděly s tím, co stránka ukazuje, a server
+     * pošle celý rozsah jako dřív.
+     */
+    public function appendsPage(PageWindow $window, string $prop): bool
+    {
+        $partial = explode(',', (string) $this->header(Header::PARTIAL_ONLY));
+
+        return $this->hasHeader(PaginationLinks::LOAD_MORE_HEADER)
+            && in_array($prop, $partial, true)
+            && $window->from < $window->to
+            && $this->integer(self::FROM_PAGE) === $window->from;
     }
 }
