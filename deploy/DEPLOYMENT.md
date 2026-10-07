@@ -653,7 +653,7 @@ Soubory `app/Domain/Sources/Albert/AlbertBox.php` a `AlbertTile.php` se přesunu
    ověřená v Search Console pod účtem, který je vlastníkem projektu v Google Cloud.
 7. Zapiš verzi do *Nasazené verze*.
 
-### Aktualizace z `7b56244` (přihlášení přes Seznam)
+### Aktualizace z `7b56244` (dvacáté druhé nasazení — provedeno, `6d0e140`)
 
 **Přihlášení přes Seznam** (R98). Bez SQL skriptu a bez nového balíčku (`vendor/` se nemění), cron beze změny.
 
@@ -735,3 +735,5 @@ Co běží na produkci — pro `git log <commit>..HEAD` při dalším nasazení
 | 2026-10-06 | `7dbe429` | osmnácté nasazení: akce, které ještě nezačaly, i u Globusu a Billy z PDF letáků příštího týdne (R88, R89; převzetí řádku z PDF akcí z API), oprava letáku Penny se složkou `…_tl2` (`60f0211`); bez SQL skriptu, smazané přesunuté `AlbertBox.php` a `AlbertTile.php`. Ruční stažení: Globus 797, Billa 3 596, Penny 906 nabídek; v „Brzy“ Kaufland 798, Albert 772, Penny 413, Billa 189, Lidl 152, Globus 141 |
 | 2026-10-06 | `6d328eb` | devatenácté nasazení: přestěhování na `slevohlidka.cz` (R93, stará subdoména přesměrovává 301), obsah pro roboty a čisté adresy (R94), cache úvodní stránky (R95); doplněno dodatečně podle `version.txt` na produkci |
 | 2026-10-06 | `2a4e112` | dvacáté nasazení: přihlášení přes Google a Facebook (R96) — tlačítka, dokončení registrace se souhlasy, propojení v Mém účtu, potvrzení u poskytovatele pro účty bez hesla; zásady s částí o údajích od Googlu a Facebooku (Limited Use), obsah ze serveru viditelný bez JavaScriptu; SQL `migrations-2026-10-06-prihlaseni-pres-google.sql`, klíče `GOOGLE_*` / `FACEBOOK_*` v `.env`, `vendor/` se Socialite. Google aplikaci ověřil, Facebook zatím Unpublished |
+| 2026-10-07 | `7b56244` | jednadvacáté nasazení: výkon (R97) — maskot a logo ve WebP, přednačtení kódu stránky, vložený `theme-init.js` s otiskem v CSP, písmo Nunito s českou podmnožinou, obsah pro roboty se zapnutým JavaScriptem `display: none`; doplněno dodatečně podle `version.txt` |
+| 2026-10-07 | `6d0e140` | dvacáté druhé nasazení: přihlášení přes Seznam (R98) — tlačítko podle manuálu Seznamu, `SEZNAM_CLIENT_ID` / `SEZNAM_CLIENT_SECRET` v `.env`, bez SQL skriptu a bez `vendor/`; přesměrování na `login.seznam.cz` ověřeno |
