@@ -681,6 +681,19 @@ Soubory `app/Domain/Sources/Albert/AlbertBox.php` a `AlbertTile.php` se přesunu
    nepřepne a stránka problikne); `/index.php` vrací 301 na `/`; `/akce/pivo` a `/kontakt` v Google Rich Results Test.
 3. Zapiš verzi do *Nasazené verze*.
 
+### Aktualizace z `16b4832` (dvacáté čtvrté nasazení — provedeno, `9324560`)
+
+**Řazení a filtry výpisů (R100–R102), Microsoft Clarity (R103), historie v náhledu vlastních slov (R104)**
+a drobnosti vzhledu. Bez SQL skriptu a bez `vendor/` (`composer.lock` beze změny), cron i `.env` beze změny,
+žádný soubor nezmizel.
+
+1. **Nahraj `deploy/upload/`** bez `vendor/`, s `bootstrap/cache/packages.php`, `public/build/`,
+   `public/.htaccess` (CSP pro Clarity) a `public/version.txt`.
+2. **V projektu Clarity** nastav *Settings → Masking → Strict* — slibují to zásady (R103).
+3. **Ověř:** `version.txt`; lišta cookies se ukáže znovu (verze souhlasu 2); po souhlasu s analytickými cookies
+   jde v síti požadavek na `www.clarity.ms` a v konzoli není chyba CSP.
+4. Zapiš verzi do *Nasazené verze*.
+
 **Každá nová migrace potřebuje SQL skript** `deploy/migrations-<datum>-<popis>.sql`
 (opakovatelný: `CREATE TABLE IF NOT EXISTS`, `ADD COLUMN IF NOT EXISTS`) včetně zápisu do
 tabulky `migrations` — ve stejném commitu jako migrace. Nové produkty katalogu jdou na
@@ -748,3 +761,4 @@ Co běží na produkci — pro `git log <commit>..HEAD` při dalším nasazení
 | 2026-10-07 | `7b56244` | jednadvacáté nasazení: výkon (R97) — maskot a logo ve WebP, přednačtení kódu stránky, vložený `theme-init.js` s otiskem v CSP, písmo Nunito s českou podmnožinou, obsah pro roboty se zapnutým JavaScriptem `display: none`; doplněno dodatečně podle `version.txt` |
 | 2026-10-07 | `6d0e140` | dvacáté druhé nasazení: přihlášení přes Seznam (R98) — tlačítko podle manuálu Seznamu, `SEZNAM_CLIENT_ID` / `SEZNAM_CLIENT_SECRET` v `.env`, bez SQL skriptu a bez `vendor/`; přesměrování na `login.seznam.cz` ověřeno |
 | 2026-10-07 | `16b4832` | dvacáté třetí nasazení: audit přístupnosti, SEO a zobrazení (R99) — strukturovaná data v jednom grafu (organizace, drobečková navigace, akce jako `Offer`, `FAQPage` kontaktu), `/index.php` přesměruje 301, texty UI jen při celém načtení (odpověď přechodu na `/akce` 52 kB místo 104 kB), vložený `theme-init.js` bez komentářů s novým otiskem v CSP (ověřeno, že sedí), fokus, kontrasty a čtečky; bez SQL skriptu a bez `vendor/` |
+| 2026-10-07 | `9324560` | dvacáté čtvrté nasazení: řazení a nastavení Mých obchodů ve Všech akcích, štítky filtrů, kategorie, Moje slevy podle obchodů a filtry na telefonu v okně (R100–R102); Microsoft Clarity po souhlasu s analytickými cookies, verze souhlasu 2, CSP a zásady (R103); náhled vlastních slov s poslední akcí z historie (R104); čitelná lišta ověření e-mailu, šipka výběrů a seznam selectu v tmavém režimu; bez SQL skriptu a bez `vendor/` |

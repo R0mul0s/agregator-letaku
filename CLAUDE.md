@@ -21,7 +21,7 @@ volné číslo R…). Změna chování obchodu (nový endpoint, jiné pole) pat�
 
 ## Stav
 
-Hotové jsou etapy 1–5g, zveřejnění (8), opravy a funkce z kritické revize (9), aplikace v telefonu (10, aktualizace po nasazení R78), centrum upozornění (11), akce „brzy“ (12) (PLAN.md, kap. 6), přehled uživatelů pro admina (R84) a přihlášení přes Google, Seznam a Facebook (R96, R98) a audit přístupnosti, SEO a zobrazení se strukturovanými daty (R99) a řazení a filtry výpisů (R100–R102):
+Hotové jsou etapy 1–5g, zveřejnění (8), opravy a funkce z kritické revize (9), aplikace v telefonu (10, aktualizace po nasazení R78), centrum upozornění (11), akce „brzy“ (12) (PLAN.md, kap. 6), přehled uživatelů pro admina (R84) a přihlášení přes Google, Seznam a Facebook (R96, R98) a audit přístupnosti, SEO a zobrazení se strukturovanými daty (R99), řazení a filtry výpisů (R100–R102), Microsoft Clarity (R103) a historie v náhledu vlastních slov (R104):
 - **Stahování:** Kaufland (i po 149 prodejnách, R49), Tesco, Lidl, Penny (R15–R17, R25, R26, R85), Globus (R46),
   Billa z celého katalogu (R48) a letáky, které ještě nezačaly, z PDF spárované s katalogem API (R89); ceny z PDF letáků Lidlu a Albertu přes `pdftotext` (R86, R87); zmínky v letácích bez ceny — Lidl, Penny, Albert (R27, R36).
   Pojistky importu: nula akcí je chyba, podezřelý propad akce nestáhne (stav `partial`), zámek proti
@@ -67,7 +67,7 @@ Hotové jsou etapy 1–5g, zveřejnění (8), opravy a funkce z kritické revize
   (`/ukazka-hlidani`, `WatchDemo`) místo kroků a hra „Co je levnější?“ (`UnitPriceQuiz`); Kontakt (R91) s výběrem
   tématu a osnovou e-mailu, kopírováním adresy a holubem
 
-Produkce běží na `https://slevohlidka.cz` (nasazeno 2026-10-02, přestěhováno ze `slevohlidka.rhsoft.cz` R93, naposledy `16b4832` 2026-10-07);
+Produkce běží na `https://slevohlidka.cz` (nasazeno 2026-10-02, přestěhováno ze `slevohlidka.rhsoft.cz` R93, naposledy `9324560` 2026-10-07);
 postup aktualizace a nasazené verze jsou v `deploy/DEPLOYMENT.md`. Sleduje se 7 obchodů; Makro
 zatím nejde (ochrana proti robotům). Etapa 6 (LLM) jen když bude potřeba.
 Co z dřívějších rozhodnutí platí a co ne, je v tabulce na začátku PLAN.md.
