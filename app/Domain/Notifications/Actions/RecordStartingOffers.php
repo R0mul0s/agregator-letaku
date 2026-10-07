@@ -23,31 +23,36 @@ namespace App\Domain\Notifications\Actions;
 
 use App\Domain\Matching\MyOffers;
 use App\Domain\Notifications\StartingTodayNotification;
+use App\Domain\Notifications\UserBatch;
 use App\Domain\Offers\LocalCalendar;
 use App\Enums\NotificationKind;
 use App\Models\Offer;
 use App\Models\ShoppingListItem;
 use App\Models\User;
+use App\Support\Deadline;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Cache;
-use Throwable;
 
 final class RecordStartingOffers
 {
     /** Klíč cache s ID posledního zpracovaného uživatele; doplní se místní datum. */
     private const CURSOR_KEY = 'notifications.starting_today.after_user.';
 
+    /** Kanál pro počty chyb uživatelů (UserBatch). */
+    private const CHANNEL = 'starting_today';
+
     public function __construct(
         private readonly LocalCalendar $calendar,
         private readonly MyOffers $myOffers,
+        private readonly UserBatch $batch,
     ) {}
 
     /**
      * Zpracuje jednu dávku uživatelů; vrátí počet zapsaných záznamů. Chyba u jednoho
      * uživatele se zapíše do logu.
      */
-    public function __invoke(): int
+    public function __invoke(?Deadline $deadline = null): int
     {
         $localNow = CarbonImmutable::now(config()->string('letaky.display_timezone'));
         if ($localNow->hour < config()->integer('letaky.notifications.starting_today.from_hour')) {
@@ -75,19 +80,17 @@ final class RecordStartingOffers
             ->limit(config()->integer('letaky.notifications.users_per_run'))
             ->get();
 
-        $recorded = 0;
-        foreach ($users as $user) {
-            try {
-                if ($this->record($user, $startingOfferIds)) {
-                    $recorded++;
-                }
-            } catch (Throwable $error) {
-                report($error);
-            }
-        }
+        // Kurzor jen za posledního zpracovaného — dávka může skončit dřív kvůli časovému rozpočtu (R106).
+        // Kdo spadne, se přeskočí (kurzor jde dál), takže uživatel, u kterého zpracování padá, frontu nezastaví.
+        $lastId = null;
+        $recorded = $this->batch->run(self::CHANNEL, $users, $deadline ?? Deadline::none(), function (User $user) use ($startingOfferIds, &$lastId): bool {
+            $lastId = $user->id;
 
-        if ($users->isNotEmpty()) {
-            Cache::put($cursorKey, $users->last()->id, $localNow->endOfDay());
+            return $this->record($user, $startingOfferIds);
+        });
+
+        if ($lastId !== null) {
+            Cache::put($cursorKey, $lastId, $localNow->endOfDay());
         }
 
         return $recorded;
@@ -144,7 +147,7 @@ final class RecordStartingOffers
     private function startingOffers(CarbonImmutable $publishedBefore): Builder
     {
         return Offer::query()->active()
-            ->whereDate('valid_from', $this->calendar->today()->toDateString())
+            ->where('valid_from', $this->calendar->today()->toDateString())
             ->where('created_at', '<', $publishedBefore);
     }
 }

@@ -12,7 +12,8 @@
  * Klepnutí otevře záznam v centru (víc záznamů = celé centrum), číslo na ikoně aplikace
  * je počet nepřečtených záznamů — stejné jako u zvonku v hlavičce.
  *
- * Po dávkách jako souhrny (R54): jedno volání zpracuje nejvýš `letaky.push.users_per_run` uživatelů.
+ * Po dávkách jako souhrny (R54): jedno volání zpracuje nejvýš `letaky.push.users_per_run` uživatelů
+ * a jen dokud trvá časový rozpočet cronu (UserBatch, R106).
  *
  * @author Roman Hlaváček
  *
@@ -27,6 +28,7 @@ use App\Domain\Matching\MyOffers;
 use App\Domain\Notifications\AnnouncementRecord;
 use App\Domain\Notifications\NotificationPresenter;
 use App\Domain\Notifications\OffersNotification;
+use App\Domain\Notifications\UserBatch;
 use App\Domain\Offers\LocalCalendar;
 use App\Domain\Push\PushMessage;
 use App\Domain\Push\PushSubscriptions;
@@ -34,6 +36,7 @@ use App\Domain\Push\Vapid;
 use App\Enums\NotificationKind;
 use App\Models\Offer;
 use App\Models\User;
+use App\Support\Deadline;
 use App\Support\PriceFormatter;
 use App\Support\ShortDate;
 use Carbon\CarbonImmutable;
@@ -42,10 +45,12 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Support\Str;
-use Throwable;
 
 final class SendPushNotifications
 {
+    /** Kanál pro počty chyb uživatelů (UserBatch). */
+    private const CHANNEL = 'push';
+
     public function __construct(
         private readonly MyOffers $myOffers,
         private readonly PushSubscriptions $subscriptions,
@@ -54,6 +59,7 @@ final class SendPushNotifications
         private readonly NotificationPresenter $presenter,
         private readonly LocalCalendar $calendar,
         private readonly ShortDate $dates,
+        private readonly UserBatch $batch,
     ) {}
 
     /**
@@ -61,14 +67,13 @@ final class SendPushNotifications
      * aspoň na jedno zařízení došlo. Chyba u jednoho uživatele se zapíše do logu, ostatní
      * upozornění dostanou dál.
      */
-    public function __invoke(): int
+    public function __invoke(?Deadline $deadline = null): int
     {
         if (! $this->vapid->isConfigured()) {
             return 0;
         }
 
         $now = CarbonImmutable::now();
-        $sent = 0;
 
         $users = User::query()
             // Neověřenému účtu služba nic neposílá (podmínky čl. 4.1, R67) — jako e-maily (R51)
@@ -84,18 +89,14 @@ final class SendPushNotifications
             ->limit(config()->integer('letaky.push.users_per_run'))
             ->get();
 
-        foreach ($users as $user) {
-            try {
-                if ($this->notify($user)) {
-                    $sent++;
-                }
-                $user->forceFill(['push_sent_at' => $now])->save();
-            } catch (Throwable $error) {
-                report($error);
-            }
-        }
+        $markSent = fn (User $user) => $user->forceFill(['push_sent_at' => $now])->save();
 
-        return $sent;
+        return $this->batch->run(self::CHANNEL, $users, $deadline ?? Deadline::none(), function (User $user) use ($markSent): bool {
+            $sent = $this->notify($user);
+            $markSent($user);
+
+            return $sent;
+        }, giveUp: $markSent);
     }
 
     /**

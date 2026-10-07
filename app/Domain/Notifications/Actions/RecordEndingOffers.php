@@ -7,7 +7,7 @@
  * místního času; cron /cron/send-digests ho volá před upozorněním v telefonu, které záznam pošle.
  *
  * Po dávkách (R54): jedno volání zpracuje nejvýš `letaky.notifications.users_per_run` uživatelů;
- * kdo záznam dnes dostal, už se nevybere.
+ * kdo záznam dnes dostal, už se nevybere. Dávku omezuje i časový rozpočet cronu (UserBatch, R106).
  *
  * @author Roman Hlaváček
  *
@@ -20,31 +20,36 @@ namespace App\Domain\Notifications\Actions;
 
 use App\Domain\Chains\ChainCatalog;
 use App\Domain\Notifications\EndingSoonNotification;
+use App\Domain\Notifications\UserBatch;
 use App\Domain\Offers\LocalCalendar;
 use App\Enums\Chain;
 use App\Enums\NotificationKind;
 use App\Models\Offer;
 use App\Models\ShoppingListItem;
 use App\Models\User;
+use App\Support\Deadline;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
-use Throwable;
 
 final class RecordEndingOffers
 {
     /** Kolik dní před koncem akce upozornit — texty říkají „zítra“. */
     private const DAYS_BEFORE_END = 1;
 
+    /** Kanál pro počty chyb uživatelů (UserBatch); doplní se místní datum. */
+    private const CHANNEL_PREFIX = 'ending_soon.';
+
     public function __construct(
         private readonly LocalCalendar $calendar,
         private readonly ChainCatalog $chains,
+        private readonly UserBatch $batch,
     ) {}
 
     /**
      * Zpracuje jednu dávku uživatelů s končícími akcemi v seznamu; vrátí počet zapsaných záznamů.
      * Chyba u jednoho uživatele se zapíše do logu.
      */
-    public function __invoke(): int
+    public function __invoke(?Deadline $deadline = null): int
     {
         $localNow = CarbonImmutable::now(config()->string('letaky.display_timezone'));
         if ($localNow->hour < config()->integer('letaky.notifications.ending_soon.from_hour')) {
@@ -52,7 +57,8 @@ final class RecordEndingOffers
         }
 
         $endingOfferIds = $this->endingOffers($this->calendar->today()->addDays(self::DAYS_BEFORE_END))->select('id');
-        $recorded = 0;
+        // Kanál nemá čas uživatele, který by šlo posunout — kdo opakovaně padá, do konce dne se vynechá (R106)
+        $channel = self::CHANNEL_PREFIX.$localNow->toDateString();
 
         $users = User::query()
             ->whereHas('shoppingListItems', fn (Builder $items) => $items->whereNull('checked_at')->whereIn('offer_id', $endingOfferIds))
@@ -60,26 +66,22 @@ final class RecordEndingOffers
             ->whereDoesntHave('notifications', fn (Builder $query) => $query
                 ->where('type', NotificationKind::EndingSoon->value)
                 ->where('created_at', '>=', $localNow->startOfDay()->utc()))
+            ->whereNotIn('id', $this->batch->givenUp($channel))
             ->orderBy('id')
             ->limit(config()->integer('letaky.notifications.users_per_run'))
             ->get();
 
-        foreach ($users as $user) {
-            try {
-                $offers = $user->shoppingListItems()
-                    ->whereNull('checked_at')
-                    ->whereIn('offer_id', $endingOfferIds)
-                    ->with('offer')
-                    ->get()
-                    ->map(fn (ShoppingListItem $item): Offer => $item->offer);
-                $user->notify(new EndingSoonNotification($this->groupsByChain(array_values($offers->all()))));
-                $recorded++;
-            } catch (Throwable $error) {
-                report($error);
-            }
-        }
+        return $this->batch->run($channel, $users, $deadline ?? Deadline::none(), function (User $user) use ($endingOfferIds): bool {
+            $offers = $user->shoppingListItems()
+                ->whereNull('checked_at')
+                ->whereIn('offer_id', $endingOfferIds)
+                ->with('offer')
+                ->get()
+                ->map(fn (ShoppingListItem $item): Offer => $item->offer);
+            $user->notify(new EndingSoonNotification($this->groupsByChain(array_values($offers->all()))));
 
-        return $recorded;
+            return true;
+        });
     }
 
     /**
@@ -95,7 +97,7 @@ final class RecordEndingOffers
         );
 
         return Offer::query()->active()
-            ->whereDate('valid_to', $endsOn->toDateString())
+            ->where('valid_to', $endsOn->toDateString())
             ->whereNotIn('chain', $estimated);
     }
 

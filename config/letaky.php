@@ -516,7 +516,8 @@ return [
     | Starší záznamy maže denní úklid (/cron/prune-sessions) — doba je v zásadách (kap. 3).
     */
     'notifications' => [
-        'users_per_run' => 200,
+        // Horní mez dávky — skutečnou velikost určuje časový rozpočet cronu (cron.work_seconds, R106)
+        'users_per_run' => 1000,
         'retention_days' => 30,
         // Kolik posledních záznamů stránka ukáže (za 30 dní jich bývá pár za den)
         'max_listed' => 100,
@@ -553,6 +554,15 @@ return [
         'token' => env('LETAKY_CRON_TOKEN'),
         // Limit běhu jednoho volání — stažení Tesca trvá ~45 s; hosting ho může omezit i tak (O8)
         'time_limit_seconds' => 180,
+        // Rozpočet dávek uživatelů v /cron/send-digests (R106): s rezervou pod limitem běhu, kroky
+        // (záznamy, končící, začínající, souhrny, telefon) si ho dělí rovným dílem
+        'work_seconds' => 150,
+        // Uživatel, u kterého zpracování v kanálu padá (R106): po tolika chybách za sebou se jeho
+        // čas posune (nebo se do konce dne vynechá), ať není první v každé dávce
+        'user_failures' => [
+            'max_attempts' => 3,
+            'remember_hours' => 24,
+        ],
     ],
 
     /*

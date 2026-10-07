@@ -26,6 +26,7 @@ use App\Domain\Sources\SourceRegistry;
 use App\Enums\Chain;
 use App\Enums\ScrapeStatus;
 use App\Http\Requests\CronRequest;
+use App\Support\Deadline;
 use Illuminate\Http\Response;
 use Illuminate\Validation\Rule;
 use Throwable;
@@ -114,9 +115,14 @@ class CronController extends Controller
         $failed = false;
 
         // Záznamy centra upozornění (R74) jako první — upozornění v telefonu se z nich skládá
-        foreach (['notifications' => $record, 'ending_soon' => $recordEnding, 'starting_today' => $recordStarting, 'digest' => $send, 'push' => $push] as $channel => $action) {
+        $channels = ['notifications' => $record, 'ending_soon' => $recordEnding, 'starting_today' => $recordStarting, 'digest' => $send, 'push' => $push];
+        // Kroky si rozpočet dělí rovným dílem — kdyby hosting požadavek ukončil, souhrny
+        // a telefon na konci by nedoběhly vůbec (R106)
+        $deadline = Deadline::in(config()->integer('letaky.cron.work_seconds'));
+        $remaining = count($channels);
+        foreach ($channels as $channel => $action) {
             try {
-                $lines[] = __("app.$channel.done", ['count' => $action()]);
+                $lines[] = __("app.$channel.done", ['count' => $action($deadline->share($remaining--))]);
             } catch (Throwable $error) {
                 report($error);
                 $lines[] = __("app.$channel.failed", ['error' => $error->getMessage()]);
