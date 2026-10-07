@@ -16,6 +16,7 @@ use App\Domain\Catalog\CatalogBrowseTree;
 use App\Domain\Catalog\CategoryPaths;
 use App\Domain\Matching\MyOffers;
 use App\Domain\Matching\TextNormalizer;
+use App\Domain\Matching\WatchHistory;
 use App\Domain\Matching\WatchRule;
 use App\Enums\MatchStatus;
 use App\Http\Requests\WatchItemRequest;
@@ -136,9 +137,10 @@ class WatchItemController extends Controller
 
     /**
      * Náhled vlastních slov (R71): kolik akcí by položka teď našla a pár příkladů — uživatel
-     * hned vidí, že „rum“ chytá i „Rump steak“. Stejná pravidla jako Moje slevy.
+     * hned vidí, že „rum“ chytá i „Rump steak“. Stejná pravidla jako Moje slevy. Když teď
+     * nenajde nic, přidá poslední akci z historie, nebo od kdy akce sledujeme (R104).
      */
-    public function preview(Request $request, MyOffers $myOffers, TextNormalizer $normalizer): JsonResponse
+    public function preview(Request $request, MyOffers $myOffers, WatchHistory $history, TextNormalizer $normalizer): JsonResponse
     {
         $max = 'max:'.config()->integer('letaky.watch.keywords_max_length');
         $data = $request->validate([
@@ -151,6 +153,7 @@ class WatchItemController extends Controller
         $user = $request->user();
         $rule = WatchRule::fromText($data['keywords'], $data['variant_keywords'] ?? null, $data['exclude_keywords'] ?? null, $normalizer);
         $matches = $myOffers->preview($user, $rule);
+        $lastSeen = $matches === [] ? $history->lastSeen($rule) : null;
 
         return response()->json([
             'count' => count($matches),
@@ -160,6 +163,13 @@ class WatchItemController extends Controller
                 'price' => $myOffers->userPrice($user, $match['offer']),
                 'maybe' => $match['status'] === MatchStatus::Maybe,
             ], array_slice($matches, 0, config()->integer('letaky.search.preview_examples'))),
+            'lastSeen' => $lastSeen === null ? null : [
+                'name' => $lastSeen->name,
+                'chain' => $lastSeen->chain->value,
+                'price' => $myOffers->userPrice($user, $lastSeen),
+                'endedOn' => $history->endedOn($lastSeen)->toDateString(),
+            ],
+            'trackingSince' => $matches === [] && $lastSeen === null ? $history->trackingSince()?->toDateString() : null,
         ]);
     }
 

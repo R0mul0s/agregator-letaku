@@ -95,6 +95,17 @@ export function formatDate(date, locale) {
 }
 
 /**
+ * Místní datum „2026-10-02“ bez dne v týdnu: „2. 10.“ (u dat dál v minulosti den v týdnu nepomáhá).
+ *
+ * @param {string} date
+ * @param {string} locale
+ * @returns {string}
+ */
+export function formatShortDate(date, locale) {
+    return cachedFormatter(Intl.DateTimeFormat, locale, { day: 'numeric', month: 'numeric', timeZone: 'UTC' }).format(new Date(`${date}T00:00:00Z`));
+}
+
+/**
  * Okamžik (ISO 8601 v UTC) jako místní datum a čas: „2. 10. 20:15“.
  *
  * @param {string} isoDateTime

@@ -265,3 +265,30 @@ it('náhled vlastních slov ukáže počet akcí a příklady jako Moje slevy (R
     // Jedno písmeno by pustilo skoro všechno — jako při uložení (R54)
     $this->getJson(route('watch-items.preview', ['keywords' => 'r']))->assertUnprocessable();
 });
+
+it('náhled bez akce řekne, kdy naposledy akce byla, nebo od kdy sledujeme (R104)', function (): void {
+    $this->travelTo('2026-10-02 10:00:00');
+    FollowedChain::query()->create(['user_id' => $this->user->id, 'chain' => Chain::Lidl, 'include_online_only' => true]);
+    Offer::factory()->create(['name' => 'Almette bylinky', 'chain' => Chain::Tesco, 'price' => 3990]);
+
+    $this->travelTo('2026-10-20 10:00:00');
+    // Akce stažená obchodem dřív končí dnem stažení (R16); novější skončená vyhraje
+    Offer::factory()->create([
+        'name' => 'Almette česnek', 'chain' => Chain::Lidl, 'price' => 3490,
+        'valid_from' => '2026-10-10', 'valid_to' => '2026-10-16', 'withdrawn_at' => '2026-10-12 08:00:00',
+    ]);
+    Offer::factory()->create(['name' => 'Almette Rump', 'chain' => Chain::Lidl, 'valid_from' => '2026-10-01', 'valid_to' => '2026-10-07']);
+
+    $this->getJson(route('watch-items.preview', ['keywords' => 'almette', 'exclude_keywords' => 'rump']))
+        ->assertOk()
+        ->assertJsonPath('count', 0)
+        ->assertJsonPath('lastSeen.name', 'Almette česnek')
+        ->assertJsonPath('lastSeen.chain', 'lidl')
+        ->assertJsonPath('lastSeen.price', 3490)
+        ->assertJsonPath('lastSeen.endedOn', '2026-10-12')
+        ->assertJsonPath('trackingSince', null);
+
+    $this->getJson(route('watch-items.preview', ['keywords' => 'gouda']))
+        ->assertJsonPath('lastSeen', null)
+        ->assertJsonPath('trackingSince', '2026-10-02');
+});

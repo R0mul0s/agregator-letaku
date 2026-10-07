@@ -18,7 +18,7 @@ import { formatPrice } from '@/lib/format';
 import { useTranslations } from '@/lib/i18n';
 import { useRotatingPlaceholder } from '@/lib/placeholder';
 import { editDistance, normalizeSearch, searchWords, startsWord } from '@/lib/search';
-import { useWatchPreview } from '@/lib/watchPreview';
+import { emptyPreviewTexts, useWatchPreview } from '@/lib/watchPreview';
 import { usePage } from '@inertiajs/vue3';
 import { computed, ref, useId } from 'vue';
 
@@ -282,7 +282,7 @@ function offersSummary(product) {
                                 <span class="search-panel__name">{{ t('watch.own_option', { text: query }) }}</span>
                                 <span class="search-panel__meta">
                                     <template v-if="preview.loading">{{ t('watch.preview_loading') }}</template>
-                                    <template v-else-if="preview.count === 0">{{ t('watch.preview_none') }}</template>
+                                    <template v-else-if="preview.count === 0">{{ emptyPreviewTexts(preview, page.props.locale, t).short }}</template>
                                     <span v-else-if="preview.count !== null" class="search-panel__hot">{{ t('watch.preview_count', { count: preview.count }) }}</span>
                                     <template v-else>{{ t('watch.own_meta') }}</template>
                                 </span>

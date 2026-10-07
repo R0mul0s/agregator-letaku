@@ -395,6 +395,13 @@ return [
             'preview_none' => 'Teď by nenašlo nic — ale hlídáme dál a dáme vědět, až se něco objeví.',
             'preview_count' => 'Teď by našlo :count akci|Teď by našlo :count akce|Teď by našlo :count akcí',
             'preview_hint' => 'Chytá i něco jiného? Doplňte slovo do pole Vyloučit.',
+            // Teď nic, ale co historie (R104) — poslední akce z kteréhokoli obchodu, nebo od kdy hledáme
+            'preview_last_seen' => 'Teď v akci není. Naposledy jsme na to akci viděli do :date:',
+            'preview_last_seen_short' => 'teď bez akce · naposledy do :date',
+            'preview_last_seen_hint' => 'Hlídáme dál a dáme vědět, až se zase objeví.',
+            'preview_never' => 'Od :date, co procházíme letáky, jsme na tohle žádnou akci neviděli.',
+            'preview_never_short' => 'zatím jsme v akci neviděli',
+            'preview_never_hint' => 'Nevzdáváme to — dáme vědět, jakmile se nějaká objeví.',
             'own_link' => 'Hlídat vlastními slovy',
             'watching' => 'Hlídáte',
             'list_title' => 'Hlídané položky',
