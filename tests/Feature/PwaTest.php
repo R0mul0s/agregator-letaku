@@ -12,6 +12,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Middleware\HandleInertiaRequests;
 use App\Models\User;
 use Illuminate\Support\Facades\File;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -114,7 +115,9 @@ it('service worker zná verzi assetů stejnou jako Inertia — stránka podle n�
     preg_match('/^self\.SW_CONFIG = (.+);$/m', (string) $response->getContent(), $match);
     $config = json_decode($match[1], true, flags: JSON_THROW_ON_ERROR);
 
-    expect($config['assetVersion'])->toBe(hash_file('xxh128', public_path('build/manifest.json')))
+    $expected = hash('xxh128', hash_file('xxh128', public_path('build/manifest.json')).'|'.hash_file('xxh128', lang_path('cs/app.php')));
+    expect($config['assetVersion'])->toBe($expected)
+        ->and(app(HandleInertiaRequests::class)->version(request()))->toBe($expected)
         ->and($response->getContent())->toContain("'asset-version'");
 
     $this->get(route('offers'))->assertInertia(fn (Assert $page) => $page
@@ -134,4 +137,18 @@ it('Můj účet ukáže nasazenou verzi z version.txt, lokálně žádnou (R78)'
     $this->get(route('account'))->assertInertia(fn (Assert $page) => $page->where('appVersion', '4cf9e35'));
 
     File::delete($path.'/version.txt');
+});
+
+it('texty UI pošle jen celé načtení stránky, přechod Inertie s nimi v klientu ne (R99)', function (): void {
+    $this->get(route('offers'))->assertInertia(fn (Assert $page) => $page->has('translations.app_name'));
+
+    $version = app(HandleInertiaRequests::class)->version(request());
+    $response = $this->withHeaders([
+        'X-Inertia' => 'true',
+        'X-Inertia-Version' => (string) $version,
+        'X-Inertia-Except-Once-Props' => 'translations',
+    ])->get(route('offers'))->assertOk();
+
+    expect($response->json('props'))->not->toHaveKey('translations')
+        ->and($response->json('onceProps.translations.prop'))->toBe('translations');
 });

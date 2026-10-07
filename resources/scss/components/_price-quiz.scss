@@ -83,9 +83,13 @@
             transform: translateY(var(--hover-lift));
         }
 
+        // Po tipu se ztlumí jen obrázek — cena za jednotku zůstane čitelná (kontrast, R99)
         &:disabled {
-            opacity: var(--opacity-disabled);
             cursor: default;
+
+            img {
+                opacity: var(--opacity-disabled);
+            }
         }
 
         &--picked:disabled {

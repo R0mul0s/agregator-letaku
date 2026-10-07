@@ -170,7 +170,8 @@ onBeforeUnmount(() => window.clearTimeout(liveTimer));
 
         <header class="page__header">
             <h1 class="page__title">{{ heading }}</h1>
-            <p class="page__subtitle">{{ t('offers.count', { count: offers.total }) }}</p>
+            <!-- Počet se při živém hledání a filtrech mění — čtečka ho oznámí (R99) -->
+            <p class="page__subtitle" role="status">{{ t('offers.count', { count: offers.total }) }}</p>
         </header>
 
         <!-- Nepřihlášený (R44): co získá registrací -->

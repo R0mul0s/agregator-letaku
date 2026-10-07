@@ -39,7 +39,7 @@
         min-height: var(--control-size);
         padding: var(--space-2) var(--space-3);
         background: var(--color-surface);
-        border: 1px solid var(--color-border);
+        border: 1px solid var(--color-input-border);
         border-radius: var(--radius-sm);
         color: var(--color-text);
 
@@ -112,7 +112,8 @@
         width: var(--switch-width);
         height: var(--switch-height);
         margin: 0;
-        background: var(--color-border);
+        // Vypnutá dráha s kontrastem ovládacího prvku (R99) — světle šedá s bílým jezdcem splývala s kartou
+        background: var(--color-input-border);
         border-radius: var(--radius-pill);
         cursor: pointer;
         transition: background-color var(--duration-fast);
@@ -137,11 +138,6 @@
 
         &:checked::before {
             transform: translateX(calc(var(--switch-width) - var(--switch-height)));
-        }
-
-        &:focus-visible {
-            outline: none;
-            box-shadow: var(--focus-ring);
         }
 
         @media (prefers-reduced-motion: reduce) {

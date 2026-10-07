@@ -61,6 +61,18 @@ async function logout() {
     router.post(page.props.auth.logoutUrl, endpoint ? { push_endpoint: endpoint } : {});
 }
 
+/**
+ * Fokus odešel z menu (Tab za poslední položku) — menu zavře, jinak by zůstalo viset otevřené
+ * nad stránkou (R99).
+ *
+ * @param {FocusEvent} event
+ */
+function onFocusout(event) {
+    if (open.value && event.relatedTarget && !root.value?.contains(event.relatedTarget)) {
+        close();
+    }
+}
+
 let removeNavigateListener = null;
 
 onMounted(() => {
@@ -75,7 +87,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <div ref="root" class="user-menu" @keydown="onKeydown">
+    <div ref="root" class="user-menu" @keydown="onKeydown" @focusout="onFocusout">
         <button
             ref="toggleButton"
             type="button"

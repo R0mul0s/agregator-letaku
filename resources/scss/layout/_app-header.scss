@@ -236,13 +236,13 @@
         --landing-bump-height: var(--header-logo-bump-height);
 
         @media (max-width: $breakpoint-md - 1px) and (prefers-reduced-motion: no-preference) {
-            animation: landing-drive var(--landing-drive-duration) ease-in-out infinite;
+            animation: landing-drive var(--landing-drive-duration) ease-in-out var(--landing-drive-iterations);
         }
     }
 
     &--animated-logo &__logo {
         @media (max-width: $breakpoint-md - 1px) and (prefers-reduced-motion: no-preference) {
-            animation: landing-bump var(--landing-bump-duration) ease-in-out infinite;
+            animation: landing-bump var(--landing-bump-duration) ease-in-out var(--landing-bump-iterations);
             transform-origin: 50% 85%;
         }
     }

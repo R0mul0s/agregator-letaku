@@ -154,11 +154,6 @@
             transform: translateY(var(--hover-lift));
         }
 
-        &:focus-visible {
-            outline: none;
-            box-shadow: var(--focus-ring);
-        }
-
         .chain-logo__image {
             border-color: transparent;
         }
@@ -204,12 +199,6 @@
         &:hover {
             color: var(--color-footer-link-hover);
             text-decoration: underline;
-        }
-
-        &:focus-visible {
-            border-radius: var(--radius-sm);
-            outline: none;
-            box-shadow: var(--focus-ring);
         }
 
         // Nastavení cookies je akce, ne odkaz — tlačítko vypadá jako ostatní odkazy

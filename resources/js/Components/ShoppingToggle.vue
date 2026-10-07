@@ -51,13 +51,15 @@ function toggle() {
 }
 </script>
 
+<!-- Stav nese u ikony aria-pressed, u plné varianty text tlačítka („V seznamu“) — obojí by čtečka
+     hlásila dvakrát (R99) -->
 <template>
     <button
         v-if="list"
         type="button"
         class="button button--ghost shopping-toggle"
         :class="{ 'shopping-toggle--added': inList, 'shopping-toggle--compact': compact }"
-        :aria-pressed="inList ? 'true' : 'false'"
+        :aria-pressed="compact ? (inList ? 'true' : 'false') : undefined"
         :disabled="processing"
         @click="toggle"
     >

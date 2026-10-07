@@ -212,6 +212,7 @@ Eloquent model                 ← perzistence
 - Hlavní scénář je telefon v obchodě: ovládací prvky dost velké pro palec, důležité informace na první obrazovce.
 - **JSON dotaz při psaní** (našeptávač, náhled) jde přes `fetch` s pauzou v psaní a zrušením předchozího (`AbortController`); routa má middleware `ReadOnlySession`, jinak souběžné uložení formuláře přijde o zprávu pro toast ([R71](PLAN.md#8-log-rozhodnutí)). Text od obchodu se zvýrazňuje komponentou `HighlightText`, ne přes `v-html`.
 - **Aplikace v telefonu** ([R66](PLAN.md#8-log-rozhodnutí)): stránka, která má fungovat bez signálu, patří do `letaky.pwa.offline_paths` a změna, kterou jde udělat offline, musí počkat v prohlížeči a odeslat se po návratu signálu (vzor `lib/offlineChecks.js`); co offline nejde, je bez připojení zakázané. Data uživatele uložená v prohlížeči (cache, localStorage) se po odhlášení mažou. Prvek přilepený ke spodnímu okraji obrazovky přičítá `--tab-bar-offset` (spodní lišta záložek) a obsah u okrajů displeje `env(safe-area-inset-*)`. localStorage jen přes `lib/storage.js` (anonymní okno ho nemá).
+- **Přístupnost** ([R99](PLAN.md#8-log-rozhodnutí)): prvek, který zmizí (zavřený seznam, menu), vrací fokus na tlačítko, které ho otevřelo; obsah, který se mění bez načtení stránky (počet výsledků, návrhy), oznamuje `role="status"`; chybné pole formuláře má `aria-invalid` a `aria-describedby` s chybou (fokus na něj po odeslání přesune `lib/a11y.js`); nadpisy navazují (karta pod `h2` skupiny má `h3`). Toast s akcí („Vrátit“) svítí déle než ostatní.
 - Žádný jQuery.
 
 ---
@@ -226,7 +227,9 @@ Eloquent model                 ← perzistence
 - Tmavý režim přepíná tokeny přes mixin `dark`, komponenty o něm nevědí.
 - Obchody se ukazují **logem** (`ChainLogo`, vodoznak `ChainWatermark`), ne barvou — loga jsou v `public/images/chains`, názvy a adresy sdílí `chainInfo`.
 - Barvy loga Slevohlídky (`--color-brand`, `--color-brand-dark`) jen na název v hlavičce; na tlačítka a text akcent (`--color-accent*`) se splněným kontrastem WCAG AA (bílý text na červené: velký tučný text 3 : 1, jinak 4,5 : 1).
-- Pohyb (nadzvednutí karet a tlačítek) jen přes `transition` s tokeny; při `prefers-reduced-motion` se vypne v `_reset.scss`.
+- Pohyb (nadzvednutí karet a tlačítek) jen přes `transition` s tokeny; při `prefers-reduced-motion` se vypne v `_reset.scss`. Dekorativní animace nesmí běžet donekonečna — počet opakování tokenem, nejvýš ~10 s ([R99](PLAN.md#8-log-rozhodnutí)).
+- **Fokus z klávesnice** je plná čára (`@include focus-ring`), globálně v `_reset.scss`. Komponenta ho nepřebíjí `outline: none` + stínem — stín režim vysokého kontrastu nekreslí ([R99](PLAN.md#8-log-rozhodnutí)).
+- **Ovládací prvky mají kontrast 3 : 1** proti podkladu: okraj pole a dráha přepínače `--color-input-border`, `--color-border` je jen na oddělení karet a řádků.
 - Prázdný stav stránky = komponenta `EmptyState` s maskotem, ne holá věta.
 
 ### Struktura

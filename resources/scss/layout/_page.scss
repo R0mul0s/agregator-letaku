@@ -77,10 +77,12 @@
 .skip-link {
     @include visually-hidden;
 
+    // Nad plovoucí hlavičkou (R99) — s nižší vrstvou zůstal po fokusu schovaný pod ní
     &:focus {
+        position: fixed;
         top: var(--space-2);
         left: var(--space-2);
-        z-index: 1;
+        z-index: var(--z-skip-link);
         width: auto;
         height: auto;
         margin: 0;

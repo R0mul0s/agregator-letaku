@@ -22,6 +22,7 @@ use App\Support\Legal\LegalDocuments;
 use App\Support\Seo\SeoMeta;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Vite;
+use Inertia\Inertia;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -45,10 +46,22 @@ class HandleInertiaRequests extends Middleware
         'offers' => 'offers',
     ];
 
+    /** Soubor s texty UI — jeho změna mění verzi Inertie (překlady se posílají jen jednou, R99). */
+    private const TRANSLATIONS_FILE = 'lang/cs/app.php';
+
     /** Navigace nepřihlášeného (R44): veřejné jsou jen Všechny akce. */
     private const GUEST_NAVIGATION = [
         'offers' => 'offers',
     ];
+
+    /**
+     * Verze assetů pro Inertii a service worker (R78): build Vite a texty UI. Texty se posílají
+     * jen jednou (R99) — bez nich ve verzi by klient po nasazení s novými texty držel staré.
+     */
+    public function version(Request $request): ?string
+    {
+        return hash('xxh128', (string) parent::version($request).'|'.hash_file('xxh128', base_path(self::TRANSLATIONS_FILE)));
+    }
 
     /**
      * Sdílí s každou stránkou texty UI, jazyk a zónu, přihlášeného uživatele,
@@ -62,7 +75,9 @@ class HandleInertiaRequests extends Middleware
 
         return [
             ...parent::share($request),
-            'translations' => fn () => trans('app.ui'),
+            // Texty UI (~50 kB) jen při celém načtení stránky — přechody Inertie je neposílají znovu,
+            // klient si je drží (R99); změna textů mění verzi (version), stránka se načte celá
+            'translations' => Inertia::once(fn () => trans('app.ui')),
             // Názvy a loga obchodů pro ChainLogo a výběr obchodu (public/images/chains)
             'chainInfo' => fn (): array => array_combine(
                 array_map(fn (Chain $chain): string => $chain->value, Chain::cases()),

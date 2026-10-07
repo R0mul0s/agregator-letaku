@@ -34,6 +34,14 @@ Options -Indexes
     RewriteCond %{THE_REQUEST} ^[A-Z]+\ /public(/[^?\ ]+)
     RewriteRule ^ %1 [L,R=301,NE]
 
+    # /index.php (i /index.php/akce) přesměruje na adresu bez něj (R99) — úvodní stránka
+    # by jinak byla pro vyhledávače dostupná dvakrát. Podle THE_REQUEST: vnitřní přepis
+    # na index.php níž původní řádek požadavku nemění, takže se nezacyklí.
+    RewriteCond %{THE_REQUEST} ^[A-Z]+\ /index\.php/?[?\ ]
+    RewriteRule ^ / [L,R=301]
+    RewriteCond %{THE_REQUEST} ^[A-Z]+\ /index\.php(/[^?\ ]+)
+    RewriteRule ^ %1 [L,R=301,NE]
+
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
@@ -76,7 +84,7 @@ Options -Indexes
     # Google Analytics 4 (R52, jen po souhlasu s cookies): knihovna z googletagmanager.com,
     # měření na google-analytics.com (region1.… apod., proto *.).
     # Service worker a manifest aplikace v telefonu (R66) jen vlastní (worker-src, manifest-src).
-    Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'sha256-N1pFVUfgXeDakJTvtDD/dpv6osDwpHWr+w+DUN4FEFk=' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'"
+    Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'sha256-oAUPszyolVGQLG1eBAeRpxCy02izZwENBGtPHAcI5hg=' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'"
 
     # HSTS jen na HTTPS odpovědi; max-age = 1 rok.
     <If "req('X-Forwarded-Proto') == 'https'">

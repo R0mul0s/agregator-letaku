@@ -37,11 +37,6 @@
             color: var(--color-text);
         }
 
-        &:focus-visible {
-            outline: none;
-            box-shadow: var(--focus-ring);
-        }
-
         &[aria-pressed='true'] {
             background: var(--color-accent-soft);
             color: var(--color-accent-strong);

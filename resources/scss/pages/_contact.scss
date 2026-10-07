@@ -144,7 +144,7 @@
         stroke-width: 1;
         transform-origin: 40% 80%;
         transform-box: fill-box;
-        animation: contact-pigeon-flap var(--pigeon-flap-duration) ease-in-out infinite alternate;
+        animation: contact-pigeon-flap var(--pigeon-flap-duration) ease-in-out var(--pigeon-flap-iterations) alternate;
     }
 }
 

@@ -44,15 +44,22 @@ const hasTabBar = computed(() => page.props.navigation.some((item) => item.tab))
 
 /** Navigace rozbalená na telefonu. */
 const navOpen = ref(false);
+const menuButton = ref(null);
 
 /**
- * Escape navigaci zavře.
+ * Escape navigaci zavře; byl-li fokus v navigaci, vrátí ho na tlačítko menu (R99) — ve skryté
+ * navigaci by se ztratil.
  *
  * @param {KeyboardEvent} event
  */
 function onKeydown(event) {
-    if (event.key === 'Escape') {
-        navOpen.value = false;
+    if (event.key !== 'Escape' || !navOpen.value) {
+        return;
+    }
+    const focusInNav = document.getElementById(NAV_ID)?.contains(document.activeElement);
+    navOpen.value = false;
+    if (focusInNav) {
+        menuButton.value?.focus();
     }
 }
 
@@ -127,6 +134,7 @@ onBeforeUnmount(() => {
                 <!-- Hamburger jen na telefonu: rozbalí navigaci pod hlavičkou -->
                 <button
                     v-if="hasMenuButton"
+                    ref="menuButton"
                     type="button"
                     class="app-header__menu-button"
                     :aria-expanded="navOpen ? 'true' : 'false'"

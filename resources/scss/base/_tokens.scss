@@ -33,12 +33,22 @@
     --color-panel-button-text: #b8141e;
     --color-on-accent: #ffffff;
     --color-border: #dfe1e6;
+    // Okraj formulářových polí a dráha vypnutého přepínače — ovládací prvek potřebuje proti
+    // podkladu kontrast aspoň 3 : 1 (WCAG 1.4.11, R99); --color-border je jen na oddělení karet
+    --color-input-border: #858b97;
+    // Rámeček fokusu — plná čára (ne poloprůhledný stín), kontrast proti podkladu aspoň 3 : 1
+    // a vidět i v režimu vysokého kontrastu Windows (R99)
     --color-focus: #1c7ed6;
+    --focus-outline-width: 2px;
+    --focus-outline-offset: 2px;
     --color-success: #2f9e44;
     --color-success-soft: #ebfbee;
     // Zelený text na --color-success-soft — malé písmo potřebuje kontrast aspoň 4,5 : 1 (R59)
     --color-success-text: #1e6b2c;
     --color-danger: #c92a2a;
+    // Podklad tlačítka nevratné akce s bílým textem — v obou režimech stejný (kontrast 5,6 : 1);
+    // --color-danger je v tmavém režimu světlý pro text chyb (R99)
+    --color-danger-button: #c92a2a;
     --color-danger-soft: #fff0f0;
     // Tlačítko Přihlásit přes Seznam (R98): manuál Seznamu — červená #CC0000 na světlém podkladu, bílá na tmavém
     --color-social-seznam: #cc0000;
@@ -141,6 +151,8 @@
     --pigeon-size: 6.5rem;
     --pigeon-flight-duration: 2.8s;
     --pigeon-flap-duration: 0.22s;
+    // Mávání křídly během letu — sudý počet (alternate), ať křídla skončí v klidu (R99)
+    --pigeon-flap-iterations: 46;
     --pigeon-flight-lift: 6rem;
     --color-pigeon-body: #8d97a8;
     --color-pigeon-neck: #4f9d87;
@@ -234,6 +246,11 @@
     --landing-bump-tilt: 1.5deg;
     --landing-streak-duration: 0.9s;
     --landing-streak-travel: 2.5rem;
+    // Kolikrát se animace košíku zopakuje (~10 s) — pohyb bez možnosti zastavit nesmí běžet
+    // déle než 5 s v kuse donekonečna (WCAG 2.2.2, R99)
+    --landing-drive-iterations: 3;
+    --landing-bump-iterations: 22;
+    --landing-streak-iterations: 11;
     --landing-streak-left: 8%;
     --landing-streak-thickness: 0.4rem;
     --landing-streak-long: 3.5rem;
@@ -250,10 +267,15 @@
     // Lišta souhlasu s cookies (R52) nad tlačítkem Nahoru, pod toastem
     --z-cookie-bar: 45;
     --z-toast: 50;
+    // Odkaz „Přeskočit na obsah“ po fokusu nad vším, i nad plovoucí hlavičkou (R99)
+    --z-skip-link: 60;
     // Spodní lišta záložek na telefonu (R66): nad obsahem a hlavičkou, pod tlačítkem Nahoru
     --z-tab-bar: 35;
     --tab-bar-height: 3.75rem;
     --tab-bar-icon-size: 1.5rem;
+    // Proužek nad aktivní záložkou (R99): výška a odsazení od okrajů položky
+    --tab-bar-indicator-height: 3px;
+    --tab-bar-indicator-inset: 25%;
     --font-size-tab: 0.6875rem;
     // O kolik zvednout prvky přilepené ke spodnímu okraji (toast, Nahoru, cookies) — bez lišty 0,
     // s lištou na telefonu její výška (layout/_tab-bar.scss)
@@ -308,7 +330,6 @@
     --notification-unread-width: 4px;
     --notification-icon-box-size: 2.25rem;
     --announcement-body-min-height: 8rem;
-    --opacity-ended: 0.6;
     --font-size-price: 1.75rem;
     // Cenovka slevy: bílý text na červené potřebuje „velký text“ (≥ 18,66 px tučně) pro kontrast 3 : 1
     --font-size-sticker: 1.25rem;
@@ -377,6 +398,7 @@
         --color-button-edge: #8f1820;
         --color-on-accent: #ffffff;
         --color-border: #2c3038;
+        --color-input-border: #6b7280;
         --color-scrollbar-thumb: #3a3f48;
         --color-toast-bg: #eceef2;
         --color-toast-text: #121418;

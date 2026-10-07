@@ -58,7 +58,7 @@ const firstStart = computed(() =>
                 <template v-for="item in items" :key="item.id">
                     <h3 class="watch-group__subtitle">{{ item.name }}</h3>
                     <div class="offer-grid">
-                        <OfferCard v-for="offer in item.upcoming" :key="offer.id" :offer="offer">
+                        <OfferCard v-for="offer in item.upcoming" :key="offer.id" :offer="offer" :heading-level="4">
                             <ShoppingToggle :offer-id="offer.id" />
                         </OfferCard>
                     </div>

@@ -13,7 +13,7 @@ import AppLayout from '@/Layouts/AppLayout.vue';
 import { formatDate } from '@/lib/format';
 import { useTranslations } from '@/lib/i18n';
 import { Head, usePage } from '@inertiajs/vue3';
-import { onBeforeUnmount, onMounted, ref } from 'vue';
+import { onBeforeUnmount, onMounted, ref, useId } from 'vue';
 
 const props = defineProps({
     title: { type: String, required: true },
@@ -36,6 +36,7 @@ const page = usePage();
 
 const activeId = ref(props.sections[0]?.id ?? null);
 const tocOpen = ref(false);
+const tocListId = useId();
 
 let frame = null;
 
@@ -64,7 +65,8 @@ function onScroll() {
 }
 
 /**
- * Plynule posune na kapitolu (s ohledem na omezení pohybu) a zapíše ji do adresy.
+ * Plynule posune na kapitolu (s ohledem na omezení pohybu), dá jí fokus a zapíše ji do adresy.
+ * Fokus (R99): další Tab pokračuje v kapitole, ne zpátky v obsahu.
  *
  * @param {MouseEvent} event
  * @param {string} id
@@ -77,6 +79,9 @@ function goTo(event, id) {
     event.preventDefault();
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     heading.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+    // Nadpis z Markdownu není ovládací prvek — fokus jen programově, bez zastávky tabulátoru
+    heading.setAttribute('tabindex', '-1');
+    heading.focus({ preventScroll: true });
     window.history.replaceState(window.history.state, '', `#${id}`);
     activeId.value = id;
     tocOpen.value = false;
@@ -111,12 +116,12 @@ onBeforeUnmount(() => {
         <div class="legal" :class="{ 'legal--no-toc': !sections.length }">
             <nav v-if="sections.length" class="legal-toc" :aria-label="t('legal.toc')">
                 <!-- Telefon: obsah se rozbalí tlačítkem; od tabletu je vidět vždy -->
-                <button type="button" class="legal-toc__toggle" :aria-expanded="tocOpen ? 'true' : 'false'" @click="tocOpen = !tocOpen">
+                <button type="button" class="legal-toc__toggle" :aria-expanded="tocOpen ? 'true' : 'false'" :aria-controls="tocListId" @click="tocOpen = !tocOpen">
                     {{ t('legal.toc') }}
                     <svg class="legal-toc__chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
                 </button>
                 <p class="legal-toc__title">{{ t('legal.toc') }}</p>
-                <ol class="legal-toc__list" :class="{ 'legal-toc__list--open': tocOpen }">
+                <ol :id="tocListId" class="legal-toc__list" :class="{ 'legal-toc__list--open': tocOpen }">
                     <li v-for="section in sections" :key="section.id">
                         <a
                             :href="`#${section.id}`"

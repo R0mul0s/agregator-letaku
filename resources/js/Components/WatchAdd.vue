@@ -243,6 +243,8 @@ function offersSummary(product) {
                     "
                 />
             </div>
+            <!-- Počet návrhů pro čtečky (R99) -->
+            <p class="visually-hidden" role="status">{{ open ? t('search.status', { count: options.length }) : '' }}</p>
             <div v-show="open" class="search-panel">
                 <p v-if="!matches.length && options.length > 1" class="search-panel__notice">{{ t('watch.did_you_mean') }}</p>
                 <ul :id="listId" class="search-panel__list" role="listbox" :aria-label="t('watch.add_label')">

@@ -37,6 +37,8 @@ beforeEach(function (): void {
         'services.google.client_secret' => 'google-secret',
         'services.facebook.client_id' => 'facebook-client',
         'services.facebook.client_secret' => 'facebook-secret',
+        // Seznam jen v testech, které ho zapnou — klíče z místního .env by změnily počet tlačítek
+        'services.seznam.client_id' => null,
     ]);
 });
 

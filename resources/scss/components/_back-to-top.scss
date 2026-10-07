@@ -41,11 +41,6 @@
         animation: back-to-top-bump var(--landing-bump-duration) ease-in-out infinite;
     }
 
-    &:focus-visible {
-        outline: none;
-        box-shadow: var(--focus-ring);
-    }
-
     @media (prefers-reduced-motion: reduce) {
         transition: none;
 

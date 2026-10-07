@@ -15,6 +15,12 @@ import { reactive } from 'vue';
 /** Jak dlouho toast svítí (ms), než sám zmizí; při najetí myší se čekání zastaví. */
 export const TOAST_DURATION_MS = 5000;
 
+/**
+ * Jak dlouho svítí toast s tlačítkem („Vrátit“) — uživatel klávesnice nebo čtečky se k němu musí
+ * stihnout dostat (toaster je na konci stránky, WCAG 2.2.1, R99).
+ */
+export const TOAST_ACTION_DURATION_MS = 15000;
+
 /** Nejvíc toastů najednou — starší ustoupí. */
 const MAX_TOASTS = 3;
 
@@ -47,9 +53,10 @@ export function dismissToast(id) {
  */
 export function scheduleDismiss(id) {
     clearTimeout(timers.get(id));
+    const withAction = Boolean(toasts.find((toast) => toast.id === id)?.action);
     timers.set(
         id,
-        setTimeout(() => dismissToast(id), TOAST_DURATION_MS),
+        setTimeout(() => dismissToast(id), withAction ? TOAST_ACTION_DURATION_MS : TOAST_DURATION_MS),
     );
 }
 

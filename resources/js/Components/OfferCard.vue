@@ -14,7 +14,7 @@ import { useTranslations } from '@/lib/i18n';
 import { discountPercent, packageLabel, startsLabel } from '@/lib/offer';
 import { showStoresDialog } from '@/lib/storesDialog';
 import { usePage } from '@inertiajs/vue3';
-import { computed, ref, useId } from 'vue';
+import { computed, ref, useId, watch } from 'vue';
 
 const props = defineProps({
     /**
@@ -22,9 +22,23 @@ const props = defineProps({
      * `stores` = { names, count } u akce, která neplatí ve všech prodejnách (R49), jinak null.
      */
     offer: { type: Object, required: true },
+    /** Úroveň nadpisu názvu akce podle místa na stránce (pod h2 skupiny h3, R99). */
+    headingLevel: { type: Number, default: 2 },
 });
 
 const t = useTranslations();
+
+/** Obrázek z CDN obchodu se nenačetl (R99) — karta se ukáže jako bez obrázku, ne s rozbitou ikonou. */
+const imageBroken = ref(false);
+watch(
+    () => props.offer.imageUrl,
+    () => {
+        imageBroken.value = false;
+    },
+);
+
+/** Obrázek, který jde ukázat. */
+const hasImage = computed(() => Boolean(props.offer.imageUrl) && !imageBroken.value);
 const page = usePage();
 const locale = computed(() => page.props.locale);
 
@@ -129,17 +143,17 @@ function unitPriceLabel(halers) {
             </button>
             <span class="tag" :class="{ 'tag--accent': offer.offerType === 'discount' }">{{ t(`offer_types.${offer.offerType}`) }}</span>
             <!-- Bez obrázku cenovka vpravo v řádku štítků — přes prázdné pole by překryla název -->
-            <span v-if="discount && !offer.imageUrl" class="offer-card__sticker offer-card__sticker--inline" aria-hidden="true">−{{ discount }} %</span>
+            <span v-if="discount && !hasImage" class="offer-card__sticker offer-card__sticker--inline" aria-hidden="true">−{{ discount }} %</span>
         </div>
         <p v-if="offer.matchStatus === 'maybe'" :id="maybeHintId" class="offer-card__hint" :hidden="!maybeHintOpen">{{ t('offers.maybe_hint') }}</p>
 
         <!-- Obrázek z CDN obchodu, nestahuje se k nám (R22); název nese nadpis, obrázek je dekorativní.
              Sleva jako červená cenovka přes obrázek (motiv z loga); čtečka ji má i u ceny. -->
-        <div v-if="offer.imageUrl" class="offer-card__media">
-            <img :src="offer.imageUrl" alt="" class="offer-card__image" loading="lazy" referrerpolicy="no-referrer" />
+        <div v-if="hasImage" class="offer-card__media">
+            <img :src="offer.imageUrl" alt="" class="offer-card__image" loading="lazy" referrerpolicy="no-referrer" @error="imageBroken = true" />
             <span v-if="discount" class="offer-card__sticker" aria-hidden="true">−{{ discount }} %</span>
         </div>
-        <h2 class="offer-card__name">{{ offer.name }}</h2>
+        <component :is="`h${headingLevel}`" class="offer-card__name">{{ offer.name }}</component>
         <p v-if="offer.description" class="offer-card__description">{{ offer.description }}</p>
         <p v-if="offer.variantNote" class="offer-card__variant">{{ offer.variantNote }}</p>
         <p v-if="packageText" class="offer-card__package">{{ packageText }}</p>
@@ -156,7 +170,10 @@ function unitPriceLabel(halers) {
             </template>
             <template v-else>
                 <span class="offer-card__price">{{ formatPrice(offer.price, locale) }}</span>
-                <s v-if="offer.originalPrice !== null" class="offer-card__original">{{ formatPrice(offer.originalPrice, locale) }}</s>
+                <!-- Přeškrtnutí čtečka obvykle neohlásí — bez slova „původně“ by zazněly dvě ceny za sebou -->
+                <s v-if="offer.originalPrice !== null" class="offer-card__original"
+                    ><span class="visually-hidden">{{ t('offers.original_price_label') }} </span>{{ formatPrice(offer.originalPrice, locale) }}</s
+                >
                 <span v-if="discount" class="offer-card__discount">−{{ discount }} %</span>
             </template>
         </div>

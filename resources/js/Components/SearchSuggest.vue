@@ -4,6 +4,8 @@
     akcí a cenou od (klepnutí = akce produktu, tlačítko Hlídat), první akce s obrázkem, obchodem
     a cenou, „Zobrazit všech N výsledků“; překlep opraví server. Shoda je zvýrazněná.
     Šipky vybírají, Enter potvrdí (bez výběru hledá text), Escape zavře, „/“ skočí do pole.
+    Delete smaže vybrané poslední hledání, Shift + Delete všechna (R99) — tlačítka v panelu jsou
+    jen pro myš a dotyk, fokus zůstává v poli (combobox). Počet návrhů oznamuje skrytý stav.
     Na telefonu se hledání otevře přes celou obrazovku.
 
     @author Roman Hlaváček
@@ -88,6 +90,21 @@ const sections = computed(() => {
 
 const options = computed(() => sections.value.flatMap((section) => section.options));
 const activeId = computed(() => (activeIndex.value >= 0 ? `${listId.value}-${activeIndex.value}` : undefined));
+/** Text pro čtečky: počet návrhů, „nic jsme nenašli“ nebo opravený překlep (R99). */
+const statusText = computed(() => {
+    if (!panelVisible.value) {
+        return '';
+    }
+    if (nothingFound.value) {
+        return t('search.nothing', { text: text.value });
+    }
+    const count = t('search.status', { count: options.value.length });
+
+    return data.corrected ? `${t('search.corrected', { text: data.corrected })}, ${count}` : count;
+});
+/** Jsou v panelu poslední hledání (mazání klávesou Delete)? */
+const hasRecent = computed(() => text.value === '' && recent.value.length > 0);
+const hintId = computed(() => `${props.id}-hint`);
 const nothingFound = computed(() => text.value.length >= props.minLength && !fetching.value && options.value.length === 0 && data.popular === false);
 const panelVisible = computed(() => open.value && (options.value.length > 0 || nothingFound.value));
 
@@ -196,13 +213,32 @@ function onKeydown(event) {
             finish();
         }
     } else if (event.key === 'Escape') {
-        // Prohlížeč by pole typu search Escapem vymazal — Escape jen zavírá
+        // Prohlížeč by pole typu search Escapem vymazal — Escape jen zavírá; fokus zůstává
+        // v poli (R99), shozený na začátek stránky by uživatel klávesnice ztratil
         event.preventDefault();
-        if (open.value) {
-            close();
-        } else {
-            input.value?.blur();
-        }
+        close();
+    } else if (event.key === 'Delete' && hasRecent.value) {
+        forgetFromKeyboard(event);
+    }
+}
+
+/**
+ * Delete nad vybraným posledním hledáním ho smaže, Shift + Delete smaže všechna (R99) —
+ * tlačítka v panelu jsou jen pro myš a dotyk.
+ *
+ * @param {KeyboardEvent} event
+ */
+function forgetFromKeyboard(event) {
+    const option = options.value[activeIndex.value];
+    if (event.shiftKey) {
+        event.preventDefault();
+        forget();
+    } else if (option?.kind === 'recent') {
+        event.preventDefault();
+        const index = activeIndex.value;
+        forget(option.query);
+        // Výběr zůstane na stejném místě seznamu, ať jde mazat dál
+        activeIndex.value = Math.min(index, options.value.length - 1);
     }
 }
 
@@ -267,6 +303,7 @@ onBeforeUnmount(() => {
                 :aria-controls="listId"
                 :aria-activedescendant="activeId"
                 :aria-busy="loading || fetching ? 'true' : 'false'"
+                :aria-describedby="hasRecent ? hintId : undefined"
                 @input="onInput"
                 @focus="onFocus"
                 @keydown="onKeydown"
@@ -277,6 +314,9 @@ onBeforeUnmount(() => {
             />
             <kbd class="search-suggest__shortcut" aria-hidden="true">/</kbd>
         </div>
+        <!-- Pro čtečky (R99): počet návrhů se oznámí, jak se změní; nápověda k mazání historie -->
+        <p class="visually-hidden" role="status">{{ statusText }}</p>
+        <p :id="hintId" class="visually-hidden">{{ t('search.forget_hint') }}</p>
 
         <div v-show="panelVisible" class="search-panel">
             <p v-if="data.corrected" class="search-panel__notice">{{ t('search.corrected', { text: data.corrected }) }}</p>
@@ -287,7 +327,15 @@ onBeforeUnmount(() => {
                 <template v-for="section in sections" :key="section.key">
                     <li v-if="section.title" class="search-panel__heading" role="presentation">
                         <span>{{ section.title }}</span>
-                        <button v-if="section.key === 'recent'" type="button" class="link-button search-panel__clear" @mousedown.prevent @click="forget()">
+                        <!-- Tlačítka v panelu bez tabulátoru — fokus zůstává v poli, z klávesnice Delete (R99) -->
+                        <button
+                            v-if="section.key === 'recent'"
+                            type="button"
+                            class="link-button search-panel__clear"
+                            tabindex="-1"
+                            @mousedown.prevent
+                            @click="forget()"
+                        >
                             {{ t('search.clear_recent') }}
                         </button>
                     </li>
@@ -305,7 +353,14 @@ onBeforeUnmount(() => {
                         <template v-if="option.kind === 'recent'">
                             <svg class="search-panel__glyph" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5" /><path d="M12 7.5V12l3 2" /></svg>
                             <span class="search-panel__main">{{ option.query }}</span>
-                            <button type="button" class="search-panel__remove" :title="t('search.forget')" @mousedown.prevent.stop @click.stop="forget(option.query)">
+                            <button
+                                type="button"
+                                class="search-panel__remove"
+                                tabindex="-1"
+                                :title="t('search.forget')"
+                                @mousedown.prevent.stop
+                                @click.stop="forget(option.query)"
+                            >
                                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
                                 <span class="visually-hidden">{{ t('search.forget') }}</span>
                             </button>
@@ -322,8 +377,13 @@ onBeforeUnmount(() => {
                                     </template>
                                 </span>
                             </span>
+                            <!-- Z klávesnice: Enter otevře akce produktu, tam je Hlídat na kartách (R99) -->
                             <span v-if="watchUrls" class="search-panel__action" @mousedown.prevent.stop>
-                                <WatchOfferButton :target="{ productId: option.product.id, name: option.product.name, watched: option.product.watched }" :urls="watchUrls" />
+                                <WatchOfferButton
+                                    :target="{ productId: option.product.id, name: option.product.name, watched: option.product.watched }"
+                                    :urls="watchUrls"
+                                    tabindex="-1"
+                                />
                             </span>
                         </template>
 
@@ -355,6 +415,7 @@ onBeforeUnmount(() => {
                 <span><kbd>↑</kbd><kbd>↓</kbd> {{ t('search.keys_move') }}</span>
                 <span><kbd>Enter</kbd> {{ t('search.keys_choose') }}</span>
                 <span><kbd>Esc</kbd> {{ t('search.keys_close') }}</span>
+                <span v-if="hasRecent"><kbd>Del</kbd> {{ t('search.keys_forget') }}</span>
             </p>
         </div>
     </div>

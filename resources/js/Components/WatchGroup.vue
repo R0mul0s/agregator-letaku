@@ -149,7 +149,7 @@ async function remove() {
                     <OfferRow v-for="offer in item.offers" :key="offer.id" :offer="offer" :with-chain="withChain" />
                 </ul>
                 <div v-else-if="item.offers.length" class="offer-grid">
-                    <OfferCard v-for="offer in item.offers" :key="offer.id" :offer="offer">
+                    <OfferCard v-for="offer in item.offers" :key="offer.id" :offer="offer" :heading-level="3">
                         <ShoppingToggle :offer-id="offer.id" />
                     </OfferCard>
                 </div>

@@ -4,6 +4,7 @@
  * @author Roman Hlaváček
  * @created 2026-10-02
  */
+import { initAccessibility } from '@/lib/a11y';
 import { initConsent } from '@/lib/consent';
 import { initPwa } from '@/lib/pwa';
 import { installStatusToasts } from '@/lib/toast';
@@ -39,6 +40,8 @@ createInertiaApp({
             .use(plugin)
             .mount(el);
         installStatusToasts(props.initialPage);
+        // Fokus a oznámení po přechodu na jinou stránku, fokus na chybné pole formuláře (R99)
+        initAccessibility();
         // Aplikace v telefonu (R66): service worker, offline režim, výzva k přidání na plochu
         initPwa(props.initialPage);
     },

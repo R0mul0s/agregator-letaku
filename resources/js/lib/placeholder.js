@@ -1,6 +1,8 @@
 /**
  * Příklady hledání, které se v prázdném poli pomalu střídají (R71) — „Zkuste: máslo“,
  * „Zkuste: pivo“. Při psaní a s omezeným pohybem (prefers-reduced-motion) stojí na prvním.
+ * Po jednom kole příkladů zůstane stát na prvním (WCAG 2.2.2, R99) — samo se měnící text
+ * nesmí běžet donekonečna.
  *
  * @author Roman Hlaváček
  * @created 2026-10-04
@@ -30,6 +32,9 @@ export function useRotatingPlaceholder(examples, paused, format) {
         timer = window.setInterval(() => {
             if (!paused.value) {
                 index.value = (index.value + 1) % examples().length;
+                if (index.value === 0) {
+                    window.clearInterval(timer);
+                }
             }
         }, ROTATE_MS);
     });

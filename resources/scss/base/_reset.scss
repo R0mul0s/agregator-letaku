@@ -92,8 +92,13 @@ select {
 }
 
 :focus-visible {
-    outline: none;
-    box-shadow: var(--focus-ring);
+    @include focus-ring;
+}
+
+// Nápověda v prázdném poli — Firefox ji jinak kreslí s krytím 54 % a kontrastem pod 4,5 : 1 (R99)
+::placeholder {
+    color: var(--color-text-muted);
+    opacity: 1;
 }
 
 // Text jen pro čtečky obrazovky (např. popisky ikonových tlačítek)

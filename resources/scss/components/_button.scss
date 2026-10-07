@@ -42,7 +42,7 @@
 
     // Nevratná akce (zrušení účtu)
     &--danger {
-        background: var(--color-danger);
+        background: var(--color-danger-button);
         color: var(--color-on-accent);
 
         &:hover:not(:disabled) {

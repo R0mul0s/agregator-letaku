@@ -109,10 +109,12 @@
         letter-spacing: normal;
     }
 
+    // Malé písmo — přechod panelu začíná tmavší červenou, na --gradient-brand by bílý text
+    // neměl kontrast 4,5 : 1 (R99)
     &__discount {
         @include badge-text;
 
-        background: var(--gradient-brand);
+        background: var(--gradient-panel);
         border-radius: var(--radius-sm);
         color: var(--color-on-brand);
         font-size: var(--font-size-sm);

@@ -74,7 +74,7 @@ async function remove() {
                 </h2>
                 <p v-if="!assigned.length" class="page__empty">{{ t('catalog.assigned_empty') }}</p>
                 <div v-else class="offer-grid">
-                    <OfferCard v-for="offer in assigned" :key="offer.id" :offer="offer">
+                    <OfferCard v-for="offer in assigned" :key="offer.id" :offer="offer" :heading-level="3">
                         <span v-if="offer.isManual" class="tag">{{ t('catalog.manual') }}</span>
                         <button type="button" class="button button--ghost" @click="correct('delete', offer.excludeUrl)">{{ t('catalog.exclude') }}</button>
                     </OfferCard>
@@ -83,7 +83,7 @@ async function remove() {
                 <template v-if="excluded.length">
                     <h2 class="watch-group__title catalog-section">{{ t('catalog.excluded') }}</h2>
                     <div class="offer-grid">
-                        <OfferCard v-for="offer in excluded" :key="offer.id" :offer="offer">
+                        <OfferCard v-for="offer in excluded" :key="offer.id" :offer="offer" :heading-level="3">
                             <button type="button" class="button button--ghost" @click="correct('delete', offer.restoreUrl)">{{ t('catalog.restore') }}</button>
                         </OfferCard>
                     </div>
@@ -99,7 +99,7 @@ async function remove() {
                 </form>
                 <p v-if="search.query && !search.results.length" class="page__empty">{{ t('offers.empty') }}</p>
                 <div v-if="search.results.length" class="offer-grid">
-                    <OfferCard v-for="offer in search.results" :key="offer.id" :offer="offer">
+                    <OfferCard v-for="offer in search.results" :key="offer.id" :offer="offer" :heading-level="3">
                         <button type="button" class="button button--ghost" @click="correct('post', offer.includeUrl)">{{ t('catalog.include') }}</button>
                     </OfferCard>
                 </div>

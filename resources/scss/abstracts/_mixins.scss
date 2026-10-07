@@ -39,6 +39,13 @@
     white-space: nowrap;
 }
 
+/// Rámeček fokusu z klávesnice (R99): plná čára s odsazením. Obrys, ne stín — stíny režim
+/// vysokého kontrastu Windows nekreslí a fokus by zmizel.
+@mixin focus-ring {
+    outline: var(--focus-outline-width) solid var(--color-focus);
+    outline-offset: var(--focus-outline-offset);
+}
+
 /// Zruší visually-hidden — prvek skrytý jen vizuálně se zase ukáže.
 @mixin visually-shown {
     position: static;

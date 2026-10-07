@@ -34,6 +34,7 @@ final class SeoMeta
     public function __construct(
         private readonly OfferPages $pages,
         private readonly OfferSearch $search,
+        private readonly StructuredData $structuredData,
     ) {}
 
     private const INDEX = 'index, follow';
@@ -45,35 +46,39 @@ final class SeoMeta
     /** Stránky přihlášení a registrace — odkazy z nich ano, samy do výsledků ne. */
     private const AUTH_ROUTES = ['login', 'register', 'password.request', 'password.reset'];
 
-    /** Obrázek pro sdílení (1200 × 630, zdroj resources/brand/og-image.html). */
-    private const OG_IMAGE_PATH = 'images/brand/og-image.png';
+    /** Obrázek pro sdílení (1200 × 630, zdroj resources/brand/og-image.html), i pro schema.org. */
+    public const OG_IMAGE_PATH = 'images/brand/og-image.png';
 
     private const OG_IMAGE_WIDTH = 1200;
 
     private const OG_IMAGE_HEIGHT = 630;
 
-    /** Logo pro schema.org Organization. */
-    private const LOGO_PATH = 'images/brand/icon-512.png';
-
     /**
      * Metadata stránky podle routy a parametrů. `heading` je nadpis stránky pro obsah
-     * pro roboty bez JavaScriptu (resources/views/seo/content.blade.php, R94).
+     * pro roboty bez JavaScriptu (resources/views/seo/content.blade.php, R94). `$inertiaPage`
+     * je stránka Inertie z kořenové šablony — z jejích props jsou akce ve schema.org (R99).
      *
-     * @return array{title: string, heading: string, description: string, canonical: string, robots: string, image: array{url: string, width: int, height: int, alt: string}, jsonLd: list<array<string, mixed>>}
+     * @param  array<string, mixed>  $inertiaPage
+     * @return array{title: string, heading: string, description: string, canonical: string, robots: string, image: array{url: string, width: int, height: int, alt: string}, jsonLd: array<string, mixed>|null}
      */
-    public function forRequest(Request $request): array
+    public function forRequest(Request $request, array $inertiaPage = []): array
     {
         $routeName = (string) $request->route()?->getName();
         [$chain, $productId] = $this->target($request, $routeName);
         $page = $this->page($request, $routeName, $chain, $productId);
         $robots = $this->robots($routeName, $page, $request, $productId);
         $replace = $this->replacements($chain, $productId);
+        $title = __("app.seo.pages.{$page}.title", $replace);
+        $heading = __("app.seo.pages.{$page}.heading", $replace);
+        $description = __("app.seo.pages.{$page}.description", $replace);
+        $canonical = $this->canonical($request, $routeName, $chain, $productId);
+        $props = is_array($inertiaPage['props'] ?? null) ? $inertiaPage['props'] : [];
 
         return [
-            'title' => __("app.seo.pages.{$page}.title", $replace),
-            'heading' => __("app.seo.pages.{$page}.heading", $replace),
-            'description' => __("app.seo.pages.{$page}.description", $replace),
-            'canonical' => $this->canonical($request, $routeName, $chain, $productId),
+            'title' => $title,
+            'heading' => $heading,
+            'description' => $description,
+            'canonical' => $canonical,
             'robots' => $robots,
             'image' => [
                 'url' => asset(self::OG_IMAGE_PATH),
@@ -82,7 +87,9 @@ final class SeoMeta
                 'alt' => __('app.seo.og_image_alt'),
             ],
             // Strukturovaná data jen na indexovaných stránkách
-            'jsonLd' => $robots === self::INDEX ? $this->jsonLd() : [],
+            'jsonLd' => $robots === self::INDEX
+                ? $this->structuredData->graph($page, $title, $heading, $description, $canonical, $chain, $productId, $props)
+                : null,
         ];
     }
 
@@ -245,49 +252,5 @@ final class SeoMeta
 
         return $request->filled('q') || $request->boolean(OffersRequest::UPCOMING)
             || $request->boolean(OffersRequest::WITHOUT_ESHOP) || $multipleChains || $combined;
-    }
-
-    /**
-     * schema.org: provozovatel (Organization) a web s vyhledáváním v akcích (WebSite
-     * + SearchAction — vyhledávač může nabídnout pole hledání přímo ve výsledcích).
-     *
-     * @return list<array<string, mixed>>
-     */
-    private function jsonLd(): array
-    {
-        $home = self::homeUrl();
-        $name = __('app.ui.app_name');
-
-        return [
-            [
-                '@context' => 'https://schema.org',
-                '@type' => 'Organization',
-                '@id' => $home.'#organization',
-                'name' => $name,
-                'url' => $home,
-                'logo' => asset(self::LOGO_PATH),
-                'description' => __('app.seo.organization_description'),
-                // Kontakt na provozovatele (R51)
-                'email' => config('letaky.operator.email'),
-            ],
-            [
-                '@context' => 'https://schema.org',
-                '@type' => 'WebSite',
-                '@id' => $home.'#website',
-                'name' => $name,
-                'alternateName' => __('app.ui.brand.tagline'),
-                'url' => $home,
-                'inLanguage' => str_replace('_', '-', app()->getLocale()),
-                'publisher' => ['@id' => $home.'#organization'],
-                'potentialAction' => [
-                    '@type' => 'SearchAction',
-                    'target' => [
-                        '@type' => 'EntryPoint',
-                        'urlTemplate' => route('offers').'?q={search_term_string}',
-                    ],
-                    'query-input' => 'required name=search_term_string',
-                ],
-            ],
-        ];
     }
 }

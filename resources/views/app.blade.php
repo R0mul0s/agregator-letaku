@@ -6,7 +6,7 @@
     @created 2026-10-02
 --}}
 @php
-    $seo = app(\App\Support\Seo\SeoMeta::class)->forRequest(request());
+    $seo = app(\App\Support\Seo\SeoMeta::class)->forRequest(request(), $page);
     // JSON uvnitř <script>: HEX_TAG zabrání tomu, aby text akce ukončil značku („</script>“)
     $jsonLdFlags = JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP;
 @endphp
@@ -62,16 +62,17 @@
             <link rel="apple-touch-startup-image" href="/images/brand/splash-{{ $width }}x{{ $height }}x{{ $ratio }}.png"
                 media="(device-width: {{ $width }}px) and (device-height: {{ $height }}px) and (-webkit-device-pixel-ratio: {{ $ratio }}) and (orientation: portrait)">
         @endforeach
-        {{-- schema.org pro vyhledávače — datový blok, ne skript (CSP ho nespouští) --}}
-        @foreach ($seo['jsonLd'] as $data)
-            <script type="application/ld+json">{!! json_encode($data, $jsonLdFlags) !!}</script>
-        @endforeach
+        {{-- schema.org pro vyhledávače (StructuredData, R99) — datový blok, ne skript (CSP ho nespouští) --}}
+        @if ($seo['jsonLd'] !== null)
+            <script type="application/ld+json">{!! json_encode($seo['jsonLd'], $jsonLdFlags) !!}</script>
+        @endif
         {{-- Uložený vzhled a třídu has-js nastavit před vykreslením, jinak stránka problikne (viz resources/js/lib/theme.js) --}}
         {{-- Vložený, ne soubor — samostatný požadavek blokoval první vykreslení (PageSpeed). CSP ho pouští
-             jen podle otisku SHA-256 v public/.htaccess (test hlídá, že sedí s public/theme-init.js) --}}
-        @php($themeInit = public_path('theme-init.js'))
-        @if (is_file($themeInit))
-            <script>{!! trim((string) file_get_contents($themeInit)) !!}</script>
+             jen podle otisku SHA-256 v public/.htaccess (test hlídá, že sedí s public/theme-init.js).
+             Bez komentářů a odsazení (InlineScript, R99) — hlavička souboru do stránky nepatří --}}
+        @php($themeInit = \App\Support\InlineScript::fromFile(public_path('theme-init.js')))
+        @if ($themeInit !== null)
+            <script>{!! $themeInit !!}</script>
         @else
             <script src="/theme-init.js"></script>
         @endif

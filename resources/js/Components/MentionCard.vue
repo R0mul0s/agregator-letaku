@@ -29,13 +29,24 @@ const starts = computed(() => startsLabel(props.mention, locale.value, t));
 /** Vysvětlení štítku „Možná“ pod štítky — otevírá se klepnutím (R55). */
 const maybeHintOpen = ref(false);
 const maybeHintId = useId();
+
+/** Náhled z CDN obchodu se nenačetl (R99) — karta bez rozbité ikony. */
+const imageBroken = ref(false);
 </script>
 
 <template>
     <article class="mention-card">
         <ChainWatermark :chain="mention.chain" />
         <!-- Náhled stránky z CDN obchodu (R22); obsah nese text karty, obrázek je dekorativní -->
-        <img v-if="mention.imageUrl" :src="mention.imageUrl" alt="" class="mention-card__image" loading="lazy" referrerpolicy="no-referrer" />
+        <img
+            v-if="mention.imageUrl && !imageBroken"
+            :src="mention.imageUrl"
+            alt=""
+            class="mention-card__image"
+            loading="lazy"
+            referrerpolicy="no-referrer"
+            @error="imageBroken = true"
+        />
         <div class="mention-card__body">
             <div class="offer-card__badges">
                 <ChainLogo :chain="mention.chain" />

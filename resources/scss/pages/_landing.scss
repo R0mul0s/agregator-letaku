@@ -127,7 +127,7 @@
     &__drive {
         position: absolute;
         inset: var(--space-3);
-        animation: landing-drive var(--landing-drive-duration) ease-in-out infinite;
+        animation: landing-drive var(--landing-drive-duration) ease-in-out var(--landing-drive-iterations);
 
         @include from-md {
             inset: var(--space-4);
@@ -139,7 +139,7 @@
         display: block;
         width: 100%;
         height: auto;
-        animation: landing-bump var(--landing-bump-duration) ease-in-out infinite;
+        animation: landing-bump var(--landing-bump-duration) ease-in-out var(--landing-bump-iterations);
         transform-origin: 50% 85%;
     }
 
@@ -151,7 +151,7 @@
         background: var(--color-brand);
         border-radius: var(--radius-pill);
         opacity: 0;
-        animation: landing-streak var(--landing-streak-duration) linear infinite;
+        animation: landing-streak var(--landing-streak-duration) linear var(--landing-streak-iterations);
 
         &:nth-child(1) {
             top: 44%;
@@ -183,7 +183,7 @@
         font-size: var(--font-size-md);
         font-weight: 900;
         transform: rotate(var(--sticker-rotation));
-        animation: landing-sticker var(--landing-drive-duration) ease-in-out infinite;
+        animation: landing-sticker var(--landing-drive-duration) ease-in-out var(--landing-drive-iterations);
 
         @include from-md {
             font-size: var(--font-size-lg);

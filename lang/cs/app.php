@@ -31,7 +31,7 @@ return [
             'offers' => [
                 'title' => 'Všechny akce z letáků · Slevohlídka',
                 'heading' => 'Všechny akce z letáků',
-                'description' => 'Aktuální akce z letáků a e-shopů Kauflandu, Tesca, Lidlu, Penny, Globusu a Billy na jednom místě — s cenou za kilo nebo litr a cenou s věrnostní kartou.',
+                'description' => 'Aktuální akce z letáků Kauflandu, Tesca, Albertu, Lidlu, Penny, Globusu a Billy na jednom místě — s cenou za kilo nebo litr a cenou s věrnostní kartou.',
             ],
             'offers_chain' => [
                 'title' => 'Akce z letáku :chain tento týden · Slevohlídka',
@@ -538,6 +538,10 @@ return [
             'keys_move' => 'vybrat',
             'keys_choose' => 'potvrdit',
             'keys_close' => 'zavřít',
+            'keys_forget' => 'smazat hledání',
+            // Pro čtečky obrazovky (R99): počet návrhů a jak smazat poslední hledání z klávesnice
+            'status' => ':count návrh|:count návrhy|:count návrhů',
+            'forget_hint' => 'Vybrané poslední hledání smažete klávesou Delete, všechna najednou Shift + Delete.',
             // Jen akce, které ještě nezačaly (R76)
             'upcoming_only' => 'Brzy začnou',
             // Bez akcí jen z e-shopu (R82)
@@ -561,6 +565,8 @@ return [
             'empty' => 'Tentokrát jsme nic neulovili. Zkuste jiné slovo nebo jiný obchod.',
             'with_card' => 's kartou :program',
             'regular_price' => 'běžně :price',
+            // Před přeškrtnutou cenou jen pro čtečky (R99) — přeškrtnutí neohlásí
+            'original_price_label' => 'původně',
             'unit_price' => ':price / :unit',
             'valid' => 'Platí :from – :to',
             // Akce, která ještě nezačala (R76) — štítek; :date jako „st 8. 10.“
@@ -1141,7 +1147,7 @@ return [
                     'title' => 'Cena nesedí',
                     'text' => 'V obchodě je to jinak než u nás? Pošlete nám pár údajů — podíváme se na to a opravíme.',
                     'subject' => 'Slevohlídka: cena nesedí',
-                    'template' => "Obchod (a prodejna):\nNázev akce:\nCena u vás:\nCena v obchodě:\nKdy jsem byl(a) nakoupit:",
+                    'template' => "Obchod (a prodejna):\nNázev akce:\nCena u vás:\nCena v obchodě:\nDatum nákupu:",
                 ],
                 'idea' => [
                     'title' => 'Nápad nebo chyba webu',

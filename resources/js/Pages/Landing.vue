@@ -30,6 +30,9 @@ const MAIN_FEATURES = ['watch', 'unit_price', 'cards'];
 /** Jak dlouho svítí jedna sleva na cenovce u maskota (ms). */
 const STICKER_ROTATE_MS = 2600;
 
+/** Kolikrát se sleva na cenovce vystřídá, než zůstane stát (~10 s, WCAG 2.2.2, R99). */
+const STICKER_MAX_ROTATIONS = 4;
+
 const props = defineProps({
     /** Adresy registrace, přihlášení, Všech akcí a našeptávače. */
     urls: { type: Object, required: true },
@@ -90,7 +93,14 @@ function showProduct(product) {
 onMounted(() => {
     const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
     if (!reducedMotion && stickerDiscounts.value.length > 1) {
-        stickerTimer = window.setInterval(() => (stickerIndex.value = (stickerIndex.value + 1) % stickerDiscounts.value.length), STICKER_ROTATE_MS);
+        let rotations = 0;
+        stickerTimer = window.setInterval(() => {
+            stickerIndex.value = (stickerIndex.value + 1) % stickerDiscounts.value.length;
+            rotations++;
+            if (rotations >= STICKER_MAX_ROTATIONS) {
+                window.clearInterval(stickerTimer);
+            }
+        }, STICKER_ROTATE_MS);
     }
 });
 
@@ -214,7 +224,7 @@ onBeforeUnmount(() => window.clearInterval(stickerTimer));
                 <Link :href="urls.offers" class="link">{{ t('landing.top_more') }} →</Link>
             </div>
             <div class="offer-grid">
-                <OfferCard v-for="offer in topOffers" :key="offer.id" :offer="offer" />
+                <OfferCard v-for="offer in topOffers" :key="offer.id" :offer="offer" :heading-level="3" />
             </div>
         </section>
 

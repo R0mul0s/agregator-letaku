@@ -18,6 +18,14 @@
     }
 }
 
+// Prvek s fokusem z klávesnice se posune nad lištu, ne pod ni (WCAG 2.4.11, R99) — scroll-padding
+// patří na html, kam --tab-bar-offset z .app-root nedosáhne
+html:has(.tab-bar) {
+    @include below-nav {
+        scroll-padding-bottom: calc(var(--tab-bar-height) + env(safe-area-inset-bottom));
+    }
+}
+
 .tab-bar {
     position: fixed;
     z-index: var(--z-tab-bar);
@@ -35,6 +43,7 @@
     }
 
     &__item {
+        position: relative;
         display: flex;
         flex: 1 1 0;
         flex-direction: column;
@@ -50,8 +59,20 @@
         // Na dotyk bez šedého záblesku Safari — stav ukáže barva
         -webkit-tap-highlight-color: transparent;
 
+        // Aktivní záložka i proužkem nahoře — barva sama se od neaktivní skoro neliší (WCAG 1.4.1, R99)
         &--active {
             color: var(--color-accent-strong);
+
+            &::before {
+                position: absolute;
+                top: 0;
+                right: var(--tab-bar-indicator-inset);
+                left: var(--tab-bar-indicator-inset);
+                height: var(--tab-bar-indicator-height);
+                background: var(--color-accent);
+                border-radius: 0 0 var(--radius-pill) var(--radius-pill);
+                content: '';
+            }
         }
     }
 

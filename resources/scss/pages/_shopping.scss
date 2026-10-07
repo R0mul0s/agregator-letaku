@@ -171,10 +171,15 @@
         font-weight: 700;
     }
 
-    // Skončená nebo obchodem stažená akce (R74) — ztlumená, bez tlačítka do seznamu
+    // Skončená nebo obchodem stažená akce (R74) — bez tlačítka do seznamu, cena tlumeně. Stav nese
+    // štítek; průhlednost celého řádku stáhla text pod kontrast 4,5 : 1 (R99)
     &--ended {
         grid-template-columns: minmax(0, 1fr) auto;
-        opacity: var(--opacity-ended);
+    }
+
+    &--ended &__price,
+    &--ended &__discount {
+        color: var(--color-text-muted);
     }
 }
 

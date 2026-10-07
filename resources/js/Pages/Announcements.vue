@@ -90,9 +90,11 @@ async function submit() {
                     :maxlength="limits.body"
                     class="form-field__input announcement-form__body"
                     :class="{ 'form-field__input--invalid': form.errors.body }"
+                    :aria-invalid="form.errors.body ? 'true' : undefined"
+                    :aria-describedby="form.errors.body ? 'body-hint body-error' : 'body-hint'"
                 ></textarea>
-                <p class="form-field__hint">{{ t('announcements.chars', { count: form.body.length, max: limits.body }) }}</p>
-                <p v-if="form.errors.body" class="form-field__error" role="alert">{{ form.errors.body }}</p>
+                <p id="body-hint" class="form-field__hint">{{ t('announcements.chars', { count: form.body.length, max: limits.body }) }}</p>
+                <p v-if="form.errors.body" id="body-error" class="form-field__error" role="alert">{{ form.errors.body }}</p>
             </div>
 
             <TextField id="url" v-model="form.url" :label="t('announcements.url')" :hint="t('announcements.url_hint')" :error="form.errors.url" />

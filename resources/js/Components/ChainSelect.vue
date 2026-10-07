@@ -38,6 +38,7 @@ const open = ref(false);
 const activeIndex = ref(0);
 const root = ref(null);
 const list = ref(null);
+const button = ref(null);
 
 /** Volby: „všechny“ a pak obchody. */
 const options = computed(() => ['', ...props.chains]);
@@ -66,6 +67,18 @@ function isSelected(value) {
     return value === '' ? selected.value.length === 0 : selected.value.includes(value);
 }
 
+/**
+ * Zavře seznam. Byl-li fokus v seznamu, vrátí ho na tlačítko (R99) — skrytý seznam by ho
+ * jinak zahodil na začátek stránky.
+ */
+function close() {
+    const hadFocus = list.value?.contains(document.activeElement);
+    open.value = false;
+    if (hadFocus) {
+        button.value?.focus();
+    }
+}
+
 /** Otevře seznam s aktivní vybranou volbou. */
 async function show() {
     activeIndex.value = Math.max(0, options.value.indexOf(selected.value[0] ?? ''));
@@ -82,7 +95,7 @@ async function show() {
  */
 function choose(value) {
     if (!props.multiple) {
-        open.value = false;
+        close();
         if (value !== model.value) {
             model.value = value;
             emit('change', value);
@@ -93,7 +106,7 @@ function choose(value) {
 
     let next = [];
     if (value === '') {
-        open.value = false;
+        close();
         if (selected.value.length === 0) {
             return;
         }
@@ -124,7 +137,10 @@ function onKeydown(event) {
     } else if (event.key === 'Enter' || event.key === ' ') {
         event.preventDefault();
         choose(options.value[activeIndex.value]);
-    } else if (event.key === 'Escape' || event.key === 'Tab') {
+    } else if (event.key === 'Escape') {
+        event.preventDefault();
+        close();
+    } else if (event.key === 'Tab') {
         open.value = false;
     }
 }
@@ -149,12 +165,14 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocumentClick));
         <span :id="`${id}-label`" class="form-field__label">{{ label }}</span>
         <button
             :id="id"
+            ref="button"
             type="button"
             class="form-field__input chain-select__button"
             aria-haspopup="listbox"
+            :aria-controls="listId"
             :aria-expanded="open ? 'true' : 'false'"
             :aria-labelledby="`${id}-label ${id}`"
-            @click="open ? (open = false) : show()"
+            @click="open ? close() : show()"
         >
             <span v-if="selected.length === 0">{{ allLabel }}</span>
             <ChainLogo v-else-if="selected.length === 1" :chain="selected[0]" with-name />
