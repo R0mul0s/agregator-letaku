@@ -72,6 +72,36 @@ v [PLAN.md](PLAN.md). Větší celky se z toho stávají etapou.
 - **nasazení přes FTP není atomické** — režim údržby (`storage/framework/down`) během nahrávání, případně nová složka a přepnutí kořene webu
 - **parsery letáků (Penny SVG, Lidl a Albert PDF) jsou křehké vůči změně rozvržení** — po každé změně měřit na celém letáku (R85–R87); hlídat propad počtu akcí z letáku
 
+## Z kritické revize 7. 10. 2026 (R106) — zatím neudělané
+
+**Odkud:** revize kódu, provozu a frontendu 7. 10. 2026. Hotové body jsou v R106.
+
+- **zálohy:** seznam tabulek v DEPLOYMENT.md (*Záloha databáze*) chybí `social_accounts` (účty bez hesla se po obnově nepřihlásí), `shopping_list_items`, `push_subscriptions`, `notifications`, `announcements` a ruční řádky `offer_product` — zálohovat celou databázi kromě `offers`, `offer_stores`, `leaflet_pages`, `sessions`, `cache`; obnovu jednou vyzkoušet v Dockeru
+- **vypínač obchodu v `.env`**, který skryje i už uložené akce — výzvě obchodu (O6) vyhovět bez nasazení kódu
+- **test shody SQL skriptů s migracemi:** pustit `deploy/migrations-*.sql` na prázdnou databázi a porovnat `SHOW CREATE TABLE` s výsledkem `migrate`
+- `/health` i pro `send-digests` a `import-stores` (poslední úspěšný běh), UptimeRobot i na `/up`
+- frontend bez kontroly: ESLint s `eslint-plugin-vue`, `jsconfig.json` s `checkJs`, test, že každý klíč `t('…')` z `resources/js` je v `lang/cs/app.php`; případně Vitest pro `lib/format`, `lib/i18n`, `lib/offer`
+- trvalý layout (`defineOptions({ layout: AppLayout })`) a `Inertia::once` pro statické sdílené props (`chainInfo`, `siteFooter`, `pwa`, `cookieConsent`) — před změnou ověřit fokus po přechodu (`lib/a11y.js`)
+- `RecordNewOffers` a `SendDigests` počítají `MyOffers::forUser` pro stejného uživatele dvakrát — sdílet výsledek v rámci požadavku jen s omezenou pamětí (limit 512 MB)
+- Offers.vue: logika filtrů do `useOfferFilters`, okno Filtry do komponenty; Account.vue: sledování sekce do `useScrollSpy`, sekce jako komponenty
+- dva výčty řazení (`OffersSort` pro Moje slevy, `OfferListSort` pro Všechny akce) se stejnými volbami pod jinými hodnotami — sjednotit
+- konstanty druhů akcí (`'loyalty_only'`, `'multibuy'`, `'maybe'`) jsou v JS natvrdo na ~14 místech — do `lib/offer.js`
+
+## Měření používání (Clarity) — co ubrat
+
+**Odkud:** revize 7. 10. 2026 — za týden přibylo přes sto rozhodnutí a Moje slevy mají výběr obchodu,
+dva pohledy, řazení, karty / řádky, Rozbalit vše, čtyři štítky a dvě sbalené sekce. Než přibude další
+funkce, změřit, co lidé opravdu používají, a nepoužívané schovat nebo zrušit.
+
+- **kdy:** po 2–3 týdnech provozu s Clarity (R103); vzorek jsou jen lidé se souhlasem s analytickými cookies
+- **co sledovat** (Clarity → *Heatmaps* klikání na `/` a `/akce`, *Smart events* / filtr podle adresy):
+  štítky Nové / Končí brzy / Jen jisté / Moje prodejny, pohled Podle obchodů, přepínač karty / řádky,
+  Rozbalit vše, sekce Brzy a Zatím bez akce, čísla v úvodním pruhu, „Jsem v obchodě“ (výběr obchodu),
+  ve Všech akcích Sleva od, Kategorie a řazení, na úvodní stránce hra „Co je levnější?“ a ukázka hlídání,
+  nákupní seznam, centrum upozornění; *Dead clicks* a *Rage clicks* ukážou, co mate
+- **rozhodnutí:** co skoro nikdo nepoužívá, schovat do okna Filtry nebo zrušit (nový záznam R…);
+  co lidé hledají a nenajdou, posunout výš
+
 ## Katalog produktů — rozšíření
 
 **Odkud:** etapa 5, R28–R30 v PLAN.md.

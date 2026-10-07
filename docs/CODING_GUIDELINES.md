@@ -120,21 +120,21 @@ Eloquent model                 ← perzistence
 
 - **Doménová logika nepatří do kontroleru, commandu ani modelu.**
 - Repository třídy nezavádíme, Eloquent stačí.
-- Úlohy importu jsou **Actions**, které jde spustit z artisan příkazu i z cron URL. Produkce na Websupportu nemá frontu ani scheduler ([R20](PLAN.md#8-log-rozhodnutí)): nic nesmí implementovat `ShouldQueue` a každá migrace bude potřebovat SQL skript v `deploy/`.
+- Úlohy importu jsou **Actions**, které jde spustit z artisan příkazu i z cron URL. Produkce na Websupportu nemá frontu ani scheduler ([R20](ROZHODNUTI.md)): nic nesmí implementovat `ShouldQueue` a každá migrace bude potřebovat SQL skript v `deploy/`.
 
 ### Zdroje dat obchodů (scrapery)
 - **Každý obchod = jedna třída zdroje** v `app/Domain/Sources/<Obchod>`, implementuje společné rozhraní a vrací kolekci `OfferData` (DTO, `readonly`). Zdroj neukládá do DB a neví o uživatelích.
-- **HTTP výhradně přes `Http::` facade Laravelu** s timeoutem, retry a User-Agentem z konfigurace. Žádný `file_get_contents` ani curl. User-Agent je identifikovatelný, ale **bez adresy se schématem** (`+slevohlidka.cz`, ne `https://…`) — Albert jinak požadavek pošle přes prerender pro roboty a vrátí 400 ([R65](PLAN.md#8-log-rozhodnutí)).
+- **HTTP výhradně přes `Http::` facade Laravelu** s timeoutem, retry a User-Agentem z konfigurace. Žádný `file_get_contents` ani curl. User-Agent je identifikovatelný, ale **bez adresy se schématem** (`+slevohlidka.cz`, ne `https://…`) — Albert jinak požadavek pošle přes prerender pro roboty a vrátí 400 ([R65](ROZHODNUTI.md)).
 - URL, hlavičky, pauzy mezi požadavky a API klíče jsou v `config/letaky.php` (klíče v `.env`). V kódu zdroje nejsou natvrdo.
 - **Mezi požadavky na stejný obchod je pauza** (`config('letaky.request_delay_ms')`). Respektuj robots.txt, viz [ZDROJE_DAT.md](ZDROJE_DAT.md).
 - Parsování odpovědi je samostatná metoda nebo třída, která přijímá řetězec nebo pole. Kvůli testům s fixtures nesmí sama stahovat.
-- **Neočekávaný tvar odpovědi = výjimka**, ne prázdná kolekce. Nula položek se zapíše do `scrape_runs` jako chyba. Podezřele velký propad akcí oproti minulému stažení akce nestáhne a stažení skončí jako `partial`; stažení obchodu drží zámek, souběžné neběží ([R54](PLAN.md#8-log-rozhodnutí), [R57](PLAN.md#8-log-rozhodnutí)).
+- **Neočekávaný tvar odpovědi = výjimka**, ne prázdná kolekce. Nula položek se zapíše do `scrape_runs` jako chyba. Podezřele velký propad akcí oproti minulému stažení akce nestáhne a stažení skončí jako `partial`; stažení obchodu drží zámek, souběžné neběží ([R54](ROZHODNUTI.md), [R57](ROZHODNUTI.md)).
 - Původní položka se ukládá do `offers.raw`, aby se data dala přepočítat bez nového stažení.
 
 ### Normalizace dat od obchodů
-- **Ceny v haléřích jako `int`** ([R7](PLAN.md#8-log-rozhodnutí)). Převod z „29,90“ nebo `29.9` jen přes sdílený parser, nikdy `(int) ($x * 100)` (float).
+- **Ceny v haléřích jako `int`** ([R7](ROZHODNUTI.md)). Převod z „29,90“ nebo `29.9` jen přes sdílený parser, nikdy `(int) ($x * 100)` (float).
 - **Platnost jako místní datum.** Časy v UTC od obchodu (Tesco, Albert) se převedou na `Europe/Prague` a teprve pak na datum.
-- Typ akce (`OfferType`) a cena s kartou (`loyalty_price`, `loyalty_program`) se určují ve zdroji podle pravidel obchodu ([R8](PLAN.md#8-log-rozhodnutí)). „Sleva“ je jen s původní cenou.
+- Typ akce (`OfferType`) a cena s kartou (`loyalty_price`, `loyalty_program`) se určují ve zdroji podle pravidel obchodu ([R8](ROZHODNUTI.md)). „Sleva“ je jen s původní cenou.
 - Množství a jednotka balení přes sdílený parser („4x0,33 l plech“, „20 kusů“, „125 g - balení“).
 
 ### LLM (etapa 6)
@@ -154,6 +154,8 @@ Eloquent model                 ← perzistence
 - `Model::preventLazyLoading()` pro `local` a `testing`.
 - Žádné raw queries kromě odůvodněných agregací, a tam vždy parametrizovaně.
 - Dotazy na data uživatele vždy přes vazbu (`$user->watchItems()`), nikdy podle ID z requestu bez kontroly vlastníka (Policy).
+- **Sloupce `date` (`valid_from`, `valid_to`) porovnávat přes `where()` s `Y-m-d`, nikdy `whereDate()`** — ten obalí sloupec funkcí `date()` a databáze nepoužije index ([R106](ROZHODNUTI.md)).
+- **Výpisy a párování akcí načítají akce přes `->withoutRaw()`** (i v `with(['offer' => …])`) — surová odpověď obchodu má u Billy a Globusu ~2 kB na řádek a mimo import se nepoužívá ([R106](ROZHODNUTI.md)).
 
 ### Komentáře
 - **Každá metoda má PHPDoc** s popisem, co dělá.
@@ -163,7 +165,7 @@ Eloquent model                 ← perzistence
 
 ### Testy
 - **Pest.** Popis testu česky jako věta o chování: `it('u Clubcard akce vezme cenu z popisu, ne z afterDiscount')`.
-- **Testy nikdy nesahají na síť** ([R11](PLAN.md#8-log-rozhodnutí)). `Http::preventStrayRequests()` v `tests/Pest.php`, odpovědi přes `Http::fake()`.
+- **Testy nikdy nesahají na síť** ([R11](ROZHODNUTI.md)). `Http::preventStrayRequests()` v `tests/Pest.php`, odpovědi přes `Http::fake()`.
 - **Fixtures jsou zkrácené skutečné odpovědi obchodů** v `tests/Fixtures/<obchod>/`, popsané v `tests/Fixtures/README.md`. Nové testy je používají přes `responseFixture()` / `jsonResponseFixture()` z `tests/Pest.php`, nevymýšlí vlastní tvar dat. Název souboru nese datum stažení (`kaufland/prehled-2026-10-02.html`).
 - **Feature testy** pokrývají use-case end-to-end (artisan nebo HTTP request → stav DB).
 - **Unit testy** jsou pro parsery a normalizaci (ceny, balení, typ akce, platnost) a pro párování.
@@ -180,7 +182,7 @@ Eloquent model                 ← perzistence
 ### Migrace
 - **Každá změna schématu = nová migrace.** Nikdy se neupravuje migrace, která už běžela na produkci.
 - Každá migrace má funkční `down()`.
-- **Každá migrace má ve stejném commitu SQL skript** `deploy/migrations-<datum>-<popis>.sql` — opakovatelný (`IF NOT EXISTS`), se zápisem do `migrations`, schéma shodné s výsledkem `migrate` (`SHOW CREATE TABLE`). Na produkci není SSH ani composer, skript se pouští v phpMyAdminu ([R20](PLAN.md#8-log-rozhodnutí), [DEPLOYMENT.md](../deploy/DEPLOYMENT.md)).
+- **Každá migrace má ve stejném commitu SQL skript** `deploy/migrations-<datum>-<popis>.sql` — opakovatelný (`IF NOT EXISTS`), se zápisem do `migrations`, schéma shodné s výsledkem `migrate` (`SHOW CREATE TABLE`). Na produkci není SSH ani composer, skript se pouští v phpMyAdminu ([R20](ROZHODNUTI.md), [DEPLOYMENT.md](../deploy/DEPLOYMENT.md)).
 - Nová hodnota enumu v textovém sloupci (stav stažení, četnost souhrnu) migraci ani skript nepotřebuje.
 - Sloupce s cenou mají `comment()` s jednotkou („haléře“).
 
@@ -205,14 +207,14 @@ Eloquent model                 ← perzistence
 - Ceny, čísla a datumy formátuje `resources/js/lib/format.js` (`Intl`, haléře → Kč). Nikdy se neskládají ručně.
 - Data do stránky připravuje server. Komponenta nepočítá ceny za jednotku ani nefiltruje velké seznamy (výjimka: malé seznamy pro admina, např. ~160 produktů katalogu, se filtrují a řadí v prohlížeči).
 - Sdílená data Inertie (`HandleInertiaRequests::share`) nesmí mít stejný klíč jako prop stránky — prop stránky ho přepíše.
-- **Zpětná vazba:** uložení potvrzuje toast (kód stavu ze serveru, [R47](PLAN.md#8-log-rozhodnutí)), nevratnou akci vlastní potvrzovací okno (`confirmDialog`), nikdy `window.confirm`.
-- **Nastavení se ukládá hned po změně** (přepínače, výběry, zaškrtávátka) a posílá celý stav, aby při překryvu požadavků vyhrál poslední; tlačítko Uložit mají jen formuláře, kde se píše ([R63](PLAN.md#8-log-rozhodnutí), [R64](PLAN.md#8-log-rozhodnutí)). Heslo se k nebezpečné akci zadává až po klepnutí.
-- **Vysvětlivka nesmí být jen v `title`** — na dotykovém displeji se neukáže. Štítek s vysvětlením je tlačítko s ikonou „i“ (`InfoIcon`) a textem pod ním ([R55](PLAN.md#8-log-rozhodnutí)).
-- Tlačítko, které jen přepíná stav (do seznamu, hlídat), ukáže nový stav hned po klepnutí a server ho potvrdí — na pomalém mobilním připojení by jinak druhé klepnutí narazilo na zablokované tlačítko ([R62](PLAN.md#8-log-rozhodnutí)).
+- **Zpětná vazba:** uložení potvrzuje toast (kód stavu ze serveru, [R47](ROZHODNUTI.md)), nevratnou akci vlastní potvrzovací okno (`confirmDialog`), nikdy `window.confirm`.
+- **Nastavení se ukládá hned po změně** (přepínače, výběry, zaškrtávátka) a posílá celý stav, aby při překryvu požadavků vyhrál poslední; tlačítko Uložit mají jen formuláře, kde se píše ([R63](ROZHODNUTI.md), [R64](ROZHODNUTI.md)). Heslo se k nebezpečné akci zadává až po klepnutí.
+- **Vysvětlivka nesmí být jen v `title`** — na dotykovém displeji se neukáže. Štítek s vysvětlením je tlačítko s ikonou „i“ (`InfoIcon`) a textem pod ním ([R55](ROZHODNUTI.md)).
+- Tlačítko, které jen přepíná stav (do seznamu, hlídat), ukáže nový stav hned po klepnutí a server ho potvrdí — na pomalém mobilním připojení by jinak druhé klepnutí narazilo na zablokované tlačítko ([R62](ROZHODNUTI.md)).
 - Hlavní scénář je telefon v obchodě: ovládací prvky dost velké pro palec, důležité informace na první obrazovce.
-- **JSON dotaz při psaní** (našeptávač, náhled) jde přes `fetch` s pauzou v psaní a zrušením předchozího (`AbortController`); routa má middleware `ReadOnlySession`, jinak souběžné uložení formuláře přijde o zprávu pro toast ([R71](PLAN.md#8-log-rozhodnutí)). Text od obchodu se zvýrazňuje komponentou `HighlightText`, ne přes `v-html`.
-- **Aplikace v telefonu** ([R66](PLAN.md#8-log-rozhodnutí)): stránka, která má fungovat bez signálu, patří do `letaky.pwa.offline_paths` a změna, kterou jde udělat offline, musí počkat v prohlížeči a odeslat se po návratu signálu (vzor `lib/offlineChecks.js`); co offline nejde, je bez připojení zakázané. Data uživatele uložená v prohlížeči (cache, localStorage) se po odhlášení mažou. Prvek přilepený ke spodnímu okraji obrazovky přičítá `--tab-bar-offset` (spodní lišta záložek) a obsah u okrajů displeje `env(safe-area-inset-*)`. localStorage jen přes `lib/storage.js` (anonymní okno ho nemá).
-- **Přístupnost** ([R99](PLAN.md#8-log-rozhodnutí)): prvek, který zmizí (zavřený seznam, menu), vrací fokus na tlačítko, které ho otevřelo; obsah, který se mění bez načtení stránky (počet výsledků, návrhy), oznamuje `role="status"`; chybné pole formuláře má `aria-invalid` a `aria-describedby` s chybou (fokus na něj po odeslání přesune `lib/a11y.js`); nadpisy navazují (karta pod `h2` skupiny má `h3`). Toast s akcí („Vrátit“) svítí déle než ostatní.
+- **JSON dotaz při psaní** (našeptávač, náhled) jde přes `fetch` s pauzou v psaní a zrušením předchozího (`AbortController`); routa má middleware `ReadOnlySession`, jinak souběžné uložení formuláře přijde o zprávu pro toast ([R71](ROZHODNUTI.md)). Text od obchodu se zvýrazňuje komponentou `HighlightText`, ne přes `v-html`.
+- **Aplikace v telefonu** ([R66](ROZHODNUTI.md)): stránka, která má fungovat bez signálu, patří do `letaky.pwa.offline_paths` a změna, kterou jde udělat offline, musí počkat v prohlížeči a odeslat se po návratu signálu (vzor `lib/offlineChecks.js`); co offline nejde, je bez připojení zakázané. Data uživatele uložená v prohlížeči (cache, localStorage) se po odhlášení mažou. Prvek přilepený ke spodnímu okraji obrazovky přičítá `--tab-bar-offset` (spodní lišta záložek) a obsah u okrajů displeje `env(safe-area-inset-*)`. localStorage jen přes `lib/storage.js` (anonymní okno ho nemá).
+- **Přístupnost** ([R99](ROZHODNUTI.md)): prvek, který zmizí (zavřený seznam, menu), vrací fokus na tlačítko, které ho otevřelo; obsah, který se mění bez načtení stránky (počet výsledků, návrhy), oznamuje `role="status"`; chybné pole formuláře má `aria-invalid` a `aria-describedby` s chybou (fokus na něj po odeslání přesune `lib/a11y.js`); nadpisy navazují (karta pod `h2` skupiny má `h3`). Toast s akcí („Vrátit“) svítí déle než ostatní.
 - Žádný jQuery.
 
 ---
@@ -227,8 +229,8 @@ Eloquent model                 ← perzistence
 - Tmavý režim přepíná tokeny přes mixin `dark`, komponenty o něm nevědí.
 - Obchody se ukazují **logem** (`ChainLogo`, vodoznak `ChainWatermark`), ne barvou — loga jsou v `public/images/chains`, názvy a adresy sdílí `chainInfo`.
 - Barvy loga Slevohlídky (`--color-brand`, `--color-brand-dark`) jen na název v hlavičce; na tlačítka a text akcent (`--color-accent*`) se splněným kontrastem WCAG AA (bílý text na červené: velký tučný text 3 : 1, jinak 4,5 : 1).
-- Pohyb (nadzvednutí karet a tlačítek) jen přes `transition` s tokeny; při `prefers-reduced-motion` se vypne v `_reset.scss`. Dekorativní animace nesmí běžet donekonečna — počet opakování tokenem, nejvýš ~10 s ([R99](PLAN.md#8-log-rozhodnutí)).
-- **Fokus z klávesnice** je plná čára (`@include focus-ring`), globálně v `_reset.scss`. Komponenta ho nepřebíjí `outline: none` + stínem — stín režim vysokého kontrastu nekreslí ([R99](PLAN.md#8-log-rozhodnutí)).
+- Pohyb (nadzvednutí karet a tlačítek) jen přes `transition` s tokeny; při `prefers-reduced-motion` se vypne v `_reset.scss`. Dekorativní animace nesmí běžet donekonečna — počet opakování tokenem, nejvýš ~10 s ([R99](ROZHODNUTI.md)).
+- **Fokus z klávesnice** je plná čára (`@include focus-ring`), globálně v `_reset.scss`. Komponenta ho nepřebíjí `outline: none` + stínem — stín režim vysokého kontrastu nekreslí ([R99](ROZHODNUTI.md)).
 - **Ovládací prvky mají kontrast 3 : 1** proti podkladu: okraj pole a dráha přepínače `--color-input-border`, `--color-border` je jen na oddělení karet a řádků.
 - Prázdný stav stránky = komponenta `EmptyState` s maskotem, ne holá věta.
 
@@ -254,8 +256,8 @@ resources/scss/
 ## 7. Texty a lokalizace
 
 - Všechny texty jsou v `lang/cs/app.php`: PHP (`__('app.…')`) i Vue (skupina `app.ui`).
-- **Tón ([R72](PLAN.md#8-log-rozhodnutí)):** web mluví za provozovatele v 1. osobě množného čísla („my“, „ulovili jsme“), návštěvníkovi vyká. Přátelsky a vřele, s jemným humorem kolem lovu slev — hlavně v prázdných stavech, chybových stránkách, toastech a úvodních větách. Tlačítka, popisky polí a chybové hlášky formulářů zůstávají jasné a věcné. Právní texty také „my“, genderově neutrálně (žádné „zapsaný“ — „fyzická osoba zapsaná“). Text souhlasu (`auth.register.marketing`, `account.marketing_label`) neměnit bez zvýšení `marketing_consent_version`.
-- **Výjimka: právní texty** (podmínky užití, zásady zpracování osobních údajů) jsou Markdown v `resources/legal` ([R51](PLAN.md#8-log-rozhodnutí)) — dlouhý text se tak dá číst, porovnávat mezi verzemi a dát právníkovi. Údaje provozovatele se doplňují z `letaky.operator`, nepíšou se do textu.
+- **Tón ([R72](ROZHODNUTI.md)):** web mluví za provozovatele v 1. osobě množného čísla („my“, „ulovili jsme“), návštěvníkovi vyká. Přátelsky a vřele, s jemným humorem kolem lovu slev — hlavně v prázdných stavech, chybových stránkách, toastech a úvodních větách. Tlačítka, popisky polí a chybové hlášky formulářů zůstávají jasné a věcné. Právní texty také „my“, genderově neutrálně (žádné „zapsaný“ — „fyzická osoba zapsaná“). Text souhlasu (`auth.register.marketing`, `account.marketing_label`) neměnit bez zvýšení `marketing_consent_version`.
+- **Výjimka: právní texty** (podmínky užití, zásady zpracování osobních údajů) jsou Markdown v `resources/legal` ([R51](ROZHODNUTI.md)) — dlouhý text se tak dá číst, porovnávat mezi verzemi a dát právníkovi. Údaje provozovatele se doplňují z `letaky.operator`, nepíšou se do textu.
 - Placeholdery `:name`, plurály přes `trans_choice()` (čeština má tři tvary).
 - Chybějící klíč se zobrazí jako holý text, a to je **bug**.
 - Názvy obchodů, typů akcí a věrnostních programů jsou v `lang`, ne v enumu.
@@ -288,21 +290,21 @@ docker compose exec app ./vendor/bin/phpstan analyse --memory-limit=1G
 docker compose exec app npm run build          # při změně JS, Vue nebo SCSS
 ```
 
-CI (GitHub Actions) zatím není, ruční kontroly jsou jediná pojistka ([R14](PLAN.md#8-log-rozhodnutí)).
+CI (GitHub Actions) zatím není, ruční kontroly jsou jediná pojistka ([R14](ROZHODNUTI.md)).
 
 ---
 
 ## 10. Bezpečnost
 
-- **Přihlášení přes Fortify** ([R12](PLAN.md#8-log-rozhodnutí), [R13](PLAN.md#8-log-rozhodnutí)): hesla hashovaná, limit pokusů o přihlášení na dvojici e-mail + IP a na samotnou IP (R53), hesla kontrolovaná proti únikům (Have I Been Pwned), registrace chráněná skrytým polem a časem vyplnění, odeslání odkazu na obnovu hesla omezuje Laravel (jednou za minutu).
+- **Přihlášení přes Fortify** ([R12](ROZHODNUTI.md), [R13](ROZHODNUTI.md)): hesla hashovaná, limit pokusů o přihlášení na dvojici e-mail + IP a na samotnou IP (R53), hesla kontrolovaná proti únikům (Have I Been Pwned), registrace chráněná skrytým polem a časem vyplnění, odeslání odkazu na obnovu hesla omezuje Laravel (jednou za minutu).
 - **Uživatel vidí a mění jen svá data.** Hlídané položky, nákupní seznam a sledované obchody přes Policy a vazby na uživatele.
-- **Přihlášení přes Google a Facebook** ([R96](PLAN.md#8-log-rozhodnutí)): k existujícímu účtu se připojí jen e-mail, který ověřil poskytovatel (Google `email_verified`), jinak by šlo převzít cizí účet. Účet bez hesla potvrzuje citlivé změny přihlášením u poskytovatele — kontrola hesla k citlivé akci vždy přes `IdentityConfirmation::rules`, ne `current_password` natvrdo.
-- **Změna e-mailu chce současné heslo** a formuláře s heslem nebo odesláním e-mailu mají přísnější limit požadavků (`RateLimits::SENSITIVE_ROUTES`, [R54](PLAN.md#8-log-rozhodnutí)).
+- **Přihlášení přes Google a Facebook** ([R96](ROZHODNUTI.md)): k existujícímu účtu se připojí jen e-mail, který ověřil poskytovatel (Google `email_verified`), jinak by šlo převzít cizí účet. Účet bez hesla potvrzuje citlivé změny přihlášením u poskytovatele — kontrola hesla k citlivé akci vždy přes `IdentityConfirmation::rules`, ne `current_password` natvrdo.
+- **Změna e-mailu chce současné heslo** a formuláře s heslem nebo odesláním e-mailu mají přísnější limit požadavků (`RateLimits::SENSITIVE_ROUTES`, [R54](ROZHODNUTI.md)).
 - Tajemství (API klíče obchodů a LLM) jsou v `.env`, nikdy v repu. `.env.example` má prázdné hodnoty.
 - CSRF všude. Cron URL je chráněná tokenem z `.env` a rate limitem; bez tokenu vrací 404.
-- **Obsah od obchodu je nedůvěryhodný vstup**: ve Vue jen textová interpolace, nikdy `v-html`. Totéž platí pro text od LLM. Odkazy a obrázky od obchodu se ukládají jen jako adresy `http(s)` (`WebUrl`, [R67](PLAN.md#8-log-rozhodnutí)).
-- **Absolutní adresy jen z `APP_URL`** (`URL::forceRootUrl`), nikdy z hlaviček požadavku — odkaz na obnovu hesla by šel podvrhnout ([R67](PLAN.md#8-log-rozhodnutí)). Změna hesla odhlásí ostatní zařízení.
-- **Do Google Analytics nesmí odejít token ani e-mail z adresy**: stránka s nimi patří do `letaky.cookie_consent.redacted_paths` ([R69](PLAN.md#8-log-rozhodnutí)).
+- **Obsah od obchodu je nedůvěryhodný vstup**: ve Vue jen textová interpolace, nikdy `v-html`. Totéž platí pro text od LLM. Odkazy a obrázky od obchodu se ukládají jen jako adresy `http(s)` (`WebUrl`, [R67](ROZHODNUTI.md)).
+- **Absolutní adresy jen z `APP_URL`** (`URL::forceRootUrl`), nikdy z hlaviček požadavku — odkaz na obnovu hesla by šel podvrhnout ([R67](ROZHODNUTI.md)). Změna hesla odhlásí ostatní zařízení.
+- **Do Google Analytics nesmí odejít token ani e-mail z adresy**: stránka s nimi patří do `letaky.cookie_consent.redacted_paths` ([R69](ROZHODNUTI.md)).
 - `v-html` jen pro vlastní právní texty převedené na serveru se zahozeným HTML (`LegalDocuments`, R51).
 - **E-maily jen na ověřenou adresu** (R51). Hromadný e-mail má odhlášení jedním klepnutím bez přihlášení (podepsaná adresa, `List-Unsubscribe`); obchodní sdělení jen se souhlasem (`User::hasMarketingConsent`).
 - Neveřejná rozhraní obchodů, která vyžadují přihlášení (`UNAUTHENTICATED`), se neobcházejí.
@@ -311,13 +313,13 @@ CI (GitHub Actions) zatím není, ruční kontroly jsou jediná pojistka ([R14](
 
 ## 11. Co nedělat
 
-- Neukládejte ceny jako `float` ani `decimal` ve Kč. Používejte haléře jako `int` ([R7](PLAN.md#8-log-rozhodnutí)).
-- Neoznačujte jako slevu nabídku bez původní ceny („Super cena“, „AKCE! pouze“, Lidl „Ušetřete %“), viz [R8](PLAN.md#8-log-rozhodnutí).
+- Neukládejte ceny jako `float` ani `decimal` ve Kč. Používejte haléře jako `int` ([R7](ROZHODNUTI.md)).
+- Neoznačujte jako slevu nabídku bez původní ceny („Super cena“, „AKCE! pouze“, Lidl „Ušetřete %“), viz [R8](ROZHODNUTI.md).
 - Nepovažujte prázdnou odpověď obchodu za „žádné akce“. Je to chyba zdroje.
 - Nevolejte v testech skutečné obchody ani LLM.
 - Nepoužívejte zdroje, které zakazuje robots.txt (Lidl search API), a neobcházejte ochrany ani přihlášení.
-- Nestahujte a neukládejte letáky, PDF a fotky produktů natrvalo ([R5](PLAN.md#8-log-rozhodnutí)). Pracovní soubory extrakce se po zpracování mažou.
-- Nemažte staré nabídky ani letáky, slouží jako historie ([R10](PLAN.md#8-log-rozhodnutí)).
+- Nestahujte a neukládejte letáky, PDF a fotky produktů natrvalo ([R5](ROZHODNUTI.md)). Pracovní soubory extrakce se po zpracování mažou.
+- Nemažte staré nabídky ani letáky, slouží jako historie ([R10](ROZHODNUTI.md)).
 - Nepoužívejte `dd()`, `dump()` ani `console.log()` v commitech.
 
 ---

@@ -17,11 +17,11 @@ změně tento dokument aktualizuj ve stejném commitu jako kód.
 
 Společné pro všechny obchody:
 - Headless prohlížeč, captcha ani obcházení WAF nejsou potřeba.
-- Stahovat šetrně: 1–2× denně, pauza mezi požadavky, identifikovatelný User-Agent ([R5](PLAN.md#8-log-rozhodnutí)) —
+- Stahovat šetrně: 1–2× denně, pauza mezi požadavky, identifikovatelný User-Agent ([R5](ROZHODNUTI.md)) —
   `Slevohlidka/1.0 (+slevohlidka.cz)`, **bez `https://`**: weby s prerenderem pro roboty (Albert)
-  pošlou UA s adresou na prerender a API vrátí chybu ([R65](PLAN.md#8-log-rozhodnutí)).
+  pošlou UA s adresou na prerender a API vrátí chybu ([R65](ROZHODNUTI.md)).
 - Částečná odpověď je nebezpečnější než žádná: chybějící akce se označí jako stažené (R16). Import proto
-  hlídá nulu i podezřelý propad počtu akcí ([R54](PLAN.md#8-log-rozhodnutí)).
+  hlídá nulu i podezřelý propad počtu akcí ([R54](ROZHODNUTI.md)).
 - Do LLM nebo k parsování nikdy neposílat celé PDF, když existuje lepší zdroj (PDF mají 15–42 MB).
 
 ---
@@ -85,7 +85,7 @@ Implementace: `app/Domain/Sources/Kaufland/KauflandOfferParser.php`.
 - **Nabídka se mění i během týdne.** 2. 10. 2026 dopoledne byla vejce M20 v sortimentu a Superkaufu do 6. 10., odpoledne už jen v „Mimořádné nabídce“ do 2. 10. Proto R16 (stažené nabídky).
 - Popis (`detailDescription`) nese údaje, které v názvu chybí: „Kunín Trvanlivé mléko tuk 1,5 %“ má „polotučné“ jen v popisu.
 - Platnost `dateFrom` / `dateTo` je u kategorie i u položky. Kampaně (Víkend, Start týdne) mají kratší platnost.
-- `label` určuje typ akce. Skutečná sleva je `reducedPrice` a `halfPrice`. **`smallPrice` („AKCE! pouze“) a `specialItems` nemají původní cenu**, často jde o trvale nízkou cenu ([R8](PLAN.md#8-log-rozhodnutí)).
+- `label` určuje typ akce. Skutečná sleva je `reducedPrice` a `halfPrice`. **`smallPrice` („AKCE! pouze“) a `specialItems` nemají původní cenu**, často jde o trvale nízkou cenu ([R8](ROZHODNUTI.md)).
 - Kaufland Card: `customerType == "KDN"` a pole `loyalty*`.
 - `basePrice` je text („(=1 l 21,27)“) a musí se parsovat.
 - **Stejná položka je ve více kategoriích** (sortimentní a „Superkauf“), deduplikovat podle `klNr` a platnosti.
@@ -125,7 +125,7 @@ Výpis všech akcí (stránkování po 200, ~5 100 produktů, 26 požadavků):
 ```
 Vyhledávání: `search(query:, page:, count:)` se stejnými poli.
 
-**Strom kategorií** (kategorie katalogu, [R28](PLAN.md#8-log-rozhodnutí); `TescoCategorySource`):
+**Strom kategorií** (kategorie katalogu, [R28](ROZHODNUTI.md); `TescoCategorySource`):
 `query { taxonomy { id name children { id name children { id name children { id name } } } } }`.
 Čtyři úrovně: oddělení › sekce › regál › police (2. 10. 2026: 15 › 137 › 745 › 1 340, hlubší
 úroveň není). `id` je `b;` + base64 zakódované cesty názvů („Mléčné, vejce a margaríny|Mléko, …“),
@@ -153,7 +153,7 @@ výběry, ne kategorie.
 - Neveřejné dotazy (`protectedLeaflets`, `adminPromotionList`) vrací `UNAUTHENTICATED` a **nemají se obcházet**.
 
 ### Pole a pasti
-Implementace: `app/Domain/Sources/Tesco/TescoParser.php` a `TescoOfferSource.php` ([R17](PLAN.md#8-log-rozhodnutí)).
+Implementace: `app/Domain/Sources/Tesco/TescoParser.php` a `TescoOfferSource.php` ([R17](ROZHODNUTI.md)).
 
 - **Párování letáku s e-shopem: posledních 8 číslic ID.** Leták `…/products/2001019279706`, e-shop `219279706`. Ověřeno 2. 10. 2026 na celém letáku: HM 880 z 1 210 produktů, SM 237 z 277, v 5 139 produktech e-shopu žádná kolize. Nespárované jsou hlavně „Super ceny“ (bez akce v e-shopu) a zboží, které online není.
 - **Zboží na váhu:** `afterDiscount` / `beforeDiscount` jsou ceny **za kg** (nebo za kus u okurky), `price.actual` je cena odhadovaného kusu (mandarinky 3,91 Kč). Balení se pak bere z jednotky v `unitSellingInfo` („27,90 Kč/kg“ = 1 kg).
@@ -161,11 +161,11 @@ Implementace: `app/Domain/Sources/Tesco/TescoParser.php` a `TescoOfferSource.php
 - Typy popisů Clubcard (2. 10. 2026): „N Kč s Clubcard“ (4 045×), „N Kč Ušetřete N% s Clubcard“, „N Kč Ušetřete 1/3 s Clubcard“, „N Kč Poloviční cena s Clubcard“, „Ušetřete 1/3 99,00 Kč/kg s Clubcard“. Cena s kartou je vždy první částka v Kč.
 - „Super cena“ může mít `beforeDiscount` vyšší než `afterDiscount`, pak je to normální sleva.
 - Konec platnosti bývá půlnoc dalšího dne (`2026-10-04T22:00:00Z` = do 4. 10.) i poslední sekunda dne (`21:59:59Z`); v zimním čase o hodinu posunuté.
-- Časy jsou v **UTC**: `2026-09-29T22:00Z` = 30. 9. místního času ([R7](PLAN.md#8-log-rozhodnutí)).
+- Časy jsou v **UTC**: `2026-09-29T22:00Z` = 30. 9. místního času ([R7](ROZHODNUTI.md)).
 - **Cena s Clubcard je jen v textu `description`** („8,90 Kč … s Clubcard“). U Clubcard akcí je `afterDiscount` **běžná cena**. Parsovat regexem a ověřit testem.
 - Běžná akce: `beforeDiscount` → `afterDiscount`, procento jen v textu („-50%, předtím 59,90 Kč“).
 - Gramáž je jen v `title`.
-- Nabídky v prodejnách a v e-shopu se liší ([R4](PLAN.md#8-log-rozhodnutí)). „Super cena / cena pro všechny“ (Coca-Cola 1,5 l za 32,90) e-shop jako akci neuvádí, protože se rovná běžné ceně.
+- Nabídky v prodejnách a v e-shopu se liší ([R4](ROZHODNUTI.md)). „Super cena / cena pro všechny“ (Coca-Cola 1,5 l za 32,90) e-shop jako akci neuvádí, protože se rovná běžné ceně.
 - Leták na příští týden se zveřejňuje zřejmě v pondělí před středou platnosti **(předpoklad)**.
 - Podmínky webu zakazují užití obsahu pro jinou než osobní potřebu ([O6](PLAN.md#7-otevřené-otázky)).
 
@@ -277,7 +277,7 @@ Implementace: `app/Domain/Sources/Lidl/` — kampaně z úvodní stránky, jen k
 - `basePrice.text` míchá balení a cenu za jednotku: „210 g, 100 g = 28,52 Kč“, „500 g - balení,1 kg = 49,80 Kč“, „195 g, 100 g = 13,90 Kč/PP“, ale i jen „1 kg = 64,95 Kč“ (balení neuvedeno — nesmí se číst jako 1 kg).
 - Položky „Pouze v prodejnách“ (víkendová vína, prosecco) nemají `storeStartDate` — převezmou platnost ostatních akcí stránky.
 - Potraviny na příští týden jsou často **jen v letáku**, web je zatím nemá (2. 10.: vejce 30 ks a Coca-Cola Zero na 8. 10. jen v PDF).
-- **„Ušetřete* xx %“ je úspora na ceně za jednotku** (větší balení), ne sleva oproti původní ceně ([R8](PLAN.md#8-log-rozhodnutí)).
+- **„Ušetřete* xx %“ je úspora na ceně za jednotku** (větší balení), ne sleva oproti původní ceně ([R8](ROZHODNUTI.md)).
 - „Rozšířená nabídka“ znamená jen ve vybraných prodejnách. Limity „Max. N balení na nákup“ jsou jen v letáku.
 - Úterní nabídka po skončení zmizí z webu (404).
 - „Freeway Cola Zero“ je privátní značka Lidlu, ne Coca-Cola.
@@ -339,7 +339,7 @@ Implementace: `app/Domain/Sources/Penny/PennyLeafletParser.php`, podrobný postu
 - API pokrývá jen malou část letáku: polotučné mléko v akci bylo **jen v letáku**.
 - Víkendové akce mají platnost jen v textu stránky („platí od pátku 2. 10. do neděle 4. 10.“).
 - „Jedinečná nabídka“ bez přeškrtnuté ceny není sleva. `lowestPrice` = nejnižší cena za 30 dní.
-- **Starý leták zmizí** (404) a API drží jen aktuální týden, takže archivovat ([R10](PLAN.md#8-log-rozhodnutí)).
+- **Starý leták zmizí** (404) a API drží jen aktuální týden, takže archivovat ([R10](ROZHODNUTI.md)).
 - Nový leták se objeví zřejmě v úterý nebo ve středu **(předpoklad)**.
 
 ---
@@ -705,7 +705,7 @@ Požadavek uživatele přidat Makro. Výsledek: **zdroj, který by šel použít
   vrací **403** se stránkou „ARE YOU LOST?“ — **včetně `robots.txt`**. Ochranu neobcházíme
   (stejně jako marketplace Kauflandu), takže ani nejde zjistit, co robots.txt dovoluje.
 - Letáky Makra jinak nabízejí jen agregátory (mojeletaky.cz, kompasslev.cz, kaufino.com,
-  najdislevu.cz) — ty jako zdroj nepoužíváme ([R1](PLAN.md#8-log-rozhodnutí)).
+  najdislevu.cz) — ty jako zdroj nepoužíváme ([R1](ROZHODNUTI.md)).
 - Makro je velkoobchod: nákup jen s kartou zákazníka (podnikatelé, ale i karta pro domácnosti)
   a ceny se uvádějí **bez DPH i s DPH** — pro porovnání s ostatními obchody by se brala cena s DPH.
 - Možná cesta: požádat Makro o přístup (oficiální feed letáků nebo povolení stahování), nebo

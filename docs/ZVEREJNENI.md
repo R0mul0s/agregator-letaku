@@ -8,14 +8,14 @@
 
 Slevohlídka byla dělaná pro vlastní použití (R5). Tenhle dokument sepisuje, co
 chybí ke spuštění pro veřejnost. Vychází z průzkumu kódu ze 3. 10. 2026 a kritické
-revize ze 4. 10. 2026. Technická a GDPR část je hotová v [R51](PLAN.md#8-log-rozhodnutí):
+revize ze 4. 10. 2026. Technická a GDPR část je hotová v [R51](ROZHODNUTI.md):
 podmínky a zásady (`resources/legal`), patička, souhlasy při registraci, ověření e-mailu,
 odhlášení z e-mailů jedním klepnutím, české chybové stránky; ochrana účtů a úklid
-v [R53](PLAN.md#8-log-rozhodnutí); opravy a funkce z revize (souhrny po dávkách, pojistky
+v [R53](ROZHODNUTI.md); opravy a funkce z revize (souhrny po dávkách, pojistky
 importu, heslo při změně e-mailu, první kroky po registraci, nákupní seznam…)
-v [R54–R65](PLAN.md#8-log-rozhodnutí); zabezpečení, SEO a soukromí z revize připravenosti
+v [R54–R65](ROZHODNUTI.md); zabezpečení, SEO a soukromí z revize připravenosti
 (adresy bez `/public`, odhlášení zařízení po změně hesla, limit e-mailů, `security.txt`, GA bez
-tokenů, datum účinnosti textů…) v [R67–R69](PLAN.md#8-log-rozhodnutí); tón webu a stránka Kontakt (R72),
+tokenů, datum účinnosti textů…) v [R67–R69](ROZHODNUTI.md); tón webu a stránka Kontakt (R72),
 přehled uživatelů (R84), úvodní stránka, kontakt a patička pro veřejnost (R90–R92) a postup
 přestěhování na `slevohlidka.cz` (R93, [DEPLOYMENT.md](../deploy/DEPLOYMENT.md#přestěhování-na-slevohlidkacz-r93)).
 Revize checklistu 6. 10. 2026: úložiště v prohlížeči i kategorie cookies sedí se zásadami.
@@ -32,8 +32,8 @@ Značení: **[R]** = rozhodne nebo zařídí Roman, **[K]** = kód.
 - [ ] **[R] Obory živnosti:** pokrývá živnostenský list provoz webového portálu a reklamu?
   (volná živnost, obory „Poskytování software… a webové portály“ a „Reklamní činnost,
   marketing…“) — doplnění oboru je ohlášení v RŽP.
-- [ ] **[R] Přestěhování na `slevohlidka.cz`** (R93). Doména i hosting jsou připravené, zatím na nich
-  běží stránka „Brzy spouštíme“ (R79); kontaktní e-mail a User-Agent už jsou na nové doméně (R80).
+- [x] **[R] Přestěhování na `slevohlidka.cz`** (R93) — hotovo v 19. nasazení (`6d328eb`). Doména i hosting byly připravené, předtím na nich
+  běžela stránka „Brzy spouštíme“ (R79); kontaktní e-mail a User-Agent už jsou na nové doméně (R80).
   Postup krok za krokem v [DEPLOYMENT.md](../deploy/DEPLOYMENT.md#přestěhování-na-slevohlidkacz-r93):
   kontrola hostingu `hosting-check.php`, celá databáze (v ní se nic nemění), `.env` se stejným
   `APP_KEY` a klíči VAPID, cron přepnout (ne zdvojit), stará subdoména přesměruje 301,

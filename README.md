@@ -24,7 +24,7 @@ s věrnostní kartou a ceny za jednotku, a dá vědět e-mailem, když přibude 
 > s výběrem obchodu „Jsem v obchodě“, nákupní seznam, srovnání s dřívějšími akcemi, e-mailová
 > upozornění (hned / denně / týdně) a příprava na zveřejnění (podmínky, zásady, souhlasy, cookie
 > lišta). Co platí a proč je v tabulce na začátku [PLAN.md](docs/PLAN.md), log rozhodnutí R1–R65
-> v [kap. 8](docs/PLAN.md#8-log-rozhodnutí). Makro zatím nejde (ochrana proti robotům,
+> v [kap. 8](docs/ROZHODNUTI.md). Makro zatím nejde (ochrana proti robotům,
 > [ZDROJE_DAT.md](docs/ZDROJE_DAT.md)).
 
 ## Jak se to používá
