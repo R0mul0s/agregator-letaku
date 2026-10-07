@@ -4,7 +4,7 @@
  * Hledání v aktuálních nabídkách — slova jako začátky slov v názvu, značce a popisu (R71),
  * volitelně jen vybrané obchody, produkt katalogu, budoucí akce, bez e-shopu a podle
  * nastavení Mých obchodů přihlášeného (R100), jen brzy končící, nové a slevy od procent
- * (OfferFilters, R101).
+ * (R101) a oddělení katalogu (OfferFilters, R102).
  *
  * Bez ohledu na diakritiku a velikost písmen („mleko“ najde „Mléko“) díky collation
  * utf8mb4_unicode_ci tabulek. Řazení volí uživatel (OfferListSort, R100); bez volby
@@ -51,6 +51,7 @@ final class OfferSearch
     public function __construct(
         private readonly LocalCalendar $calendar,
         private readonly ShoppingPreferencesScope $preferences,
+        private readonly OfferDepartments $departments,
     ) {}
 
     /**
@@ -86,6 +87,11 @@ final class OfferSearch
                 ->whereDate('valid_from', '<=', $today->toDateString())
                 ->whereDate('valid_to', '<=', $today->addDays(config()->integer('letaky.offers.ending_soon_days'))->toDateString()))
             ->when($filters->freshOnly, fn (Builder $query) => $query->where('created_at', '>=', $this->freshSince()->toDateTimeString()))
+            // Oddělení (R102): přes produkt katalogu, ke kterému je akce přiřazená
+            ->when($filters->department, fn (Builder $query, string $department) => $query->whereHas(
+                'productAssignments',
+                fn (Builder $query) => $query->whereHas('product', fn (Builder $query) => $query->whereIn('category_id', $this->departments->categoryIds($department))),
+            ))
             ->when($filters->minDiscount, fn (Builder $query, int $percent) => $query->whereRaw(self::DISCOUNT_SQL.' >= ?', [...$this->discountBindings(), $percent]))
             ->with('stores');
 

@@ -8,7 +8,7 @@
  * najednou (přihlášený má předvybrané sledované) a bez akcí jen z e-shopu (R82). Jeden
  * obchod a produkt katalogu mají čistou adresu `/akce/lidl`, `/akce/pivo` (R94). Řazení na výběr
  * a přihlášenému nastavení Mých obchodů — prodejny, karty, e-shop — s počtem skrytých akcí (R100);
- * jen brzy končící, nové a slevy od procent (R101).
+ * jen brzy končící, nové a slevy od procent (R101); oddělení katalogu (R102).
  *
  * @author Roman Hlaváček
  *
@@ -20,6 +20,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Domain\Catalog\WatchTargets;
+use App\Domain\Offers\OfferDepartments;
 use App\Domain\Offers\OfferFilters;
 use App\Domain\Offers\OfferPages;
 use App\Domain\Offers\OfferPresenter;
@@ -47,7 +48,7 @@ class OffersController extends Controller
      * Zobrazí neskončené akce odpovídající hledání, v načteném rozsahu stránek. Stará adresa
      * jednoho obchodu nebo produktu (`?chain=lidl`, `?produkt=12`) přesměruje na čistou (R94).
      */
-    public function __invoke(OffersRequest $request, OfferSearch $search, OfferPresenter $presenter, PriceHistory $priceHistory, WatchTargets $watchTargets, SearchVocabulary $vocabulary, OfferPages $pages): Response|RedirectResponse
+    public function __invoke(OffersRequest $request, OfferSearch $search, OfferPresenter $presenter, PriceHistory $priceHistory, WatchTargets $watchTargets, SearchVocabulary $vocabulary, OfferPages $pages, OfferDepartments $departments): Response|RedirectResponse
     {
         abort_if($request->pathTarget() === null, HttpResponse::HTTP_NOT_FOUND);
         $cleanUrl = $this->cleanUrl($request, $pages);
@@ -134,12 +135,16 @@ class OffersController extends Controller
                 OffersRequest::ENDING_SOON => $offerFilters->endingSoon,
                 OffersRequest::FRESH => $offerFilters->freshOnly,
                 OffersRequest::MIN_DISCOUNT => $offerFilters->minDiscount ?? '',
+                // Oddělení katalogu jako část adresy ('' = všechna, R102)
+                OffersRequest::DEPARTMENT => $offerFilters->department === null ? '' : OfferDepartments::slug($offerFilters->department),
             ],
             // Hodnoty do popisků a voleb filtrů (R101): „Končí do 2 dnů“, „Nové za 2 dny“, „Sleva od 20 %“
             'filterOptions' => [
                 'endingSoonDays' => config()->integer('letaky.offers.ending_soon_days'),
                 'freshDays' => config()->integer('letaky.offers.fresh_days'),
                 'minDiscounts' => config()->array('letaky.account.min_discount_options'),
+                // Oddělení, ve kterých jsou teď akce [{ slug, name, icon }] (R102)
+                'departments' => $departments->withOffers(),
             ],
             // Řazení, podle kterého výpis opravdu řadí, a na výběr (relevance jen s textem, R100)
             'sort' => $sort->value,

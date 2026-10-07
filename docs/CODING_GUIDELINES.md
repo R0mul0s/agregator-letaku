@@ -245,6 +245,8 @@ resources/scss/
 ```
 
 - **Vždy `@use`, nikdy `@import`.**
+- **Deklarace bloku před vnořenými pravidly.** Dart Sass deklarace za vnořeným pravidlem (`&--desktop { … }`) vypíše až za něj a přebijí ho — modifikátor s media query patří na konec bloku (R102).
+- Na telefonu (pod `$breakpoint-md`) jsou řazení a filtry výpisů v okně zespodu (`BottomSheet`, `FilterBar`, `SortSheet`); ovládání jen pro široký displej má modifikátor `--desktop` skrytý mixinem `below-md` ve svém souboru (R102).
 - Pro styling se nikdy nepoužívají `id` selektory.
 
 ---

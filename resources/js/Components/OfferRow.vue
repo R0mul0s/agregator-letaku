@@ -81,6 +81,8 @@ const unitPrice = computed(() => {
 <template>
     <li class="offer-row" :class="{ 'offer-row--ended': offer.ended }">
         <div class="offer-row__body">
+            <!-- Popisek nad názvem — hlídaná položka v pohledu Podle obchodů (R102) -->
+            <p v-if="$slots.label" class="offer-row__label"><slot name="label" /></p>
             <p class="offer-row__name">
                 {{ offer.name }}
                 <span v-if="offer.matchStatus === 'maybe'" class="tag tag--warning">{{ t('offers.maybe') }}</span>

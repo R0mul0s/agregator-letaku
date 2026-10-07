@@ -215,6 +215,8 @@ snadno jako přijmout.
 | `slevohlidka.home.expanded` | localStorage | které skupiny v Mých slevách máte rozbalené | do smazání v prohlížeči |
 | `slevohlidka.home.rows` | localStorage | v Mých slevách po výběru obchodu akce jako řádky, nebo karty | do smazání v prohlížeči |
 | `slevohlidka.view.compact` | localStorage | ve Všech akcích a Mých slevách akce jako karty, nebo kompaktní řádky | do smazání v prohlížeči |
+| `slevohlidka.home.view` | localStorage | v Mých slevách akce podle hlídaných položek, nebo podle obchodů | do smazání v prohlížeči |
+| `slevohlidka.home.hero_seen` | localStorage | že jste úvodní pruh Mých slev už viděli — dál ho ukazujeme menší | do smazání v prohlížeči |
 | `slevohlidka.search.recent` | localStorage | posledních 5 hledání ve Všech akcích, abyste je měli po ruce | do smazání v hledání nebo odhlášení |
 | `slevohlidka.install.dismissed_at` | localStorage | kdy jste zavřeli výzvu k přidání Slevohlídky na plochu (30 dní se neukáže) | do smazání v prohlížeči |
 | `slevohlidka.shopping.wake_lock` | localStorage | v nákupním seznamu nezhasínat displej | do smazání v prohlížeči |

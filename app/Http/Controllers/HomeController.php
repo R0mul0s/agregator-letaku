@@ -3,7 +3,8 @@
 /**
  * Úvodní stránka přihlášeného uživatele — slevy k jeho hlídaným položkám (R18, R19).
  * Nepřihlášený má na stejné adrese úvodní stránku Slevohlídky (LandingController, R44).
- * Řazení, štítky filtrů a dočasné přepnutí na všechny prodejny (R100, R101).
+ * Řazení, štítky filtrů a dočasné přepnutí na všechny prodejny (R100, R101), pohled Podle
+ * obchodů (R102).
  *
  * @author Roman Hlaváček
  *
@@ -14,6 +15,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Domain\Matching\ChainOverview;
 use App\Domain\Matching\MyOffers;
 use App\Domain\Matching\WaitAdvice;
 use App\Domain\Offers\LocalCalendar;
@@ -42,7 +44,7 @@ class HomeController extends Controller
      * v letácích bez ceny (R27); akce, které ještě nezačaly, zvlášť (R76). U akcí příznaky pro
      * štítky Nové a Končí brzy, `?prodejny=vse` dočasně ukáže akce všech prodejen (R101).
      */
-    public function __invoke(Request $request, MyOffers $myOffers, OfferPresenter $presenter, MentionPresenter $mentionPresenter, LandingController $landing, CzechVocative $vocative, PriceHistory $priceHistory, WaitAdvice $waitAdvice, LocalCalendar $calendar, OfferSearch $search): Response
+    public function __invoke(Request $request, MyOffers $myOffers, OfferPresenter $presenter, MentionPresenter $mentionPresenter, LandingController $landing, CzechVocative $vocative, PriceHistory $priceHistory, WaitAdvice $waitAdvice, LocalCalendar $calendar, OfferSearch $search, ChainOverview $chainOverview): Response
     {
         // Nepřihlášený má na stejné adrese úvodní stránku (R44)
         $user = $request->user();
@@ -91,12 +93,14 @@ class HomeController extends Controller
             'offersPreferences' => [
                 'sort' => $user->offers_sort->value,
                 'sortOptions' => array_map(
-                    fn (OffersSort $sort): array => ['value' => $sort->value, 'label' => $sort->label()],
+                    fn (OffersSort $sort): array => ['value' => $sort->value, 'label' => $sort->shortLabel()],
                     OffersSort::cases(),
                 ),
                 'minDiscountPercent' => $user->min_discount_percent,
                 'updateUrl' => route('account.offers-preferences', absolute: false),
             ],
+            // Pohled Podle obchodů (R102): kde je která položka nejlevněji — akce jsou ve watchItems
+            'byChain' => $chainOverview->build($user, $groups),
             // Dny do popisků štítků Nové a Končí brzy (R101)
             'offerFilterDays' => [
                 'fresh' => config()->integer('letaky.offers.fresh_days'),

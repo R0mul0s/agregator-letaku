@@ -1,0 +1,251 @@
+// _bottom-sheet.scss
+// Řazení a filtry na telefonu (R102): lišta „Seřadit / Filtry“ (FilterBar.vue), okno
+// zespodu (BottomSheet.vue), seznam řazení (SortSheet.vue) a oddíly filtrů ve stránkách.
+// Od středního displeje se lišta skryje a platí řádek štítků; prvky, které na telefonu
+// převezme okno, mají modifikátor `--desktop` (skryje je mixin below-md ve svém souboru).
+//
+// @author Roman Hlaváček
+// @created 2026-10-07
+
+@use '../abstracts/mixins' as *;
+
+// Lišta dvou tlačítek pod hledáním
+.filter-bar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-bottom: var(--space-3);
+
+    @include from-md {
+        display: none;
+    }
+
+    // Řazení bere zbylé místo (dlouhý název), Filtry jen kolik potřebují
+    &__button {
+        display: inline-flex;
+        flex: none;
+        align-items: center;
+        justify-content: center;
+        gap: var(--space-2);
+        min-width: 0;
+        min-height: var(--control-size);
+        padding: 0 var(--space-3);
+        background: var(--color-surface);
+        border: 1px solid var(--color-input-border);
+        border-radius: var(--radius-pill);
+        color: var(--color-text);
+        font: inherit;
+        font-size: var(--font-size-sm);
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    &__button:first-child {
+        flex: 1 1 0;
+    }
+
+    &__icon {
+        flex: none;
+        width: var(--icon-size);
+        height: var(--icon-size);
+        fill: none;
+        stroke: currentcolor;
+        stroke-width: var(--svg-stroke-icon);
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+
+    // Zvolené řazení — dlouhý název se zkrátí, tlačítka zůstanou stejně široká
+    &__value {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    &__count {
+        display: inline-grid;
+        place-items: center;
+        min-width: var(--filter-count-size);
+        height: var(--filter-count-size);
+        padding: 0 var(--space-1);
+        background: var(--color-accent);
+        border-radius: var(--radius-pill);
+        color: var(--color-on-accent);
+        font-size: var(--font-size-xs);
+        font-weight: 800;
+    }
+}
+
+// Okno zespodu přes celou šířku, nejvýš skoro celá výška; obsah se posouvá, patička zůstává
+.bottom-sheet {
+    width: 100%;
+    max-width: 100%;
+    max-height: var(--bottom-sheet-max-height);
+    margin: auto 0 0;
+    padding: 0;
+    background: var(--color-surface);
+    border: 0;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    box-shadow: var(--shadow-toast);
+    color: var(--color-text);
+
+    &[open] {
+        display: flex;
+        flex-direction: column;
+        animation: bottom-sheet-in var(--duration-toast) ease-out;
+    }
+
+    &::backdrop {
+        background: var(--color-backdrop);
+    }
+
+    // Na širším displeji (okno se tam otevře jen výjimečně) uprostřed jako dialog
+    @include from-md {
+        width: min(calc(100% - 2 * var(--space-4)), var(--bottom-sheet-max-width));
+        margin: auto;
+        border-radius: var(--radius-lg);
+    }
+
+    &__header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-2);
+        padding: var(--space-3) var(--space-3) var(--space-2) var(--space-4);
+        border-bottom: 1px solid var(--color-border);
+    }
+
+    &__title {
+        font-size: var(--font-size-lg);
+    }
+
+    &__body {
+        flex: 1 1 auto;
+        overflow-y: auto;
+        padding: var(--space-3) var(--space-4);
+        overscroll-behavior: contain;
+    }
+
+    // Patička s tlačítky; nad domovskou lištou iPhonu
+    &__footer {
+        display: flex;
+        gap: var(--space-2);
+        padding: var(--space-3) var(--space-4) calc(var(--space-3) + env(safe-area-inset-bottom));
+        border-top: 1px solid var(--color-border);
+
+        > :last-child {
+            flex: 1;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        &[open] {
+            animation: none;
+        }
+    }
+}
+
+@keyframes bottom-sheet-in {
+    from {
+        transform: translateY(var(--bottom-sheet-travel));
+    }
+}
+
+// Seznam řazení — řádky přes celou šířku, zvolené s fajfkou
+.sheet-options {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    &__option {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        min-height: var(--control-size);
+        padding: var(--space-2) 0;
+        background: none;
+        border: 0;
+        border-bottom: 1px solid var(--color-border);
+        color: var(--color-text);
+        font: inherit;
+        font-weight: 600;
+        text-align: left;
+        cursor: pointer;
+
+        &[aria-pressed='true'] {
+            color: var(--color-accent-strong);
+            font-weight: 800;
+        }
+    }
+
+    li:last-child &__option {
+        border-bottom: 0;
+    }
+
+    &__check {
+        width: var(--icon-size);
+        height: var(--icon-size);
+        fill: none;
+        stroke: currentcolor;
+        stroke-width: var(--svg-stroke-icon);
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+}
+
+// Oddíl okna filtrů: nadpis a štítky pod sebou se zalomením
+.filter-sheet {
+    &__section {
+        padding: var(--space-3) 0;
+        border-bottom: 1px solid var(--color-border);
+
+        &:first-child {
+            padding-top: 0;
+        }
+
+        &:last-child {
+            border-bottom: 0;
+        }
+    }
+
+    &__heading {
+        margin-bottom: var(--space-2);
+        font-size: var(--font-size-md);
+    }
+
+    &__options {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-2);
+    }
+
+    &__hint {
+        margin-top: var(--space-2);
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+    }
+
+    // Ikona oddělení ve štítku kategorie
+    &__icon {
+        width: var(--icon-size);
+        height: var(--icon-size);
+        fill: none;
+        stroke: currentcolor;
+        stroke-width: var(--svg-stroke-icon);
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+}
+
+// Zapnuté filtry pod lištou na telefonu — klepnutím se vypnou
+.active-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin: calc(var(--space-1) * -1) 0 var(--space-3);
+
+    @include from-md {
+        display: none;
+    }
+}

@@ -371,6 +371,12 @@
     --toast-max-width: 28rem;
     --toast-icon-box-size: 1.75rem;
     --toast-travel: 1rem;
+    // Okno řazení a filtrů zespodu na telefonu (R102): nejvýš skoro celá výška, odkud vyjede,
+    // šířka na větším displeji a číslo zapnutých filtrů na tlačítku
+    --bottom-sheet-max-height: 90dvh;
+    --bottom-sheet-max-width: 32rem;
+    --bottom-sheet-travel: 100%;
+    --filter-count-size: 1.25rem;
     --duration-toast: 250ms;
     // Ikona prázdné skupiny Mých slev
     --empty-inline-icon-box-size: 2.5rem;

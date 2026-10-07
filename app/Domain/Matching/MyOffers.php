@@ -402,11 +402,11 @@ final class MyOffers
 
     /**
      * Klíč řazení: cena za jednotku, kterou uživatel zaplatí (s kartou, pokud ji má), jinak cena;
-     * nabídky bez ceny na konec.
+     * nabídky bez ceny na konec. I pro srovnání obchodů v pohledu Podle obchodů (ChainOverview, R102).
      *
      * @return array{int, int}
      */
-    private function sortPrice(User $user, Offer $offer): array
+    public function sortPrice(User $user, Offer $offer): array
     {
         $price = $this->userPrice($user, $offer);
         $unitPrice = UnitPrice::of($price, $offer->quantity, $offer->unit);

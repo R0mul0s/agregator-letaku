@@ -16,6 +16,13 @@
     &__text {
         flex: 1 1 var(--search-text-min-width);
     }
+
+    // Výběr obchodů — na telefonu v okně Filtry (R102), hledání dostane celou šířku
+    &__chains {
+        @include below-md {
+            display: none;
+        }
+    }
 }
 
 // Stránkování (R43): „Načíst další“, kolik je zobrazeno a čísla stránek

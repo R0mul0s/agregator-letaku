@@ -238,8 +238,9 @@ final class SeoMeta
 
     /**
      * Výpis zúžený hledáním, jen budoucími akcemi (R76), bez e-shopu nebo víc obchody
-     * najednou (R82), končícími, novými nebo slevami od procent (R101), produkt omezený na obchod
-     * — nekonečně kombinací, do výsledků hledání nepatří. Indexuje se celý výpis, výpis jednoho obchodu a výpis produktu (R94).
+     * najednou (R82), končícími, novými, slevami od procent (R101) nebo oddělením (R102),
+     * produkt omezený na obchod — nekonečně kombinací, do výsledků hledání nepatří. Indexuje
+     * se celý výpis, výpis jednoho obchodu a výpis produktu (R94).
      */
     private function isFiltered(Request $request): bool
     {
@@ -253,6 +254,6 @@ final class SeoMeta
         return $request->filled('q') || $request->boolean(OffersRequest::UPCOMING)
             || $request->boolean(OffersRequest::WITHOUT_ESHOP) || $multipleChains || $combined
             || $request->boolean(OffersRequest::ENDING_SOON) || $request->boolean(OffersRequest::FRESH)
-            || $request->filled(OffersRequest::MIN_DISCOUNT);
+            || $request->filled(OffersRequest::MIN_DISCOUNT) || $request->filled(OffersRequest::DEPARTMENT);
     }
 }

@@ -103,13 +103,11 @@ v [PLAN.md](PLAN.md). Větší celky se z toho stávají etapou.
 
 ## Filtry a přehlednost výpisů
 
-**Odkud:** návrh 7. 10. 2026 (situace: upozornění, plánování nákupu, v obchodě, brouzdání, hledání, příchod z Googlu). Hotové P1 (R100) a P2 (R101): řazení, „Podle Mých obchodů“, štítky Nové / Končí brzy / Sleva od, v Mých slevách i Jen jisté shody a dočasně všechny prodejny, položky bez akce dole, obchod u nejnižší ceny, čitelný text akcí na více kusů.
+**Odkud:** návrh 7. 10. 2026 (situace: upozornění, plánování nákupu, v obchodě, brouzdání, hledání, příchod z Googlu). Hotové P1–P3 (R100–R102): řazení, „Podle Mých obchodů“, štítky Nové / Končí brzy / Sleva od / Kategorie, v Mých slevách i Jen jisté shody, dočasně všechny prodejny a pohled Podle obchodů, položky bez akce dole, obchod u nejnižší ceny, menší úvodní pruh, na telefonu okna Seřadit / Filtry.
 
 - **filtr „Nejlevnější za 12 týdnů“** (`PriceHistory::LOWEST` jako SQL — dřívější skončená akce stejné položky za vyšší cenu): odloženo, data jsou od 2. 10. 2026 a filtr by skoro nic nenašel; vrátit se, až bude historie aspoň pár týdnů
+- kategorie i pro akce bez produktu katalogu (~35 %): převodní tabulka kategorií obchodů na oddělení (Billa 86, Tesco 87, Globus 49 kategorií, Albert žádné) — R102 bere jen přiřazení k produktu
 - „Nové“ v Mých slevách od poslední návštěvy nebo upozornění místo pevných 2 dnů — chtělo by to pamatovat si čas návštěvy
-- **P3 kategorie** (Maso, Nápoje, Drogerie…): přes katalog má kategorii jen ~65 % akcí (7. 10. 2026: 3 985 z 6 151), zbytek by při filtru zmizel; lepší pokrytí = převodní tabulka kategorií obchodů na naše (Billa 86, Tesco 87, Globus 49 kategorií, Albert žádné)
-- **P3 pohled „Podle obchodů“ v Mých slevách:** pro každý obchod kolik hlídaných položek je tam nejlevněji a kolik v akci — „kam jet nakoupit“
-- **P3 menší úvodní pruh Mých slev** při další návštěvě; dlaždice souhrnu klikatelné (rozbalit vše, skok na nejvyšší slevu, filtr Nové)
 
 ## Přihlášení přes účty
 

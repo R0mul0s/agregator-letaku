@@ -651,6 +651,18 @@
     flex: 0 1 var(--chain-select-min-width);
     margin-right: auto;
     margin-bottom: 0;
+
+    // Na telefonu „Jsem v obchodě“ v celé šířce, pod ním přepínač pohledu a Rozbalit vše (R102)
+    @include below-md {
+        flex-basis: 100%;
+    }
+}
+
+// Přepínač Položky / Obchody (R102) — na telefonu vlevo, Rozbalit vše vpravo
+.watch-groups__view {
+    @include below-md {
+        margin-right: auto;
+    }
 }
 
 @keyframes watch-tile-fresh {
@@ -666,5 +678,26 @@
 
     100% {
         box-shadow: var(--shadow-card);
+    }
+}
+
+// Moje slevy „Podle obchodů“ (R102): karta za obchod, nahoře logo a kolik položek je tam nejlevněji
+.chain-overview {
+    display: grid;
+    gap: var(--space-3);
+
+    &__header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--space-2) var(--space-3);
+        margin-bottom: var(--space-2);
+        font-size: var(--font-size-md);
+    }
+
+    &__summary {
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+        font-weight: 600;
     }
 }

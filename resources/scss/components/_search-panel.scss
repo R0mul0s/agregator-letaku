@@ -401,6 +401,13 @@
     gap: var(--space-2);
     align-items: center;
     margin: calc(var(--space-2) * -1) 0 var(--space-3);
+
+    // Na telefonu řádek štítků nahradí lišta Seřadit / Filtry a okna (R102)
+    &--desktop {
+        @include below-md {
+            display: none;
+        }
+    }
 }
 
 .search-chip {
@@ -520,29 +527,15 @@
     }
 }
 
-// Štítky filtrů (R101): na telefonu jeden řádek k posunutí do strany — tři řádky štítků
-// by odsunuly výsledky pod první obrazovku; od středního displeje se zalamují
+// Štítky filtrů na širokém displeji (R101) — zalamují se; na telefonu je řádek skrytý a filtry
+// jsou v okně zespodu (R102)
 .search-chips__filters {
     display: flex;
-    flex: 1 1 100%;
+    flex: 0 1 auto;
+    flex-wrap: wrap;
     gap: var(--space-2);
     align-items: center;
     min-width: 0;
-    // Místo pro rámeček fokusu, který by posuvná oblast ořízla
-    margin: calc(var(--space-1) * -1);
-    padding: var(--space-1);
-    overflow-x: auto;
-    scrollbar-width: none;
-
-    > * {
-        flex: none;
-    }
-
-    @include from-md {
-        flex: 0 1 auto;
-        flex-wrap: wrap;
-        overflow-x: visible;
-    }
 }
 
 // Výběr „Sleva od“ ve tvaru štítku (R101) — padding má select, aby šel klepnout celý
@@ -558,6 +551,16 @@
     color: inherit;
     font: inherit;
     cursor: pointer;
+}
+
+// Křížek u zapnutého filtru pod lištou na telefonu (R102)
+.search-chip__icon {
+    width: var(--icon-size-sm);
+    height: var(--icon-size-sm);
+    fill: none;
+    stroke: currentcolor;
+    stroke-width: var(--svg-stroke-icon);
+    stroke-linecap: round;
 }
 
 // Počet akcí ve štítku (Moje slevy, R101)

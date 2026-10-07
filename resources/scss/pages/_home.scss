@@ -24,6 +24,47 @@
         gap: var(--space-4);
     }
 
+    // Při další návštěvě (R102): bez maskota a úvodní věty, menší okraje — akce jsou výš
+    // Pozdrav s tlačítkem v jednom řádku, čísla pod nimi v jednom řádku k posunutí do strany
+    &--compact {
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: var(--space-2) var(--space-3);
+        margin-bottom: var(--space-4);
+        padding: var(--space-3);
+
+        @include from-md {
+            grid-template-columns: minmax(0, 1fr) auto;
+            padding: var(--space-3) var(--space-4);
+        }
+    }
+
+    &--compact &__title {
+        font-size: var(--font-size-md);
+
+        @include from-md {
+            font-size: var(--font-size-lg);
+        }
+    }
+
+    &--compact &__action {
+        grid-row: 1;
+        grid-column: 2;
+        min-height: var(--control-size);
+        padding-inline: var(--space-3);
+        font-size: var(--font-size-sm);
+    }
+
+    &--compact &__stats {
+        flex-wrap: nowrap;
+        margin-top: 0;
+        overflow-x: auto;
+        scrollbar-width: none;
+
+        > * {
+            flex: none;
+        }
+    }
+
     // Na mobilu u nadpisu, na širokém displeji uprostřed výšky pruhu
     // Jedoucí košík — animace z úvodní stránky (_landing.scss) s menším rozsahem
     &__art {
@@ -161,6 +202,18 @@
             border-color: transparent;
             background: var(--color-accent-soft);
             color: var(--color-accent-strong);
+        }
+    }
+
+    // Číslo jako zkratka (R102): všechny akce, nové, skok na nejvyšší slevu
+    &__stat--button {
+        font: inherit;
+        font-size: var(--font-size-sm);
+        cursor: pointer;
+        transition: border-color var(--duration-fast);
+
+        &:hover {
+            border-color: var(--color-accent);
         }
     }
 

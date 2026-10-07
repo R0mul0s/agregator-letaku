@@ -3,7 +3,7 @@
 /**
  * Parametry přehledu nabídek — hledaný text, obchody, produkt katalogu (R71), jen budoucí
  * akce (R76), bez akcí jen z e-shopu (R82), řazení, nastavení Mých obchodů (R100), končí brzy,
- * nové, slevy od procent (R101) a načtené stránky (R43).
+ * nové, slevy od procent (R101), oddělení katalogu (R102) a načtené stránky (R43).
  *
  * Přihlášenému výpis uplatní nastavení Mých obchodů (prodejny, karty, e-shop) — `?moje-obchody=0`
  * ho vypne.
@@ -22,6 +22,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Domain\Offers\OfferDepartments;
 use App\Domain\Offers\OfferFilters;
 use App\Domain\Offers\OfferPages;
 use App\Enums\Chain;
@@ -57,6 +58,9 @@ class OffersRequest extends FormRequest
     /** Parametr adresy: jen skutečné slevy od procent (R101). */
     public const MIN_DISCOUNT = OfferFilters::MIN_DISCOUNT_PARAMETER;
 
+    /** Parametr adresy: oddělení katalogu (R102). */
+    public const DEPARTMENT = OfferFilters::DEPARTMENT_PARAMETER;
+
     /** Parametr adresy: řazení (R100). */
     public const SORT = OfferFilters::SORT_PARAMETER;
 
@@ -83,6 +87,7 @@ class OffersRequest extends FormRequest
             self::ENDING_SOON => ['nullable', 'boolean'],
             self::FRESH => ['nullable', 'boolean'],
             self::MIN_DISCOUNT => ['nullable', 'integer', Rule::in(config()->array('letaky.account.min_discount_options'))],
+            self::DEPARTMENT => ['nullable', 'string', Rule::in(array_keys(app(OfferDepartments::class)->all()))],
             self::SORT => ['nullable', Rule::enum(OfferListSort::class)],
             self::SHOPPING_PREFERENCES => ['nullable', 'boolean'],
             ...$this->pageWindowRules(),
@@ -218,6 +223,7 @@ class OffersRequest extends FormRequest
             endingSoon: $this->boolean(self::ENDING_SOON),
             freshOnly: $this->boolean(self::FRESH),
             minDiscount: $this->minDiscount(),
+            department: $this->department(),
         );
     }
 
@@ -243,6 +249,14 @@ class OffersRequest extends FormRequest
     public function minDiscount(): ?int
     {
         return $this->integer(self::MIN_DISCOUNT) ?: null;
+    }
+
+    /**
+     * Název zvoleného oddělení katalogu (R102), nebo null = všechna.
+     */
+    public function department(): ?string
+    {
+        return $this->filled(self::DEPARTMENT) ? app(OfferDepartments::class)->nameFor($this->string(self::DEPARTMENT)->toString()) : null;
     }
 
     /**
@@ -288,6 +302,7 @@ class OffersRequest extends FormRequest
             $this->boolean(self::ENDING_SOON),
             $this->boolean(self::FRESH),
             $this->minDiscount(),
+            $this->department(),
         );
     }
 }

@@ -342,7 +342,7 @@ it('pošle řazení na výběr a adresu, kam se hned uloží (R100)', function (
         ->where('offersPreferences.sort', 'discount')
         ->where('offersPreferences.minDiscountPercent', 20)
         ->where('offersPreferences.updateUrl', '/ucet/moje-slevy')
-        ->where('offersPreferences.sortOptions.0', ['value' => 'unit_price', 'label' => 'nejnižší ceny za jednotku']));
+        ->where('offersPreferences.sortOptions.0', ['value' => 'unit_price', 'label' => 'Nejlevnější za kg, l, ks']));
 
     $this->from(route('home'))
         ->put('/ucet/moje-slevy', ['offers_sort' => 'ending_soon', 'min_discount_percent' => 20])
@@ -384,4 +384,27 @@ it('bez vybraných prodejen přepínač prodejen nenabídne (R101)', function ()
     follow(Chain::Kaufland);
 
     $this->get(route('home', ['prodejny' => 'vse']))->assertInertia(fn (Assert $page) => $page->where('stores', null));
+});
+
+it('pohled Podle obchodů ukáže, kde je která položka nejlevněji, a obchody seřadí (R102)', function (): void {
+    follow(Chain::Kaufland);
+    follow(Chain::Lidl);
+    $butter = watch('Máslo', ['keywords' => 'máslo']);
+    $milk = watch('Mléko', ['keywords' => 'mléko']);
+    // Máslo: Lidl levněji za kilo (250 g za 39,90 = 159,60 Kč/kg) než Kaufland (500 g za 89,90)
+    $lidlButter = Offer::factory()->create(['chain' => Chain::Lidl, 'name' => 'Máslo Pilos', 'price' => 3990, 'quantity' => 250]);
+    $kauflandButter = Offer::factory()->create(['chain' => Chain::Kaufland, 'name' => 'Máslo Tatra', 'price' => 8990, 'quantity' => 500]);
+    Offer::factory()->create(['chain' => Chain::Kaufland, 'name' => 'Máslo Madeta', 'price' => 9990, 'quantity' => 500]);
+    // Mléko jen v Kauflandu — tam nejlevněji
+    $kauflandMilk = Offer::factory()->create(['chain' => Chain::Kaufland, 'name' => 'Mléko polotučné', 'price' => 1990, 'quantity' => 1000, 'unit' => PackageUnit::Milliliter]);
+
+    $this->get(route('home'))->assertInertia(fn (Assert $page) => $page->where('byChain', [
+        ['chain' => 'kaufland', 'cheapestCount' => 1, 'items' => [
+            ['watchItemId' => $butter->id, 'offerId' => $kauflandButter->id, 'cheapest' => false],
+            ['watchItemId' => $milk->id, 'offerId' => $kauflandMilk->id, 'cheapest' => true],
+        ]],
+        ['chain' => 'lidl', 'cheapestCount' => 1, 'items' => [
+            ['watchItemId' => $butter->id, 'offerId' => $lidlButter->id, 'cheapest' => true],
+        ]],
+    ]));
 });

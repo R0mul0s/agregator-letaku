@@ -31,4 +31,12 @@ enum OffersSort: string
     {
         return __('app.ui.offers_sort.'.$this->value);
     }
+
+    /**
+     * Samostatný název (výběr řazení v Mých slevách, R102) — label() navazuje na „Řadit od“.
+     */
+    public function shortLabel(): string
+    {
+        return __('app.ui.offers_sort_short.'.$this->value);
+    }
 }

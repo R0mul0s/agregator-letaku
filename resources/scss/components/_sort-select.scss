@@ -5,12 +5,21 @@
 // @author Roman Hlaváček
 // @created 2026-10-07
 
+@use '../abstracts/mixins' as *;
+
 .sort-select {
     display: inline-flex;
     flex: none;
     align-items: center;
     gap: var(--space-2);
     max-width: 100%;
+
+    // Na telefonu řazení v okně zespodu (R102)
+    &--desktop {
+        @include below-md {
+            display: none;
+        }
+    }
 
     &__label {
         color: var(--color-text-muted);

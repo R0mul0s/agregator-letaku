@@ -483,6 +483,13 @@ return [
             'ending_soon' => 'konce platnosti',
         ],
 
+        // App\Enums\OffersSort samostatně — výběr řazení v Mých slevách (R102), jako Všechny akce
+        'offers_sort_short' => [
+            'unit_price' => 'Nejlevnější za kg, l, ks',
+            'discount' => 'Největší sleva',
+            'ending_soon' => 'Končí nejdřív',
+        ],
+
         // App\Enums\OfferListSort — řazení Všech akcí (R100)
         'offer_list_sort' => [
             'doporucene' => 'Doporučené',
@@ -563,6 +570,9 @@ return [
             'min_discount_any' => 'Sleva od…',
             'min_discount' => 'Sleva od :percent %',
             'clear_filters' => 'Zrušit filtry',
+            // Oddělení katalogu (R102) — akce přiřazené k produktům katalogu
+            'department_label' => 'Kategorie',
+            'department_any' => 'Kategorie…',
             // Nastavení Mých obchodů přihlášeného — prodejny, karty, e-shop (R100)
             'shopping_preferences' => 'Podle Mých obchodů',
             'shopping_preferences_hidden' => 'Podle Mých obchodů (vaše prodejny, karty a e-shopy) jsme schovali :count akci.|Podle Mých obchodů (vaše prodejny, karty a e-shopy) jsme schovali :count akce.|Podle Mých obchodů (vaše prodejny, karty a e-shopy) jsme schovali :count akcí.',
@@ -626,6 +636,20 @@ return [
             'next' => 'Další',
             'load_more' => 'Načíst další :count akci|Načíst další :count akce|Načíst dalších :count akcí',
             'shown' => 'Zobrazeno :from–:to z :total',
+        ],
+
+        // Řazení a filtry na telefonu v okně zespodu (R102, BottomSheet, FilterBar, SortSheet)
+        'sheet' => [
+            'close' => 'Zavřít',
+            'sort' => 'Seřadit',
+            'filters' => 'Filtry',
+            'period' => 'Platnost',
+            'discount' => 'Sleva',
+            'place' => 'Kde koupit',
+            'show' => 'Zobrazit :count akci|Zobrazit :count akce|Zobrazit :count akcí',
+            'chains_hint' => 'Když nevyberete žádný, ukážeme všechny obchody.',
+            'department_hint' => 'Jen akce, které jsme přiřadili k produktu z katalogu — některé akce v žádné kategorii nejsou.',
+            'shopping_preferences_hint' => 'Vaše prodejny, věrnostní karty a e-shopy z Mých obchodů.',
         ],
 
         // Přepínač zobrazení akcí: karty, nebo kompaktní řádky (R82)
@@ -984,7 +1008,21 @@ return [
             'hero_text' => 'Tohle jsme pro vás ulovili v letácích a e-shopech obchodů, které sledujete.',
             'stat_items' => 'hlídaná položka|hlídané položky|hlídaných položek',
             'stat_offers' => 'akce|akce|akcí',
-            'stat_best' => 'nejvyšší sleva',
+            // Čísla v úvodním pruhu jsou zkratky (R102): nové akce, skok na nejvyšší slevu
+            'stat_fresh' => 'nová|nové|nových',
+            'stat_best_item' => 'nejvyšší sleva — :name',
+            // Pohled Podle položek, nebo Podle obchodů — kam jet nakoupit (R102)
+            'view_label' => 'Seskupit akce podle položek, nebo podle obchodů',
+            'view_items' => 'Položky',
+            'view_chains' => 'Obchody',
+            'by_chain_summary' => 'nejlevněji :cheapest z :count hlídané položky|nejlevněji :cheapest z :count hlídaných položek|nejlevněji :cheapest z :count hlídaných položek',
+            'cheapest_here' => 'Nejlevněji',
+            // Okno Filtry na telefonu (R102)
+            'filter_offers' => 'Akce',
+            'filter_none' => 'Teď není podle čeho filtrovat.',
+            'filter_stores' => 'Prodejny',
+            'my_stores_hint' => 'Vypnutím uvidíte dočasně akce všech prodejen — třeba na cestách. Moje obchody se nezmění.',
+            'all_stores' => 'Všechny prodejny',
             'no_chains' => 'Nejdřív vyberte obchody, které chcete sledovat.',
             'no_chains_link' => 'Vybrat obchody',
             'no_watch_items' => 'Zatím nic nehlídáte.',
@@ -998,7 +1036,7 @@ return [
             'expand_all' => 'Rozbalit vše',
             'collapse_all' => 'Sbalit vše',
             // Řazení přímo na stránce, ukládá se do účtu (R100)
-            'sort' => 'Řadit od',
+            'sort' => 'Řadit',
             'min_discount_filter' => 'Ukazujeme jen slevy od :percent %',
             'change_preferences' => 'Změnit',
             // Štítky filtrů (R101): bez shod „možná“ a jen vybrané prodejny (vypnutím dočasně všechny)

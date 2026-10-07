@@ -12,14 +12,19 @@
     @created 2026-10-02
 -->
 <script setup>
+import BottomSheet from '@/Components/BottomSheet.vue';
+import ChainLogo from '@/Components/ChainLogo.vue';
 import ChainSelect from '@/Components/ChainSelect.vue';
+import DepartmentIcon from '@/Components/DepartmentIcon.vue';
 import EmptyState from '@/Components/EmptyState.vue';
+import FilterBar from '@/Components/FilterBar.vue';
 import OfferCard from '@/Components/OfferCard.vue';
 import OfferRow from '@/Components/OfferRow.vue';
 import Pagination from '@/Components/Pagination.vue';
 import SearchSuggest from '@/Components/SearchSuggest.vue';
 import ShoppingToggle from '@/Components/ShoppingToggle.vue';
 import SortSelect from '@/Components/SortSelect.vue';
+import SortSheet from '@/Components/SortSheet.vue';
 import ViewToggle from '@/Components/ViewToggle.vue';
 import WatchOfferButton from '@/Components/WatchOfferButton.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
@@ -47,6 +52,9 @@ const ENDING_SOON = 'konci-brzy';
 const UPCOMING = 'brzy';
 const MIN_DISCOUNT = 'sleva-od';
 
+/** Parametr oddělení katalogu (OfferFilters::DEPARTMENT_PARAMETER, R102). */
+const DEPARTMENT = 'kategorie';
+
 const props = defineProps({
     /** Nadpis podle obchodu nebo produktu („Pivo v akci“), stejný jako pro vyhledávače (SeoMeta, R94). */
     heading: { type: String, required: true },
@@ -58,12 +66,12 @@ const props = defineProps({
     offers: { type: Object, required: true },
     /** Odkazy stránkování a „Načíst další“ (OffersController::pagination, R43). */
     pagination: { type: Object, required: true },
-    /** { q, chain: [obchody] (prázdné = všechny), produkt, brzy, 'bez-eshopu', razeni ('' = podle situace), 'moje-obchody', nove, 'konci-brzy', 'sleva-od' } */
+    /** { q, chain: [obchody] (prázdné = všechny), produkt, brzy, 'bez-eshopu', razeni ('' = podle situace), 'moje-obchody', nove, 'konci-brzy', 'sleva-od', kategorie } */
     filters: { type: Object, required: true },
     /** Řazení, podle kterého výpis řadí, a možnosti [{ value, label }] (OfferListSort, R100). */
     sort: { type: String, required: true },
     sortOptions: { type: Array, required: true },
-    /** Hodnoty filtrů { endingSoonDays, freshDays, minDiscounts } (R101). */
+    /** Hodnoty filtrů { endingSoonDays, freshDays, minDiscounts } (R101) a oddělení s akcemi { slug, name, icon } (R102). */
     filterOptions: { type: Object, required: true },
     /** Nastavení Mých obchodů přihlášeného { hidden: skryté akce, url } (R100); nepřihlášený null. */
     shoppingPreferences: { type: Object, default: null },
@@ -168,17 +176,78 @@ function clearProduct() {
 /** Filtry, které se navzájem vylučují — akce, která brzy končí, už platí, budoucí ještě ne. */
 const EXCLUSIVE_FILTERS = { [ENDING_SOON]: UPCOMING, [UPCOMING]: ENDING_SOON };
 
-/**
- * Štítky zapnuto / vypnuto (R101): nové, končí brzy, brzy začnou (R76), bez e-shopu (R82)
- * a pro přihlášeného podle Mých obchodů (R100).
- */
-const toggleChips = computed(() => [
+/** Štítky platnosti (R101): nové, končí brzy, brzy začnou (R76) — oddíl Platnost v okně Filtry. */
+const periodChips = computed(() => [
     { key: FRESH, label: t('search.fresh', { count: props.filterOptions.freshDays }) },
     { key: ENDING_SOON, label: t('search.ending_soon', { count: props.filterOptions.endingSoonDays }) },
     { key: UPCOMING, label: t('search.upcoming_only') },
+]);
+
+/** Štítky „kde koupit“: bez e-shopu (R82) a pro přihlášeného podle Mých obchodů (R100). */
+const placeChips = computed(() => [
     { key: 'bez-eshopu', label: t('search.without_eshop') },
     ...(props.shoppingPreferences ? [{ key: SHOPPING_PREFERENCES, label: t('search.shopping_preferences') }] : []),
 ]);
+
+/** Všechny štítky zapnuto / vypnuto v jednom řádku (široký displej). */
+const toggleChips = computed(() => [...periodChips.value, ...placeChips.value]);
+
+/** Otevřená okna řazení a filtrů na telefonu (R102). */
+const sortOpen = ref(false);
+const filtersOpen = ref(false);
+
+/**
+ * Přepne obchod ve výběru (okno Filtry, R102) — stejný výběr jako ChainSelect, v pořadí nabídky.
+ *
+ * @param {string} chain
+ */
+function toggleChain(chain) {
+    filters.chain = filters.chain.includes(chain)
+        ? filters.chain.filter((value) => value !== chain)
+        : props.chains.map((option) => option.value).filter((value) => value === chain || filters.chain.includes(value));
+    search();
+}
+
+/**
+ * Nastaví filtr s jednou hodnotou (sleva od, oddělení); stejná hodnota ho vypne.
+ *
+ * @param {string} key Parametr adresy
+ * @param {string|number} value
+ */
+function chooseFilter(key, value) {
+    filters[key] = filters[key] === value ? '' : value;
+    search();
+}
+
+/**
+ * Zapnuté filtry jako štítky pod lištou na telefonu (R102) — klepnutí filtr vypne; vybrané
+ * obchody otevřou okno Filtry.
+ */
+const activeFilterChips = computed(() => {
+    const chips = [];
+    if (filters.chain.length) {
+        const names = filters.chain.map((value) => props.chains.find((chain) => chain.value === value)?.name ?? value);
+        chips.push({ key: 'chain', label: names.join(', '), action: () => (filtersOpen.value = true), removable: false });
+    }
+    for (const chip of periodChips.value.filter((periodChip) => filters[periodChip.key])) {
+        chips.push({ key: chip.key, label: chip.label, action: () => toggleFilter(chip.key), removable: true });
+    }
+    if (filters[MIN_DISCOUNT]) {
+        chips.push({ key: MIN_DISCOUNT, label: t('search.min_discount', { percent: filters[MIN_DISCOUNT] }), action: () => chooseFilter(MIN_DISCOUNT, ''), removable: true });
+    }
+    const department = props.filterOptions.departments.find((option) => option.slug === filters[DEPARTMENT]);
+    if (department) {
+        chips.push({ key: DEPARTMENT, label: department.name, action: () => chooseFilter(DEPARTMENT, ''), removable: true });
+    }
+    if (filters['bez-eshopu']) {
+        chips.push({ key: 'bez-eshopu', label: t('search.without_eshop'), action: () => toggleFilter('bez-eshopu'), removable: true });
+    }
+    if (props.product) {
+        chips.push({ key: 'produkt', label: t('search.product_filter', { name: props.product }), action: clearProduct, removable: true });
+    }
+
+    return chips;
+});
 
 /**
  * Přepne štítek filtru; vylučující se filtr vypne.
@@ -199,7 +268,7 @@ function toggleShoppingPreferences() {
 }
 
 /** Filtry, které „Zrušit filtry“ vypne — hledání, obchody a nastavení Mých obchodů zůstanou. */
-const CLEARABLE_FILTERS = [FRESH, ENDING_SOON, UPCOMING, 'bez-eshopu', MIN_DISCOUNT, 'produkt'];
+const CLEARABLE_FILTERS = [FRESH, ENDING_SOON, UPCOMING, 'bez-eshopu', MIN_DISCOUNT, DEPARTMENT, 'produkt'];
 
 /** Je zapnutý některý filtr, který jde zrušit? */
 const hasActiveFilters = computed(() => CLEARABLE_FILTERS.some((key) => Boolean(filters[key])));
@@ -221,6 +290,9 @@ watch(
     () => props.sort,
     (sort) => (sortValue.value = sort),
 );
+
+/** Název zvoleného řazení na tlačítku „Seřadit“ (telefon, R102). */
+const sortLabel = computed(() => props.sortOptions.find((option) => option.value === sortValue.value)?.label ?? '');
 
 /**
  * Zvolené řazení — platí i pro další hledání, dokud ho uživatel nezmění.
@@ -281,6 +353,7 @@ onBeforeUnmount(() => window.clearTimeout(liveTimer));
             <ChainSelect
                 id="chain"
                 v-model="filters.chain"
+                class="search-form__chains"
                 :label="t('offers.chain')"
                 :chains="chains.map((chain) => chain.value)"
                 :all-label="t('offers.all_chains')"
@@ -289,8 +362,115 @@ onBeforeUnmount(() => window.clearTimeout(liveTimer));
             />
         </form>
 
-        <!-- Štítky filtrů (R71, R101) — na telefonu v jednom řádku k posunutí do strany -->
-        <div class="search-chips">
+        <!-- Telefon (R102): Seřadit a Filtry v oknech zespodu, pod nimi zapnuté filtry -->
+        <FilterBar :sort-label="sortLabel" :filter-count="activeFilterChips.length" @sort="sortOpen = true" @filters="filtersOpen = true">
+            <ViewToggle v-model="compact" />
+        </FilterBar>
+        <div v-if="activeFilterChips.length" class="active-filters" role="group" :aria-label="t('search.filters')">
+            <button v-for="chip in activeFilterChips" :key="chip.key" type="button" class="search-chip search-chip--on" @click="chip.action">
+                {{ chip.label }}
+                <svg v-if="chip.removable" class="search-chip__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
+                <span v-if="chip.removable" class="visually-hidden">{{ t('search.remove_filter') }}</span>
+            </button>
+        </div>
+        <SortSheet v-model:open="sortOpen" :options="sortOptions" :value="sortValue" @change="changeSort" />
+        <BottomSheet v-model:open="filtersOpen" :title="t('sheet.filters')">
+            <div class="filter-sheet">
+                <section class="filter-sheet__section">
+                    <h3 class="filter-sheet__heading">{{ t('offers.chain') }}</h3>
+                    <div class="filter-sheet__options">
+                        <button
+                            v-for="chain in chains"
+                            :key="chain.value"
+                            type="button"
+                            class="search-chip"
+                            :class="{ 'search-chip--on': filters.chain.includes(chain.value) }"
+                            :aria-pressed="filters.chain.includes(chain.value) ? 'true' : 'false'"
+                            @click="toggleChain(chain.value)"
+                        >
+                            <ChainLogo :chain="chain.value" with-name />
+                        </button>
+                    </div>
+                    <p class="filter-sheet__hint">{{ t('sheet.chains_hint') }}</p>
+                </section>
+                <section class="filter-sheet__section">
+                    <h3 class="filter-sheet__heading">{{ t('sheet.period') }}</h3>
+                    <div class="filter-sheet__options">
+                        <button
+                            v-for="chip in periodChips"
+                            :key="chip.key"
+                            type="button"
+                            class="search-chip"
+                            :class="{ 'search-chip--on': filters[chip.key] }"
+                            :aria-pressed="filters[chip.key] ? 'true' : 'false'"
+                            @click="toggleFilter(chip.key)"
+                        >
+                            {{ chip.label }}
+                        </button>
+                    </div>
+                </section>
+                <section class="filter-sheet__section">
+                    <h3 class="filter-sheet__heading">{{ t('sheet.discount') }}</h3>
+                    <div class="filter-sheet__options">
+                        <button
+                            v-for="percent in filterOptions.minDiscounts"
+                            :key="percent"
+                            type="button"
+                            class="search-chip"
+                            :class="{ 'search-chip--on': filters[MIN_DISCOUNT] === percent }"
+                            :aria-pressed="filters[MIN_DISCOUNT] === percent ? 'true' : 'false'"
+                            @click="chooseFilter(MIN_DISCOUNT, percent)"
+                        >
+                            {{ t('search.min_discount', { percent }) }}
+                        </button>
+                    </div>
+                </section>
+                <section v-if="filterOptions.departments.length" class="filter-sheet__section">
+                    <h3 class="filter-sheet__heading">{{ t('search.department_label') }}</h3>
+                    <div class="filter-sheet__options">
+                        <button
+                            v-for="department in filterOptions.departments"
+                            :key="department.slug"
+                            type="button"
+                            class="search-chip"
+                            :class="{ 'search-chip--on': filters[DEPARTMENT] === department.slug }"
+                            :aria-pressed="filters[DEPARTMENT] === department.slug ? 'true' : 'false'"
+                            @click="chooseFilter(DEPARTMENT, department.slug)"
+                        >
+                            <DepartmentIcon :name="department.icon" class="filter-sheet__icon" />
+                            {{ department.name }}
+                        </button>
+                    </div>
+                    <p class="filter-sheet__hint">{{ t('sheet.department_hint') }}</p>
+                </section>
+                <section class="filter-sheet__section">
+                    <h3 class="filter-sheet__heading">{{ t('sheet.place') }}</h3>
+                    <div class="filter-sheet__options">
+                        <button
+                            v-for="chip in placeChips"
+                            :key="chip.key"
+                            type="button"
+                            class="search-chip"
+                            :class="{ 'search-chip--on': filters[chip.key] }"
+                            :aria-pressed="filters[chip.key] ? 'true' : 'false'"
+                            @click="toggleFilter(chip.key)"
+                        >
+                            {{ chip.label }}
+                        </button>
+                    </div>
+                    <p v-if="shoppingPreferences" class="filter-sheet__hint">{{ t('sheet.shopping_preferences_hint') }}</p>
+                </section>
+            </div>
+            <template #footer>
+                <button type="button" class="button button--ghost" :disabled="!hasActiveFilters" @click="clearFilters">{{ t('search.clear_filters') }}</button>
+                <button type="button" class="button button--primary" :aria-busy="loading ? 'true' : 'false'" @click="filtersOpen = false">
+                    {{ t('sheet.show', { count: offers.total }) }}
+                </button>
+            </template>
+        </BottomSheet>
+
+        <!-- Štítky filtrů (R71, R101) — široký displej; na telefonu lišta a okna výš -->
+        <div class="search-chips search-chips--desktop">
             <div class="search-chips__filters" role="group" :aria-label="t('search.filters')">
                 <button
                     v-for="chip in toggleChips"
@@ -309,6 +489,14 @@ onBeforeUnmount(() => window.clearTimeout(liveTimer));
                     <select v-model="filters['sleva-od']" class="search-chip__select" @change="search()">
                         <option value="">{{ t('search.min_discount_any') }}</option>
                         <option v-for="percent in filterOptions.minDiscounts" :key="percent" :value="percent">{{ t('search.min_discount', { percent }) }}</option>
+                    </select>
+                </label>
+                <!-- Oddělení katalogu (R102) — akce přiřazené k produktům katalogu -->
+                <label v-if="filterOptions.departments.length" class="search-chip search-chip--select" :class="{ 'search-chip--on': filters.kategorie }">
+                    <span class="visually-hidden">{{ t('search.department_label') }}</span>
+                    <select v-model="filters.kategorie" class="search-chip__select" @change="search()">
+                        <option value="">{{ t('search.department_any') }}</option>
+                        <option v-for="department in filterOptions.departments" :key="department.slug" :value="department.slug">{{ department.name }}</option>
                     </select>
                 </label>
                 <span v-if="product" class="search-chip search-chip--on">

@@ -15,6 +15,7 @@ use App\Enums\LoyaltyProgram;
 use App\Enums\MatchStatus;
 use App\Enums\OfferType;
 use App\Enums\PackageUnit;
+use App\Models\Category;
 use App\Models\FollowedChain;
 use App\Models\Offer;
 use App\Models\OfferProduct;
@@ -390,8 +391,31 @@ it('filtruje nové, brzy končící a slevy od procent; filtry zůstanou v odkaz
         ->where('filters.nove', true)
         ->where('filters.sleva-od', 20)
         ->where('filters.konci-brzy', false)
-        ->where('filterOptions', ['endingSoonDays' => 2, 'freshDays' => 2, 'minDiscounts' => [10, 20, 30, 50]])
+        ->where('filterOptions', ['endingSoonDays' => 2, 'freshDays' => 2, 'minDiscounts' => [10, 20, 30, 50], 'departments' => []])
         ->where('pagination.nextUrl', '/akce?nove=1&sleva-od=20&strana=2'));
     expect($response->getContent())->toContain('<meta name="robots" content="noindex, follow">');
     $this->get(route('offers', ['sleva-od' => 15]))->assertSessionHasErrors('sleva-od');
+});
+
+it('filtruje podle oddělení katalogu přes přiřazený produkt a nabídne jen oddělení s akcemi (R102)', function (): void {
+    $drinks = Category::factory()->create(['name' => 'Nápoje', 'position' => 2]);
+    $beer = Category::factory()->create(['name' => 'Pivo', 'parent_id' => $drinks->id, 'depth' => 1]);
+    $meat = Category::factory()->create(['name' => 'Maso a lahůdky', 'position' => 1]);
+    Category::factory()->create(['name' => 'Drogerie', 'position' => 3]);
+    $pilsner = Product::factory()->create(['name' => 'Pivo', 'category_id' => $beer->id]);
+    $ham = Product::factory()->create(['name' => 'Šunka', 'category_id' => $meat->id]);
+    Offer::factory()->create(['name' => 'Pilsner Urquell'])->productAssignments()->create(['product_id' => $pilsner->id, 'status' => MatchStatus::Match, 'is_manual' => false]);
+    Offer::factory()->create(['name' => 'Šunka od kosti'])->productAssignments()->create(['product_id' => $ham->id, 'status' => MatchStatus::Match, 'is_manual' => false]);
+    Offer::factory()->create(['name' => 'Bez produktu']);
+
+    expect(offerNames(['kategorie' => 'napoje']))->toBe(['Pilsner Urquell'])
+        ->and(offerNames(['kategorie' => 'maso-a-lahudky']))->toBe(['Šunka od kosti']);
+    $this->get(route('offers', ['kategorie' => 'napoje']))->assertInertia(fn (Assert $page) => $page
+        ->where('filters.kategorie', 'napoje')
+        // Drogerie akce nemá — nenabízí se
+        ->where('filterOptions.departments', [
+            ['slug' => 'maso-a-lahudky', 'name' => 'Maso a lahůdky', 'icon' => 'meat'],
+            ['slug' => 'napoje', 'name' => 'Nápoje', 'icon' => 'drinks'],
+        ]));
+    $this->get(route('offers', ['kategorie' => 'neexistuje']))->assertSessionHasErrors('kategorie');
 });

@@ -3,7 +3,8 @@
 /**
  * Filtry výpisu akcí (Všechny akce a jejich našeptávač): obchody, produkt katalogu (R71),
  * jen akce, které ještě nezačaly (R76), bez akcí jen z e-shopu (R82), řazení a nastavení
- * Mých obchodů přihlášeného (R100), končí brzy, nové a sleva od (R101). Zná i názvy
+ * Mých obchodů přihlášeného (R100), končí brzy, nové a sleva od (R101) a oddělení katalogu
+ * (R102). Zná i názvy
  * parametrů adresy Všech akcí — čte je OffersRequest, odkazy skládá urlParameters().
  *
  * @author Roman Hlaváček
@@ -54,6 +55,9 @@ final readonly class OfferFilters
     /** Parametr adresy: jen skutečné slevy od tolika procent (R101). */
     public const MIN_DISCOUNT_PARAMETER = 'sleva-od';
 
+    /** Parametr adresy: oddělení katalogu jako část bez diakritiky (OfferDepartments, R102). */
+    public const DEPARTMENT_PARAMETER = 'kategorie';
+
     /**
      * @param  list<Chain>  $chains  Jen akce těchto obchodů; prázdné = všechny obchody
      * @param  int|null  $productId  Jen akce přiřazené k produktu katalogu
@@ -65,6 +69,7 @@ final readonly class OfferFilters
      * @param  bool  $endingSoon  Jen akce, které už platí a brzy končí
      * @param  bool  $freshOnly  Jen nově zveřejněné akce
      * @param  int|null  $minDiscount  Jen skutečné slevy (R8) od tolika procent
+     * @param  string|null  $department  Jen akce produktů z oddělení katalogu (název)
      */
     public function __construct(
         public array $chains = [],
@@ -77,6 +82,7 @@ final readonly class OfferFilters
         public bool $endingSoon = false,
         public bool $freshOnly = false,
         public ?int $minDiscount = null,
+        public ?string $department = null,
     ) {}
 
     /**
@@ -95,6 +101,7 @@ final readonly class OfferFilters
             $this->endingSoon,
             $this->freshOnly,
             $this->minDiscount,
+            $this->department,
         );
     }
 
@@ -124,6 +131,7 @@ final readonly class OfferFilters
             self::ENDING_SOON_PARAMETER => $this->endingSoon ? 1 : null,
             self::FRESH_PARAMETER => $this->freshOnly ? 1 : null,
             self::MIN_DISCOUNT_PARAMETER => $this->minDiscount,
+            self::DEPARTMENT_PARAMETER => $this->department === null ? null : OfferDepartments::slug($this->department),
             self::SORT_PARAMETER => $this->sort?->value,
             self::SHOPPING_PREFERENCES_PARAMETER => $this->preferencesOff ? 0 : null,
         ], fn (int|string|null $value): bool => $value !== null);
