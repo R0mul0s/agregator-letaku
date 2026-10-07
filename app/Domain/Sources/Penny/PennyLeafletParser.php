@@ -40,6 +40,8 @@ use App\Domain\Offers\Parsing\PackageParser;
 use App\Domain\Offers\Parsing\PriceParser;
 use App\Domain\Offers\Parsing\Text;
 use App\Domain\Offers\Parsing\VariantNote;
+use App\Domain\Sources\Pdf\DiscountCheck;
+use App\Domain\Sources\Pdf\UnitPriceCheck;
 use App\Enums\LoyaltyProgram;
 use App\Enums\OfferType;
 use App\Support\PriceFormatter;
@@ -99,11 +101,6 @@ final class PennyLeafletParser
 
     private const SINGLE_UNIT_MAX_ABOVE = 110.0;
 
-    /** Tolerance kontroly ceny za jednotku — haléře a podíl (zaokrouhlení obchodu). */
-    private const UNIT_CHECK_HALERS = 2;
-
-    private const UNIT_CHECK_RATIO = 0.015;
-
     /** Rozvržení (R85): odchylka posunu bloku od posunu ověřených dlaždic (body stránky). */
     private const LAYOUT_TOLERANCE = 3.0;
 
@@ -145,8 +142,6 @@ final class PennyLeafletParser
 
     /** Odchylka procenta slevy spočteného z cen od štítku (procentní body, zaokrouhlení obchodu). */
     private const BADGE_TOLERANCE = 1;
-
-    private const PERCENT = 100;
 
     /** Okolí ceny, ve kterém nápis „Karta“ znamená dlaždici s PENNY kartou. */
     private const CARD_DISTANCE_X = 90.0;
@@ -859,10 +854,7 @@ final class PennyLeafletParser
             return false;
         }
 
-        $expected = (int) round($price * $unit->quantity / $packageSize->quantity);
-        $stated = $this->prices->parse($unitPrice);
-
-        return abs($expected - $stated) <= max(self::UNIT_CHECK_HALERS, $stated * self::UNIT_CHECK_RATIO);
+        return UnitPriceCheck::matches($price, $packageSize->quantity, $unit->quantity, $this->prices->parse($unitPrice));
     }
 
     /**
@@ -955,8 +947,7 @@ final class PennyLeafletParser
      */
     private function matchesBadge(int $price, int $original, int $badge): bool
     {
-        return $original > $price
-            && abs((int) round(($original - $price) / $original * self::PERCENT) - $badge) <= self::BADGE_TOLERANCE;
+        return DiscountCheck::roundedWithin($price, $original, $badge, self::BADGE_TOLERANCE);
     }
 
     /**

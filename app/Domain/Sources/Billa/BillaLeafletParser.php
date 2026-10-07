@@ -39,11 +39,14 @@ namespace App\Domain\Sources\Billa;
 use App\Domain\Offers\LocalCalendar;
 use App\Domain\Offers\Parsing\PriceParser;
 use App\Domain\Offers\Parsing\Text;
+use App\Domain\Sources\Pdf\DiscountCheck;
 use App\Domain\Sources\Pdf\PdfBox;
+use App\Domain\Sources\Pdf\PdfLayout;
 use App\Domain\Sources\Pdf\PdfLine;
 use App\Domain\Sources\Pdf\PdfPage;
 use App\Domain\Sources\Pdf\PdfTile;
 use App\Domain\Sources\Pdf\PdfWord;
+use App\Domain\Sources\Pdf\UnitPriceCheck;
 use App\Enums\OfferType;
 use App\Support\PriceFormatter;
 use Carbon\CarbonImmutable;
@@ -168,13 +171,6 @@ final class BillaLeafletParser
 
     private const UNIT_STEM_LENGTH = 3;
 
-    /** Tolerance kontroly ceny za jednotku — haléře a podíl (zaokrouhlení obchodu), jako Penny (R26). */
-    private const UNIT_CHECK_HALERS = 2;
-
-    private const UNIT_CHECK_RATIO = 0.015;
-
-    private const PERCENT = 100;
-
     /**
      * Platnost oddílu: „8. 10. – 11. 10. 2026“, „OD 8. 10. DO 11. 10.“, „PLATNOST OD 8. 10.“, „7. 10.“.
      * Rozsah se dvěma daty, „OD …“ bez konce platí do konce letáku, jedno datum jen ten den.
@@ -263,8 +259,8 @@ final class BillaLeafletParser
         $labels = $this->multibuyLabels($smallRows);
         $tiles = $this->tiles($words, [...$prices, ...$percents, ...$crossed, ...$usual]);
 
-        $references = $this->nearest($prices, [...$crossed, ...$usual], $this->belowDistance(...));
-        $percentByPrice = $this->nearest($prices, $percents, $this->aboveDistance(...));
+        $references = PdfLayout::nearest($prices, [...$crossed, ...$usual], $this->belowDistance(...));
+        $percentByPrice = PdfLayout::nearest($prices, $percents, $this->aboveDistance(...));
 
         $items = [];
         foreach ($this->matches($prices, $tiles, $references) as [$tile, $priceIndex]) {
@@ -437,40 +433,6 @@ final class BillaLeafletParser
         }
 
         return $labels;
-    }
-
-    /**
-     * Ke každé ceně nejbližší prvek (přeškrtnutou cenu, slevu), který k ní podle polohy může patřit;
-     * každý prvek nejvýš k jedné ceně.
-     *
-     * @param  list<PdfBox>  $prices
-     * @param  list<PdfBox>  $candidates
-     * @param  callable(PdfBox, PdfBox): ?float  $distance
-     * @return array<int, PdfBox> Index ceny => prvek
-     */
-    private function nearest(array $prices, array $candidates, callable $distance): array
-    {
-        $pairs = [];
-        foreach ($prices as $priceIndex => $price) {
-            foreach ($candidates as $candidateIndex => $candidate) {
-                $value = $distance($price, $candidate);
-                if ($value !== null) {
-                    $pairs[] = [$value, $priceIndex, $candidateIndex];
-                }
-            }
-        }
-        usort($pairs, fn (array $a, array $b): int => $a[0] <=> $b[0]);
-
-        $result = [];
-        $used = [];
-        foreach ($pairs as [, $priceIndex, $candidateIndex]) {
-            if (! isset($result[$priceIndex]) && ! isset($used[$candidateIndex])) {
-                $result[$priceIndex] = $candidates[$candidateIndex];
-                $used[$candidateIndex] = true;
-            }
-        }
-
-        return $result;
     }
 
     /**
@@ -784,32 +746,7 @@ final class BillaLeafletParser
      */
     private function unitPriceMatches(int $price, array $unitPrice, array $packages): bool
     {
-        $quantities = $packages[$unitPrice['unit']] ?? [];
-        if ($quantities === []) {
-            return false;
-        }
-        foreach ($unitPrice['from'] ? [max($quantities)] : $quantities as $quantity) {
-            if ($quantity <= 0) {
-                continue;
-            }
-            $expected = (int) round($price * $unitPrice['quantity'] / $quantity);
-            if (abs($expected - $unitPrice['value']) <= max(self::UNIT_CHECK_HALERS, $unitPrice['value'] * self::UNIT_CHECK_RATIO)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * Sedí sleva v procentech na běžnou (přeškrtnutou) cenu a cenu? Billa procento zaokrouhluje,
-     * připouští se i uříznutí.
-     */
-    private function percentMatches(int $usual, int $price, int $percent): bool
-    {
-        $exact = ($usual - $price) * self::PERCENT / $usual;
-
-        return $percent === (int) round($exact) || $percent === (int) floor($exact);
+        return UnitPriceCheck::matchesAny($price, $unitPrice['value'], $unitPrice['quantity'], $unitPrice['from'], $packages[$unitPrice['unit']] ?? []);
     }
 
     /**
@@ -1032,7 +969,7 @@ final class BillaLeafletParser
         }
 
         // Sleva na cenovce musí sedět na běžnou cenu — bez ní ji nejde ověřit
-        if ($percent !== null && ($usual === null || ! $this->percentMatches($usual, $loyaltyPrice ?? ($facts['single'] !== null ? $price->value : $amount), $percent->value))) {
+        if ($percent !== null && ($usual === null || ! DiscountCheck::truncatedOrRounded($usual, $loyaltyPrice ?? ($facts['single'] !== null ? $price->value : $amount), $percent->value))) {
             return null;
         }
 

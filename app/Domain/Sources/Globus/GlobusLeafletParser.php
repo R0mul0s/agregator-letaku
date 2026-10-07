@@ -40,11 +40,14 @@ use App\Domain\Offers\Parsing\PackageParser;
 use App\Domain\Offers\Parsing\PriceParser;
 use App\Domain\Offers\Parsing\Text;
 use App\Domain\Offers\Parsing\VariantNote;
+use App\Domain\Sources\Pdf\DiscountCheck;
 use App\Domain\Sources\Pdf\PdfBox;
+use App\Domain\Sources\Pdf\PdfLayout;
 use App\Domain\Sources\Pdf\PdfLine;
 use App\Domain\Sources\Pdf\PdfPage;
 use App\Domain\Sources\Pdf\PdfTile;
 use App\Domain\Sources\Pdf\PdfWord;
+use App\Domain\Sources\Pdf\UnitPriceCheck;
 use App\Enums\LoyaltyProgram;
 use App\Enums\OfferType;
 use Carbon\CarbonImmutable;
@@ -151,13 +154,6 @@ final class GlobusLeafletParser
     /** Mezera mezi číslem a znakem „%“. */
     private const PERCENT_GAP = 4.0;
 
-    /** Tolerance kontroly ceny za jednotku — haléře a podíl (zaokrouhlení obchodu), jako Penny (R26). */
-    private const UNIT_CHECK_HALERS = 2;
-
-    private const UNIT_CHECK_RATIO = 0.015;
-
-    private const PERCENT = 100;
-
     /** Hlavička strany s platností je v horní části strany (podíl výšky). */
     private const HEADER_HEIGHT_RATIO = 0.25;
 
@@ -252,8 +248,8 @@ final class GlobusLeafletParser
         $anchors = array_values(array_filter($prices, fn (PdfBox $price): bool => $price->height() >= self::ANCHOR_MIN_HEIGHT));
         $small = array_values(array_filter($prices, fn (PdfBox $price): bool => $price->height() < self::ANCHOR_MIN_HEIGHT));
         $tiles = $this->tiles($words, $prices);
-        $crossed = $this->nearest($anchors, $small, $this->crossedDistance(...));
-        $percents = $this->nearest($anchors, $this->percents($words), $this->percentDistance(...));
+        $crossed = PdfLayout::nearest($anchors, $small, $this->crossedDistance(...));
+        $percents = PdfLayout::nearest($anchors, $this->percents($words), $this->percentDistance(...));
         $pageValidity = $this->pageValidity($page, $validity);
 
         $offers = [];
@@ -449,50 +445,11 @@ final class GlobusLeafletParser
     }
 
     /**
-     * Ke každé ceně nejbližší prvek (přeškrtnutou cenu, slevu), který k ní podle polohy
-     * může patřit; každý prvek nejvýš k jedné ceně.
-     *
-     * @param  list<PdfBox>  $prices
-     * @param  list<PdfBox>  $candidates
-     * @param  callable(PdfBox, PdfBox): ?float  $distance
-     * @return array<int, PdfBox> Index ceny => prvek
-     */
-    private function nearest(array $prices, array $candidates, callable $distance): array
-    {
-        $pairs = [];
-        foreach ($prices as $priceIndex => $price) {
-            foreach ($candidates as $candidateIndex => $candidate) {
-                $value = $distance($price, $candidate);
-                if ($value !== null) {
-                    $pairs[] = [$value, $priceIndex, $candidateIndex];
-                }
-            }
-        }
-        usort($pairs, fn (array $a, array $b): int => $a[0] <=> $b[0]);
-
-        $result = [];
-        $used = [];
-        foreach ($pairs as [, $priceIndex, $candidateIndex]) {
-            if (! isset($result[$priceIndex]) && ! isset($used[$candidateIndex])) {
-                $result[$priceIndex] = $candidates[$candidateIndex];
-                $used[$candidateIndex] = true;
-            }
-        }
-
-        return $result;
-    }
-
-    /**
      * Vzdálenost přeškrtnuté ceny od ceny, nebo null, když nad ní (vedle ní nahoře) neleží.
      */
     private function crossedDistance(PdfBox $price, PdfBox $crossed): ?float
     {
-        $fits = $crossed->yMax >= $price->yMin - self::CROSSED_ABOVE
-            && $crossed->yMax <= $price->yMin + $price->height() * self::CROSSED_OVERLAP_RATIO
-            && $crossed->xMin >= $price->xMin - self::CROSSED_SIDE
-            && $crossed->xMax <= $price->xMax + self::CROSSED_SIDE;
-
-        return $fits ? $price->distanceTo($crossed) : null;
+        return PdfLayout::aboveWithin($price, $crossed, self::CROSSED_ABOVE, self::CROSSED_OVERLAP_RATIO, self::CROSSED_SIDE);
     }
 
     /**
@@ -500,12 +457,7 @@ final class GlobusLeafletParser
      */
     private function percentDistance(PdfBox $price, PdfBox $percent): ?float
     {
-        $fits = $percent->yMax >= $price->yMin - self::PERCENT_ABOVE
-            && $percent->yMax <= $price->yMin + $price->height() * self::PERCENT_OVERLAP_RATIO
-            && $percent->xMin <= $price->xMax + self::PERCENT_SIDE
-            && $percent->xMax >= $price->xMin - self::PERCENT_SIDE;
-
-        return $fits ? $price->distanceTo($percent) : null;
+        return PdfLayout::aboveOverlapping($price, $percent, self::PERCENT_ABOVE, self::PERCENT_OVERLAP_RATIO, self::PERCENT_SIDE);
     }
 
     /**
@@ -519,9 +471,9 @@ final class GlobusLeafletParser
     private function tiles(array $words, array $prices): array
     {
         $text = array_values(array_filter($words, fn (PdfWord $word): bool => ! $this->isPricePart($word, $prices)));
-        $names = $this->rows($this->byHeight($text, self::NAME_MIN_HEIGHT, self::NAME_MAX_HEIGHT));
-        $details = $this->rows($this->byHeight($text, self::DETAIL_MIN_HEIGHT, self::DETAIL_MAX_HEIGHT));
-        $units = $this->rows($this->byHeight($text, self::UNIT_MIN_HEIGHT, self::UNIT_MAX_HEIGHT));
+        $names = PdfLayout::rows($this->byHeight($text, self::NAME_MIN_HEIGHT, self::NAME_MAX_HEIGHT), self::ROW_TOLERANCE, self::WORD_GAP);
+        $details = PdfLayout::rows($this->byHeight($text, self::DETAIL_MIN_HEIGHT, self::DETAIL_MAX_HEIGHT), self::ROW_TOLERANCE, self::WORD_GAP);
+        $units = PdfLayout::rows($this->byHeight($text, self::UNIT_MIN_HEIGHT, self::UNIT_MAX_HEIGHT), self::ROW_TOLERANCE, self::WORD_GAP);
 
         $usedNames = [];
         $usedDetails = [];
@@ -607,37 +559,6 @@ final class GlobusLeafletParser
         }
 
         return false;
-    }
-
-    /**
-     * Slova složená do řádků: stejný horní okraj a malá mezera mezi slovy. Řádky pdftotext
-     * se nepoužijí — slučují slova sousedních dlaždic („-37 % Listové těsto“).
-     *
-     * @param  list<PdfWord>  $words
-     * @return list<PdfBox>
-     */
-    private function rows(array $words): array
-    {
-        usort($words, fn (PdfWord $a, PdfWord $b): int => $a->xMin <=> $b->xMin);
-
-        /** @var list<PdfBox> $rows */
-        $rows = [];
-        foreach ($words as $word) {
-            $box = new PdfBox($word->text, 0, $word->xMin, $word->yMin, $word->xMax, $word->yMax);
-            foreach ($rows as $index => $row) {
-                $gap = $word->xMin - $row->xMax;
-                if (abs($row->yMin - $word->yMin) <= self::ROW_TOLERANCE && $gap >= -self::ROW_TOLERANCE && $gap <= self::WORD_GAP) {
-                    $rows[$index] = $row->merge($box);
-
-                    continue 2;
-                }
-            }
-            $rows[] = $box;
-        }
-
-        usort($rows, fn (PdfBox $a, PdfBox $b): int => $a->yMin <=> $b->yMin ?: $a->xMin <=> $b->xMin);
-
-        return $rows;
     }
 
     /**
@@ -749,7 +670,7 @@ final class GlobusLeafletParser
     private function matchesAll(int $price, array $unitPrices, array $packages): bool
     {
         foreach ($unitPrices as $unitPrice) {
-            if (! $this->unitPriceMatches($price, $unitPrice['value'], $unitPrice['quantity'], $unitPrice['from'], $packages[$unitPrice['unit']])) {
+            if (! UnitPriceCheck::matchesAny($price, $unitPrice['value'], $unitPrice['quantity'], $unitPrice['from'], $packages[$unitPrice['unit']])) {
                 return false;
             }
         }
@@ -773,39 +694,6 @@ final class GlobusLeafletParser
         usort($candidates, fn (int $a, int $b): int => $price->distanceTo($anchors[$a]) <=> $price->distanceTo($anchors[$b]));
 
         return $candidates;
-    }
-
-    /**
-     * Cena přepočtená na balení odpovídá uvedené ceně za jednotku? U „od“ (víc velikostí balení)
-     * se počítá s největším balením, jinak stačí kterékoli z uvedených.
-     *
-     * @param  list<float>  $packageQuantities
-     */
-    private function unitPriceMatches(int $price, int $stated, float $unitQuantity, bool $from, array $packageQuantities): bool
-    {
-        if ($packageQuantities === []) {
-            return false;
-        }
-
-        foreach ($from ? [max($packageQuantities)] : $packageQuantities as $quantity) {
-            $expected = (int) round($price * $unitQuantity / $quantity);
-            if (abs($expected - $stated) <= max(self::UNIT_CHECK_HALERS, $stated * self::UNIT_CHECK_RATIO)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * Sedí sleva v procentech na přeškrtnutou cenu a cenu? Globus procento uřezává
-     * (27,90 → 22,90 = 17,9 % → „-17 %“), připouští se i zaokrouhlení.
-     */
-    private function percentMatches(int $original, int $price, int $percent): bool
-    {
-        $exact = ($original - $price) * self::PERCENT / $original;
-
-        return $percent === (int) floor($exact) || $percent === (int) round($exact);
     }
 
     /**
@@ -875,7 +763,7 @@ final class GlobusLeafletParser
         // Každá sleva na cenovce musí sedět na přeškrtnutou cenu — bez ní ji nejde ověřit
         foreach ([$headline => $loyalty ?? $price, $regular => $price] as $index => $amount) {
             $percent = $percents[$index] ?? null;
-            if ($percent !== null && ($original === null || ! $this->percentMatches($original, $amount, $percent->value))) {
+            if ($percent !== null && ($original === null || ! DiscountCheck::truncatedOrRounded($original, $amount, $percent->value))) {
                 return null;
             }
         }

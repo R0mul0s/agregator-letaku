@@ -39,9 +39,11 @@ use App\Domain\Offers\Parsing\PackageParser;
 use App\Domain\Offers\Parsing\PriceParser;
 use App\Domain\Offers\Parsing\Text;
 use App\Domain\Offers\Parsing\VariantNote;
+use App\Domain\Sources\Pdf\DiscountCheck;
 use App\Domain\Sources\Pdf\PdfLine;
 use App\Domain\Sources\Pdf\PdfPage;
 use App\Domain\Sources\Pdf\PdfWord;
+use App\Domain\Sources\Pdf\UnitPriceCheck;
 use App\Enums\LoyaltyProgram;
 use App\Enums\OfferType;
 use Carbon\CarbonImmutable;
@@ -86,15 +88,8 @@ final class LidlLeafletParser
     /** Malá cena vedle velké ceny nebo štítku: největší vodorovná mezera (b.). */
     private const SIDE_PRICE_MAX_GAP = 45.0;
 
-    /** Tolerance ceny za jednotku (jako leták Penny, R26): haléře nebo podíl uvedené ceny. */
-    private const UNIT_CHECK_HALERS = 2;
-
-    private const UNIT_CHECK_RATIO = 0.015;
-
     /** Procento na štítku se smí lišit o 1 (Lidl zaokrouhluje dolů i nahoru). */
     private const BADGE_TOLERANCE = 1;
-
-    private const PERCENT = 100;
 
     private const HALERS_PER_CROWN = 100;
 
@@ -549,7 +544,7 @@ final class LidlLeafletParser
         $original = $badges['percent'][1] ?? null;
         $reference = $original ?? $regular;
 
-        if ($reference !== null && $badges['loyaltyPercent'] !== null && ! $this->matchesPercent($loyalty, $reference, $badges['loyaltyPercent'])) {
+        if ($reference !== null && $badges['loyaltyPercent'] !== null && ! DiscountCheck::roundedWithin($loyalty, $reference, $badges['loyaltyPercent'], self::BADGE_TOLERANCE)) {
             return null;
         }
         if ($reference !== null && $badges['loyaltyAmount'] !== null && $reference - $loyalty !== $badges['loyaltyAmount']) {
@@ -560,7 +555,7 @@ final class LidlLeafletParser
         $percent = null;
         if ($upperPrice !== null && $badges['percent'] !== null) {
             // Sleva i bez aplikace: „-40% 49.90“ nad běžnou cenou
-            if ($original === null || ! $this->matchesPercent($upperPrice, $original, $badges['percent'][0])) {
+            if ($original === null || ! DiscountCheck::roundedWithin($upperPrice, $original, $badges['percent'][0], self::BADGE_TOLERANCE)) {
                 return null;
             }
             [$type, $percent] = [OfferType::Discount, $badges['percent'][0]];
@@ -601,7 +596,7 @@ final class LidlLeafletParser
         if ($badges['percent'] !== null) {
             [$percent, $original] = $badges['percent'];
 
-            return $original !== null && $this->matchesPercent($big, $original, $percent)
+            return $original !== null && DiscountCheck::roundedWithin($big, $original, $percent, self::BADGE_TOLERANCE)
                 ? [...$terms, 'type' => OfferType::Discount, 'original' => $original, 'percent' => $percent]
                 : null;
         }
@@ -635,15 +630,6 @@ final class LidlLeafletParser
     }
 
     /**
-     * Sedí sleva z původní ceny na novou k procentu ze štítku?
-     */
-    private function matchesPercent(int $price, int $original, int $percent): bool
-    {
-        return $original > $price
-            && abs((int) round(($original - $price) / $original * self::PERCENT) - $percent) <= self::BADGE_TOLERANCE;
-    }
-
-    /**
      * Ověří některou z cen cenou za jednotku z popisu; balení o jedné jednotce („1 kg“, „cena za 100 g“)
      * bez ceny za jednotku ověří samo sebe — popis je přímo nad štítkem.
      *
@@ -667,8 +653,7 @@ final class LidlLeafletParser
             }
             $stated = $this->prices->parse($unit[3]);
             foreach ($prices as $price) {
-                $expected = (int) round($price * $unitSize->quantity / $package->quantity);
-                if (abs($expected - $stated) <= max(self::UNIT_CHECK_HALERS, $stated * self::UNIT_CHECK_RATIO)) {
+                if (UnitPriceCheck::matches($price, $package->quantity, $unitSize->quantity, $stated)) {
                     return true;
                 }
             }
