@@ -20,6 +20,7 @@ import DepartmentIcon from '@/Components/DepartmentIcon.vue';
 import EmptyState from '@/Components/EmptyState.vue';
 import FilterBar from '@/Components/FilterBar.vue';
 import FilterChip from '@/Components/FilterChip.vue';
+import FloatingFilterBar from '@/Components/FloatingFilterBar.vue';
 import OfferCard from '@/Components/OfferCard.vue';
 import OfferRow from '@/Components/OfferRow.vue';
 import Pagination from '@/Components/Pagination.vue';
@@ -61,6 +62,9 @@ const DEPARTMENT = 'kategorie';
 /** Parametr „bez e-shopu“ (R82) a produktu katalogu (R71) — OffersRequest. */
 const WITHOUT_ESHOP = 'bez-eshopu';
 const PRODUCT = 'produkt';
+
+/** Pole hledání — ikona Hledat z plovoucí lišty mu dá fokus (R119). */
+const SEARCH_INPUT_ID = 'q';
 
 const props = defineProps({
     /** Nadpis podle obchodu nebo produktu („Pivo v akci“), stejný jako pro vyhledávače (SeoMeta, R94). */
@@ -204,6 +208,18 @@ const toggleChips = computed(() => [...periodChips.value, ...placeChips.value]);
 const sortOpen = ref(false);
 const filtersOpen = ref(false);
 
+/** Lišta Seřadit / Filtry — po odjetí pod hlavičku ji nahradí plovoucí lišta (R119). */
+const filterBar = ref(null);
+
+/**
+ * Hledat z plovoucí lišty (R119): dá fokus poli hledání bez posunu stránky — na telefonu se
+ * zaměřené pole otevře přes celou obrazovku (SearchSuggest) a po „Zpět“ zůstane uživatel tam,
+ * kde byl. Na začátek výsledků stránka sjede, až když hledání potvrdí.
+ */
+function focusSearch() {
+    document.getElementById(SEARCH_INPUT_ID)?.focus({ preventScroll: true });
+}
+
 /**
  * Přepne obchod ve výběru (okno Filtry, R102) — stejný výběr jako ChainSelect, v pořadí nabídky.
  *
@@ -346,7 +362,7 @@ onBeforeUnmount(() => liveSearch.cancel());
 
         <form class="search-form" role="search" @submit.prevent="submitSearch(filters.q)">
             <SearchSuggest
-                id="q"
+                :id="SEARCH_INPUT_ID"
                 v-model="filters.q"
                 class="search-form__text"
                 :label="t('offers.search')"
@@ -371,9 +387,20 @@ onBeforeUnmount(() => liveSearch.cancel());
         </form>
 
         <!-- Telefon (R102): Seřadit a Filtry v oknech zespodu, pod nimi zapnuté filtry -->
-        <FilterBar :sort-label="sortLabel" :filter-count="activeFilterChips.length" @sort="sortOpen = true" @filters="filtersOpen = true">
+        <FilterBar ref="filterBar" :sort-label="sortLabel" :filter-count="activeFilterChips.length" @sort="sortOpen = true" @filters="filtersOpen = true">
             <ViewToggle v-model="compact" />
         </FilterBar>
+        <!-- Po odjetí lišty pod hlavičku plovoucí ikony (R119) -->
+        <FloatingFilterBar
+            :anchor="filterBar"
+            :sort-label="sortLabel"
+            :filter-count="activeFilterChips.length"
+            @search="focusSearch"
+            @sort="sortOpen = true"
+            @filters="filtersOpen = true"
+        >
+            <ViewToggle v-model="compact" />
+        </FloatingFilterBar>
         <ActiveFilters :chips="activeFilterChips" />
         <SortSheet v-model:open="sortOpen" :options="sortOptions" :value="sortValue" @change="changeSort" />
         <BottomSheet v-model:open="filtersOpen" :title="t('sheet.filters')">

@@ -9,5 +9,8 @@
 /** Střední displej a víc ($breakpoint-md). */
 export const MEDIA_FROM_MD = '(min-width: 768px)';
 
+/** Telefon — pod středním displejem ($breakpoint-md, mixin below-md). */
+export const MEDIA_BELOW_MD = '(max-width: 767px)';
+
 /** Telefon a tablet — pod širokým displejem ($breakpoint-lg, mixin below-lg). */
 export const MEDIA_BELOW_LG = '(max-width: 1023px)';

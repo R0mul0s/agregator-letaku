@@ -1,0 +1,72 @@
+// _floating-filter-bar.scss
+// Plovoucí lišta hledání, řazení a filtrů na telefonu (FloatingFilterBar.vue, R119) — po odjetí
+// lišty Seřadit / Filtry pod hlavičku vyjede zpod hlavičky webu přes celou šířku: ikony vlevo,
+// přepínač karty / řádky vpravo. V rozvržení nezabírá místo (fixed).
+//
+// @author Roman Hlaváček
+// @created 2026-10-09
+
+@use '../abstracts/mixins' as *;
+
+.floating-filter-bar {
+    position: fixed;
+    z-index: var(--z-section-nav);
+    top: var(--app-header-height, 0);
+    right: 0;
+    left: 0;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-1) max(var(--space-3), env(safe-area-inset-right)) var(--space-1) max(var(--space-3), env(safe-area-inset-left));
+    background: var(--color-bg);
+    border-bottom: 1px solid var(--color-border);
+    box-shadow: var(--shadow-card);
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(-100%);
+    transition:
+        opacity var(--duration-fast),
+        transform var(--duration-fast),
+        visibility var(--duration-fast);
+
+    &--visible {
+        visibility: visible;
+        opacity: 1;
+        transform: none;
+    }
+
+    @include from-md {
+        display: none;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        transform: none;
+    }
+
+    // Kulatá tlačítka jen s ikonou, stejně vysoká jako přepínač zobrazení
+    &__button {
+        position: relative;
+        display: inline-grid;
+        flex: none;
+        place-items: center;
+        width: var(--control-size);
+        height: var(--control-size);
+        padding: 0;
+        background: var(--color-surface);
+        border: 1px solid var(--color-input-border);
+        border-radius: var(--radius-pill);
+        color: var(--color-text);
+        cursor: pointer;
+    }
+
+    // Počet zapnutých filtrů v rohu ikony
+    &__count {
+        position: absolute;
+        top: calc(-1 * var(--space-1));
+        right: calc(-1 * var(--space-1));
+    }
+
+    &__end {
+        margin-left: auto;
+    }
+}
