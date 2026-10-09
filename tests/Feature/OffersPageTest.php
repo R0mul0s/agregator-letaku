@@ -77,6 +77,19 @@ it('ukáže platné i budoucí akce, skončené a stažené obchodem ne', functi
     expect(offerNames())->toBe(['Platí dnes', 'Příští týden']);
 });
 
+it('popis shodný s balením nepošle — karta by „1 kg“ ukázala dvakrát (R107)', function (): void {
+    Offer::factory()->create(['name' => 'Banány', 'description' => '1 kg', 'package_text' => '1 kg']);
+    Offer::factory()->create(['name' => 'Fa Deodorant sprej', 'description' => '150 ml • vybrané druhy', 'package_text' => '150 ml']);
+
+    $this->get(route('offers'))
+        ->assertOk()
+        ->assertInertia(function (Assert $page): void {
+            $offers = array_column($page->toArray()['props']['offers']['data'], null, 'name');
+            expect($offers['Banány'])->description->toBeNull()->packageText->toBe('1 kg')
+                ->and($offers['Fa Deodorant sprej']['description'])->toBe('150 ml • vybrané druhy');
+        });
+});
+
 it('hledá bez ohledu na diakritiku a velikost písmen, v názvu i popisu', function (): void {
     Offer::factory()->create(['name' => 'Kunín Trvanlivé mléko tuk 1,5 %', 'description' => 'Kunín polotučné tuk 1,5 %']);
     Offer::factory()->create(['name' => 'Mléčná čokoláda']);

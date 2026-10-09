@@ -48,7 +48,8 @@ final class OfferPresenter
             'chainName' => $offer->chain->label(),
             'name' => $offer->name,
             'brand' => $offer->brand,
-            'description' => $offer->description,
+            // Popis jen z balení („1 kg“ u ovoce z letáku Albertu, R107) by karta ukázala dvakrát
+            'description' => $offer->description === $offer->package_text ? null : $offer->description,
             'variantNote' => $offer->variant_note,
             'packageText' => $offer->package_text,
             'quantity' => $offer->quantity,
