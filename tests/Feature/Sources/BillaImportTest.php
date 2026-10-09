@@ -301,7 +301,7 @@ it('akci letáku, který ještě nezačal, uloží pod kódem produktu z katalog
         ->valid_from->toDateString()->toBe('2026-10-07')
         ->valid_to->toDateString()->toBe('2026-10-13')
         ->source_url->toBe('https://www.billa.cz/produkt/olma-klasik-original-bily-jogurt-150g-82234812')
-        ->image_url->toStartWith('https://images.cdn.europe-west1.gcp.commercetools.com/')
+        ->image_url->toStartWith('https://images.cdn.europe-west1.gcp.commercetools.com/')->toEndWith('-medium.jpg')
         ->and($leaflet)
         ->kind->toBe(LeafletKind::Leaflet)
         ->title->toBe('Velký leták')

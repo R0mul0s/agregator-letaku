@@ -25,6 +25,7 @@ declare(strict_types=1);
 namespace App\Domain\Sources\Billa;
 
 use App\Domain\Offers\Data\OfferData;
+use App\Domain\Offers\Parsing\CommercetoolsImage;
 use App\Domain\Offers\Parsing\PackageParser;
 use App\Domain\Offers\Parsing\Text;
 use App\Domain\Sources\Exceptions\SourceResponseChanged;
@@ -139,7 +140,7 @@ final class BillaParser
             package: $this->packages->parse($packageText),
             onlineOnly: in_array(config()->string('letaky.sources.billa.eshop_only_badge'), $badges, true),
             sourceCategory: Text::clean(is_string($product['category'] ?? null) ? $product['category'] : null),
-            imageUrl: is_string($product['images'][0] ?? null) ? $product['images'][0] : null,
+            imageUrl: CommercetoolsImage::fromProduct($product),
             sourceUrl: is_string($slug) ? $productUrlBase.$slug : null,
             // Akce z PDF letáku s jinou platností než akční týden je uložená pod předběžným ID (R89)
             supersedes: config()->string('letaky.sources.billa.pdf_provisional_prefix').$sku,
@@ -178,7 +179,7 @@ final class BillaParser
             unit: $package?->unit->value,
             usualPrice: $standard !== null && $standard > $current ? $standard : $current,
             category: Text::clean(is_string($product['category'] ?? null) ? $product['category'] : null),
-            imageUrl: is_string($product['images'][0] ?? null) ? $product['images'][0] : null,
+            imageUrl: CommercetoolsImage::fromProduct($product),
             sourceUrl: is_string($slug) ? $productUrlBase.$slug : null,
         );
     }

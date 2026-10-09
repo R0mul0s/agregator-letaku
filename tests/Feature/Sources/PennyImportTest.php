@@ -63,6 +63,8 @@ it('uloží akce z API i z letáku a stránku letáku bez textu přeskočí', fu
         ->and(Leaflet::query()->where('kind', LeafletKind::Web)->sole()->external_id)->toBe('web-2026-09-30')
         ->and(Leaflet::query()->where('kind', LeafletKind::Leaflet)->sole()->external_id)->toBe('30_09_2026')
         ->and(Offer::query()->whereHas('leaflet', fn ($q) => $q->where('kind', LeafletKind::Web))->count())->toBe(33)
+        // Fotky z API v menší variantě CDN (R108)
+        ->and(Offer::query()->whereHas('leaflet', fn ($q) => $q->where('kind', LeafletKind::Web))->where('image_url', 'like', '%-medium.jpg')->count())->toBe(33)
         // Strany 1, 4 a 30 dají 44 dlaždic (R26, R85, R107 — kuřecí řízky „cena za 1 kg“); 17 z nich nese i API
         ->and(Offer::query()->whereHas('leaflet', fn ($q) => $q->where('kind', LeafletKind::Leaflet))->count())->toBe(27);
 });

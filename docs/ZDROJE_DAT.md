@@ -306,6 +306,11 @@ Implementace: `app/Domain/Sources/Lidl/` — kampaně z úvodní stránky, jen k
 ```
 U cen s kartou je navíc `"loyalty":{"value":2490,"tags":["SO"]}` a `regular` pak znamená cenu bez karty.
 
+**Fotky (`images[0]`, platí i pro Billu):** CDN commercetools `images.cdn.europe-west1.gcp.commercetools.com`
+vrací originál (Billa až ~350 kB, 525×800 px). Menší variantu dá přípona před koncovkou (ověřeno 9. 10. 2026):
+`-thumb` (50 px), `-small` (150 px, ~8 kB), `-medium` (400 px, ~36 kB), `-large` (700 px, ~94 kB), `-zoom`
+(1500 px) — delší strana. Ukládá se `-medium` (`CommercetoolsImage`, R108).
+
 ### Leták (FlippingBook na files.rewe.co.at)
 - URL letáku: `https://files.rewe.co.at/PennyIntLeaflet/CZ/{DD_MM_YYYY}/`. Odkaz se dá vyčíst ze stránky `https://www.penny.cz/nabidky/letaky` (hledat `PennyIntLeaflet/CZ/`). **Složka může mít příponu verze** (`07_10_2026_tl2/`, 6. 10. 2026) — vzor ji musí připustit, jinak se leták příštího týdne tiše přeskočí.
 - **Nejlepší zdroj je vektorová vrstva stránek:** `…/files/assets/common/page-vectorlayers/0001.svg` až `00NN.svg`. Obsahuje `<svg:text transform="matrix(a b c d e f)">` s `<svg:tspan x="…" y="…" fill="…">`, tedy každý token se souřadnicemi, velikostí a barvou. Název, gramáž, cena, přeškrtnutá cena a % jdou spárovat podle pozice, nebo se tokeny s pozicemi předají LLM (levnější než vision).
@@ -475,7 +480,7 @@ Detail produktu na webu: `https://www.billa.cz/produkt/{slug}` (`/produkty/` i `
 - **Zboží na váhu** (jako Tesco): `weightPieceArticle` → `value` je cena odhadovaného kusu (pomeranč 9,87 Kč),
   bere se `perStandardizedQuantity` (za kg) i u `standard`; `weightArticle` → `value` za kg, `amount` 1000 g.
 - Balení `amount` + `volumeLabelShort` („0.7“ „l“ → 0,7 l). `descriptionShort` je vždy stejný jako název, popis se
-  neukládá. Značka `brand.name`, kategorie `category`, obrázek `images[0]`.
+  neukládá. Značka `brand.name`, kategorie `category`, obrázek `images[0]` ve variantě `-medium` (CDN jako Penny, R108).
 - Odznak `eshop-only` (~25) = akce jen v e-shopu → `online_only` (Billa má `has_eshop`, uživatel je může skrýt).
 
 ### Platnost — API ji nemá

@@ -20,6 +20,7 @@ namespace App\Domain\Sources\Penny;
 
 use App\Domain\Offers\Data\OfferData;
 use App\Domain\Offers\LocalCalendar;
+use App\Domain\Offers\Parsing\CommercetoolsImage;
 use App\Domain\Offers\Parsing\PackageParser;
 use App\Domain\Offers\Parsing\Text;
 use App\Domain\Offers\Parsing\VariantNote;
@@ -121,7 +122,7 @@ final class PennyApiParser
             packageText: $packageText,
             package: $this->packages->parse($packageText),
             sourceCategory: Text::clean(is_string($product['category'] ?? null) ? $product['category'] : null),
-            imageUrl: is_string($product['images'][0] ?? null) ? $product['images'][0] : null,
+            imageUrl: CommercetoolsImage::fromProduct($product),
             sourceUrl: is_string($slug) ? $productUrlBase.$slug : null,
         );
     }
