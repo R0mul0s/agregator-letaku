@@ -72,6 +72,7 @@ final class OfferPresenter
             // Akce, která ještě nezačala (R76): za kolik dní začne; null = už platí
             'startsInDays' => $this->startsInDays($offer),
             'sourceUrl' => $offer->source_url,
+            'sourceIsLeaflet' => $this->isLeafletLink($offer->source_url),
             // Odkaz na CDN obchodu — obrázek se nestahuje ani neukládá (R22)
             'imageUrl' => $offer->image_url,
             'stores' => $this->stores($offer, $selectedStoreCodes),
@@ -163,5 +164,17 @@ final class OfferPresenter
         sort($names);
 
         return $names;
+    }
+
+    /**
+     * Vede odkaz akce na stránku letáku (`letaky.offers.leaflet_link_prefixes`, R110)? Druh zdroje
+     * nestačí — akce z letáku Billy a Tesca odkazují na produkt v e-shopu.
+     */
+    private function isLeafletLink(?string $url): bool
+    {
+        return $url !== null && array_any(
+            config()->array('letaky.offers.leaflet_link_prefixes'),
+            fn (mixed $prefix): bool => str_starts_with($url, (string) $prefix),
+        );
     }
 }

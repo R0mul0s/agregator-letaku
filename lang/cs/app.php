@@ -640,6 +640,7 @@ return [
                 'cheaper_before' => 'Před týdnem stálo :price|Před :count týdny stálo :price|Před :count týdny stálo :price',
             ],
             'source' => 'Do obchodu',
+            'source_leaflet' => 'Do letáku',
             'pagination' => 'Stránkování',
             'previous' => 'Předchozí',
             'next' => 'Další',

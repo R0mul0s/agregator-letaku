@@ -90,6 +90,21 @@ it('popis shodný s balením nepošle — karta by „1 kg“ ukázala dvakrát 
         });
 });
 
+it('odkaz na stránku letáku označí, odkaz na produkt v e-shopu ne (R110)', function (): void {
+    Offer::factory()->create(['name' => 'Banány Albert', 'source_url' => 'https://letaky.albert.cz/41hm_akcni_letak/page/14']);
+    Offer::factory()->create(['name' => 'Banány Penny', 'source_url' => 'https://files.rewe.co.at/PennyIntLeaflet/CZ/07_10_2026_tl2/2/']);
+    // Akce z letáku Tesca odkazuje na produkt v e-shopu
+    Offer::factory()->create(['name' => 'Banány Tesco', 'source_url' => 'https://nakup.itesco.cz/groceries/cs-CZ/products/100073126']);
+    Offer::factory()->create(['name' => 'Banány bez odkazu', 'source_url' => null]);
+
+    $this->get(route('offers'))
+        ->assertOk()
+        ->assertInertia(function (Assert $page): void {
+            $leaflet = array_column($page->toArray()['props']['offers']['data'], 'sourceIsLeaflet', 'name');
+            expect($leaflet)->toEqual(['Banány Albert' => true, 'Banány Penny' => true, 'Banány Tesco' => false, 'Banány bez odkazu' => false]);
+        });
+});
+
 it('hledá bez ohledu na diakritiku a velikost písmen, v názvu i popisu', function (): void {
     Offer::factory()->create(['name' => 'Kunín Trvanlivé mléko tuk 1,5 %', 'description' => 'Kunín polotučné tuk 1,5 %']);
     Offer::factory()->create(['name' => 'Mléčná čokoláda']);

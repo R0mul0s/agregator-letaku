@@ -705,6 +705,13 @@ return [
         'fresh_days' => 2,
         // Filtr „Končí brzy“ (R101): platnost končí dnes nebo do tolika dní
         'ending_soon_days' => 2,
+        // Odkaz akce na stránku letáku (karta „Do letáku“, jinak „Do obchodu“, R110): akce z PDF
+        // a SVG letáků Albertu, Lidlu a Penny; akce z letáku Billy, Tesca a Globusu vedou na web
+        'leaflet_link_prefixes' => [
+            'https://letaky.albert.cz/',
+            'https://www.lidl.cz/l/cs/letak/',
+            'https://files.rewe.co.at/PennyIntLeaflet/',
+        ],
         // Text akce na více kusů verzálkami bez diakritiky (Tesco menu e-shopu „PECIVO+NAPOJ“):
         // slova, která před převodem na větu dostanou diakritiku (PromotionText, R101)
         'promotion_text_words' => [
