@@ -15,12 +15,21 @@ namespace App\Http\Requests;
 
 use App\Domain\Sources\SourceRegistry;
 use App\Enums\Chain;
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Http\Response;
 use Illuminate\Validation\Rule;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class CronRequest extends FormRequest
 {
+    /** Úlohy jednoho obchodu — parametr `chain` je povinný. */
+    private const CHAIN_ROUTES = ['cron.import-offers', 'cron.import-stores'];
+
+    /** Stažení prodejen — jen obchod se zdrojem prodejen (R49). */
+    private const STORES_ROUTE = 'cron.import-stores';
+
     /**
      * Smí jen volání se správným tokenem; prázdný token v konfiguraci cron URL vypíná.
      */
@@ -33,16 +42,18 @@ class CronRequest extends FormRequest
     }
 
     /**
-     * Obchod (u stahování akcí) musí mít zdroj nabídek.
+     * Obchod: u stahování akcí povinný se zdrojem nabídek, u prodejen se zdrojem prodejen.
      *
      * @return array<string, mixed>
      */
     public function rules(): array
     {
-        $chains = array_map(fn (Chain $chain): string => $chain->value, app(SourceRegistry::class)->chainsWithOffers());
+        $sources = app(SourceRegistry::class);
+        $chains = $this->routeIs(self::STORES_ROUTE) ? $sources->chainsWithStores() : $sources->chainsWithOffers();
+        $required = $this->routeIs(self::CHAIN_ROUTES) ? 'required' : 'sometimes';
 
         return [
-            'chain' => ['sometimes', 'required', 'string', Rule::in($chains)],
+            'chain' => [$required, 'string', Rule::in(array_map(fn (Chain $chain): string => $chain->value, $chains))],
         ];
     }
 
@@ -60,5 +71,18 @@ class CronRequest extends FormRequest
     protected function failedAuthorization(): void
     {
         throw new NotFoundHttpException;
+    }
+
+    /**
+     * Chybný parametr = 422 jako prostý text (R113). Výchozí přesměrování zpět by cron
+     * WebAdminu viděl jako úspěch (302 → úvodní stránka 200).
+     */
+    protected function failedValidation(Validator $validator): void
+    {
+        throw new HttpResponseException(response(
+            implode("\n", $validator->errors()->all())."\n",
+            Response::HTTP_UNPROCESSABLE_ENTITY,
+            ['Content-Type' => 'text/plain; charset=utf-8', 'Cache-Control' => 'no-store'],
+        ));
     }
 }

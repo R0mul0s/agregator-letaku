@@ -11,6 +11,8 @@
 declare(strict_types=1);
 
 use App\Domain\Account\Actions\PruneExpiredSessions;
+use App\Domain\Offers\Actions\PruneOfferRaw;
+use App\Models\Offer;
 use Illuminate\Support\Facades\DB;
 
 it('smaže relace starší než jejich platnost a propadlé odkazy na obnovu hesla, platné nechá', function (): void {
@@ -53,4 +55,20 @@ it('cron URL uklidí jen s tokenem', function (): void {
     $this->get(route('cron.prune-sessions', ['token' => 'tajny-token']))
         ->assertOk()
         ->assertSeeText('Úklid — smazáno vypršelých relací:');
+});
+
+it('vyprázdní surovou odpověď akcí skončených před dobou uchování, novější nechá (R113)', function (): void {
+    config(['letaky.offers.raw_retention_days' => 60, 'letaky.offers.raw_prune_batch' => 1]);
+    $this->travelTo('2026-10-09 12:00:00');
+    $old = Offer::factory()->create(['valid_from' => '2026-07-01', 'valid_to' => '2026-08-01', 'raw' => ['id' => 1]]);
+    $recent = Offer::factory()->create(['valid_from' => '2026-09-01', 'valid_to' => '2026-09-07', 'raw' => ['id' => 2]]);
+    $older = Offer::factory()->create(['valid_from' => '2026-06-01', 'valid_to' => '2026-06-07', 'raw' => ['id' => 3]]);
+    $updatedAt = $old->updated_at;
+
+    expect(app(PruneOfferRaw::class)())->toBe(2)
+        ->and($old->fresh()->raw)->toBe([])
+        ->and($old->fresh()->updated_at->equalTo($updatedAt))->toBeTrue()
+        ->and($older->fresh()->raw)->toBe([])
+        ->and($recent->fresh()->raw)->toBe(['id' => 2])
+        ->and(app(PruneOfferRaw::class)())->toBe(0);
 });

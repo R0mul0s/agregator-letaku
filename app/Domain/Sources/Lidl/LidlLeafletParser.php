@@ -34,7 +34,7 @@ use App\Domain\Matching\TextNormalizer;
 use App\Domain\Offers\Data\LeafletData;
 use App\Domain\Offers\Data\OfferData;
 use App\Domain\Offers\Data\PackageSize;
-use App\Domain\Offers\LocalCalendar;
+use App\Domain\Offers\Parsing\LeafletDates;
 use App\Domain\Offers\Parsing\PackageParser;
 use App\Domain\Offers\Parsing\PriceParser;
 use App\Domain\Offers\Parsing\Text;
@@ -111,9 +111,6 @@ final class LidlLeafletParser
     /** Den v týdnu ze SHORT_VALIDITY_PATTERN => ISO číslo dne. */
     private const WEEKDAYS = ['pondělí' => 1, 'úterý' => 2, 'středu' => 3, 'čtvrtek' => 4, 'pátek' => 5, 'sobotu' => 6, 'neděli' => 7];
 
-    /** Hlavička bez roku přes přelom roku: datum víc než půl roku před letákem je v dalším roce. */
-    private const YEAR_WRAP_MONTHS = 6;
-
     /** Štítek Lidl Plus nad slevou s aplikací. */
     private const LIDL_PLUS_PATTERN = '/^S\s+Lidl\s+Plus$/iu';
 
@@ -153,7 +150,7 @@ final class LidlLeafletParser
         private readonly PriceParser $prices,
         private readonly PackageParser $packages,
         private readonly VariantNote $variants,
-        private readonly LocalCalendar $calendar,
+        private readonly LeafletDates $dates,
         private readonly TextNormalizer $normalizer,
     ) {}
 
@@ -694,30 +691,28 @@ final class LidlLeafletParser
             }
         }
 
-        $range = $header ?? $footer;
-        $year = $footer[4] ?? $leaflet->validFrom?->year;
-        if ($range === null || $year === null) {
-            return $leaflet->validFrom !== null && $leaflet->validTo !== null ? [$leaflet->validFrom, $leaflet->validTo] : null;
+        $footerRange = $footer === null ? null : $this->dates->range($footer[0], $footer[1], null, $footer[2], $footer[3], $footer[4]);
+        if ($header === null) {
+            return $footer !== null ? $footerRange : $this->leafletValidity($leaflet);
         }
 
-        $from = $this->localDate($year, $range[1], $range[0]);
-        if ($footer === null && $leaflet->validFrom !== null && $from !== null && $from->lt($leaflet->validFrom->subMonths(self::YEAR_WRAP_MONTHS))) {
-            $from = $from->addYear();
-        }
-        $to = $from === null ? null : $this->localDate($from->year, $range[3], $range[2]);
-        if ($from === null || $to === null) {
-            return null;
+        // Hlavička nemá rok — konec nejbližší ke konci patičky nebo letáku (i přes Nový rok, R113)
+        $reference = $footerRange[1] ?? $leaflet->validTo ?? $leaflet->validFrom;
+        if ($reference === null) {
+            return $this->leafletValidity($leaflet);
         }
 
-        return [$from, $to->lt($from) ? $to->addYear() : $to];
+        return $this->dates->range($header[0], $header[1], null, $header[2], $header[3], null, $reference);
     }
 
     /**
-     * Místní datum z čísel; null pro neexistující den.
+     * Platnost letáku, nebo null, když ji leták nemá celou.
+     *
+     * @return array{CarbonImmutable, CarbonImmutable}|null
      */
-    private function localDate(int $year, int $month, int $day): ?CarbonImmutable
+    private function leafletValidity(LeafletData $leaflet): ?array
     {
-        return checkdate($month, $day, $year) ? $this->calendar->date(sprintf('%04d-%02d-%02d', $year, $month, $day)) : null;
+        return $leaflet->validFrom !== null && $leaflet->validTo !== null ? [$leaflet->validFrom, $leaflet->validTo] : null;
     }
 
     /**

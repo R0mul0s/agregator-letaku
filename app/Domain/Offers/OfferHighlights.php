@@ -21,6 +21,9 @@ use Illuminate\Database\Eloquent\Builder;
 
 final class OfferHighlights
 {
+    /** Ukázka jen akcí se skutečnou slevou — aspoň jedno procento. */
+    private const MIN_DISCOUNT_PERCENT = 1;
+
     public function __construct(
         private readonly LocalCalendar $calendar,
         private readonly SourceRegistry $sources,
@@ -46,7 +49,8 @@ final class OfferHighlights
 
     /**
      * Akce s nejvyšší slevou a obrázkem, z každého obchodu nejdřív po jedné
-     * (ať ukázka neukazuje šest jogurtů z jednoho letáku); výsledek od nejvyšší slevy.
+     * (ať ukázka neukazuje šest jogurtů z jednoho letáku); výsledek od nejvyšší slevy. Sleva
+     * i dopočtená z přeškrtnuté ceny (Albert, Penny nemají procenta, R113).
      *
      * @return list<Offer>
      */
@@ -54,9 +58,9 @@ final class OfferHighlights
     {
         $candidates = $this->currentOffers()
             ->where('offer_type', OfferType::Discount)
-            ->whereNotNull('discount_percent')
+            ->withDiscountOf(self::MIN_DISCOUNT_PERCENT)
             ->whereNotNull('image_url')
-            ->orderByDesc('discount_percent')
+            ->orderByDiscount()
             ->orderBy('id')
             ->limit($limit * config()->integer('letaky.landing.top_offers_candidates_factor'))
             ->get();
@@ -83,7 +87,7 @@ final class OfferHighlights
 
         // Druhé kolo přidává až za první — bez seřazení by −66 % stálo pod −56 %
         $picked = array_values($picked);
-        usort($picked, fn (Offer $a, Offer $b): int => [$b->discount_percent, $a->id] <=> [$a->discount_percent, $b->id]);
+        usort($picked, fn (Offer $a, Offer $b): int => [$b->effectiveDiscountPercent(), $a->id] <=> [$a->effectiveDiscountPercent(), $b->id]);
 
         return $picked;
     }

@@ -110,13 +110,15 @@ const panelVisible = computed(() => open.value && (options.value.length > 0 || n
 
 /** Načte návrhy k aktuálnímu textu (prázdné pole = oblíbené); předchozí požadavek zruší. */
 async function load() {
+    // Zrušit i při zkrácení textu — pozdní odpověď by jinak ukázala návrhy ke starému slovu
+    controller?.abort();
     if (text.value !== '' && text.value.length < props.minLength) {
         Object.assign(data, { corrected: null, total: 0, products: [], offers: [], popular: false });
+        fetching.value = false;
 
         return;
     }
 
-    controller?.abort();
     controller = new AbortController();
     fetching.value = true;
     const query = new URLSearchParams(Object.fromEntries(Object.entries({ ...props.params, q: text.value }).filter(([, value]) => value !== '' && value !== null)));

@@ -335,7 +335,7 @@ Implementace: `app/Domain/Sources/Penny/PennyLeafletParser.php`, podrobný postu
 - **Cena za více kusů** (Jägermeister: „při koupi 1 ks cena 169,90 Kč od 2 ks cena 149,90 Kč“, u ceny „při koupi 2 a více ks“): jako u Billy `Multibuy`, cena kusu a v `promotion_text` „od 2 ks: 149,90 Kč“. Bez čitelné ceny kusu se dlaždice neuloží.
 - **Přeškrtnutá cena bez čáry:** titulní strana glyf čáry nemá — malé číslo vpravo pod cenou se uzná, jen když sedí procento ze štítku slevy („40 %“, ±1 procentní bod).
 - Výsledek na letáku 30. 9. 2026 (35 stran, 574 velkých cen): **dřív 297, teď 489 akcí** (R85), žádná dřívější nezmizela; kontrola štítku slevy u 337 akcí bez nesouladu. Zbytek (~85: nepotraviny bez balení, velké dlaždice zeleniny mimo mřížku, chyby letáku jako kefír 500 ml „100 ml 19,80 Kč“, „+25 % navíc“) se neuloží — raději chybějící akce než špatná cena.
-- Položka letáku, kterou nese i API (stejná cena, stejné balení, společné slovo názvu), se neuloží podruhé. Samotná shoda slov nestačí — „Karlova Koruna“ je u desítek položek.
+- Položka letáku, kterou nese i API (stejná cena, stejné balení, společné slovo názvu a překryv platnosti — leták na příští týden se stejným zbožím za stejnou cenu se uloží, R113), se neuloží podruhé. Samotná shoda slov nestačí — „Karlova Koruna“ je u desítek položek.
 - Externí ID akce z letáku je otisk názvu, balení a ceny (`letak-…`), leták kód zboží nemá.
 - **Text stránek pro zmínky bez ceny (R27):** `PennyLeafletParser::pageText` spojí tokeny shora dolů a zleva doprava; ukládá se do `leaflet_pages` s odkazem `…/{DD_MM_YYYY}/{n}/`, bez náhledu. Zmínka se ukáže jen tam, kde k položce Penny v tom období nemá akci s cenou.
 

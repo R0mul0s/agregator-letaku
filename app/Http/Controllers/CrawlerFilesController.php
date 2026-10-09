@@ -20,6 +20,7 @@ use App\Enums\ScrapeStatus;
 use App\Models\Offer;
 use App\Models\ScrapeRun;
 use App\Support\Seo\IndexNow;
+use App\Support\Seo\PublicPages;
 use App\Support\Seo\SeoMeta;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Response;
@@ -81,9 +82,7 @@ class CrawlerFilesController extends Controller
                 'loc' => $this->pages->productUrl($productId, absolute: true),
                 'lastmod' => $offersModified,
             ], $this->pages->productsWithOffers()),
-            ['loc' => route('legal.terms'), 'lastmod' => $legalModified],
-            ['loc' => route('legal.privacy'), 'lastmod' => $legalModified],
-            ['loc' => route('contact'), 'lastmod' => $legalModified],
+            ...array_map(fn (string $route): array => ['loc' => route($route), 'lastmod' => $legalModified], array_keys(PublicPages::PAGES)),
         ];
 
         return response()

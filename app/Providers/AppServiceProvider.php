@@ -13,6 +13,7 @@ declare(strict_types=1);
 namespace App\Providers;
 
 use App\Domain\Account\Social\SeznamProvider;
+use App\Domain\Catalog\CategoryPaths;
 use App\Domain\Offers\OfferPages;
 use App\Domain\Push\PushSender;
 use App\Domain\Push\WebPushSender;
@@ -31,13 +32,16 @@ class AppServiceProvider extends ServiceProvider
 {
     /**
      * Registrace služeb: odeslání upozornění v telefonu (R66) přes push služby prohlížečů,
-     * čisté adresy výpisu akcí (R94).
+     * čisté adresy výpisu akcí (R94) a strom kategorií jednou za požadavek.
      */
     public function register(): void
     {
         $this->app->singleton(PushSender::class, WebPushSender::class);
         // Čisté adresy výpisu akcí (R94) — produkty katalogu se načtou jednou za požadavek
         $this->app->scoped(OfferPages::class);
+        // Strom kategorií (~1 700 řádků) jednou za požadavek — Všechny akce ho potřebují
+        // ve validaci, filtrech i nabídce oddělení (R113)
+        $this->app->scoped(CategoryPaths::class);
     }
 
     /**

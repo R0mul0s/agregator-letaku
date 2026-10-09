@@ -35,7 +35,7 @@ declare(strict_types=1);
 namespace App\Domain\Sources\Globus;
 
 use App\Domain\Offers\Data\OfferData;
-use App\Domain\Offers\LocalCalendar;
+use App\Domain\Offers\Parsing\LeafletDates;
 use App\Domain\Offers\Parsing\PackageParser;
 use App\Domain\Offers\Parsing\PriceParser;
 use App\Domain\Offers\Parsing\Text;
@@ -47,6 +47,7 @@ use App\Domain\Sources\Pdf\PdfLine;
 use App\Domain\Sources\Pdf\PdfPage;
 use App\Domain\Sources\Pdf\PdfTile;
 use App\Domain\Sources\Pdf\PdfWord;
+use App\Domain\Sources\Pdf\TileUnits;
 use App\Domain\Sources\Pdf\UnitPriceCheck;
 use App\Enums\LoyaltyProgram;
 use App\Enums\OfferType;
@@ -182,23 +183,6 @@ final class GlobusLeafletParser
     /** Cena za jednotku k ceně s kartou Můj Globus (KC); bez označení nebo AC je k akční ceně. */
     private const KIND_CARD = 'KC';
 
-    /** Balení: „150 g“, „6 x 0,5 l“, „60 dávek“. */
-    private const PACKAGE_PATTERN = '/(?:(\d+)\s*[×x]\s*)?(\d+(?:,\d+)?)(?:\s*[–-]\s*(\d+(?:,\d+)?))?\s*(\p{L}+)/u';
-
-    /**
-     * Jednotky balení => [jednotka pro porovnání, násobek]. Jiné slovo (dávka, role, praní)
-     * se porovná podle prvních písmen (UNIT_STEM_LENGTH): „60 dávek“ ↔ „1 dávka“.
-     *
-     * @var array<string, array{string, int}>
-     */
-    private const UNITS = [
-        'g' => ['g', 1], 'kg' => ['g', 1000],
-        'ml' => ['ml', 1], 'l' => ['ml', 1000],
-        'ks' => ['ks', 1], 'kus' => ['ks', 1], 'kusy' => ['ks', 1], 'kusů' => ['ks', 1],
-    ];
-
-    private const UNIT_STEM_LENGTH = 3;
-
     /** Platnost: „od 7. 10. do 2. 11. 2026“, „7. 10. – 20. 10. 2026“, „30. 9. - 27. 10. 2026“. */
     private const VALIDITY_PATTERN = '/(\d{1,2})\.\s*(\d{1,2})\.\s*(\d{4})?\.?\s*(?:do|–|-)\s*(\d{1,2})\.\s*(\d{1,2})\.\s*(\d{4})?/u';
 
@@ -211,7 +195,7 @@ final class GlobusLeafletParser
         private readonly PriceParser $priceParser,
         private readonly PackageParser $packages,
         private readonly VariantNote $variants,
-        private readonly LocalCalendar $calendar,
+        private readonly LeafletDates $dates,
         private readonly GlobusLeafletKey $keys,
     ) {}
 
@@ -573,57 +557,19 @@ final class GlobusLeafletParser
 
         $unitPrices = [];
         foreach ($matches as $m) {
-            $unit = $this->unit($m[3]);
+            $unit = TileUnits::unit($m[3]);
             if ($unit !== null) {
                 $unitPrices[] = [
                     'kind' => $m[1] === '' ? null : $m[1],
                     'unit' => $unit[0],
-                    'quantity' => $this->number($m[2]) * $unit[1],
+                    'quantity' => TileUnits::number($m[2]) * $unit[1],
                     'from' => $m[4] === self::UNIT_PRICE_FROM,
                     'value' => $this->priceParser->parse(str_replace(self::WHOLE_CROWNS, ',00', $m[5])),
                 ];
             }
         }
 
-        $rest = (string) preg_replace(self::UNIT_PRICE_PATTERN, ' ', $text);
-        preg_match_all(self::PACKAGE_PATTERN, $rest, $matches, PREG_SET_ORDER);
-
-        $packages = [];
-        foreach ($matches as $m) {
-            $unit = $this->unit($m[4]);
-            if ($unit === null) {
-                continue;
-            }
-            $multiplier = $m[1] === '' ? 1 : (int) $m[1];
-            foreach (array_filter([$m[2], $m[3]]) as $amount) {
-                $packages[$unit[0]][] = $this->number($amount) * $multiplier * $unit[1];
-            }
-        }
-
-        return ['unitPrices' => $unitPrices, 'packages' => $packages];
-    }
-
-    /**
-     * Jednotka pro porovnání a násobek; null u slova, které jednotkou není.
-     *
-     * @return array{string, int}|null
-     */
-    private function unit(string $word): ?array
-    {
-        $word = mb_strtolower($word);
-        if (isset(self::UNITS[$word])) {
-            return self::UNITS[$word];
-        }
-
-        return mb_strlen($word) >= self::UNIT_STEM_LENGTH ? [mb_substr($word, 0, self::UNIT_STEM_LENGTH), 1] : null;
-    }
-
-    /**
-     * Číslo s desetinnou čárkou z textu letáku.
-     */
-    private function number(string $text): float
-    {
-        return (float) str_replace(',', '.', $text);
+        return ['unitPrices' => $unitPrices, 'packages' => TileUnits::packages((string) preg_replace(self::UNIT_PRICE_PATTERN, ' ', $text))];
     }
 
     /**
@@ -711,8 +657,8 @@ final class GlobusLeafletParser
     }
 
     /**
-     * První platnost „D. M. do D. M. RRRR“ v textu; rok chybí-li, z letáku. Null bez platnosti
-     * nebo s koncem před začátkem.
+     * První platnost „D. M. do D. M. RRRR“ v textu; bez roku nejbližší ke konci letáku (i přes
+     * Nový rok, R113). Null bez platnosti nebo s koncem před začátkem.
      *
      * @param  array{CarbonImmutable, CarbonImmutable}  $leaflet
      * @return array{CarbonImmutable, CarbonImmutable}|null
@@ -723,19 +669,11 @@ final class GlobusLeafletParser
             return null;
         }
 
-        $toYear = $m[6] === null ? (int) $leaflet[1]->format('Y') : (int) $m[6];
-        $to = $this->date((int) $m[4], (int) $m[5], $toYear);
-        $from = $this->date((int) $m[1], (int) $m[2], $m[3] === null ? $toYear : (int) $m[3]);
-
-        return $from === null || $to === null || $from->greaterThan($to) ? null : [$from, $to];
-    }
-
-    /**
-     * Místní datum, nebo null, když den v roce neexistuje.
-     */
-    private function date(int $day, int $month, int $year): ?CarbonImmutable
-    {
-        return checkdate($month, $day, $year) ? $this->calendar->date(sprintf('%04d-%02d-%02d', $year, $month, $day)) : null;
+        return $this->dates->range(
+            (int) $m[1], (int) $m[2], $m[3] === null ? null : (int) $m[3],
+            (int) $m[4], (int) $m[5], $m[6] === null ? null : (int) $m[6],
+            $leaflet[1],
+        );
     }
 
     /**
@@ -817,11 +755,8 @@ final class GlobusLeafletParser
     {
         $units = array_map(fn (array $unitPrice): string => $unitPrice['unit'], $this->tileFacts($tile)['unitPrices']);
         foreach ($tile->detailLines as $line) {
-            preg_match_all(self::PACKAGE_PATTERN, (string) preg_replace(self::UNIT_PRICE_PATTERN, ' ', $line), $matches, PREG_SET_ORDER);
-            foreach ($matches as $m) {
-                if (in_array($this->unit($m[4])[0] ?? null, $units, true)) {
-                    return $line;
-                }
+            if (TileUnits::hasPackageIn((string) preg_replace(self::UNIT_PRICE_PATTERN, ' ', $line), $units)) {
+                return $line;
             }
         }
 

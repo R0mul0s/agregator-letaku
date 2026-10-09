@@ -15,13 +15,13 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Domain\Matching\MyOffers;
 use App\Domain\Notifications\AnnouncementRecord;
 use App\Domain\Notifications\NotificationPresenter;
 use App\Domain\Notifications\OffersNotification;
 use App\Domain\Offers\LocalCalendar;
 use App\Domain\Offers\OfferPresenter;
 use App\Domain\Offers\PriceHistory;
+use App\Domain\Offers\UserPricing;
 use App\Enums\NotificationKind;
 use App\Models\Offer;
 use App\Models\User;
@@ -63,7 +63,7 @@ class NotificationController extends Controller
         string $notification,
         NotificationPresenter $presenter,
         OfferPresenter $offerPresenter,
-        MyOffers $myOffers,
+        UserPricing $pricing,
         LocalCalendar $calendar,
         PriceHistory $priceHistory,
     ): Response {
@@ -81,12 +81,12 @@ class NotificationController extends Controller
 
         $groups = array_map(fn (array $group): array => [
             'title' => $group['title'],
-            'offers' => array_values(array_filter(array_map(function (int $id) use ($offers, $offerPresenter, $myOffers, $user, $storeCodes, $today, $history): ?array {
+            'offers' => array_values(array_filter(array_map(function (int $id) use ($offers, $offerPresenter, $pricing, $user, $storeCodes, $today, $history): ?array {
                 $offer = $offers->get($id);
 
                 return $offer === null ? null : [
                     ...$offerPresenter->toPage($offer, $storeCodes, $history[$id] ?? null),
-                    'userPrice' => $myOffers->userPrice($user, $offer),
+                    'userPrice' => $pricing->price($user, $offer),
                     // Obchod akci stáhl (R16) nebo už skončila
                     'ended' => $offer->withdrawn_at !== null || $offer->valid_to->lessThan($today),
                 ];

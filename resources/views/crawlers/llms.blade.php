@@ -17,9 +17,9 @@
 @foreach ($chains as $chain)
 - [{{ __('app.llms.chain', ['chain' => $chain['name']]) }}]({{ $chain['url'] }})
 @endforeach
-- [{{ __('app.llms.terms') }}]({{ route('legal.terms') }})
-- [{{ __('app.llms.privacy') }}]({{ route('legal.privacy') }})
-- [{{ __('app.llms.contact') }}]({{ route('contact') }})
+@foreach (\App\Support\Seo\PublicPages::PAGES as $route => $kind)
+- [{{ __("app.llms.$kind") }}]({{ route($route) }})
+@endforeach
 
 ## {{ __('app.llms.notes_title') }}
 

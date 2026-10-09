@@ -82,6 +82,18 @@ it('uloží prodejny bez názvu obchodu a seznam jejich akcí; prodejnu, která 
         ->and($trutnov->offer_keys_fetched_at?->toDateTimeString())->toBe('2026-10-03 10:00:00');
 });
 
+it('zavřenou prodejnu odebere z výběru uživatelů, bez zbylé prodejny výběr zanikne (R113)', function (): void {
+    Store::query()->create(['chain' => Chain::Kaufland, 'code' => 'CZ9999', 'name' => 'Zavřená', 'city' => 'Nikde']);
+    $both = FollowedChain::query()->create(['user_id' => User::factory()->create()->id, 'chain' => Chain::Kaufland, 'store_codes' => ['CZ4400', 'CZ9999']]);
+    $closedOnly = FollowedChain::query()->create(['user_id' => User::factory()->create()->id, 'chain' => Chain::Kaufland, 'store_codes' => ['CZ9999']]);
+    fakeKauflandStores();
+
+    $this->artisan('letaky:import-stores', ['chain' => ['kaufland']])->assertSuccessful();
+
+    expect($both->fresh()?->store_codes)->toBe(['CZ4400'])
+        ->and($closedOnly->fresh()?->store_codes)->toBeNull();
+});
+
 it('cron URL prodejen stáhne prodejny; obchod bez prodejen odmítne', function (): void {
     fakeKauflandStores();
 

@@ -16,6 +16,7 @@ namespace App\Http\Controllers;
 
 use App\Actions\Fortify\UpdateUserPassword;
 use App\Actions\Fortify\UpdateUserProfileInformation;
+use App\Domain\Account\Actions\DeleteAccount;
 use App\Domain\Account\IdentityConfirmation;
 use App\Domain\Account\MailingSubscriptions;
 use App\Domain\Account\UserSessions;
@@ -31,7 +32,6 @@ use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -222,21 +222,16 @@ class AccountController extends Controller
     }
 
     /**
-     * Zruší účet po zadání hesla nebo potvrzení u poskytovatele (R96): hlídané položky,
-     * sledované obchody a propojené účty smaže databáze (cizí klíče cascade), profilový
-     * obrázek a session smaže aplikace.
+     * Zruší účet po zadání hesla nebo potvrzení u poskytovatele (R96) se vším, co k němu
+     * patří (DeleteAccount, R113).
      */
-    public function destroy(Request $request, UserSessions $sessions, IdentityConfirmation $confirmation): RedirectResponse
+    public function destroy(Request $request, DeleteAccount $deleteAccount, IdentityConfirmation $confirmation): RedirectResponse
     {
         $request->validateWithBag(self::ERROR_BAG_DELETE, ['password' => $confirmation->rules($this->user($request))]);
         $user = $this->user($request);
 
         Auth::guard('web')->logout();
-        if ($user->avatar_path !== null) {
-            Storage::disk('local')->delete($user->avatar_path);
-        }
-        $sessions->deleteAll($user);
-        $user->delete();
+        $deleteAccount->handle($user);
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();

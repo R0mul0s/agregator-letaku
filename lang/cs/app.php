@@ -174,6 +174,7 @@ return [
     // Úklid osobních údajů po vypršení (R53, PruneExpiredSessions)
     'maintenance' => [
         'sessions_pruned' => 'Úklid — smazáno vypršelých relací: :count',
+        'offer_raw_pruned' => 'Úklid — vyprázdněno surových odpovědí starých akcí: :count',
     ],
 
     // E-mailový souhrn nových akcí (R42, App\Mail\DigestMail)
@@ -213,6 +214,11 @@ return [
         ],
         'done' => 'Centrum upozornění — zapsáno: :count',
         'failed' => 'Centrum upozornění — chyba: :error',
+    ],
+
+    // Cron URL a artisan příkazy úloh — souběžné spuštění (R57, R113)
+    'cron' => [
+        'already_running' => 'Úloha už běží, souběžné spuštění se přeskočilo.',
     ],
 
     // Končící akce z nákupního seznamu v centru upozornění (R74, RecordEndingOffers) — výstup cronu

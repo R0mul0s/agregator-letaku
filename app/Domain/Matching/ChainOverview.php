@@ -7,7 +7,7 @@
  * položek, pak podle počtu položek v akci.
  *
  * Srovnává se jako řazení Mých slev: cena za jednotku, kterou uživatel zaplatí (s kartou,
- * pokud ji má), jinak cena (MyOffers::sortPrice); akce na více kusů má jen běžnou cenu kusu,
+ * pokud ji má), jinak cena (UserPricing::sortKey); akce na více kusů má jen běžnou cenu kusu,
  * proto je až za ostatními. Shoda „možná“ (R9) se do srovnání nepočítá — nemusí jít o hledanou
  * variantu.
  *
@@ -20,6 +20,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Matching;
 
+use App\Domain\Offers\UserPricing;
 use App\Enums\Chain;
 use App\Enums\MatchStatus;
 use App\Enums\OfferType;
@@ -29,7 +30,7 @@ use App\Models\WatchItem;
 
 final class ChainOverview
 {
-    public function __construct(private readonly MyOffers $myOffers) {}
+    public function __construct(private readonly UserPricing $pricing) {}
 
     /**
      * Obchody s položkami v akci, seřazené.
@@ -80,7 +81,7 @@ final class ChainOverview
             if ($status === MatchStatus::Maybe) {
                 continue;
             }
-            $key = [$offer->offer_type === OfferType::Multibuy, ...$this->myOffers->sortPrice($user, $offer)];
+            $key = [$offer->offer_type === OfferType::Multibuy, ...$this->pricing->sortKey($user, $offer)];
             $chain = $offer->chain->value;
             if (! isset($best[$chain]) || $key < $best[$chain]['key']) {
                 $best[$chain] = ['offer' => $offer, 'key' => $key];

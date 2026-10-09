@@ -19,10 +19,12 @@ use Illuminate\Database\Eloquent\Builder;
 final class WordStart
 {
     /**
-     * Vzory začátku slova v LIKE: začátek textu, po mezeře, pomlčce, lomítku, závorce
-     * a plusu („Coca-Cola“, „Fanta/Sprite“, „(bio)“, „PIZZA+COLA“).
+     * Znaky, po kterých začíná slovo („Coca-Cola“, „Fanta/Sprite“, „(bio)“, „PIZZA+COLA“,
+     * „Sýr "Gouda"“, „Kofola.Original“). Stejná interpunkce, kterou párování hlídaných položek
+     * (TextNormalizer) mění na mezeru, ať hledání a Moje slevy najdou pro slovo totéž (R113);
+     * čárka ne — „0,5 l“ je jedno číslo i tam.
      */
-    private const PREFIXES = ['', '% ', '%-', '%/', '%(', '%+'];
+    public const SEPARATORS = [' ', '-', '/', '(', ')', '+', '.', '&', ':', ';', '!', '?', '"', "'", '%', '*', '„', '“', '’'];
 
     /**
      * Podmínka „slovo začíná některé slovo sloupce“ jako SQL s otazníky a vazbami (pro řazení).
@@ -32,12 +34,13 @@ final class WordStart
      */
     public static function sql(string $column, string $word): array
     {
-        $sql = '(';
-        foreach (array_keys(self::PREFIXES) as $index) {
+        // Nejdřív jedno LIKE „obsahuje“ — řádek bez slova nemusí zkoušet všechny začátky
+        $sql = '('.$column.' LIKE ? AND (';
+        foreach (array_keys(self::prefixes()) as $index) {
             $sql .= ($index === 0 ? '' : ' OR ').$column.' LIKE ?';
         }
 
-        return [$sql.')', self::patterns($word)];
+        return [$sql.'))', [self::containsPattern($word), ...self::patterns($word)]];
     }
 
     /**
@@ -52,11 +55,23 @@ final class WordStart
     {
         $query->where(function (Builder $query) use ($columns, $word): void {
             foreach ($columns as $column) {
-                foreach (self::patterns($word) as $pattern) {
-                    $query->orWhere($column, 'like', $pattern);
-                }
+                $query->orWhere(fn (Builder $query) => $query
+                    ->where($column, 'like', self::containsPattern($word))
+                    ->where(function (Builder $query) use ($column, $word): void {
+                        foreach (self::patterns($word) as $pattern) {
+                            $query->orWhere($column, 'like', $pattern);
+                        }
+                    }));
             }
         });
+    }
+
+    /**
+     * Vzor LIKE „sloupec slovo obsahuje“ — levný předvýběr před začátky slov.
+     */
+    private static function containsPattern(string $word): string
+    {
+        return '%'.self::escape($word).'%';
     }
 
     /**
@@ -66,9 +81,27 @@ final class WordStart
      */
     private static function patterns(string $word): array
     {
-        $escaped = addcslashes($word, '%_\\');
+        $escaped = self::escape($word);
 
-        return array_map(fn (string $prefix): string => $prefix.$escaped.'%', self::PREFIXES);
+        return array_map(fn (string $prefix): string => $prefix.$escaped.'%', self::prefixes());
+    }
+
+    /**
+     * Vzory začátku slova v LIKE: začátek textu, nebo po některém z oddělovačů.
+     *
+     * @return list<string>
+     */
+    private static function prefixes(): array
+    {
+        return ['', ...array_map(fn (string $separator): string => '%'.self::escape($separator), self::SEPARATORS)];
+    }
+
+    /**
+     * Text pro LIKE se zástupnými znaky jako obyčejnými („%“ v „1,5 %“).
+     */
+    private static function escape(string $text): string
+    {
+        return addcslashes($text, '%_\\');
     }
 
     /**

@@ -71,12 +71,14 @@ final class PennyOfferSource implements OfferSource
     {
         $apiOffers = $this->apiOffers();
         $batches = $apiOffers === [] ? [] : [new SourceBatch($this->apiLeaflet($apiOffers), $apiOffers)];
+        // Slova názvů akcí z API jednou, ne pro každou položku letáku znovu
+        $apiWords = array_map(fn (OfferData $offer): array => $this->words($offer->name), $apiOffers);
 
         foreach ($this->leafletFolders() as $folder) {
             [$leaflet, $offers, $pages] = $this->leafletOffers($folder);
             $batches[] = new SourceBatch($leaflet, array_values(array_filter(
                 $offers,
-                fn (OfferData $offer): bool => ! $this->isInApi($offer, $apiOffers),
+                fn (OfferData $offer): bool => ! $this->isInApi($offer, $apiOffers, $apiWords),
             )), $pages);
         }
 
@@ -212,18 +214,22 @@ final class PennyOfferSource implements OfferSource
     }
 
     /**
-     * Nese položku letáku už API? Stejná cena (bez karty nebo s ní), stejné balení a společné
-     * slovo názvu. Samotná slova nestačí — značka („Karlova Koruna“) je u desítek položek.
+     * Nese položku letáku už API? Stejná cena (bez karty nebo s ní), stejné balení, společné
+     * slovo názvu a překryv platnosti. Samotná slova nestačí — značka („Karlova Koruna“) je
+     * u desítek položek; bez platnosti by akce z letáku na příští týden zmizela, když dnes
+     * API nese stejné zboží za stejnou cenu (R113).
      *
      * @param  list<OfferData>  $apiOffers
+     * @param  list<list<string>>  $apiWords  Slova názvů akcí z API ve stejném pořadí (words)
      */
-    private function isInApi(OfferData $offer, array $apiOffers): bool
+    private function isInApi(OfferData $offer, array $apiOffers, array $apiWords): bool
     {
         $words = $this->words($offer->name);
-        foreach ($apiOffers as $apiOffer) {
+        foreach ($apiOffers as $index => $apiOffer) {
             if (in_array($offer->price, [$apiOffer->price, $apiOffer->loyaltyPrice], true)
                 && $offer->package !== null && $offer->package == $apiOffer->package
-                && count(array_intersect($words, $this->words($apiOffer->name))) >= self::SAME_PRODUCT_MIN_SHARED_WORDS) {
+                && $offer->validFrom->lessThanOrEqualTo($apiOffer->validTo) && $apiOffer->validFrom->lessThanOrEqualTo($offer->validTo)
+                && count(array_intersect($words, $apiWords[$index])) >= self::SAME_PRODUCT_MIN_SHARED_WORDS) {
                 return true;
             }
         }

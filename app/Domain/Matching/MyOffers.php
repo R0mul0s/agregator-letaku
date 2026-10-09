@@ -23,7 +23,7 @@ namespace App\Domain\Matching;
 
 use App\Domain\Chains\ShoppingPreferencesScope;
 use App\Domain\Offers\LocalCalendar;
-use App\Domain\Offers\UnitPrice;
+use App\Domain\Offers\UserPricing;
 use App\Enums\LeafletKind;
 use App\Enums\MatchStatus;
 use App\Enums\OffersSort;
@@ -46,6 +46,7 @@ final class MyOffers
         private readonly WatchItemMatcher $matcher,
         private readonly LocalCalendar $calendar,
         private readonly ShoppingPreferencesScope $preferences,
+        private readonly UserPricing $pricing,
     ) {}
 
     /**
@@ -136,7 +137,7 @@ final class MyOffers
 
         return array_map(fn (array $offers): array => [
             'count' => count($offers),
-            'lowestPrice' => $this->lowestPrice($user, array_values($offers)),
+            'lowestPrice' => $this->pricing->lowest($user, array_values($offers)),
         ], $offersByProduct);
     }
 
@@ -306,7 +307,7 @@ final class MyOffers
                 OffersSort::Discount => [-($offer->effectiveDiscountPercent() ?? 0)],
                 OffersSort::EndingSoon => [$offer->valid_to->toDateString()],
             },
-            ...$this->sortPrice($user, $offer),
+            ...$this->pricing->sortKey($user, $offer),
         ];
     }
 
@@ -427,46 +428,5 @@ final class MyOffers
     {
         return $offer->offer_type !== OfferType::LoyaltyOnly
             || ($offer->loyalty_program !== null && $user->hasLoyaltyProgram($offer->loyalty_program));
-    }
-
-    /**
-     * Klíč řazení: cena za jednotku, kterou uživatel zaplatí (s kartou, pokud ji má), jinak cena;
-     * nabídky bez ceny na konec. I pro srovnání obchodů v pohledu Podle obchodů (ChainOverview, R102).
-     *
-     * @return array{int, int}
-     */
-    public function sortPrice(User $user, Offer $offer): array
-    {
-        $price = $this->userPrice($user, $offer);
-        $unitPrice = UnitPrice::of($price, $offer->quantity, $offer->unit);
-
-        return [$unitPrice ?? PHP_INT_MAX, $price ?? PHP_INT_MAX];
-    }
-
-    /**
-     * Nejnižší cena, kterou uživatel za některou z akcí zaplatí (s kartou, pokud ji má);
-     * null, když žádná akce cenu nemá. Přehled v Hlídám a hlavička skupiny v Mých slevách.
-     *
-     * @param  list<Offer>  $offers
-     */
-    public function lowestPrice(User $user, array $offers): ?int
-    {
-        $prices = array_filter(array_map(fn (Offer $offer): ?int => $this->userPrice($user, $offer), $offers), fn (?int $price): bool => $price !== null);
-
-        return $prices === [] ? null : min($prices);
-    }
-
-    /**
-     * Cena, kterou uživatel zaplatí: s kartou, pokud ji má a je nižší, jinak cena bez karty.
-     */
-    public function userPrice(User $user, Offer $offer): ?int
-    {
-        $hasCard = $offer->loyalty_program !== null && $user->hasLoyaltyProgram($offer->loyalty_program);
-
-        if ($hasCard && $offer->loyalty_price !== null) {
-            return $offer->price === null ? $offer->loyalty_price : min($offer->price, $offer->loyalty_price);
-        }
-
-        return $offer->price;
     }
 }

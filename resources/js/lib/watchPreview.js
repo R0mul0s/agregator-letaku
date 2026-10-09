@@ -40,13 +40,14 @@ export function useWatchPreview(url, fields) {
     /** Načte náhled; předchozí nedokončený požadavek zruší. */
     async function load() {
         const values = fields();
+        // Zrušit i při zkrácení slov — pozdní odpověď by jinak vrátila starý počet
+        controller?.abort();
         if (!url || (values.keywords ?? '').trim().length < MIN_LENGTH) {
             Object.assign(state, { loading: false, ...emptyResult() });
 
             return;
         }
 
-        controller?.abort();
         controller = new AbortController();
         state.loading = true;
         const query = new URLSearchParams(Object.fromEntries(Object.entries(values).filter(([, value]) => (value ?? '').trim() !== '')));

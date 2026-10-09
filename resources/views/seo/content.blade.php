@@ -80,9 +80,9 @@
 
         {{-- Patička jako ve Vue (AppFooter.vue): provozovatel a právní stránky z každé stránky --}}
         <p>
-            <a href="{{ route('legal.terms') }}">{{ __('app.ui.footer.terms') }}</a> ·
-            <a href="{{ route('legal.privacy') }}">{{ __('app.ui.footer.privacy') }}</a> ·
-            <a href="{{ route('contact') }}">{{ __('app.ui.footer.contact') }}</a>
+            @foreach (\App\Support\Seo\PublicPages::PAGES as $route => $kind)
+                @if (! $loop->first) · @endif<a href="{{ route($route) }}">{{ __("app.ui.footer.$kind") }}</a>
+            @endforeach
         </p>
         <p>{{ __('app.ui.footer.disclaimer') }}</p>
     </div>

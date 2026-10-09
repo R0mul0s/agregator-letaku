@@ -65,6 +65,18 @@ class Offer extends Model
     /** Převod podílu na procenta slevy. */
     private const PERCENT = 100;
 
+    /**
+     * Cena, za kterou akci zná každý (bez ohledu na karty uživatele): bez karty, u akce jen
+     * s kartou cena s kartou — „cena od“ a cena za jednotku ve výpisech (R113).
+     */
+    public const PUBLIC_PRICE_SQL = 'COALESCE(offers.price, offers.loyalty_price)';
+
+    /**
+     * Sleva v procentech v SQL jako effectiveDiscountPercent(): od obchodu, jinak dopočtená
+     * z původní ceny jen u typu „sleva“ (R8); bez slevy NULL. Typ doplní discountSql().
+     */
+    private const DISCOUNT_SQL = '(CASE WHEN discount_percent > 0 THEN discount_percent WHEN offer_type = ? AND original_price > price THEN ROUND((1 - price / original_price) * 100) END)';
+
     /** @var list<string> */
     protected $fillable = [
         'chain',
@@ -223,7 +235,8 @@ class Offer extends Model
 
     /**
      * Sleva v procentech: od obchodu, jinak dopočtená z původní ceny; jen u typu „sleva“ (R8).
-     * Stejný výpočet jako discountPercent() v resources/js/lib/offer.js.
+     * Jediný výpočet slevy — Vue ji dostává hotovou v OfferPresenter, SQL ji počítá stejně
+     * (discountSql, R113).
      */
     public function effectiveDiscountPercent(): ?int
     {
@@ -236,5 +249,39 @@ class Offer extends Model
         }
 
         return (int) round((1 - $this->price / $this->original_price) * self::PERCENT);
+    }
+
+    /**
+     * Sleva v procentech jako výraz SQL s hodnotami — pro filtr a řazení podle slevy, ať se
+     * nerozejde s effectiveDiscountPercent() (sloupec `discount_percent` sám chybí u slev
+     * dopočtených z přeškrtnuté ceny, R113).
+     *
+     * @return array{literal-string, list<string>}
+     */
+    public static function discountSql(): array
+    {
+        return [self::DISCOUNT_SQL, [OfferType::Discount->value]];
+    }
+
+    /**
+     * Od nejvyšší slevy (effectiveDiscountPercent), akce bez slevy na konec.
+     *
+     * @param  Builder<self>  $query
+     */
+    public function scopeOrderByDiscount(Builder $query): void
+    {
+        [$sql, $bindings] = self::discountSql();
+        $query->orderByRaw($sql.' IS NULL', $bindings)->orderByRaw($sql.' DESC', $bindings);
+    }
+
+    /**
+     * Akce se slevou aspoň tolik procent (effectiveDiscountPercent).
+     *
+     * @param  Builder<self>  $query
+     */
+    public function scopeWithDiscountOf(Builder $query, int $minPercent): void
+    {
+        [$sql, $bindings] = self::discountSql();
+        $query->whereRaw($sql.' >= ?', [...$bindings, $minPercent]);
     }
 }

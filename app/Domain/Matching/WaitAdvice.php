@@ -16,6 +16,7 @@ declare(strict_types=1);
 namespace App\Domain\Matching;
 
 use App\Domain\Offers\UnitPrice;
+use App\Domain\Offers\UserPricing;
 use App\Enums\OfferType;
 use App\Models\Offer;
 use App\Models\User;
@@ -24,7 +25,7 @@ final class WaitAdvice
 {
     private const PERCENT = 100;
 
-    public function __construct(private readonly MyOffers $myOffers) {}
+    public function __construct(private readonly UserPricing $pricing) {}
 
     /**
      * Nejvýhodnější budoucí akce, na kterou se vyplatí počkat, nebo null. Bez dnešní akce
@@ -82,7 +83,7 @@ final class WaitAdvice
             return null;
         }
 
-        $price = $this->myOffers->userPrice($user, $offer);
+        $price = $this->pricing->price($user, $offer);
         $unitPrice = UnitPrice::of($price, $offer->quantity, $offer->unit);
 
         return $price === null || $unitPrice === null || $unitPrice <= 0

@@ -238,12 +238,24 @@ final class ImportChainOffers
     }
 
     /**
-     * Uloží text stránek letáku pro zmínky bez ceny (R27); stránka se stejným číslem se přepíše.
+     * Uloží text stránek letáku pro zmínky bez ceny (R27); stránka se stejným číslem se přepíše
+     * a stránka, kterou leták už nemá (kratší leták, stránka bez textu), se smaže — jinak by
+     * z ní dál vznikaly zmínky (R113). Dávka bez stránek nechá uložené být (zdroj je tentokrát
+     * nenese, třeba leták bez textové vrstvy).
      *
      * @param  list<LeafletPageData>  $pages
      */
     private function storePages(Leaflet $leaflet, array $pages): void
     {
+        if ($pages === []) {
+            return;
+        }
+
+        LeafletPage::query()
+            ->where('leaflet_id', $leaflet->id)
+            ->whereNotIn('number', array_map(fn (LeafletPageData $page): int => $page->number, $pages))
+            ->delete();
+
         $now = CarbonImmutable::now();
         $rows = array_map(fn (LeafletPageData $page): array => [
             'leaflet_id' => $leaflet->id,

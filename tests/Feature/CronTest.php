@@ -15,6 +15,7 @@ use App\Enums\ScrapeStatus;
 use App\Models\Category;
 use App\Models\ScrapeRun;
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 
 const CRON_TOKEN = 'test-cron-token';
@@ -48,8 +49,12 @@ it('stáhne akce zvoleného obchodu a vrátí souhrn jako text', function (): vo
 });
 
 it('obchod je povinný a musí mít zdroj; chyba zdroje je 500', function (): void {
-    $this->get(route('cron.import-offers', ['token' => CRON_TOKEN]))->assertRedirect();
-    $this->getJson(route('cron.import-offers', ['chain' => 'makro', 'token' => CRON_TOKEN]))->assertUnprocessable();
+    // Chybný parametr je 422 jako text, ne přesměrování — to by cron viděl jako úspěch (R113)
+    $this->get(route('cron.import-offers', ['token' => CRON_TOKEN]))
+        ->assertUnprocessable()
+        ->assertHeader('Content-Type', 'text/plain; charset=utf-8');
+    $this->get(route('cron.import-offers', ['chain' => 'makro', 'token' => CRON_TOKEN]))->assertUnprocessable();
+    $this->get(route('cron.import-stores', ['token' => CRON_TOKEN]))->assertUnprocessable();
 
     Http::fake(['https://prodejny.kaufland.cz/*' => Http::response('<html></html>')]);
     $this->get(route('cron.import-offers', ['chain' => 'kaufland', 'token' => CRON_TOKEN]))
@@ -68,6 +73,22 @@ it('stáhne strom kategorií', function (): void {
 
     expect(Category::query()->count())->toBe(54);
 });
+
+it('souběžné stažení akcí, prodejen ani kategorií nespustí a odpoví 409 (R57, R113)', function (string $route, array $query, string $lock): void {
+    $running = Cache::lock($lock, 300);
+    $running->get();
+
+    $this->get(route($route, [...$query, 'token' => CRON_TOKEN]))
+        ->assertConflict()
+        ->assertSeeText('Úloha už běží');
+    Http::assertNothingSent();
+
+    $running->release();
+})->with([
+    'akce' => ['cron.import-offers', ['chain' => 'kaufland'], 'import-offers:kaufland'],
+    'prodejny' => ['cron.import-stores', ['chain' => 'kaufland'], 'cron.exclusive.import-stores.kaufland'],
+    'kategorie' => ['cron.import-categories', [], 'cron.exclusive.import-categories'],
+]);
 
 it('hlídání stahování: 200, když mají všechny obchody čerstvé stažení, jinak 503', function (): void {
     foreach (Chain::cases() as $chain) {

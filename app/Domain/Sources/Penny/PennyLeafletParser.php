@@ -37,7 +37,7 @@ declare(strict_types=1);
 namespace App\Domain\Sources\Penny;
 
 use App\Domain\Offers\Data\OfferData;
-use App\Domain\Offers\LocalCalendar;
+use App\Domain\Offers\Parsing\LeafletDates;
 use App\Domain\Offers\Parsing\PackageParser;
 use App\Domain\Offers\Parsing\PriceParser;
 use App\Domain\Offers\Parsing\Text;
@@ -227,11 +227,12 @@ final class PennyLeafletParser
         private readonly PriceParser $prices,
         private readonly PriceFormatter $formatter,
         private readonly VariantNote $variants,
-        private readonly LocalCalendar $calendar,
+        private readonly LeafletDates $dates,
     ) {}
 
     /**
      * Platnost stránky z textu: „platí od …“ (zvláštní oddíl) má přednost před „Nabídka platná od …“.
+     * Rok je jen u konce — leták přes Nový rok začíná v předchozím roce (R113).
      *
      * @param  list<SvgToken>  $tokens
      * @return array{CarbonImmutable, CarbonImmutable}|null
@@ -241,10 +242,7 @@ final class PennyLeafletParser
         $found = [];
         foreach ($tokens as $token) {
             if (preg_match(self::VALIDITY_PATTERN, $token->text, $m) === 1) {
-                $found[$m[1]] ??= [
-                    $this->calendar->date(sprintf('%04d-%02d-%02d', $m[6], $m[3], $m[2])),
-                    $this->calendar->date(sprintf('%04d-%02d-%02d', $m[6], $m[5], $m[4])),
-                ];
+                $found[$m[1]] ??= $this->dates->range((int) $m[2], (int) $m[3], null, (int) $m[4], (int) $m[5], (int) $m[6]);
             }
         }
 

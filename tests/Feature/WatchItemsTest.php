@@ -292,3 +292,15 @@ it('náhled bez akce řekne, kdy naposledy akce byla, nebo od kdy sledujeme (R10
         ->assertJsonPath('lastSeen', null)
         ->assertJsonPath('trackingSince', '2026-10-02');
 });
+
+it('náhled hledá poslední akci jen v okně historie a od kdy sledujeme podle něj (R113)', function (): void {
+    config(['letaky.search.preview_history_days' => 30]);
+    $this->travelTo('2026-08-01 10:00:00');
+    Offer::factory()->create(['name' => 'Almette bylinky', 'chain' => Chain::Lidl, 'valid_from' => '2026-08-01', 'valid_to' => '2026-08-07']);
+
+    $this->travelTo('2026-10-20 10:00:00');
+
+    $this->getJson(route('watch-items.preview', ['keywords' => 'almette']))
+        ->assertJsonPath('lastSeen', null)
+        ->assertJsonPath('trackingSince', '2026-09-20');
+});

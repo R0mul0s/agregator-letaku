@@ -24,6 +24,7 @@ use App\Models\Offer;
 use App\Models\ScrapeRun;
 use App\Models\User;
 use App\Models\WatchItem;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
 
 /**
@@ -130,6 +131,21 @@ it('cron URL pošle souhrny jen s tokenem', function (): void {
     $this->get(route('cron.send-digests', ['token' => 'tajny-token']))
         ->assertOk()
         ->assertSeeText('Souhrny — odesláno: 1');
+});
+
+it('souběžné spuštění cronu upozornění nic nepošle (R113)', function (): void {
+    config(['letaky.cron.token' => 'tajny-token']);
+    importedOffer(['name' => 'Máslo 250 g']);
+    $running = Cache::lock('cron.exclusive.notification-channels', 300);
+    $running->get();
+
+    $this->get(route('cron.send-digests', ['token' => 'tajny-token']))->assertConflict();
+    $this->artisan('letaky:send-digests')->assertFailed();
+    Mail::assertNothingSent();
+
+    $running->release();
+    $this->get(route('cron.send-digests', ['token' => 'tajny-token']))->assertOk();
+    Mail::assertSent(DigestMail::class);
 });
 
 it('uloží četnost souhrnu; po zapnutí přijde první souhrn znovu celý', function (): void {

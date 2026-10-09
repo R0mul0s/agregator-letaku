@@ -18,17 +18,31 @@ namespace App\Domain\Catalog\Actions;
 use App\Domain\Catalog\Data\CategoryData;
 use App\Domain\Sources\Tesco\TescoCategorySource;
 use App\Models\Category;
+use App\Support\Exceptions\AlreadyRunning;
+use App\Support\ExclusiveRun;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 
 final class ImportCategories
 {
+    private const LOCK_KEY = 'import-categories';
+
     public function __construct(private readonly TescoCategorySource $source) {}
 
     /**
-     * Stáhne a uloží kategorie; vrátí jejich počet.
+     * Stáhne a uloží kategorie; vrátí jejich počet. Jen jedno stažení najednou (R113).
+     *
+     * @throws AlreadyRunning
      */
     public function __invoke(): int
+    {
+        return ExclusiveRun::run(self::LOCK_KEY, $this->import(...));
+    }
+
+    /**
+     * Stáhne a uloží kategorie v transakci; vrátí jejich počet.
+     */
+    private function import(): int
     {
         $categories = $this->source->fetch();
 

@@ -23,6 +23,7 @@ use App\Domain\Offers\MentionPresenter;
 use App\Domain\Offers\OfferPresenter;
 use App\Domain\Offers\OfferSearch;
 use App\Domain\Offers\PriceHistory;
+use App\Domain\Offers\UserPricing;
 use App\Enums\DigestFrequency;
 use App\Enums\OffersSort;
 use App\Models\User;
@@ -44,7 +45,7 @@ class HomeController extends Controller
      * v letácích bez ceny (R27); akce, které ještě nezačaly, zvlášť (R76). U akcí příznaky pro
      * štítky Nové a Končí brzy, `?prodejny=vse` dočasně ukáže akce všech prodejen (R101).
      */
-    public function __invoke(Request $request, MyOffers $myOffers, OfferPresenter $presenter, MentionPresenter $mentionPresenter, LandingController $landing, CzechVocative $vocative, PriceHistory $priceHistory, WaitAdvice $waitAdvice, LocalCalendar $calendar, OfferSearch $search, ChainOverview $chainOverview): Response
+    public function __invoke(Request $request, MyOffers $myOffers, UserPricing $pricing, OfferPresenter $presenter, MentionPresenter $mentionPresenter, LandingController $landing, CzechVocative $vocative, PriceHistory $priceHistory, WaitAdvice $waitAdvice, LocalCalendar $calendar, OfferSearch $search, ChainOverview $chainOverview): Response
     {
         // Nepřihlášený má na stejné adrese úvodní stránku (R44)
         $user = $request->user();
@@ -70,7 +71,7 @@ class HomeController extends Controller
             'matchStatus' => $match['status']->value,
             // Cena, kterou uživatel zaplatí (s kartou, pokud ji má) — nejnižší cena
             // v hlavičce skupiny se počítá z akcí na stránce, i po výběru obchodu (R55)
-            'userPrice' => $myOffers->userPrice($user, $match['offer']),
+            'userPrice' => $pricing->price($user, $match['offer']),
             // Štítky filtrů Nové a Končí brzy (R101) — stejná hranice jako ve Všech akcích
             'isNew' => $match['offer']->created_at !== null && $match['offer']->created_at >= $freshSince,
             'endsSoon' => ! $match['offer']->isUpcoming($today) && $match['offer']->valid_to <= $endingSoonBy,

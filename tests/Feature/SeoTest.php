@@ -16,6 +16,7 @@ use App\Enums\PackageUnit;
 use App\Models\Offer;
 use App\Models\Product;
 use App\Models\User;
+use App\Support\Seo\PublicPages;
 use Inertia\Testing\AssertableInertia as Assert;
 
 beforeEach(function (): void {
@@ -144,6 +145,19 @@ it('sitemap.xml: právní stránky mají datum účinnosti, ne čas stažení ak
         ->assertSee('<loc>'.route('legal.terms').'</loc>'."\n".'        <lastmod>2026-10-04</lastmod>', false)
         ->assertDontSee('changefreq', false);
 });
+
+it('každá stránka z registru veřejných stránek je indexovaná, v sitemap, llms.txt i v obsahu bez JS (R113)', function (string $route, string $kind): void {
+    expect(__("app.seo.pages.$kind.title"))->not->toBe("app.seo.pages.$kind.title")
+        ->and(__("app.ui.footer.$kind"))->not->toBe("app.ui.footer.$kind")
+        ->and(__("app.llms.$kind"))->not->toBe("app.llms.$kind");
+
+    $html = $this->get(route($route))->assertOk()->getContent();
+    expect(metaContent($html, 'robots'))->toBe('index, follow');
+
+    $this->get('/sitemap.xml')->assertSee('<loc>'.route($route).'</loc>', false);
+    $this->get('/llms.txt')->assertSee('('.route($route).')', false);
+    $this->get('/akce')->assertSee('<a href="'.route($route).'">'.__("app.ui.footer.$kind").'</a>', false);
+})->with(fn (): array => array_map(null, array_keys(PublicPages::PAGES), array_values(PublicPages::PAGES)));
 
 it('security.txt má kontakt, platnost do půl roku a canonical (R68)', function (): void {
     $this->get('/.well-known/security.txt')

@@ -18,7 +18,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Sources\Billa;
 
-use App\Domain\Offers\LocalCalendar;
+use App\Domain\Offers\Parsing\LeafletDates;
 use App\Domain\Sources\Exceptions\SourceResponseChanged;
 use App\Enums\Chain;
 use Carbon\CarbonImmutable;
@@ -38,12 +38,8 @@ final class BillaLeafletList
     /** Nezlomitelná mezera v textu karty („30.&nbsp;9.“). */
     private const NBSP = "\u{00A0}";
 
-    private const DATE_FORMAT = '%04d-%02d-%02d';
-
-    private const DECEMBER = 12;
-
     public function __construct(
-        private readonly LocalCalendar $calendar,
+        private readonly LeafletDates $dates,
     ) {}
 
     /**
@@ -65,14 +61,11 @@ final class BillaLeafletList
                 continue;
             }
 
-            $toYear = (int) $m[5];
-            // Leták přes Nový rok: začátek v prosinci, konec v lednu
-            $fromYear = (int) $m[2] > (int) $m[4] && (int) $m[2] === self::DECEMBER ? $toYear - 1 : $toYear;
-            $from = $this->date((int) $m[1], (int) $m[2], $fromYear);
-            $to = $this->date((int) $m[3], (int) $m[4], $toYear);
-            if ($from === null || $to === null || $from->greaterThan($to)) {
+            $validity = $this->dates->range((int) $m[1], (int) $m[2], null, (int) $m[3], (int) $m[4], (int) $m[5]);
+            if ($validity === null) {
                 continue;
             }
+            [$from, $to] = $validity;
 
             $path = html_entity_decode($href[1], ENT_QUOTES | ENT_HTML5);
             $title = preg_match(self::TITLE_PATTERN, $attributes, $t) === 1 ? $this->text($t[1]) : $path;
@@ -109,13 +102,5 @@ final class BillaLeafletList
         $text = html_entity_decode(strip_tags(str_replace('<', ' <', $html)), ENT_QUOTES | ENT_HTML5);
 
         return trim((string) preg_replace('/\s+/u', ' ', str_replace(self::NBSP, ' ', $text)));
-    }
-
-    /**
-     * Místní datum, nebo null, když den v roce neexistuje.
-     */
-    private function date(int $day, int $month, int $year): ?CarbonImmutable
-    {
-        return checkdate($month, $day, $year) ? $this->calendar->date(sprintf(self::DATE_FORMAT, $year, $month, $day)) : null;
     }
 }

@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Domain\Account\Actions\PruneExpiredSessions;
+use App\Domain\Offers\Actions\PruneOfferRaw;
 use Illuminate\Console\Command;
 
 class PruneSessionsCommand extends Command
@@ -22,14 +23,15 @@ class PruneSessionsCommand extends Command
     protected $signature = 'letaky:prune-sessions';
 
     /** @var string */
-    protected $description = 'Smaže vypršelé relace a propadlé odkazy pro obnovu hesla';
+    protected $description = 'Smaže vypršelé relace a propadlé odkazy pro obnovu hesla a vyprázdní surové odpovědi starých akcí';
 
     /**
-     * Uklidí a vypíše počet smazaných relací.
+     * Uklidí a vypíše počet smazaných relací a upravených akcí.
      */
-    public function handle(PruneExpiredSessions $prune): int
+    public function handle(PruneExpiredSessions $prune, PruneOfferRaw $pruneRaw): int
     {
         $this->info(__('app.maintenance.sessions_pruned', ['count' => $prune()]));
+        $this->info(__('app.maintenance.offer_raw_pruned', ['count' => $pruneRaw()]));
 
         return self::SUCCESS;
     }

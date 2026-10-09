@@ -18,6 +18,7 @@ use App\Domain\Matching\MyOffers;
 use App\Domain\Matching\TextNormalizer;
 use App\Domain\Matching\WatchHistory;
 use App\Domain\Matching\WatchRule;
+use App\Domain\Offers\UserPricing;
 use App\Enums\MatchStatus;
 use App\Http\Requests\WatchItemRequest;
 use App\Models\Product;
@@ -57,7 +58,7 @@ class WatchItemController extends Controller
      * Hlídané položky s tím, co k nim teď je v akci (počet akcí, nejnižší cena, zmínky
      * v letácích — stejně jako v Mých slevách), a produkty katalogu k přidání.
      */
-    public function index(Request $request, CategoryPaths $categories, CatalogBrowseTree $browseTree, MyOffers $myOffers): Response
+    public function index(Request $request, CategoryPaths $categories, CatalogBrowseTree $browseTree, MyOffers $myOffers, UserPricing $pricing): Response
     {
         /** @var User $user */
         $user = $request->user();
@@ -76,7 +77,7 @@ class WatchItemController extends Controller
                 ...$this->itemToPage($group['watchItem']),
                 'offersCount' => count($group['offers']),
                 'mentionsCount' => count($group['mentions']),
-                'lowestPrice' => $myOffers->lowestPrice($user, array_column($group['offers'], 'offer')),
+                'lowestPrice' => $pricing->lowest($user, array_column($group['offers'], 'offer')),
             ], $myOffers->forUser($user)),
             // Odkaz „Upravit“ z Mých slev (?upravit=id) otevře úpravu položky rovnou v dlaždici
             'editId' => $request->integer(self::EDIT_PARAMETER) ?: null,
@@ -140,7 +141,7 @@ class WatchItemController extends Controller
      * hned vidí, že „rum“ chytá i „Rump steak“. Stejná pravidla jako Moje slevy. Když teď
      * nenajde nic, přidá poslední akci z historie, nebo od kdy akce sledujeme (R104).
      */
-    public function preview(Request $request, MyOffers $myOffers, WatchHistory $history, TextNormalizer $normalizer): JsonResponse
+    public function preview(Request $request, MyOffers $myOffers, UserPricing $pricing, WatchHistory $history, TextNormalizer $normalizer): JsonResponse
     {
         $max = 'max:'.config()->integer('letaky.watch.keywords_max_length');
         $data = $request->validate([
@@ -160,13 +161,13 @@ class WatchItemController extends Controller
             'examples' => array_map(fn (array $match): array => [
                 'name' => $match['offer']->name,
                 'chain' => $match['offer']->chain->value,
-                'price' => $myOffers->userPrice($user, $match['offer']),
+                'price' => $pricing->price($user, $match['offer']),
                 'maybe' => $match['status'] === MatchStatus::Maybe,
             ], array_slice($matches, 0, config()->integer('letaky.search.preview_examples'))),
             'lastSeen' => $lastSeen === null ? null : [
                 'name' => $lastSeen->name,
                 'chain' => $lastSeen->chain->value,
-                'price' => $myOffers->userPrice($user, $lastSeen),
+                'price' => $pricing->price($user, $lastSeen),
                 'endedOn' => $history->endedOn($lastSeen)->toDateString(),
             ],
             'trackingSince' => $matches === [] && $lastSeen === null ? $history->trackingSince()?->toDateString() : null,

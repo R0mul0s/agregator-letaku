@@ -66,6 +66,18 @@ it('ukázka akcí bere nejvyšší slevy s obrázkem a střídá obchody', funct
         ->where('topOffers', fn ($offers): bool => collect($offers)->pluck('name')->all() === ['Kaufland 60', 'Lidl 40', 'Tesco 30']));
 });
 
+it('ukázka akcí bere i slevy dopočtené z přeškrtnuté ceny (R113)', function (): void {
+    config(['letaky.landing.top_offers' => 2]);
+    Offer::factory()->create(['name' => 'Kaufland 30', 'chain' => Chain::Kaufland, 'discount_percent' => 30, 'offer_type' => OfferType::Discount, 'image_url' => 'https://example.com/a.jpg']);
+    Offer::factory()->create([
+        'name' => 'Albert 60', 'chain' => Chain::Albert, 'discount_percent' => null, 'offer_type' => OfferType::Discount,
+        'price' => 4000, 'original_price' => 10000, 'image_url' => 'https://example.com/a.jpg',
+    ]);
+
+    $this->get('/')->assertInertia(fn (Assert $page) => $page
+        ->where('topOffers', fn ($offers): bool => collect($offers)->pluck('name')->all() === ['Albert 60', 'Kaufland 30']));
+});
+
 it('ukázka akcí je od nejvyšší slevy, i když druhé kolo přidá obchod podruhé', function (): void {
     config(['letaky.landing.top_offers' => 3]);
     $discount = fn (string $name, Chain $chain, int $percent): Offer => Offer::factory()->create([

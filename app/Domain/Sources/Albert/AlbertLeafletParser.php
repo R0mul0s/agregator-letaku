@@ -39,7 +39,7 @@ declare(strict_types=1);
 namespace App\Domain\Sources\Albert;
 
 use App\Domain\Offers\Data\OfferData;
-use App\Domain\Offers\LocalCalendar;
+use App\Domain\Offers\Parsing\LeafletDates;
 use App\Domain\Offers\Parsing\PackageParser;
 use App\Domain\Offers\Parsing\PriceParser;
 use App\Domain\Offers\Parsing\Text;
@@ -51,6 +51,7 @@ use App\Domain\Sources\Pdf\PdfLine;
 use App\Domain\Sources\Pdf\PdfPage;
 use App\Domain\Sources\Pdf\PdfTile;
 use App\Domain\Sources\Pdf\PdfWord;
+use App\Domain\Sources\Pdf\TileUnits;
 use App\Domain\Sources\Pdf\UnitPriceCheck;
 use App\Enums\LoyaltyProgram;
 use App\Enums\OfferType;
@@ -109,7 +110,7 @@ final class AlbertLeafletParser
     private const SINGLE_UNIT_AMBIGUITY_RATIO = 0.7;
 
     /**
-     * Balení jedné jednotky v jednotkách pro porovnání (UNITS): 1 kg, 1 l, 1 ks.
+     * Balení jedné jednotky v jednotkách pro porovnání (TileUnits): 1 kg, 1 l, 1 ks.
      *
      * @var array<string, float>
      */
@@ -145,8 +146,6 @@ final class AlbertLeafletParser
     /** Přeškrtnutá nebo běžná cena jedním slovem: „69,90“, „169,-“, „1199,-/“. */
     private const CROSSED_PATTERN = '/^(\d{1,4}),(\d{2}|-)\/?$/';
 
-    private const CURRENCY = 'Kč';
-
     private const PERCENT_SIGN = '%';
 
     private const PERCENT_NUMBER_PATTERN = '/^[-–]?(\d{1,2})$/u';
@@ -159,23 +158,6 @@ final class AlbertLeafletParser
 
     /** Částka v Kč — po odebrání ceny za jednotku zbude nejnižší cena za 30 dní, záloha… */
     private const AMOUNT_PATTERN = '/\d+(?:,\d{1,2})?\s*Kč/u';
-
-    /** Balení: „150 ml“, „3× 50 g“, „750–1000 ml“, „126 dávek“. */
-    private const PACKAGE_PATTERN = '/(?:(\d+)\s*[×x]\s*)?(\d+(?:,\d+)?)(?:\s*[–-]\s*(\d+(?:,\d+)?))?\s*(\p{L}+)/u';
-
-    /**
-     * Jednotky balení => [jednotka pro porovnání, násobek]. Jiné slovo (dávka, role, praní)
-     * se porovná podle prvních písmen (UNIT_STEM_LENGTH): „126 dávek“ ↔ „1 dávka“.
-     *
-     * @var array<string, array{string, int}>
-     */
-    private const UNITS = [
-        'g' => ['g', 1], 'kg' => ['g', 1000],
-        'ml' => ['ml', 1], 'l' => ['ml', 1000],
-        'ks' => ['ks', 1], 'kus' => ['ks', 1], 'kusy' => ['ks', 1], 'kusů' => ['ks', 1],
-    ];
-
-    private const UNIT_STEM_LENGTH = 3;
 
     /** Nejnižší cena za 30 dní („▼ 44,90 Kč“) — samotná částka v odrážce popisu. */
     private const LOWEST_PRICE_PATTERN = '/^\d+(?:,\d{1,2})?\s*Kč$/u';
@@ -216,7 +198,7 @@ final class AlbertLeafletParser
         private readonly PriceParser $priceParser,
         private readonly PackageParser $packages,
         private readonly VariantNote $variants,
-        private readonly LocalCalendar $calendar,
+        private readonly LeafletDates $dates,
     ) {}
 
     /**
@@ -628,11 +610,11 @@ final class AlbertLeafletParser
 
         $unitPrices = [];
         foreach ($matches as $m) {
-            $unit = $this->unit($m[2]);
+            $unit = TileUnits::unit($m[2]);
             if ($unit !== null) {
                 $unitPrices[] = [
                     'unit' => $unit[0],
-                    'quantity' => $this->number($m[1]) * $unit[1],
+                    'quantity' => TileUnits::number($m[1]) * $unit[1],
                     'from' => mb_strtolower($m[3]) === 'od',
                     'value' => $this->priceParser->parse($m[4]),
                     'appValue' => ($m[5] ?? '') === '' ? null : $this->priceParser->parse($m[5]),
@@ -641,46 +623,8 @@ final class AlbertLeafletParser
         }
 
         $rest = (string) preg_replace([self::UNIT_PRICE_PATTERN, self::AMOUNT_PATTERN], ' ', $text);
-        preg_match_all(self::PACKAGE_PATTERN, $rest, $matches, PREG_SET_ORDER);
 
-        $packages = [];
-        foreach ($matches as $m) {
-            $unit = $this->unit($m[4]);
-            if ($unit === null) {
-                continue;
-            }
-            $multiplier = $m[1] === '' ? 1 : (int) $m[1];
-            foreach (array_filter([$m[2], $m[3]]) as $amount) {
-                $packages[$unit[0]][] = $this->number($amount) * $multiplier * $unit[1];
-            }
-        }
-
-        return ['unitPrices' => $unitPrices, 'packages' => $packages];
-    }
-
-    /**
-     * Jednotka pro porovnání a násobek; null u slova, které jednotkou není.
-     *
-     * @return array{string, int}|null
-     */
-    private function unit(string $word): ?array
-    {
-        $word = mb_strtolower($word);
-        if (isset(self::UNITS[$word])) {
-            return self::UNITS[$word];
-        }
-
-        return mb_strlen($word) >= self::UNIT_STEM_LENGTH && $word !== mb_strtolower(self::CURRENCY)
-            ? [mb_substr($word, 0, self::UNIT_STEM_LENGTH), 1]
-            : null;
-    }
-
-    /**
-     * Číslo s desetinnou čárkou z textu letáku.
-     */
-    private function number(string $text): float
-    {
-        return (float) str_replace(',', '.', $text);
+        return ['unitPrices' => $unitPrices, 'packages' => TileUnits::packages($rest)];
     }
 
     /**
@@ -757,24 +701,24 @@ final class AlbertLeafletParser
     private function validityContext(PdfPage $page, array $leaflet): array
     {
         $text = implode(' ', array_map(fn (PdfLine $line): string => $line->text(), $page->lines));
-        $year = (int) $leaflet[1]->format('Y');
 
         $pageValidity = $leaflet;
         if (preg_match(self::PAGE_VALIDITY_PATTERN, $text, $m) === 1) {
-            $to = $this->date((int) $m[4], (int) $m[5], (int) $m[6]);
-            $from = $this->date((int) $m[1], (int) $m[2], $m[3] === '' ? (int) $m[6] : (int) $m[3]);
-            if ($from !== null && $to !== null) {
-                $pageValidity = [$from, $to];
-            }
+            $pageValidity = $this->dates->range((int) $m[1], (int) $m[2], $m[3] === '' ? null : (int) $m[3], (int) $m[4], (int) $m[5], (int) $m[6]) ?? $leaflet;
         }
 
         $footnotes = [];
         preg_match_all(self::FOOTNOTE_VALIDITY_PATTERN, $text, $matches, PREG_SET_ORDER | PREG_UNMATCHED_AS_NULL);
         foreach ($matches as $m) {
-            $toYear = $m[7] === null ? null : (int) $m[7];
-            $from = $this->date((int) $m[2], (int) $m[3], $m[4] === null ? ($toYear ?? $year) : (int) $m[4]);
-            if ($from !== null) {
-                $footnotes[strlen((string) $m[1])] = [$from, $toYear === null ? null : $this->date((int) $m[5], (int) $m[6], $toYear)];
+            $fromYear = $m[4] === null ? null : (int) $m[4];
+            if ($m[7] !== null) {
+                $range = $this->dates->range((int) $m[2], (int) $m[3], $fromYear, (int) $m[5], (int) $m[6], (int) $m[7]);
+            } else {
+                $from = $fromYear === null ? $this->dates->near((int) $m[2], (int) $m[3], $leaflet[1]) : $this->dates->date((int) $m[2], (int) $m[3], $fromYear);
+                $range = $from === null ? null : [$from, null];
+            }
+            if ($range !== null) {
+                $footnotes[strlen((string) $m[1])] = $range;
             }
         }
 
@@ -791,7 +735,7 @@ final class AlbertLeafletParser
         $dates = [];
         foreach ($page->lines as $line) {
             if ($line->height() >= self::SECTION_DATE_MIN_HEIGHT && preg_match(self::SECTION_DATE_PATTERN, str_replace(' ', '', $line->text()), $m) === 1) {
-                $date = $this->date((int) $m[1], (int) $m[2], (int) $m[3]);
+                $date = $this->dates->date((int) $m[1], (int) $m[2], (int) $m[3]);
                 if ($date !== null) {
                     $dates[] = [$line->yMax, $date];
                 }
@@ -825,21 +769,14 @@ final class AlbertLeafletParser
 
         $text = $tile->detailText();
         if (preg_match(self::TILE_VALID_TO_PATTERN, $text, $m) === 1) {
-            $to = $this->date((int) $m[1], (int) $m[2], (int) $m[3]) ?? $to;
+            $to = $this->dates->date((int) $m[1], (int) $m[2], (int) $m[3]) ?? $to;
         }
         if (preg_match(self::TILE_VALID_FROM_PATTERN, $text, $m) === 1) {
-            $from = $this->date((int) $m[1], (int) $m[2], ($m[3] ?? '') === '' ? (int) $to->format('Y') : (int) $m[3]) ?? $from;
+            // Bez roku je to začátek nejbližší ke konci — „od 30. 12.“ s koncem 3. 1. je v předchozím roce
+            $from = (($m[3] ?? '') === '' ? $this->dates->near((int) $m[1], (int) $m[2], $to) : $this->dates->date((int) $m[1], (int) $m[2], (int) $m[3])) ?? $from;
         }
 
         return $from->greaterThan($to) ? $context['page'] : [$from, $to];
-    }
-
-    /**
-     * Místní datum, nebo null, když den v roce neexistuje.
-     */
-    private function date(int $day, int $month, int $year): ?CarbonImmutable
-    {
-        return checkdate($month, $day, $year) ? $this->calendar->date(sprintf('%04d-%02d-%02d', $year, $month, $day)) : null;
     }
 
     /**
@@ -946,12 +883,8 @@ final class AlbertLeafletParser
     private function packageText(array $details, array $units): ?string
     {
         foreach ($details as $item) {
-            $rest = (string) preg_replace([self::UNIT_PRICE_PATTERN, self::AMOUNT_PATTERN], ' ', $item);
-            preg_match_all(self::PACKAGE_PATTERN, $rest, $matches, PREG_SET_ORDER);
-            foreach ($matches as $m) {
-                if (in_array($this->unit($m[4])[0] ?? null, $units, true)) {
-                    return $item;
-                }
+            if (TileUnits::hasPackageIn((string) preg_replace([self::UNIT_PRICE_PATTERN, self::AMOUNT_PATTERN], ' ', $item), $units)) {
+                return $item;
             }
         }
 

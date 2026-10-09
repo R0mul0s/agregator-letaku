@@ -27,8 +27,8 @@ final class SearchVocabulary
     /** Klíč slovníku v cache. */
     private const CACHE_KEY = 'search.vocabulary';
 
-    /** Oddělovače slov v názvech akcí. */
-    private const WORD_SEPARATORS = '/[\s\-\/,.+()&:;!?"\'%*]+/u';
+    /** Oddělovače slov navíc k začátkům slov hledání (WordStart) — slovník dělí i „Cola,Fanta“. */
+    private const EXTRA_SEPARATORS = ',';
 
     public function __construct(
         private readonly TextNormalizer $normalizer,
@@ -110,7 +110,7 @@ final class SearchVocabulary
             $minLength = config()->integer('letaky.search.typo_min_length');
             $vocabulary = [];
             foreach ($texts as $text) {
-                foreach (preg_split(self::WORD_SEPARATORS, (string) $text, flags: PREG_SPLIT_NO_EMPTY) ?: [] as $token) {
+                foreach (preg_split($this->separatorsPattern(), (string) $text, flags: PREG_SPLIT_NO_EMPTY) ?: [] as $token) {
                     $normalized = $this->normalizer->word($token);
                     if (strlen($normalized) < $minLength || ! preg_match('/[a-z]/', $normalized)) {
                         continue;
@@ -122,5 +122,13 @@ final class SearchVocabulary
 
             return $vocabulary;
         });
+    }
+
+    /**
+     * Regulární výraz oddělovačů slov — stejné začátky slov jako hledání (WordStart, R113).
+     */
+    private function separatorsPattern(): string
+    {
+        return '/[\s'.preg_quote(implode('', WordStart::SEPARATORS).self::EXTRA_SEPARATORS, '/').']+/u';
     }
 }

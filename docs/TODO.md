@@ -67,7 +67,7 @@ v [PLAN.md](PLAN.md). Větší celky se z toho stávají etapou.
 - **upozornění na chyby e-mailem** (log kanál `mail` nebo denní souhrn chyb) — dnes chyby vidí jen ten, kdo otevře logy přes FTP; Albert padal den, než se na to přišlo (R65)
 - **kontroly kvality v `build-upload.ps1`** — Pest a PHPStan před sestavením balíčku (CI není, R14)
 - **`/health/imports` i pro import prodejen Kauflandu** — se zastaralými seznamy prodejen zmizí ~10 % akcí, pod hranicí pojistky R54
-- **retence:** smazat `offers.raw` u akcí skončených před N měsíci (Billa ~400 MB ročně), čistit `offer_stores` a `leaflet_pages` skončených akcí
+- **retence:** `offers.raw` se vyprazdňuje (R113); zbývá čistit `offer_stores` a `leaflet_pages` skončených akcí a `scrape_runs`
 - **cron „Spuštění PHP souboru“ místo URL** (DEPLOYMENT.md) — bez limitu délky požadavku a tokenu v URL, vyřešilo by O8; ověřit, jestli ho Websupport umí
 - **nasazení přes FTP není atomické** — režim údržby (`storage/framework/down`) během nahrávání, případně nová složka a přepnutí kořene webu
 - **parsery letáků (Penny SVG, Lidl a Albert PDF) jsou křehké vůči změně rozvržení** — po každé změně měřit na celém letáku (R85–R87); hlídat propad počtu akcí z letáku
@@ -82,10 +82,26 @@ v [PLAN.md](PLAN.md). Větší celky se z toho stávají etapou.
 - `/health` i pro `send-digests` a `import-stores` (poslední úspěšný běh), UptimeRobot i na `/up`
 - frontend bez kontroly: ESLint s `eslint-plugin-vue`, `jsconfig.json` s `checkJs`, test, že každý klíč `t('…')` z `resources/js` je v `lang/cs/app.php`; případně Vitest pro `lib/format`, `lib/i18n`, `lib/offer`
 - trvalý layout (`defineOptions({ layout: AppLayout })`) a `Inertia::once` pro statické sdílené props (`chainInfo`, `siteFooter`, `pwa`, `cookieConsent`) — před změnou ověřit fokus po přechodu (`lib/a11y.js`)
-- `RecordNewOffers` a `SendDigests` počítají `MyOffers::forUser` pro stejného uživatele dvakrát — sdílet výsledek v rámci požadavku jen s omezenou pamětí (limit 512 MB)
+- `RecordNewOffers`, `RecordStartingOffers` a `SendDigests` počítají `MyOffers::forUser` pro stejného uživatele až třikrát (~0,2 s každé, R113) a `RecordStartingOffers` ho počítá každému s hlídáním, i když se ho dnešní akce netýkají — sdílet výsledek v rámci požadavku jen s omezenou pamětí (limit 512 MB), u začínajících akcí nejdřív levně ověřit průnik
 - Offers.vue: logika filtrů do `useOfferFilters`, okno Filtry do komponenty; Account.vue: sledování sekce do `useScrollSpy`, sekce jako komponenty
 - dva výčty řazení (`OffersSort` pro Moje slevy, `OfferListSort` pro Všechny akce) se stejnými volbami pod jinými hodnotami — sjednotit
 - konstanty druhů akcí (`'loyalty_only'`, `'multibuy'`, `'maybe'`) jsou v JS natvrdo na ~14 místech — do `lib/offer.js`
+
+## Z auditu technického dluhu 9. 10. 2026 (R113) — zatím neudělané
+
+**Odkud:** audit kódu 9. 10. 2026. Opravené chyby, výkon a sjednocení kopií jsou v R113.
+
+- **Proces:** CI (GitHub Actions s MariaDB 11.4 — testy nesahají na síť) a nasazení podle `git diff --name-status <nasazený>..HEAD` (seznam k nahrání i ke smazání, vždy `version.txt` — u 27. nasazení zůstal starý); CSP z `public/.htaccess` lokálně neběží (nginx) — test, který porovná CSP s doménami v `consent.js`
+- **Import:** `AssignProducts::forChain` přepočítává uvnitř transakce importu všechny akce obchodu × všechny produkty (Tesco ~1 s, roste s katalogem) — jen nové a změněné akce; upsert přepisuje i nezměněné řádky včetně `raw`
+- **Penny a Lidl:** odstranění duplicit Lidlu normalizuje název webové akce znovu pro každou akci letáku (Penny už předpočítává, R113); Penny každá stránka letáku se zpracuje dvakrát (`tileOffsets` + `offers`)
+- **ID akcí z letáku** Albertu a Penny jsou otisk `mb_strtolower` názvu, ne `TextNormalizer` jako Lidl a Globus — jiná mezera v PDF (nová verze `pdftotext`) udělá z akcí nové; změnit jen s plánovaným nasazením (jednorázově nová upozornění)
+- **PDF parsery:** párování cena–dlaždice je 4× (Albert, Globus, Billa, `PdfLayout::nearest`) — `PdfLayout::greedyPairs`; Albert a Globus ~200 řádků shodné geometrie (ceny, procenta, dlaždice) — sdílený sestavovač dlaždic s tolerancemi; `PennyLeafletParser` (1 139 ř.) mimo `PdfBox` / `PdfLayout`; stahování PDF 4× zkopírované a celé v paměti (`SourceHttp::download` do souboru); `SourceHttp` opakuje i 4xx. Každou změnu měřit snímkem celých letáků (`storage/app/proto/audit-snapshot.php`)
+- **Struktura:** `ImportChainOffers` a `MyOffers` (~470 ř.) rozdělit; `CatalogController::destroy` (kopie pravidel do hlídaných položek, R31) do Action; „aktuální akce“ ručně v 5 joinech (`OfferDepartments`, `OfferPages`, `SearchSuggestions`, `UnitPriceQuiz`, `WatchDemo`) místo scope; poslední úspěšné stažení stejným dotazem na 4 místech; `raw` se načítá bez `withoutRaw()` na 6 místech a `scopeWithoutRaw` skládá sloupce z `$fillable`; validace klíčových slov 3×, jména a e-mailu 3×, helper `user()` v 6 kontrolerech
+- **Cron URL:** odpověď nese text výjimky; `set_time_limit(180)` pod ověřeným limitem 600 s; cron routy ve skupině web zakládají relace
+- **Drobnosti:** toast se textem místo kódu (`AccountController::destroy`, `SocialLoginController`)
+- **Frontend:** composable `useDebouncedFetch` (4 kopie), `useListboxNavigation` (`SearchSuggest`, `WatchAdd`), `useModalDialog` (4 kopie), `formatDiscount` (−N % ručně na 11 místech), text ceny za jednotku 4×; filtry v Home a Offers se vykreslují dvakrát; `lib/pwa.js` rozdělit, `offlineFetchedAt` nemá timeout; nekonečné animace v patičce, landing a uživatelích (R99); `scrollIntoView({ behavior: 'smooth' })` bez `prefers-reduced-motion` a `prefersReducedMotion()` 5×; selecty a radia bez `aria-invalid`; `wakeLock` po odchodu během `request()` nechá displej svítit; `_watch.scss` (734 ř.) a `_search-panel.scss` rozdělit po komponentách, `font-weight` tokeny
+- **Testy a prostředí:** stejné pomocné funkce pod třemi názvy (`importedOffer`, `centerImportedOffer`, `pushImportedOffer`) a token cronu v 7 testech do `tests/Pest.php`; `pcov` pro měření pokrytí; Pint `declare_strict_types`; kontejner bez `icu-data-full` a GD, `max_execution_time` 300 proti 600 na hostingu; `axllent/mailpit:latest` bez verze
+- **Mrtvý kód:** `Leaflet::pages()` / `offers()`, `Category::parent()` / `children()`, `Product::category()`, `LidlLeafletParser::bigPrices()` (jen prototypy), `WatchItemMatcher::match()` (jen testy), třídy `.app-footer__address` a `.tag--button`
 
 ## Měření používání (Clarity) — co ubrat
 

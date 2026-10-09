@@ -439,6 +439,7 @@ a ruční opravy katalogu. Před každým SQL skriptem a jinak aspoň jednou mě
 | `migrations-2026-10-05-centrum-upozorneni.sql` | centrum upozornění (R74): tabulky `notifications` a `announcements`, `users.notified_at`; opakovatelný, pustit **před** nahráním kódu | 2026-10-05 |
 | `migrations-2026-10-05-posledni-aktivita.sql` | poslední aktivita (R84): `users.last_seen_at` s indexem, dosavadním účtům doplní z relací; opakovatelný, pustit **před** nahráním kódu | 2026-10-05 |
 | `migrations-2026-10-06-prihlaseni-pres-google.sql` | přihlášení přes Google a Facebook (R96): tabulka `social_accounts`, `users.password` nepovinné; opakovatelný, pustit **před** nahráním kódu | 2026-10-06 |
+| `migrations-2026-10-09-indexy.sql` | indexy pro rostoucí historii (R113): `offers.valid_from`, `created_at`, `withdrawn_at`, `scrape_runs (status, finished_at)`; opakovatelný, pustit kdykoli (stará verze kódu s ním běží) | — |
 
 ## Nasazené verze
 

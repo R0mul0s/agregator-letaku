@@ -16,19 +16,15 @@ namespace App\Http\Controllers;
 use App\Domain\Account\Actions\PruneExpiredSessions;
 use App\Domain\Catalog\Actions\ImportCategories;
 use App\Domain\Chains\Actions\ImportStores;
-use App\Domain\Digest\Actions\SendDigests;
-use App\Domain\Notifications\Actions\RecordEndingOffers;
-use App\Domain\Notifications\Actions\RecordNewOffers;
-use App\Domain\Notifications\Actions\RecordStartingOffers;
+use App\Domain\Notifications\Actions\RunNotificationChannels;
 use App\Domain\Offers\Actions\ImportChainOffers;
-use App\Domain\Push\Actions\SendPushNotifications;
-use App\Domain\Sources\SourceRegistry;
-use App\Enums\Chain;
+use App\Domain\Offers\Actions\PruneOfferRaw;
+use App\Domain\Offers\Exceptions\ImportAlreadyRunning;
 use App\Enums\ScrapeStatus;
 use App\Http\Requests\CronRequest;
 use App\Support\Deadline;
+use App\Support\Exceptions\AlreadyRunning;
 use Illuminate\Http\Response;
-use Illuminate\Validation\Rule;
 use Throwable;
 
 class CronController extends Controller
@@ -39,12 +35,13 @@ class CronController extends Controller
      */
     public function importOffers(CronRequest $request, ImportChainOffers $import): Response
     {
-        $request->validate(['chain' => ['required']]);
         $chain = $request->chain();
         $this->extendTimeLimit();
 
         try {
             $run = $import($chain);
+        } catch (ImportAlreadyRunning) {
+            return $this->alreadyRunning();
         } catch (Throwable $error) {
             // Chyba je zapsaná v scrape_runs; cron WebAdminu uvidí neúspěšný stav
             report($error);
@@ -62,14 +59,15 @@ class CronController extends Controller
      * Stáhne prodejny obchodu a akce platné v každé z nich (`?chain=kaufland`, R49) — před
      * stažením akcí obchodu, ať import ví, v kterých prodejnách akce platí.
      */
-    public function importStores(CronRequest $request, ImportStores $import, SourceRegistry $sources): Response
+    public function importStores(CronRequest $request, ImportStores $import): Response
     {
-        $request->validate(['chain' => ['required', Rule::in(array_map(fn (Chain $chain): string => $chain->value, $sources->chainsWithStores()))]]);
         $chain = $request->chain();
         $this->extendTimeLimit();
 
         try {
             $result = $import($chain);
+        } catch (AlreadyRunning) {
+            return $this->alreadyRunning();
         } catch (Throwable $error) {
             report($error);
 
@@ -88,6 +86,8 @@ class CronController extends Controller
 
         try {
             $count = $import();
+        } catch (AlreadyRunning) {
+            return $this->alreadyRunning();
         } catch (Throwable $error) {
             report($error);
 
@@ -100,45 +100,41 @@ class CronController extends Controller
     /**
      * Pošle e-mailové souhrny nových akcí (R42) jedné dávce uživatelů (R54) — každou hodinu 6:30–22:30 kvůli okamžitým upozorněním (R58).
      * Stejný cron zapisuje záznamy centra upozornění (R74) a posílá upozornění v telefonu (R66),
-     * ať na hostingu nepřibývá další úloha; chyba jednoho kanálu ostatní nezastaví.
+     * ať na hostingu nepřibývá další úloha; chyba jednoho kanálu ostatní nezastaví. Souběžné
+     * volání odpoví 409 a nic nepošle (R113).
      */
-    public function sendDigests(
-        CronRequest $request,
-        RecordNewOffers $record,
-        RecordEndingOffers $recordEnding,
-        RecordStartingOffers $recordStarting,
-        SendDigests $send,
-        SendPushNotifications $push,
-    ): Response {
+    public function sendDigests(CronRequest $request, RunNotificationChannels $channels): Response
+    {
         $this->extendTimeLimit();
-        $lines = [];
-        $failed = false;
 
-        // Záznamy centra upozornění (R74) jako první — upozornění v telefonu se z nich skládá
-        $channels = ['notifications' => $record, 'ending_soon' => $recordEnding, 'starting_today' => $recordStarting, 'digest' => $send, 'push' => $push];
-        // Kroky si rozpočet dělí rovným dílem — kdyby hosting požadavek ukončil, souhrny
-        // a telefon na konci by nedoběhly vůbec (R106)
-        $deadline = Deadline::in(config()->integer('letaky.cron.work_seconds'));
-        $remaining = count($channels);
-        foreach ($channels as $channel => $action) {
-            try {
-                $lines[] = __("app.$channel.done", ['count' => $action($deadline->share($remaining--))]);
-            } catch (Throwable $error) {
-                report($error);
-                $lines[] = __("app.$channel.failed", ['error' => $error->getMessage()]);
-                $failed = true;
-            }
+        try {
+            // Kdyby hosting požadavek ukončil, souhrny a telefon na konci by nedoběhly vůbec (R106)
+            $results = $channels(Deadline::in(config()->integer('letaky.cron.work_seconds')));
+        } catch (AlreadyRunning) {
+            return $this->alreadyRunning();
         }
+
+        $lines = [];
+        foreach ($results as $channel => $result) {
+            $lines[] = $result instanceof Throwable
+                ? __("app.$channel.failed", ['error' => $result->getMessage()])
+                : __("app.$channel.done", ['count' => $result]);
+        }
+        $failed = array_any($results, fn (int|Throwable $result): bool => $result instanceof Throwable);
 
         return $this->text(implode("\n", $lines), $failed ? Response::HTTP_INTERNAL_SERVER_ERROR : Response::HTTP_OK);
     }
 
     /**
-     * Úklid vypršelých relací a odkazů pro obnovu hesla (R53), jednou denně.
+     * Úklid vypršelých relací a odkazů pro obnovu hesla (R53) a surových odpovědí starých
+     * akcí (R113), jednou denně.
      */
-    public function pruneSessions(CronRequest $request, PruneExpiredSessions $prune): Response
+    public function pruneSessions(CronRequest $request, PruneExpiredSessions $prune, PruneOfferRaw $pruneRaw): Response
     {
-        return $this->text(__('app.maintenance.sessions_pruned', ['count' => $prune()]));
+        return $this->text(implode("\n", [
+            __('app.maintenance.sessions_pruned', ['count' => $prune()]),
+            __('app.maintenance.offer_raw_pruned', ['count' => $pruneRaw()]),
+        ]));
     }
 
     /**
@@ -148,6 +144,14 @@ class CronController extends Controller
     private function extendTimeLimit(): void
     {
         set_time_limit(config()->integer('letaky.cron.time_limit_seconds'));
+    }
+
+    /**
+     * Úloha už běží (R57, R113) — 409, ať cron WebAdminu souběh ukáže, ale nic se nestalo dvakrát.
+     */
+    private function alreadyRunning(): Response
+    {
+        return $this->text(__('app.cron.already_running'), Response::HTTP_CONFLICT);
     }
 
     /**

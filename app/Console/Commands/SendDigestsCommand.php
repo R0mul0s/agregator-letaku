@@ -2,7 +2,7 @@
 
 /**
  * Artisan: e-mailové souhrny nových akcí (R42) a upozornění v telefonu (R66) — obálka nad
- * SendDigests a SendPushNotifications. Na produkci totéž volá cron URL /cron/send-digests.
+ * RunNotificationChannels. Na produkci totéž volá cron URL /cron/send-digests.
  *
  * @author Roman Hlaváček
  *
@@ -13,12 +13,11 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
-use App\Domain\Digest\Actions\SendDigests;
-use App\Domain\Notifications\Actions\RecordEndingOffers;
-use App\Domain\Notifications\Actions\RecordNewOffers;
-use App\Domain\Notifications\Actions\RecordStartingOffers;
-use App\Domain\Push\Actions\SendPushNotifications;
+use App\Domain\Notifications\Actions\RunNotificationChannels;
+use App\Support\Deadline;
+use App\Support\Exceptions\AlreadyRunning;
 use Illuminate\Console\Command;
+use Throwable;
 
 class SendDigestsCommand extends Command
 {
@@ -29,17 +28,28 @@ class SendDigestsCommand extends Command
     protected $description = 'Zapíše nové, končící a dnes začínající akce do centra upozornění a pošle e-mailové souhrny a upozornění v telefonu uživatelům, kterým je čas';
 
     /**
-     * Zapíše záznamy centra (R74; upozornění v telefonu se z nich skládá), pošle souhrny
-     * a upozornění a vypíše jejich počty.
+     * Spustí kanály upozornění bez časového rozpočtu a vypíše jejich počty nebo chyby.
      */
-    public function handle(RecordNewOffers $record, RecordEndingOffers $recordEnding, RecordStartingOffers $recordStarting, SendDigests $send, SendPushNotifications $push): int
+    public function handle(RunNotificationChannels $channels): int
     {
-        $this->info(__('app.notifications.done', ['count' => $record()]));
-        $this->info(__('app.ending_soon.done', ['count' => $recordEnding()]));
-        $this->info(__('app.starting_today.done', ['count' => $recordStarting()]));
-        $this->info(__('app.digest.done', ['count' => $send()]));
-        $this->info(__('app.push.done', ['count' => $push()]));
+        try {
+            $results = $channels(Deadline::none());
+        } catch (AlreadyRunning) {
+            $this->error(__('app.cron.already_running'));
 
-        return self::SUCCESS;
+            return self::FAILURE;
+        }
+
+        $failed = false;
+        foreach ($results as $channel => $result) {
+            if ($result instanceof Throwable) {
+                $this->error(__("app.$channel.failed", ['error' => $result->getMessage()]));
+                $failed = true;
+            } else {
+                $this->info(__("app.$channel.done", ['count' => $result]));
+            }
+        }
+
+        return $failed ? self::FAILURE : self::SUCCESS;
     }
 }

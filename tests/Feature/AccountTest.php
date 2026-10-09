@@ -28,6 +28,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia as Assert;
 
 it('zobrazí účet s adresami formulářů a názvy sad chyb', function (): void {
@@ -269,6 +270,8 @@ it('zruší účet jen se správným heslem i s hlídanými položkami a obrázk
     $user = User::factory()->create();
     $user->forceFill(['avatar_path' => 'avatars/obrazek.png'])->save();
     WatchItem::factory()->for($user)->create();
+    // Záznam centra upozornění — polymorfní vazba bez cizího klíče (R113)
+    $user->notifications()->create(['id' => (string) Str::uuid(), 'type' => 'new_offers', 'data' => []]);
     $this->actingAs($user)->from(route('account'));
 
     $this->delete(route('account.destroy'), ['password' => 'spatne-heslo'])
@@ -281,7 +284,8 @@ it('zruší účet jen se správným heslem i s hlídanými položkami a obrázk
 
     $this->assertGuest();
     expect(User::query()->whereKey($user->id)->exists())->toBeFalse()
-        ->and(WatchItem::query()->where('user_id', $user->id)->exists())->toBeFalse();
+        ->and(WatchItem::query()->where('user_id', $user->id)->exists())->toBeFalse()
+        ->and(DB::table('notifications')->where('notifiable_id', $user->id)->exists())->toBeFalse();
     Storage::disk('local')->assertMissing('avatars/obrazek.png');
 });
 

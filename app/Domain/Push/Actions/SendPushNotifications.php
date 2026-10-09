@@ -24,12 +24,12 @@ declare(strict_types=1);
 
 namespace App\Domain\Push\Actions;
 
-use App\Domain\Matching\MyOffers;
 use App\Domain\Notifications\AnnouncementRecord;
 use App\Domain\Notifications\NotificationPresenter;
 use App\Domain\Notifications\OffersNotification;
 use App\Domain\Notifications\UserBatch;
 use App\Domain\Offers\LocalCalendar;
+use App\Domain\Offers\UserPricing;
 use App\Domain\Push\PushMessage;
 use App\Domain\Push\PushSubscriptions;
 use App\Domain\Push\Vapid;
@@ -52,7 +52,7 @@ final class SendPushNotifications
     private const CHANNEL = 'push';
 
     public function __construct(
-        private readonly MyOffers $myOffers,
+        private readonly UserPricing $pricing,
         private readonly PushSubscriptions $subscriptions,
         private readonly Vapid $vapid,
         private readonly PriceFormatter $prices,
@@ -185,7 +185,7 @@ final class SendPushNotifications
 
         $today = $this->calendar->today();
         $lines = array_map(function (Offer $offer) use ($user, $lowest, $today): string {
-            $price = $this->myOffers->userPrice($user, $offer);
+            $price = $this->pricing->price($user, $offer);
             $line = __(in_array($offer->id, $lowest, true) ? 'app.push.line_lowest' : 'app.push.line', [
                 'name' => $offer->name,
                 'price' => $price === null ? __('app.digest.no_price') : $this->prices->format($price),

@@ -13,9 +13,9 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Domain\Matching\MyOffers;
 use App\Domain\Offers\LocalCalendar;
 use App\Domain\Offers\OfferPresenter;
+use App\Domain\Offers\UserPricing;
 use App\Enums\Chain;
 use App\Http\Requests\ShoppingListRequest;
 use App\Http\Requests\ShoppingListSyncRequest;
@@ -41,7 +41,7 @@ class ShoppingListController extends Controller
      * Seznam po obchodech v pořadí výčtu obchodů; v obchodě nejdřív, co zbývá koupit, a z toho
      * nejdřív akce, které už platí — budoucí (R76) se zatím za akční cenu koupit nedají.
      */
-    public function index(Request $request, OfferPresenter $presenter, MyOffers $myOffers, LocalCalendar $calendar): Response
+    public function index(Request $request, OfferPresenter $presenter, UserPricing $pricing, LocalCalendar $calendar): Response
     {
         $user = $this->user($request);
         $today = $calendar->today();
@@ -65,7 +65,7 @@ class ShoppingListController extends Controller
                     'id' => $item->id,
                     'checked' => $item->checked_at !== null,
                     'expired' => $item->offer->valid_to->lessThan($today),
-                    'userPrice' => $myOffers->userPrice($user, $item->offer),
+                    'userPrice' => $pricing->price($user, $item->offer),
                     'offer' => $presenter->toPage($item->offer, $storeCodes),
                     'updateUrl' => route('shopping-list.update', $item, absolute: false),
                     'deleteUrl' => route('shopping-list.destroy', $item, absolute: false),

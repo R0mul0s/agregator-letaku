@@ -30,10 +30,11 @@ class AnnouncementRequest extends FormRequest
         return [
             'title' => ['required', 'string', 'max:'.config()->integer('letaky.notifications.announcement.title_max_length')],
             'body' => ['required', 'string', 'max:'.config()->integer('letaky.notifications.announcement.body_max_length')],
-            // Cesta v aplikaci (/akce), nebo https adresa — jiné schéma (javascript:, http:) ne
+            // Cesta v aplikaci (/akce), nebo https adresa — jiné schéma (javascript:, http:) ne;
+            // cesta bez zpětného lomítka — prohlížeč čte „/\evil.com“ jako „//evil.com“ (R113)
             'url' => [
                 'nullable', 'string', 'max:'.config()->integer('letaky.notifications.announcement.url_max_length'),
-                'regex:~^(/(?!/)\S*|https://\S+)$~',
+                'regex:~^(/(?!/)[^\s\\\\]*|https://\S+)$~',
             ],
             'category' => ['required', Rule::enum(AnnouncementCategory::class)],
             'push' => ['boolean', Rule::prohibitedIf(fn (): bool => $this->boolean('push') && $this->input('category') === AnnouncementCategory::Marketing->value)],

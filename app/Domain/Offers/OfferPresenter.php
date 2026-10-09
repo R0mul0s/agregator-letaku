@@ -58,7 +58,8 @@ final class OfferPresenter
             'originalPrice' => $offer->original_price,
             'loyaltyPrice' => $offer->loyalty_price,
             'loyaltyProgramName' => $offer->loyalty_program?->label(),
-            'discountPercent' => $offer->discount_percent,
+            // Sleva i dopočtená z přeškrtnuté ceny — počítá ji jen server (R113)
+            'discountPercent' => $offer->effectiveDiscountPercent(),
             'offerType' => $offer->offer_type->value,
             // Verzálky od obchodu jako věta (R101)
             'promotionText' => $this->promotionText->forDisplay($offer->promotion_text),

@@ -19,6 +19,9 @@ use Illuminate\Notifications\DatabaseNotification;
 
 final class AnnouncementRecord
 {
+    /** Cesta v aplikaci: jedno lomítko, za ním ne další lomítko ani zpětné. */
+    private const APP_PATH_PATTERN = '~^/(?![/\\\\])~';
+
     /**
      * Data záznamu ze zprávy.
      *
@@ -53,10 +56,11 @@ final class AnnouncementRecord
     }
 
     /**
-     * Je odkaz mimo aplikaci (otevře se v novém okně)?
+     * Je odkaz mimo aplikaci (otevře se v novém okně)? „//host“ i „/\host“ vedou na cizí
+     * doménu (R113), cesta v aplikaci začíná jedním lomítkem.
      */
     public static function isExternal(string $url): bool
     {
-        return ! str_starts_with($url, '/');
+        return preg_match(self::APP_PATH_PATTERN, $url) !== 1;
     }
 }

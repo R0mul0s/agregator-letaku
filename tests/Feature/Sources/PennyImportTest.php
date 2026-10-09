@@ -19,6 +19,7 @@ use App\Enums\ScrapeStatus;
 use App\Models\Leaflet;
 use App\Models\Offer;
 use App\Models\ScrapeRun;
+use Illuminate\Http\Client\Factory as HttpFactory;
 use Illuminate\Support\Facades\Http;
 
 const PENNY_LEAFLET_URL = 'https://files.rewe.co.at/PennyIntLeaflet/CZ/30_09_2026/';
@@ -102,6 +103,19 @@ it('uloží text stránek letáku s textovou vrstvou pro zmínky bez ceny (R27)'
         ->and($pages[2]->text)->toContain('MLÉKO* instantní, polotučné');
 });
 
+it('stránku, kterou leták při dalším stažení nemá, smaže — zmínky z ní by zůstaly (R113)', function (): void {
+    fakePenny();
+    $this->artisan('letaky:import-offers', ['chain' => ['penny']]);
+
+    // Strana 3 přestala mít textovou vrstvu — nové podvržené odpovědi (první vyhrává)
+    Http::swap(new HttpFactory);
+    Http::fake([PENNY_LEAFLET_URL.'files/assets/common/page-vectorlayers/0003.svg' => Http::response('Not found', 404)]);
+    fakePenny();
+    $this->artisan('letaky:import-offers', ['chain' => ['penny']]);
+
+    expect(Leaflet::query()->where('kind', LeafletKind::Leaflet)->sole()->pages()->orderBy('number')->pluck('number')->all())->toBe([1, 2]);
+});
+
 it('cenu s PENNY kartou z API uloží vedle běžné ceny', function (): void {
     fakePenny();
 
@@ -125,6 +139,22 @@ it('položku letáku, kterou nese API, neuloží podruhé', function (): void {
         ->and(pennyOffer('Vejce čerstvá M'))
         ->price->toBe(2490)
         ->original_price->toBe(4990);
+});
+
+it('položku letáku na příští týden uloží, i když dnes API nese stejné zboží za stejnou cenu (R113)', function (): void {
+    $this->travelTo('2026-09-28 10:00:00');
+    // API nese akce tohoto týdne, leták platí od 30. 9. (první podvržená odpověď vyhrává)
+    Http::fake(['https://www.penny.cz/api/product-discovery/products*' => Http::response(str_replace(
+        ['"validityStart":"2026-09-30"', '"validityEnd":"2026-10-06"'],
+        ['"validityStart":"2026-09-23"', '"validityEnd":"2026-09-29"'],
+        responseFixture('penny/products-2026-10-02.json'),
+    ))]);
+    fakePenny();
+
+    $this->artisan('letaky:import-offers', ['chain' => ['penny']]);
+
+    expect(Offer::query()->where('chain', Chain::Penny)->where('name', 'like', '%vejce%')->orderBy('valid_from')->pluck('valid_from')->map->toDateString()->all())
+        ->toBe(['2026-09-23', '2026-09-30']);
 });
 
 it('z letáku přečte název, balení, cenu a přeškrtnutou cenu ověřené cenou za jednotku', function (): void {

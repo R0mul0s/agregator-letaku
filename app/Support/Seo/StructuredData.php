@@ -48,12 +48,11 @@ final class StructuredData
     /** PSČ a obec z druhého řádku adresy („503 03 Smiřice“). */
     private const POSTAL_LINE_PATTERN = '/^(\d{3}\s?\d{2})\s+(.+)$/u';
 
-    /** Typ stránky schema.org podle druhu stránky (SeoMeta::page). */
+    /** Typ stránky schema.org výpisu akcí (SeoMeta::page); ostatní stránky z PublicPages. */
     private const PAGE_TYPES = [
         'offers' => 'CollectionPage',
         'offers_chain' => 'CollectionPage',
         'offers_product' => 'CollectionPage',
-        'contact' => 'ContactPage',
     ];
 
     public function __construct(
@@ -76,7 +75,7 @@ final class StructuredData
         $faq = $page === 'contact' ? $this->faq($canonical) : null;
 
         $webPage = array_filter([
-            '@type' => self::PAGE_TYPES[$page] ?? 'WebPage',
+            '@type' => self::PAGE_TYPES[$page] ?? PublicPages::schemaType($page) ?? 'WebPage',
             '@id' => $canonical.'#webpage',
             'url' => $canonical,
             'name' => $title,

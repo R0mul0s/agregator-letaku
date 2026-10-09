@@ -11,6 +11,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Notifications\AnnouncementRecord;
 use App\Http\Controllers\AnnouncementController;
 use App\Models\Announcement;
 use App\Models\User;
@@ -124,7 +125,17 @@ it('odkaz musí být cesta v aplikaci nebo https adresa', function (string $url,
     'http' => ['http://example.com', false],
     'javascript' => ['javascript:alert(1)', false],
     'adresa bez schématu' => ['//evil.example.com', false],
+    // Prohlížeč čte „/\“ jako „//“ (R113)
+    'zpětné lomítko' => ['/\evil.example.com', false],
+    'zpětné lomítko v cestě' => ['/akce\..\x', false],
 ]);
+
+it('odkaz „/\“ v uložené zprávě bere jako cizí (R113)', function (): void {
+    expect(AnnouncementRecord::isExternal('/akce'))->toBeFalse()
+        ->and(AnnouncementRecord::isExternal('/\evil.example.com'))->toBeTrue()
+        ->and(AnnouncementRecord::isExternal('//evil.example.com'))->toBeTrue()
+        ->and(AnnouncementRecord::isExternal('https://slevohlidka.cz'))->toBeTrue();
+});
 
 it('bez nadpisu a textu zprávu neodešle', function (): void {
     $this->actingAs($this->admin)

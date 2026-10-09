@@ -557,6 +557,9 @@ return [
         // Rozpočet dávek uživatelů v /cron/send-digests (R106): s rezervou pod limitem běhu, kroky
         // (záznamy, končící, začínající, souhrny, telefon) si ho dělí rovným dílem
         'work_seconds' => 150,
+        // Zámek cronu upozornění proti souběžnému spuštění (R113) — vyprší sám, kdyby hosting
+        // proces ukončil dřív, než ho uvolní; delší než limit běhu
+        'lock_seconds' => 300,
         // Uživatel, u kterého zpracování v kanálu padá (R106): po tolika chybách za sebou se jeho
         // čas posune (nebo se do konce dne vynechá), ať není první v každé dávce
         'user_failures' => [
@@ -657,6 +660,9 @@ return [
         'typo_short_word_length' => 3,
         'vocabulary_cache_minutes' => 60,
         'preview_examples' => 3,
+        // Kdy byla položka naposledy v akci (R104) — hledá se jen v akcích skončených za tolik
+        // dní; celá historie by při psaní znamenala průchod celou tabulkou (R113)
+        'preview_history_days' => 365,
     ],
 
     /*
@@ -718,6 +724,11 @@ return [
             'PECIVO' => 'PEČIVO',
             'NAPOJ' => 'NÁPOJ',
         ],
+        // Surová odpověď obchodu (`raw`) slouží k ladění a přepočtu aktuálních akcí; u akcí
+        // skončených před tolika dny ji denní úklid vyprázdní (R113) — tvořila víc než polovinu tabulky
+        'raw_retention_days' => 60,
+        // Vyprázdnění `raw` po dávkách, ať úklid nedrží zámek tabulky dlouho
+        'raw_prune_batch' => 2000,
     ],
 
     /*

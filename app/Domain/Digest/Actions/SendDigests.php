@@ -21,9 +21,9 @@ declare(strict_types=1);
 namespace App\Domain\Digest\Actions;
 
 use App\Domain\Digest\NewOffers;
-use App\Domain\Matching\MyOffers;
 use App\Domain\Notifications\UserBatch;
 use App\Domain\Offers\LocalCalendar;
+use App\Domain\Offers\UserPricing;
 use App\Enums\DigestFrequency;
 use App\Mail\DigestMail;
 use App\Models\Offer;
@@ -40,7 +40,7 @@ final class SendDigests
     private const CHANNEL = 'digest';
 
     public function __construct(
-        private readonly MyOffers $myOffers,
+        private readonly UserPricing $pricing,
         private readonly NewOffers $newOffers,
         private readonly LocalCalendar $calendar,
         private readonly UserBatch $batch,
@@ -126,7 +126,7 @@ final class SendDigests
             'offers' => array_map(fn (Offer $offer): array => [
                 'name' => $offer->name,
                 'chain' => $offer->chain->label(),
-                'price' => $this->myOffers->userPrice($user, $offer),
+                'price' => $this->pricing->price($user, $offer),
                 'discountPercent' => $offer->effectiveDiscountPercent(),
                 // Začátek jen u akce, která ještě nezačala (R76)
                 'validFrom' => $offer->isUpcoming($today) ? $offer->valid_from : null,

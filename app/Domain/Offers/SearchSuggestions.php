@@ -139,7 +139,8 @@ final class SearchSuggestions
                 Offer::query()->select('id')->tap(fn (Builder $offers) => $this->preferences->apply($offers, $user)),
             ))
             ->groupBy('offer_product.product_id')
-            ->selectRaw('offer_product.product_id, COUNT(DISTINCT offer_product.offer_id) AS offers_count, MIN(offers.price) AS lowest_price')
+            // Cena od jako ve výpisu akcí — akce jen s kartou svou cenou s kartou (R113)
+            ->selectRaw('offer_product.product_id, COUNT(DISTINCT offer_product.offer_id) AS offers_count, MIN('.Offer::PUBLIC_PRICE_SQL.') AS lowest_price')
             ->toBase()
             ->get();
 

@@ -122,6 +122,18 @@ it('znaky % a _ v hledání bere doslova', function (): void {
     expect(offerNames(['q' => '33%']))->toBe(['Smetana 33% tuku']);
 });
 
+it('slovo začíná i po uvozovkách, tečce a hvězdičce jako v párování Mých slev (R113)', function (): void {
+    Offer::factory()->create(['name' => 'Sýr „Gouda“ plátky']);
+    Offer::factory()->create(['name' => 'Kofola.Original 2 l']);
+    Offer::factory()->create(['name' => 'Rajčata*cherry']);
+    Offer::factory()->create(['name' => 'Gorgonzola']);
+
+    expect(offerNames(['q' => 'gouda']))->toBe(['Sýr „Gouda“ plátky'])
+        ->and(offerNames(['q' => 'original']))->toBe(['Kofola.Original 2 l'])
+        ->and(offerNames(['q' => 'cherry']))->toBe(['Rajčata*cherry'])
+        ->and(offerNames(['q' => 'zola']))->toBe([]);
+});
+
 it('filtruje podle obchodu', function (): void {
     Offer::factory()->create(['name' => 'Vejce Kaufland', 'chain' => Chain::Kaufland]);
     Offer::factory()->create(['name' => 'Vejce Tesco', 'chain' => Chain::Tesco]);
@@ -290,6 +302,14 @@ it('s hledaným textem řadí podle relevance: název, značka, až pak popis (R
     Offer::factory()->create(['name' => 'Pizza šunková', 'discount_percent' => 10]);
 
     expect(offerNames(['q' => 'pizza']))->toBe(['Pizza šunková', 'Dr. Oetker Pizza', 'Feliciana Speciale', 'Coca-Cola 1l']);
+});
+
+it('uvnitř skupiny relevance řadí i podle slevy dopočtené z přeškrtnuté ceny (R113)', function (): void {
+    Offer::factory()->create(['name' => 'Pizza se slevou od obchodu', 'discount_percent' => 20]);
+    // Albert a Penny procenta neposílají — sleva 50 % jen z přeškrtnuté ceny
+    Offer::factory()->create(['name' => 'Pizza z letáku', 'offer_type' => OfferType::Discount, 'discount_percent' => null, 'price' => 5000, 'original_price' => 10000]);
+
+    expect(offerNames(['q' => 'pizza']))->toBe(['Pizza z letáku', 'Pizza se slevou od obchodu']);
 });
 
 it('akce produktu z našeptávače; zrušený filtr jen slev (R77) staré odkazy ignorují (R71)', function (): void {

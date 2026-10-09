@@ -7,23 +7,15 @@
 
 import { formatDate, formatPackage } from '@/lib/format';
 
-/** Procenta = 100 — převod podílu na procenta slevy. */
-const PERCENT = 100;
-
 /**
  * Sleva v procentech: od obchodu, jinak dopočtená z původní ceny; jen u typu „sleva“ (R8).
+ * Počítá ji server (Offer::effectiveDiscountPercent, R113), ať se výpočet nerozejde.
  *
  * @param {object} offer
  * @returns {number|null}
  */
 export function discountPercent(offer) {
-    if (offer.discountPercent) {
-        return offer.discountPercent;
-    }
-
-    const { price, originalPrice } = offer;
-
-    return offer.offerType === 'discount' && price && originalPrice > price ? Math.round((1 - price / originalPrice) * PERCENT) : null;
+    return offer.discountPercent || null;
 }
 
 /**

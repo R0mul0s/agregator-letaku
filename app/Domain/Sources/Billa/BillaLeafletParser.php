@@ -36,7 +36,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Sources\Billa;
 
-use App\Domain\Offers\LocalCalendar;
+use App\Domain\Offers\Parsing\LeafletDates;
 use App\Domain\Offers\Parsing\PriceParser;
 use App\Domain\Offers\Parsing\Text;
 use App\Domain\Sources\Pdf\DiscountCheck;
@@ -46,6 +46,7 @@ use App\Domain\Sources\Pdf\PdfLine;
 use App\Domain\Sources\Pdf\PdfPage;
 use App\Domain\Sources\Pdf\PdfTile;
 use App\Domain\Sources\Pdf\PdfWord;
+use App\Domain\Sources\Pdf\TileUnits;
 use App\Domain\Sources\Pdf\UnitPriceCheck;
 use App\Enums\OfferType;
 use App\Support\PriceFormatter;
@@ -142,6 +143,9 @@ final class BillaLeafletParser
 
     private const WITHOUT_CLUB_PATTERN = '/\/?\s*(od\s+)?(\d+(?:,\d{1,2})?)\s*Kč\s*bez\s+Klubu/u';
 
+    /** Cena bez Klubu musí v textu začínat hned za cenou s Klubem — nejvýš tolik znaků (mezera). */
+    private const WITHOUT_CLUB_MAX_OFFSET = 1;
+
     /** Cena s kupónem z aplikace („s kupónem/ 19,85 Kč bez kupónu“). */
     private const COUPON_PATTERN = '/kupón/iu';
 
@@ -150,26 +154,8 @@ final class BillaLeafletParser
 
     private const KIND_WITHOUT_CLUB = 'without_club';
 
-    /** Balení: „150 g“, „3× 35 g“, „0,5 l“, „330/285 g“ (víc údajů — kterýkoli), „154,4 m“. */
-    private const PACKAGE_PATTERN = '/(?:(\d+)\s*[×x]\s*)?(\d+(?:,\d+)?(?:\s*\/\s*\d+(?:,\d+)?)*)\s*(\p{L}+)/u';
-
     /** Víc druhů nebo velikostí — akce platí na víc produktů katalogu. */
     private const VARIANTS_PATTERN = '/více\s+druhů|různé\s+druhy|\d+\s*druh|\bod\s+\d/iu';
-
-    /**
-     * Jednotky balení => [jednotka pro porovnání, násobek]. Jiné slovo (dávka, praní) se porovná
-     * podle prvních písmen (UNIT_STEM_LENGTH): „60 dávek“ ↔ „1 dávka“.
-     *
-     * @var array<string, array{string, int}>
-     */
-    private const UNITS = [
-        'g' => ['g', 1], 'kg' => ['g', 1000],
-        'ml' => ['ml', 1], 'l' => ['ml', 1000],
-        'ks' => ['ks', 1], 'kus' => ['ks', 1], 'kusy' => ['ks', 1], 'kusů' => ['ks', 1],
-        'm' => ['m', 1],
-    ];
-
-    private const UNIT_STEM_LENGTH = 3;
 
     /**
      * Platnost oddílu: „8. 10. – 11. 10. 2026“, „OD 8. 10. DO 11. 10.“, „PLATNOST OD 8. 10.“, „7. 10.“.
@@ -204,12 +190,10 @@ final class BillaLeafletParser
     /** Oddíl ve sloupci platí nejvýš pro dlaždice tak daleko pod ním (podíl výšky strany). */
     private const MARKER_REACH_RATIO = 0.3;
 
-    private const DATE_FORMAT = '%04d-%02d-%02d';
-
     public function __construct(
         private readonly PriceParser $priceParser,
         private readonly PriceFormatter $prices,
-        private readonly LocalCalendar $calendar,
+        private readonly LeafletDates $dates,
     ) {}
 
     /**
@@ -617,24 +601,24 @@ final class BillaLeafletParser
 
         $unitPrices = [];
         foreach ($matches as $m) {
-            $unit = $this->unit($m[2][0]);
+            $unit = TileUnits::unit($m[2][0]);
             if ($unit === null) {
                 continue;
             }
-            $quantity = $this->number($m[1][0]) * $unit[1];
+            $quantity = TileUnits::number($m[1][0]) * $unit[1];
             $club = ($m[5][0] ?? '') !== '';
             $unitPrices[] = ['kind' => $club ? self::KIND_CLUB : null, 'unit' => $unit[0], 'quantity' => $quantity, 'from' => $m[3][0] !== '', 'value' => $this->priceParser->parse($m[4][0])];
 
             // Cena bez Klubu hned za cenou s Klubem — ve stejné jednotce
             $after = substr($text, $m[0][1] + strlen($m[0][0]));
-            if ($club && preg_match(self::WITHOUT_CLUB_PATTERN, $after, $w, PREG_OFFSET_CAPTURE) === 1 && $w[0][1] <= self::ROW_TOLERANCE) {
+            if ($club && preg_match(self::WITHOUT_CLUB_PATTERN, $after, $w, PREG_OFFSET_CAPTURE) === 1 && $w[0][1] <= self::WITHOUT_CLUB_MAX_OFFSET) {
                 $unitPrices[] = ['kind' => self::KIND_WITHOUT_CLUB, 'unit' => $unit[0], 'quantity' => $quantity, 'from' => $w[1][0] !== '', 'value' => $this->priceParser->parse($w[2][0])];
             }
         }
 
         $single = preg_match(self::SINGLE_PRICE_PATTERN, $text, $s) === 1 ? $this->priceParser->parse($s[1]) : null;
 
-        return ['unitPrices' => $unitPrices, 'single' => $single, 'packages' => $this->packages($this->packageText($tile))];
+        return ['unitPrices' => $unitPrices, 'single' => $single, 'packages' => TileUnits::packages($this->packageText($tile))];
     }
 
     /**
@@ -645,53 +629,6 @@ final class BillaLeafletParser
         $text = (string) preg_replace([self::UNIT_PRICE_PATTERN, self::WITHOUT_CLUB_PATTERN, self::SINGLE_PRICE_PATTERN], ' ', $tile->detailText());
 
         return trim((string) preg_replace('/\s+/u', ' ', $text));
-    }
-
-    /**
-     * Balení v jednotkách pro porovnání: jednotka => množství („3× 35 g“ = 105 g, „330/285 g“ = obojí).
-     *
-     * @return array<string, list<float>>
-     */
-    private function packages(string $text): array
-    {
-        preg_match_all(self::PACKAGE_PATTERN, $text, $matches, PREG_SET_ORDER);
-
-        $packages = [];
-        foreach ($matches as $m) {
-            $unit = $this->unit($m[3]);
-            if ($unit === null) {
-                continue;
-            }
-            $multiplier = $m[1] === '' ? 1 : (int) $m[1];
-            foreach (explode('/', $m[2]) as $amount) {
-                $packages[$unit[0]][] = $this->number(trim($amount)) * $multiplier * $unit[1];
-            }
-        }
-
-        return $packages;
-    }
-
-    /**
-     * Jednotka pro porovnání a násobek; null u slova, které jednotkou není.
-     *
-     * @return array{string, int}|null
-     */
-    private function unit(string $word): ?array
-    {
-        $word = mb_strtolower($word);
-        if (isset(self::UNITS[$word])) {
-            return self::UNITS[$word];
-        }
-
-        return mb_strlen($word) >= self::UNIT_STEM_LENGTH ? [mb_substr($word, 0, self::UNIT_STEM_LENGTH), 1] : null;
-    }
-
-    /**
-     * Číslo s desetinnou čárkou z textu letáku.
-     */
-    private function number(string $text): float
-    {
-        return (float) str_replace(',', '.', $text);
     }
 
     /**
@@ -837,22 +774,22 @@ final class BillaLeafletParser
     }
 
     /**
-     * Platnost z řádku oddílu, nebo null. Rok chybí-li, z letáku.
+     * Platnost z řádku oddílu, nebo null. Datum bez roku je nejbližší ke konci letáku
+     * (i přes Nový rok, R113).
      *
      * @param  array{CarbonImmutable, CarbonImmutable}  $leaflet
      * @return array{CarbonImmutable, CarbonImmutable}|null
      */
     private function lineValidity(string $text, ?string $previous, array $leaflet): ?array
     {
-        $year = (int) $leaflet[1]->format('Y');
         if (preg_match(self::RANGE_PATTERN, $text, $m) === 1) {
-            return $this->range($this->date((int) $m[1], (int) $m[2], $m[3] !== '' ? (int) $m[3] : $year), $this->date((int) $m[4], (int) $m[5], $year));
+            return $this->dates->range((int) $m[1], (int) $m[2], $m[3] !== '' ? (int) $m[3] : null, (int) $m[4], (int) $m[5], null, $leaflet[1]);
         }
         if (preg_match(self::FROM_PATTERN, $text, $m) === 1) {
-            return $this->range($this->date((int) $m[1], (int) $m[2], $year), $leaflet[1]);
+            return $this->range($this->dates->near((int) $m[1], (int) $m[2], $leaflet[1]), $leaflet[1]);
         }
         if (preg_match(self::SINGLE_DATE_PATTERN, trim($text), $m) === 1) {
-            $date = $this->date((int) $m[1], (int) $m[2], $year);
+            $date = $this->dates->near((int) $m[1], (int) $m[2], $leaflet[1]);
 
             return $this->range($date, $date);
         }
@@ -868,14 +805,6 @@ final class BillaLeafletParser
     private function range(?CarbonImmutable $from, ?CarbonImmutable $to): ?array
     {
         return $from === null || $to === null || $from->greaterThan($to) ? null : [$from, $to];
-    }
-
-    /**
-     * Místní datum, nebo null, když den v roce neexistuje.
-     */
-    private function date(int $day, int $month, int $year): ?CarbonImmutable
-    {
-        return checkdate($month, $day, $year) ? $this->calendar->date(sprintf(self::DATE_FORMAT, $year, $month, $day)) : null;
     }
 
     /**

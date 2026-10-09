@@ -129,7 +129,7 @@ Eloquent model                 ← perzistence
 - **Mezi požadavky na stejný obchod je pauza** (`config('letaky.request_delay_ms')`). Respektuj robots.txt, viz [ZDROJE_DAT.md](ZDROJE_DAT.md).
 - Parsování odpovědi je samostatná metoda nebo třída, která přijímá řetězec nebo pole. Kvůli testům s fixtures nesmí sama stahovat.
 - **Neočekávaný tvar odpovědi = výjimka**, ne prázdná kolekce. Nula položek se zapíše do `scrape_runs` jako chyba. Podezřele velký propad akcí oproti minulému stažení akce nestáhne a stažení skončí jako `partial`; stažení obchodu drží zámek, souběžné neběží ([R54](ROZHODNUTI.md), [R57](ROZHODNUTI.md)).
-- Původní položka se ukládá do `offers.raw`, aby se data dala přepočítat bez nového stažení.
+- Původní položka se ukládá do `offers.raw`, aby se data dala přepočítat bez nového stažení. U akcí skončených před `letaky.offers.raw_retention_days` dny ji denní úklid vyprázdní ([R113](ROZHODNUTI.md)), takže na ni nesmí spoléhat nic kromě ladění a přepočtu aktuálních akcí.
 
 ### Normalizace dat od obchodů
 - **Ceny v haléřích jako `int`** ([R7](ROZHODNUTI.md)). Převod z „29,90“ nebo `29.9` jen přes sdílený parser, nikdy `(int) ($x * 100)` (float).

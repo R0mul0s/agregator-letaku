@@ -19,12 +19,17 @@ namespace App\Domain\Chains\Actions;
 
 use App\Domain\Sources\SourceRegistry;
 use App\Enums\Chain;
+use App\Models\FollowedChain;
 use App\Models\Store;
+use App\Support\Exceptions\AlreadyRunning;
+use App\Support\ExclusiveRun;
 use Carbon\CarbonImmutable;
 use Throwable;
 
 final class ImportStores
 {
+    private const LOCK_PREFIX = 'import-stores.';
+
     public function __construct(private readonly SourceRegistry $sources) {}
 
     /**
@@ -32,9 +37,22 @@ final class ImportStores
      *
      * @return array{stores: int, lists: int}
      *
+     * @throws AlreadyRunning Prodejny obchodu se už stahují (R113)
      * @throws Throwable Seznam prodejen se nestáhl, nebo se nestáhl seznam akcí žádné prodejny
      */
     public function __invoke(Chain $chain): array
+    {
+        return ExclusiveRun::run(self::LOCK_PREFIX.$chain->value, fn (): array => $this->import($chain));
+    }
+
+    /**
+     * Stáhne a uloží prodejny a jejich seznamy akcí.
+     *
+     * @return array{stores: int, lists: int}
+     *
+     * @throws Throwable
+     */
+    private function import(Chain $chain): array
     {
         $source = $this->sources->stores($chain);
         $stores = $source->stores();
@@ -52,7 +70,10 @@ final class ImportStores
             ['chain', 'code'],
             ['name', 'city', 'updated_at'],
         );
-        Store::query()->where('chain', $chain)->whereNotIn('code', array_keys($stores))->delete();
+        $closed = Store::query()->where('chain', $chain)->whereNotIn('code', array_keys($stores))->delete();
+        if ($closed > 0) {
+            $this->forgetClosedStores($chain, array_keys($stores));
+        }
 
         $lists = 0;
         $lastError = null;
@@ -79,5 +100,27 @@ final class ImportStores
         }
 
         return ['stores' => count($stores), 'lists' => $lists];
+    }
+
+    /**
+     * Odebere zavřené prodejny z výběru uživatelů (R113) — s kódem, který už neexistuje, by
+     * uživatel tiše viděl jen akce bez omezení a uložení Mých obchodů by validace odmítla.
+     * Bez zbylé prodejny výběr zanikne (null = všechny prodejny).
+     *
+     * @param  list<string>  $openCodes
+     */
+    private function forgetClosedStores(Chain $chain, array $openCodes): void
+    {
+        FollowedChain::query()
+            ->where('chain', $chain)
+            ->whereNotNull('store_codes')
+            ->lazyById()
+            ->each(function (FollowedChain $followed) use ($openCodes): void {
+                $codes = array_values(array_intersect($followed->store_codes ?? [], $openCodes));
+                if ($codes !== $followed->store_codes) {
+                    $followed->store_codes = $codes === [] ? null : $codes;
+                    $followed->save();
+                }
+            });
     }
 }

@@ -136,10 +136,7 @@ final class SeoMeta
             $this->isOffers($routeName) && $productId !== null => 'offers_product',
             $this->isOffers($routeName) && $chain !== null => 'offers_chain',
             $this->isOffers($routeName) => 'offers',
-            $routeName === 'legal.terms' => 'terms',
-            $routeName === 'legal.privacy' => 'privacy',
-            $routeName === 'contact' => 'contact',
-            default => 'default',
+            default => PublicPages::kind($routeName) ?? 'default',
         };
     }
 
@@ -200,7 +197,7 @@ final class SeoMeta
                 ? self::NOINDEX_FOLLOW
                 : self::INDEX;
         }
-        if (in_array($page, ['terms', 'privacy', 'contact'], true)) {
+        if (PublicPages::isPublic($page)) {
             return self::INDEX;
         }
 

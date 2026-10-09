@@ -24,7 +24,6 @@ namespace App\Domain\Offers;
 
 use App\Domain\Chains\ShoppingPreferencesScope;
 use App\Enums\OfferListSort;
-use App\Enums\OfferType;
 use App\Enums\PackageUnit;
 use App\Models\Offer;
 use Carbon\CarbonImmutable;
@@ -40,13 +39,7 @@ final class OfferSearch
      * Cena za jednotku v SQL jako UnitPrice::of (bez ceny cena s kartou); jedna větev CASE na
      * každou PackageUnit — hodnoty doplní unitPriceBindings(). Bez balení NULL.
      */
-    private const UNIT_PRICE_SQL = 'COALESCE(price, loyalty_price) * CASE unit WHEN ? THEN ? WHEN ? THEN ? WHEN ? THEN ? END / NULLIF(quantity, 0)';
-
-    /**
-     * Sleva v procentech v SQL jako Offer::effectiveDiscountPercent: od obchodu, jinak dopočtená
-     * z původní ceny jen u typu „sleva“ (R8); bez slevy NULL. Typ doplní discountBindings().
-     */
-    private const DISCOUNT_SQL = '(CASE WHEN discount_percent > 0 THEN discount_percent WHEN offer_type = ? AND original_price > price THEN ROUND((1 - price / original_price) * 100) END)';
+    private const UNIT_PRICE_SQL = Offer::PUBLIC_PRICE_SQL.' * CASE unit WHEN ? THEN ? WHEN ? THEN ? WHEN ? THEN ? END / NULLIF(quantity, 0)';
 
     public function __construct(
         private readonly LocalCalendar $calendar,
@@ -93,7 +86,7 @@ final class OfferSearch
                 'productAssignments',
                 fn (Builder $query) => $query->whereHas('product', fn (Builder $query) => $query->whereIn('category_id', $this->departments->categoryIds($department))),
             ))
-            ->when($filters->minDiscount, fn (Builder $query, int $percent) => $query->whereRaw(self::DISCOUNT_SQL.' >= ?', [...$this->discountBindings(), $percent]))
+            ->when($filters->minDiscount, fn (Builder $query, int $percent) => $query->withDiscountOf($percent))
             ->with('stores');
 
         foreach (WordStart::words($text ?? '') as $word) {
@@ -103,9 +96,9 @@ final class OfferSearch
         match (self::sortFor($text, $filters)) {
             OfferListSort::Relevance => $this->orderByRelevance($query, (string) $text),
             OfferListSort::Recommended => $this->orderByRecommended($query, $today),
-            OfferListSort::Discount => $this->orderByDiscount($query)->tap(fn (Builder $query) => $this->orderByUnitPrice($query)),
+            OfferListSort::Discount => $this->orderByUnitPrice($query->orderByDiscount()),
             OfferListSort::UnitPrice => $this->orderByUnitPrice($query),
-            OfferListSort::EndingSoon => $this->orderByDiscount($query->orderBy('valid_to')),
+            OfferListSort::EndingSoon => $query->orderBy('valid_to')->orderByDiscount(),
         };
 
         return $query->orderBy('name')->orderBy('id');
@@ -135,10 +128,12 @@ final class OfferSearch
      */
     private function orderByRecommended(Builder $query, CarbonImmutable $today): Builder
     {
+        [$discount, $bindings] = Offer::discountSql();
+
         return $query->orderByRaw('valid_from > ?', [$today->toDateString()])
-            ->orderByRaw(self::DISCOUNT_SQL.' IS NULL', $this->discountBindings())
+            ->orderByRaw($discount.' IS NULL', $bindings)
             ->orderByRaw('created_at >= ? DESC', [$this->freshSince()->toDateTimeString()])
-            ->orderByRaw(self::DISCOUNT_SQL.' DESC', $this->discountBindings())
+            ->orderByRaw($discount.' DESC', $bindings)
             ->orderByDesc('created_at');
     }
 
@@ -149,18 +144,6 @@ final class OfferSearch
     public function freshSince(): CarbonImmutable
     {
         return CarbonImmutable::now()->subDays(config()->integer('letaky.offers.fresh_days'));
-    }
-
-    /**
-     * Od nejvyšší slevy, akce bez známé slevy na konec.
-     *
-     * @param  Builder<Offer>  $query
-     * @return Builder<Offer>
-     */
-    private function orderByDiscount(Builder $query): Builder
-    {
-        return $query->orderByRaw(self::DISCOUNT_SQL.' IS NULL', $this->discountBindings())
-            ->orderByRaw(self::DISCOUNT_SQL.' DESC', $this->discountBindings());
     }
 
     /**
@@ -177,7 +160,8 @@ final class OfferSearch
     }
 
     /**
-     * Podle relevance k hledanému textu, uvnitř skupiny od nejvyšší slevy (R71).
+     * Podle relevance k hledanému textu, uvnitř skupiny od nejvyšší slevy včetně dopočtené
+     * z přeškrtnuté ceny (R71, R113).
      *
      * @param  Builder<Offer>  $query
      * @return Builder<Offer>
@@ -186,17 +170,7 @@ final class OfferSearch
     {
         [$relevance, $bindings] = $this->relevance($text);
 
-        return $query->orderByRaw($relevance, $bindings)->orderByDesc('discount_percent');
-    }
-
-    /**
-     * Hodnoty pro DISCOUNT_SQL: typ „sleva“.
-     *
-     * @return list<string>
-     */
-    private function discountBindings(): array
-    {
-        return [OfferType::Discount->value];
+        return $query->orderByRaw($relevance, $bindings)->orderByDiscount();
     }
 
     /**
