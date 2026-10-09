@@ -27,17 +27,12 @@ final class NewOffers
     public function __construct(private readonly MyOffers $myOffers) {}
 
     /**
-     * Konec posledního stažení akcí (úspěšného nebo částečného) jako text z databáze; null = žádné.
-     * Bez stažení od posledního upozornění nové akce být nemůžou (R58) — kdo ho nedostal,
-     * nemusí se znovu počítat.
+     * Konec posledního stažení akcí (úspěšného nebo částečného); null = žádné. Bez stažení
+     * od posledního upozornění nové akce být nemůžou (R58) — kdo ho nedostal, nemusí se znovu počítat.
      */
-    public function lastImportFinishedAt(): ?string
+    public function lastImportFinishedAt(): ?CarbonImmutable
     {
-        $finishedAt = ScrapeRun::query()
-            ->whereIn('status', [ScrapeStatus::Succeeded, ScrapeStatus::Partial])
-            ->max('finished_at');
-
-        return is_string($finishedAt) ? $finishedAt : null;
+        return ScrapeRun::lastFinishedAt([ScrapeStatus::Succeeded, ScrapeStatus::Partial]);
     }
 
     /**

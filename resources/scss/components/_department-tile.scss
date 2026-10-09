@@ -1,0 +1,91 @@
+// _department-tile.scss
+// Dlaždice oddělení a ikona oddělení (DepartmentIcon.vue) — vyčleněno z pages/_watch.scss (R113).
+//
+// @author Roman Hlaváček
+// @created 2026-10-09
+
+@use '../abstracts/mixins' as *;
+
+// Dlaždice oddělení: ikona v kroužku, název a počet produktů
+// Na telefonu ikona nad názvem (úzké dlaždice ve dvou sloupcích), na širokém displeji vedle
+.department-tile {
+    display: grid;
+    grid-template-columns: 1fr;
+    row-gap: var(--space-1);
+    column-gap: var(--space-3);
+    align-content: start;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    padding: var(--space-3);
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    color: var(--color-text);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: border-color var(--duration-fast), box-shadow var(--duration-fast), transform var(--duration-fast);
+
+    &:hover {
+        border-color: var(--color-accent);
+        box-shadow: var(--shadow-card);
+        transform: translateY(var(--hover-lift));
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        transition: none;
+
+        &:hover {
+            transform: none;
+        }
+    }
+
+    @include from-md {
+        grid-template-columns: auto 1fr;
+        grid-template-rows: auto auto;
+        row-gap: 0;
+        align-content: center;
+    }
+
+    &__icon {
+        display: inline-flex;
+
+        @include from-md {
+            grid-row: 1 / 3;
+        }
+
+        align-items: center;
+        justify-content: center;
+        width: var(--department-icon-box-size);
+        height: var(--department-icon-box-size);
+        background: var(--color-accent-soft);
+        border-radius: 50%;
+        color: var(--color-accent-strong);
+    }
+
+    &__name {
+        font-weight: var(--font-weight-extrabold);
+        line-height: var(--line-height-heading);
+    }
+
+    &__meta {
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+    }
+
+    &__watched {
+        color: var(--color-accent-strong);
+        font-weight: var(--font-weight-bold);
+    }
+}
+
+.department-icon {
+    width: var(--department-icon-size);
+    height: var(--department-icon-size);
+    fill: none;
+    stroke: currentcolor;
+    stroke-width: var(--svg-stroke-icon);
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}

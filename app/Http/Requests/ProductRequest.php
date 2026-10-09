@@ -13,7 +13,7 @@ declare(strict_types=1);
 namespace App\Http\Requests;
 
 use App\Models\Product;
-use App\Rules\SearchableKeywords;
+use App\Rules\KeywordFields;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -26,7 +26,6 @@ class ProductRequest extends FormRequest
      */
     public function rules(): array
     {
-        $keywordsMax = 'max:'.config()->integer('letaky.watch.keywords_max_length');
         $product = $this->route('product');
 
         return [
@@ -35,9 +34,7 @@ class ProductRequest extends FormRequest
                 Rule::unique('products', 'name')->ignore($product instanceof Product ? $product->id : null),
             ],
             'category_id' => ['nullable', 'integer', Rule::exists('categories', 'id')],
-            'keywords' => ['required', 'string', $keywordsMax, new SearchableKeywords],
-            'variant_keywords' => ['nullable', 'string', $keywordsMax],
-            'exclude_keywords' => ['nullable', 'string', $keywordsMax],
+            ...KeywordFields::rules(),
         ];
     }
 

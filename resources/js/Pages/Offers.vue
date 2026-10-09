@@ -30,6 +30,7 @@ import SortSheet from '@/Components/SortSheet.vue';
 import ViewToggle from '@/Components/ViewToggle.vue';
 import WatchOfferButton from '@/Components/WatchOfferButton.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
+import { debounce } from '@/lib/debounce';
 import { useTranslations } from '@/lib/i18n';
 import { rememberSearch } from '@/lib/search';
 import { useCompactView } from '@/lib/viewMode';
@@ -56,6 +57,10 @@ const MIN_DISCOUNT = 'sleva-od';
 
 /** Parametr oddělení katalogu (OfferFilters::DEPARTMENT_PARAMETER, R102). */
 const DEPARTMENT = 'kategorie';
+
+/** Parametr „bez e-shopu“ (R82) a produktu katalogu (R71) — OffersRequest. */
+const WITHOUT_ESHOP = 'bez-eshopu';
+const PRODUCT = 'produkt';
 
 const props = defineProps({
     /** Nadpis podle obchodu nebo produktu („Pivo v akci“), stejný jako pro vyhledávače (SeoMeta, R94). */
@@ -115,11 +120,12 @@ const shoppingPreferencesParameter = computed(() => (props.shoppingPreferences &
 /** Parametry našeptávače — návrhy ze stejných obchodů, bez e-shopu a podle Mých obchodů jako výsledky. */
 const suggestParams = computed(() => ({
     chain: chainParameter.value,
-    'bez-eshopu': filters['bez-eshopu'] ? 1 : '',
+    [WITHOUT_ESHOP]: filters[WITHOUT_ESHOP] ? 1 : '',
     [SHOPPING_PREFERENCES]: shoppingPreferencesParameter.value,
 }));
 
-let liveTimer = null;
+/** Živé hledání po pauze v psaní (R71). */
+const liveSearch = debounce(() => search({ live: true }), LIVE_SEARCH_DEBOUNCE_MS);
 /** Text posledního hledání — živé hledání se stejným textem nespouští znovu. */
 let searchedText = (props.filters.q ?? '').trim();
 
@@ -129,7 +135,7 @@ let searchedText = (props.filters.q ?? '').trim();
  * @param {{ live?: boolean }} [options] live = během psaní (zůstat na místě stránky)
  */
 function search({ live = false } = {}) {
-    window.clearTimeout(liveTimer);
+    liveSearch.cancel();
     searchedText = filters.q.trim();
     const query = Object.fromEntries(
         Object.entries({ ...filters, chain: chainParameter.value, [SHOPPING_PREFERENCES]: shoppingPreferencesParameter.value })
@@ -165,13 +171,13 @@ function submitSearch(text) {
 function showProduct(product) {
     rememberSearch(product.name);
     filters.q = '';
-    filters.produkt = product.id;
+    filters[PRODUCT] = product.id;
     search();
 }
 
 /** Zruší filtr produktu. */
 function clearProduct() {
-    filters.produkt = '';
+    filters[PRODUCT] = '';
     search();
 }
 
@@ -187,7 +193,7 @@ const periodChips = computed(() => [
 
 /** Štítky „kde koupit“: bez e-shopu (R82) a pro přihlášeného podle Mých obchodů (R100). */
 const placeChips = computed(() => [
-    { key: 'bez-eshopu', label: t('search.without_eshop') },
+    { key: WITHOUT_ESHOP, label: t('search.without_eshop') },
     ...(props.shoppingPreferences ? [{ key: SHOPPING_PREFERENCES, label: t('search.shopping_preferences') }] : []),
 ]);
 
@@ -241,11 +247,11 @@ const activeFilterChips = computed(() => {
     if (department) {
         chips.push({ key: DEPARTMENT, label: department.name, action: () => chooseFilter(DEPARTMENT, ''), removable: true });
     }
-    if (filters['bez-eshopu']) {
-        chips.push({ key: 'bez-eshopu', label: t('search.without_eshop'), action: () => toggleFilter('bez-eshopu'), removable: true });
+    if (filters[WITHOUT_ESHOP]) {
+        chips.push({ key: WITHOUT_ESHOP, label: t('search.without_eshop'), action: () => toggleFilter(WITHOUT_ESHOP), removable: true });
     }
     if (props.product) {
-        chips.push({ key: 'produkt', label: t('search.product_filter', { name: props.product }), action: clearProduct, removable: true });
+        chips.push({ key: PRODUCT, label: t('search.product_filter', { name: props.product }), action: clearProduct, removable: true });
     }
 
     return chips;
@@ -270,7 +276,7 @@ function toggleShoppingPreferences() {
 }
 
 /** Filtry, které „Zrušit filtry“ vypne — hledání, obchody a nastavení Mých obchodů zůstanou. */
-const CLEARABLE_FILTERS = [FRESH, ENDING_SOON, UPCOMING, 'bez-eshopu', MIN_DISCOUNT, DEPARTMENT, 'produkt'];
+const CLEARABLE_FILTERS = [FRESH, ENDING_SOON, UPCOMING, WITHOUT_ESHOP, MIN_DISCOUNT, DEPARTMENT, PRODUCT];
 
 /** Je zapnutý některý filtr, který jde zrušit? */
 const hasActiveFilters = computed(() => CLEARABLE_FILTERS.some((key) => Boolean(filters[key])));
@@ -310,16 +316,16 @@ function changeSort(sort) {
 watch(
     () => filters.q,
     (text) => {
-        window.clearTimeout(liveTimer);
+        liveSearch.cancel();
         const trimmed = text.trim();
         if (trimmed === searchedText || (trimmed !== '' && trimmed.length < props.suggestMinLength)) {
             return;
         }
-        liveTimer = window.setTimeout(() => search({ live: true }), LIVE_SEARCH_DEBOUNCE_MS);
+        liveSearch();
     },
 );
 
-onBeforeUnmount(() => window.clearTimeout(liveTimer));
+onBeforeUnmount(() => liveSearch.cancel());
 </script>
 
 <template>
@@ -462,17 +468,17 @@ onBeforeUnmount(() => window.clearTimeout(liveTimer));
                     {{ chip.label }}
                 </FilterChip>
                 <!-- Jen skutečné slevy od procent (R101) — výběr ve tvaru štítku -->
-                <label class="search-chip search-chip--select" :class="{ 'search-chip--on': filters['sleva-od'] }">
+                <label class="search-chip search-chip--select" :class="{ 'search-chip--on': filters[MIN_DISCOUNT] }">
                     <span class="visually-hidden">{{ t('search.min_discount_label') }}</span>
-                    <select v-model="filters['sleva-od']" class="search-chip__select" @change="search()">
+                    <select v-model="filters[MIN_DISCOUNT]" class="search-chip__select" @change="search()">
                         <option value="">{{ t('search.min_discount_any') }}</option>
                         <option v-for="percent in filterOptions.minDiscounts" :key="percent" :value="percent">{{ t('search.min_discount', { percent }) }}</option>
                     </select>
                 </label>
                 <!-- Oddělení katalogu (R102) — akce přiřazené k produktům katalogu -->
-                <label v-if="filterOptions.departments.length" class="search-chip search-chip--select" :class="{ 'search-chip--on': filters.kategorie }">
+                <label v-if="filterOptions.departments.length" class="search-chip search-chip--select" :class="{ 'search-chip--on': filters[DEPARTMENT] }">
                     <span class="visually-hidden">{{ t('search.department_label') }}</span>
-                    <select v-model="filters.kategorie" class="search-chip__select" @change="search()">
+                    <select v-model="filters[DEPARTMENT]" class="search-chip__select" @change="search()">
                         <option value="">{{ t('search.department_any') }}</option>
                         <option v-for="department in filterOptions.departments" :key="department.slug" :value="department.slug">{{ department.name }}</option>
                     </select>

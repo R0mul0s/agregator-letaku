@@ -267,35 +267,14 @@ final class AlbertLeafletParser
     {
         $facts = array_map($this->tileFacts(...), $tiles);
 
-        $pairs = [];
-        foreach ($big as $priceIndex => $price) {
-            foreach ($tiles as $tileIndex => $tile) {
-                $distance = $price->distanceTo($tile->box);
-                if ($distance > self::TILE_MAX_DISTANCE) {
-                    continue;
-                }
+        $pairs = PdfLayout::greedyPairs($big, $tiles, function (PdfBox $price, PdfTile $tile, int $priceIndex, int $tileIndex) use ($facts, $prices, $crossed): ?array {
+            $distance = $price->distanceTo($tile->box);
+            $verified = $distance > self::TILE_MAX_DISTANCE ? null : $this->verify($price, $facts[$tileIndex], $prices, $crossed[$priceIndex] ?? null);
 
-                $verified = $this->verify($price, $facts[$tileIndex], $prices, $crossed[$priceIndex] ?? null);
-                if ($verified !== null) {
-                    $pairs[] = [$distance, $priceIndex, $tileIndex, $verified];
-                }
-            }
-        }
-        usort($pairs, fn (array $a, array $b): int => $a[0] <=> $b[0]);
+            return $verified === null ? null : [$distance, $verified];
+        });
 
-        $usedPrices = [];
-        $usedTiles = [];
-        $matches = [];
-        foreach ($pairs as [, $priceIndex, $tileIndex, $verified]) {
-            if (isset($usedPrices[$priceIndex]) || isset($usedTiles[$tileIndex])) {
-                continue;
-            }
-            $usedPrices[$priceIndex] = true;
-            $usedTiles[$tileIndex] = true;
-            $matches[] = [$priceIndex, $tiles[$tileIndex], $verified];
-        }
-
-        return $matches;
+        return array_map(fn (array $pair): array => [$pair[0], $tiles[$pair[1]], $pair[2]], $pairs);
     }
 
     /**
@@ -459,24 +438,7 @@ final class AlbertLeafletParser
      */
     private function percents(array $words): array
     {
-        $percents = [];
-        foreach ($words as $sign) {
-            if ($sign->text !== self::PERCENT_SIGN) {
-                continue;
-            }
-
-            foreach ($words as $number) {
-                $gap = $sign->xMin - $number->xMax;
-                if ($gap >= -self::ROW_TOLERANCE && $gap <= self::PERCENT_GAP && $number->yMax > $sign->yMin && $number->yMin < $sign->yMax
-                    && preg_match(self::PERCENT_NUMBER_PATTERN, $number->text, $m) === 1) {
-                    $percents[] = new PdfBox($number->text.' %', (int) $m[1], $number->xMin, min($number->yMin, $sign->yMin), $sign->xMax, max($number->yMax, $sign->yMax));
-
-                    break;
-                }
-            }
-        }
-
-        return $percents;
+        return PdfLayout::percents($words, self::PERCENT_SIGN, self::PERCENT_NUMBER_PATTERN, self::ROW_TOLERANCE, self::PERCENT_GAP);
     }
 
     /**
@@ -522,9 +484,9 @@ final class AlbertLeafletParser
      */
     private function tiles(array $words, array $prices): array
     {
-        $text = array_values(array_filter($words, fn (PdfWord $word): bool => ! $this->isPricePart($word, $prices)));
-        $names = PdfLayout::rows(array_values(array_filter($text, fn (PdfWord $word): bool => $word->height() >= self::NAME_MIN_HEIGHT && $word->height() <= self::NAME_MAX_HEIGHT)), self::ROW_TOLERANCE, self::WORD_GAP);
-        $details = PdfLayout::rows(array_values(array_filter($text, fn (PdfWord $word): bool => $word->height() >= self::DETAIL_MIN_HEIGHT && $word->height() <= self::DETAIL_MAX_HEIGHT)), self::ROW_TOLERANCE, self::WORD_GAP);
+        $text = array_values(array_filter($words, fn (PdfWord $word): bool => ! PdfLayout::isInside($word, $prices)));
+        $names = PdfLayout::rows(PdfLayout::byHeight($text, self::NAME_MIN_HEIGHT, self::NAME_MAX_HEIGHT), self::ROW_TOLERANCE, self::WORD_GAP);
+        $details = PdfLayout::rows(PdfLayout::byHeight($text, self::DETAIL_MIN_HEIGHT, self::DETAIL_MAX_HEIGHT), self::ROW_TOLERANCE, self::WORD_GAP);
 
         $usedNames = [];
         $usedDetails = [];
@@ -561,41 +523,7 @@ final class AlbertLeafletParser
      */
     private function below(array $rows, PdfBox $first, PdfBox $last, array &$used): array
     {
-        $column = [];
-        while (true) {
-            $next = null;
-            foreach ($rows as $index => $row) {
-                $gap = $row->yMin - $last->yMax;
-                if (! isset($used[$index]) && abs($row->xMin - $first->xMin) <= self::ALIGN_TOLERANCE
-                    && $row->yMin > $last->yMin && $gap >= -self::LINE_OVERLAP && $gap <= self::LINE_GAP
-                    && ($next === null || $row->yMin < $rows[$next]->yMin)) {
-                    $next = $index;
-                }
-            }
-            if ($next === null) {
-                return $column;
-            }
-
-            $used[$next] = true;
-            $last = $rows[$next];
-            $column[] = $last;
-        }
-    }
-
-    /**
-     * Je slovo částí některé ceny (koruny, haléře, přeškrtnutá cena)?
-     *
-     * @param  list<PdfBox>  $prices
-     */
-    private function isPricePart(PdfWord $word, array $prices): bool
-    {
-        foreach ($prices as $price) {
-            if ($word->xMin >= $price->xMin && $word->xMax <= $price->xMax && $word->yMin >= $price->yMin && $word->yMax <= $price->yMax) {
-                return true;
-            }
-        }
-
-        return false;
+        return PdfLayout::columnBelow($rows, $first, $last, $used, self::ALIGN_TOLERANCE, self::LINE_OVERLAP, self::LINE_GAP);
     }
 
     /**

@@ -257,40 +257,22 @@ final class GlobusLeafletParser
      */
     private function matches(array $anchors, array $tiles): array
     {
-        $pairs = [];
-        foreach ($tiles as $tileIndex => $tile) {
-            $facts = $this->tileFacts($tile);
-            foreach ($anchors as $priceIndex => $price) {
+        $facts = array_map($this->tileFacts(...), $tiles);
+
+        $pairs = PdfLayout::greedyPairs(
+            $tiles,
+            $anchors,
+            function (PdfTile $tile, PdfBox $price, int $tileIndex, int $priceIndex) use ($facts, $anchors): ?array {
                 $distance = $price->distanceTo($tile->box);
-                if ($distance > self::TILE_MAX_DISTANCE) {
-                    continue;
-                }
+                $verified = $distance > self::TILE_MAX_DISTANCE ? null : $this->verify($priceIndex, $anchors, $facts[$tileIndex]);
 
-                $verified = $this->verify($priceIndex, $anchors, $facts);
-                if ($verified !== null) {
-                    $pairs[] = [$distance, $tileIndex, $verified];
-                }
-            }
-        }
-        usort($pairs, fn (array $a, array $b): int => $a[0] <=> $b[0]);
+                return $verified === null ? null : [$distance, $verified];
+            },
+            // Běžná cena pod cenou s kartou patří k téže dlaždici
+            fn (array $verified): array => $verified['regular'] === null ? [] : [$verified['regular']],
+        );
 
-        $usedPrices = [];
-        $usedTiles = [];
-        $matches = [];
-        foreach ($pairs as [, $tileIndex, $verified]) {
-            if (isset($usedTiles[$tileIndex]) || isset($usedPrices[$verified['headline']])
-                || ($verified['regular'] !== null && isset($usedPrices[$verified['regular']]))) {
-                continue;
-            }
-            $usedTiles[$tileIndex] = true;
-            $usedPrices[$verified['headline']] = true;
-            if ($verified['regular'] !== null) {
-                $usedPrices[$verified['regular']] = true;
-            }
-            $matches[] = [$tiles[$tileIndex], $verified];
-        }
-
-        return $matches;
+        return array_map(fn (array $pair): array => [$tiles[$pair[0]], $pair[2]], $pairs);
     }
 
     /**
@@ -407,25 +389,7 @@ final class GlobusLeafletParser
      */
     private function percents(array $words): array
     {
-        $percents = [];
-        foreach ($words as $sign) {
-            if ($sign->text !== self::PERCENT_SIGN) {
-                continue;
-            }
-
-            foreach ($words as $number) {
-                $gap = $sign->xMin - $number->xMax;
-                if ($gap >= -self::ROW_TOLERANCE && $gap <= self::PERCENT_GAP && $number->yMax > $sign->yMin && $number->yMin < $sign->yMax
-                    && $number->height() >= self::PERCENT_MIN_HEIGHT && $number->height() <= self::PERCENT_MAX_HEIGHT
-                    && preg_match(self::PERCENT_NUMBER_PATTERN, $number->text, $m) === 1) {
-                    $percents[] = new PdfBox($number->text.' %', (int) $m[1], $number->xMin, min($number->yMin, $sign->yMin), $sign->xMax, max($number->yMax, $sign->yMax));
-
-                    break;
-                }
-            }
-        }
-
-        return $percents;
+        return PdfLayout::percents($words, self::PERCENT_SIGN, self::PERCENT_NUMBER_PATTERN, self::ROW_TOLERANCE, self::PERCENT_GAP, [self::PERCENT_MIN_HEIGHT, self::PERCENT_MAX_HEIGHT]);
     }
 
     /**
@@ -454,10 +418,10 @@ final class GlobusLeafletParser
      */
     private function tiles(array $words, array $prices): array
     {
-        $text = array_values(array_filter($words, fn (PdfWord $word): bool => ! $this->isPricePart($word, $prices)));
-        $names = PdfLayout::rows($this->byHeight($text, self::NAME_MIN_HEIGHT, self::NAME_MAX_HEIGHT), self::ROW_TOLERANCE, self::WORD_GAP);
-        $details = PdfLayout::rows($this->byHeight($text, self::DETAIL_MIN_HEIGHT, self::DETAIL_MAX_HEIGHT), self::ROW_TOLERANCE, self::WORD_GAP);
-        $units = PdfLayout::rows($this->byHeight($text, self::UNIT_MIN_HEIGHT, self::UNIT_MAX_HEIGHT), self::ROW_TOLERANCE, self::WORD_GAP);
+        $text = array_values(array_filter($words, fn (PdfWord $word): bool => ! PdfLayout::isInside($word, $prices)));
+        $names = PdfLayout::rows(PdfLayout::byHeight($text, self::NAME_MIN_HEIGHT, self::NAME_MAX_HEIGHT), self::ROW_TOLERANCE, self::WORD_GAP);
+        $details = PdfLayout::rows(PdfLayout::byHeight($text, self::DETAIL_MIN_HEIGHT, self::DETAIL_MAX_HEIGHT), self::ROW_TOLERANCE, self::WORD_GAP);
+        $units = PdfLayout::rows(PdfLayout::byHeight($text, self::UNIT_MIN_HEIGHT, self::UNIT_MAX_HEIGHT), self::ROW_TOLERANCE, self::WORD_GAP);
 
         $usedNames = [];
         $usedDetails = [];
@@ -489,17 +453,6 @@ final class GlobusLeafletParser
     }
 
     /**
-     * Slova s výškou písma v rozmezí.
-     *
-     * @param  list<PdfWord>  $words
-     * @return list<PdfWord>
-     */
-    private function byHeight(array $words, float $min, float $max): array
-    {
-        return array_values(array_filter($words, fn (PdfWord $word): bool => $word->height() >= $min && $word->height() <= $max));
-    }
-
-    /**
      * Řádky pod `$last` zarovnané vlevo s prvním řádkem dlaždice, jeden pod druhým.
      *
      * @param  list<PdfBox>  $rows
@@ -508,41 +461,7 @@ final class GlobusLeafletParser
      */
     private function below(array $rows, PdfBox $first, PdfBox $last, array &$used, float $alignTolerance): array
     {
-        $column = [];
-        while (true) {
-            $next = null;
-            foreach ($rows as $index => $row) {
-                $gap = $row->yMin - $last->yMax;
-                if (! isset($used[$index]) && abs($row->xMin - $first->xMin) <= $alignTolerance
-                    && $row->yMin > $last->yMin && $gap >= -self::LINE_OVERLAP && $gap <= self::LINE_GAP
-                    && ($next === null || $row->yMin < $rows[$next]->yMin)) {
-                    $next = $index;
-                }
-            }
-            if ($next === null) {
-                return $column;
-            }
-
-            $used[$next] = true;
-            $last = $rows[$next];
-            $column[] = $last;
-        }
-    }
-
-    /**
-     * Je slovo částí některé ceny (koruny, haléře)?
-     *
-     * @param  list<PdfBox>  $prices
-     */
-    private function isPricePart(PdfWord $word, array $prices): bool
-    {
-        foreach ($prices as $price) {
-            if ($word->xMin >= $price->xMin && $word->xMax <= $price->xMax && $word->yMin >= $price->yMin && $word->yMax <= $price->yMax) {
-                return true;
-            }
-        }
-
-        return false;
+        return PdfLayout::columnBelow($rows, $first, $last, $used, $alignTolerance, self::LINE_OVERLAP, self::LINE_GAP);
     }
 
     /**

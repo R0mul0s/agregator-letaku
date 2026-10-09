@@ -1,0 +1,31 @@
+// _chain-overview.scss
+// Moje slevy Podle obchodů (ChainOverview.vue, R102) — vyčleněno z pages/_watch.scss (R113).
+//
+// @author Roman Hlaváček
+// @created 2026-10-09
+
+@use '../abstracts/mixins' as *;
+
+// Moje slevy „Podle obchodů“ (R102): karta za obchod, nahoře logo a kolik položek je tam nejlevněji
+.chain-overview {
+    display: grid;
+    // Sloupec smí být užší než obsah — řádky akcí (mřížka s 1fr) by jinak kartu roztáhly podle
+    // nejdelšího názvu bez zalomení a stránka by na telefonu ujížděla do strany
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-3);
+
+    &__header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--space-2) var(--space-3);
+        margin-bottom: var(--space-2);
+        font-size: var(--font-size-md);
+    }
+
+    &__summary {
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+        font-weight: var(--font-weight-semibold);
+    }
+}

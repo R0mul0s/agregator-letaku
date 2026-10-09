@@ -1,0 +1,137 @@
+// _search-chips.scss
+// Štítky filtrů pod polem hledání a v Mých slevách (FilterChip.vue, R71, R101, R102) — vyčleněno z _search-panel.scss (R113).
+//
+// @author Roman Hlaváček
+// @created 2026-10-09
+
+@use '../abstracts/mixins' as *;
+
+// Štítky filtrů pod polem (brzy začnou, bez e-shopu, produkt z našeptávače) a přepínač zobrazení
+.search-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    align-items: center;
+    margin: calc(var(--space-2) * -1) 0 var(--space-3);
+
+    // Na telefonu řádek štítků nahradí lišta Seřadit / Filtry a okna (R102)
+    &--desktop {
+        @include below-md {
+            display: none;
+        }
+    }
+}
+
+.search-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    padding: var(--space-1) var(--space-3);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-pill);
+    color: var(--color-text);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    cursor: pointer;
+    transition: border-color var(--duration-fast), background-color var(--duration-fast);
+
+    &:hover {
+        border-color: var(--color-accent);
+    }
+
+    &--on {
+        background: var(--color-accent-soft);
+        border-color: var(--color-accent);
+        color: var(--color-accent-strong);
+    }
+
+    &__remove {
+        display: inline-grid;
+        place-items: center;
+        padding: 0;
+        background: none;
+        border: 0;
+        color: inherit;
+        cursor: pointer;
+
+        svg {
+            width: var(--icon-size-sm);
+            height: var(--icon-size-sm);
+            fill: none;
+            stroke: currentcolor;
+            stroke-width: var(--svg-stroke-icon);
+            stroke-linecap: round;
+        }
+    }
+}
+
+
+// Štítky filtrů na širokém displeji (R101) — zalamují se; na telefonu je řádek skrytý a filtry
+// jsou v okně zespodu (R102)
+.search-chips__filters {
+    display: flex;
+    flex: 0 1 auto;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    align-items: center;
+    min-width: 0;
+}
+
+// Výběr „Sleva od“ ve tvaru štítku (R101) — padding má select, aby šel klepnout celý
+.search-chip--select {
+    @include select-chevron('.search-chip__select');
+
+    padding: 0;
+}
+
+.search-chip__select {
+    padding: var(--space-1) var(--space-3);
+    background: none;
+    border: 0;
+    border-radius: var(--radius-pill);
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+}
+
+// Křížek u zapnutého filtru pod lištou na telefonu (R102)
+.search-chip__icon {
+    width: var(--icon-size-sm);
+    height: var(--icon-size-sm);
+    fill: none;
+    stroke: currentcolor;
+    stroke-width: var(--svg-stroke-icon);
+    stroke-linecap: round;
+}
+
+// Počet akcí ve štítku (Moje slevy, R101)
+.search-chip__count {
+    color: var(--color-text-muted);
+    font-weight: var(--font-weight-extrabold);
+}
+
+.search-chip--on .search-chip__count {
+    color: inherit;
+}
+
+.search-chips__clear {
+    font-size: var(--font-size-sm);
+    white-space: nowrap;
+}
+
+// Řazení (R100) a přepínač karty / řádky (R82) vpravo v řádku štítků
+.search-chips__display {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+    margin-left: auto;
+}
+
+// Kolik akcí skrylo nastavení Mých obchodů (R100) — pod štítky, nad výsledky
+.search-preferences {
+    margin: 0 0 var(--space-3);
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+}

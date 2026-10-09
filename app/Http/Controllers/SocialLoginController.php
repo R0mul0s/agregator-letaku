@@ -184,15 +184,4 @@ class SocialLoginController extends Controller
 
         return in_array($section, self::ACCOUNT_SECTIONS, true) ? $section : self::DEFAULT_SECTION;
     }
-
-    /**
-     * Přihlášený uživatel (routy propojení a potvrzení jsou za middlewarem auth).
-     */
-    private function user(Request $request): User
-    {
-        /** @var User $user */
-        $user = $request->user();
-
-        return $user;
-    }
 }

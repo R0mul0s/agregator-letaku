@@ -24,7 +24,7 @@ use App\Http\Requests\WatchItemRequest;
 use App\Models\Product;
 use App\Models\User;
 use App\Models\WatchItem;
-use App\Rules\SearchableKeywords;
+use App\Rules\KeywordFields;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -143,12 +143,7 @@ class WatchItemController extends Controller
      */
     public function preview(Request $request, MyOffers $myOffers, UserPricing $pricing, WatchHistory $history, TextNormalizer $normalizer): JsonResponse
     {
-        $max = 'max:'.config()->integer('letaky.watch.keywords_max_length');
-        $data = $request->validate([
-            'keywords' => ['required', 'string', $max, new SearchableKeywords],
-            'variant_keywords' => ['nullable', 'string', $max],
-            'exclude_keywords' => ['nullable', 'string', $max],
-        ]);
+        $data = $request->validate(KeywordFields::rules());
 
         /** @var User $user */
         $user = $request->user();

@@ -10,29 +10,25 @@
 <script setup>
 import { closeConsentSettings, consentState, saveConsent } from '@/lib/consent';
 import { useTranslations } from '@/lib/i18n';
+import { useModalDialog } from '@/lib/modalDialog';
 import { Link, usePage } from '@inertiajs/vue3';
-import { nextTick, reactive, ref, watch } from 'vue';
+import { nextTick, reactive } from 'vue';
 
 const t = useTranslations();
 const page = usePage();
 
-const dialog = ref(null);
-
 /** Volby v okně nastavení — začínají uloženým stavem. */
 const choice = reactive({ analytics: false, marketing: false });
 
-watch(
-    () => consentState.settingsOpen,
-    async (open) => {
-        if (open && !dialog.value?.open) {
-            Object.assign(choice, { analytics: consentState.analytics, marketing: consentState.marketing });
-            await nextTick();
-            dialog.value?.showModal();
-        } else if (!open && dialog.value?.open) {
-            dialog.value.close();
-        }
+// Klik na ztmavené pozadí okno zavře (bez uložení)
+const { dialog, onClick: onDialogClick } = useModalDialog(() => consentState.settingsOpen, {
+    onBackdrop: closeConsentSettings,
+    beforeOpen: () => {
+        Object.assign(choice, { analytics: consentState.analytics, marketing: consentState.marketing });
+
+        return nextTick();
     },
-);
+});
 
 /** Přijme všechny kategorie. */
 function acceptAll() {
@@ -52,17 +48,6 @@ function saveChoice() {
 /** Otevře nastavení z lišty. */
 function openSettings() {
     consentState.settingsOpen = true;
-}
-
-/**
- * Klik na ztmavené pozadí okno zavře (bez uložení).
- *
- * @param {MouseEvent} event
- */
-function onDialogClick(event) {
-    if (event.target === dialog.value) {
-        closeConsentSettings();
-    }
 }
 </script>
 

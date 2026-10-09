@@ -1,8 +1,9 @@
 // _search-panel.scss
 // Pole hledání s našeptávačem (R71) — Všechny akce i Hlídám: lupa a kolečko načítání v poli,
 // panel návrhů po skupinách (produkty s ikonou oddělení, akce s miniaturou, obchodem a cenou),
-// zvýrazněná shoda, nápověda kláves; na telefonu hledání přes celou obrazovku. Štítky filtrů,
-// upozornění na opravený překlep a ztlumené výsledky při živém hledání.
+// nápověda kláves; na telefonu hledání přes celou obrazovku, upozornění na opravený překlep
+// a ztlumené výsledky při živém hledání. Štítky filtrů, náhled vlastních slov a zvýraznění
+// shody mají vlastní soubory (R113).
 //
 // @author Roman Hlaváček
 // @created 2026-10-04
@@ -70,7 +71,7 @@
             border: calc(var(--svg-stroke-icon) * 1px) solid var(--color-border);
             border-top-color: var(--color-accent);
             border-radius: 50%;
-            animation: search-spin var(--search-spin-duration) linear infinite;
+            animation: spin var(--search-spin-duration) linear infinite;
         }
     }
 
@@ -134,12 +135,6 @@
     }
 }
 
-@keyframes search-spin {
-    to {
-        transform: rotate(360deg);
-    }
-}
-
 // Panel návrhů
 .search-panel {
     position: absolute;
@@ -180,7 +175,7 @@
         padding: var(--space-2) var(--space-3) var(--space-1);
         color: var(--color-text-muted);
         font-size: var(--font-size-xs);
-        font-weight: 700;
+        font-weight: var(--font-weight-bold);
         text-transform: uppercase;
     }
 
@@ -226,7 +221,7 @@
     &__name {
         display: -webkit-box;
         overflow: hidden;
-        font-weight: 600;
+        font-weight: var(--font-weight-semibold);
         -webkit-box-orient: vertical;
         -webkit-line-clamp: 2;
         line-clamp: 2;
@@ -244,7 +239,7 @@
     // Počet akcí — hlavní důvod, proč produkt hlídat
     &__hot {
         color: var(--color-success-text);
-        font-weight: 700;
+        font-weight: var(--font-weight-bold);
     }
 
     // Ikona oddělení produktu / „+“ u vlastních slov
@@ -258,7 +253,7 @@
         border-radius: 50%;
         color: var(--color-text-muted);
         font-size: var(--font-size-card-title);
-        font-weight: 700;
+        font-weight: var(--font-weight-bold);
 
         .department-icon {
             width: var(--icon-size);
@@ -304,7 +299,7 @@
         border-radius: var(--radius-sm);
         color: var(--color-on-accent);
         font-size: var(--font-size-xs);
-        font-weight: 800;
+        font-weight: var(--font-weight-extrabold);
     }
 
     // Hlídat přímo z návrhu — na telefonu by vzalo místo názvu, hlídat jde i z karty akce
@@ -360,7 +355,7 @@
 
     &__all {
         color: var(--color-accent-strong);
-        font-weight: 700;
+        font-weight: var(--font-weight-bold);
     }
 
     // Nápověda kláves — jen na počítači
@@ -387,73 +382,6 @@
     }
 }
 
-// Zvýrazněná shoda v názvu
-.highlight {
-    background: none;
-    color: var(--color-accent-strong);
-    font-weight: 800;
-}
-
-// Štítky filtrů pod polem (brzy začnou, bez e-shopu, produkt z našeptávače) a přepínač zobrazení
-.search-chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-2);
-    align-items: center;
-    margin: calc(var(--space-2) * -1) 0 var(--space-3);
-
-    // Na telefonu řádek štítků nahradí lišta Seřadit / Filtry a okna (R102)
-    &--desktop {
-        @include below-md {
-            display: none;
-        }
-    }
-}
-
-.search-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-1);
-    padding: var(--space-1) var(--space-3);
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-pill);
-    color: var(--color-text);
-    font-size: var(--font-size-sm);
-    font-weight: 600;
-    cursor: pointer;
-    transition: border-color var(--duration-fast), background-color var(--duration-fast);
-
-    &:hover {
-        border-color: var(--color-accent);
-    }
-
-    &--on {
-        background: var(--color-accent-soft);
-        border-color: var(--color-accent);
-        color: var(--color-accent-strong);
-    }
-
-    &__remove {
-        display: inline-grid;
-        place-items: center;
-        padding: 0;
-        background: none;
-        border: 0;
-        color: inherit;
-        cursor: pointer;
-
-        svg {
-            width: var(--icon-size-sm);
-            height: var(--icon-size-sm);
-            fill: none;
-            stroke: currentcolor;
-            stroke-width: var(--svg-stroke-icon);
-            stroke-linecap: round;
-        }
-    }
-}
-
 // Opravený překlep nad výsledky
 .search-correction {
     margin: 0 0 var(--space-3);
@@ -476,122 +404,8 @@
     transition: opacity var(--duration-fast);
 }
 
-// Náhled vlastních slov ve formuláři Hlídám
-.watch-preview {
-    padding: var(--space-2) var(--space-3);
-    background: var(--color-bg);
-    border-radius: var(--radius-sm);
-    font-size: var(--font-size-sm);
-
-    &__title {
-        margin: 0;
-        font-weight: 700;
-    }
-
-    &__list {
-        display: flex;
-        flex-direction: column;
-        gap: var(--space-1);
-        margin: var(--space-2) 0 0;
-        padding: 0;
-        list-style: none;
-    }
-
-    &__item {
-        display: flex;
-        align-items: center;
-        gap: var(--space-2);
-    }
-
-    &__name {
-        flex: 1;
-        min-width: 0;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
-
-    &__price {
-        flex: none;
-    }
-
-    &__hint {
-        margin: var(--space-2) 0 0;
-        color: var(--color-text-muted);
-    }
-}
-
 @media (prefers-reduced-motion: reduce) {
     .search-suggest__icon--busy::before {
         animation: none;
     }
-}
-
-// Štítky filtrů na širokém displeji (R101) — zalamují se; na telefonu je řádek skrytý a filtry
-// jsou v okně zespodu (R102)
-.search-chips__filters {
-    display: flex;
-    flex: 0 1 auto;
-    flex-wrap: wrap;
-    gap: var(--space-2);
-    align-items: center;
-    min-width: 0;
-}
-
-// Výběr „Sleva od“ ve tvaru štítku (R101) — padding má select, aby šel klepnout celý
-.search-chip--select {
-    @include select-chevron('.search-chip__select');
-
-    padding: 0;
-}
-
-.search-chip__select {
-    padding: var(--space-1) var(--space-3);
-    background: none;
-    border: 0;
-    border-radius: var(--radius-pill);
-    color: inherit;
-    font: inherit;
-    cursor: pointer;
-}
-
-// Křížek u zapnutého filtru pod lištou na telefonu (R102)
-.search-chip__icon {
-    width: var(--icon-size-sm);
-    height: var(--icon-size-sm);
-    fill: none;
-    stroke: currentcolor;
-    stroke-width: var(--svg-stroke-icon);
-    stroke-linecap: round;
-}
-
-// Počet akcí ve štítku (Moje slevy, R101)
-.search-chip__count {
-    color: var(--color-text-muted);
-    font-weight: 800;
-}
-
-.search-chip--on .search-chip__count {
-    color: inherit;
-}
-
-.search-chips__clear {
-    font-size: var(--font-size-sm);
-    white-space: nowrap;
-}
-
-// Řazení (R100) a přepínač karty / řádky (R82) vpravo v řádku štítků
-.search-chips__display {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--space-2);
-    margin-left: auto;
-}
-
-// Kolik akcí skrylo nastavení Mých obchodů (R100) — pod štítky, nad výsledky
-.search-preferences {
-    margin: 0 0 var(--space-3);
-    color: var(--color-text-muted);
-    font-size: var(--font-size-sm);
 }

@@ -14,6 +14,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Offers;
 
+use App\Support\Like;
 use Illuminate\Database\Eloquent\Builder;
 
 final class WordStart
@@ -71,7 +72,7 @@ final class WordStart
      */
     private static function containsPattern(string $word): string
     {
-        return '%'.self::escape($word).'%';
+        return Like::contains($word);
     }
 
     /**
@@ -81,7 +82,7 @@ final class WordStart
      */
     private static function patterns(string $word): array
     {
-        $escaped = self::escape($word);
+        $escaped = Like::escape($word);
 
         return array_map(fn (string $prefix): string => $prefix.$escaped.'%', self::prefixes());
     }
@@ -93,15 +94,7 @@ final class WordStart
      */
     private static function prefixes(): array
     {
-        return ['', ...array_map(fn (string $separator): string => '%'.self::escape($separator), self::SEPARATORS)];
-    }
-
-    /**
-     * Text pro LIKE se zástupnými znaky jako obyčejnými („%“ v „1,5 %“).
-     */
-    private static function escape(string $text): string
-    {
-        return addcslashes($text, '%_\\');
+        return ['', ...array_map(fn (string $separator): string => '%'.Like::escape($separator), self::SEPARATORS)];
     }
 
     /**

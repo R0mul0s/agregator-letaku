@@ -15,9 +15,9 @@ import OfferCard from '@/Components/OfferCard.vue';
 import OfferRow from '@/Components/OfferRow.vue';
 import ShoppingToggle from '@/Components/ShoppingToggle.vue';
 import WatchItemActions from '@/Components/WatchItemActions.vue';
-import { formatDate, formatPrice } from '@/lib/format';
+import { formatDate, formatDiscount, formatPrice } from '@/lib/format';
 import { useTranslations } from '@/lib/i18n';
-import { discountPercent } from '@/lib/offer';
+import { discountPercent, unitPriceLabel } from '@/lib/offer';
 import { usePage } from '@inertiajs/vue3';
 import { computed, useId } from 'vue';
 
@@ -64,7 +64,7 @@ const waitTipText = computed(() => {
         chain: tip.chainName,
         date: formatDate(tip.validFrom, locale),
         price: formatPrice(tip.userPrice, locale),
-        unit_price: t('offers.unit_price', { price: formatPrice(tip.unitPrice, locale), unit: t(`unit_price_units.${tip.unitPriceUnit}`) }),
+        unit_price: unitPriceLabel(tip.unitPrice, tip.unitPriceUnit, locale, t),
         percent: tip.savingPercent,
     });
 });
@@ -91,7 +91,7 @@ const bestDiscount = computed(() => {
                         <!-- Kde je nejlevněji (R100) — v obchodě je obchod jasný -->
                         <ChainLogo v-if="withChain" :chain="cheapestOffer.chain" class="watch-group__chain" />
                     </span>
-                    <span v-if="bestDiscount" class="watch-group__discount">−{{ bestDiscount }} %</span>
+                    <span v-if="bestDiscount" class="watch-group__discount">{{ formatDiscount(bestDiscount) }}</span>
                     <span v-if="!item.offers.length && item.mentions.length" class="watch-group__summary">
                         {{ t('watch.mentions_count', { count: item.mentions.length }) }}
                     </span>

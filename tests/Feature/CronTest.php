@@ -16,6 +16,7 @@ use App\Models\Category;
 use App\Models\ScrapeRun;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 
 const CRON_TOKEN = 'test-cron-token';
@@ -72,6 +73,14 @@ it('stáhne strom kategorií', function (): void {
         ->assertSeeText('Kategorie — uloženo: 54');
 
     expect(Category::query()->count())->toBe(54);
+});
+
+it('volání cronu nezakládá relaci (R113)', function (): void {
+    config(['session.driver' => 'database']);
+
+    $this->get(route('cron.prune-sessions', ['token' => CRON_TOKEN]))->assertOk();
+
+    expect(DB::table('sessions')->count())->toBe(0);
 });
 
 it('souběžné stažení akcí, prodejen ani kategorií nespustí a odpoví 409 (R57, R113)', function (string $route, array $query, string $lock): void {

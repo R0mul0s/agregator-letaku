@@ -10,7 +10,7 @@ import ChainWatermark from '@/Components/ChainWatermark.vue';
 import InfoIcon from '@/Components/InfoIcon.vue';
 import { formatDate } from '@/lib/format';
 import { useTranslations } from '@/lib/i18n';
-import { startsLabel } from '@/lib/offer';
+import { MATCH_MAYBE, startsLabel } from '@/lib/offer';
 import { usePage } from '@inertiajs/vue3';
 import { computed, ref, useId } from 'vue';
 
@@ -54,7 +54,7 @@ const imageBroken = ref(false);
                 <span v-if="mention.storeFormatName" class="tag">{{ mention.storeFormatName }}</span>
                 <!-- Vysvětlení klepnutím — title se na dotykovém displeji neukáže (R55) -->
                 <button
-                    v-if="mention.matchStatus === 'maybe'"
+                    v-if="mention.matchStatus === MATCH_MAYBE"
                     type="button"
                     class="tag tag--warning tag--info"
                     :aria-expanded="maybeHintOpen ? 'true' : 'false'"
@@ -65,7 +65,7 @@ const imageBroken = ref(false);
                     <InfoIcon />
                 </button>
             </div>
-            <p v-if="mention.matchStatus === 'maybe'" :id="maybeHintId" class="offer-card__hint" :hidden="!maybeHintOpen">{{ t('home.mention_maybe_hint') }}</p>
+            <p v-if="mention.matchStatus === MATCH_MAYBE" :id="maybeHintId" class="offer-card__hint" :hidden="!maybeHintOpen">{{ t('home.mention_maybe_hint') }}</p>
             <p class="mention-card__title">{{ mention.leafletTitle || t('home.mention_leaflet') }}</p>
             <p v-if="mention.validFrom && mention.validTo" class="mention-card__meta">
                 {{ t('offers.valid', { from: formatDate(mention.validFrom, locale), to: formatDate(mention.validTo, locale) }) }}

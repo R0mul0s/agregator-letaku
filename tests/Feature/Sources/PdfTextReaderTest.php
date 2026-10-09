@@ -14,7 +14,10 @@ declare(strict_types=1);
 use App\Domain\Sources\Exceptions\PdfTextFailed;
 use App\Domain\Sources\Pdf\PdfLine;
 use App\Domain\Sources\Pdf\PdfTextReader;
+use App\Domain\Sources\SourceHttp;
+use Illuminate\Http\Client\RequestException;
 use Illuminate\Process\PendingProcess;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Process;
 
 const PDF_PAGE_FIXTURE = 'pdf/lidl-8-10-2026-page-22.html';
@@ -44,7 +47,8 @@ it('řídicí znaky z glyfů vlastních fontů vynechá místo chyby XML', funct
     expect($texts)->toContain('Plnotučná bryndza');
 });
 
-it('PDF předá programu pdftotext v dočasném souboru a soubor pak smaže', function (): void {
+it('PDF stáhne na disk, předá programu pdftotext a soubor pak smaže (R113)', function (): void {
+    Http::fake(['https://example.com/letak.pdf' => Http::response('%PDF-test')]);
     $path = null;
     Process::fake(function (PendingProcess $process) use (&$path) {
         $command = (array) $process->command;
@@ -56,15 +60,29 @@ it('PDF předá programu pdftotext v dočasném souboru a soubor pak smaže', fu
         return Process::result(responseFixture(PDF_PAGE_FIXTURE));
     });
 
-    $pages = app(PdfTextReader::class)->read('%PDF-test');
+    $pages = app(PdfTextReader::class)->readUrl(new SourceHttp, 'https://example.com/letak.pdf');
 
     expect($pages)->toHaveCount(1)
         ->and(is_string($path) && file_exists($path))->toBeFalse();
 });
 
 it('chybu programu i nečitelný výstup ohlásí výjimkou', function (): void {
+    Http::fake(['https://example.com/letak.pdf' => Http::response('%PDF-test')]);
     Process::fake(['*' => Process::result(errorOutput: 'Syntax Error: Couldn\'t read xref table', exitCode: 1)]);
-    expect(fn () => app(PdfTextReader::class)->read('%PDF-test'))->toThrow(PdfTextFailed::class, 'kódem 1');
+    expect(fn () => app(PdfTextReader::class)->readUrl(new SourceHttp, 'https://example.com/letak.pdf'))->toThrow(PdfTextFailed::class, 'kódem 1');
 
     expect(fn () => app(PdfTextReader::class)->parse('není to XML'))->toThrow(PdfTextFailed::class, 'není XML');
+});
+
+it('odmítnutý požadavek (4xx) neopakuje, chybu serveru ano (R113)', function (): void {
+    config(['letaky.http.retries' => 3, 'letaky.http.retry_delay_ms' => 0, 'letaky.http.request_delay_ms' => 0]);
+    Http::fake([
+        'https://example.com/zakazano' => Http::response('', 401),
+        'https://example.com/vypadek' => Http::response('', 503),
+    ]);
+
+    expect(fn () => (new SourceHttp)->request()->get('https://example.com/zakazano'))->toThrow(RequestException::class)
+        ->and(fn () => (new SourceHttp)->request()->get('https://example.com/vypadek'))->toThrow(RequestException::class);
+
+    Http::assertSentCount(1 + 3);
 });

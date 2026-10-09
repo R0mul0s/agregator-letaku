@@ -102,7 +102,7 @@ final class LidlOfferSource implements OfferSource
             $response = is_array($response) ? $response : [];
             $flyer = $this->parser->flyer($response, $slug, $pageUrlPattern);
 
-            $pages = $this->pdfReader->read($this->downloadPdf($this->parser->pdfUrl($response, $slug)));
+            $pages = $this->pdfReader->readUrl($this->http, $this->parser->pdfUrl($response, $slug), config()->integer('letaky.sources.lidl.request_delay_ms'));
             $offers = array_values(array_filter(
                 $this->leafletParser->offers($pages, $flyer->leaflet, $slug, $pageUrlPattern),
                 fn (OfferData $offer): bool => ! array_any($webOffers, fn (OfferData $webOffer): bool => $this->isSameOffer($offer, $webOffer)),
@@ -146,17 +146,6 @@ final class LidlOfferSource implements OfferSource
             explode(' ', trim($this->normalizer->normalize($name))),
             fn (string $word): bool => mb_strlen($word) >= self::SIGNIFICANT_WORD_MIN_LENGTH && ! is_numeric($word),
         ));
-    }
-
-    /**
-     * PDF letáku (25–35 MB) s delším timeoutem; chyba stažení vyhodí výjimku.
-     */
-    private function downloadPdf(string $url): string
-    {
-        return $this->http->request(config()->integer('letaky.sources.lidl.request_delay_ms'))
-            ->timeout(config()->integer('letaky.http.pdf_timeout_seconds'))
-            ->get($url)
-            ->body();
     }
 
     /**

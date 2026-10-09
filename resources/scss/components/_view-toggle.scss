@@ -36,7 +36,7 @@
         color: var(--color-text-muted);
         font: inherit;
         font-size: var(--font-size-sm);
-        font-weight: 600;
+        font-weight: var(--font-weight-semibold);
         cursor: pointer;
         transition: background-color var(--duration-fast), color var(--duration-fast);
 

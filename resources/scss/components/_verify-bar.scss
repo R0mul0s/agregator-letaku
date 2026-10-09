@@ -29,7 +29,7 @@
         flex: none;
         border-color: currentcolor;
         color: var(--color-warning-text);
-        font-weight: 700;
+        font-weight: var(--font-weight-bold);
 
         &:hover:not(:disabled) {
             background: var(--color-warning-text);

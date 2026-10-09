@@ -30,27 +30,63 @@ final class PdfLayout
      */
     public static function nearest(array $prices, array $candidates, callable $distance): array
     {
-        $pairs = [];
-        foreach ($prices as $priceIndex => $price) {
-            foreach ($candidates as $candidateIndex => $candidate) {
-                $value = $distance($price, $candidate);
-                if ($value !== null) {
-                    $pairs[] = [$value, $priceIndex, $candidateIndex];
-                }
-            }
-        }
-        usort($pairs, fn (array $a, array $b): int => $a[0] <=> $b[0]);
-
         $result = [];
-        $used = [];
-        foreach ($pairs as [, $priceIndex, $candidateIndex]) {
-            if (! isset($result[$priceIndex]) && ! isset($used[$candidateIndex])) {
-                $result[$priceIndex] = $candidates[$candidateIndex];
-                $used[$candidateIndex] = true;
-            }
+        $pairs = self::greedyPairs($prices, $candidates, function (mixed $price, mixed $candidate) use ($distance): ?array {
+            $value = $distance($price, $candidate);
+
+            return $value === null ? null : [$value, null];
+        });
+        foreach ($pairs as [$priceIndex, $candidateIndex]) {
+            $result[$priceIndex] = $candidates[$candidateIndex];
         }
 
         return $result;
+    }
+
+    /**
+     * Dvojice prvků dvou seznamů (ceny a dlaždice, ceny a přeškrtnuté ceny): ze všech
+     * přípustných vyhrávají nejbližší a každý prvek obou seznamů je nejvýš v jedné dvojici.
+     * Shodné vzdálenosti rozhoduje pořadí prvků (první seznam vně, druhý uvnitř).
+     *
+     * @template TFirst
+     * @template TSecond
+     * @template TPayload
+     *
+     * @param  array<int, TFirst>  $first
+     * @param  array<int, TSecond>  $second
+     * @param  callable(TFirst, TSecond, int, int): (array{float, TPayload}|null)  $score  Vzdálenost a data dvojice, null = k sobě nepatří
+     * @param  (callable(TPayload): list<int>)|null  $alsoUses  Další prvky druhého seznamu, které dvojice spotřebuje (běžná cena pod cenou s kartou)
+     * @return list<array{int, int, TPayload}> Index v prvním, index ve druhém a data, od nejbližší dvojice
+     */
+    public static function greedyPairs(array $first, array $second, callable $score, ?callable $alsoUses = null): array
+    {
+        $candidates = [];
+        foreach ($first as $firstIndex => $a) {
+            foreach ($second as $secondIndex => $b) {
+                $scored = $score($a, $b, $firstIndex, $secondIndex);
+                if ($scored !== null) {
+                    $candidates[] = [$scored[0], $firstIndex, $secondIndex, $scored[1]];
+                }
+            }
+        }
+        usort($candidates, fn (array $a, array $b): int => $a[0] <=> $b[0]);
+
+        $usedFirst = [];
+        $usedSecond = [];
+        $pairs = [];
+        foreach ($candidates as [, $firstIndex, $secondIndex, $payload]) {
+            $consumes = [$secondIndex, ...($alsoUses === null ? [] : $alsoUses($payload))];
+            if (isset($usedFirst[$firstIndex]) || array_any($consumes, fn (int $index): bool => isset($usedSecond[$index]))) {
+                continue;
+            }
+            $usedFirst[$firstIndex] = true;
+            foreach ($consumes as $index) {
+                $usedSecond[$index] = true;
+            }
+            $pairs[] = [$firstIndex, $secondIndex, $payload];
+        }
+
+        return $pairs;
     }
 
     /**
@@ -166,5 +202,100 @@ final class PdfLayout
             && $box->xMax >= $price->xMin - $side;
 
         return $fits ? $price->distanceTo($box) : null;
+    }
+
+    /**
+     * Slova s výškou písma v rozmezí (název, popis, cena za jednotku).
+     *
+     * @param  list<PdfWord>  $words
+     * @return list<PdfWord>
+     */
+    public static function byHeight(array $words, float $min, float $max): array
+    {
+        return array_values(array_filter($words, fn (PdfWord $word): bool => $word->height() >= $min && $word->height() <= $max));
+    }
+
+    /**
+     * Leží slovo uvnitř některého z prvků (cena, štítek) — s tolerancí na každé straně?
+     *
+     * @param  list<PdfBox>  $boxes
+     */
+    public static function isInside(PdfWord $word, array $boxes, float $tolerance = 0.0): bool
+    {
+        foreach ($boxes as $box) {
+            if ($word->xMin >= $box->xMin - $tolerance && $word->xMax <= $box->xMax + $tolerance
+                && $word->yMin >= $box->yMin - $tolerance && $word->yMax <= $box->yMax + $tolerance) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Řádky pod `$last` zarovnané vlevo s prvním řádkem dlaždice, jeden pod druhým (řádky
+     * názvu a popisu dlaždice). Vybrané řádky označí v `$used`, ať nepatří dvěma dlaždicím.
+     *
+     * @param  list<PdfBox>  $rows
+     * @param  array<int, true>  $used  Řádky, které už patří jiné dlaždici
+     * @param  float  $alignTolerance  Odchylka levého okraje od prvního řádku
+     * @param  float  $lineOverlap  Jak moc se řádek smí překrývat s předchozím
+     * @param  float  $lineGap  Největší mezera mezi řádky
+     * @return list<PdfBox>
+     */
+    public static function columnBelow(array $rows, PdfBox $first, PdfBox $last, array &$used, float $alignTolerance, float $lineOverlap, float $lineGap): array
+    {
+        $column = [];
+        while (true) {
+            $next = null;
+            foreach ($rows as $index => $row) {
+                $gap = $row->yMin - $last->yMax;
+                if (! isset($used[$index]) && abs($row->xMin - $first->xMin) <= $alignTolerance
+                    && $row->yMin > $last->yMin && $gap >= -$lineOverlap && $gap <= $lineGap
+                    && ($next === null || $row->yMin < $rows[$next]->yMin)) {
+                    $next = $index;
+                }
+            }
+            if ($next === null) {
+                return $column;
+            }
+
+            $used[$next] = true;
+            $last = $rows[$next];
+            $column[] = $last;
+        }
+    }
+
+    /**
+     * Slevy v procentech: číslo (případně „-“ před ním) a hned za ním znak procenta.
+     *
+     * @param  list<PdfWord>  $words
+     * @param  string  $numberPattern  Číslo slevy v první skupině („/^[-–]?(\d{1,2})$/u“)
+     * @param  float  $rowTolerance  Překryv čísla a znaku
+     * @param  float  $maxGap  Největší mezera mezi číslem a znakem
+     * @param  array{float, float}|null  $height  Rozmezí výšky čísla (cenovka, ne popis); null = libovolná
+     * @return list<PdfBox>
+     */
+    public static function percents(array $words, string $sign, string $numberPattern, float $rowTolerance, float $maxGap, ?array $height = null): array
+    {
+        $percents = [];
+        foreach ($words as $signWord) {
+            if ($signWord->text !== $sign) {
+                continue;
+            }
+
+            foreach ($words as $number) {
+                $gap = $signWord->xMin - $number->xMax;
+                if ($gap >= -$rowTolerance && $gap <= $maxGap && $number->yMax > $signWord->yMin && $number->yMin < $signWord->yMax
+                    && ($height === null || ($number->height() >= $height[0] && $number->height() <= $height[1]))
+                    && preg_match($numberPattern, $number->text, $m) === 1) {
+                    $percents[] = new PdfBox($number->text.' %', (int) $m[1], $number->xMin, min($number->yMin, $signWord->yMin), $signWord->xMax, max($number->yMax, $signWord->yMax));
+
+                    break;
+                }
+            }
+        }
+
+        return $percents;
     }
 }

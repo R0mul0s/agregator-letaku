@@ -73,7 +73,7 @@
         box-shadow: var(--shadow-card);
         color: var(--color-on-brand);
         font-size: var(--font-size-sticker);
-        font-weight: 900;
+        font-weight: var(--font-weight-black);
         transform: rotate(var(--sticker-rotation));
 
         // Karta bez obrázku: cenovka v toku na konci řádku štítků
@@ -105,7 +105,7 @@
         background: var(--color-bg);
         color: var(--color-text-muted);
         font-size: var(--font-size-xs);
-        font-weight: 700;
+        font-weight: var(--font-weight-bold);
 
         &--lowest {
             background: var(--color-success-soft);
@@ -135,7 +135,7 @@
     &__variant {
         color: var(--color-warning-text);
         font-size: var(--font-size-sm);
-        font-weight: 600;
+        font-weight: var(--font-weight-semibold);
     }
 
     &__prices {
@@ -150,7 +150,7 @@
     &__price {
         color: var(--color-price);
         font-size: var(--font-size-price);
-        font-weight: 900;
+        font-weight: var(--font-weight-black);
 
         &--text {
             font-size: var(--font-size-md);
@@ -163,11 +163,11 @@
 
     &__discount {
         color: var(--color-accent-strong);
-        font-weight: 700;
+        font-weight: var(--font-weight-bold);
     }
 
     &__loyalty {
-        font-weight: 600;
+        font-weight: var(--font-weight-semibold);
     }
 
     &__actions {
@@ -201,6 +201,6 @@
 
     &--done {
         color: var(--color-success-text);
-        font-weight: 700;
+        font-weight: var(--font-weight-bold);
     }
 }

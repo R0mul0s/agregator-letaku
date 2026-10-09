@@ -32,7 +32,7 @@
     gap: var(--space-1);
 
     &__label {
-        font-weight: 600;
+        font-weight: var(--font-weight-semibold);
     }
 
     &__input {
@@ -177,7 +177,6 @@
 
     .form-checkbox__input {
         flex: none;
-        // Políčko na střed prvního řádku popisku
-        margin-top: calc((1em * var(--line-height-base) - var(--checkbox-size)) / 2);
+        margin-top: var(--checkbox-first-line-offset);
     }
 }

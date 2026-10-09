@@ -17,7 +17,6 @@ use Database\Factories\CategoryFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * @property int $id
@@ -66,15 +65,5 @@ class Category extends Model
     public function parent(): BelongsTo
     {
         return $this->belongsTo(self::class, 'parent_id');
-    }
-
-    /**
-     * Podkategorie.
-     *
-     * @return HasMany<Category, $this>
-     */
-    public function children(): HasMany
-    {
-        return $this->hasMany(self::class, 'parent_id');
     }
 }

@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace App\Domain\Matching;
 
 use App\Models\Offer;
+use App\Support\Like;
 use Illuminate\Database\Eloquent\Builder;
 
 final class OfferPrefilter
@@ -40,13 +41,24 @@ final class OfferPrefilter
     }
 
     /**
+     * Slova všech pravidel pro předvýběr v databázi (WatchRule::prefilterTerm), bez opakování.
+     *
+     * @param  array<int, WatchRule>  $rules
+     * @return list<string>
+     */
+    public static function wordsOf(array $rules): array
+    {
+        return array_values(array_unique(array_merge(...array_map(fn (WatchRule $rule): array => $rule->prefilterTerm(), array_values($rules)))));
+    }
+
+    /**
      * Vzor LIKE pro normalizované slovo. Interpunkce se při normalizaci mění na mezeru
      * („K-Mistři“ → „k mistri“), v databázi ale zůstává („K-Mistři“) — hledá se proto jen
      * nejdelší část slova; zbytek ověří WatchItemMatcher.
      */
     public static function likePattern(string $word): string
     {
-        return '%'.addcslashes(self::searchedPart($word), '%_\\').'%';
+        return Like::contains(self::searchedPart($word));
     }
 
     /**

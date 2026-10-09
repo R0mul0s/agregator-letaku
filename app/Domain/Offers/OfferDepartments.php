@@ -52,10 +52,8 @@ final class OfferDepartments
     public function withOffers(): array
     {
         $categoryIds = OfferProduct::query()
-            ->join('offers', 'offers.id', '=', 'offer_product.offer_id')
+            ->joinCurrentOffers($this->calendar->today())
             ->join('products', 'products.id', '=', 'offer_product.product_id')
-            ->whereNull('offers.withdrawn_at')
-            ->where('offers.valid_to', '>=', $this->calendar->today()->toDateString())
             ->whereNotNull('products.category_id')
             ->distinct()
             ->pluck('products.category_id')

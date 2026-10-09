@@ -19,13 +19,12 @@ use App\Domain\Account\RegistrationGuard;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
 
 class CreateNewUser implements CreatesNewUsers
 {
-    use PasswordValidationRules;
+    use PasswordValidationRules, ProfileValidationRules;
 
     public function __construct(
         private readonly RegistrationGuard $guard,
@@ -47,8 +46,8 @@ class CreateNewUser implements CreatesNewUsers
         }
 
         $data = Validator::make($input, [
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', Rule::unique(User::class)],
+            'name' => $this->nameRules(),
+            'email' => $this->emailRules(),
             'password' => $this->registrationPasswordRules(),
             'terms' => ['accepted'],
             'marketing' => ['boolean'],

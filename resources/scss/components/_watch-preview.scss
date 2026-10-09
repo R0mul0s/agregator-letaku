@@ -1,0 +1,52 @@
+// _watch-preview.scss
+// Náhled vlastních slov ve formuláři Hlídám (R71, R104) — vyčleněno z _search-panel.scss (R113).
+//
+// @author Roman Hlaváček
+// @created 2026-10-09
+
+@use '../abstracts/mixins' as *;
+
+// Náhled vlastních slov ve formuláři Hlídám
+.watch-preview {
+    padding: var(--space-2) var(--space-3);
+    background: var(--color-bg);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-sm);
+
+    &__title {
+        margin: 0;
+        font-weight: var(--font-weight-bold);
+    }
+
+    &__list {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-1);
+        margin: var(--space-2) 0 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    &__item {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+    }
+
+    &__name {
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    &__price {
+        flex: none;
+    }
+
+    &__hint {
+        margin: var(--space-2) 0 0;
+        color: var(--color-text-muted);
+    }
+}

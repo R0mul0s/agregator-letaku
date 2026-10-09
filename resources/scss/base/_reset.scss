@@ -133,3 +133,10 @@ option {
         display: none;
     }
 }
+
+// Otočení dokola — načítací kolečka (hledání, stažení stránky dolů); dřív dvě stejné keyframes (R113)
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}

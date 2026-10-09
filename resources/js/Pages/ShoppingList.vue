@@ -18,7 +18,7 @@ import { copyText } from '@/lib/clipboard';
 import { confirmDialog } from '@/lib/confirm';
 import { formatDate, formatPrice } from '@/lib/format';
 import { useTranslations } from '@/lib/i18n';
-import { packageLabel } from '@/lib/offer';
+import { OFFER_TYPE, packageLabel } from '@/lib/offer';
 import { pendingChecks, queueCheck } from '@/lib/offlineChecks';
 import { showToast } from '@/lib/toast';
 import { useWakeLock } from '@/lib/wakeLock';
@@ -143,7 +143,7 @@ async function clearChecked(url) {
  * @returns {boolean}
  */
 function isPromotionText(item) {
-    return item.offer.offerType === 'multibuy' && Boolean(item.offer.promotionText);
+    return item.offer.offerType === OFFER_TYPE.MULTIBUY && Boolean(item.offer.promotionText);
 }
 
 /**

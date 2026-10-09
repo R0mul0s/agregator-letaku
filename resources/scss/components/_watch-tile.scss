@@ -1,0 +1,105 @@
+// _watch-tile.scss
+// Dlaždice hlídané položky v Hlídám (WatchItemTile.vue) — vyčleněno z pages/_watch.scss (R113).
+//
+// @author Roman Hlaváček
+// @created 2026-10-09
+
+@use '../abstracts/mixins' as *;
+
+.watch-tile {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    padding: var(--space-3);
+
+    // Položka s akcí má levý okraj v akcentu — na první pohled je vidět, co je ve slevě
+    &--active {
+        border-left: var(--watch-tile-accent-width) solid var(--color-accent);
+    }
+
+    // Formulář úpravy potřebuje víc místa než dlaždice
+    &--editing {
+        grid-column: 1 / -1;
+    }
+
+    // Právě přidaná položka (R71) — naskočí a krátce se rozsvítí; při omezení pohybu nic
+    &--fresh {
+        animation: watch-tile-fresh var(--duration-fresh) ease-out;
+
+        @media (prefers-reduced-motion: reduce) {
+            animation: none;
+        }
+    }
+
+    &__header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: var(--space-2);
+    }
+
+    &__name {
+        font-size: var(--font-size-md);
+        overflow-wrap: anywhere;
+    }
+
+    &__actions {
+        display: flex;
+        flex: none;
+        margin: calc(-1 * var(--space-1)) calc(-1 * var(--space-1)) 0 0;
+    }
+
+    &__source {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--space-1) var(--space-2);
+        margin: 0;
+    }
+
+    &__keywords {
+        color: var(--color-text-muted);
+        font-size: var(--font-size-xs);
+        overflow-wrap: anywhere;
+    }
+
+    &__status {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-1) var(--space-2);
+        margin: 0;
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+
+        &--offers {
+            color: var(--color-price);
+            text-decoration: none;
+
+            &:hover {
+                text-decoration: underline;
+            }
+        }
+    }
+
+    &__mentions {
+        margin: 0;
+        color: var(--color-text-muted);
+        font-size: var(--font-size-xs);
+    }
+}
+
+@keyframes watch-tile-fresh {
+    0% {
+        box-shadow: 0 0 0 0 var(--color-accent);
+        transform: scale(0.96);
+    }
+
+    30% {
+        box-shadow: 0 0 0 var(--fresh-ring-width) var(--color-accent-soft);
+        transform: scale(1);
+    }
+
+    100% {
+        box-shadow: var(--shadow-card);
+    }
+}

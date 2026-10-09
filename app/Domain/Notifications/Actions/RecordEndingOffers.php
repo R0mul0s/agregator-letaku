@@ -75,7 +75,7 @@ final class RecordEndingOffers
             $offers = $user->shoppingListItems()
                 ->whereNull('checked_at')
                 ->whereIn('offer_id', $endingOfferIds)
-                ->with('offer')
+                ->with(['offer' => fn ($query) => $query->withoutRaw()])
                 ->get()
                 ->map(fn (ShoppingListItem $item): Offer => $item->offer);
             $user->notify(new EndingSoonNotification($this->groupsByChain(array_values($offers->all()))));

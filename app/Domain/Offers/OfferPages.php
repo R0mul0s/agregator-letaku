@@ -112,9 +112,7 @@ final class OfferPages
     public function productsWithOffers(): array
     {
         $ids = OfferProduct::query()
-            ->join('offers', 'offers.id', '=', 'offer_product.offer_id')
-            ->whereNull('offers.withdrawn_at')
-            ->where('offers.valid_to', '>=', $this->calendar->today()->toDateString())
+            ->joinCurrentOffers($this->calendar->today())
             ->distinct()
             ->pluck('offer_product.product_id')
             ->map(fn (mixed $id): int => (int) $id)

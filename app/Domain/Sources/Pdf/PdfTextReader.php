@@ -17,8 +17,10 @@ declare(strict_types=1);
 namespace App\Domain\Sources\Pdf;
 
 use App\Domain\Sources\Exceptions\PdfTextFailed;
+use App\Domain\Sources\SourceHttp;
 use DOMDocument;
 use DOMElement;
+use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Process;
 
 final class PdfTextReader
@@ -30,25 +32,43 @@ final class PdfTextReader
     private const CONTROL_CHARACTERS = '/[\x00-\x08\x0B\x0C\x0E-\x1F]/';
 
     /**
-     * Stránky PDF (obsah souboru) s textem a polohou slov.
+     * Stáhne PDF letáku do dočasného souboru a vrátí jeho stránky s textem a polohou slov.
+     * Soubor se nedrží v paměti a po přečtení se smaže. HTTP klient je zdroje — drží jeho
+     * pauzu mezi požadavky.
+     *
+     * @param  int|null  $delayMs  Pauza zdroje; null = výchozí z konfigurace
+     * @return list<PdfPage>
+     *
+     * @throws PdfTextFailed
+     * @throws RequestException PDF se nestáhlo
+     */
+    public function readUrl(SourceHttp $http, string $url, ?int $delayMs = null): array
+    {
+        $path = tempnam(sys_get_temp_dir(), self::TEMP_PREFIX);
+        if ($path === false) {
+            throw PdfTextFailed::because('nejde vytvořit dočasný soubor');
+        }
+
+        try {
+            $http->download($url, $path, $delayMs);
+
+            return $this->readFile($path);
+        } finally {
+            @unlink($path);
+        }
+    }
+
+    /**
+     * Stránky PDF souboru na disku.
      *
      * @return list<PdfPage>
      *
      * @throws PdfTextFailed
      */
-    public function read(string $pdf): array
+    private function readFile(string $path): array
     {
-        $path = tempnam(sys_get_temp_dir(), self::TEMP_PREFIX);
-        if ($path === false || file_put_contents($path, $pdf) === false) {
-            throw PdfTextFailed::because('nejde zapsat dočasný soubor');
-        }
-
-        try {
-            $result = Process::timeout(config()->integer('letaky.pdf.timeout_seconds'))
-                ->run([config()->string('letaky.pdf.pdftotext_binary'), '-bbox-layout', '-q', $path, '-']);
-        } finally {
-            @unlink($path);
-        }
+        $result = Process::timeout(config()->integer('letaky.pdf.timeout_seconds'))
+            ->run([config()->string('letaky.pdf.pdftotext_binary'), '-bbox-layout', '-q', $path, '-']);
 
         if (! $result->successful()) {
             throw PdfTextFailed::because("pdftotext skončil s kódem {$result->exitCode()}: ".trim($result->errorOutput()));

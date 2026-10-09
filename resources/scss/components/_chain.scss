@@ -21,7 +21,7 @@
     }
 
     &__name {
-        font-weight: 600;
+        font-weight: var(--font-weight-semibold);
     }
 
     &--large &__image {
@@ -80,7 +80,7 @@
         }
 
         &[aria-selected='true'] {
-            font-weight: 600;
+            font-weight: var(--font-weight-semibold);
         }
 
         // Výběr víc obchodů (R82): zaškrtávátko před logem
@@ -131,7 +131,7 @@
     &__more {
         color: var(--color-text-muted);
         font-size: var(--font-size-sm);
-        font-weight: 600;
+        font-weight: var(--font-weight-semibold);
     }
 }
 

@@ -18,6 +18,9 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class PushSubscriptionRequest extends FormRequest
 {
+    /** Nejdelší adresa odběru (sloupec push_subscriptions.endpoint). */
+    public const ENDPOINT_MAX_LENGTH = 500;
+
     /** Klíče prohlížeče v base64url (případně s doplněním „=“). */
     private const BASE64URL_PATTERN = '/^[A-Za-z0-9_-]+={0,2}$/';
 
@@ -30,7 +33,7 @@ class PushSubscriptionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'endpoint' => ['required', 'string', 'max:500', 'url', new PushServiceEndpoint],
+            'endpoint' => ['required', 'string', 'max:'.self::ENDPOINT_MAX_LENGTH, 'url', new PushServiceEndpoint],
             'keys.p256dh' => ['required', 'string', 'between:80,100', 'regex:'.self::BASE64URL_PATTERN],
             'keys.auth' => ['required', 'string', 'between:16,50', 'regex:'.self::BASE64URL_PATTERN],
         ];

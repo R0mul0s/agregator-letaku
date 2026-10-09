@@ -20,7 +20,6 @@ use App\Enums\Chain;
 use App\Http\Requests\ShoppingListRequest;
 use App\Http\Requests\ShoppingListSyncRequest;
 use App\Models\ShoppingListItem;
-use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -45,7 +44,7 @@ class ShoppingListController extends Controller
     {
         $user = $this->user($request);
         $today = $calendar->today();
-        $items = $user->shoppingListItems()->with('offer.stores')->get();
+        $items = $user->shoppingListItems()->with(['offer' => fn ($query) => $query->withoutRaw(), 'offer.stores'])->get();
         $storeCodes = $user->selectedStoreCodes();
 
         $groups = [];
@@ -139,14 +138,5 @@ class ShoppingListController extends Controller
         $this->user($request)->shoppingListItems()->whereNotNull('checked_at')->delete();
 
         return back(fallback: route('shopping-list.index'))->with('status', self::STATUS_CLEARED);
-    }
-
-    /**
-     * Přihlášený uživatel (routy jsou za middleware auth).
-     */
-    private function user(Request $request): User
-    {
-        /** @var User */
-        return $request->user();
     }
 }

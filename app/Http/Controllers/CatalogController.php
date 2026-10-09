@@ -15,9 +15,10 @@ namespace App\Http\Controllers;
 
 use App\Domain\Catalog\Actions\AssignProducts;
 use App\Domain\Catalog\Actions\CorrectAssignment;
+use App\Domain\Catalog\Actions\DeleteProduct;
+use App\Domain\Catalog\CatalogTable;
 use App\Domain\Catalog\CategoryPaths;
 use App\Domain\Matching\TextNormalizer;
-use App\Domain\Offers\LocalCalendar;
 use App\Domain\Offers\OfferFilters;
 use App\Domain\Offers\OfferPresenter;
 use App\Domain\Offers\OfferSearch;
@@ -28,9 +29,7 @@ use App\Models\Offer;
 use App\Models\OfferProduct;
 use App\Models\OfferProductExclusion;
 use App\Models\Product;
-use App\Support\Pagination\PageWindow;
 use App\Support\Pagination\PaginationLinks;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -52,7 +51,7 @@ class CatalogController extends Controller
     public function __construct(
         private readonly CategoryPaths $categories,
         private readonly AssignProducts $assign,
-        private readonly LocalCalendar $calendar,
+        private readonly CatalogTable $table,
     ) {}
 
     /**
@@ -62,26 +61,11 @@ class CatalogController extends Controller
      */
     public function index(CatalogIndexRequest $request, TextNormalizer $normalizer): Response
     {
-        $query = Product::query();
-        $this->whereSearch($query, $request, $normalizer);
+        $query = $this->table->query($request->searchWords(), $request->department());
         $total = $query->count();
         $window = $request->pageWindow(config()->integer('letaky.catalog.per_page'));
         $window = $window->within($window->lastPage($total));
-
-        // Podle kategorie řadí PHP (cesta kategorie v databázi není), jinak databáze
-        if ($request->sort() === 'category') {
-            $ids = $this->idsSortedByCategory($query->clone(), $window, $request->descending(), $normalizer);
-            $position = array_flip($ids);
-            $products = $this->withCounts($query->whereIn('id', $ids))->get()
-                ->sortBy(fn (Product $product): int => $position[$product->id])
-                ->values();
-        } else {
-            $products = $this->withCounts($query)
-                ->tap(fn (Builder $query) => $this->orderBySort($query, $request))
-                ->offset($window->offset())
-                ->limit($window->limit())
-                ->get();
-        }
+        $products = $this->table->page($query, $request->sort(), $request->descending(), $window);
 
         return Inertia::render('Catalog/Index', [
             'urls' => [
@@ -116,88 +100,6 @@ class CatalogController extends Controller
     }
 
     /**
-     * Hledání a oddělení: každé slovo musí být v názvu, hledaných slovech nebo v cestě
-     * kategorie produktu (bez ohledu na diakritiku — collation tabulky, cesty v PHP).
-     *
-     * @param  Builder<Product>  $query
-     */
-    private function whereSearch(Builder $query, CatalogIndexRequest $request, TextNormalizer $normalizer): void
-    {
-        foreach ($request->searchWords() as $word) {
-            $pattern = '%'.addcslashes($word, '%_\\').'%';
-            $categoryIds = $this->categories->idsContaining($word, $normalizer);
-            $query->where(fn (Builder $query) => $query
-                ->where('name', 'like', $pattern)
-                ->orWhere('keywords', 'like', $pattern)
-                ->orWhereIn('category_id', $categoryIds));
-        }
-
-        $department = $request->department();
-        if ($department !== null) {
-            $query->whereIn('category_id', $this->categories->idsInDepartment($department));
-        }
-    }
-
-    /**
-     * Řazení podle názvu, počtu akcí nebo hlídajících; při shodě podle názvu.
-     *
-     * @param  Builder<Product>  $query
-     */
-    private function orderBySort(Builder $query, CatalogIndexRequest $request): void
-    {
-        $descending = $request->descending();
-
-        match ($request->sort()) {
-            'offers' => $descending ? $query->orderByRaw('match_count + maybe_count desc') : $query->orderByRaw('match_count + maybe_count asc'),
-            'watchers' => $query->orderBy('watchers_count', $descending ? 'desc' : 'asc'),
-            default => $query->orderBy('name', $descending ? 'desc' : 'asc'),
-        };
-
-        $query->orderBy('name')->orderBy('id');
-    }
-
-    /**
-     * Počty do tabulky: přiřazené neskončené nabídky (shoda / možná) a hlídající uživatelé.
-     *
-     * @param  Builder<Product>  $query
-     * @return Builder<Product>
-     */
-    private function withCounts(Builder $query): Builder
-    {
-        return $query->withCount([
-            'assignments as match_count' => fn (Builder $query) => $this->currentAssignments($query, MatchStatus::Match),
-            'assignments as maybe_count' => fn (Builder $query) => $this->currentAssignments($query, MatchStatus::Maybe),
-            'watchItems as watchers_count',
-        ]);
-    }
-
-    /**
-     * ID produktů načteného rozsahu stránek seřazená podle cesty kategorie (bez kategorie vždy
-     * na konci, při shodě podle názvu). Řadí PHP nad všemi vyfiltrovanými produkty — cesta vzniká
-     * ze stromu kategorií, v databázi není; i tisíce produktů jsou jen ID, název a kategorie.
-     *
-     * @param  Builder<Product>  $query  Vyfiltrovaný dotaz
-     * @return list<int>
-     */
-    private function idsSortedByCategory(Builder $query, PageWindow $window, bool $descending, TextNormalizer $normalizer): array
-    {
-        $rank = array_flip($this->categories->idsByLabel($normalizer));
-        $products = $query->get(['id', 'name', 'category_id'])->all();
-
-        usort($products, function (Product $a, Product $b) use ($rank, $descending, $normalizer): int {
-            $rankA = $a->category_id === null ? null : ($rank[$a->category_id] ?? null);
-            $rankB = $b->category_id === null ? null : ($rank[$b->category_id] ?? null);
-            if ($rankA === null || $rankB === null || $rankA === $rankB) {
-                return [$rankA === null, $normalizer->normalize($a->name)] <=> [$rankB === null, $normalizer->normalize($b->name)];
-            }
-
-            return $descending ? $rankB <=> $rankA : $rankA <=> $rankB;
-        });
-
-        return array_map(fn (Product $product): int => $product->id, array_slice($products, $window->offset(), $window->limit()));
-    }
-
-    /**
      * Založí produkt a přiřadí k němu nabídky.
      */
     public function store(ProductRequest $request): RedirectResponse
@@ -218,9 +120,8 @@ class CatalogController extends Controller
      */
     public function show(Request $request, Product $product, OfferPresenter $presenter, OfferSearch $search): Response
     {
-        $assignments = $product->assignments()
-            ->whereHas('offer', fn (Builder $query) => $this->current($query))
-            ->with('offer')
+        $assignments = $this->table->withCurrentOffer($product->assignments()->getQuery())
+            ->with(['offer' => fn ($query) => $query->withoutRaw()])
             ->get()
             ->sortBy(fn (OfferProduct $assignment): array => [
                 $assignment->status === MatchStatus::Maybe,
@@ -228,9 +129,8 @@ class CatalogController extends Controller
                 $assignment->offer->name,
             ]);
 
-        $exclusions = $product->exclusions()
-            ->whereHas('offer', fn (Builder $query) => $this->current($query))
-            ->with('offer')
+        $exclusions = $this->table->withCurrentOffer($product->exclusions()->getQuery())
+            ->with(['offer' => fn ($query) => $query->withoutRaw()])
             ->get();
 
         $query = trim($request->string(self::SEARCH_PARAMETER)->toString());
@@ -284,20 +184,11 @@ class CatalogController extends Controller
     }
 
     /**
-     * Smaže produkt i s přiřazeními a vyřazeními. Hlídané položky, které ho hlídají,
-     * dostanou jeho pravidla jako vlastní slova — uživatelům nic nezmizí (R31).
+     * Smaže produkt; hlídané položky dostanou jeho pravidla jako vlastní slova (R31).
      */
-    public function destroy(Product $product): RedirectResponse
+    public function destroy(Product $product, DeleteProduct $delete): RedirectResponse
     {
-        DB::transaction(function () use ($product): void {
-            $product->watchItems()->update([
-                'product_id' => null,
-                'keywords' => $product->keywords,
-                'variant_keywords' => $product->variant_keywords,
-                'exclude_keywords' => $product->exclude_keywords,
-            ]);
-            $product->delete();
-        });
+        $delete->handle($product);
 
         return to_route('catalog.index')->with('status', self::STATUS_PRODUCT_DELETED);
     }
@@ -372,27 +263,5 @@ class CatalogController extends Controller
         }
 
         return $options;
-    }
-
-    /**
-     * Přiřazení se stavem k neskončeným nabídkám — pro počty v seznamu produktů.
-     *
-     * @param  Builder<OfferProduct>  $query
-     * @return Builder<OfferProduct>
-     */
-    private function currentAssignments(Builder $query, MatchStatus $status): Builder
-    {
-        return $query->where('status', $status)->whereHas('offer', fn (Builder $offer) => $this->current($offer));
-    }
-
-    /**
-     * Neskončené nabídky, které obchod nestáhl.
-     *
-     * @param  Builder<Offer>  $query
-     * @return Builder<Offer>
-     */
-    private function current(Builder $query): Builder
-    {
-        return $query->active()->notExpired($this->calendar->today());
     }
 }

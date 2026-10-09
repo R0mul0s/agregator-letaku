@@ -1141,7 +1141,6 @@ return [
             'delete_start' => 'Zrušit účet…',
             'delete_confirm_title' => 'Zrušit účet?',
             'delete_confirm' => 'Účet, hlídané položky i nastavení se smažou a nepůjde to vrátit.',
-            'deleted' => 'Účet je zrušený. Díky, že jste to se Slevohlídkou zkusili — kdyby se vám zastesklo, víte, kde nás najdete.',
             // Přihlášení přes Google, Seznam a Facebook (R96, R98) — propojení a účet bez hesla
             'social' => [
                 'title' => 'Přihlášení přes účty',
@@ -1344,6 +1343,7 @@ return [
                 'offers-preferences-saved' => 'Předvolby Mých slev jsou uložené.',
                 'digest-saved' => 'Nastavení souhrnu je uložené.',
                 'marketing-saved' => 'Nastavení novinek je uložené.',
+                'account-deleted' => 'Účet je zrušený. Díky, že jste to se Slevohlídkou zkusili — kdyby se vám zastesklo, víte, kde nás najdete.',
                 // SocialLoginController (R96)
                 'social-linked' => 'Hotovo, účet je propojený. Příště stačí jedno klepnutí.',
                 'social-unlinked' => 'Účet je odpojený.',

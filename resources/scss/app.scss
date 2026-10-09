@@ -14,6 +14,7 @@
 @use 'components/button';
 @use 'components/form';
 @use 'components/card';
+@use 'components/auth';
 @use 'components/notice';
 @use 'components/social-login';
 @use 'components/verify-bar';
@@ -23,6 +24,9 @@
 @use 'components/mention-card';
 @use 'components/search-form';
 @use 'components/search-panel';
+@use 'components/highlight';
+@use 'components/search-chips';
+@use 'components/watch-preview';
 @use 'components/empty-state';
 @use 'components/data-table';
 @use 'components/avatar';
@@ -44,7 +48,14 @@
 @use 'components/price-quiz';
 @use 'components/landing-extras';
 @use 'pages/account';
+@use 'components/watch-group';
 @use 'pages/watch';
+@use 'components/watch-tile';
+@use 'components/watch-browse';
+@use 'components/department-tile';
+@use 'components/waiting-items';
+@use 'components/chain-overview';
+@use 'components/offer-row';
 @use 'pages/shopping';
 @use 'pages/preferences';
 @use 'pages/catalog';

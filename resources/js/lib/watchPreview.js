@@ -7,7 +7,9 @@
  * @author Roman Hlaváček
  * @created 2026-10-04
  */
+import { debounce } from '@/lib/debounce';
 import { formatDate, formatShortDate } from '@/lib/format';
+import { ABORTED, createLatestRequest } from '@/lib/latestRequest';
 import { onBeforeUnmount, reactive, watch } from 'vue';
 
 /** Pauza v psaní, po které se náhled načte (ms). */
@@ -34,47 +36,34 @@ function emptyResult() {
  */
 export function useWatchPreview(url, fields) {
     const state = reactive({ loading: false, ...emptyResult() });
-    let timer = null;
-    let controller = null;
+    const request = createLatestRequest();
 
     /** Načte náhled; předchozí nedokončený požadavek zruší. */
     async function load() {
         const values = fields();
         // Zrušit i při zkrácení slov — pozdní odpověď by jinak vrátila starý počet
-        controller?.abort();
+        request.cancel();
         if (!url || (values.keywords ?? '').trim().length < MIN_LENGTH) {
             Object.assign(state, { loading: false, ...emptyResult() });
 
             return;
         }
 
-        controller = new AbortController();
         state.loading = true;
         const query = new URLSearchParams(Object.fromEntries(Object.entries(values).filter(([, value]) => (value ?? '').trim() !== '')));
-        try {
-            const response = await fetch(`${url}?${query}`, { headers: { Accept: 'application/json' }, signal: controller.signal });
-            const data = response.ok ? await response.json() : emptyResult();
-            Object.assign(state, { loading: false, ...emptyResult(), ...data });
-        } catch (error) {
-            // Zrušený požadavek (psaní pokračuje) není chyba
-            if (error.name !== 'AbortError') {
-                Object.assign(state, { loading: false, ...emptyResult() });
-            }
+        const result = await request.json(`${url}?${query}`);
+        // Zrušený požadavek (psaní pokračuje) nic nemění — novější ještě běží
+        if (result !== ABORTED) {
+            Object.assign(state, { loading: false, ...emptyResult(), ...(result ?? {}) });
         }
     }
 
-    watch(
-        fields,
-        () => {
-            window.clearTimeout(timer);
-            timer = window.setTimeout(load, DEBOUNCE_MS);
-        },
-        { deep: true, immediate: true },
-    );
+    const loadLater = debounce(load, DEBOUNCE_MS);
+    watch(fields, () => loadLater(), { deep: true, immediate: true });
 
     onBeforeUnmount(() => {
-        window.clearTimeout(timer);
-        controller?.abort();
+        loadLater.cancel();
+        request.cancel();
     });
 
     return state;

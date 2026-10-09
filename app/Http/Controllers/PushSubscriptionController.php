@@ -15,7 +15,6 @@ namespace App\Http\Controllers;
 
 use App\Domain\Push\PushSubscriptions;
 use App\Http\Requests\PushSubscriptionRequest;
-use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -31,7 +30,7 @@ class PushSubscriptionController extends Controller
     public const STATUS_TEST_FAILED = 'push-test-failed';
 
     /** Adresa odběru u vypnutí a zkoušky — jen k vyhledání vlastního zařízení. */
-    private const ENDPOINT_RULES = ['required', 'string', 'max:500'];
+    private const ENDPOINT_RULES = ['required', 'string', 'max:'.PushSubscriptionRequest::ENDPOINT_MAX_LENGTH];
 
     /**
      * Zapne upozornění na zařízení, ze kterého přišel požadavek.
@@ -63,14 +62,5 @@ class PushSubscriptionController extends Controller
         $sent = $subscriptions->sendTest($this->user($request), $request->string('endpoint')->toString());
 
         return back()->with('status', $sent ? self::STATUS_TEST_SENT : self::STATUS_TEST_FAILED);
-    }
-
-    /**
-     * Přihlášený uživatel (routy jsou za middlewarem auth).
-     */
-    private function user(Request $request): User
-    {
-        /** @var User */
-        return $request->user();
     }
 }

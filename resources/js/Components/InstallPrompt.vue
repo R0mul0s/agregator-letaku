@@ -9,7 +9,7 @@
 -->
 <script setup>
 import { useTranslations } from '@/lib/i18n';
-import { installState, isInstallPromptSnoozed, isIos, promptInstall, snoozeInstallPrompt } from '@/lib/pwa';
+import { installState, isInstallPromptSnoozed, isIos, promptInstall, snoozeInstallPrompt } from '@/lib/pwaInstall';
 import { usePage } from '@inertiajs/vue3';
 import { computed, onMounted, ref } from 'vue';
 

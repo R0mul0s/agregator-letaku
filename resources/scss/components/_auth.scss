@@ -1,0 +1,295 @@
+// _auth.scss
+// Přihlášení a registrace: úzká karta, panel se skutečnými akcemi (AuthShowcase.vue, R56) a kroky registrace — vyčleněno z _card.scss (R113).
+//
+// @author Roman Hlaváček
+// @created 2026-10-09
+
+@use '../abstracts/mixins' as *;
+@use 'card';
+
+// Přihlášení, registrace, obnova hesla — úzká karta uprostřed
+.auth-card {
+    @extend .card;
+
+    max-width: var(--auth-card-max-width);
+    margin: 0 auto;
+
+    @include from-md {
+        margin-top: var(--space-5);
+    }
+
+    &__title {
+        margin-bottom: var(--space-4);
+        font-size: var(--font-size-lg);
+    }
+
+    // Nadpis s úvodní větou pod sebou (registrace, R56)
+    &__title--tight {
+        margin-bottom: var(--space-1);
+    }
+
+    &__intro {
+        margin-bottom: var(--space-3);
+        color: var(--color-text-muted);
+    }
+
+    // Hlavní tlačítko přes celou šířku karty (registrace, R56)
+    // inline-flex tlačítka zahodí mezeru mezi textem a šipkou — odstup dá gap
+    &__submit {
+        gap: var(--space-2);
+        width: 100%;
+        margin-top: var(--space-2);
+        font-size: var(--font-size-md);
+    }
+
+    // Co uživatele čeká — drobně pod tlačítkem, s fajfkami
+    &__trust {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: var(--space-1) var(--space-3);
+        margin: 0;
+        padding: 0;
+        color: var(--color-text-muted);
+        font-size: var(--font-size-xs);
+        list-style: none;
+    }
+
+    &__trust-item::before {
+        content: '✓ ';
+        color: var(--color-success);
+        font-weight: var(--font-weight-black);
+    }
+
+    &__footer {
+        margin-top: var(--space-4);
+        padding-top: var(--space-3);
+        border-top: 1px solid var(--color-border);
+        color: var(--color-text-muted);
+    }
+}
+
+// Přihlášení a registrace — červený panel se skutečnými akcemi vedle formuláře (AuthShowcase.vue, R56)
+.auth-showcase {
+    display: grid;
+    align-items: stretch;
+    gap: var(--space-4);
+    // Pod sebou stejně široké jako karta formuláře, vedle sebe obě poloviny
+    max-width: var(--auth-card-max-width);
+    margin: 0 auto;
+
+    @include from-md {
+        grid-template-columns: 1fr 1fr;
+        max-width: var(--auth-showcase-max-width);
+        margin-top: var(--space-4);
+    }
+
+    // Formulářová karta v rámci nemá vlastní horní odsazení
+    .auth-card {
+        width: 100%;
+        margin-top: 0;
+    }
+
+    // Karta formuláře nahoře jako obsah panelu, ne uprostřed výšky řádku
+    &__form {
+        display: flex;
+        align-items: flex-start;
+    }
+
+    // Obsah od shora se stejným odsazením jako karta — začíná ve stejné výšce jako formulář
+    &__panel {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-3);
+        padding: var(--space-4);
+        overflow: hidden;
+        background: var(--gradient-panel);
+        border-radius: var(--radius-lg);
+        color: var(--color-on-brand);
+    }
+
+    // Maskot a název v řádku — značka, ne hlavní obsah panelu
+    &__brand {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+    }
+
+    // Maskot na bílém kruhu — tělo je černé, na červené by zaniklo
+    &__mascot {
+        flex: none;
+        width: var(--auth-brand-mascot-size);
+        height: var(--auth-brand-mascot-size);
+        padding: var(--space-1);
+        background: var(--color-logo-bg);
+        border-radius: 50%;
+        box-shadow: var(--shadow-card-hover);
+    }
+
+    &__name {
+        display: block;
+        font-size: var(--font-size-brand);
+        font-weight: var(--font-weight-black);
+        letter-spacing: var(--letter-spacing-brand);
+        line-height: var(--line-height-heading);
+    }
+
+    &__tagline {
+        display: block;
+        font-size: var(--font-size-sm);
+        font-weight: var(--font-weight-bold);
+    }
+
+    &__headline {
+        font-size: var(--font-size-auth-headline-mobile);
+        font-weight: var(--font-weight-black);
+        letter-spacing: var(--letter-spacing-heading);
+        line-height: var(--line-height-heading);
+
+        @include from-md {
+            font-size: var(--font-size-auth-headline);
+        }
+    }
+
+    // Úvodní věta, počet akcí a cenovky jen na širším displeji — na mobilu je nad formulářem
+    // jen nadpis a obchody, ať je formulář na první obrazovce
+    &__lead,
+    &__count,
+    &__deals {
+        display: none;
+
+        @include from-md {
+            display: block;
+        }
+    }
+
+    &__count-value {
+        font-size: var(--font-size-card-title);
+        font-weight: var(--font-weight-black);
+    }
+
+    &__chains {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-1);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    &__deals-title {
+        margin-bottom: var(--space-2);
+        font-size: var(--font-size-xs);
+        font-weight: var(--font-weight-extrabold);
+        letter-spacing: var(--letter-spacing-caps);
+        text-transform: uppercase;
+    }
+}
+
+// Cenovky skutečných akcí v panelu — mírně natočené střídavě na obě strany jako v letáku
+.auth-deals {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.auth-deal {
+    display: grid;
+    grid-template-columns: var(--auth-deal-image-size) minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2);
+    background: var(--color-surface);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-card-hover);
+    color: var(--color-text);
+    transform: rotate(var(--auth-deal-tilt));
+
+    &:nth-child(even) {
+        transform: rotate(calc(-1 * var(--auth-deal-tilt)));
+    }
+
+    // Fotky obchodů jsou na bílém pozadí — bílé pole i v tmavém režimu
+    &__image {
+        width: var(--auth-deal-image-size);
+        height: var(--auth-deal-image-size);
+        padding: var(--space-1);
+        object-fit: contain;
+        background: var(--color-logo-bg);
+        border-radius: var(--radius-sm);
+    }
+
+    &__name {
+        display: -webkit-box;
+        overflow: hidden;
+        font-size: var(--font-size-sm);
+        font-weight: var(--font-weight-bold);
+        line-height: var(--line-height-heading);
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+    }
+
+    &__meta {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        margin-top: var(--space-1);
+    }
+
+    &__price {
+        color: var(--color-price);
+        font-weight: var(--font-weight-black);
+    }
+
+    // Červená cenovka slevy jako přes obrázek v kartě akce
+    &__sticker {
+        padding: var(--space-1) var(--space-2);
+        background: var(--gradient-panel);
+        border-radius: var(--radius-sm);
+        color: var(--color-on-brand);
+        font-weight: var(--font-weight-black);
+        white-space: nowrap;
+        transform: rotate(var(--sticker-rotation));
+    }
+}
+
+// Registrace: tři kroky cesty k prvním slevám nad nadpisem (R56)
+.auth-steps {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1) var(--space-3);
+    margin: 0 0 var(--space-3);
+    padding: 0;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-bold);
+    list-style: none;
+
+    &__item {
+        display: flex;
+        align-items: center;
+        gap: var(--space-1);
+
+        &--current {
+            color: var(--color-accent-strong);
+        }
+    }
+
+    &__number {
+        display: grid;
+        place-items: center;
+        width: var(--auth-step-size);
+        height: var(--auth-step-size);
+        border: 1px solid var(--color-border);
+        border-radius: 50%;
+    }
+
+    &__item--current &__number {
+        background: var(--color-accent);
+        border-color: transparent;
+        color: var(--color-on-accent);
+    }
+}

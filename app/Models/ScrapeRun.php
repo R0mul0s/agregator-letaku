@@ -68,6 +68,23 @@ class ScrapeRun extends Model
     }
 
     /**
+     * Konec posledního stažení s některým ze stavů (UTC), volitelně jen jednoho obchodu;
+     * null = žádné. Patička, sitemap, hlídání stahování i upozornění ho berou odsud (R113).
+     *
+     * @param  list<ScrapeStatus>  $statuses
+     */
+    public static function lastFinishedAt(array $statuses = [ScrapeStatus::Succeeded], ?Chain $chain = null): ?CarbonImmutable
+    {
+        $finishedAt = self::query()
+            ->whereIn('status', $statuses)
+            ->when($chain, fn ($query, Chain $chain) => $query->where('chain', $chain))
+            ->max('finished_at');
+
+        // Databáze ukládá čas v UTC (config/app.php)
+        return is_string($finishedAt) ? CarbonImmutable::parse($finishedAt, 'UTC') : null;
+    }
+
+    /**
      * Založí záznam o právě začínajícím stažení.
      */
     public static function start(Chain $chain): self

@@ -11,7 +11,9 @@
 import CheckboxField from '@/Components/CheckboxField.vue';
 import { useTranslations } from '@/lib/i18n';
 import { currentSubscription, isPushSupported, notificationPermission, subscribe } from '@/lib/push';
-import { checkForUpdate, installState, isIos, promptInstall, serviceWorkerRegistration } from '@/lib/pwa';
+import { serviceWorkerRegistration } from '@/lib/pwa';
+import { installState, isIos, promptInstall } from '@/lib/pwaInstall';
+import { checkForUpdate } from '@/lib/pwaUpdates';
 import { showToast } from '@/lib/toast';
 import { router } from '@inertiajs/vue3';
 import { computed, onMounted, ref, watch } from 'vue';

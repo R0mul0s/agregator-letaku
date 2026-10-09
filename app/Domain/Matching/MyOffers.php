@@ -8,9 +8,7 @@
  * položek jednotky (R19). Kandidáty předvybere databáze podle nejdelšího slova položek
  * (WatchRule::prefilterTerm), přesná pravidla pak vyhodnotí WatchItemMatcher.
  *
- * K tomu zmínky na stránkách letáků bez ceny (R27): položka je v letáku, ale cenu k ní
- * neznáme. Zmínka se vynechá, když stejný obchod má k položce akci s cenou ve stejném období —
- * i akci, která už skončila (R107).
+ * K tomu zmínky na stránkách letáků bez ceny (R27, LeafletMentions).
  *
  * @author Roman Hlaváček
  *
@@ -24,12 +22,10 @@ namespace App\Domain\Matching;
 use App\Domain\Chains\ShoppingPreferencesScope;
 use App\Domain\Offers\LocalCalendar;
 use App\Domain\Offers\UserPricing;
-use App\Enums\LeafletKind;
 use App\Enums\MatchStatus;
 use App\Enums\OffersSort;
 use App\Enums\OfferType;
 use App\Models\FollowedChain;
-use App\Models\Leaflet;
 use App\Models\LeafletPage;
 use App\Models\Offer;
 use App\Models\OfferProduct;
@@ -47,6 +43,7 @@ final class MyOffers
         private readonly LocalCalendar $calendar,
         private readonly ShoppingPreferencesScope $preferences,
         private readonly UserPricing $pricing,
+        private readonly LeafletMentions $mentions,
     ) {}
 
     /**
@@ -84,10 +81,10 @@ final class MyOffers
 
         $searchable = ! $followed->isEmpty() && $rules !== [];
         $today = $this->calendar->today();
-        $pages = $searchable && $withMentions ? $this->candidatePages($followed, $rules) : [];
+        $pages = $searchable && $withMentions ? $this->mentions->candidatePages($followed, $rules) : [];
         // Akce, které už skončily, ale platily v období letáku se zmínkou, zmínku taky skryjí
         // (R107) — „Banány 5.–7. 10.“ v letáku platném do 11. 10. už nejsou ve slevě
-        $endedSince = $this->earliestLeafletStart($pages, $today);
+        $endedSince = $this->mentions->earliestLeafletStart($pages, $today);
         $candidates = $searchable && $keywordRules !== [] ? $this->candidates($followed, $keywordRules, $endedSince) : [];
         $assignments = $searchable && $productIds !== [] ? $this->assignments($followed, $productIds, $endedSince) : new Collection;
 
@@ -103,7 +100,7 @@ final class MyOffers
                 'watchItem' => $item,
                 'offers' => array_values(array_filter($offers, fn (array $match): bool => ! $isUpcoming($match))),
                 'upcoming' => array_values(array_filter($offers, $isUpcoming)),
-                'mentions' => $this->mentions($rules[$item->id], $pages, array_column($all, 'offer')),
+                'mentions' => $this->mentions->forRule($rules[$item->id], $pages, array_column($all, 'offer')),
             ];
         }
 
@@ -219,25 +216,6 @@ final class MyOffers
     }
 
     /**
-     * Nejdřívější začátek letáků se zmínkami — od něj se načtou i skončené akce, které zmínku
-     * skryjí; bez zmínek dnešek (jen neskončené akce).
-     *
-     * @param  list<array{page: LeafletPage, text: string}>  $pages
-     */
-    private function earliestLeafletStart(array $pages, CarbonImmutable $today): CarbonImmutable
-    {
-        $earliest = $today;
-        foreach ($pages as ['page' => $page]) {
-            $from = $page->leaflet->valid_from;
-            if ($from !== null && $from->lessThan($earliest)) {
-                $earliest = $from;
-            }
-        }
-
-        return $earliest;
-    }
-
-    /**
      * Přiřazení produktů k nabídkám sledovaných obchodů podle jejich upřesnění, které
      * neskončily před daným dnem.
      *
@@ -252,39 +230,6 @@ final class MyOffers
             ->whereHas('offer', fn (Builder $query) => $this->whereCurrentFollowed($query, $followed, $endedSince))
             ->with(['offer' => fn ($query) => $query->withoutRaw(), 'offer.stores'])
             ->get();
-    }
-
-    /**
-     * Zmínky položky na stránkách letáků, od nejbližšího letáku a po stránkách. Leták, ve kterém
-     * má obchod k položce akci s cenou, se přeskočí — zmínka by jen opakovala tutéž akci.
-     *
-     * @param  list<array{page: LeafletPage, text: string}>  $pages
-     * @param  list<Offer>  $offers  Akce s cenou k položce
-     * @return list<array{page: LeafletPage, status: MatchStatus}>
-     */
-    private function mentions(WatchRule $rule, array $pages, array $offers): array
-    {
-        $mentions = [];
-        foreach ($pages as ['page' => $page, 'text' => $text]) {
-            $status = $this->matcher->mention($rule, $text);
-            if ($status !== null && ! $this->hasPricedOffer($page->leaflet, $offers)) {
-                $mentions[] = ['page' => $page, 'status' => $status];
-            }
-        }
-
-        return $mentions;
-    }
-
-    /**
-     * Má obchod letáku k položce akci s cenou, která platí (nebo platila) v období letáku?
-     *
-     * @param  list<Offer>  $offers
-     */
-    private function hasPricedOffer(Leaflet $leaflet, array $offers): bool
-    {
-        return array_any($offers, fn (Offer $offer): bool => $offer->chain === $leaflet->chain
-            && ($leaflet->valid_to === null || $offer->valid_from <= $leaflet->valid_to)
-            && ($leaflet->valid_from === null || $offer->valid_to >= $leaflet->valid_from));
     }
 
     /**
@@ -326,7 +271,7 @@ final class MyOffers
         $offers = Offer::query()
             ->withoutRaw()
             ->tap(fn (Builder $query) => $this->whereCurrentFollowed($query, $followed, $endedSince))
-            ->tap(fn (Builder $query) => OfferPrefilter::containingAny($query, $this->prefilterWords($rules)))
+            ->tap(fn (Builder $query) => OfferPrefilter::containingAny($query, OfferPrefilter::wordsOf($rules)))
             ->with('stores')
             ->get();
 
@@ -349,76 +294,6 @@ final class MyOffers
                     $query->orWhere(fn (Builder $query) => $this->preferences->whereFollowed($query, $chain));
                 }
             });
-    }
-
-    /**
-     * Stránky neskončených letáků sledovaných obchodů, které obsahují aspoň jednu alternativu
-     * slova pro předvýběr některé položky; s normalizovaným textem a bez stránek s receptem.
-     *
-     * @param  Collection<int, FollowedChain>  $followed
-     * @param  array<int, WatchRule>  $rules
-     * @return list<array{page: LeafletPage, text: string}>
-     */
-    private function candidatePages(Collection $followed, array $rules): array
-    {
-        $excluded = array_map(
-            fn (mixed $phrase): string => $this->normalizer->normalize((string) $phrase),
-            config()->array('letaky.mentions.excluded_page_phrases'),
-        );
-
-        $pages = LeafletPage::query()
-            ->with('leaflet')
-            ->whereHas('leaflet', function (Builder $query) use ($followed): void {
-                $query->where('kind', LeafletKind::Leaflet)
-                    ->where('valid_to', '>=', $this->calendar->today()->toDateString())
-                    ->where(function (Builder $query) use ($followed): void {
-                        foreach ($followed as $chain) {
-                            $query->orWhere(fn (Builder $query) => $this->whereLeafletFollowed($query, $chain));
-                        }
-                    });
-            })
-            ->where(function (Builder $query) use ($rules): void {
-                foreach ($this->prefilterWords($rules) as $word) {
-                    $query->orWhere('text', 'like', OfferPrefilter::likePattern($word));
-                }
-            })
-            ->get()
-            ->sortBy(fn (LeafletPage $page): array => [$page->leaflet->valid_from?->toDateString(), $page->leaflet_id, $page->number]);
-
-        $result = [];
-        foreach ($pages as $page) {
-            $text = $this->normalizer->normalize($page->text);
-            if (! array_any($excluded, fn (string $phrase): bool => str_contains($text, $phrase))) {
-                $result[] = ['page' => $page, 'text' => $text];
-            }
-        }
-
-        return $result;
-    }
-
-    /**
-     * Letáky jednoho sledovaného obchodu podle typu prodejny (leták bez typu platí všude).
-     *
-     * @param  Builder<Leaflet>  $query
-     */
-    private function whereLeafletFollowed(Builder $query, FollowedChain $chain): void
-    {
-        $query->where('chain', $chain->chain);
-
-        if ($chain->store_format !== null) {
-            $query->where(fn (Builder $query) => $query->whereNull('format')->orWhere('format', $chain->store_format));
-        }
-    }
-
-    /**
-     * Slova všech položek pro předvýběr v databázi (WatchRule::prefilterTerm).
-     *
-     * @param  array<int, WatchRule>  $rules
-     * @return list<string>
-     */
-    private function prefilterWords(array $rules): array
-    {
-        return array_values(array_unique(array_merge(...array_map(fn (WatchRule $rule): array => $rule->prefilterTerm(), array_values($rules)))));
     }
 
     /**

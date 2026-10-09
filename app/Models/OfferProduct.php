@@ -14,6 +14,7 @@ namespace App\Models;
 
 use App\Enums\MatchStatus;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -76,5 +77,21 @@ class OfferProduct extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    /**
+     * Připojí akce (`offers`) a nechá jen aktuální: obchod je nestáhl (R16) a neskončily —
+     * stejně jako Offer::active()->notExpired(); `$startedOnly` vynechá i akce, které ještě
+     * nezačaly (R76). Jedno místo pro výpisy, které jdou přes přiřazení k produktům (R113).
+     *
+     * @param  Builder<self>  $query
+     */
+    public function scopeJoinCurrentOffers(Builder $query, CarbonImmutable $localToday, bool $startedOnly = false): void
+    {
+        $today = $localToday->toDateString();
+        $query->join('offers', 'offers.id', '=', 'offer_product.offer_id')
+            ->whereNull('offers.withdrawn_at')
+            ->where('offers.valid_to', '>=', $today)
+            ->when($startedOnly, fn (Builder $query) => $query->where('offers.valid_from', '<=', $today));
     }
 }

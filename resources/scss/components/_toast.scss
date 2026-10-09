@@ -63,7 +63,7 @@
 
     &__message {
         flex: 1;
-        font-weight: 700;
+        font-weight: var(--font-weight-bold);
     }
 
     &__close {
@@ -115,7 +115,7 @@
     border: 1px solid currentcolor;
     border-radius: var(--radius-sm);
     color: inherit;
-    font-weight: 700;
+    font-weight: var(--font-weight-bold);
     cursor: pointer;
 
     &:hover,

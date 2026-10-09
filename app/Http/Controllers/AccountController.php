@@ -58,6 +58,9 @@ class AccountController extends Controller
     /** Kód stavu po uložení souhlasu s obchodními sděleními — toast (R47, R51). */
     public const STATUS_MARKETING_SAVED = 'marketing-saved';
 
+    /** Kód stavu po zrušení účtu — toast na přihlášení (R47). */
+    public const STATUS_DELETED = 'account-deleted';
+
     /**
      * Zobrazí formuláře účtu; názvy sad chyb musí sedět s akcemi Fortify.
      */
@@ -236,17 +239,6 @@ class AccountController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return to_route('login')->with('status', __('app.ui.account.deleted'));
-    }
-
-    /**
-     * Přihlášený uživatel (routy jsou za middlewarem auth).
-     */
-    private function user(Request $request): User
-    {
-        /** @var User $user */
-        $user = $request->user();
-
-        return $user;
+        return to_route('login')->with('status', self::STATUS_DELETED);
     }
 }

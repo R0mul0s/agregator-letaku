@@ -1,0 +1,156 @@
+// _watch-browse.scss
+// Procházení katalogu v Hlídám (WatchBrowse.vue, R47) — vyčleněno z pages/_watch.scss (R113).
+//
+// @author Roman Hlaváček
+// @created 2026-10-09
+
+@use '../abstracts/mixins' as *;
+
+// Procházení katalogu (R47, WatchBrowse.vue): dlaždice oddělení, pak pododdělení s produkty
+.watch-browse {
+    padding: var(--space-4);
+
+    &__header {
+        margin-bottom: var(--space-3);
+    }
+
+    &__title {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: var(--space-2);
+        font-size: var(--font-size-card-title);
+
+        &:focus,
+        &:focus-visible {
+            outline: none;
+            box-shadow: none;
+        }
+    }
+
+    &__count {
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+        font-weight: var(--font-weight-regular);
+    }
+
+    &__hint {
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+    }
+
+    &__tiles {
+        display: grid;
+        // Na telefonu dva sloupce, na širokém displeji podle šířky
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+
+        @include from-md {
+            grid-template-columns: repeat(auto-fill, minmax(var(--department-tile-min-width), 1fr));
+        }
+        gap: var(--space-2);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    &__back {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-1);
+        margin-bottom: var(--space-2);
+        padding: var(--space-1) var(--space-2) var(--space-1) 0;
+        background: none;
+        border: 0;
+        color: var(--color-accent-strong);
+        font: inherit;
+        font-size: var(--font-size-sm);
+        font-weight: var(--font-weight-bold);
+        cursor: pointer;
+
+        svg {
+            width: var(--icon-size);
+            height: var(--icon-size);
+            fill: none;
+            stroke: currentcolor;
+            stroke-width: var(--svg-stroke-icon);
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+
+    // Nadpis dostane fokus po otevření oddělení (čtečka pokračuje v novém obsahu) — bez rámečku
+    &__department-title {
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+        font-size: var(--font-size-card-title);
+
+        &:focus,
+        &:focus-visible {
+            outline: none;
+            box-shadow: none;
+        }
+    }
+
+    &__aisle {
+        padding: var(--space-3) 0;
+
+        & + & {
+            border-top: 1px solid var(--color-border);
+        }
+    }
+
+    &__aisle-title {
+        display: flex;
+        align-items: baseline;
+        gap: var(--space-2);
+        margin-bottom: var(--space-2);
+        font-size: var(--font-size-md);
+    }
+
+    &__aisle-count {
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+        font-weight: var(--font-weight-regular);
+    }
+
+    &__products {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-2);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    &__product {
+        display: inline-flex;
+        gap: var(--space-1);
+        padding: var(--space-1) var(--space-3);
+        background: var(--color-bg);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-pill);
+        color: var(--color-text);
+        font: inherit;
+        font-size: var(--font-size-sm);
+        cursor: pointer;
+
+        &:hover:not(:disabled) {
+            border-color: var(--color-accent);
+            color: var(--color-accent-strong);
+        }
+
+        // Hlídaný produkt: fajfka na červeném podkladu, znovu přidat nejde
+        &:disabled {
+            background: var(--color-accent-soft);
+            border-color: transparent;
+            color: var(--color-accent-strong);
+            font-weight: var(--font-weight-bold);
+            cursor: default;
+        }
+    }
+}

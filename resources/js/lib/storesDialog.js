@@ -6,6 +6,7 @@
  * @author Roman Hlaváček
  * @created 2026-10-03
  */
+import { ABORTED, createLatestRequest } from '@/lib/latestRequest';
 import { reactive } from 'vue';
 
 /** Otevřené okno: název akce, obchod, počet a prodejny [{ name, selected }] po načtení. */
@@ -19,8 +20,8 @@ export const storesDialogState = reactive({
     failed: false,
 });
 
-/** Probíhající načítání — odpověď pro dřív otevřenou akci se zahodí. */
-let request = null;
+/** Načítání seznamu — odpověď pro dřív otevřenou akci se zahodí. */
+const request = createLatestRequest();
 
 /**
  * Otevře seznam prodejen akce a načte ho.
@@ -28,9 +29,6 @@ let request = null;
  * @param {{ name: string, chainName: string, stores: { count: number, url: string } }} offer
  */
 export async function showStoresDialog(offer) {
-    request?.abort();
-    const controller = new AbortController();
-    request = controller;
     Object.assign(storesDialogState, {
         open: true,
         offerName: offer.name,
@@ -41,28 +39,21 @@ export async function showStoresDialog(offer) {
         failed: false,
     });
 
-    try {
-        const response = await fetch(offer.stores.url, { headers: { Accept: 'application/json' }, signal: controller.signal });
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-        }
-        storesDialogState.stores = (await response.json()).stores;
-    } catch (error) {
-        if (error.name === 'AbortError') {
-            return;
-        }
+    const result = await request.json(offer.stores.url);
+    if (result === ABORTED) {
+        return;
+    }
+    if (result === null) {
         // Bez signálu (aplikace v telefonu v obchodě) nebo chyba serveru
         storesDialogState.failed = true;
+    } else {
+        storesDialogState.stores = result.stores;
     }
-    if (request === controller) {
-        storesDialogState.loading = false;
-        request = null;
-    }
+    storesDialogState.loading = false;
 }
 
 /** Zavře okno a zruší načítání. */
 export function closeStoresDialog() {
-    request?.abort();
-    request = null;
+    request.cancel();
     storesDialogState.open = false;
 }

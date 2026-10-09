@@ -10,7 +10,7 @@
 <script setup>
 import { useTranslations } from '@/lib/i18n';
 import { usePullToRefresh } from '@/lib/pullToRefresh';
-import { installState } from '@/lib/pwa';
+import { installState } from '@/lib/pwaInstall';
 import { router } from '@inertiajs/vue3';
 import { ref, watch } from 'vue';
 

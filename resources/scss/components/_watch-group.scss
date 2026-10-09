@@ -1,0 +1,241 @@
+// _watch-group.scss
+// Skupina hlídané položky v Mých slevách (WatchGroup.vue) — vyčleněno z pages/_watch.scss (R113).
+//
+// @author Roman Hlaváček
+// @created 2026-10-09
+
+@use '../abstracts/mixins' as *;
+
+.watch-group {
+    margin-bottom: var(--space-2);
+
+    &--expanded {
+        margin-bottom: var(--space-4);
+    }
+
+    // Nadpis skupiny s linkou až k okraji — odděluje hlídané položky jako oddíly letáku
+    &__title {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--space-2);
+        margin-bottom: var(--space-3);
+        font-size: var(--font-size-card-title);
+
+        &::after {
+            content: '';
+            flex: 1;
+            min-width: var(--space-4);
+            height: 1px;
+            background: var(--color-border);
+        }
+    }
+
+    // Počet akcí jako červený štítek
+    &__count {
+        @include badge-text;
+
+        background: var(--color-accent-soft);
+        border-radius: var(--radius-pill);
+        color: var(--color-accent-strong);
+        font-size: var(--font-size-sm);
+        font-weight: var(--font-weight-extrabold);
+        letter-spacing: normal;
+    }
+
+    // Moje slevy (R43): sbalitelná skupina — hlavička jako karta, obsah pod ní
+    &__header {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        padding: var(--space-2) var(--space-2) var(--space-2) var(--space-3);
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-card);
+    }
+
+    &--expanded &__header {
+        border-color: var(--color-accent);
+    }
+
+    // Sekce Brzy (R76): odsazená od hlídaných položek, rozbalená s linkou v barvě „brzy“
+    &--upcoming {
+        margin-top: var(--space-4);
+    }
+
+    &--upcoming#{&}--expanded &__header {
+        border-color: var(--color-info-text);
+    }
+
+    // Sekce Zatím bez akce (R100): pod ostatními, odsazená jako Brzy; hlavička bez stínu, ať
+    // nesoutěží se skupinami s akcemi
+    &--waiting {
+        margin-top: var(--space-4);
+    }
+
+    &--waiting &__header {
+        box-shadow: none;
+    }
+
+    // Názvy položek ve sbalené hlavičce — jeden řádek, zbytek tři tečky
+    &__names {
+        flex: 1 1 0;
+        min-width: 0;
+        overflow: hidden;
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+        font-weight: var(--font-weight-regular);
+        letter-spacing: normal;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    // Logo obchodu s nejnižší cenou za cenou v hlavičce (R100)
+    &__chain {
+        margin-left: var(--space-1);
+    }
+
+    &__heading {
+        flex: 1;
+        min-width: 0;
+        font-size: var(--font-size-card-title);
+    }
+
+    &__toggle {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--space-1) var(--space-2);
+        width: 100%;
+        padding: var(--space-1) 0;
+        background: none;
+        border: 0;
+        color: var(--color-text);
+        font: inherit;
+        text-align: left;
+        cursor: pointer;
+    }
+
+    &__chevron {
+        color: var(--color-accent);
+        transition: transform var(--duration-fast);
+    }
+
+    &--expanded &__chevron {
+        transform: rotate(90deg);
+    }
+
+    &__name {
+        overflow-wrap: anywhere;
+    }
+
+    &__summary {
+        color: var(--color-price);
+        font-size: var(--font-size-sm);
+        font-weight: var(--font-weight-bold);
+        letter-spacing: normal;
+    }
+
+    // Malé písmo — přechod panelu začíná tmavší červenou, na --gradient-brand by bílý text
+    // neměl kontrast 4,5 : 1 (R99)
+    &__discount {
+        @include badge-text;
+
+        background: var(--gradient-panel);
+        border-radius: var(--radius-sm);
+        color: var(--color-on-brand);
+        font-size: var(--font-size-sm);
+        font-weight: var(--font-weight-extrabold);
+        letter-spacing: normal;
+    }
+
+    // Počet akcí, které ještě nezačaly (R76) — samotné akce jsou v sekci Brzy
+    &__upcoming {
+        @include badge-text;
+
+        background: var(--color-info-soft);
+        border-radius: var(--radius-sm);
+        color: var(--color-info-text);
+        font-size: var(--font-size-sm);
+        font-weight: var(--font-weight-bold);
+        letter-spacing: normal;
+    }
+
+    // „Vyplatí se počkat“ (R76) — v hlavičce štítek, po rozbalení věta s cenou (notice--success)
+    &__wait {
+        @include badge-text;
+
+        background: var(--color-success-soft);
+        border-radius: var(--radius-sm);
+        color: var(--color-success-text);
+        font-size: var(--font-size-sm);
+        font-weight: var(--font-weight-bold);
+        letter-spacing: normal;
+    }
+
+    &__actions {
+        display: flex;
+        flex: none;
+    }
+
+    &__body:not([hidden]) {
+        padding-top: var(--space-3);
+    }
+
+    // Položka bez akcí i zmínek: ikona oka a věta, že se hlídá dál
+    &__empty {
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+        padding: var(--space-3);
+        background: var(--color-surface);
+        border: 2px dashed var(--color-border);
+        border-radius: var(--radius-md);
+    }
+
+    &__empty-icon {
+        display: inline-flex;
+        flex: none;
+        align-items: center;
+        justify-content: center;
+        width: var(--empty-inline-icon-box-size);
+        height: var(--empty-inline-icon-box-size);
+        background: var(--color-accent-soft);
+        border-radius: var(--radius-pill);
+        color: var(--color-accent-strong);
+
+        svg {
+            width: var(--icon-size);
+            height: var(--icon-size);
+            fill: none;
+            stroke: currentcolor;
+            stroke-width: var(--svg-stroke-icon);
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+    }
+
+    &__empty-hint {
+        display: block;
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+    }
+
+    // Zmínky v letácích bez ceny pod akcemi (R27)
+    &__subtitle {
+        margin: var(--space-4) 0 var(--space-1);
+        font-size: var(--font-size-md);
+
+        // Fokus sem přesune stránka („+1 brzy“) — programový, ne z klávesnice (R99)
+        &:focus {
+            outline: none;
+        }
+    }
+
+    &__hint {
+        margin-bottom: var(--space-3);
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+    }
+}

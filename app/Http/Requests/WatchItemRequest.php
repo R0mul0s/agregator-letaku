@@ -13,7 +13,7 @@ declare(strict_types=1);
 namespace App\Http\Requests;
 
 use App\Models\WatchItem;
-use App\Rules\SearchableKeywords;
+use App\Rules\KeywordFields;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
@@ -27,7 +27,6 @@ class WatchItemRequest extends FormRequest
      */
     public function rules(): array
     {
-        $keywordsMax = 'max:'.config()->integer('letaky.watch.keywords_max_length');
         $watchItem = $this->route('watchItem');
 
         return [
@@ -39,9 +38,7 @@ class WatchItemRequest extends FormRequest
                     ->where('user_id', $this->user()?->getAuthIdentifier())
                     ->ignore($watchItem instanceof WatchItem ? $watchItem->id : null),
             ],
-            'keywords' => ['required_without:product_id', 'nullable', 'string', $keywordsMax, new SearchableKeywords],
-            'variant_keywords' => ['nullable', 'string', $keywordsMax],
-            'exclude_keywords' => ['nullable', 'string', $keywordsMax],
+            ...KeywordFields::rules(['required_without:product_id', 'nullable']),
         ];
     }
 

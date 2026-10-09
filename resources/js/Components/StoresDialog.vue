@@ -8,17 +8,17 @@
 -->
 <script setup>
 import { useTranslations } from '@/lib/i18n';
+import { useModalDialog } from '@/lib/modalDialog';
 import { normalizeSearch } from '@/lib/search';
 import { closeStoresDialog, storesDialogState } from '@/lib/storesDialog';
 import { usePage } from '@inertiajs/vue3';
-import { computed, nextTick, ref, watch } from 'vue';
+import { computed, ref } from 'vue';
 
 /** Od kolika prodejen se nabídne hledání. */
 const SEARCH_FROM = 10;
 
 const t = useTranslations();
 const page = usePage();
-const dialog = ref(null);
 const closeButton = ref(null);
 const query = ref('');
 
@@ -33,30 +33,12 @@ const filtered = computed(() => {
     return needle === '' ? sorted.value : sorted.value.filter((store) => normalizeSearch(store.name).includes(needle));
 });
 
-watch(
-    () => storesDialogState.open,
-    async (open) => {
-        if (open && !dialog.value?.open) {
-            query.value = '';
-            dialog.value?.showModal();
-            await nextTick();
-            closeButton.value?.focus();
-        } else if (!open && dialog.value?.open) {
-            dialog.value.close();
-        }
-    },
-);
-
-/**
- * Klik na ztmavené pozadí okno zavře.
- *
- * @param {MouseEvent} event
- */
-function onClick(event) {
-    if (event.target === dialog.value) {
-        closeStoresDialog();
-    }
-}
+const { dialog, onClick } = useModalDialog(() => storesDialogState.open, {
+    onBackdrop: closeStoresDialog,
+    // Hledání z minula se nenese do seznamu jiné akce
+    beforeOpen: () => (query.value = ''),
+    focusOnOpen: closeButton,
+});
 </script>
 
 <template>

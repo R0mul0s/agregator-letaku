@@ -15,6 +15,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Account\Actions;
 
+use App\Actions\Fortify\ProfileValidationRules;
 use App\Domain\Account\Social\SocialIdentity;
 use App\Domain\Account\Social\SocialLoginRefused;
 use App\Models\User;
@@ -26,6 +27,8 @@ use Illuminate\Validation\ValidationException;
 
 final class RegisterSocialUser
 {
+    use ProfileValidationRules;
+
     public function __construct(private readonly SetUpNewAccount $setUp) {}
 
     /**
@@ -43,7 +46,7 @@ final class RegisterSocialUser
         }
 
         $data = Validator::make([...$input, 'email' => $identity->email], [
-            'name' => ['required', 'string', 'max:255'],
+            'name' => $this->nameRules(),
             // Mezitím mohl účet s adresou vzniknout jinak (registrace heslem v jiné kartě)
             'email' => [Rule::unique(User::class)],
             'terms' => ['accepted'],

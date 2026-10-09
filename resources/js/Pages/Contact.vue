@@ -13,8 +13,10 @@
 <script setup>
 import ContactIcon from '@/Components/ContactIcon.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
+import { MEDIA_FROM_MD } from '@/lib/breakpoints';
 import { copyText } from '@/lib/clipboard';
 import { useTranslations } from '@/lib/i18n';
+import { prefersReducedMotion } from '@/lib/scroll';
 import { showToast } from '@/lib/toast';
 import { Head, Link, usePage } from '@inertiajs/vue3';
 import { computed, nextTick, ref } from 'vue';
@@ -76,7 +78,7 @@ async function onTabKeydown(event, index) {
 
 /** Holub vyletí přes stránku a po přistání (nebo hned, s omezeným pohybem) toast zažertuje. */
 function sendPigeon() {
-    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+    if (prefersReducedMotion()) {
         showToast(t('contact.pigeon_lost'));
 
         return;
@@ -112,7 +114,7 @@ function pigeonLanded() {
                     <img
                         src="/images/brand/mascot-416.webp"
                         srcset="/images/brand/mascot-192.webp 192w, /images/brand/mascot-288.webp 288w, /images/brand/mascot-416.webp 416w"
-                        sizes="(min-width: 768px) 112px, 73px"
+                        :sizes="`${MEDIA_FROM_MD} 112px, 73px`"
                         width="416"
                         height="416"
                         alt=""

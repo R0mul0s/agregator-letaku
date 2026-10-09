@@ -13,7 +13,8 @@ import EmptyState from '@/Components/EmptyState.vue';
 import Pagination from '@/Components/Pagination.vue';
 import UserAvatar from '@/Components/UserAvatar.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
-import { formatDate, formatRelativeTime } from '@/lib/format';
+import { debounce } from '@/lib/debounce';
+import { formatDate, formatRelativeTime, localDateOf } from '@/lib/format';
 import { useTranslations } from '@/lib/i18n';
 import { Head, router, usePage } from '@inertiajs/vue3';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
@@ -63,7 +64,6 @@ const query = ref(props.filters.q);
 const sort = ref(props.filters.sort);
 /** Teď (ms) pro relativní čas — posune se s každým obnovením. */
 const now = ref(Date.now());
-let searchTimer = null;
 let refreshTimer = null;
 
 /** Dlaždice aktivity: všichni, online, aktivní za N dní. */
@@ -100,10 +100,7 @@ function reload(filter = props.filters.filter) {
 }
 
 /** Hledání se načte po pauze v psaní. */
-function onSearchInput() {
-    clearTimeout(searchTimer);
-    searchTimer = setTimeout(() => reload(), SEARCH_DEBOUNCE_MS);
-}
+const onSearchInput = debounce(() => reload(), SEARCH_DEBOUNCE_MS);
 
 /**
  * Dlaždice souhrnu přepne filtr; klepnutí na zvolený filtr ho zruší.
@@ -144,9 +141,7 @@ function lastSeenLabel(user) {
  * @returns {string}
  */
 function registeredLabel(isoDateTime) {
-    const localDay = new Intl.DateTimeFormat('en-CA', { timeZone: page.props.timezone }).format(new Date(isoDateTime));
-
-    return t('users.registered', { date: formatDate(localDay, page.props.locale) });
+    return t('users.registered', { date: formatDate(localDateOf(isoDateTime, page.props.timezone), page.props.locale) });
 }
 
 onMounted(() => {
@@ -156,7 +151,7 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
-    clearTimeout(searchTimer);
+    onSearchInput.cancel();
     clearInterval(refreshTimer);
 });
 </script>

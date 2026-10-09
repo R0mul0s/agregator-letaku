@@ -100,7 +100,7 @@
 
     &__category-title {
         font-size: var(--font-size-md);
-        font-weight: 800;
+        font-weight: var(--font-weight-extrabold);
     }
 
     &__category-description {
@@ -112,7 +112,7 @@
         flex: none;
         color: var(--color-success);
         font-size: var(--font-size-sm);
-        font-weight: 700;
+        font-weight: var(--font-weight-bold);
     }
 
     &__actions {

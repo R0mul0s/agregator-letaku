@@ -13,6 +13,7 @@ import WatchItemForm from '@/Components/WatchItemForm.vue';
 import WatchItemTile from '@/Components/WatchItemTile.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { useTranslations } from '@/lib/i18n';
+import { scrollIntoViewGently } from '@/lib/scroll';
 import { Head, router, usePage } from '@inertiajs/vue3';
 import { computed, nextTick, onMounted, ref, watch } from 'vue';
 
@@ -62,7 +63,7 @@ async function openOwnForm(text) {
     ownForm.value = { name: text, keywords: text.toLocaleLowerCase(page.props.locale) };
     ownFormKey.value++;
     await nextTick();
-    ownFormElement.value?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    scrollIntoViewGently(ownFormElement.value, 'nearest');
 }
 
 /** ID položek, které už stránka ukázala — nové (právě přidané) se krátce zvýrazní (R71). */

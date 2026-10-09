@@ -16,6 +16,7 @@ import DepartmentIcon from '@/Components/DepartmentIcon.vue';
 import HighlightText from '@/Components/HighlightText.vue';
 import { formatPrice } from '@/lib/format';
 import { useTranslations } from '@/lib/i18n';
+import { useListbox } from '@/lib/listbox';
 import { useRotatingPlaceholder } from '@/lib/placeholder';
 import { editDistance, normalizeSearch, searchWords, startsWord } from '@/lib/search';
 import { emptyPreviewTexts, useWatchPreview } from '@/lib/watchPreview';
@@ -52,7 +53,6 @@ const listId = `${id}-suggestions`;
 const text = ref('');
 const open = ref(false);
 const focused = ref(false);
-const activeIndex = ref(-1);
 
 const query = computed(() => text.value.trim());
 
@@ -130,7 +130,7 @@ const options = computed(() => [
     ...(query.value ? [{ type: 'own' }] : []),
 ]);
 
-const activeId = computed(() => (activeIndex.value >= 0 ? `${listId}-${activeIndex.value}` : undefined));
+const { activeIndex, activeId, activeOption, moveByArrow } = useListbox(options, listId);
 
 const placeholder = useRotatingPlaceholder(
     () => page.props.translations?.watch?.examples ?? [],
@@ -177,15 +177,12 @@ function choose(option) {
  * @param {KeyboardEvent} event
  */
 function onKeydown(event) {
-    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
-        event.preventDefault();
-        open.value = options.value.length > 0;
-        const step = event.key === 'ArrowDown' ? 1 : -1;
-        activeIndex.value = (activeIndex.value + step + options.value.length) % options.value.length;
+    if (moveByArrow(event)) {
+        open.value = true;
     } else if (event.key === 'Enter' && options.value.length) {
         event.preventDefault();
         const firstAvailable = options.value.find((option) => option.type === 'own' || !option.product.watched);
-        choose(activeIndex.value >= 0 ? options.value[activeIndex.value] : firstAvailable);
+        choose(activeOption.value ?? firstAvailable);
     } else if (event.key === 'Escape') {
         // Prohlížeč by pole typu search Escapem vymazal — Escape jen zavírá
         event.preventDefault();

@@ -555,7 +555,7 @@ na kusy vážené za kg). Přeškrtnutá cena, „běžná cena“ u Klubu nebo 
   z letáku. **ID:** platí-li akce přesně akční týden st–út, je to SKU — stejný klíč, jaký dá API po začátku, upsert řádek
   jen aktualizuje (`created_at` zůstane, souhrn ani centrum upozornění ho neohlásí podruhé, R74, R76). Jiná platnost
   (oddíl „SUPER STŘEDA“, víkend, katalog na tři týdny) = předběžné ID `letak-{SKU}` a akce z API nese
-  `supersedes` = `letak-{SKU}` → `ImportChainOffers::adoptProvisional` (R88) řádek převezme, jakmile se platnosti překryjí.
+  `supersedes` = `letak-{SKU}` → `OfferContinuity::adoptProvisional` (R88) řádek převezme, jakmile se platnosti překryjí.
   Akce, která začne až uprostřed týdne (víkend), ve středu v API ještě není — R16 ji ve středu označí jako staženou
   a ve čtvrtek ji převzetí vrátí (bez nového upozornění).
 - **Pokračující akce (R54):** má-li produkt dnes v API akci se stejnou cenou (i s Klubem), dlaždice se nezaloží —
@@ -690,7 +690,7 @@ v `GlobusOfferSource`. Každý leták je vlastní zdroj (`kind` leaflet, ID `act
   ukončí stažení celého Globusu — jinak by akce z letáku byly „stažené“ (R16).
 
 **Převzetí akcí z API:** až leták začne, API vrátí akci pod vlastním ID (`vanr`) a s platností katalogu. Akce z API nese
-v `OfferData::$supersedes` otisk z názvu spárované položky `actionProducts` a ceny; `ImportChainOffers::adoptProvisional`
+v `OfferData::$supersedes` otisk z názvu spárované položky `actionProducts` a ceny; `OfferContinuity::adoptProvisional`
 řádek z PDF s tímto ID a překrývající se platností přejmenuje na ID z API a převezme platnost. Řádek si nechá `created_at`
 (souhrn, centrum upozornění ani „Od dneška platí“ ho neohlásí jako novou akci, R74, R76), přiřazení ke katalogu i ID
 v uložených upozorněních. Nepřevzatý řádek z PDF stáhne R16.

@@ -44,8 +44,9 @@ use App\Support\Seo\IndexNow;
 use Illuminate\Support\Facades\Route;
 
 // Cron WebAdminu umí jen zavolat URL (R20, R38) — chráněné tokenem, bez něj 404;
-// limit požadavků brání zkoušení tokenu (R45)
-Route::middleware('throttle:'.RateLimits::CRON)->group(function (): void {
+// limit požadavků brání zkoušení tokenu (R45). Relaci nezapisuje — každé volání by jinak
+// založilo řádek v sessions (R113)
+Route::middleware(['throttle:'.RateLimits::CRON, ReadOnlySession::class])->group(function (): void {
     Route::get('/cron/import-offers', [CronController::class, 'importOffers'])->name('cron.import-offers');
     Route::get('/cron/import-stores', [CronController::class, 'importStores'])->name('cron.import-stores');
     Route::get('/cron/import-categories', [CronController::class, 'importCategories'])->name('cron.import-categories');

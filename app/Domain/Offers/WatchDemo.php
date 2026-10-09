@@ -58,14 +58,10 @@ final class WatchDemo
             return ['count' => 0, 'offers' => []];
         }
 
-        $today = $this->calendar->today()->toDateString();
         // Jen sloupce pro výběr nejlevnější — celé řádky (s `raw`) se načtou až pro vybrané akce
         $rows = OfferProduct::query()
-            ->join('offers', 'offers.id', '=', 'offer_product.offer_id')
+            ->joinCurrentOffers($this->calendar->today(), startedOnly: true)
             ->whereIn('offer_product.product_id', $productIds)
-            ->whereNull('offers.withdrawn_at')
-            ->where('offers.valid_from', '<=', $today)
-            ->where('offers.valid_to', '>=', $today)
             ->when($chains !== [], fn (Builder $query) => $query->whereIn('offers.chain', $chains))
             ->select(['offer_product.product_id', 'offers.id', 'offers.price', 'offers.loyalty_price', 'offers.quantity', 'offers.unit'])
             ->toBase()

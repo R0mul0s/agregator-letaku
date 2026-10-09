@@ -8,7 +8,7 @@
 -->
 <script setup>
 import ChainLogo from '@/Components/ChainLogo.vue';
-import { formatNumber, formatPrice } from '@/lib/format';
+import { formatDiscount, formatNumber, formatPrice } from '@/lib/format';
 import { useTranslations } from '@/lib/i18n';
 import { discountPercent } from '@/lib/offer';
 import { usePage } from '@inertiajs/vue3';
@@ -84,7 +84,7 @@ function markBroken(id) {
                                 <span class="auth-deal__price">{{ formatPrice(deal.price, locale) }}</span>
                             </p>
                         </div>
-                        <span v-if="deal.discount" class="auth-deal__sticker">−{{ deal.discount }} %</span>
+                        <span v-if="deal.discount" class="auth-deal__sticker">{{ formatDiscount(deal.discount) }}</span>
                     </li>
                 </ul>
             </div>

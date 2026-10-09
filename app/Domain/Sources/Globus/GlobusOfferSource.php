@@ -123,14 +123,8 @@ final class GlobusOfferSource implements OfferSource
      */
     private function leafletOffers(array $leaflet, array $apiOffers): array
     {
-        // PDF má ~38 MB — delší časový limit než běžná odpověď
-        $pdf = $this->http->request()
-            ->timeout(config()->integer('letaky.http.pdf_timeout_seconds'))
-            ->get($leaflet['pdfUrl'])
-            ->body();
-
         $offers = $this->leafletParser->offers(
-            $this->pdf->read($pdf),
+            $this->pdf->readUrl($this->http, $leaflet['pdfUrl']),
             [$leaflet['validFrom'], $leaflet['validTo']],
             config()->string('letaky.sources.globus.offers_page_url'),
         );

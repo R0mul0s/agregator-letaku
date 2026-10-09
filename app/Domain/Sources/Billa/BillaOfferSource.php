@@ -192,13 +192,7 @@ final class BillaOfferSource implements OfferSource
      */
     private function leafletItems(array $leaflet, string $pdfUrl): array
     {
-        // PDF má až ~55 MB — delší časový limit než běžná odpověď
-        $pdf = $this->http->request($this->delay())
-            ->timeout(config()->integer('letaky.http.pdf_timeout_seconds'))
-            ->get($pdfUrl)
-            ->body();
-
-        $items = $this->leafletParser->items($this->pdf->read($pdf), [$leaflet['validFrom'], $leaflet['validTo']]);
+        $items = $this->leafletParser->items($this->pdf->readUrl($this->http, $pdfUrl, $this->delay()), [$leaflet['validFrom'], $leaflet['validTo']]);
 
         $minimum = config()->integer('letaky.sources.billa.pdf_main_min_items');
         if ($leaflet['title'] === config()->string('letaky.sources.billa.pdf_main_title') && count($items) < $minimum) {

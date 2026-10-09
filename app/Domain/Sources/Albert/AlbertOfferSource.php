@@ -108,14 +108,8 @@ final class AlbertOfferSource implements OfferSource
             throw SourceResponseChanged::because(Chain::Albert, "leták {$leaflet->externalId} bez platnosti");
         }
 
-        // PDF má 25–45 MB — delší časový limit než běžná odpověď
-        $pdf = $this->http->request($this->delay())
-            ->timeout(config()->integer('letaky.http.pdf_timeout_seconds'))
-            ->get($pdfUrl)
-            ->body();
-
         $offers = $this->leafletParser->offers(
-            $this->pdf->read($pdf),
+            $this->pdf->readUrl($this->http, $pdfUrl, $this->delay()),
             [$leaflet->validFrom, $leaflet->validTo],
             $viewUrl.config()->string('letaky.sources.albert.page_path'),
         );

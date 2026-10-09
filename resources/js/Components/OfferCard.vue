@@ -9,9 +9,9 @@
 import ChainLogo from '@/Components/ChainLogo.vue';
 import ChainWatermark from '@/Components/ChainWatermark.vue';
 import InfoIcon from '@/Components/InfoIcon.vue';
-import { formatDate, formatPrice } from '@/lib/format';
+import { formatDate, formatDiscount, formatPrice } from '@/lib/format';
 import { useTranslations } from '@/lib/i18n';
-import { discountPercent, packageLabel, startsLabel } from '@/lib/offer';
+import { discountPercent, MATCH_MAYBE, OFFER_TYPE, offerUnitPriceLabel, packageLabel, startsLabel } from '@/lib/offer';
 import { showStoresDialog } from '@/lib/storesDialog';
 import { usePage } from '@inertiajs/vue3';
 import { computed, ref, useId, watch } from 'vue';
@@ -69,22 +69,13 @@ const storesLabel = computed(() => {
 });
 
 /** Akce platí jen s kartou — hlavní cena je cena s kartou, běžná cena vedle. */
-const isLoyaltyOnly = computed(() => props.offer.offerType === 'loyalty_only');
+const isLoyaltyOnly = computed(() => props.offer.offerType === OFFER_TYPE.LOYALTY_ONLY);
 
 /** Balení: text obchodu, jinak množství a jednotka z názvu Tesco („1 l“, „500 g“). */
 const packageText = computed(() => packageLabel(props.offer, locale.value, t));
 
-/**
- * Cena za jednotku k hlavní ceně karty. U akce na více kusů by byla z běžné ceny,
- * v přehledu akcí by mátla — nezobrazuje se.
- */
-const unitPrice = computed(() => {
-    if (props.offer.offerType === 'multibuy') {
-        return null;
-    }
-
-    return isLoyaltyOnly.value ? props.offer.loyaltyUnitPrice : props.offer.unitPrice;
-});
+/** Cena za jednotku k hlavní ceně karty („29,90 Kč / kg“); null bez balení a u akce na více kusů. */
+const unitPrice = computed(() => offerUnitPriceLabel(props.offer, locale.value, t));
 
 /**
  * „Je to opravdu sleva?“ (R59): srovnání s dřívějšími akcemi stejné položky u obchodu
@@ -102,16 +93,6 @@ const historyLabel = computed(() => {
         price: formatPrice(history.price, locale.value),
     });
 });
-
-/**
- * Cena za jednotku jako „29,90 Kč / kg“.
- *
- * @param {number} halers
- * @returns {string}
- */
-function unitPriceLabel(halers) {
-    return t('offers.unit_price', { price: formatPrice(halers, locale.value), unit: t(`unit_price_units.${props.offer.unitPriceUnit}`) });
-}
 </script>
 
 <template>
@@ -123,7 +104,7 @@ function unitPriceLabel(halers) {
             <span v-if="starts" class="tag tag--upcoming">{{ starts }}</span>
             <!-- Vysvětlení klepnutím — title se na dotykovém displeji neukáže (R55) -->
             <button
-                v-if="offer.matchStatus === 'maybe'"
+                v-if="offer.matchStatus === MATCH_MAYBE"
                 type="button"
                 class="tag tag--warning tag--info"
                 :aria-expanded="maybeHintOpen ? 'true' : 'false'"
@@ -141,17 +122,17 @@ function unitPriceLabel(halers) {
                 <!-- Klepnutím seznam prodejen -->
                 <InfoIcon />
             </button>
-            <span class="tag" :class="{ 'tag--accent': offer.offerType === 'discount' }">{{ t(`offer_types.${offer.offerType}`) }}</span>
+            <span class="tag" :class="{ 'tag--accent': offer.offerType === OFFER_TYPE.DISCOUNT }">{{ t(`offer_types.${offer.offerType}`) }}</span>
             <!-- Bez obrázku cenovka vpravo v řádku štítků — přes prázdné pole by překryla název -->
-            <span v-if="discount && !hasImage" class="offer-card__sticker offer-card__sticker--inline" aria-hidden="true">−{{ discount }} %</span>
+            <span v-if="discount && !hasImage" class="offer-card__sticker offer-card__sticker--inline" aria-hidden="true">{{ formatDiscount(discount) }}</span>
         </div>
-        <p v-if="offer.matchStatus === 'maybe'" :id="maybeHintId" class="offer-card__hint" :hidden="!maybeHintOpen">{{ t('offers.maybe_hint') }}</p>
+        <p v-if="offer.matchStatus === MATCH_MAYBE" :id="maybeHintId" class="offer-card__hint" :hidden="!maybeHintOpen">{{ t('offers.maybe_hint') }}</p>
 
         <!-- Obrázek z CDN obchodu, nestahuje se k nám (R22); název nese nadpis, obrázek je dekorativní.
              Sleva jako červená cenovka přes obrázek (motiv z loga); čtečka ji má i u ceny. -->
         <div v-if="hasImage" class="offer-card__media">
             <img :src="offer.imageUrl" alt="" class="offer-card__image" loading="lazy" referrerpolicy="no-referrer" @error="imageBroken = true" />
-            <span v-if="discount" class="offer-card__sticker" aria-hidden="true">−{{ discount }} %</span>
+            <span v-if="discount" class="offer-card__sticker" aria-hidden="true">{{ formatDiscount(discount) }}</span>
         </div>
         <component :is="`h${headingLevel}`" class="offer-card__name">{{ offer.name }}</component>
         <p v-if="offer.description" class="offer-card__description">{{ offer.description }}</p>
@@ -164,7 +145,7 @@ function unitPriceLabel(halers) {
                 <span class="offer-card__note">{{ t('offers.with_card', { program: offer.loyaltyProgramName }) }}</span>
                 <span v-if="offer.price !== null" class="offer-card__note">{{ t('offers.regular_price', { price: formatPrice(offer.price, locale) }) }}</span>
             </template>
-            <template v-else-if="offer.offerType === 'multibuy'">
+            <template v-else-if="offer.offerType === OFFER_TYPE.MULTIBUY">
                 <span v-if="offer.promotionText" class="offer-card__price offer-card__price--text">{{ offer.promotionText }}</span>
                 <span v-if="offer.price !== null" class="offer-card__note">{{ t('offers.regular_price', { price: formatPrice(offer.price, locale) }) }}</span>
             </template>
@@ -174,14 +155,14 @@ function unitPriceLabel(halers) {
                 <s v-if="offer.originalPrice !== null" class="offer-card__original"
                     ><span class="visually-hidden">{{ t('offers.original_price_label') }} </span>{{ formatPrice(offer.originalPrice, locale) }}</s
                 >
-                <span v-if="discount" class="offer-card__discount">−{{ discount }} %</span>
+                <span v-if="discount" class="offer-card__discount">{{ formatDiscount(discount) }}</span>
             </template>
         </div>
 
         <p v-if="!isLoyaltyOnly && offer.loyaltyPrice !== null" class="offer-card__loyalty">
             {{ formatPrice(offer.loyaltyPrice, locale) }} {{ t('offers.with_card', { program: offer.loyaltyProgramName }) }}
         </p>
-        <p v-if="unitPrice !== null && offer.unitPriceUnit" class="offer-card__unit-price">{{ unitPriceLabel(unitPrice) }}</p>
+        <p v-if="unitPrice" class="offer-card__unit-price">{{ unitPrice }}</p>
         <p v-if="historyLabel" class="offer-card__history" :class="`offer-card__history--${offer.priceHistory.status}`">{{ historyLabel }}</p>
 
         <footer class="offer-card__footer">

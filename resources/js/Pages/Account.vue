@@ -16,6 +16,7 @@
 import CheckboxField from '@/Components/CheckboxField.vue';
 import IdentityConfirm from '@/Components/IdentityConfirm.vue';
 import PhoneAppSettings from '@/Components/PhoneAppSettings.vue';
+import SelectField from '@/Components/SelectField.vue';
 import SocialLogo from '@/Components/SocialLogo.vue';
 import TextField from '@/Components/TextField.vue';
 import UserAvatar from '@/Components/UserAvatar.vue';
@@ -24,8 +25,9 @@ import { formatDateTime } from '@/lib/format';
 import { confirmDialog } from '@/lib/confirm';
 import { useTranslations } from '@/lib/i18n';
 import { squareImage } from '@/lib/image';
+import { useScrollSpy } from '@/lib/scrollSpy';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, ref } from 'vue';
 
 const props = defineProps({
     urls: { type: Object, required: true },
@@ -69,85 +71,14 @@ const SECTIONS = [
 
 const user = computed(() => page.props.auth.user);
 
-/** Sekce, ve které uživatel právě je — zvýrazní se v navigaci (R63). */
-const activeSection = ref(SECTIONS[0].id);
-
-/** Tolerance (px) pro „posunuto až na konec stránky“ — zaokrouhlení výšek v prohlížeči. */
-const BOTTOM_TOLERANCE_PX = 2;
-
-/** Čeká na snímek, aby se při posouvání nepočítalo víckrát než jednou za vykreslení. */
-let spyFrame = null;
-
 /**
- * Sekce vybraná klepnutím v navigaci — platí, dokud uživatel sám neposune stránku. Sekce
- * u konce stránky k hlavičce nedojede a pravidlo „konec stránky“ by zvýraznilo poslední.
+ * Sekce, ve které uživatel právě je — zvýrazní se v navigaci (R63). Čára je odsazení kotev
+ * pod hlavičkou (scroll-padding-top).
  */
-let clickedSection = null;
-
-/**
- * Klepnutí na sekci v navigaci.
- *
- * @param {string} id
- */
-function selectSection(id) {
-    activeSection.value = id;
-    clickedSection = id;
-}
-
-/** Posunutí kolečkem, prstem nebo klávesou — dál rozhoduje poloha stránky. */
-function releaseClickedSection() {
-    clickedSection = null;
-}
-
-/** Události, kterými uživatel posouvá sám (ne skok na kotvu po klepnutí). */
-const USER_SCROLL_EVENTS = ['wheel', 'touchstart', 'keydown'];
-
-/**
- * Najde aktuální sekci: poslední, jejíž začátek už dojel pod hlavičku (odsazení kotev
- * scroll-padding-top). Na konci stránky poslední sekce — krátká by k hlavičce nedojela.
- */
-function updateActiveSection() {
-    spyFrame = null;
-    if (clickedSection !== null) {
-        return;
-    }
-
-    const root = document.documentElement;
-    if (window.innerHeight + window.scrollY >= root.scrollHeight - BOTTOM_TOLERANCE_PX) {
-        activeSection.value = SECTIONS[SECTIONS.length - 1].id;
-
-        return;
-    }
-
-    const offset = parseFloat(getComputedStyle(root).scrollPaddingTop) || 0;
-    let current = SECTIONS[0].id;
-    for (const section of SECTIONS) {
-        const element = document.getElementById(section.id);
-        if (element && element.getBoundingClientRect().top <= offset + BOTTOM_TOLERANCE_PX) {
-            current = section.id;
-        }
-    }
-    activeSection.value = current;
-}
-
-/** Posluchač posouvání — výpočet jednou za snímek. */
-function onScroll() {
-    spyFrame ??= requestAnimationFrame(updateActiveSection);
-}
-
-onMounted(() => {
-    window.addEventListener('scroll', onScroll, { passive: true });
-    USER_SCROLL_EVENTS.forEach((event) => window.addEventListener(event, releaseClickedSection, { passive: true }));
-    updateActiveSection();
-});
-
-onBeforeUnmount(() => {
-    window.removeEventListener('scroll', onScroll);
-    USER_SCROLL_EVENTS.forEach((event) => window.removeEventListener(event, releaseClickedSection));
-    if (spyFrame !== null) {
-        cancelAnimationFrame(spyFrame);
-    }
-});
+const { activeId: activeSection, select: selectSection } = useScrollSpy(
+    SECTIONS.map((section) => section.id),
+    () => parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0,
+);
 
 /** Přihlášení i jinde než tady — jen pak má smysl odhlásit ostatní zařízení. */
 const hasOtherSessions = computed(() => props.sessions.some((session) => !session.current));
@@ -415,6 +346,8 @@ async function deleteAccount() {
                                     name="digest_frequency"
                                     :value="option.value"
                                     class="form-checkbox__input"
+                                    :aria-invalid="digestForm.errors.digest_frequency ? 'true' : undefined"
+                                    :aria-describedby="digestForm.errors.digest_frequency ? 'digest_frequency-error' : undefined"
                                     @change="updateDigest"
                                 />
                                 <span>
@@ -422,7 +355,7 @@ async function deleteAccount() {
                                     <span class="account-choice__hint">{{ t(`account.digest_options.${option.value}`) }}</span>
                                 </span>
                             </label>
-                            <p v-if="digestForm.errors.digest_frequency" class="form-field__error" role="alert">{{ digestForm.errors.digest_frequency }}</p>
+                            <p v-if="digestForm.errors.digest_frequency" id="digest_frequency-error" class="form-field__error" role="alert">{{ digestForm.errors.digest_frequency }}</p>
                         </fieldset>
 
                         <PhoneAppSettings :push="push" :app-version="appVersion" />
@@ -451,30 +384,28 @@ async function deleteAccount() {
                         <p class="account-section__autosave">{{ t('account.autosave') }}</p>
                     </header>
                     <div class="account-section__body form">
-                        <div class="form-field">
-                            <label for="offers_sort" class="form-field__label">{{ t('account.offers_sort') }}</label>
-                            <select id="offers_sort" v-model="offersForm.offers_sort" class="form-field__input" @change="updateOffersPreferences">
-                                <option v-for="option in offersPreferences.sortOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
-                            </select>
-                            <p v-if="offersForm.errors.offers_sort" class="form-field__error" role="alert">{{ offersForm.errors.offers_sort }}</p>
-                        </div>
-                        <div class="form-field">
-                            <label for="min_discount_percent" class="form-field__label">{{ t('account.min_discount') }}</label>
-                            <select
-                                id="min_discount_percent"
-                                v-model="offersForm.min_discount_percent"
-                                class="form-field__input"
-                                aria-describedby="min_discount_hint"
-                                @change="updateOffersPreferences"
-                            >
-                                <option :value="null">{{ t('account.min_discount_all') }}</option>
-                                <option v-for="percent in offersPreferences.minDiscountOptions" :key="percent" :value="percent">
-                                    {{ t('account.min_discount_option', { percent }) }}
-                                </option>
-                            </select>
-                            <p id="min_discount_hint" class="form-field__hint">{{ t('account.min_discount_hint') }}</p>
-                            <p v-if="offersForm.errors.min_discount_percent" class="form-field__error" role="alert">{{ offersForm.errors.min_discount_percent }}</p>
-                        </div>
+                        <SelectField
+                            id="offers_sort"
+                            v-model="offersForm.offers_sort"
+                            :label="t('account.offers_sort')"
+                            :error="offersForm.errors.offers_sort"
+                            @change="updateOffersPreferences"
+                        >
+                            <option v-for="option in offersPreferences.sortOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
+                        </SelectField>
+                        <SelectField
+                            id="min_discount_percent"
+                            v-model="offersForm.min_discount_percent"
+                            :label="t('account.min_discount')"
+                            :hint="t('account.min_discount_hint')"
+                            :error="offersForm.errors.min_discount_percent"
+                            @change="updateOffersPreferences"
+                        >
+                            <option :value="null">{{ t('account.min_discount_all') }}</option>
+                            <option v-for="percent in offersPreferences.minDiscountOptions" :key="percent" :value="percent">
+                                {{ t('account.min_discount_option', { percent }) }}
+                            </option>
+                        </SelectField>
                     </div>
                 </section>
 

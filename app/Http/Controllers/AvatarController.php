@@ -73,15 +73,4 @@ class AvatarController extends Controller
             Storage::disk('local')->delete($path);
         }
     }
-
-    /**
-     * Přihlášený uživatel (routy jsou za middlewarem auth).
-     */
-    private function user(Request $request): User
-    {
-        /** @var User $user */
-        $user = $request->user();
-
-        return $user;
-    }
 }

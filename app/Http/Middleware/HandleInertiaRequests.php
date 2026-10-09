@@ -13,10 +13,10 @@ declare(strict_types=1);
 namespace App\Http\Middleware;
 
 use App\Domain\Offers\OfferPages;
-use App\Domain\Sources\ImportFreshness;
 use App\Domain\Sources\SourceRegistry;
 use App\Enums\Chain;
 use App\Http\Controllers\WatchItemController;
+use App\Models\ScrapeRun;
 use App\Models\User;
 use App\Support\Legal\LegalDocuments;
 use App\Support\Seo\SeoMeta;
@@ -145,7 +145,7 @@ class HandleInertiaRequests extends Middleware
                     'chain' => $chain->value,
                     'url' => app(OfferPages::class)->chainUrl($chain),
                 ], app(SourceRegistry::class)->chainsWithOffers()),
-                'lastImportAt' => app(ImportFreshness::class)->lastSucceededAt()?->toIso8601String(),
+                'lastImportAt' => ScrapeRun::lastFinishedAt()?->toIso8601String(),
                 'contactUrl' => route('contact', absolute: false),
                 'termsUrl' => route('legal.terms', absolute: false),
                 'privacyUrl' => route('legal.privacy', absolute: false),

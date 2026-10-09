@@ -10,6 +10,7 @@ import EmptyState from '@/Components/EmptyState.vue';
 import Pagination from '@/Components/Pagination.vue';
 import ProductForm from '@/Components/ProductForm.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
+import { debounce } from '@/lib/debounce';
 import { useTranslations } from '@/lib/i18n';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { onBeforeUnmount, ref } from 'vue';
@@ -46,7 +47,6 @@ const t = useTranslations();
 const showForm = ref(false);
 const query = ref(props.filters.q);
 const department = ref(props.filters.department);
-let searchTimer = null;
 
 /**
  * Načte tabulku s hledáním, oddělením a řazením od první stránky; výchozí hodnoty do adresy nedává.
@@ -70,10 +70,7 @@ function reload(sort = { sort: props.filters.sort, descending: props.filters.des
 }
 
 /** Hledání se načte po pauze v psaní. */
-function onSearchInput() {
-    clearTimeout(searchTimer);
-    searchTimer = setTimeout(reload, SEARCH_DEBOUNCE_MS);
-}
+const onSearchInput = debounce(() => reload(), SEARCH_DEBOUNCE_MS);
 
 /**
  * Seřadí podle sloupce; opakované klepnutí obrátí směr.
@@ -98,7 +95,7 @@ function ariaSort(key) {
     return props.filters.descending ? 'descending' : 'ascending';
 }
 
-onBeforeUnmount(() => clearTimeout(searchTimer));
+onBeforeUnmount(() => onSearchInput.cancel());
 </script>
 
 <template>

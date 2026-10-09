@@ -5,7 +5,49 @@
  * @created 2026-10-02
  */
 
-import { formatDate, formatPackage } from '@/lib/format';
+import { formatDate, formatPackage, formatPrice } from '@/lib/format';
+
+/** Druhy akcí — hodnoty App\Enums\OfferType (R8). */
+export const OFFER_TYPE = Object.freeze({
+    DISCOUNT: 'discount',
+    PROMO_PRICE: 'promo_price',
+    LOYALTY_ONLY: 'loyalty_only',
+    MULTIBUY: 'multibuy',
+});
+
+/** Shoda „možná“ u „různých druhů“ — hodnota App\Enums\MatchStatus::Maybe (R9). */
+export const MATCH_MAYBE = 'maybe';
+
+/**
+ * Cena za jednotku jako „29,90 Kč / kg“.
+ *
+ * @param {number} halers
+ * @param {string} unit Klíč jednotky (unitPriceUnit: kg, l, ks)
+ * @param {string} locale
+ * @param {(key: string, replace?: object) => string} t Překlad (useTranslations)
+ * @returns {string}
+ */
+export function unitPriceLabel(halers, unit, locale, t) {
+    return t('offers.unit_price', { price: formatPrice(halers, locale), unit: t(`unit_price_units.${unit}`) });
+}
+
+/**
+ * Cena za jednotku k hlavní ceně akce (u akce jen s kartou z ceny s kartou); null bez balení.
+ * U akce na více kusů by byla z běžné ceny a v přehledu by mátla — nezobrazuje se.
+ *
+ * @param {object} offer Akce z OfferPresenter
+ * @param {string} locale
+ * @param {(key: string, replace?: object) => string} t Překlad (useTranslations)
+ * @returns {string|null}
+ */
+export function offerUnitPriceLabel(offer, locale, t) {
+    const value = offer.offerType === OFFER_TYPE.LOYALTY_ONLY ? offer.loyaltyUnitPrice : offer.unitPrice;
+    if (offer.offerType === OFFER_TYPE.MULTIBUY || value === null || value === undefined || !offer.unitPriceUnit) {
+        return null;
+    }
+
+    return unitPriceLabel(value, offer.unitPriceUnit, locale, t);
+}
 
 /**
  * Sleva v procentech: od obchodu, jinak dopočtená z původní ceny; jen u typu „sleva“ (R8).

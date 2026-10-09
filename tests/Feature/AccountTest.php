@@ -280,7 +280,7 @@ it('zruší účet jen se správným heslem i s hlídanými položkami a obrázk
 
     $this->delete(route('account.destroy'), ['password' => UserFactory::PASSWORD])
         ->assertRedirect(route('login'))
-        ->assertSessionHas('status', __('app.ui.account.deleted'));
+        ->assertSessionHas('status', AccountController::STATUS_DELETED);
 
     $this->assertGuest();
     expect(User::query()->whereKey($user->id)->exists())->toBeFalse()

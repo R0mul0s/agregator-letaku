@@ -24,7 +24,6 @@ use App\Domain\Offers\PriceHistory;
 use App\Domain\Offers\UserPricing;
 use App\Enums\NotificationKind;
 use App\Models\Offer;
-use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Notifications\DatabaseNotification;
@@ -73,7 +72,7 @@ class NotificationController extends Controller
         $summary = $presenter->summary($record);
         abort_if($summary === null, 404);
 
-        $offers = Offer::query()->with('stores')->findMany(OffersNotification::offerIds($record))->keyBy('id');
+        $offers = Offer::query()->withoutRaw()->with('stores')->findMany(OffersNotification::offerIds($record))->keyBy('id');
         $storeCodes = $user->selectedStoreCodes();
         $today = $calendar->today();
         // „Je to opravdu sleva?“ (R59) — u řádku štítek „Nejlevněji za N týdnů“ (etapa 11c)
@@ -138,14 +137,5 @@ class NotificationController extends Controller
             'url' => $announcement['url'],
             'external' => $announcement['url'] !== null && AnnouncementRecord::isExternal($announcement['url']),
         ];
-    }
-
-    /**
-     * Přihlášený uživatel (routy jsou za middleware auth).
-     */
-    private function user(Request $request): User
-    {
-        /** @var User */
-        return $request->user();
     }
 }

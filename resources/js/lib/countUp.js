@@ -6,6 +6,7 @@
  * @author Roman Hlaváček
  * @created 2026-10-06
  */
+import { prefersReducedMotion } from '@/lib/scroll';
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
 /** Jak dlouho se čísla napočítávají při prvním zobrazení (ms). */
@@ -13,15 +14,6 @@ const COUNT_UP_MS = 1200;
 
 /** Jak dlouho trvá přechod na novou hodnotu (ms). */
 const CHANGE_MS = 400;
-
-/**
- * Má prohlížeč omezený pohyb?
- *
- * @returns {boolean}
- */
-function prefersReducedMotion() {
-    return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
-}
 
 /**
  * Průběh animace se zpomalením na konci; volá onProgress s hodnotou 0–1 v každém snímku.

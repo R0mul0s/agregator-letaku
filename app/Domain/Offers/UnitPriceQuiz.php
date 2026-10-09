@@ -115,18 +115,14 @@ final class UnitPriceQuiz
      */
     private function eligibleOffers(): QueryBuilder
     {
-        $today = $this->calendar->today()->toDateString();
         $units = array_values(array_filter(
             PackageUnit::cases(),
             fn (PackageUnit $unit): bool => in_array($unit->unitPriceKey(), config()->array('letaky.landing.quiz_units'), true),
         ));
 
         return OfferProduct::query()
-            ->join('offers', 'offers.id', '=', 'offer_product.offer_id')
+            ->joinCurrentOffers($this->calendar->today(), startedOnly: true)
             ->join('products', 'products.id', '=', 'offer_product.product_id')
-            ->whereNull('offers.withdrawn_at')
-            ->where('offers.valid_from', '<=', $today)
-            ->where('offers.valid_to', '>=', $today)
             ->whereNotNull('offers.price')
             ->whereNotNull('offers.quantity')
             ->whereNotNull('offers.image_url')

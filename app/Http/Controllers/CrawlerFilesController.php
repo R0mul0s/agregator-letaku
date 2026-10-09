@@ -16,7 +16,6 @@ namespace App\Http\Controllers;
 use App\Domain\Offers\LocalCalendar;
 use App\Domain\Offers\OfferPages;
 use App\Enums\Chain;
-use App\Enums\ScrapeStatus;
 use App\Models\Offer;
 use App\Models\ScrapeRun;
 use App\Support\Seo\IndexNow;
@@ -69,7 +68,7 @@ class CrawlerFilesController extends Controller
      */
     public function sitemap(): Response
     {
-        $offersModified = $this->lastImport()?->toAtomString();
+        $offersModified = ScrapeRun::lastFinishedAt()?->toAtomString();
         $legalModified = config('letaky.legal.effective_from');
         $urls = [
             ['loc' => SeoMeta::homeUrl(), 'lastmod' => $offersModified],
@@ -146,16 +145,6 @@ class CrawlerFilesController extends Controller
         $chains = Offer::query()->active()->notExpired($this->calendar->today())->distinct()->pluck('chain')->all();
 
         return array_values(array_filter(Chain::cases(), fn (Chain $chain): bool => in_array($chain, $chains, true)));
-    }
-
-    /**
-     * Konec posledního úspěšného stažení akcí, nebo null.
-     */
-    private function lastImport(): ?CarbonImmutable
-    {
-        $finishedAt = ScrapeRun::query()->where('status', ScrapeStatus::Succeeded)->max('finished_at');
-
-        return $finishedAt === null ? null : CarbonImmutable::parse((string) $finishedAt, 'UTC');
     }
 
     /**

@@ -24,6 +24,6 @@
         max-width: var(--empty-text-max-width);
         color: var(--color-text-muted);
         font-size: var(--font-size-card-title);
-        font-weight: 700;
+        font-weight: var(--font-weight-bold);
     }
 }

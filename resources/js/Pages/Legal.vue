@@ -12,8 +12,10 @@
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { formatDate } from '@/lib/format';
 import { useTranslations } from '@/lib/i18n';
+import { scrollIntoViewGently } from '@/lib/scroll';
+import { useScrollSpy } from '@/lib/scrollSpy';
 import { Head, usePage } from '@inertiajs/vue3';
-import { onBeforeUnmount, onMounted, ref, useId } from 'vue';
+import { onMounted, ref, useId } from 'vue';
 
 const props = defineProps({
     title: { type: String, required: true },
@@ -34,35 +36,14 @@ const ACTIVE_LINE_RATIO = 0.3;
 const t = useTranslations();
 const page = usePage();
 
-const activeId = ref(props.sections[0]?.id ?? null);
 const tocOpen = ref(false);
 const tocListId = useId();
 
-let frame = null;
-
-/**
- * Najde kapitolu, ve které čtenář je: poslední nadpis nad čarou; na konci stránky poslední
- * kapitola (krátká poslední kapitola by se jinak nikdy nezvýraznila).
- */
-function updateActive() {
-    frame = null;
-    const line = window.innerHeight * ACTIVE_LINE_RATIO;
-    const atBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 1;
-    let current = props.sections[0]?.id ?? null;
-
-    for (const section of props.sections) {
-        const heading = document.getElementById(section.id);
-        if (heading && heading.getBoundingClientRect().top <= line) {
-            current = section.id;
-        }
-    }
-    activeId.value = atBottom ? (props.sections.at(-1)?.id ?? current) : current;
-}
-
-/** Posouvání a změna velikosti — přepočet nejvýš jednou za snímek. */
-function onScroll() {
-    frame ??= window.requestAnimationFrame(updateActive);
-}
+/** Kapitola, ve které čtenář je — zvýrazní se v obsahu. */
+const { activeId, select } = useScrollSpy(
+    () => props.sections.map((section) => section.id),
+    () => window.innerHeight * ACTIVE_LINE_RATIO,
+);
 
 /**
  * Plynule posune na kapitolu (s ohledem na omezení pohybu), dá jí fokus a zapíše ji do adresy.
@@ -77,31 +58,19 @@ function goTo(event, id) {
         return;
     }
     event.preventDefault();
-    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    heading.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+    scrollIntoViewGently(heading);
     // Nadpis z Markdownu není ovládací prvek — fokus jen programově, bez zastávky tabulátoru
     heading.setAttribute('tabindex', '-1');
     heading.focus({ preventScroll: true });
     window.history.replaceState(window.history.state, '', `#${id}`);
-    activeId.value = id;
+    select(id);
     tocOpen.value = false;
 }
 
 onMounted(() => {
-    window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', onScroll, { passive: true });
     // Odkaz zvenku na kapitolu (#…) — obsah vznikl až po načtení, prohlížeč na něj neposunul
     const target = window.location.hash ? document.getElementById(decodeURIComponent(window.location.hash.slice(1))) : null;
     target?.scrollIntoView({ block: 'start' });
-    updateActive();
-});
-
-onBeforeUnmount(() => {
-    window.removeEventListener('scroll', onScroll);
-    window.removeEventListener('resize', onScroll);
-    if (frame !== null) {
-        window.cancelAnimationFrame(frame);
-    }
 });
 </script>
 
@@ -139,6 +108,7 @@ onBeforeUnmount(() => {
             <article class="legal__content">
                 <p v-if="effectiveFrom" class="legal__effective">{{ t('legal.effective_from', { date: formatDate(effectiveFrom, page.props.locale) }) }}</p>
                 <!-- v-html: vlastní text z resources/legal převedený na serveru, ne obsah od obchodu -->
+                <!-- eslint-disable-next-line vue/no-v-html -->
                 <div class="legal__body" v-html="html" />
             </article>
         </div>

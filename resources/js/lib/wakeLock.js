@@ -21,17 +21,31 @@ export function useWakeLock() {
     const supported = 'wakeLock' in navigator;
     const enabled = ref(supported && readStored(STORAGE_KEY, false) === true);
     let sentinel = null;
+    /** Žádost o zámek, na kterou se čeká — druhá souběžná by držela druhý zámek. */
+    let requesting = false;
+    /** Stránka je otevřená — po odchodu se zámek, který dorazí pozdě, hned uvolní. */
+    let mounted = false;
 
     /** Požádá o zámek displeje; odmítnutí (úsporný režim) nevadí. */
     async function acquire() {
-        if (!enabled.value || sentinel || document.visibilityState !== 'visible') {
+        if (!enabled.value || sentinel || requesting || document.visibilityState !== 'visible') {
             return;
         }
+        requesting = true;
         try {
-            sentinel = await navigator.wakeLock.request('screen');
+            const lock = await navigator.wakeLock.request('screen');
+            // Mezitím vypnuto nebo stránka opuštěná (R113) — jinak by displej svítil dál
+            if (!enabled.value || !mounted) {
+                lock.release().catch(() => undefined);
+
+                return;
+            }
+            sentinel = lock;
             sentinel.addEventListener('release', () => (sentinel = null));
         } catch {
             sentinel = null;
+        } finally {
+            requesting = false;
         }
     }
 
@@ -53,6 +67,7 @@ export function useWakeLock() {
     }
 
     onMounted(() => {
+        mounted = true;
         if (supported) {
             document.addEventListener('visibilitychange', acquire);
             acquire();
@@ -60,6 +75,7 @@ export function useWakeLock() {
     });
 
     onBeforeUnmount(() => {
+        mounted = false;
         document.removeEventListener('visibilitychange', acquire);
         release();
     });

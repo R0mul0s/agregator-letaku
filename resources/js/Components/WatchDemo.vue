@@ -12,8 +12,10 @@ import ChainLogo from '@/Components/ChainLogo.vue';
 import DepartmentIcon from '@/Components/DepartmentIcon.vue';
 import OfferRow from '@/Components/OfferRow.vue';
 import { useTweenedNumber } from '@/lib/countUp';
+import { debounce } from '@/lib/debounce';
 import { formatNumber } from '@/lib/format';
 import { useTranslations } from '@/lib/i18n';
+import { ABORTED, createLatestRequest } from '@/lib/latestRequest';
 import { Link, usePage } from '@inertiajs/vue3';
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 
@@ -39,8 +41,7 @@ const selectedChains = ref([...props.chains]);
 const selectedProducts = ref([...props.demo.preselected]);
 const result = ref(props.demo.initial);
 const loading = ref(false);
-let timer = null;
-let controller = null;
+const request = createLatestRequest();
 
 /** Je co hledat? Bez obchodu nebo produktu se dotaz neposílá. */
 const ready = computed(() => selectedChains.value.length > 0 && selectedProducts.value.length > 0);
@@ -58,42 +59,36 @@ function toggle(list, value) {
 
 /** Načte výsledek pro aktuální výběr; všechny obchody = bez parametru obchodů. */
 async function load() {
-    controller?.abort();
+    request.cancel();
     if (!ready.value) {
         loading.value = false;
 
         return;
     }
 
-    controller = new AbortController();
     loading.value = true;
     const query = new URLSearchParams({ produkty: selectedProducts.value.join(',') });
     if (selectedChains.value.length < props.chains.length) {
         query.set('chain', selectedChains.value.join(','));
     }
 
-    try {
-        const response = await fetch(`${props.demo.url}?${query}`, { headers: { Accept: 'application/json' }, signal: controller.signal });
-        if (response.ok) {
-            result.value = await response.json();
-        }
-        loading.value = false;
-    } catch (error) {
-        // Zrušený požadavek (další klepnutí) není chyba
-        if (error.name !== 'AbortError') {
-            loading.value = false;
-        }
+    const data = await request.json(`${props.demo.url}?${query}`);
+    // Zrušený požadavek (další klepnutí) nic nemění — novější ještě běží
+    if (data === ABORTED) {
+        return;
     }
+    if (data !== null) {
+        result.value = data;
+    }
+    loading.value = false;
 }
 
-watch([selectedChains, selectedProducts], () => {
-    window.clearTimeout(timer);
-    timer = window.setTimeout(load, DEBOUNCE_MS);
-});
+const loadLater = debounce(load, DEBOUNCE_MS);
+watch([selectedChains, selectedProducts], () => loadLater());
 
 onBeforeUnmount(() => {
-    window.clearTimeout(timer);
-    controller?.abort();
+    loadLater.cancel();
+    request.cancel();
 });
 </script>
 

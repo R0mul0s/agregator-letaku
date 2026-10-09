@@ -15,12 +15,13 @@ namespace App\Actions\Fortify;
 use App\Domain\Account\IdentityConfirmation;
 use App\Models\User;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Laravel\Fortify\Contracts\UpdatesUserProfileInformation;
 
 class UpdateUserProfileInformation implements UpdatesUserProfileInformation
 {
+    use ProfileValidationRules;
+
     /** Pojmenovaná sada chyb — stránka účtu má dva formuláře a chyby se nesmí plést. */
     public const ERROR_BAG = 'updateProfileInformation';
 
@@ -41,8 +42,8 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
         $emailChanged = mb_strtolower($input['email'] ?? '') !== mb_strtolower($user->email);
 
         Validator::make($input, [
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', Rule::unique(User::class)->ignore($user->id)],
+            'name' => $this->nameRules(),
+            'email' => $this->emailRules($user),
             'current_password' => $emailChanged ? $this->confirmation->rules($user) : ['nullable'],
         ])->validateWithBag(self::ERROR_BAG);
 

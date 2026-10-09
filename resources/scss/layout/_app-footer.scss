@@ -80,7 +80,7 @@
     &__wordmark {
         color: var(--color-footer-heading);
         font-size: var(--font-size-brand);
-        font-weight: 800;
+        font-weight: var(--font-weight-extrabold);
         letter-spacing: var(--letter-spacing-brand);
     }
 
@@ -120,7 +120,7 @@
             inset: 0;
             background: var(--color-footer-fresh);
             border-radius: 50%;
-            animation: app-footer-pulse var(--footer-fresh-pulse-duration) ease-out infinite;
+            animation: app-footer-pulse var(--footer-fresh-pulse-duration) ease-out var(--footer-fresh-pulse-iterations);
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -169,7 +169,7 @@
         margin-bottom: var(--space-3);
         color: var(--color-footer-heading);
         font-size: var(--font-size-xs);
-        font-weight: 800;
+        font-weight: var(--font-weight-extrabold);
         letter-spacing: var(--letter-spacing-caps);
         text-transform: uppercase;
     }
@@ -181,14 +181,6 @@
         margin: 0;
         padding: 0;
         list-style: none;
-    }
-
-    &__address {
-        display: flex;
-        flex-direction: column;
-        gap: var(--space-1);
-        color: var(--color-footer-muted);
-        font-style: normal;
     }
 
     &__link {

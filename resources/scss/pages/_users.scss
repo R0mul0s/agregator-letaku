@@ -21,7 +21,7 @@
     }
 
     &--pulse {
-        animation: presence-pulse var(--presence-pulse-duration) ease-out infinite;
+        animation: presence-pulse var(--presence-pulse-duration) ease-out var(--presence-pulse-iterations);
 
         @media (prefers-reduced-motion: reduce) {
             animation: none;
@@ -48,7 +48,7 @@
         margin-bottom: var(--space-2);
         color: var(--color-text-muted);
         font-size: var(--font-size-xs);
-        font-weight: 800;
+        font-weight: var(--font-weight-extrabold);
         letter-spacing: var(--letter-spacing-caps);
         text-transform: uppercase;
     }
@@ -101,7 +101,7 @@
         gap: var(--space-2);
         color: var(--color-text);
         font-size: var(--font-size-users-tile);
-        font-weight: 900;
+        font-weight: var(--font-weight-black);
         line-height: 1;
     }
 
@@ -158,7 +158,7 @@
         align-items: center;
         gap: var(--space-2);
         margin: 0;
-        font-weight: 800;
+        font-weight: var(--font-weight-extrabold);
     }
 
     &__email {
@@ -183,7 +183,7 @@
 
     &__last-seen {
         font-size: var(--font-size-sm);
-        font-weight: 700;
+        font-weight: var(--font-weight-bold);
 
         &--online {
             align-self: flex-start;

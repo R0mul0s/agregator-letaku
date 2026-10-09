@@ -14,7 +14,7 @@
     background: var(--color-warning-soft);
     color: var(--color-warning-text);
     font-size: var(--font-size-sm);
-    font-weight: 700;
+    font-weight: var(--font-weight-bold);
     text-align: center;
 
     &__icon {

@@ -19,10 +19,10 @@ declare(strict_types=1);
 
 namespace App\Domain\Offers;
 
-use App\Domain\Sources\ImportFreshness;
 use App\Enums\Chain;
 use App\Models\Offer;
 use App\Models\Product;
+use App\Models\ScrapeRun;
 use Illuminate\Support\Facades\Cache;
 
 final class LandingSnapshot
@@ -36,7 +36,6 @@ final class LandingSnapshot
         private readonly WatchDemo $demo,
         private readonly UnitPriceQuiz $quiz,
         private readonly OfferPages $pages,
-        private readonly ImportFreshness $freshness,
         private readonly LocalCalendar $calendar,
     ) {}
 
@@ -58,7 +57,7 @@ final class LandingSnapshot
         return implode('.', [
             self::CACHE_KEY,
             $this->calendar->today()->toDateString(),
-            $this->freshness->lastSucceededAt()?->getTimestamp() ?? 0,
+            ScrapeRun::lastFinishedAt()?->getTimestamp() ?? 0,
         ]);
     }
 

@@ -44,18 +44,40 @@ final class SourceHttp
 
         if (! $allowNotFound) {
             return $request
-                ->retry(config()->integer('letaky.http.retries'), config()->integer('letaky.http.retry_delay_ms'))
+                ->retry(config()->integer('letaky.http.retries'), config()->integer('letaky.http.retry_delay_ms'), $this->shouldRetry(...))
                 ->throw();
         }
 
         return $request
-            ->retry(
-                config()->integer('letaky.http.retries'),
-                config()->integer('letaky.http.retry_delay_ms'),
-                fn (Throwable $error): bool => ! $error instanceof RequestException || $error->response->status() !== Response::HTTP_NOT_FOUND,
-                throw: false,
-            )
+            ->retry(config()->integer('letaky.http.retries'), config()->integer('letaky.http.retry_delay_ms'), $this->shouldRetry(...), throw: false)
             ->throwIf(fn (ClientResponse $response): bool => $response->status() !== Response::HTTP_NOT_FOUND);
+    }
+
+    /**
+     * Stáhne velký soubor (PDF letáku, 25–55 MB) rovnou na disk s delším časovým limitem —
+     * celý obsah se nedrží v paměti. Chyba stažení vyhodí výjimku.
+     *
+     * @param  int|null  $delayMs  Pauza zdroje; null = výchozí z konfigurace
+     */
+    public function download(string $url, string $path, ?int $delayMs = null): void
+    {
+        $this->request($delayMs)
+            ->timeout(config()->integer('letaky.http.pdf_timeout_seconds'))
+            ->sink($path)
+            ->get($url);
+    }
+
+    /**
+     * Opakovat jen výpadek spojení, chybu serveru (5xx) a 429 — odmítnutý požadavek (400, 401,
+     * 403, 404) dopadne stejně i napodruhé a opakování by jen čekalo (R113).
+     */
+    private function shouldRetry(Throwable $error): bool
+    {
+        if (! $error instanceof RequestException) {
+            return true;
+        }
+
+        return $error->response->serverError() || $error->response->status() === Response::HTTP_TOO_MANY_REQUESTS;
     }
 
     /**

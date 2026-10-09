@@ -48,6 +48,34 @@ export function formatPrice(halers, locale) {
     return cachedFormatter(Intl.NumberFormat, locale, { style: 'currency', currency: CURRENCY }).format(halers / HALERS_PER_CROWN);
 }
 
+/** Znaménko minus a nezlomitelná mezera štítku slevy — „−25 %“ se nezalomí. */
+const MINUS_SIGN = '−';
+const NO_BREAK_SPACE = ' ';
+
+/**
+ * Sleva v procentech jako štítek „−25 %“ (R113 — dřív skládaná ručně na jedenácti místech).
+ *
+ * @param {number} percent
+ * @returns {string}
+ */
+export function formatDiscount(percent) {
+    return `${MINUS_SIGN}${percent}${NO_BREAK_SPACE}%`;
+}
+
+/** Jazyk, jehož formát data je „2026-10-02“ — jen pro převod okamžiku na místní den. */
+const ISO_DATE_LOCALE = 'en-CA';
+
+/**
+ * Místní den okamžiku jako „2026-10-02“ — vstup pro formatDate (registrace v přehledu uživatelů).
+ *
+ * @param {string} isoDateTime Okamžik v UTC (ISO 8601)
+ * @param {string} timeZone Zobrazovací časové pásmo (Europe/Prague)
+ * @returns {string}
+ */
+export function localDateOf(isoDateTime, timeZone) {
+    return cachedFormatter(Intl.DateTimeFormat, ISO_DATE_LOCALE, { timeZone }).format(new Date(isoDateTime));
+}
+
 /**
  * Celé číslo s oddělením tisíců („6 245“).
  *

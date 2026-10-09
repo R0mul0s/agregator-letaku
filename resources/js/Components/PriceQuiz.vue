@@ -11,7 +11,7 @@
 import ChainLogo from '@/Components/ChainLogo.vue';
 import { formatPrice } from '@/lib/format';
 import { useTranslations } from '@/lib/i18n';
-import { packageLabel } from '@/lib/offer';
+import { packageLabel, unitPriceLabel } from '@/lib/offer';
 import { Link, usePage } from '@inertiajs/vue3';
 import { computed, nextTick, ref } from 'vue';
 
@@ -56,7 +56,7 @@ const verdict = computed(() => {
  * @returns {string}
  */
 function unitPrice(offer) {
-    return t('offers.unit_price', { price: formatPrice(offer.unitPrice, locale.value), unit: unit.value });
+    return unitPriceLabel(offer.unitPrice, offer.unitPriceUnit, locale.value, t);
 }
 
 /**

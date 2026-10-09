@@ -11,9 +11,9 @@
 -->
 <script setup>
 import ShoppingToggle from '@/Components/ShoppingToggle.vue';
-import { formatPrice } from '@/lib/format';
+import { formatDiscount, formatPrice } from '@/lib/format';
 import { useTranslations } from '@/lib/i18n';
-import { discountPercent, packageLabel, startsLabel } from '@/lib/offer';
+import { discountPercent, MATCH_MAYBE, OFFER_TYPE, offerUnitPriceLabel, packageLabel, startsLabel } from '@/lib/offer';
 import { usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 
@@ -41,10 +41,10 @@ const starts = computed(() => startsLabel(props.offer, locale.value, t));
 const withoutUserPrice = computed(() => props.offer.userPrice === undefined);
 
 /** Akce jen s kartou bez ceny uživatele — hlavní cena je cena s kartou jako na kartě akce. */
-const loyaltyOnly = computed(() => withoutUserPrice.value && props.offer.offerType === 'loyalty_only');
+const loyaltyOnly = computed(() => withoutUserPrice.value && props.offer.offerType === OFFER_TYPE.LOYALTY_ONLY);
 
 /** Místo ceny text akce na více kusů („3 za cenu 2“) — zalamuje se v omezené šířce. */
-const isPromotionText = computed(() => props.offer.offerType === 'multibuy' && Boolean(props.offer.promotionText));
+const isPromotionText = computed(() => props.offer.offerType === OFFER_TYPE.MULTIBUY && Boolean(props.offer.promotionText));
 
 /** Cena: u akce na více kusů text akce („3 za cenu 2“), jinak cena, kterou uživatel zaplatí. */
 const price = computed(() => {
@@ -70,15 +70,7 @@ const loyaltyNote = computed(() => {
 });
 
 /** Cena za jednotku k hlavní ceně; u akce na více kusů by byla z běžné ceny, neukazuje se. */
-const unitPrice = computed(() => {
-    const { offerType, unitPriceUnit } = props.offer;
-    const value = offerType === 'loyalty_only' ? props.offer.loyaltyUnitPrice : props.offer.unitPrice;
-    if (offerType === 'multibuy' || value === null || !unitPriceUnit) {
-        return null;
-    }
-
-    return t('offers.unit_price', { price: formatPrice(value, locale.value), unit: t(`unit_price_units.${unitPriceUnit}`) });
-});
+const unitPrice = computed(() => offerUnitPriceLabel(props.offer, locale.value, t));
 </script>
 
 <template>
@@ -88,7 +80,7 @@ const unitPrice = computed(() => {
             <p v-if="$slots.label" class="offer-row__label"><slot name="label" /></p>
             <p class="offer-row__name">
                 {{ offer.name }}
-                <span v-if="offer.matchStatus === 'maybe'" class="tag tag--warning">{{ t('offers.maybe') }}</span>
+                <span v-if="offer.matchStatus === MATCH_MAYBE" class="tag tag--warning">{{ t('offers.maybe') }}</span>
                 <span v-if="offer.onlineOnly" class="tag tag--warning">{{ t('offers.online_only') }}</span>
                 <span v-if="offer.ended" class="tag">{{ t('notifications.ended') }}</span>
                 <!-- Ještě nezačala (R76) — upozornění na nové akce ji hlásí hned po zveřejnění -->
@@ -108,7 +100,7 @@ const unitPrice = computed(() => {
         <div class="offer-row__prices">
             <!-- Text akce na více kusů se zalomí v omezené šířce, jinak by roztáhl řádek přes displej -->
             <span class="offer-row__price" :class="{ 'offer-row__price--text': isPromotionText }">{{ price }}</span>
-            <span v-if="discount" class="offer-row__discount">−{{ discount }} %</span>
+            <span v-if="discount" class="offer-row__discount">{{ formatDiscount(discount) }}</span>
         </div>
         <ShoppingToggle v-if="!offer.ended" :offer-id="offer.id" compact />
     </li>

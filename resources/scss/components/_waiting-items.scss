@@ -1,0 +1,56 @@
+// _waiting-items.scss
+// Položky v sekci Zatím bez akce (WaitingSection.vue, R100) — vyčleněno z pages/_watch.scss (R113).
+//
+// @author Roman Hlaváček
+// @created 2026-10-09
+
+@use '../abstracts/mixins' as *;
+
+// Řádky položek v sekci Zatím bez akce (R100): název, počet budoucích akcí, upravit / přestat
+.waiting-items {
+    margin: var(--space-3) 0 0;
+    padding: 0;
+    list-style: none;
+
+    &__item {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        padding: var(--space-1) 0 var(--space-1) var(--space-3);
+        border-bottom: 1px solid var(--color-border);
+
+        &:last-child {
+            border-bottom: 0;
+        }
+    }
+
+    &__name {
+        flex: 1;
+        min-width: 0;
+        font-weight: var(--font-weight-bold);
+        overflow-wrap: anywhere;
+    }
+
+    // Položka s akcemi, které ještě nezačaly: název i „+1 brzy“ vedou do sekce Brzy (R76)
+    &__name--link {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        padding: 0;
+        background: none;
+        border: 0;
+        color: var(--color-text);
+        font: inherit;
+        font-weight: var(--font-weight-bold);
+        text-align: left;
+        cursor: pointer;
+
+        .watch-group__upcoming {
+            margin-left: auto;
+        }
+
+        &:hover .waiting-items__label {
+            text-decoration: underline;
+        }
+    }
+}

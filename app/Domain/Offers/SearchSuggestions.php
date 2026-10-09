@@ -23,6 +23,7 @@ use App\Models\Offer;
 use App\Models\OfferProduct;
 use App\Models\Product;
 use App\Models\User;
+use App\Support\Like;
 use Illuminate\Database\Eloquent\Builder;
 
 final class SearchSuggestions
@@ -98,7 +99,7 @@ final class SearchSuggestions
         foreach (WordStart::words($text) as $word) {
             WordStart::where($query, ['name'], $word);
         }
-        $candidates = $query->orderByRaw('name LIKE ? DESC', [addcslashes($text, '%_\\').'%'])
+        $candidates = $query->orderByRaw('name LIKE ? DESC', [Like::startsWith($text)])
             ->orderBy('name')
             ->limit(self::PRODUCT_CANDIDATES)
             ->get();
@@ -127,10 +128,8 @@ final class SearchSuggestions
         }
 
         $rows = OfferProduct::query()
-            ->join('offers', 'offers.id', '=', 'offer_product.offer_id')
+            ->joinCurrentOffers($this->calendar->today())
             ->when($productIds !== null, fn (Builder $query) => $query->whereIn('offer_product.product_id', $productIds ?? []))
-            ->whereNull('offers.withdrawn_at')
-            ->where('offers.valid_to', '>=', $this->calendar->today()->toDateString())
             ->when($filters->chains !== [], fn (Builder $query) => $query->whereIn('offers.chain', $filters->chains))
             ->when($filters->withoutEshop, fn (Builder $query) => $query->where('offers.online_only', false))
             // Nastavení Mých obchodů (R100) poddotazem — podmínky na prodejny a karty jsou nad modelem Offer

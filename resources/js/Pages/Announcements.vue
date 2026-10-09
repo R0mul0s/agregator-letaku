@@ -107,13 +107,21 @@ async function submit() {
                     class="account-choice__option"
                     :class="{ 'account-choice__option--selected': form.category === category }"
                 >
-                    <input v-model="form.category" type="radio" name="category" :value="category" class="form-checkbox__input" />
+                    <input
+                        v-model="form.category"
+                        type="radio"
+                        name="category"
+                        :value="category"
+                        class="form-checkbox__input"
+                        :aria-invalid="form.errors.category ? 'true' : undefined"
+                        :aria-describedby="form.errors.category ? 'category-error' : undefined"
+                    />
                     <span>
                         <span class="account-choice__label">{{ t(`announcements.categories.${category}`) }}</span>
                         <span class="account-choice__hint">{{ t(`announcements.category_hints.${category}`, { count: recipients[category] }) }}</span>
                     </span>
                 </label>
-                <p v-if="form.errors.category" class="form-field__error" role="alert">{{ form.errors.category }}</p>
+                <p v-if="form.errors.category" id="category-error" class="form-field__error" role="alert">{{ form.errors.category }}</p>
             </fieldset>
 
             <div>

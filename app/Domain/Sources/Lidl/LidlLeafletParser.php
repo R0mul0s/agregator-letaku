@@ -174,16 +174,6 @@ final class LidlLeafletParser
     }
 
     /**
-     * Velké ceny stránky — kotvy dlaždic (pro měření pokrytí).
-     *
-     * @return list<PdfLine>
-     */
-    public function bigPrices(PdfPage $page): array
-    {
-        return array_values(array_filter($this->segments($page), $this->isBigPrice(...)));
-    }
-
-    /**
      * Ověřené akce jedné strany.
      *
      * @return list<OfferData>

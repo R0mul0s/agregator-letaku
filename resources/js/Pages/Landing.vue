@@ -16,10 +16,12 @@ import PriceQuiz from '@/Components/PriceQuiz.vue';
 import SearchSuggest from '@/Components/SearchSuggest.vue';
 import WatchDemo from '@/Components/WatchDemo.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
+import { MEDIA_FROM_MD } from '@/lib/breakpoints';
 import { useCountUp } from '@/lib/countUp';
-import { formatNumber } from '@/lib/format';
+import { formatDiscount, formatNumber } from '@/lib/format';
 import { useTranslations } from '@/lib/i18n';
 import { discountPercent } from '@/lib/offer';
+import { prefersReducedMotion } from '@/lib/scroll';
 import { rememberSearch } from '@/lib/search';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
@@ -91,8 +93,7 @@ function showProduct(product) {
 }
 
 onMounted(() => {
-    const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-    if (!reducedMotion && stickerDiscounts.value.length > 1) {
+    if (!prefersReducedMotion() && stickerDiscounts.value.length > 1) {
         let rotations = 0;
         stickerTimer = window.setInterval(() => {
             stickerIndex.value = (stickerIndex.value + 1) % stickerDiscounts.value.length;
@@ -153,7 +154,7 @@ onBeforeUnmount(() => window.clearInterval(stickerTimer));
                         <img
                             src="/images/brand/mascot-416.webp"
                             srcset="/images/brand/mascot-192.webp 192w, /images/brand/mascot-288.webp 288w, /images/brand/mascot-416.webp 416w"
-                            sizes="(min-width: 768px) 208px, 96px"
+                            :sizes="`${MEDIA_FROM_MD} 208px, 96px`"
                             width="416"
                             height="416"
                             alt=""
@@ -164,7 +165,7 @@ onBeforeUnmount(() => window.clearInterval(stickerTimer));
                 <!-- Cenovka střídá skutečné nejvyšší slevy z ukázky akcí -->
                 <span v-if="stickerDiscounts.length" class="landing-hero__sticker">
                     <Transition name="landing-sticker-swap" mode="out-in">
-                        <span :key="stickerIndex" class="landing-hero__sticker-value">−{{ stickerDiscounts[stickerIndex] }} %</span>
+                        <span :key="stickerIndex" class="landing-hero__sticker-value">{{ formatDiscount(stickerDiscounts[stickerIndex]) }}</span>
                     </Transition>
                 </span>
             </div>
@@ -187,8 +188,8 @@ onBeforeUnmount(() => window.clearInterval(stickerTimer));
                 {{ t('landing.stats.products', { count: stats.products }) }}
             </li>
             <li v-if="stats.topDiscount" class="landing-stats__item">
-                <strong class="landing-stats__value" aria-hidden="true">−{{ countedStats[3] }} %</strong>
-                <span class="visually-hidden">−{{ stats.topDiscount }} %</span>
+                <strong class="landing-stats__value" aria-hidden="true">{{ formatDiscount(countedStats[3]) }}</strong>
+                <span class="visually-hidden">{{ formatDiscount(stats.topDiscount) }}</span>
                 {{ t('landing.stats.top_discount') }}
             </li>
         </ul>

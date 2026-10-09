@@ -9,7 +9,8 @@
 -->
 <script setup>
 import { useTranslations } from '@/lib/i18n';
-import { onBeforeUnmount, ref, useId, watch } from 'vue';
+import { useModalDialog } from '@/lib/modalDialog';
+import { useId } from 'vue';
 
 defineProps({
     /** Nadpis okna („Filtry“, „Seřadit“). */
@@ -20,30 +21,8 @@ defineProps({
 const open = defineModel('open', { type: Boolean, default: false });
 
 const t = useTranslations();
-const dialog = ref(null);
 const titleId = useId();
-
-watch(open, (value) => {
-    if (value && !dialog.value?.open) {
-        dialog.value?.showModal();
-    } else if (!value && dialog.value?.open) {
-        dialog.value.close();
-    }
-});
-
-/**
- * Klepnutí na ztmavené pozadí (mimo obsah okna) okno zavře.
- *
- * @param {MouseEvent} event
- */
-function onClick(event) {
-    if (event.target === dialog.value) {
-        open.value = false;
-    }
-}
-
-// Přechod na jinou stránku s otevřeným oknem — zavřít, jinak by zůstalo ve vrstvě nad stránkou
-onBeforeUnmount(() => dialog.value?.open && dialog.value.close());
+const { dialog, onClick } = useModalDialog(open, { onBackdrop: () => (open.value = false) });
 </script>
 
 <template>

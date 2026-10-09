@@ -1,0 +1,15 @@
+// _highlight.scss
+// Zvýrazněná shoda v názvu (HighlightText.vue, R71) — vyčleněno z _search-panel.scss (R113).
+//
+// @author Roman Hlaváček
+// @created 2026-10-09
+
+@use '../abstracts/mixins' as *;
+
+// Zvýrazněná shoda v názvu
+.highlight {
+    background: none;
+    color: var(--color-accent-strong);
+    font-weight: var(--font-weight-extrabold);
+}
+

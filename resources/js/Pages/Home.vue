@@ -22,6 +22,7 @@ import ChainSelect from '@/Components/ChainSelect.vue';
 import EmptyState from '@/Components/EmptyState.vue';
 import FilterBar from '@/Components/FilterBar.vue';
 import FilterChip from '@/Components/FilterChip.vue';
+import OfferFilterChips from '@/Components/OfferFilterChips.vue';
 import SortSelect from '@/Components/SortSelect.vue';
 import SortSheet from '@/Components/SortSheet.vue';
 import UpcomingSection from '@/Components/UpcomingSection.vue';
@@ -30,8 +31,10 @@ import WaitingSection from '@/Components/WaitingSection.vue';
 import WatchGroup from '@/Components/WatchGroup.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { useExpandedGroups } from '@/lib/expandedGroups';
+import { formatDiscount } from '@/lib/format';
 import { useTranslations } from '@/lib/i18n';
-import { discountPercent, upcomingAnchor } from '@/lib/offer';
+import { discountPercent, MATCH_MAYBE, upcomingAnchor } from '@/lib/offer';
+import { scrollIntoViewGently } from '@/lib/scroll';
 import { readStored, writeStored } from '@/lib/storage';
 import { useCompactView } from '@/lib/viewMode';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
@@ -54,9 +57,6 @@ const HERO_SEEN_KEY = 'slevohlidka.home.hero_seen';
 
 /** Kotva panelu nad skupinami — čísla v úvodním pruhu k němu posunou stránku. */
 const TOOLBAR_ID = 'moje-slevy-akce';
-
-/** Stav shody „možná“ (App\Enums\MatchStatus, R9) — štítek „Jen jisté“ ho schová. */
-const MATCH_MAYBE = 'maybe';
 
 /** Kotva skupiny v adrese (odkaz z dlaždice v Hlídám): #polozka-{id}. */
 const GROUP_HASH_PATTERN = /^#polozka-(\d+)$/;
@@ -305,7 +305,7 @@ async function revealItem(id) {
     groupView.value = VIEW_ITEMS;
     setExpanded(id, true);
     await nextTick();
-    document.getElementById(`polozka-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    scrollIntoViewGently(document.getElementById(`polozka-${id}`));
 }
 
 /**
@@ -318,7 +318,7 @@ async function showUpcoming(id) {
     upcomingExpanded.value = true;
     await nextTick();
     const target = document.getElementById(upcomingAnchor(id));
-    target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    scrollIntoViewGently(target);
     target?.focus({ preventScroll: true });
 }
 
@@ -329,7 +329,7 @@ async function showAllOffers() {
         toggleAll();
     }
     await nextTick();
-    document.getElementById(TOOLBAR_ID)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    scrollIntoViewGently(document.getElementById(TOOLBAR_ID));
 }
 
 /** „5 nových“ v úvodním pruhu: štítek Nové. */
@@ -339,7 +339,7 @@ async function showFresh() {
         toggleOfferFilter('fresh');
     }
     await nextTick();
-    document.getElementById(TOOLBAR_ID)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    scrollIntoViewGently(document.getElementById(TOOLBAR_ID));
 }
 
 /** Otevřená okna řazení a filtrů na telefonu (R102). */
@@ -428,7 +428,7 @@ onMounted(async () => {
                     </li>
                     <li v-if="summary.bestDiscount && bestDiscountItem">
                         <button type="button" class="home-hero__stat home-hero__stat--accent home-hero__stat--button" @click="revealItem(bestDiscountItem.id)">
-                            <strong class="home-hero__stat-value">−{{ summary.bestDiscount }} %</strong>
+                            <strong class="home-hero__stat-value">{{ formatDiscount(summary.bestDiscount) }}</strong>
                             {{ t('home.stat_best_item', { name: bestDiscountItem.name }) }}
                         </button>
                     </li>
@@ -492,15 +492,7 @@ onMounted(async () => {
                         <section class="filter-sheet__section">
                             <h3 class="filter-sheet__heading">{{ t('home.filter_offers') }}</h3>
                             <div class="filter-sheet__options">
-                                <FilterChip
-                                    v-for="chip in offerFilterChips"
-                                    :key="chip.key"
-                                    :on="offerFilters[chip.key]"
-                                    :count="offerFilterCounts[chip.key]"
-                                    @click="toggleOfferFilter(chip.key)"
-                                >
-                                    {{ chip.label }}
-                                </FilterChip>
+                                <OfferFilterChips :chips="offerFilterChips" :active="offerFilters" :counts="offerFilterCounts" @toggle="toggleOfferFilter" />
                             </div>
                             <p v-if="!offerFilterChips.length" class="filter-sheet__hint">{{ t('home.filter_none') }}</p>
                         </section>
@@ -520,15 +512,7 @@ onMounted(async () => {
                 <!-- Štítky filtrů akcí (R101) — široký displej; jen ty, které by něco ukázaly -->
                 <div v-if="offerFilterChips.length || stores" class="search-chips search-chips--desktop watch-groups__chips">
                     <div class="search-chips__filters" role="group" :aria-label="t('search.filters')">
-                        <FilterChip
-                            v-for="chip in offerFilterChips"
-                            :key="chip.key"
-                            :on="offerFilters[chip.key]"
-                            :count="offerFilterCounts[chip.key]"
-                            @click="toggleOfferFilter(chip.key)"
-                        >
-                            {{ chip.label }}
-                        </FilterChip>
+                        <OfferFilterChips :chips="offerFilterChips" :active="offerFilters" :counts="offerFilterCounts" @toggle="toggleOfferFilter" />
                         <FilterChip v-if="stores" :on="!stores.all" @click="toggleAllStores">{{ t('home.my_stores', { count: stores.count }) }}</FilterChip>
                     </div>
                 </div>

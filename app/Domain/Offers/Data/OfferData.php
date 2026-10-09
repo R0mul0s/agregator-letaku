@@ -113,6 +113,14 @@ final readonly class OfferData
      */
     public function key(): string
     {
-        return $this->externalId.'|'.$this->validFrom->toDateString().'|'.$this->validTo->toDateString();
+        return self::keyOf($this->externalId, $this->validFrom, $this->validTo);
+    }
+
+    /**
+     * Klíč nabídky z ID položky a platnosti — stejný pro data ze zdroje i uložené řádky.
+     */
+    public static function keyOf(string $externalId, CarbonImmutable $validFrom, CarbonImmutable $validTo): string
+    {
+        return $externalId.'|'.$validFrom->toDateString().'|'.$validTo->toDateString();
     }
 }

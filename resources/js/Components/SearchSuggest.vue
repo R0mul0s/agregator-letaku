@@ -16,8 +16,11 @@ import ChainLogo from '@/Components/ChainLogo.vue';
 import DepartmentIcon from '@/Components/DepartmentIcon.vue';
 import HighlightText from '@/Components/HighlightText.vue';
 import WatchOfferButton from '@/Components/WatchOfferButton.vue';
-import { formatPrice } from '@/lib/format';
+import { debounce } from '@/lib/debounce';
+import { formatDiscount, formatPrice } from '@/lib/format';
 import { useTranslations } from '@/lib/i18n';
+import { ABORTED, createLatestRequest } from '@/lib/latestRequest';
+import { useListbox } from '@/lib/listbox';
 import { useRotatingPlaceholder } from '@/lib/placeholder';
 import { forgetSearch, recentSearches } from '@/lib/search';
 import { usePage } from '@inertiajs/vue3';
@@ -54,10 +57,8 @@ const data = reactive({ corrected: null, total: 0, products: [], offers: [], pop
 const open = ref(false);
 const focused = ref(false);
 const fetching = ref(false);
-const activeIndex = ref(-1);
 const recent = ref([]);
-let timer = null;
-let controller = null;
+const request = createLatestRequest();
 
 const listId = computed(() => `${props.id}-suggestions`);
 const text = computed(() => model.value.trim());
@@ -89,7 +90,7 @@ const sections = computed(() => {
 });
 
 const options = computed(() => sections.value.flatMap((section) => section.options));
-const activeId = computed(() => (activeIndex.value >= 0 ? `${listId.value}-${activeIndex.value}` : undefined));
+const { activeIndex, activeId, activeOption, moveByArrow } = useListbox(options, listId);
 /** Text pro čtečky: počet návrhů, „nic jsme nenašli“ nebo opravený překlep (R99). */
 const statusText = computed(() => {
     if (!panelVisible.value) {
@@ -111,7 +112,7 @@ const panelVisible = computed(() => open.value && (options.value.length > 0 || n
 /** Načte návrhy k aktuálnímu textu (prázdné pole = oblíbené); předchozí požadavek zruší. */
 async function load() {
     // Zrušit i při zkrácení textu — pozdní odpověď by jinak ukázala návrhy ke starému slovu
-    controller?.abort();
+    request.cancel();
     if (text.value !== '' && text.value.length < props.minLength) {
         Object.assign(data, { corrected: null, total: 0, products: [], offers: [], popular: false });
         fetching.value = false;
@@ -119,30 +120,27 @@ async function load() {
         return;
     }
 
-    controller = new AbortController();
     fetching.value = true;
     const query = new URLSearchParams(Object.fromEntries(Object.entries({ ...props.params, q: text.value }).filter(([, value]) => value !== '' && value !== null)));
-
-    try {
-        const response = await fetch(`${props.url}?${query}`, { headers: { Accept: 'application/json' }, signal: controller.signal });
-        if (response.ok) {
-            Object.assign(data, await response.json());
-            activeIndex.value = -1;
-        }
-        fetching.value = false;
-    } catch (error) {
-        // Zrušený požadavek (psaní pokračuje) není chyba
-        if (error.name !== 'AbortError') {
-            fetching.value = false;
-        }
+    const result = await request.json(`${props.url}?${query}`);
+    // Zrušený požadavek (psaní pokračuje) nic nemění — novější ještě běží
+    if (result === ABORTED) {
+        return;
     }
+    if (result !== null) {
+        Object.assign(data, result);
+        activeIndex.value = -1;
+    }
+    fetching.value = false;
 }
 
 /** Načte návrhy po pauze v psaní. */
+const loadLater = debounce(load, DEBOUNCE_MS);
+
+/** Text se změnil: otevře panel a načte návrhy po pauze v psaní. */
 function onInput() {
     open.value = true;
-    window.clearTimeout(timer);
-    timer = window.setTimeout(load, DEBOUNCE_MS);
+    loadLater();
 }
 
 /** Fokus: otevře panel s posledními hledáními a oblíbenými, nebo návrhy k textu. */
@@ -198,18 +196,12 @@ function forget(query) {
  * @param {KeyboardEvent} event
  */
 function onKeydown(event) {
-    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
-        if (!options.value.length) {
-            return;
-        }
-        event.preventDefault();
+    if (moveByArrow(event)) {
         open.value = true;
-        const step = event.key === 'ArrowDown' ? 1 : -1;
-        activeIndex.value = (activeIndex.value + step + options.value.length) % options.value.length;
     } else if (event.key === 'Enter') {
         event.preventDefault();
-        if (open.value && activeIndex.value >= 0) {
-            choose(options.value[activeIndex.value]);
+        if (open.value && activeOption.value) {
+            choose(activeOption.value);
         } else {
             emit('search', model.value);
             finish();
@@ -271,8 +263,8 @@ watch(focused, (value) => document.documentElement.classList.toggle('has-search-
 onMounted(() => document.addEventListener('keydown', onShortcut));
 
 onBeforeUnmount(() => {
-    window.clearTimeout(timer);
-    controller?.abort();
+    loadLater.cancel();
+    request.cancel();
     document.removeEventListener('keydown', onShortcut);
     document.documentElement.classList.remove('has-search-sheet');
 });
@@ -401,7 +393,7 @@ onBeforeUnmount(() => {
                                 </span>
                             </span>
                             <span class="search-panel__price">
-                                <span v-if="option.offer.discountPercent" class="search-panel__discount">−{{ option.offer.discountPercent }} %</span>
+                                <span v-if="option.offer.discountPercent" class="search-panel__discount">{{ formatDiscount(option.offer.discountPercent) }}</span>
                                 <strong>{{ formatPrice(option.offer.price ?? option.offer.loyaltyPrice, page.props.locale) }}</strong>
                             </span>
                         </template>

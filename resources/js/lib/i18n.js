@@ -18,6 +18,23 @@ const PLURAL_SEPARATOR = '|';
  */
 const PLURAL_FORM_INDEX = { one: 0, few: 1, many: 2, other: 2 };
 
+/** Pravidla plurálu podle jazyka — konstrukce je drahá a t() se volá stokrát za vykreslení. */
+const pluralRulesByLocale = new Map();
+
+/**
+ * Intl.PluralRules pro jazyk, vytvořená jen jednou.
+ *
+ * @param {string} locale
+ * @returns {Intl.PluralRules}
+ */
+function pluralRules(locale) {
+    if (!pluralRulesByLocale.has(locale)) {
+        pluralRulesByLocale.set(locale, new Intl.PluralRules(locale));
+    }
+
+    return pluralRulesByLocale.get(locale);
+}
+
 /**
  * Vybere tvar plurálu podle počtu, text bez „|" vrátí beze změny.
  *
@@ -32,7 +49,7 @@ function choosePluralForm(text, count, locale) {
     }
 
     const forms = text.split(PLURAL_SEPARATOR);
-    const index = PLURAL_FORM_INDEX[new Intl.PluralRules(locale).select(count)] ?? forms.length - 1;
+    const index = PLURAL_FORM_INDEX[pluralRules(locale).select(count)] ?? forms.length - 1;
 
     return forms[Math.min(index, forms.length - 1)];
 }

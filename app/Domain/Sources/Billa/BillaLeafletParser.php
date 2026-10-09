@@ -272,31 +272,18 @@ final class BillaLeafletParser
      */
     private function matches(array $prices, array $tiles, array $references): array
     {
-        $pairs = [];
-        foreach ($tiles as $tileIndex => $tile) {
-            $facts = $this->tileFacts($tile);
-            foreach ($prices as $priceIndex => $price) {
-                $distance = $price->distanceTo($tile->box);
-                if ($distance <= $price->height() * self::TILE_MAX_DISTANCE_RATIO
-                    && $this->verify($price->value, ($references[$priceIndex] ?? null)?->value, $facts)) {
-                    $pairs[] = [$distance, $tileIndex, $priceIndex];
-                }
-            }
-        }
-        usort($pairs, fn (array $a, array $b): int => $a[0] <=> $b[0]);
+        $facts = array_map($this->tileFacts(...), $tiles);
 
-        $usedPrices = [];
-        $usedTiles = [];
-        $matches = [];
-        foreach ($pairs as [, $tileIndex, $priceIndex]) {
-            if (! isset($usedTiles[$tileIndex]) && ! isset($usedPrices[$priceIndex])) {
-                $usedTiles[$tileIndex] = true;
-                $usedPrices[$priceIndex] = true;
-                $matches[] = [$tiles[$tileIndex], $priceIndex];
-            }
-        }
+        $pairs = PdfLayout::greedyPairs($tiles, $prices, function (PdfTile $tile, PdfBox $price, int $tileIndex, int $priceIndex) use ($facts, $references): ?array {
+            $distance = $price->distanceTo($tile->box);
 
-        return $matches;
+            return $distance <= $price->height() * self::TILE_MAX_DISTANCE_RATIO
+                && $this->verify($price->value, ($references[$priceIndex] ?? null)?->value, $facts[$tileIndex])
+                ? [$distance, null]
+                : null;
+        });
+
+        return array_map(fn (array $pair): array => [$tiles[$pair[0]], $pair[1]], $pairs);
     }
 
     /**
@@ -456,8 +443,10 @@ final class BillaLeafletParser
      */
     private function tiles(array $words, array $exclude): array
     {
-        $text = array_values(array_filter($words, fn (PdfWord $word): bool => $word->height() >= self::TEXT_MIN_HEIGHT
-            && $word->height() <= self::TEXT_MAX_HEIGHT && ! $this->isInside($word, $exclude)));
+        $text = array_values(array_filter(
+            PdfLayout::byHeight($words, self::TEXT_MIN_HEIGHT, self::TEXT_MAX_HEIGHT),
+            fn (PdfWord $word): bool => ! PdfLayout::isInside($word, $exclude, self::ROW_TOLERANCE),
+        ));
         $rows = $this->rows($text);
 
         $used = [];
@@ -536,23 +525,6 @@ final class BillaLeafletParser
         }
 
         return $column;
-    }
-
-    /**
-     * Leží slovo uvnitř některého z prvků (cena, štítek)?
-     *
-     * @param  list<PdfBox>  $boxes
-     */
-    private function isInside(PdfWord $word, array $boxes): bool
-    {
-        foreach ($boxes as $box) {
-            if ($word->xMin >= $box->xMin - self::ROW_TOLERANCE && $word->xMax <= $box->xMax + self::ROW_TOLERANCE
-                && $word->yMin >= $box->yMin - self::ROW_TOLERANCE && $word->yMax <= $box->yMax + self::ROW_TOLERANCE) {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     /**

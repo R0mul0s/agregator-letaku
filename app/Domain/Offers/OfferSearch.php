@@ -26,6 +26,7 @@ use App\Domain\Chains\ShoppingPreferencesScope;
 use App\Enums\OfferListSort;
 use App\Enums\PackageUnit;
 use App\Models\Offer;
+use App\Support\Like;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -207,7 +208,7 @@ final class OfferSearch
 
         return [
             'CASE WHEN name LIKE ? THEN 0 WHEN '.$inName.' THEN 1 WHEN '.$inNameOrBrand.' THEN 2 ELSE 3 END',
-            [addcslashes(trim($text), '%_\\').'%', ...$nameBindings, ...$nameOrBrandBindings],
+            [Like::startsWith(trim($text)), ...$nameBindings, ...$nameOrBrandBindings],
         ];
     }
 }

@@ -82,7 +82,7 @@
     }
 
     &__offer-name {
-        font-weight: 700;
+        font-weight: var(--font-weight-bold);
     }
 
     &__tags {
@@ -161,7 +161,7 @@
         border-radius: var(--radius-sm);
         color: transparent;
         font-size: var(--font-size-xs);
-        font-weight: 900;
+        font-weight: var(--font-weight-black);
         transition: background-color var(--duration-fast), border-color var(--duration-fast);
     }
 
@@ -235,12 +235,12 @@
         background: var(--color-warning-soft);
         border-radius: var(--radius-sm);
         color: var(--color-warning-text);
-        font-weight: 700;
+        font-weight: var(--font-weight-bold);
     }
 
     &__leaflet-link {
         color: var(--color-accent-strong);
-        font-weight: 700;
+        font-weight: var(--font-weight-bold);
     }
 
     // Přeškrtnutý reklamní banner a cenovka „0 Kč“
@@ -258,7 +258,7 @@
         border: 2px dashed var(--color-border);
         border-radius: var(--radius-sm);
         color: var(--color-text-muted);
-        font-weight: 900;
+        font-weight: var(--font-weight-black);
         letter-spacing: var(--letter-spacing-caps);
         text-transform: uppercase;
         transform: rotate(var(--landing-extra-banner-rotation));
@@ -284,7 +284,7 @@
         background: var(--gradient-brand);
         border-radius: var(--radius-sm);
         color: var(--color-on-brand);
-        font-weight: 900;
+        font-weight: var(--font-weight-black);
         transform: rotate(var(--sticker-rotation));
     }
 }

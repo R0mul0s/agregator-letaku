@@ -33,7 +33,7 @@
     &__remaining {
         color: var(--color-text-muted);
         font-size: var(--font-size-sm);
-        font-weight: 600;
+        font-weight: var(--font-weight-semibold);
     }
 }
 
@@ -67,7 +67,7 @@
     }
 
     &__name {
-        font-weight: 700;
+        font-weight: var(--font-weight-bold);
         line-height: var(--line-height-heading);
     }
 
@@ -78,18 +78,18 @@
 
     &__expired {
         color: var(--color-warning-text);
-        font-weight: 700;
+        font-weight: var(--font-weight-bold);
     }
 
     // Akce, která ještě nezačala (R76)
     &__upcoming {
         color: var(--color-info-text);
-        font-weight: 700;
+        font-weight: var(--font-weight-bold);
     }
 
     &__price {
         color: var(--color-price);
-        font-weight: 900;
+        font-weight: var(--font-weight-black);
         white-space: nowrap;
 
         // Text akce na více kusů — zalomí se jako v řádku akce (R102)
@@ -122,95 +122,6 @@
     }
 }
 
-// „Jsem v obchodě“ (R62): akce jako kompaktní řádky místo karet s obrázkem
-.offer-rows {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-}
-
-.offer-row {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto auto;
-    align-items: center;
-    gap: var(--space-2);
-    min-height: var(--shopping-row-min-height);
-    padding: var(--space-2) 0;
-    border-top: 1px solid var(--color-border);
-
-    &:first-child {
-        border-top: 0;
-    }
-
-    &__name {
-        font-weight: 700;
-        line-height: var(--line-height-heading);
-    }
-
-    // Hlídaná položka nad názvem akce (pohled Podle obchodů, R102)
-    &__label {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: var(--space-1) var(--space-2);
-        color: var(--color-text-muted);
-        font-size: var(--font-size-sm);
-        font-weight: 700;
-    }
-
-    &__meta {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0 var(--space-2);
-        color: var(--color-text-muted);
-        font-size: var(--font-size-sm);
-    }
-
-    &__prices {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-end;
-    }
-
-    &__price {
-        color: var(--color-price);
-        font-weight: 900;
-        white-space: nowrap;
-
-        // Text akce na více kusů („3 za cenu 2 Clubcard cena - …“) — dlouhý by bez zalomení
-        // roztáhl řádek i stránku přes displej
-        &--text {
-            max-width: var(--offer-row-text-max-width);
-            font-size: var(--font-size-sm);
-            text-align: right;
-            white-space: normal;
-        }
-    }
-
-    &__discount {
-        color: var(--color-accent-strong);
-        font-size: var(--font-size-xs);
-        font-weight: 800;
-    }
-
-    // Obchod u řádku v centru upozornění (R74) — řádky tam nejsou po obchodech
-    &__chain {
-        color: var(--color-text);
-        font-weight: 700;
-    }
-
-    // Skončená nebo obchodem stažená akce (R74) — bez tlačítka do seznamu, cena tlumeně. Stav nese
-    // štítek; průhlednost celého řádku stáhla text pod kontrast 4,5 : 1 (R99)
-    &--ended {
-        grid-template-columns: minmax(0, 1fr) auto;
-    }
-
-    &--ended &__price,
-    &--ended &__discount {
-        color: var(--color-text-muted);
-    }
-}
-
 // Tlačítko jen s ikonou v řádku — čtverec, dost velký pro palec
 .shopping-toggle--compact {
     width: var(--shopping-check-target);
@@ -219,11 +130,3 @@
     font-size: var(--font-size-md);
 }
 
-// Všechny akce v kompaktním zobrazení (R82): řádky v kartě, ať nesplývají s pozadím stránky
-.offer-rows--listing {
-    padding: 0 var(--space-3);
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-card);
-}

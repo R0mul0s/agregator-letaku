@@ -18,6 +18,7 @@ namespace App\Http\Controllers;
 use App\Domain\Account\UserDirectory;
 use App\Http\Requests\UsersIndexRequest;
 use App\Models\User;
+use App\Support\Like;
 use App\Support\Pagination\PaginationLinks;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Storage;
@@ -36,7 +37,7 @@ class UserController extends Controller
     {
         $query = $this->directory->filter(User::query(), $request->filter());
         foreach ($request->searchWords() as $word) {
-            $pattern = '%'.addcslashes($word, '%_\\').'%';
+            $pattern = Like::contains($word);
             $query->where(fn (Builder $query) => $query->where('name', 'like', $pattern)->orWhere('email', 'like', $pattern));
         }
 

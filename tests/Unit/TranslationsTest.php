@@ -58,6 +58,7 @@ it('má text toastu pro každý kód stavu po uložení (R47)', function (string
     AccountController::STATUS_OFFERS_PREFERENCES_SAVED,
     AccountController::STATUS_DIGEST_SAVED,
     AccountController::STATUS_MARKETING_SAVED,
+    AccountController::STATUS_DELETED,
     UnsubscribeController::STATUS_UNSUBSCRIBED,
     VerifyEmailResponse::STATUS_VERIFIED,
     RegisterResponse::STATUS_REGISTERED,
@@ -98,3 +99,22 @@ it('má název a důvody odmítnutí pro přihlášení přes poskytovatele (R96
 it('má název pro každý druh e-mailů k odhlášení (R51)', function (MailingList $list): void {
     expect(trans()->has('app.ui.mailing_lists.'.$list->value))->toBeTrue();
 })->with(MailingList::cases());
+
+it('má text pro každý pevný klíč t(…) a lookup(…) ve frontendu (R113)', function (): void {
+    $missing = [];
+    $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(resource_path('js'), FilesystemIterator::SKIP_DOTS));
+    foreach ($files as $file) {
+        if (! in_array($file->getExtension(), ['js', 'vue'], true)) {
+            continue;
+        }
+        // Jen klíče jako literál — klíče skládané za běhu (`unit_price_units.${unit}`) test nevidí
+        preg_match_all('/\b(?:t|lookup\([^,()]+,)\(?\s*\'([a-z0-9_.\-]+)\'/i', (string) file_get_contents($file->getPathname()), $matches);
+        foreach ($matches[1] as $key) {
+            if (! trans()->has('app.ui.'.$key)) {
+                $missing[] = str_replace(resource_path('js').DIRECTORY_SEPARATOR, '', $file->getPathname()).': '.$key;
+            }
+        }
+    }
+
+    expect($missing)->toBe([]);
+});

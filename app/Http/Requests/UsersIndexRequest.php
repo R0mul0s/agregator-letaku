@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Domain\Offers\WordStart;
 use App\Http\Requests\Concerns\HasPageWindow;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -87,7 +88,7 @@ class UsersIndexRequest extends FormRequest
      */
     public function searchWords(): array
     {
-        return preg_split('/\s+/u', trim($this->string('q')->toString()), flags: PREG_SPLIT_NO_EMPTY) ?: [];
+        return WordStart::words($this->string('q')->toString());
     }
 
     /**

@@ -12,7 +12,7 @@ import SocialButtons from '@/Components/SocialButtons.vue';
 import TextField from '@/Components/TextField.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { useTranslations } from '@/lib/i18n';
-import { isStandalone } from '@/lib/pwa';
+import { isStandalone } from '@/lib/pwaInstall';
 import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
 
 const props = defineProps({

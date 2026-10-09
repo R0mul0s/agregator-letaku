@@ -9,35 +9,13 @@
 <script setup>
 import { answerConfirm, confirmState } from '@/lib/confirm';
 import { useTranslations } from '@/lib/i18n';
-import { nextTick, ref, watch } from 'vue';
+import { useModalDialog } from '@/lib/modalDialog';
+import { ref } from 'vue';
 
 const t = useTranslations();
-const dialog = ref(null);
 const cancelButton = ref(null);
-
-watch(
-    () => confirmState.open,
-    async (open) => {
-        if (open && !dialog.value?.open) {
-            dialog.value?.showModal();
-            await nextTick();
-            cancelButton.value?.focus();
-        } else if (!open && dialog.value?.open) {
-            dialog.value.close();
-        }
-    },
-);
-
-/**
- * Klik na ztmavené pozadí (mimo obsah okna) je zrušení.
- *
- * @param {MouseEvent} event
- */
-function onClick(event) {
-    if (event.target === dialog.value) {
-        answerConfirm(false);
-    }
-}
+// Klik na ztmavené pozadí je zrušení; fokus na Zrušit — nevratná akce se omylem nepotvrdí
+const { dialog, onClick } = useModalDialog(() => confirmState.open, { onBackdrop: () => answerConfirm(false), focusOnOpen: cancelButton });
 </script>
 
 <template>

@@ -15,8 +15,6 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Domain\Sources\SourceRegistry;
-use App\Enums\Chain;
-use App\Enums\ScrapeStatus;
 use App\Models\ScrapeRun;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Response;
@@ -33,7 +31,7 @@ class HealthImportsController extends Controller
         $lines = [];
         $healthy = true;
         foreach ($sources->chainsWithOffers() as $chain) {
-            $finishedAt = $this->lastSuccess($chain);
+            $finishedAt = ScrapeRun::lastFinishedAt(chain: $chain);
             $ok = $finishedAt !== null && $finishedAt->greaterThan($limit);
             $healthy = $healthy && $ok;
 
@@ -47,19 +45,5 @@ class HealthImportsController extends Controller
             'Content-Type' => 'text/plain; charset=utf-8',
             'Cache-Control' => 'no-store',
         ]);
-    }
-
-    /**
-     * Konec posledního úspěšného stažení obchodu.
-     */
-    private function lastSuccess(Chain $chain): ?CarbonImmutable
-    {
-        $finishedAt = ScrapeRun::query()
-            ->where('chain', $chain)
-            ->where('status', ScrapeStatus::Succeeded)
-            ->max('finished_at');
-
-        // Databáze ukládá čas v UTC (config/app.php)
-        return is_string($finishedAt) ? CarbonImmutable::parse($finishedAt, 'UTC') : null;
     }
 }

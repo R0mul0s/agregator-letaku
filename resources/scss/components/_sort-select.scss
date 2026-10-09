@@ -24,7 +24,7 @@
     &__label {
         color: var(--color-text-muted);
         font-size: var(--font-size-sm);
-        font-weight: 600;
+        font-weight: var(--font-weight-semibold);
     }
 
     // Obal selectu kvůli vlastní šipce
@@ -48,7 +48,7 @@
         color: var(--color-text);
         font: inherit;
         font-size: var(--font-size-sm);
-        font-weight: 600;
+        font-weight: var(--font-weight-semibold);
         cursor: pointer;
     }
 }

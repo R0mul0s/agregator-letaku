@@ -8,7 +8,7 @@
 -->
 <script setup>
 import { useTranslations } from '@/lib/i18n';
-import { applyUpdate, updateState } from '@/lib/pwa';
+import { applyUpdate, updateState } from '@/lib/pwaUpdates';
 
 const t = useTranslations();
 </script>

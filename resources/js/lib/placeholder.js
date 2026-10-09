@@ -7,6 +7,7 @@
  * @author Roman Hlaváček
  * @created 2026-10-04
  */
+import { prefersReducedMotion } from '@/lib/scroll';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 
 /** Jak dlouho jeden příklad svítí (ms). */
@@ -25,8 +26,7 @@ export function useRotatingPlaceholder(examples, paused, format) {
     let timer = null;
 
     onMounted(() => {
-        const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-        if (reducedMotion || examples().length < 2) {
+        if (prefersReducedMotion() || examples().length < 2) {
             return;
         }
         timer = window.setInterval(() => {
