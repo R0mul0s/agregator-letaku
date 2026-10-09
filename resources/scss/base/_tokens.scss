@@ -273,6 +273,8 @@
     --z-skip-link: 60;
     // Spodní lišta záložek na telefonu (R66): nad obsahem a hlavičkou, pod tlačítkem Nahoru
     --z-tab-bar: 35;
+    // Ukazatel stažení stránky dolů (R112) těsně pod hlavičkou — vyjíždí zpod ní
+    --z-pull-refresh: 29;
     --tab-bar-height: 3.75rem;
     --tab-bar-icon-size: 1.5rem;
     // Proužek nad aktivní záložkou (R99): výška a odsazení od okrajů položky
@@ -284,6 +286,11 @@
     --tab-bar-offset: 0px;
     // Výzva k přidání na plochu (R66)
     --install-icon-size: 3rem;
+    // Stažení stránky dolů v aplikaci z plochy (R112): ukazatel vyjíždí zpod hlavičky (její výška
+    // na telefonu), velikost kruhu a o kolik stupňů se šipka otočí na 1 px tahu
+    --pull-refresh-top: 3.5rem;
+    --pull-refresh-size: 2.5rem;
+    --pull-refresh-turn: 3deg;
     // O kolik méně posunout na kotvu (#polozka-…) — výška plovoucí hlavičky s rezervou
     --header-scroll-offset: 6rem;
     --back-to-top-size: 3.5rem;

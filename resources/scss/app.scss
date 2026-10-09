@@ -36,6 +36,7 @@
 @use 'components/install-prompt';
 @use 'components/offline-bar';
 @use 'components/update-bar';
+@use 'components/pull-refresh';
 @use 'components/view-toggle';
 @use 'components/sort-select';
 @use 'components/bottom-sheet';

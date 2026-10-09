@@ -398,12 +398,15 @@ patří sem pod tenhle postup; po nasazení se přesunou tam (R106).
 
 ### Aktualizace z `7e90785` (připravuje se)
 
-„+1 brzy“ v sekci Zatím bez akce otevře akce položky v sekci Brzy. Změnil se jen frontend —
+„+1 brzy“ v sekci Zatím bez akce otevře akce položky v sekci Brzy; v aplikaci z plochy stažení
+stránky dolů načte data znovu (R112). Změnil se frontend a text v `lang/cs/app.php` —
 bez SQL skriptu, bez `vendor/`, `app/`, `config/` i `.env` beze změny, žádný soubor nezmizel.
 
-1. **Nahraj** `public/build/` (celý, starý obsah můžeš smazat) a `public/version.txt` z `deploy/upload/`.
+1. **Nahraj** `public/build/` (celý, starý obsah můžeš smazat), `lang/cs/app.php` a `public/version.txt`
+   z `deploy/upload/`.
 2. **Ověř:** `version.txt`; v Mých slevách klepnutí na položku s „+1 brzy“ v sekci Zatím bez akce
-   rozbalí sekci Brzy a posune stránku na akce položky.
+   rozbalí sekci Brzy a posune stránku na akce položky; v aplikaci z plochy tah dolů na začátku
+   stránky vysune kruh se šipkou a po puštění stránku načte znovu.
 3. Zapiš verzi do *Nasazené verze* a tuhle sekci přesuň do `HISTORIE_NASAZENI.md`.
 
 ---

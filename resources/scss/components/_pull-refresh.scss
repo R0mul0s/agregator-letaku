@@ -1,0 +1,68 @@
+// _pull-refresh.scss
+// Ukazatel stažení stránky dolů v aplikaci z plochy (PullToRefresh.vue, R112) — kruh se šipkou
+// vyjede zpod hlavičky o tolik, o kolik táhne prst (--pull-distance nastavuje komponenta),
+// za hranicí zčervená, při načítání se točí.
+//
+// @author Roman Hlaváček
+// @created 2026-10-09
+
+.pull-refresh {
+    --pull-distance: 0px;
+
+    position: fixed;
+    // Pod hlavičkou, ať z ní vyjíždí
+    z-index: var(--z-pull-refresh);
+    top: calc(var(--pull-refresh-top) + env(safe-area-inset-top));
+    left: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--pull-refresh-size);
+    height: var(--pull-refresh-size);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 50%;
+    box-shadow: var(--shadow-card-hover);
+    color: var(--color-text-muted);
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(-50%, calc(var(--pull-distance) - var(--pull-refresh-size)));
+
+    &--visible {
+        opacity: 1;
+    }
+
+    // Po puštění (pod hranicí zpět, nad ní na místo načítání) dojede plynule, během tahu ne
+    &:not(.pull-refresh--visible),
+    &--refreshing {
+        transition: opacity var(--duration-fast), transform var(--duration-fast);
+    }
+
+    &--ready {
+        border-color: var(--color-accent);
+        color: var(--color-accent);
+    }
+
+    &__icon {
+        width: var(--icon-size);
+        height: var(--icon-size);
+        fill: none;
+        stroke: currentcolor;
+        stroke-width: var(--svg-stroke-icon);
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        // Šipka se točí s prstem
+        transform: rotate(calc(var(--pull-distance) * var(--pull-refresh-turn)));
+    }
+
+    // Točení jen po dobu načítání (ne dekorativní, R99)
+    &--refreshing &__icon {
+        animation: pull-refresh-spin var(--search-spin-duration) linear infinite;
+    }
+}
+
+@keyframes pull-refresh-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}

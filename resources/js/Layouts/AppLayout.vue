@@ -20,6 +20,7 @@ import EmailVerificationBar from '@/Components/EmailVerificationBar.vue';
 import InstallPrompt from '@/Components/InstallPrompt.vue';
 import NotificationBell from '@/Components/NotificationBell.vue';
 import OfflineBar from '@/Components/OfflineBar.vue';
+import PullToRefresh from '@/Components/PullToRefresh.vue';
 import StoresDialog from '@/Components/StoresDialog.vue';
 import TabBar from '@/Components/TabBar.vue';
 import Toaster from '@/Components/Toaster.vue';
@@ -154,6 +155,7 @@ onBeforeUnmount(() => {
     <EmailVerificationBar v-if="page.props.auth.user && !page.props.auth.user.emailVerified" />
     <OfflineBar />
     <UpdateBar />
+    <PullToRefresh />
 
     <!-- tabindex -1: po odkazu „Přeskočit na obsah" dostane fokus i hlavní obsah -->
     <main id="main" class="page" tabindex="-1">

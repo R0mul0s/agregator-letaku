@@ -297,6 +297,7 @@ return [
             'install_browser_menu' => 'V menu prohlížeče zvolte Přidat na plochu nebo Nainstalovat aplikaci.',
             'installed' => 'Slevohlídku máte na ploše — lov může začít.',
             'settings_title' => 'Aplikace v telefonu',
+            'refreshing' => 'Načítáme stránku znovu…',
             'offline' => 'Jste offline — ukazujeme, co jsme si uložili.',
             'stale' => 'Signál zlobí — ukazujeme uloženou verzi.',
             'fetched_at' => 'Stav z :at.',
