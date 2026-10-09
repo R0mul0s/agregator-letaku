@@ -20,6 +20,7 @@ use App\Http\Controllers\ContactController;
 use App\Http\Controllers\CrawlerFilesController;
 use App\Http\Controllers\CronController;
 use App\Http\Controllers\HealthImportsController;
+use App\Http\Controllers\HealthTasksController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LegacyAuthRedirectController;
 use App\Http\Controllers\LegalController;
@@ -73,8 +74,9 @@ Route::middleware('throttle:'.RateLimits::PUBLIC)->group(function (): void {
     Route::get('/sw.js', [ServiceWorkerController::class, 'script'])->name('service-worker');
     Route::get('/offline', [ServiceWorkerController::class, 'offline'])->name('offline');
 
-    // Monitoring stahování (UptimeRobot) — veřejné, jen stav
+    // Monitoring stahování a ostatních úloh cronu (UptimeRobot, R115) — veřejné, jen stav
     Route::get('/health/imports', HealthImportsController::class)->name('health.imports');
+    Route::get('/health/tasks', HealthTasksController::class)->name('health.tasks');
 
     // Veřejné (R44): úvodní stránka pro nepřihlášené (přihlášený tu má Moje slevy) a Všechny akce
     Route::get('/', HomeController::class)->name('home');

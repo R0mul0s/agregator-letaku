@@ -17,9 +17,11 @@ namespace App\Domain\Catalog\Actions;
 
 use App\Domain\Catalog\Data\CategoryData;
 use App\Domain\Sources\Tesco\TescoCategorySource;
+use App\Enums\CronTask;
 use App\Models\Category;
 use App\Support\Exceptions\AlreadyRunning;
 use App\Support\ExclusiveRun;
+use App\Support\TaskHeartbeats;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 
@@ -30,13 +32,14 @@ final class ImportCategories
     public function __construct(private readonly TescoCategorySource $source) {}
 
     /**
-     * Stáhne a uloží kategorie; vrátí jejich počet. Jen jedno stažení najednou (R113).
+     * Stáhne a uloží kategorie; vrátí jejich počet. Jen jedno stažení najednou (R113),
+     * výsledek se zapíše pro /health/tasks (R115).
      *
      * @throws AlreadyRunning
      */
     public function __invoke(): int
     {
-        return ExclusiveRun::run(self::LOCK_KEY, $this->import(...));
+        return ExclusiveRun::run(self::LOCK_KEY, fn (): int => TaskHeartbeats::run(CronTask::Categories, $this->import(...)));
     }
 
     /**

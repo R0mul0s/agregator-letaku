@@ -13,12 +13,11 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Domain\Account\Actions\PruneExpiredSessions;
+use App\Domain\Account\Actions\RunMaintenance;
 use App\Domain\Catalog\Actions\ImportCategories;
 use App\Domain\Chains\Actions\ImportStores;
 use App\Domain\Notifications\Actions\RunNotificationChannels;
 use App\Domain\Offers\Actions\ImportChainOffers;
-use App\Domain\Offers\Actions\PruneOfferRaw;
 use App\Domain\Offers\Exceptions\ImportAlreadyRunning;
 use App\Enums\ScrapeStatus;
 use App\Http\Requests\CronRequest;
@@ -129,11 +128,13 @@ class CronController extends Controller
      * Úklid vypršelých relací a odkazů pro obnovu hesla (R53) a surových odpovědí starých
      * akcí (R113), jednou denně.
      */
-    public function pruneSessions(CronRequest $request, PruneExpiredSessions $prune, PruneOfferRaw $pruneRaw): Response
+    public function pruneSessions(CronRequest $request, RunMaintenance $maintenance): Response
     {
+        $result = $maintenance();
+
         return $this->text(implode("\n", [
-            __('app.maintenance.sessions_pruned', ['count' => $prune()]),
-            __('app.maintenance.offer_raw_pruned', ['count' => $pruneRaw()]),
+            __('app.maintenance.sessions_pruned', ['count' => $result['sessions']]),
+            __('app.maintenance.offer_raw_pruned', ['count' => $result['offer_raw']]),
         ]));
     }
 

@@ -13,8 +13,7 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
-use App\Domain\Account\Actions\PruneExpiredSessions;
-use App\Domain\Offers\Actions\PruneOfferRaw;
+use App\Domain\Account\Actions\RunMaintenance;
 use Illuminate\Console\Command;
 
 class PruneSessionsCommand extends Command
@@ -28,10 +27,11 @@ class PruneSessionsCommand extends Command
     /**
      * Uklidí a vypíše počet smazaných relací a upravených akcí.
      */
-    public function handle(PruneExpiredSessions $prune, PruneOfferRaw $pruneRaw): int
+    public function handle(RunMaintenance $maintenance): int
     {
-        $this->info(__('app.maintenance.sessions_pruned', ['count' => $prune()]));
-        $this->info(__('app.maintenance.offer_raw_pruned', ['count' => $pruneRaw()]));
+        $result = $maintenance();
+        $this->info(__('app.maintenance.sessions_pruned', ['count' => $result['sessions']]));
+        $this->info(__('app.maintenance.offer_raw_pruned', ['count' => $result['offer_raw']]));
 
         return self::SUCCESS;
     }

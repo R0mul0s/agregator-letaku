@@ -66,7 +66,6 @@ v [PLAN.md](PLAN.md). Větší celky se z toho stávají etapou.
 
 - **upozornění na chyby e-mailem** (log kanál `mail` nebo denní souhrn chyb) — dnes chyby vidí jen ten, kdo otevře logy přes FTP; Albert padal den, než se na to přišlo (R65)
 - **kontroly kvality v `build-upload.ps1`** — Pest a PHPStan před sestavením balíčku (CI není, R14)
-- **`/health/imports` i pro import prodejen Kauflandu** — se zastaralými seznamy prodejen zmizí ~10 % akcí, pod hranicí pojistky R54
 - **retence:** `offers.raw` se vyprazdňuje (R113); zbývá čistit `offer_stores` a `leaflet_pages` skončených akcí a `scrape_runs`
 - **cron „Spuštění PHP souboru“ místo URL** (DEPLOYMENT.md) — bez limitu délky požadavku a tokenu v URL, vyřešilo by O8; ověřit, jestli ho Websupport umí
 - **nasazení přes FTP není atomické** — režim údržby (`storage/framework/down`) během nahrávání, případně nová složka a přepnutí kořene webu
@@ -79,7 +78,7 @@ v [PLAN.md](PLAN.md). Větší celky se z toho stávají etapou.
 - **zálohy:** seznam tabulek v DEPLOYMENT.md (*Záloha databáze*) chybí `social_accounts` (účty bez hesla se po obnově nepřihlásí), `shopping_list_items`, `push_subscriptions`, `notifications`, `announcements` a ruční řádky `offer_product` — zálohovat celou databázi kromě `offers`, `offer_stores`, `leaflet_pages`, `sessions`, `cache`; obnovu jednou vyzkoušet v Dockeru
 - **vypínač obchodu v `.env`**, který skryje i už uložené akce — výzvě obchodu (O6) vyhovět bez nasazení kódu
 - **test shody SQL skriptů s migracemi:** pustit `deploy/migrations-*.sql` na prázdnou databázi a porovnat `SHOW CREATE TABLE` s výsledkem `migrate`
-- `/health` i pro `send-digests` a `import-stores` (poslední úspěšný běh), UptimeRobot i na `/up`
+- UptimeRobot i na `/up` (`/health/tasks` pro prodejny, upozornění, úklid a kategorie hotové, R115)
 - frontend: ESLint a test klíčů `t('…')` hotové (R113); zbývá `jsconfig.json` s `checkJs` a případně Vitest pro `lib/format`, `lib/i18n`, `lib/offer`
 - trvalý layout (`defineOptions({ layout: AppLayout })`) a `Inertia::once` pro statické sdílené props (`chainInfo`, `siteFooter`, `pwa`, `cookieConsent`) — před změnou ověřit fokus po přechodu (`lib/a11y.js`)
 - `RecordNewOffers`, `RecordStartingOffers` a `SendDigests` počítají `MyOffers::forUser` pro stejného uživatele až třikrát (~0,2 s každé, R113) a `RecordStartingOffers` ho počítá každému s hlídáním, i když se ho dnešní akce netýkají — sdílet výsledek v rámci požadavku jen s omezenou pamětí (limit 512 MB), u začínajících akcí nejdřív levně ověřit průnik

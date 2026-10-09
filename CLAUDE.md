@@ -111,6 +111,9 @@ powershell -ExecutionPolicy Bypass -File deploy\build-upload.ps1   # jen z commi
   a `/cron/import-categories?token=…`, prodejny Kauflandu `/cron/import-stores?chain=kaufland&token=…` (R49), souhrny a upozornění v telefonu `/cron/send-digests?token=…` (R66), úklid `/cron/prune-sessions?token=…` (R53) (`CronController`, token `LETAKY_CRON_TOKEN`,
   bez tokenu 404). Každá úloha je Action volatelná z artisan příkazu i z kontroleru.
 - **`/health/imports`** vrací 503, když obchod nemá úspěšné stažení za 26 h (UptimeRobot).
+  **`/health/tasks`** (R115) stejně pro seznamy prodejen (`stores.offer_keys_fetched_at`), každý kanál
+  upozornění, úklid a kategorie — Action úlohy zapisuje běh do `task_heartbeats` přes `TaskHeartbeats`
+  (případ `CronTask` + limit `letaky.health.max_task_age_hours`); nová úloha cronu patří tam taky.
 - **Každá migrace potřebuje SQL skript** `deploy/migrations-<datum>-<popis>.sql`
   (opakovatelný, včetně zápisu do `migrations`) ve stejném commitu jako migrace a řádek
   v tabulce *Historie SQL skriptů* v DEPLOYMENT.md. Výchozí schéma je

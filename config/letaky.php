@@ -569,11 +569,29 @@ return [
     ],
 
     /*
-    | Hlídání stahování (/health/imports): obchod bez úspěšného stažení za tuto dobu = výpadek.
+    | Hlídání stahování (/health/imports): obchod bez úspěšného stažení za tuto dobu = výpadek;
+    | ostatní úlohy cronu hlídá /health/tasks (R115).
     | Cron stahuje jednou až dvakrát denně, rezerva na jeden vynechaný běh.
     */
     'health' => [
         'max_import_age_hours' => 26,
+        // Seznamy akcí prodejen (R49) se stahují ve 4:45 a 12:45 — ozve se dřív, než seznamy po
+        // `store_offers_max_age_hours` (36) přestanou platit a akce omezené na prodejny zmizí (R115)
+        'max_store_lists_age_hours' => 18,
+        // Ostatní úlohy cronu (/health/tasks, R115): poslední úspěšný běh starší = výpadek.
+        // Klíče = App\Enums\CronTask
+        'max_task_age_hours' => [
+            // Cron upozornění běží každou hodinu 6:30–22:30, přes noc je pauza 8 hodin
+            'notifications' => 9,
+            'ending_soon' => 9,
+            'starting_today' => 9,
+            'digest' => 9,
+            'push' => 9,
+            // Úklid jednou denně (3:15), rezerva na posun cronu
+            'maintenance' => 26,
+            // Kategorie 1. v měsíci — 32 dní
+            'categories' => 768,
+        ],
     ],
 
     /*

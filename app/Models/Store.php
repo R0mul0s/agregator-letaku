@@ -55,4 +55,16 @@ class Store extends Model
             'updated_at' => 'immutable_datetime',
         ];
     }
+
+    /**
+     * Kdy se naposledy stáhl seznam akcí některé prodejny obchodu (UTC) — konec posledního
+     * úspěšného stažení prodejen pro /health/tasks (R115); null = nikdy.
+     */
+    public static function lastListFetchedAt(Chain $chain): ?CarbonImmutable
+    {
+        $fetchedAt = self::query()->where('chain', $chain)->max('offer_keys_fetched_at');
+
+        // Databáze ukládá čas v UTC (config/app.php)
+        return is_string($fetchedAt) ? CarbonImmutable::parse($fetchedAt, 'UTC') : null;
+    }
 }

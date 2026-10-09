@@ -3,7 +3,7 @@
 /**
  * Hlídání stahování akcí pro monitoring (UptimeRobot): 200, když každý obchod se zdrojem
  * má úspěšné stažení novější než limit, jinak 503. Veřejná URL bez tokenu — neprozradí
- * nic než stav stahování.
+ * nic než stav stahování. Ostatní úlohy cronu hlídá `/health/tasks` (R115).
  *
  * @author Roman Hlaváček
  *
@@ -16,7 +16,7 @@ namespace App\Http\Controllers;
 
 use App\Domain\Sources\SourceRegistry;
 use App\Models\ScrapeRun;
-use Carbon\CarbonImmutable;
+use App\Support\HealthReport;
 use Illuminate\Http\Response;
 
 class HealthImportsController extends Controller
@@ -26,24 +26,16 @@ class HealthImportsController extends Controller
      */
     public function __invoke(SourceRegistry $sources): Response
     {
-        $limit = CarbonImmutable::now()->subHours(config()->integer('letaky.health.max_import_age_hours'));
-
-        $lines = [];
-        $healthy = true;
+        $report = new HealthReport;
         foreach ($sources->chainsWithOffers() as $chain) {
-            $finishedAt = ScrapeRun::lastFinishedAt(chain: $chain);
-            $ok = $finishedAt !== null && $finishedAt->greaterThan($limit);
-            $healthy = $healthy && $ok;
-
-            $lines[] = __($ok ? 'app.health.ok' : 'app.health.outage', [
-                'chain' => $chain->label(),
-                'at' => $finishedAt?->setTimezone(config()->string('letaky.display_timezone'))->format('j. n. H:i') ?? __('app.health.never'),
-            ]);
+            $report->check(
+                $chain->label(),
+                ScrapeRun::lastFinishedAt(chain: $chain),
+                config()->integer('letaky.health.max_import_age_hours'),
+                'app.health.outage',
+            );
         }
 
-        return response(implode("\n", $lines)."\n", $healthy ? Response::HTTP_OK : Response::HTTP_SERVICE_UNAVAILABLE, [
-            'Content-Type' => 'text/plain; charset=utf-8',
-            'Cache-Control' => 'no-store',
-        ]);
+        return $report->response();
     }
 }

@@ -69,7 +69,8 @@ Značení: **[R]** = rozhodne nebo zařídí Roman, **[K]** = kód.
 
 - [ ] **[R] O8 — změřit limit délky požadavku** na hostingu, zapsat do PLAN.md.
 - [ ] **[R]+[K] Monitoring:** UptimeRobot i na `/up`. Upozornění na chyby e-mailem
-  (log kanál `mail` nebo denní souhrn chyb). Do `/health/imports` přidat import prodejen.
+  (log kanál `mail` nebo denní souhrn chyb). Import prodejen a ostatní úlohy cronu hlídá
+  `/health/tasks` (R115) — přidat monitor v UptimeRobotu.
 - [ ] **[R] Zálohy:** doplnit `offer_product`, `shopping_list_items` a avatary
   (`storage/app/private/avatars` přes FTP), ověřit, jak dlouho drží automatické zálohy
   Websupportu (zásady slibují nejdéle 6 měsíců); jednou vyzkoušet obnovu.

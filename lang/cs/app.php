@@ -248,11 +248,24 @@ return [
         'keys_generated' => 'Klíče VAPID — vložte je do .env (na produkci do .env na hostingu):',
     ],
 
-    // Hlídání stahování (/health/imports) — prostý text pro monitoring
+    // Hlídání stahování (/health/imports) a úloh cronu (/health/tasks, R115) — prostý text pro monitoring
     'health' => [
-        'ok' => ':chain — OK, naposledy :at',
-        'outage' => ':chain — VÝPADEK: poslední úspěšné stažení :at',
+        'ok' => ':name — OK, naposledy :at',
+        'outage' => ':name — VÝPADEK: poslední úspěšné stažení :at',
+        'task_outage' => ':name — VÝPADEK: poslední úspěšný běh :at',
+        'failed_after' => ':line (poté chyba :at)',
         'never' => 'nikdy',
+        'store_lists' => 'Prodejny :chain',
+        // Úlohy cronu na /health/tasks (R115), klíče = App\Enums\CronTask
+        'tasks' => [
+            'notifications' => 'Centrum upozornění — nové akce',
+            'ending_soon' => 'Centrum upozornění — končící akce',
+            'starting_today' => 'Centrum upozornění — dnes začínající akce',
+            'digest' => 'E-mailové souhrny',
+            'push' => 'Upozornění v telefonu',
+            'maintenance' => 'Denní úklid',
+            'categories' => 'Kategorie katalogu',
+        ],
     ],
 
     'admin' => [

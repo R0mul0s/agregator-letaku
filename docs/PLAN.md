@@ -65,7 +65,7 @@ Log rozhodnutí (kap. 8) se nepřepisuje — starší rozhodnutí nahrazují nov
 | Příprava na zveřejnění (R51): podmínky užití a zásady zpracování osobních údajů (`resources/legal`), patička webu s provozovatelem (e-maily jen s mottem, R81), povinný souhlas s podmínkami a dobrovolný souhlas s obchodními sděleními při registraci, **ověření e-mailu** (souhrn jen na ověřenou adresu), odhlášení z e-mailů jedním klepnutím, české chybové stránky; lišta souhlasu s cookies a Google Analytics až po souhlasu (R52) | Ověření e-mailu vypnuté (R13 → R51); souhrn na neověřenou adresu; odhlášení jen po přihlášení; anglické chybové stránky Laravelu; provozovatel v patičce e-mailů (R51 → R81) |
 | Odkaz akce Kauflandu vede na kategorii s otevřeným detailem akce (`kloffer-articleID` = `klNr`, R109) | Odkaz na celý přehled nabídky; textový fragment na dlaždici (→ R109) |
 | Odkaz akce na stránku letáku má text „Do letáku“, ostatní „Do obchodu“ — podle adresy odkazu (`letaky.offers.leaflet_link_prefixes`, R110) | Vždy „Do obchodu“; přímé vložení do košíku Tesca (vyžaduje přihlášení u Tesca, R110) |
-| Produkce Websupport, cron URL, SQL skripty migrací, bez fronty (R20); balíček v `deploy/` pro `slevohlidka.cz` (R93), cron po obchodech, `/health/imports` pro UptimeRobot (R38) | GitHub CI (R14 — zatím ne); jedna cron URL pro všechny obchody (O8) |
+| Produkce Websupport, cron URL, SQL skripty migrací, bez fronty (R20); balíček v `deploy/` pro `slevohlidka.cz` (R93), cron po obchodech, `/health/imports` pro UptimeRobot (R38); `/health/tasks` hlídá seznamy prodejen, každý kanál upozornění, úklid a kategorie (`task_heartbeats`, R115) | GitHub CI (R14 — zatím ne); jedna cron URL pro všechny obchody (O8) |
 | Import s pojistkami (R54): nula akcí je chyba i se stránkami letáku (kromě Alberta), chybí-li víc než 40 % neskončených akcí, žádná se neoznačí jako stažená (stav `partial`); Billa prodlužuje pokračující akce se stejnou cenou; souhrny po dávkách 100 uživatelů, cron každou hodinu 6:30–22:30 s okamžitým upozorněním (R58) | Stažení všeho, co v novém stažení chybí (R16 bez pojistky); každý týden nový řádek akce Billy; souhrny všem v jednom požadavku jednou denně |
 | Jedno stažení obchodu najednou (zámek v cache, R57); User-Agent `Slevohlidka/1.0 (+slevohlidka.cz)` bez schématu (R65, R80) | Souběžná stažení bez zámku; UA s `https://…` (R53 bod 6) |
 | Upozornění a souhrny berou akce do **horizontu úplných akcí** (před začátkem běžícího stažení) a cron je zpracovává po dávkách s **časovým rozpočtem** sdíleným mezi kroky; uživatel s opakovanou chybou se po 3 pokusech přeskočí (R106). Seznam prodejen akce až po otevření okna, „Načíst další“ jen s novou stránkou (R106) | Hranice nových akcí = čas cronu (akce stažení běžícího během cronu se neohlásily); pevné dávky bez časového limitu; seznam prodejen u každé akce; „Načíst další“ s celým načteným rozsahem |
@@ -282,7 +282,8 @@ Všechny obchody najednou ~1,5 minuty — na hostingu poběží každý obchod s
 
 Na produkci každý obchod stahuje vlastní cron URL `/cron/import-offers?chain=…&token=…`
 (R38, postup v [deploy/DEPLOYMENT.md](../deploy/DEPLOYMENT.md)); `/health/imports` vrací 503,
-když některý obchod nemá úspěšné stažení za posledních 26 hodin.
+když některý obchod nemá úspěšné stažení za posledních 26 hodin; ostatní úlohy cronu hlídá
+`/health/tasks` (R115).
 
 Etapa 6 přidá extrakci letáků:
 
