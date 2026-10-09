@@ -54,6 +54,60 @@ final class PdfLayout
     }
 
     /**
+     * Jednoznačné dvojice cena–dlaždice: dlaždice je ceně nejbližší ze všech dlaždic, cena
+     * dlaždici ze všech cen a na obou stranách je druhý nejbližší soused výrazně dál. Pro
+     * dlaždice, jejichž cenu nejde ověřit cenou za jednotku (balení 1 kg / 1 ks, R107) — cena
+     * mezi dvěma dlaždicemi zůstane bez dvojice.
+     *
+     * @template TPrice
+     * @template TTile
+     *
+     * @param  array<int, TPrice>  $prices
+     * @param  array<int, TTile>  $tiles
+     * @param  callable(TPrice, TTile): ?float  $distance  Null = dlaždice k ceně podle polohy nepatří
+     * @param  float  $ambiguityRatio  Nejbližší soused musí být blíž než tento podíl vzdálenosti druhého
+     * @return array<int, int> Index ceny => index dlaždice
+     */
+    public static function mutualNearest(array $prices, array $tiles, callable $distance, float $ambiguityRatio): array
+    {
+        $byPrice = [];
+        $byTile = [];
+        foreach ($prices as $priceIndex => $price) {
+            foreach ($tiles as $tileIndex => $tile) {
+                $value = $distance($price, $tile);
+                if ($value !== null) {
+                    $byPrice[$priceIndex][$tileIndex] = $value;
+                    $byTile[$tileIndex][$priceIndex] = $value;
+                }
+            }
+        }
+
+        $pairs = [];
+        foreach ($byPrice as $priceIndex => $distances) {
+            $tileIndex = self::clearlyNearest($distances, $ambiguityRatio);
+            if ($tileIndex !== null && self::clearlyNearest($byTile[$tileIndex], $ambiguityRatio) === $priceIndex) {
+                $pairs[$priceIndex] = $tileIndex;
+            }
+        }
+
+        return $pairs;
+    }
+
+    /**
+     * Klíč nejbližšího souseda, když je výrazně blíž než druhý; jinak null.
+     *
+     * @param  non-empty-array<int, float>  $distances
+     */
+    private static function clearlyNearest(array $distances, float $ambiguityRatio): ?int
+    {
+        asort($distances);
+        $keys = array_keys($distances);
+        $second = $keys[1] ?? null;
+
+        return $second === null || $distances[$keys[0]] < $distances[$second] * $ambiguityRatio ? $keys[0] : null;
+    }
+
+    /**
      * Slova složená do řádků: stejný horní okraj a malá mezera mezi slovy. Řádky pdftotext
      * se nepoužijí — slučují slova sousedních dlaždic („- 32 % Vepřová“).
      *

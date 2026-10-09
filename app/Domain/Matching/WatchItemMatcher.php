@@ -98,18 +98,49 @@ final class WatchItemMatcher
      * Stav zmínky na stránce letáku (R27); null = stránka položku nezmiňuje.
      *
      * Stránka je směs desítek produktů, proto se hledají jen celá slova („máslo“ nenajde
-     * „Dýně máslová“) a vyloučená slova se nepoužijí — vyřadila by celou stránku kvůli
-     * jinému produktu. Bez varianty („Coca-Cola“ bez „Zero“) je zmínka „možná“.
+     * „Dýně máslová“) a vyloučená slova platí jen v okolí hledaného slova (R107, „Orion Kofila
+     * Banány v čokoládě“) — na celé stránce by ji vyřadila kvůli jinému produktu. Stačí jeden
+     * výskyt bez vyloučeného slova v okolí. Bez varianty („Coca-Cola“ bez „Zero“) je zmínka „možná“.
      *
      * @param  string  $text  Text stránky z TextNormalizer::normalize
      */
     public function mention(WatchRule $rule, string $text): ?MatchStatus
     {
-        if ($rule->keywords === [] || ! $this->containsAll($text, $rule->keywords, wholeWords: true)) {
+        if ($rule->keywords === []) {
             return null;
         }
 
+        $window = config()->integer('letaky.mentions.exclude_window_words');
+        foreach ($rule->keywords as $alternatives) {
+            if (! array_any($alternatives, fn (string $word): bool => $this->hasCleanMention($text, $word, $rule->exclude, $window))) {
+                return null;
+            }
+        }
+
         return $this->containsAll($text, $rule->variant, wholeWords: true) ? MatchStatus::Match : MatchStatus::Maybe;
+    }
+
+    /**
+     * Je slovo v textu stránky jako celé slovo aspoň jednou bez vyloučeného slova v okolí?
+     *
+     * @param  list<string>  $exclude
+     * @param  int  $window  Kolik slov před výskytem a za ním se prohledá
+     */
+    private function hasCleanMention(string $text, string $word, array $exclude, int $window): bool
+    {
+        $needle = ' '.$word.' ';
+        $offset = 0;
+        while (($position = strpos($text, $needle, $offset)) !== false) {
+            $before = array_slice(explode(' ', trim(substr($text, 0, $position))), -$window);
+            $after = array_slice(explode(' ', trim(substr($text, $position + strlen($needle)))), 0, $window);
+            $context = ' '.implode(' ', [...$before, ...$after]).' ';
+            if (! array_any($exclude, fn (string $excluded): bool => $this->containsWord($context, $excluded))) {
+                return true;
+            }
+            $offset = $position + 1;
+        }
+
+        return false;
     }
 
     /**

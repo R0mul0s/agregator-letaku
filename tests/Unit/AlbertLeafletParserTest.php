@@ -3,7 +3,8 @@
 /**
  * Dlaždice PDF letáku Albertu (R86) — strany 7 a 8 letáku hypermarketů 40/2026 a strana 14
  * (Mlynářské pečivo s aplikací): cena ověřená cenou za jednotku, sleva v procentech, cena
- * s aplikací, cena nad názvem, platnost z dlaždice a z oddílu „PLATÍ POUZE PÁ–NE“.
+ * s aplikací, cena nad názvem, platnost z dlaždice a z oddílu „PLATÍ POUZE PÁ–NE“. Dlaždice
+ * 1 kg / 1 ks bez ceny za jednotku (R107) na stranách 8, 14 a 19 letáku HM 41/2026 a 17 letáku SM.
  *
  * @author Roman Hlaváček
  *
@@ -113,11 +114,12 @@ it('bez menší ceny bez aplikace vezme jako běžnou cenu přeškrtnutou cenu',
         ->loyaltyPrice->toBe(4190);
 });
 
-it('neověřitelné dlaždice vynechá — bez ceny za jednotku nebo jen s balením 1 kg', function (): void {
+it('neověřitelné dlaždice vynechá — bez ceny za jednotku a 1 kg / 1 ks bez ceny se slevou u sebe', function (): void {
     $offers = albertLeafletOffers(responseFixture(ALBERT_PAGES_7_8));
 
     expect(array_keys($offers))
-        // Robotický vysavač nemá cenu za jednotku, mango „1 ks“ a slepice „1 kg“ ji nepotřebují
+        // Robotický vysavač nemá cenu za jednotku; mango „1 ks“ a slepice „1 kg“ ji nepotřebují,
+        // ale v dosahu nemají žádnou cenu (R107)
         ->not->toContain('Sencor Robotický vysavač SRV 7450WH', 'Mango', 'Slepice bez drobů', 'Jihlavanka Standard')
         ->toHaveCount(19);
 });
@@ -162,4 +164,51 @@ it('akci na více kusů vynechá, i když cena sedí na cenu za jednotku', funct
     // Lenor 79,90 jen „PŘI KOUPI 2 ks a více“ („cena za 1 ks 99,90 Kč“), 59 dávek po 1,36 Kč
     expect($offers)->not->toHaveKey('Lenor Aviváž')
         ->toHaveKey('Persil Prací gel');
+});
+
+it('dlaždici 1 kg / 1 ks bez ceny za jednotku přijme s přeškrtnutou cenou a sedící slevou (R107)', function (): void {
+    $offers = albertLeafletOffers(responseFixture('albert/pdf-41hm-2026-10-09-strana-14.html'));
+
+    // „Banány • 1 kg“ nad cenou „26 90“ s „44,90/“ a „- 40 %“ — cena za 1 kg je cena sama
+    expect($offers['Banány'])
+        ->offerType->toBe(OfferType::Discount)
+        ->price->toBe(2690)
+        ->originalPrice->toBe(4490)
+        ->discountPercent->toBe(40)
+        ->packageText->toBe('1 kg')
+        ->and($offers['Banány']->package?->quantity)->toBe(1000.0)
+        ->and($offers['Banány']->package?->unit)->toBe(PackageUnit::Gram);
+
+    // Cena vlevo od názvu (granátové jablko) i vpravo pod ním (dýně)
+    expect($offers['Granátové jablko'])->price->toBe(1990)->originalPrice->toBe(3990)->packageText->toBe('1 ks')
+        ->and($offers["Nature's Promise Bio Dýně hokaido"])->price->toBe(3990)->originalPrice->toBe(4990);
+});
+
+it('v hustém rozvržení masa přiřadí cenu dlaždici nad ní, sporné ceny vynechá (R107)', function (): void {
+    $offers = albertLeafletOffers(responseFixture('albert/pdf-41hm-2026-10-09-strana-19.html'));
+
+    // Cena stehen 119,90 leží těsně nad dlaždicí kotlety — patří ale stehnům nad ní
+    expect($offers['Královské Kuřecí stehna'])->price->toBe(11990)->originalPrice->toBe(15900)
+        ->and($offers['Vepřová kotleta s kostí – plátky'])->price->toBe(11990)->originalPrice->toBe(18900)
+        ->and($offers['Kuřecí horní a spodní stehna mix'])->price->toBe(8990)->originalPrice->toBe(12990)
+        ->and($offers['Kuře bez drobů a 2 čtvrtky'])->price->toBe(5990)->originalPrice->toBe(9990)
+        ->and($offers['Zlaté kuře'])->price->toBe(10990)->originalPrice->toBe(15900);
+
+    // Kachna má cenu nad názvem (dlaždice začíná pod cenou), cena králíka je skoro stejně blízko kachně
+    expect($offers)->not->toHaveKey('Vodňanská kachna')
+        ->not->toHaveKey('Králík s hlavou');
+});
+
+it('cenu skoro stejně daleko od dvou dlaždic nebo v řádku mezi nimi vynechá (R107)', function (): void {
+    $offers = albertLeafletOffers(responseFixture('albert/pdf-41sm-2026-10-09-strana-17.html'));
+
+    // 199,- mezi „Krůtí prsní řízek“ (28 b.) a „Hovězí zadní bez kosti – kýta“ (27 b.), 99,90 kachny
+    // u dlaždice kuřete, jehož 59,90 je jen o kousek dál
+    expect($offers)->not->toHaveKey('Krůtí prsní řízek')
+        ->not->toHaveKey('Hovězí zadní bez kosti – kýta')
+        ->not->toHaveKey('Kuře bez drobů a 2 čtvrtky')
+        ->and($offers['Vepřová kotleta s kostí – plátky'])->price->toBe(11990)->originalPrice->toBe(18900);
+
+    // „Ředkvičky … 7,90“ — cena na konci buňky stojí hned u názvu „Citrony volné“ v sousední buňce
+    expect(albertLeafletOffers(responseFixture('albert/pdf-41hm-2026-10-09-strana-8.html')))->not->toHaveKey('Citrony volné');
 });

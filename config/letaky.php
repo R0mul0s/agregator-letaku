@@ -747,6 +747,9 @@ return [
     */
     'mentions' => [
         'excluded_page_phrases' => ['postup přípravy', 'nákupní seznam', 'recept na'],
+        // Vyloučené slovo položky do tolika slov před hledaným slovem nebo za ním zmínku vyřadí
+        // („Orion Kofila Banány v čokoládě“ u Banánů, R107); dál na stránce už patří jinému produktu
+        'exclude_window_words' => 4,
     ],
 
     /*

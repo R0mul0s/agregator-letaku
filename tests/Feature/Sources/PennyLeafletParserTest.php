@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Parser vektorové vrstvy letáku Penny nad skutečnými stránkami — pravidla R26 a R85.
+ * Parser vektorové vrstvy letáku Penny nad skutečnými stránkami — pravidla R26, R85 a R107.
  *
  * @author Roman Hlaváček
  *
@@ -105,12 +105,13 @@ it('stránku bez ověřených dlaždic přečte podle rozvržení celého leták
         array_push($offsets, ...$parser->tileOffsets(pennyPageTokens($page)));
     }
 
-    // Zelenina na straně 2 má jen „cena za 1kg“ vedle ceny, stránka sama nic neověří
-    expect(array_filter(pennyPageOffers('0002-2026-10-06'), fn (OfferData $offer): bool => str_starts_with($offer->name, 'KAPIE')))->toBeEmpty()
-        ->and(pennyPageOffer(pennyPageOffers('0002-2026-10-06', $parser->commonOffsets($offsets)), 'KAPIE ČERVENÁ'))
+    // Mrkev na straně 2 má jen „cena za 1kg“ vedle ceny a nemá štítek slevy — stránka sama ji neověří
+    // (třetí kolo R107 chce přeškrtnutou cenu se štítkem), rozvržení celého letáku ano
+    expect(array_filter(pennyPageOffers('0002-2026-10-06'), fn (OfferData $offer): bool => str_starts_with($offer->name, 'MRKEV')))->toBeEmpty()
+        ->and(pennyPageOffer(pennyPageOffers('0002-2026-10-06', $parser->commonOffsets($offsets)), 'MRKEV'))
         ->packageText->toBe('1 kg')
-        ->price->toBe(4990)
-        ->originalPrice->toBe(7990);
+        ->price->toBe(1290)
+        ->originalPrice->toBeNull();
 });
 
 it('dvě sousední stejné ceny přiřadí každou jejímu bloku', function (): void {
@@ -161,4 +162,29 @@ it('malé číslo bez přeškrtávací čáry uzná jako původní cenu jen se �
         ->and(pennyPageOffer($offers, 'ZAKYSANÁ SMETANA'))
         ->offerType->toBe(OfferType::PromoPrice)
         ->originalPrice->toBeNull();
+});
+
+it('blok „cena za 1 kg“ vlevo od ceny se sedícím štítkem slevy přiřadí i bez rozvržení (R107)', function (): void {
+    $offers = pennyPageOffers('0002-2026-10-06');
+
+    // Kapie a pórek: blok vlevo od ceny na stejném řádku, 49,90 → 79,90 a štítek slevy
+    expect(pennyPageOffer($offers, 'KAPIE ČERVENÁ'))->packageText->toBe('1 kg')->price->toBe(4990)->originalPrice->toBe(7990)
+        ->and(pennyPageOffer($offers, 'PÓREK'))->packageText->toBe('1 ks')->price->toBe(1490)->originalPrice->toBe(2490);
+});
+
+it('banány s blokem v rohu dlaždice nad cenou přečte, „Super cena“ bez štítku ne (R107)', function (): void {
+    $validity = [CarbonImmutable::parse('2026-10-07'), CarbonImmutable::parse('2026-10-13')];
+    $offers = app(PennyLeafletParser::class)->offers(pennyPageTokens('0002-2026-10-09'), $validity, 2, 'https://example.test/2/');
+
+    // „BANÁNY / cena za 1kg“ vlevo nahoře, cena 22,90 o 103 b. níž, „39,90“ a štítek 42 %
+    expect(pennyPageOffer($offers, 'BANÁNY'))
+        ->offerType->toBe(OfferType::Discount)
+        ->packageText->toBe('1 kg')
+        ->price->toBe(2290)
+        ->originalPrice->toBe(3990)
+        ->and(pennyPageOffer($offers, 'HROZNY RÉVY VINNÉ BÍLÉ'))->price->toBe(3490)->originalPrice->toBe(7990)
+        ->and(pennyPageOffer($offers, 'MANGO'))->packageText->toBe('1 ks')->price->toBe(1990);
+
+    // Fíky „Super cena!“ bez přeškrtnuté ceny, salát „2 ks / 1 balení“ není jedna jednotka
+    expect(array_filter($offers, fn (OfferData $offer): bool => str_starts_with($offer->name, 'FÍKY') || str_starts_with($offer->name, 'SALÁT')))->toBeEmpty();
 });

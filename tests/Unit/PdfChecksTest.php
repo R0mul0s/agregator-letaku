@@ -61,6 +61,13 @@ describe('geometrie stránky', function (): void {
         expect(PdfLayout::nearest([10, 20], [12, 19], $distance))->toBe([1 => 19, 0 => 12]);
     });
 
+    it('spáruje cenu a dlaždici, jen když jsou si jednoznačně nejbližší (R107)', function (): void {
+        $distance = fn (int $price, int $tile): ?float => abs($price - $tile) <= 50 ? (float) abs($price - $tile) : null;
+
+        // 100 ↔ 110 jednoznačně; 200 leží mezi 180 a 222 (20 vs 22) — bez dvojice; 300 nemá nic v dosahu
+        expect(PdfLayout::mutualNearest([100, 200, 300], [110, 180, 222], $distance, 0.7))->toBe([0 => 0]);
+    });
+
     it('slova složí do řádků podle horního okraje a mezery', function (): void {
         $words = [
             new PdfWord('Máslo', 10, 100, 40, 110),

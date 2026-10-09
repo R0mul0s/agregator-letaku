@@ -20,6 +20,11 @@
  * (dlaždice bez ceny za jednotku, „cena za 100 g“, akce na více kusů), se neuloží — zůstane
  * zmínkou ze stránky (R36). Chybějící akce je lepší než akce se špatnou cenou.
  *
+ * Výjimka (R107): dlaždice s balením jedné jednotky („Banány • 1 kg“, „1 ks“) cenu za jednotku
+ * neuvádí — cena je jí sama. Přijme se ve druhém kole, když má cena přeškrtnutou cenu i slevu
+ * v procentech, které spolu sedí, a cena i dlaždice jsou si jednoznačně nejbližší z volných
+ * (dlaždice začíná nad cenou).
+ *
  * Platnost: „platí do …“ v dlaždici, hvězdička u názvu s poznámkou „*Tato nabídka platí od …“,
  * oddíl „PLATÍ POUZE PÁ–NE“ s daty velkým písmem, „Nabídka na této straně platí od … do …“,
  * jinak platnost letáku.
@@ -96,6 +101,19 @@ final class AlbertLeafletParser
 
     /** Největší vzdálenost ceny od textu dlaždice. */
     private const TILE_MAX_DISTANCE = 120.0;
+
+    /** Dlaždice bez ceny za jednotku (R107): největší vzdálenost ceny od jejího textu. */
+    private const SINGLE_UNIT_MAX_DISTANCE = 60.0;
+
+    /** Nejbližší soused musí být blíž než tento podíl vzdálenosti druhého (cena mezi dvěma dlaždicemi). */
+    private const SINGLE_UNIT_AMBIGUITY_RATIO = 0.7;
+
+    /**
+     * Balení jedné jednotky v jednotkách pro porovnání (UNITS): 1 kg, 1 l, 1 ks.
+     *
+     * @var array<string, float>
+     */
+    private const SINGLE_UNIT_QUANTITIES = ['g' => 1000.0, 'ml' => 1000.0, 'ks' => 1.0];
 
     /** Přeškrtnutá cena leží nad cenou: o kolik výš, jak daleko do stran, jak hluboko do ceny. */
     private const CROSSED_ABOVE = 20.0;
@@ -239,8 +257,11 @@ final class AlbertLeafletParser
         $percents = PdfLayout::nearest($big, $this->percents($words), $this->percentDistance(...));
         $context = $this->validityContext($page, $validity);
 
+        $matches = $this->matches($big, $tiles, $prices, $crossed);
+        $matches = [...$matches, ...$this->singleUnitMatches($big, $tiles, $matches, $prices, $crossed, $percents)];
+
         $offers = [];
-        foreach ($this->matches($big, $tiles, $prices, $crossed) as [$priceIndex, $tile, $verified]) {
+        foreach ($matches as [$priceIndex, $tile, $verified]) {
             $offer = $this->offer($tile, $verified, $crossed[$priceIndex] ?? null, $percents[$priceIndex] ?? null, $context, $page->number, $pageUrl);
             if ($offer !== null) {
                 $offers[] = $offer;
@@ -293,6 +314,91 @@ final class AlbertLeafletParser
         }
 
         return $matches;
+    }
+
+    /**
+     * Druhé kolo (R107): dlaždice s balením jedné jednotky (1 kg, 1 ks, 1 l) a bez ceny za
+     * jednotku k volné ceně, když jsou si jednoznačně nejbližší ze všech volných cen a dlaždic
+     * a přeškrtnutá cena se slevou v procentech k ceně sedí. Cena s aplikací (menší cena bez
+     * aplikace pod ní) se vynechá — bez ceny za jednotku nejde poznat, která je která — a cena
+     * v řádku mezi dvěma dlaždicemi taky (isBetweenTiles).
+     *
+     * @param  list<PdfBox>  $big  Akční ceny
+     * @param  list<PdfTile>  $tiles
+     * @param  list<array{int, PdfTile, array{price: int, loyalty: int|null}}>  $matches  Dvojice prvního kola
+     * @param  list<PdfBox>  $prices  Všechny ceny (i menší ceny bez aplikace)
+     * @param  array<int, PdfBox>  $crossed  Index akční ceny => přeškrtnutá cena u ní
+     * @param  array<int, PdfBox>  $percents  Index akční ceny => sleva v procentech u ní
+     * @return list<array{int, PdfTile, array{price: int, loyalty: int|null}}>
+     */
+    private function singleUnitMatches(array $big, array $tiles, array $matches, array $prices, array $crossed, array $percents): array
+    {
+        $matchedTiles = array_column($matches, 1);
+        $freePrices = array_diff_key($big, array_flip(array_column($matches, 0)));
+        $freeTiles = array_filter($tiles, fn (PdfTile $tile): bool => ! in_array($tile, $matchedTiles, true));
+        // Cena je pod názvem nebo vedle něj — dlaždice, která začíná až pod horní hranou ceny,
+        // je ta pod ní (v hustém rozvržení masa by jinak cena připadla sousední dlaždici)
+        $distance = function (PdfBox $price, PdfTile $tile): ?float {
+            $value = $price->distanceTo($tile->box);
+
+            return $tile->box->yMin < $price->yMin && $value <= self::SINGLE_UNIT_MAX_DISTANCE ? $value : null;
+        };
+
+        $result = [];
+        foreach (PdfLayout::mutualNearest($freePrices, $freeTiles, $distance, self::SINGLE_UNIT_AMBIGUITY_RATIO) as $priceIndex => $tileIndex) {
+            $price = $big[$priceIndex];
+            $original = $crossed[$priceIndex] ?? null;
+            $percent = $percents[$priceIndex] ?? null;
+            if ($original !== null && $percent !== null && $original->value > $price->value
+                && DiscountCheck::truncatedOrRounded($original->value, $price->value, $percent->value)
+                && $this->regularPrices($price, $prices) === [] && $this->isSingleUnit($this->tileFacts($freeTiles[$tileIndex]))
+                && ! $this->isBetweenTiles($price, $freeTiles[$tileIndex], $tiles)) {
+                $result[] = [$priceIndex, $freeTiles[$tileIndex], ['price' => $price->value, 'loyalty' => null]];
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Leží cena v řádku mezi dlaždicí vedle sebe a jinou dlaždicí na opačné straně? Cena na
+     * konci buňky („Ředkvičky … 7,90“) pak stojí hned u názvu sousední buňky („Citrony volné“)
+     * a bez ceny za jednotku nejde poznat, ke které patří. Dlaždice nad cenou se neposuzuje.
+     *
+     * @param  list<PdfTile>  $tiles  Všechny dlaždice stránky
+     */
+    private function isBetweenTiles(PdfBox $price, PdfTile $tile, array $tiles): bool
+    {
+        $tileOnRight = $tile->box->xMin >= $price->xMax;
+        if (! $tileOnRight && $tile->box->xMax > $price->xMin) {
+            return false;
+        }
+
+        foreach ($tiles as $other) {
+            $gap = $tileOnRight ? $price->xMin - $other->box->xMax : $other->box->xMin - $price->xMax;
+            if ($other !== $tile && $gap >= 0 && $gap <= self::TILE_MAX_DISTANCE
+                && $other->box->yMin <= $price->yMax + $price->height() && $other->box->yMax >= $price->yMin - $price->height()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Je balení dlaždice jedna jednotka (1 kg, 1 l, 1 ks) bez ceny za jednotku?
+     *
+     * @param  array{unitPrices: list<array{unit: string, quantity: float, from: bool, value: int, appValue: int|null}>, packages: array<string, list<float>>}  $facts
+     */
+    private function isSingleUnit(array $facts): bool
+    {
+        if ($facts['unitPrices'] !== [] || count($facts['packages']) !== 1) {
+            return false;
+        }
+
+        $unit = array_key_first($facts['packages']);
+
+        return isset(self::SINGLE_UNIT_QUANTITIES[$unit]) && $facts['packages'][$unit] === [self::SINGLE_UNIT_QUANTITIES[$unit]];
     }
 
     /**
@@ -764,7 +870,11 @@ final class AlbertLeafletParser
         $stars = strlen($nameText) - strlen(rtrim($nameText, self::NAME_STAR));
         $name = Text::clean(rtrim($nameText, self::NAME_STAR)) ?? '';
         $details = $this->details($tile);
-        $units = array_map(fn (array $unitPrice): string => $unitPrice['unit'], $this->tileFacts($tile)['unitPrices']);
+        // Bez ceny za jednotku (balení 1 kg / 1 ks, R107) je balením odrážka s jednotkou balení
+        $facts = $this->tileFacts($tile);
+        $units = $facts['unitPrices'] === []
+            ? array_keys($facts['packages'])
+            : array_map(fn (array $unitPrice): string => $unitPrice['unit'], $facts['unitPrices']);
         $packageText = $this->packageText($details, $units);
         $description = Text::clean(implode(' • ', $details));
         [$validFrom, $validTo] = $this->tileValidity($tile, $stars, $context);

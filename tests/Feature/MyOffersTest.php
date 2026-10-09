@@ -270,6 +270,28 @@ it('zmínku vynechá, když má obchod ve stejném období akci s cenou', functi
     expect(myMentions())->toBe(['Vejce' => ['lidl Leták s.5 match']]);
 });
 
+it('zmínku vynechá i kvůli akci, která už skončila, ale platila v období letáku (R107)', function (): void {
+    follow(Chain::Lidl);
+    watch('Banány', ['keywords' => 'banány']);
+    $product = Product::factory()->create(['name' => 'Banány z katalogu', 'keywords' => 'banány']);
+    watch('Banány z katalogu', ['product_id' => $product->id, 'keywords' => null]);
+    // Leták platí do 4. 10., banány v něm jen 28. 9.–1. 10. (dnes je 2. 10.)
+    leafletPage('Banány -50%', 1, ['valid_from' => '2026-09-28', 'valid_to' => '2026-10-04']);
+    leafletPage('Banány 1 kg', 3, ['external_id' => 'pristi']);
+    Offer::factory()->create(['name' => 'Banány', 'chain' => Chain::Lidl, 'valid_from' => '2026-09-28', 'valid_to' => '2026-10-01']);
+    // Produkt se k akci přiřadil při importu, dokud platila
+    $this->travelTo('2026-09-30 10:00:00');
+    app(AssignProducts::class)->forProduct($product);
+    $this->travelTo('2026-10-02 10:00:00');
+
+    expect(myMentions())->toBe([
+        'Banány' => ['lidl Leták s.3 match'],
+        'Banány z katalogu' => ['lidl Leták s.3 match'],
+    ])
+        // Skončená akce se mezi akcemi neukáže
+        ->and(myOffers())->toBe(['Banány' => [], 'Banány z katalogu' => []]);
+});
+
 it('položka z katalogu ukáže akce přiřazené k produktu i s ručními opravami (R31)', function (): void {
     follow(Chain::Kaufland);
     $product = Product::factory()->create(['name' => 'Vejce', 'keywords' => 'vejce']);

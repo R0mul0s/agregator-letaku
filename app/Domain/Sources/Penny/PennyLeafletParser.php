@@ -16,6 +16,8 @@
  * 4. **Druhé kolo — rozvržení (R85):** blok bez ceny za jednotku patří k ceně, když vůči ní
  *    leží se stejným posunem jako bloky ověřených dlaždic stránky nebo celého letáku a cena
  *    i blok mají jediného kandidáta. Co se ověřit nedá, se neuloží.
+ *    **Třetí kolo — balení 1 kg / 1 ks (R107):** blok „cena za 1 kg“ vlevo od ceny (i v rohu
+ *    dlaždice, banány), cena a blok jednoznačně nejbližší a přeškrtnutá cena se sedícím štítkem.
  * 5. **Přeškrtnutá cena:** malé číslo vpravo pod cenou, za ním „,“ + glyfy haléřů
  *    (U+E00A U+E009 = „90“) a červená přeškrtávací čára (U+E00F / E010 / E011 podle délky);
  *    bez čáry jen tehdy, když sedí procento slevy ze štítku („33 %“).
@@ -41,6 +43,7 @@ use App\Domain\Offers\Parsing\PriceParser;
 use App\Domain\Offers\Parsing\Text;
 use App\Domain\Offers\Parsing\VariantNote;
 use App\Domain\Sources\Pdf\DiscountCheck;
+use App\Domain\Sources\Pdf\PdfLayout;
 use App\Domain\Sources\Pdf\UnitPriceCheck;
 use App\Enums\LoyaltyProgram;
 use App\Enums\OfferType;
@@ -108,6 +111,12 @@ final class PennyLeafletParser
     private const LAYOUT_PAGE_MIN_TILES = 3;
 
     private const LAYOUT_LEAFLET_MIN_TILES = 8;
+
+    /** Třetí kolo (R107): nejbližší soused musí být blíž než tento podíl vzdálenosti druhého. */
+    private const SINGLE_UNIT_AMBIGUITY_RATIO = 0.7;
+
+    /** Balení jedné jednotky, které cenu za jednotku nepotřebuje: „1 kg“, „1l“, „1 ks“. */
+    private const SINGLE_UNIT_PACKAGE_PATTERN = '/^1\s*(kg|l|ks)$/iu';
 
     /** Přeškrtnutá cena vůči velké ceně. */
     private const CROSSED_RIGHT_MIN = 5.0;
@@ -304,6 +313,7 @@ final class PennyLeafletParser
             ...$leafletOffsets,
         ];
         $tiles += $this->layoutTiles($anchors, $blocks, $tiles, $layout);
+        $tiles += $this->singleUnitTiles($tokens, $anchors, $blocks, $tiles);
 
         $offers = [];
         foreach ($tiles as $anchor => [, $tile]) {
@@ -533,6 +543,52 @@ final class PennyLeafletParser
             $blockIndex = array_key_first($byBlock);
             if (count($byBlock) === 1 && $perBlock[$blockIndex] === 1) {
                 $tiles[$index] = [$blockIndex, $byBlock[$blockIndex]];
+            }
+        }
+
+        return $tiles;
+    }
+
+    /**
+     * Třetí kolo (R107): blok s balením jedné jednotky („cena za 1 kg“, „1 ks“) a bez ceny za
+     * jednotku vlevo od volné ceny (nad ní i v rohu dlaždice — banány), když jsou si cena
+     * a blok jednoznačně nejbližší ze všech volných cen a bloků s balením a cena má přeškrtnutou
+     * cenu se sedícím štítkem slevy. Dlaždice s kartou a „Super cena“ bez štítku se neověří.
+     *
+     * @param  list<SvgToken>  $tokens
+     * @param  list<Anchor>  $anchors
+     * @param  list<Block>  $blocks
+     * @param  array<int, array{int, Tile}>  $assigned  Index ceny => [index bloku, dlaždice] z předchozích kol
+     * @return array<int, array{int, Tile}>
+     */
+    private function singleUnitTiles(array $tokens, array $anchors, array $blocks, array $assigned): array
+    {
+        $usedBlocks = array_flip(array_map(fn (array $tile): int => $tile[0], $assigned));
+        $freeAnchors = array_diff_key($anchors, $assigned);
+        $packageTiles = [];
+        foreach ($blocks as $blockIndex => $block) {
+            $tile = isset($usedBlocks[$blockIndex]) ? null : $this->layoutTile($block);
+            if ($tile !== null && preg_match(self::NAME_PATTERN, $tile['name']) === 1) {
+                $packageTiles[$blockIndex] = $tile;
+            }
+        }
+
+        $distance = function (array $anchor, array $block): ?float {
+            $dx = $anchor['token']->x - $block[0]->x;
+            $dy = end($block)->y - $anchor['token']->y;
+
+            return $dx >= 0 && $dx <= self::BLOCK_LEFT && $dy >= -self::BLOCK_BELOW && $dy <= self::SINGLE_UNIT_MAX_ABOVE ? hypot($dx, $dy) : null;
+        };
+        $pairs = PdfLayout::mutualNearest($freeAnchors, array_intersect_key($blocks, $packageTiles), $distance, self::SINGLE_UNIT_AMBIGUITY_RATIO);
+
+        $tiles = [];
+        foreach ($pairs as $index => $blockIndex) {
+            $anchor = $anchors[$index];
+            $badge = $this->badgePercent($tokens, $anchor['token']);
+            $crossed = $this->crossedPrice($tokens, $anchor['token'], $anchor['price']);
+            if ($anchor['regular'] === null && $badge !== null && $crossed !== null && $this->matchesBadge($anchor['price'], $crossed, $badge)
+                && preg_match(self::SINGLE_UNIT_PACKAGE_PATTERN, $packageTiles[$blockIndex]['package']) === 1) {
+                $tiles[$index] = [$blockIndex, $packageTiles[$blockIndex]];
             }
         }
 

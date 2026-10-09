@@ -108,10 +108,18 @@ it('zmínku na stránce letáku hledá jen jako celé slovo', function (): void 
         ->and(mentionOnPage(['keywords' => 'máslo'], 'Dýně Máslová -28% Sweet Dumpling'))->toBeNull();
 });
 
-it('vyloučená slova u zmínky nepoužije — stránka je směs produktů', function (): void {
+it('vyloučená slova u zmínky použije jen v okolí slova — stránka je směs produktů (R107)', function (): void {
     $rule = ['keywords' => 'vejce', 'exclude' => 'toust'];
 
-    expect(mentionOnPage($rule, 'Vejce 39% Řízky Toustový chléb'))->toBe(MatchStatus::Match);
+    // „Toustový chléb“ pět slov za vejci patří jinému produktu
+    expect(mentionOnPage($rule, 'Vejce 39% Kuřecí řízky 199 Toustový chléb'))->toBe(MatchStatus::Match);
+
+    // Skutečné stránky Lidlu 12. 10. a Penny 7. 10. 2026: banány v čokoládě, ne ovoce
+    $bananas = ['keywords' => 'banány', 'exclude' => 'příchu orion tyčink oplatk svačink'];
+    expect(mentionOnPage($bananas, 'Margot 3136 Orion Ledové Kaštany Kofila Banány V Čokoládě'))->toBeNull()
+        ->and(mentionOnPage($bananas, 'TYČINKY ORION OPAVIA Kofila, Banány Milena, Koko'))->toBeNull()
+        // Stačí jeden výskyt bez vyloučeného slova v okolí
+        ->and(mentionOnPage($bananas, 'Orion Kofila Banány v čokoládě Pečivo Chléb Rohlíky Nová Sklizeň Pomelo Banány -50%'))->toBe(MatchStatus::Match);
 });
 
 it('zmínku bez varianty označí jako možnou', function (): void {

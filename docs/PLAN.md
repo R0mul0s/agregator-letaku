@@ -17,7 +17,8 @@ zvolí obchody (u Tesca typ prodejny), zadá, co ho zajímá („Coca-Cola Zero�
 Obchody letáky publikují hlavně jako PDF nebo flipbooky v JS prohlížečích. Průzkum
 2026-10-02 ale ukázal, že u většiny z nich jde akční nabídku získat i strukturovaně.
 Letáky bez strukturovaných dat čte deterministický parser textu s polohou (Penny SVG, Lidl
-a Albert PDF přes `pdftotext`, [R26, R85–R87](ROZHODNUTI.md)); co neověří cena za jednotku,
+a Albert PDF přes `pdftotext`, [R26, R85–R87](ROZHODNUTI.md)); co neověří cena za jednotku (u balení 1 kg / 1 ks
+jednoznačná poloha a sedící štítek slevy, [R107](ROZHODNUTI.md)),
 zůstane zmínkou bez ceny ([R27](ROZHODNUTI.md)). LLM jen pokud bude potřeba ([R23](ROZHODNUTI.md)).
 
 - **Vývoj:** `http://localhost:54720` (Docker, viz [CLAUDE.md](../CLAUDE.md))
@@ -34,8 +35,8 @@ Log rozhodnutí (kap. 8) se nepřepisuje — starší rozhodnutí nahrazují nov
 |---|---|
 | Obchody se sledují celé, u Tesca (a Albertu) podle **typu prodejny** HM / SM (R19, R21); **u Kauflandu výběr více prodejen** (R49) | Výběr **konkrétních prodejen** a seznamy prodejen (R3 → R21), výběr prodejen Kauflandu (R19 → R21) |
 | Kaufland po prodejnách (R49): seznam 149 prodejen a jejich akcí (cron `import-stores`), k výchozí nabídce stránky prodejen s chybějícími akcemi; akce, která neplatí všude, má prodejny (`offer_stores`); Moje slevy jen akce vybraných prodejen, u akce „Jen Trutnov“ | Jedna výchozí varianta pro všechny prodejny (R15 → R49); stahování jen prodejen vybraných uživateli (R3) |
-| Bez LLM: Kaufland, Tesco, Lidl (kampaně na webu + PDF letáku), Penny (API + parser SVG letáku), Albert (PDF letáku), Globus (REST API webu), Billa (API celého katalogu + PDF budoucích letáků) (R23, R25, R26, R46, R48, R85–R89) | LLM jako hlavní cesta pro letáky (R6 → R23); LLM jen v etapě 6, pokud bude potřeba |
-| **Zmínky v letácích bez ceny** — Lidl, Penny a Albert (R27, R36) | Vyhledávací API letáků Lidlu (zakázané v robots.txt) |
+| Bez LLM: Kaufland, Tesco, Lidl (kampaně na webu + PDF letáku), Penny (API + parser SVG letáku), Albert (PDF letáku), Globus (REST API webu), Billa (API celého katalogu + PDF budoucích letáků) (R23, R25, R26, R46, R48, R85–R89); dlaždice 1 kg / 1 ks bez ceny za jednotku u Albertu a Penny podle polohy a štítku slevy (R107) | LLM jako hlavní cesta pro letáky (R6 → R23); LLM jen v etapě 6, pokud bude potřeba |
+| **Zmínky v letácích bez ceny** — Lidl, Penny a Albert (R27, R36); vyloučená slova položky jen v okolí hledaného slova, zmínku skryje i akce, která už skončila, ale platila v období letáku (R107) | Vyhledávací API letáků Lidlu (zakázané v robots.txt); zmínky bez vyloučených slov (R27 → R107) |
 | Hlídaná položka = slova + varianta + vyloučení (R18); katalog produktů (R24, R28–R31) — kategorie ze stromu Tesca, produkty spravuje admin, přiřazení nabídek se ukládá s ručními opravami; hlídaná položka = produkt z katalogu, nebo vlastní slova | Dva oddělené typy hlídání produkt / kategorie (R9 → R18; tři stavy shody platí dál); vymýšlení vlastních kategorií (→ R28); šablony hlídaných položek v konfiguraci (→ produkty katalogu, R31) |
 | Obrázky produktů odkazem na CDN obchodu (R22); loga obchodů jako soubory aplikace (R32) | Ukládání obrázků |
 | Katalog 206 produktů ověřených na skutečných akcích (R33, R37, R70), data v `database/seeders/data/catalog-products.php`; admin ho spravuje v tabulce `/katalog` | Startovní sada 4 produktů ze šablon (→ R33, R37) |
@@ -268,8 +269,8 @@ GET / ──▶ MyOffers::forUser
              ├─ řazení: shody, pak akce s cenou od nejnižší ceny za jednotku (s kartou, pokud ji má),
              │  akce na více kusů, nakonec „možná“
              └─ zmínky bez ceny (R27): stránky neskončených letáků sledovaných obchodů (SQL LIKE),
-                bez stránek s receptem, celá slova bez vyloučení, chybí varianta → „možná“;
-                leták, kde má obchod k položce akci s cenou ve stejném období, se přeskočí
+                bez stránek s receptem, celá slova, vyloučená slova jen v okolí slova (R107), chybí varianta → „možná“;
+                leták, kde má obchod k položce akci s cenou ve stejném období (i už skončenou, R107), se přeskočí
 ```
 
 Doba stažení (2. 10. 2026): Kaufland ~2 s (1 požadavek, příští týden +1),

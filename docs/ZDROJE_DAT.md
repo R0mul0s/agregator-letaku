@@ -318,13 +318,14 @@ U cen s kartou je navíc `"loyalty":{"value":2490,"tags":["SO"]}` a `regular` pa
 - PDF (`…/files/assets/common/downloads/{DD_MM_YYYY}.pdf`) má kvůli fontu rozbité ceny, nepoužívat.
 - Obrázky stran jsou jen pozadí bez textu.
 
-### Parser letáku (bez LLM, R23, R26, R85)
+### Parser letáku (bez LLM, R23, R26, R85, R107)
 Implementace: `app/Domain/Sources/Penny/PennyLeafletParser.php`, podrobný postup v jeho popisu.
 
 - Rozvržení dlaždic se liší stránku od stránky (název nad cenou, vedle ní, bílý na barevném pruhu), pevné okno kolem ceny nefunguje.
 - **Řádek končící „|“ pokračuje** nejbližším tokenem vpravo na stejném účaří (do 60 b.) — spojí se před skládáním bloků.
 - **První kolo: přiřazení ověřené cenou za jednotku**, kterou leták u potravin uvádí: „250 g“ + „100 g 5,16 Kč“ sedí jen k 12,90 Kč. Sousední dlaždice se tak nespletou. Varianty „270/280 g“ + „100 g 7,37/7,11 Kč“ musí sedět obě. Blok textu bez ceny za jednotku se v prvním kole přijme jen u balení 1 kg / 1 l / 1 ks přímo nad cenou. Každá cena i blok nejvýš jednou: nejbližší dvojice, pak rozšiřující cesty (dvě sousední stejné ceny 34,90 Kč u Oreo a Skittles).
 - **Druhé kolo: rozvržení (R85).** Blok bez ceny za jednotku (sýr 100 g, „cena za 1kg“ vedle ceny, nepotraviny „1ks“) se přijme, když vůči ceně leží se stejným posunem (±3 b.) jako aspoň 3 ověřené dlaždice téže stránky nebo 8 v celém letáku, a cena i blok mají jediného kandidáta. Posuny celého letáku sbírá `PennyOfferSource` prvním průchodem přes všechny stránky (`tileOffsets`, `commonOffsets`) — stránka se zeleninou sama nic neověří. Blok s nesedící cenou za jednotku se nepřijme nikdy.
+- **Třetí kolo: balení 1 kg / 1 ks (R107).** Blok „cena za 1 kg“ / „1 ks“ bez ceny za jednotku vlevo od volné ceny (do 100 b.), nejvýš 110 b. nad ní (banány: název v levém horním rohu dlaždice, cena dole) nebo 30 b. pod ní se přijme, když cena má přeškrtnutou cenu a štítek slevy, které spolu sedí, a cena i blok jsou si jednoznačně nejbližší (`PdfLayout::mutualNearest`, druhý nejbližší aspoň o 30 % dál) ze všech volných cen a bloků s balením. Dlaždice s kartou a „Super cena“ bez štítku (fíky, papriky) se tak neověří. Leták 7. 10. 2026: +7 akcí (banány 22,90, mango, hrozny, dýně, kuře, jablka, slanina v celku), žádná dřívější nezmizela.
 - **PENNY karta:** dlaždici pozná drobný štítek „PENNY Karta“ u ceny (ne nadpis oddílu „MOJE PENNY KARTA“, 10,2 b.). Velká cena je cena s kartou (`loyalty_price`, `LoyaltyOnly`), běžná je malé číslo u popisku „cena bez pennykarty“; bez něj se dlaždice neuloží.
 - **Cena za více kusů** (Jägermeister: „při koupi 1 ks cena 169,90 Kč od 2 ks cena 149,90 Kč“, u ceny „při koupi 2 a více ks“): jako u Billy `Multibuy`, cena kusu a v `promotion_text` „od 2 ks: 149,90 Kč“. Bez čitelné ceny kusu se dlaždice neuloží.
 - **Přeškrtnutá cena bez čáry:** titulní strana glyf čáry nemá — malé číslo vpravo pod cenou se uzná, jen když sedí procento ze štítku slevy („40 %“, ±1 procentní bod).
@@ -396,7 +397,15 @@ text s polohou dá `PdfTextReader` (pdftotext) a akce přidá do dávky letáku 
   vyhrávají nejbližší (do 120 b.). Sleva v procentech u ceny musí sedět na přeškrtnutou cenu, jinak se dlaždice vynechá.
 - **Řádky pdftotext se nepoužívají** — slučují slova sousedních dlaždic („- 32 % Vepřová“, „debrecínka 21,90/“);
   řádky se skládají ze slov podle výšky písma a polohy.
-- **Neověřitelné (zůstanou zmínkou):** balení 1 kg / 1 l / 1 ks bez ceny za jednotku (ovoce, maso, mouka),
+- **Balení 1 kg / 1 l / 1 ks bez ceny za jednotku (R107)** — cena je cenou za jednotku sama („Banány • 1 kg“).
+  Přijme se ve druhém kole, když má cena přeškrtnutou cenu i slevu v procentech, které spolu sedí, a cena
+  a dlaždice jsou si jednoznačně nejbližší z volných (druhý nejbližší soused na obou stranách aspoň o 30 % dál,
+  nejvýš 60 b.). Text dlaždice musí začínat nad horní hranou ceny (v mase na straně 19 letáku 41/2026 leží cena
+  stehen těsně nad dlaždicí kotlety), bez menší ceny „BEZ APLIKACE“ pod cenou a cena nesmí v řádku stát mezi
+  dlaždicí vedle sebe a jinou dlaždicí (oddíl PÁ–NE: „Ředkvičky … 7,90“ hned u „Citrony volné“). Leták 41/2026:
+  +27 akcí (ovoce, zelenina, maso, mléko, džus 1 l), všechny zkontrolované proti obrázku strany; sporné ceny
+  (kachna s cenou nad názvem, králík, hovězí mezi dvěma dlaždicemi) zůstanou zmínkou.
+- **Neověřitelné (zůstanou zmínkou):** balení 1 kg / 1 l / 1 ks bez sedící přeškrtnuté ceny se slevou nebo se spornou polohou,
   „cena za 100 g“ (uzeniny, lahůdky), zboží bez ceny za jednotku (elektro, květiny), konzervy s cenou za jednotku
   z hmotnosti po odkapání (sardinky, tuňák — nesedí na balení), akce „CENA ZA 1 bal. PŘI KOUPI 2 bal.“.
   „1 BOD NAVÍC při koupi 2 kusů“ a „+1 KREDIT NAVÍC“ jsou body věrnostního programu, cena platí.
