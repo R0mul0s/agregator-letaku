@@ -95,7 +95,9 @@ it('stránka produktu: drobečková navigace přes Všechny akce a akce jako nab
             'priceValidUntil' => '2026-10-07',
             'seller' => ['@type' => 'Organization', 'name' => 'Lidl'],
         ])
-        ->and($offer['itemOffered']['brand']['name'])->toBe('Braník')
+        // Bez vnořeného Product — Google by ho hlásil jako neplatný produktový úryvek (R111)
+        ->and($offer)->not->toHaveKey('itemOffered')
+        ->and((string) json_encode($nodes))->not->toContain('"Product"')
         ->and($offer['priceSpecification'])->toMatchArray(['price' => '39.80', 'referenceQuantity' => ['@type' => 'QuantitativeValue', 'value' => 1, 'unitCode' => 'LTR']]);
 });
 

@@ -8,7 +8,9 @@
  *
  * Uzly se odkazují přes `@id` (adresa + kotva), aby je vyhledávač spojil v jeden celek.
  * Akce nejsou Product na stránce produktu — výpis „Pivo v akci“ je kategorie, ne jeden výrobek,
- * a Google značku Product na výpisech nepovoluje. Aplikaci (WebApplication) neznačíme:
+ * a Google značku Product na výpisech nepovoluje. Ani `itemOffered` typu Product v nabídce ne
+ * (R111): Google ho čte jako samostatný produktový úryvek a hlásí „Je třeba zadat buď offers,
+ * review, nebo aggregateRating“ — název a obrázek nese přímo Offer. Aplikaci (WebApplication) neznačíme:
  * Google ji bez hodnocení uživatelů hlásí jako chybu.
  *
  * @author Roman Hlaváček
@@ -255,7 +257,8 @@ final class StructuredData
 
     /**
      * Jedna akce jako Offer (data z OfferPresenter::toPage): cena (bez běžné ceny cena s kartou),
-     * platnost, obchod jako prodejce, odkaz na akci u obchodu a cena za kilo, litr nebo kus.
+     * platnost, obchod jako prodejce, odkaz na akci u obchodu, obrázek a cena za kilo, litr nebo kus
+     * — bez `itemOffered` Product (R111).
      *
      * @param  array<string, mixed>  $offer
      * @return array<string, mixed>|null
@@ -282,13 +285,8 @@ final class StructuredData
             'description' => $withCard && is_string($offer['loyaltyProgramName'] ?? null)
                 ? __('app.seo.content.with_card', ['program' => $offer['loyaltyProgramName']])
                 : null,
+            'image' => $offer['imageUrl'] ?? null,
             'seller' => ['@type' => 'Organization', 'name' => $offer['chainName']],
-            'itemOffered' => array_filter([
-                '@type' => 'Product',
-                'name' => $offer['name'],
-                'brand' => is_string($offer['brand'] ?? null) && $offer['brand'] !== '' ? ['@type' => 'Brand', 'name' => $offer['brand']] : null,
-                'image' => $offer['imageUrl'] ?? null,
-            ], fn (mixed $value): bool => $value !== null),
             'priceSpecification' => is_int($unitPrice) && $unitCode !== null ? [
                 '@type' => 'UnitPriceSpecification',
                 'price' => $this->amount($unitPrice),
