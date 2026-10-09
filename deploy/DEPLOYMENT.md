@@ -396,6 +396,16 @@ Co bylo zvláštní na jednotlivých dřívějších nasazeních (SQL skripty, n
 je v [HISTORIE_NASAZENI.md](HISTORIE_NASAZENI.md). Poznámky k nasazení, které se teprve chystá,
 patří sem pod tenhle postup; po nasazení se přesunou tam (R106).
 
+### Aktualizace z `7e90785` (připravuje se)
+
+„+1 brzy“ v sekci Zatím bez akce otevře akce položky v sekci Brzy. Změnil se jen frontend —
+bez SQL skriptu, bez `vendor/`, `app/`, `config/` i `.env` beze změny, žádný soubor nezmizel.
+
+1. **Nahraj** `public/build/` (celý, starý obsah můžeš smazat) a `public/version.txt` z `deploy/upload/`.
+2. **Ověř:** `version.txt`; v Mých slevách klepnutí na položku s „+1 brzy“ v sekci Zatím bez akce
+   rozbalí sekci Brzy a posune stránku na akce položky.
+3. Zapiš verzi do *Nasazené verze* a tuhle sekci přesuň do `HISTORIE_NASAZENI.md`.
+
 ---
 
 ## Záloha databáze
