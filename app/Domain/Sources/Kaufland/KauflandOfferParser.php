@@ -57,8 +57,8 @@ final class KauflandOfferParser
     /** Parametr stránky nabídky s kategorií (hodnota = `name` kategorie). */
     private const CATEGORY_PARAMETER = 'kloffer-category';
 
-    /** Začátek textového fragmentu adresy (Scroll to Text Fragment). */
-    private const TEXT_FRAGMENT = '#:~:text=';
+    /** Parametr stránky nabídky, který otevře detail akce (hodnota = `klNr`, R109). */
+    private const ARTICLE_PARAMETER = 'kloffer-articleID';
 
     /** Předpona externího ID zdroje — jedna akční stránka na týden. */
     private const LEAFLET_ID_PREFIX = 'nabidka-';
@@ -303,24 +303,23 @@ final class KauflandOfferParser
             package: $this->packages->parse($unit),
             sourceCategory: Text::clean($this->optionalString($category, 'displayName')),
             imageUrl: $this->optionalString($item, 'listImage'),
-            sourceUrl: $this->offerUrl($sourceUrl, $category, $title ?? $detailTitle ?? $name),
+            sourceUrl: $this->offerUrl($sourceUrl, $category, $this->string($item, 'klNr')),
         );
     }
 
     /**
-     * Odkaz na akci: detail akce nemá vlastní adresu (otevírá se jen v okně stránky), proto
-     * stránka její kategorie a textový fragment s nadpisem dlaždice — prohlížeč na akci odroluje
-     * a zvýrazní ji. Ve fragmentu musí být kódovaná i pomlčka (oddělovač syntaxe fragmentu).
+     * Odkaz na akci: stránka její kategorie s otevřeným detailem akce (`kloffer-articleID`
+     * = `klNr`, R109) — stejná adresa, jakou stránka nastaví po klepnutí na dlaždici.
      *
      * @param  string  $pageUrl  Stránka nabídky týdne (s parametrem kloffer-week)
      * @param  array<string, mixed>  $category
      */
-    private function offerUrl(string $pageUrl, array $category, string $tileTitle): string
+    private function offerUrl(string $pageUrl, array $category, string $klNr): string
     {
         $categoryName = $this->optionalString($category, 'name');
-        $url = $categoryName === null ? $pageUrl : $pageUrl.'&'.http_build_query([self::CATEGORY_PARAMETER => $categoryName]);
+        $query = $categoryName === null ? [] : [self::CATEGORY_PARAMETER => $categoryName];
 
-        return $url.self::TEXT_FRAGMENT.str_replace('-', '%2D', rawurlencode($tileTitle));
+        return $pageUrl.'&'.http_build_query($query + [self::ARTICLE_PARAMETER => $klNr]);
     }
 
     /**
