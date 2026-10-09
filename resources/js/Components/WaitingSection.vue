@@ -9,6 +9,7 @@
     @created 2026-10-07
 -->
 <script setup>
+import WatchGroupBar from '@/Components/WatchGroupBar.vue';
 import WatchItemActions from '@/Components/WatchItemActions.vue';
 import { useTranslations } from '@/lib/i18n';
 import { Link } from '@inertiajs/vue3';
@@ -36,16 +37,21 @@ const bodyId = useId();
 
 /** Názvy položek do hlavičky — co tu je, je vidět i ve sbalené sekci. */
 const names = computed(() => props.items.map((item) => item.name).join(', '));
+
+/** Počet položek — v hlavičce i v přilepené liště (R117). */
+const countText = computed(() => t('home.waiting_count', { count: props.items.length }));
 </script>
 
 <template>
     <section class="watch-group watch-group--waiting" :class="{ 'watch-group--expanded': expanded }">
+        <!-- Na telefonu přilepená hlavička na jeden řádek, dokud je sekce vidět (R117) -->
+        <WatchGroupBar v-if="expanded" :title="t('home.waiting_title')" :count="countText" @collapse="expanded = false" />
         <div class="watch-group__header">
             <h2 class="watch-group__heading">
                 <button type="button" class="watch-group__toggle" :aria-expanded="expanded ? 'true' : 'false'" :aria-controls="bodyId" @click="expanded = !expanded">
                     <span class="watch-group__chevron" aria-hidden="true">▸</span>
                     <span class="watch-group__name">{{ t('home.waiting_title') }}</span>
-                    <span class="watch-group__count">{{ t('home.waiting_count', { count: items.length }) }}</span>
+                    <span class="watch-group__count">{{ countText }}</span>
                     <span class="watch-group__names">{{ names }}</span>
                 </button>
             </h2>

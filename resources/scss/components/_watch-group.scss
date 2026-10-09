@@ -59,6 +59,78 @@
         border-color: var(--color-accent);
     }
 
+    // Přilepená hlavička na jeden řádek (WatchGroupBar, R117): na telefonu a tabletu se drží pod
+    // hlavičkou webu, dokud skupina nekončí. V rozvržení nezabírá místo (záporný spodní okraj
+    // = lepí se jen v rámci skupiny a na jejím konci ji odsune další), ukáže se, až skutečná
+    // hlavička zajede pod hlavičku webu.
+    &__bar {
+        position: sticky;
+        z-index: var(--z-section-nav);
+        top: var(--app-header-height, 0);
+        height: var(--group-bar-height);
+        margin-bottom: calc(-1 * var(--group-bar-height));
+        visibility: hidden;
+        opacity: 0;
+        transition:
+            opacity var(--duration-fast),
+            visibility var(--duration-fast);
+
+        &--stuck {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        @include from-lg {
+            display: none;
+        }
+    }
+
+    &__bar-button {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        width: 100%;
+        height: 100%;
+        padding: 0 var(--space-3);
+        background: var(--color-surface);
+        border: 1px solid var(--color-accent);
+        border-top: 0;
+        border-radius: 0 0 var(--radius-md) var(--radius-md);
+        box-shadow: var(--shadow-card);
+        color: var(--color-text);
+        font: inherit;
+        font-size: var(--font-size-md);
+        font-weight: var(--font-weight-extrabold);
+        text-align: left;
+        white-space: nowrap;
+        cursor: pointer;
+
+        > * {
+            flex: none;
+        }
+    }
+
+    &--upcoming &__bar-button {
+        border-color: var(--color-info-text);
+    }
+
+    // Název se zkrátí třemi tečkami, štítky zůstanou celé
+    &__bar-name {
+        flex: 0 1 auto;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    // Kotvy uvnitř rozbalené skupiny („+1 brzy“, #polozka-… v Zatím bez akce) pod přilepenou
+    // hlavičkou, ne za ní
+    @include below-lg {
+        &--expanded &__subtitle,
+        &--expanded .waiting-items__item {
+            scroll-margin-top: var(--group-bar-height);
+        }
+    }
+
     // Sekce Brzy (R76): odsazená od hlídaných položek, rozbalená s linkou v barvě „brzy“
     &--upcoming {
         margin-top: var(--space-4);

@@ -17,11 +17,11 @@ html {
     scroll-padding-top: var(--header-scroll-offset);
 }
 
-// Stránka s lištou sekcí na telefonu a tabletu (R116): kotvy dojedou těsně pod lištu — její
-// spodní okraj měří lib/sectionNav.js do --section-bar-bottom
+// Stránka s lištou sekcí na telefonu a tabletu (R116): kotvy dojedou těsně pod lištu — hlavička
+// (výšku měří lib/appHeader.js) a lišta pevné výšky
 @include below-lg {
     html:has([data-section-bar]) {
-        scroll-padding-top: calc(var(--section-bar-bottom, var(--header-scroll-offset)) + var(--space-3));
+        scroll-padding-top: calc(var(--app-header-height, var(--header-scroll-offset)) + var(--section-bar-height) + var(--space-3));
     }
 }
 

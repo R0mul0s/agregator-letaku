@@ -10,6 +10,7 @@
 <script setup>
 import OfferCard from '@/Components/OfferCard.vue';
 import ShoppingToggle from '@/Components/ShoppingToggle.vue';
+import WatchGroupBar from '@/Components/WatchGroupBar.vue';
 import { formatDate } from '@/lib/format';
 import { useTranslations } from '@/lib/i18n';
 import { upcomingAnchor } from '@/lib/offer';
@@ -38,16 +39,21 @@ const firstStart = computed(() =>
         .sort()
         .at(0),
 );
+
+/** „1 akce, první od po 12. 10.“ — v hlavičce i v přilepené liště (R117). */
+const summaryText = computed(() => t('home.upcoming_summary', { count: count.value, date: formatDate(firstStart.value, page.props.locale) }));
 </script>
 
 <template>
     <section class="watch-group watch-group--upcoming" :class="{ 'watch-group--expanded': expanded }">
+        <!-- Na telefonu přilepená hlavička na jeden řádek, dokud je sekce vidět (R117) -->
+        <WatchGroupBar v-if="expanded" :title="t('home.upcoming_title')" :count="summaryText" @collapse="expanded = false" />
         <div class="watch-group__header">
             <h2 class="watch-group__heading">
                 <button type="button" class="watch-group__toggle" :aria-expanded="expanded ? 'true' : 'false'" :aria-controls="bodyId" @click="expanded = !expanded">
                     <span class="watch-group__chevron" aria-hidden="true">▸</span>
                     <span class="watch-group__name">{{ t('home.upcoming_title') }}</span>
-                    <span class="watch-group__count">{{ t('home.upcoming_summary', { count, date: formatDate(firstStart, page.props.locale) }) }}</span>
+                    <span class="watch-group__count">{{ summaryText }}</span>
                 </button>
             </h2>
         </div>

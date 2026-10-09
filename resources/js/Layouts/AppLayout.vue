@@ -27,6 +27,7 @@ import Toaster from '@/Components/Toaster.vue';
 import ThemeSwitch from '@/Components/ThemeSwitch.vue';
 import UpdateBar from '@/Components/UpdateBar.vue';
 import UserMenu from '@/Components/UserMenu.vue';
+import { useAppHeaderHeight } from '@/lib/appHeader';
 import { useTranslations } from '@/lib/i18n';
 import { Link, router, usePage } from '@inertiajs/vue3';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
@@ -66,6 +67,10 @@ function onKeydown(event) {
 
 let removeNavigateListener = null;
 
+/** Výška hlavičky pro lepivé lišty pod ní (R116, R117). */
+const appHeader = ref(null);
+useAppHeaderHeight(appHeader);
+
 onMounted(() => {
     document.addEventListener('keydown', onKeydown);
     // Po přechodu na jinou stránku se menu zavře
@@ -82,6 +87,7 @@ onBeforeUnmount(() => {
     <a href="#main" class="skip-link">{{ t('skip_to_content') }}</a>
     <!-- Na úvodní stránce logo na telefonu jede jako košík v hlavním pruhu (ten je na mobilu skrytý) -->
     <header
+        ref="appHeader"
         class="app-header"
         :class="{
             'app-header--guest': !page.props.auth.user,

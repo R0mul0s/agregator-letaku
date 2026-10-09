@@ -14,6 +14,7 @@ import MentionCard from '@/Components/MentionCard.vue';
 import OfferCard from '@/Components/OfferCard.vue';
 import OfferRow from '@/Components/OfferRow.vue';
 import ShoppingToggle from '@/Components/ShoppingToggle.vue';
+import WatchGroupBar from '@/Components/WatchGroupBar.vue';
 import WatchItemActions from '@/Components/WatchItemActions.vue';
 import { formatDate, formatDiscount, formatPrice } from '@/lib/format';
 import { useTranslations } from '@/lib/i18n';
@@ -48,6 +49,12 @@ const cheapestOffer = computed(() =>
     props.item.offers.filter((offer) => offer.userPrice !== null).reduce((cheapest, offer) => (cheapest && cheapest.userPrice <= offer.userPrice ? cheapest : offer), null),
 );
 
+/** Počet akcí a nejnižší cena — v hlavičce i v přilepené liště (R117). */
+const countText = computed(() => t('home.count', { count: props.item.offers.length }));
+const lowestPriceText = computed(() =>
+    cheapestOffer.value ? t('watch.lowest_price', { price: formatPrice(cheapestOffer.value.userPrice, page.props.locale) }) : null,
+);
+
 /**
  * „Vyplatí se počkat“ (R76, App\Domain\Matching\WaitAdvice): obchod, od kdy, za kolik a o kolik
  * levněji než nejlevnější akce dnes; null = nevyplatí.
@@ -80,14 +87,16 @@ const bestDiscount = computed(() => {
 
 <template>
     <section :id="`polozka-${item.id}`" class="watch-group" :class="{ 'watch-group--expanded': expanded }">
+        <!-- Na telefonu přilepená hlavička na jeden řádek, dokud je skupina vidět (R117) -->
+        <WatchGroupBar v-if="expanded" :title="item.name" :count="countText" :summary="lowestPriceText" @collapse="expanded = false" />
         <div class="watch-group__header">
             <h2 class="watch-group__heading">
                 <button type="button" class="watch-group__toggle" :aria-expanded="expanded ? 'true' : 'false'" :aria-controls="bodyId" @click="expanded = !expanded">
                     <span class="watch-group__chevron" aria-hidden="true">▸</span>
                     <span class="watch-group__name">{{ item.name }}</span>
-                    <span class="watch-group__count">{{ t('home.count', { count: item.offers.length }) }}</span>
+                    <span class="watch-group__count">{{ countText }}</span>
                     <span v-if="cheapestOffer" class="watch-group__summary">
-                        {{ t('watch.lowest_price', { price: formatPrice(cheapestOffer.userPrice, page.props.locale) }) }}
+                        {{ lowestPriceText }}
                         <!-- Kde je nejlevněji (R100) — v obchodě je obchod jasný -->
                         <ChainLogo v-if="withChain" :chain="cheapestOffer.chain" class="watch-group__chain" />
                     </span>
