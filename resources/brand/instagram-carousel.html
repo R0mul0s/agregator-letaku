@@ -1,0 +1,576 @@
+<!doctype html>
+<!--
+    Zdroj příspěvku pro Instagram s více obrázky (carousel, 4:5) — šest snímků „Kolikrát týdně
+    kontrolujete letáky?“ → „Vy nakupujete. Slevohlídka hlídá.“ Vykání, genderově neutrálně.
+    Snímek se vybírá parametrem ?s=1…6, výřez fotky volitelně ?pos=50%25 30%25 (object-position).
+
+    Fotky leží v storage/app/instagram (git je ignoruje — fotky osob do repa
+    nepatří). Chybějící soubor se vykreslí jako šrafovaná plocha s popisem záběru:
+      osoba-1.jpeg  osoba na gauči listuje letáky (postava vpravo, hlava od třetiny výšky)
+      osoba-2.jpeg  letáky na stole a ruka s telefonem (rušné pozadí — věta na lístku dole)
+      osoba-3.jpeg  osoba s hrnkem kávy zamyšleně kouká stranou (na výšku, výřez 50 % 15 %)
+      osoba-5.jpeg  ruka drží telefon s upozorněním Slevohlídky (na výšku, výřez 50 % 40 %)
+      osoba-6.jpeg  osoba s nákupní taškou u vchodu do obchodu (na výšku, výřez 50 % 0 %)
+    Na fotkách nechat horní třetinu klidnou (zeď, nebe) — přes ni se kreslí text na papírovém
+    přechodu. Fotka na výšku, aspoň 1080 × 1350 px. Focená osoba dává písemný souhlas s použitím
+    podoby v reklamě (§ 84 občanského zákoníku).
+
+    Vykreslení (Git Bash, z rootu repa; písmo Caveat se načítá z Google Fonts, potřebuje síť):
+      D=$(pwd -W); for s in 1 2 3 4 5 6; do
+        "/c/Program Files (x86)/Microsoft/Edge/Application/msedge.exe" --headless=new --hide-scrollbars \
+          --force-device-scale-factor=1 --virtual-time-budget=4000 --window-size=1080,1350 \
+          --screenshot="$D/storage/app/instagram/slide-$s.png" \
+          "file:///$D/resources/brand/instagram-carousel.html?s=$s"; done
+    Edge zapíše PNG až po návratu příkazu (pár sekund) — fotky hned po vykreslení nepřesouvat.
+    Barvy odpovídají tokenům v resources/scss/base/_tokens.scss (světlý režim).
+
+    @author Roman Hlaváček
+    @created 2026-10-08
+-->
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&display=block">
+<style>
+    @font-face {
+        font-family: 'Nunito Variable';
+        font-weight: 200 1000;
+        src: url('../../node_modules/@fontsource-variable/nunito/files/nunito-latin-ext-wght-normal.woff2') format('woff2');
+        unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+    @font-face {
+        font-family: 'Nunito Variable';
+        font-weight: 200 1000;
+        src: url('../../node_modules/@fontsource-variable/nunito/files/nunito-latin-wght-normal.woff2') format('woff2');
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+
+    :root {
+        --color-brand: #f42630;
+        --color-brand-deep: #c00010;
+        --color-text: #1f222a;
+        --color-paper: #fbf7f1;
+        --color-paper-edge: #f3ece2;
+        --color-placeholder: #e9e1d5;
+        --color-placeholder-stripe: #ded4c5;
+        --color-placeholder-text: #7a6f60;
+        --color-white: #ffffff;
+        --gradient-brand: linear-gradient(135deg, #f42630 0%, #c00010 100%);
+        --shadow: 0 6px 14px rgb(31 34 42 / 10%), 0 24px 48px rgb(31 34 42 / 18%);
+        --font-hand: 'Caveat', cursive;
+        --font-brand: 'Nunito Variable', sans-serif;
+        --slide-width: 1080px;
+        --slide-height: 1350px;
+        --gutter: 72px;
+        --headline-size: 112px;
+        --note-size: 58px;
+        --tilt: -3deg;
+        /* Kde končí papírový přechod přes fotku (shora) — snímek ho může přepsat */
+        --fade-end: 52%;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+        width: var(--slide-width);
+        height: var(--slide-height);
+        overflow: hidden;
+    }
+
+    body {
+        background: var(--color-paper);
+        color: var(--color-text);
+        font-family: var(--font-hand);
+    }
+
+    .defs { position: absolute; width: 0; height: 0; }
+
+    /* ---------- Snímek ---------- */
+
+    .slide {
+        position: relative;
+        display: none;
+        width: var(--slide-width);
+        height: var(--slide-height);
+        overflow: hidden;
+        background:
+            radial-gradient(ellipse at 20% 10%, var(--color-white) 0%, transparent 60%),
+            radial-gradient(ellipse at 90% 100%, var(--color-paper-edge) 0%, transparent 55%),
+            var(--color-paper);
+    }
+
+    .slide.is-active { display: block; }
+
+    .slide__photo {
+        position: absolute;
+        inset: 0;
+    }
+
+    .slide__photo img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: 50% 100%;
+    }
+
+    /* Papírový přechod shora — text stojí na něm, fotka pod ním vystupuje */
+    .slide__photo::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+            to bottom,
+            var(--color-paper) 0%,
+            var(--color-paper) calc(var(--fade-end) - 22%),
+            rgb(251 247 241 / 0%) var(--fade-end)
+        );
+    }
+
+    /* Chybějící fotka: šrafovaná plocha s popisem záběru */
+    .slide__photo.is-missing {
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        padding-bottom: 380px;
+        background: repeating-linear-gradient(
+            -45deg,
+            var(--color-placeholder) 0 28px,
+            var(--color-placeholder-stripe) 28px 56px
+        );
+    }
+
+    .slide__photo.is-missing img { display: none; }
+
+    .placeholder {
+        position: relative;
+        z-index: 1;
+        max-width: 760px;
+        font-family: var(--font-brand);
+        font-size: 34px;
+        font-weight: 700;
+        line-height: 1.35;
+        color: var(--color-placeholder-text);
+        text-align: center;
+    }
+
+    .placeholder strong {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 26px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+    }
+
+    .slide__content {
+        position: relative;
+        z-index: 2;
+        padding: 0 var(--gutter);
+    }
+
+    /* ---------- Logo ---------- */
+
+    .brand {
+        position: relative;
+        z-index: 3;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 52px var(--gutter) 36px;
+        font-family: var(--font-brand);
+        font-size: 50px;
+        font-weight: 900;
+        letter-spacing: -0.01em;
+        color: var(--color-brand);
+    }
+
+    .brand img { width: 118px; height: auto; }
+    .brand__name span { color: var(--color-text); }
+
+    /* ---------- Písmo a ručně kreslené prvky ---------- */
+
+    .headline {
+        font-size: var(--headline-size);
+        font-weight: 700;
+        line-height: 1.02;
+        transform: rotate(var(--tilt));
+        transform-origin: left center;
+    }
+
+    .headline--small { --headline-size: 96px; }
+
+    /* Nad fotkou: světlá svatozář kolem tmavého písma, aby se četlo i na konci přechodu */
+    .slide__photo ~ .slide__content {
+        text-shadow: 0 0 6px var(--color-paper), 0 0 18px var(--color-paper), 0 0 32px var(--color-paper);
+    }
+
+    .slide__photo ~ .slide__content .brush { text-shadow: none; }
+
+    .line { display: block; }
+    .line--indent { padding-left: 1.4em; }
+    .line--indent-half { padding-left: 0.7em; }
+
+    /* Červený tah fixou pod bílým textem — okraje rozhrbí filtr #rough */
+    .brush {
+        position: relative;
+        z-index: 0;
+        display: inline-block;
+        padding: 0.02em 0.32em 0.1em;
+        color: var(--color-white);
+        transform: rotate(-2deg);
+    }
+
+    .brush::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        background: var(--gradient-brand);
+        border-radius: 255px 18px 225px 18px / 18px 225px 18px 255px;
+        filter: url(#rough);
+    }
+
+    .brush--block { display: block; width: fit-content; }
+
+    /* Podtržení vlnovkou */
+    .scribble {
+        position: relative;
+        white-space: nowrap;
+    }
+
+    .scribble::after {
+        content: '';
+        position: absolute;
+        left: -4%;
+        right: -4%;
+        bottom: -0.16em;
+        height: 0.26em;
+        background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 24' preserveAspectRatio='none'%3E%3Cpath d='M4 16 C 60 6, 120 20, 180 10 S 270 8, 296 12' fill='none' stroke='%23f42630' stroke-width='7' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat center / 100% 100%;
+    }
+
+    .note {
+        font-size: var(--note-size);
+        font-weight: 600;
+        line-height: 1.12;
+        transform: rotate(-2deg);
+    }
+
+    /* Poznámka na papírovém lístku — pro text přes rušnou část fotky */
+    .note--card {
+        position: absolute;
+        z-index: 3;
+        padding: 26px 44px 38px;
+        background: var(--color-paper);
+        border-radius: 6px;
+        box-shadow: var(--shadow);
+        transform: rotate(-3deg);
+    }
+
+    .doodle {
+        position: absolute;
+        z-index: 2;
+        overflow: visible;
+        color: var(--color-text);
+        fill: none;
+        stroke: currentcolor;
+        stroke-width: 5;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        filter: url(#wobble);
+    }
+
+    .doodle--red { color: var(--color-brand); }
+    .doodle--filled { fill: var(--color-brand); stroke: none; }
+
+    /* ---------- 1: Kolikrát týdně kontrolujete letáky? ---------- */
+
+    .slide--1 { --fade-end: 34%; }
+    .slide--1 .doodle--accent { top: 250px; left: 40px; width: 90px; transform: rotate(160deg); }
+    .slide--1 .doodle--accent-2 { top: 420px; left: 540px; width: 90px; transform: rotate(20deg); }
+
+    /* ---------- 2: Všechny obchody ---------- */
+
+    .slide--2 { --fade-end: 44%; }
+    .slide--2 .note--card { left: var(--gutter); bottom: 110px; }
+    .slide--2 .doodle--clock { top: 210px; right: 70px; width: 150px; }
+
+    /* ---------- 3: Něco konkrétního ---------- */
+
+    /* Fotka na výšku 9:16 — výřez drží hlavu pod nadpisem a celý hrnek nad spodním okrajem */
+    .slide--3 { --fade-end: 40%; }
+    .slide--3 .headline { --headline-size: 88px; }
+    .slide--3 .slide__photo img { object-position: 50% 15%; }
+    .slide--3 .note--card {
+        left: var(--gutter);
+        bottom: 80px;
+        width: 440px;
+        --note-size: 50px;
+    }
+    /* Dlouhá šipka od nadpisu po levém okraji dolů k lístku — mimo obličej */
+    .slide--3 .doodle--arrow { top: 490px; left: 95px; width: 130px; stroke-width: 8; }
+    .slide--3 .doodle--heart { top: 385px; left: 650px; width: 56px; }
+
+    /* ---------- 4: Slevohlídka hledá za vás.---------- */
+
+    .slide--4 .slide__content { padding-top: 70px; }
+    .slide--4 .headline { --headline-size: 104px; }
+    .slide--4 .brush--block { margin-top: 40px; }
+    .slide--4 .mascot {
+        position: absolute;
+        left: 70px;
+        bottom: 150px;
+        z-index: 1;
+        width: 520px;
+        transform: rotate(-4deg);
+    }
+    .slide--4 .doodle--heart { top: 840px; right: 300px; width: 64px; }
+    .slide--4 .doodle--glass { top: 860px; right: 110px; width: 160px; }
+    .slide--4 .doodle--accent { top: 920px; left: 520px; width: 90px; transform: rotate(-20deg); }
+
+    /* ---------- 5: Jak to funguje ---------- */
+
+    .slide--5 .headline { --headline-size: 100px; }
+
+    .steps {
+        display: grid;
+        gap: 26px;
+        margin-top: 44px;
+        list-style: none;
+    }
+
+    .step {
+        display: flex;
+        align-items: center;
+        gap: 28px;
+        font-size: 56px;
+        font-weight: 600;
+        line-height: 1.05;
+    }
+
+    .step__number {
+        display: grid;
+        flex: none;
+        place-items: center;
+        width: 84px;
+        height: 84px;
+        font-family: var(--font-brand);
+        font-size: 44px;
+        font-weight: 900;
+        color: var(--color-white);
+        background: var(--gradient-brand);
+        border-radius: 50%;
+    }
+
+    /* Fotka na výšku 9:16 — výřez dává telefon hned pod druhý krok a celé upozornění */
+    .slide--5 { --fade-end: 43%; }
+    .slide--5 .slide__photo img { object-position: 50% 40%; }
+    .slide--5 .note--card { left: var(--gutter); bottom: 80px; width: 330px; }
+
+    /* ---------- 6: Vy nakupujete. Slevohlídka hlídá. ---------- */
+
+    /* Fotka na výšku 9:16 — hlava je vysoko, výřez od horního okraje */
+    .slide--6 { --fade-end: 36%; }
+    .slide--6 .slide__photo img { object-position: 50% 0%; }
+    .slide--6 .brush--block { margin-top: 18px; }
+    .slide--6 .doodle--heart { top: 330px; left: 840px; width: 60px; }
+
+    .cta {
+        position: absolute;
+        left: var(--gutter);
+        bottom: 70px;
+        z-index: 3;
+        padding: 26px 48px 30px;
+        font-family: var(--font-brand);
+        font-size: 34px;
+        font-weight: 700;
+        line-height: 1.15;
+        color: var(--color-white);
+        background: var(--gradient-brand);
+        border-radius: 28px;
+        box-shadow: var(--shadow);
+        transform: rotate(-2deg);
+    }
+
+    .cta strong {
+        display: block;
+        font-size: 58px;
+        font-weight: 900;
+        letter-spacing: -0.01em;
+    }
+</style>
+</head>
+<body>
+
+<!-- Sdílené tvary: rozhrbení okrajů tahu fixou a lehké zvlnění čar, ručně kreslené ikonky -->
+<svg class="defs" aria-hidden="true">
+    <filter id="rough" x="-5%" y="-20%" width="110%" height="140%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.035 0.09" numOctaves="3" seed="7"/>
+        <feDisplacementMap in="SourceGraphic" scale="16"/>
+    </filter>
+    <filter id="wobble">
+        <feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="2" seed="3"/>
+        <feDisplacementMap in="SourceGraphic" scale="5"/>
+    </filter>
+    <symbol id="accent" viewBox="0 0 100 100">
+        <path d="M10 50 L45 50 M18 20 L48 38 M18 80 L48 62"/>
+    </symbol>
+    <symbol id="clock" viewBox="0 0 160 160">
+        <circle cx="80" cy="84" r="46"/>
+        <path d="M80 60 L80 86 L98 98"/>
+        <path d="M80 18 L80 26 M126 32 L120 38 M146 84 L138 84 M34 32 L40 38 M14 84 L22 84 M126 136 L120 130 M34 136 L40 130"/>
+    </symbol>
+    <symbol id="arrow-down" viewBox="0 0 130 520">
+        <path d="M104 8 C 30 110, 14 330, 62 506"/>
+        <path d="M34 478 L63 510 L94 482"/>
+    </symbol>
+    <symbol id="arrow" viewBox="0 0 160 120">
+        <path d="M10 14 C 40 80, 90 100, 146 92"/>
+        <path d="M124 74 L148 92 L122 108"/>
+    </symbol>
+    <symbol id="heart" viewBox="0 0 100 90">
+        <path d="M50 86 C 12 58, 4 34, 18 18 C 30 6, 46 12, 50 26 C 54 12, 70 6, 82 18 C 96 34, 88 58, 50 86 Z"/>
+    </symbol>
+    <symbol id="glass" viewBox="0 0 160 160">
+        <circle cx="96" cy="64" r="44"/>
+        <path d="M64 96 L22 140"/>
+        <path d="M78 42 C 86 36, 98 36, 106 42"/>
+    </symbol>
+</svg>
+
+<section class="slide slide--1" data-photo="osoba-1.jpeg"
+         data-shot="Osoba drží telefon a projíždí letáky — od pasu nahoru, horní třetina klidná">
+    <div class="slide__content">
+        <h1 class="headline">
+            <span class="line">Kolikrát týdně</span>
+            <span class="line line--indent-half"><span class="brush">kontrolujete</span></span>
+            <span class="line line--indent"><span class="scribble">letáky?</span></span>
+        </h1>
+    </div>
+    <svg class="doodle doodle--red doodle--accent"><use href="#accent"/></svg>
+    <svg class="doodle doodle--red doodle--accent-2"><use href="#accent"/></svg>
+</section>
+
+<section class="slide slide--2" data-photo="osoba-2.jpeg"
+         data-shot="Hromádka papírových letáků na stole nebo gauči, případně ruka s telefonem">
+    <div class="slide__content">
+        <h1 class="headline headline--small">
+            <span class="line">Lidl, Kaufland, Tesco,</span>
+            <span class="line">Albert, Penny,</span>
+            <span class="line">Globus a Billa…</span>
+        </h1>
+    </div>
+    <p class="note note--card">Projít všechny letáky<br><span class="scribble">zabere čas.</span></p>
+    <svg class="doodle doodle--clock" viewBox="0 0 160 160"><use href="#clock"/></svg>
+</section>
+
+<section class="slide slide--3" data-photo="osoba-3.jpeg"
+         data-shot="Osoba s hrnkem kávy zamyšleně kouká stranou — postava vpravo dole">
+    <div class="slide__content">
+        <h1 class="headline headline--small">
+            <span class="line">A co když čekáte</span>
+            <span class="line">na slevu něčeho</span>
+            <span class="line line--indent"><span class="scribble">konkrétního?</span></span>
+        </h1>
+    </div>
+    <p class="note note--card">Třeba kávy, pracího prášku nebo oblíbené čokolády.</p>
+    <svg class="doodle doodle--red doodle--arrow" viewBox="0 0 130 520"><use href="#arrow-down"/></svg>
+    <svg class="doodle doodle--filled doodle--heart" viewBox="0 0 100 90"><use href="#heart"/></svg>
+</section>
+
+<section class="slide slide--4">
+    <div class="slide__content">
+        <h1 class="headline">
+            <span class="line"><span class="scribble">Nemusíte hledat.</span></span>
+            <span class="brush brush--block">Slevohlídka</span>
+            <span class="brush brush--block line--indent-half">hledá za vás.</span>
+        </h1>
+    </div>
+    <img class="mascot" src="../../public/images/brand/mascot-416.webp" alt="">
+    <svg class="doodle doodle--filled doodle--heart" viewBox="0 0 100 90"><use href="#heart"/></svg>
+    <svg class="doodle doodle--glass" viewBox="0 0 160 160"><use href="#glass"/></svg>
+    <svg class="doodle doodle--red doodle--accent"><use href="#accent"/></svg>
+</section>
+
+<section class="slide slide--5" data-photo="osoba-5.jpeg"
+         data-shot="Ruka drží telefon s upozorněním Slevohlídky — telefon ve spodních dvou třetinách">
+    <div class="slide__content">
+        <h1 class="headline"><span class="scribble">Jak to funguje?</span></h1>
+        <ol class="steps">
+            <li class="step"><span class="step__number">1</span>Nastavíte si, co chcete hlídat.</li>
+            <li class="step"><span class="step__number">2</span>Jakmile je to ve slevě,<br>přijde vám upozornění.</li>
+        </ol>
+    </div>
+    <p class="note note--card">Sleva vám <span class="scribble">neuteče!</span></p>
+</section>
+
+<section class="slide slide--6" data-photo="osoba-6.jpeg"
+         data-shot="Osoba s nákupní taškou (bez cizí značky) u vchodu do obchodu — postava vpravo">
+    <div class="slide__content">
+        <h1 class="headline">
+            <span class="line">Vy nakupujete.</span>
+            <span class="brush brush--block">Slevohlídka hlídá.</span>
+        </h1>
+    </div>
+    <svg class="doodle doodle--filled doodle--heart" viewBox="0 0 100 90"><use href="#heart"/></svg>
+    <p class="cta">Vyzkoušejte zdarma na<strong>slevohlidka.cz</strong></p>
+</section>
+
+<script>
+    const MEDIA_DIR = '../../storage/app/instagram/';
+    const params = new URLSearchParams(location.search);
+    const slides = [...document.querySelectorAll('.slide')];
+    const index = Math.min(Math.max(Number(params.get('s') ?? 1), 1), slides.length) - 1;
+    const slide = slides[index];
+
+    /**
+     * Vytvoří popis chybějícího záběru, který se ukáže místo fotky.
+     */
+    function placeholder(file, shot) {
+        const element = document.createElement('p');
+        element.className = 'placeholder';
+        element.innerHTML = `<strong>${file}</strong>`;
+        element.append(shot);
+        return element;
+    }
+
+    /**
+     * Načte obrázek do kontejneru; když soubor chybí, přepne kontejner na šrafovaný zástupný stav.
+     */
+    function loadMedia(container, img, file, shot) {
+        img.addEventListener('error', () => {
+            container.classList.add('is-missing');
+            container.append(placeholder(file, shot));
+        });
+        img.src = MEDIA_DIR + file;
+    }
+
+    /**
+     * Doplní snímku sdílené prvky: logo nahoře a fotku pod obsahem (číslo snímku ukazuje Instagram sám).
+     */
+    function decorate(slide) {
+        const brand = document.createElement('header');
+        brand.className = 'brand';
+        brand.innerHTML = '<img src="../../public/images/brand/logo-mark.png" alt=""><span class="brand__name">Slevo<span>hlídka</span></span>';
+        slide.prepend(brand);
+
+        if (slide.dataset.photo) {
+            const photo = document.createElement('div');
+            photo.className = 'slide__photo';
+            const img = document.createElement('img');
+            img.alt = '';
+            if (params.has('pos')) {
+                img.style.objectPosition = params.get('pos');
+            }
+            photo.append(img);
+            slide.prepend(photo);
+            loadMedia(photo, img, slide.dataset.photo, slide.dataset.shot);
+        }
+    }
+
+    decorate(slide);
+    slide.classList.add('is-active');
+</script>
+</body>
+</html>
