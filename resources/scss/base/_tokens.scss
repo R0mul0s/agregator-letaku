@@ -188,6 +188,8 @@
     --auth-step-size: 1.25rem;
     // Můj účet (R63): navigace sekcí vlevo a sloupec nadpisu sekce
     --account-nav-width: 11rem;
+    // Na telefonu a tabletu lišta sekcí pod hlavičkou (Můj účet, právní texty, R116)
+    --section-bar-height: 3rem;
     --account-section-header-width: 14rem;
     // Karta obchodu v Mých obchodech — tři v řádku do šířky obsahu (69rem bez odsazení)
     --chain-card-min-width: 20rem;
@@ -271,6 +273,8 @@
     --icon-size-sm: 0.875rem;
     // Křížek u vybrané prodejny (StoreSelect, R49)
     --store-chip-remove-size: 1.5rem;
+    // Lišta sekcí stránky přilepená pod hlavičkou (Můj účet, R116): nad obsahem, pod rozbalovacími seznamy
+    --z-section-nav: 10;
     --z-dropdown: 20;
     // Plovoucí hlavička nad obsahem i jeho rozbalovacími seznamy, tlačítko nahoru nad vším
     --z-header: 30;

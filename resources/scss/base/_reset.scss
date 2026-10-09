@@ -17,6 +17,14 @@ html {
     scroll-padding-top: var(--header-scroll-offset);
 }
 
+// Stránka s lištou sekcí na telefonu a tabletu (R116): kotvy dojedou těsně pod lištu — její
+// spodní okraj měří lib/sectionNav.js do --section-bar-bottom
+@include below-lg {
+    html:has([data-section-bar]) {
+        scroll-padding-top: calc(var(--section-bar-bottom, var(--header-scroll-offset)) + var(--space-3));
+    }
+}
+
 // Posuvník v barvách webu. Chromium a Safari kreslí podle ::-webkit-scrollbar (zaoblený jezdec
 // s proužkem dráhy kolem); scrollbar-color by ho v Chromiu přebil, proto jen tam, kde
 // ::-webkit-scrollbar není (Firefox)

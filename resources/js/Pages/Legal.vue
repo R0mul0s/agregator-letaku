@@ -1,7 +1,7 @@
 <!--
     Právní stránka (R51): podmínky užití nebo zásady zpracování osobních údajů. Vlevo lepivý
     obsah z kapitol (nadpisy ##), při posouvání se zvýrazní kapitola, ve které čtenář je;
-    na telefonu je obsah nahoře jako rozbalovací blok. Text je náš Markdown z resources/legal,
+    na telefonu a tabletu je obsah lišta pod hlavičkou, která dojede k aktivní kapitole (R116). Text je náš Markdown z resources/legal,
     převedený na serveru (App\Support\Legal\LegalDocuments, syrové HTML zahozené) — proto
     v-html, který je jinak pro obsah od obchodů zakázaný.
 
@@ -14,8 +14,9 @@ import { formatDate } from '@/lib/format';
 import { useTranslations } from '@/lib/i18n';
 import { scrollIntoViewGently } from '@/lib/scroll';
 import { useScrollSpy } from '@/lib/scrollSpy';
+import { useSectionNav } from '@/lib/sectionNav';
 import { Head, usePage } from '@inertiajs/vue3';
-import { onMounted, ref, useId } from 'vue';
+import { onMounted, ref } from 'vue';
 
 const props = defineProps({
     title: { type: String, required: true },
@@ -36,14 +37,15 @@ const ACTIVE_LINE_RATIO = 0.3;
 const t = useTranslations();
 const page = usePage();
 
-const tocOpen = ref(false);
-const tocListId = useId();
-
 /** Kapitola, ve které čtenář je — zvýrazní se v obsahu. */
 const { activeId, select } = useScrollSpy(
     () => props.sections.map((section) => section.id),
     () => window.innerHeight * ACTIVE_LINE_RATIO,
 );
+
+/** Obsah na telefonu jako lišta pod hlavičkou, posune se k aktivní kapitole (R116). */
+const toc = ref(null);
+useSectionNav(toc, activeId);
 
 /**
  * Plynule posune na kapitolu (s ohledem na omezení pohybu), dá jí fokus a zapíše ji do adresy.
@@ -64,7 +66,6 @@ function goTo(event, id) {
     heading.focus({ preventScroll: true });
     window.history.replaceState(window.history.state, '', `#${id}`);
     select(id);
-    tocOpen.value = false;
 }
 
 onMounted(() => {
@@ -83,14 +84,10 @@ onMounted(() => {
         </header>
 
         <div class="legal" :class="{ 'legal--no-toc': !sections.length }">
-            <nav v-if="sections.length" class="legal-toc" :aria-label="t('legal.toc')">
-                <!-- Telefon: obsah se rozbalí tlačítkem; od tabletu je vidět vždy -->
-                <button type="button" class="legal-toc__toggle" :aria-expanded="tocOpen ? 'true' : 'false'" :aria-controls="tocListId" @click="tocOpen = !tocOpen">
-                    {{ t('legal.toc') }}
-                    <svg class="legal-toc__chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
-                </button>
+            <!-- Na počítači sloupec vlevo, na telefonu a tabletu lišta pod hlavičkou (R116) -->
+            <nav v-if="sections.length" ref="toc" class="legal-toc" data-section-bar :aria-label="t('legal.toc')">
                 <p class="legal-toc__title">{{ t('legal.toc') }}</p>
-                <ol :id="tocListId" class="legal-toc__list" :class="{ 'legal-toc__list--open': tocOpen }">
+                <ol class="legal-toc__list">
                     <li v-for="section in sections" :key="section.id">
                         <a
                             :href="`#${section.id}`"

@@ -1,7 +1,7 @@
 // _legal.scss
 // Právní stránky (Legal.vue, R51) — vlevo lepivý obsah kapitol se zvýrazněnou aktuální
 // kapitolou, vpravo text z Markdownu (odstavce, seznamy, tabulky) s kapitolami oddělenými
-// linkou. Na telefonu obsah nahoře jako rozbalovací blok. Stránka odhlášení z e-mailů.
+// linkou. Na telefonu a tabletu obsah jako lišta pod hlavičkou (R116). Stránka odhlášení z e-mailů.
 //
 // @author Roman Hlaváček
 // @created 2026-10-03
@@ -39,6 +39,12 @@
 
             &:first-of-type {
                 margin-top: var(--space-4);
+            }
+
+            // Na telefonu a tabletu kotva dojede pod lištu obsahu (scroll-padding stránky, R116)
+            // a odsazení nad nadpisem s čarou zůstane pod lištou — text kapitoly hned pod ní
+            @include below-lg {
+                scroll-margin-top: calc(-1 * var(--space-5));
             }
         }
 
@@ -93,8 +99,13 @@
     }
 }
 
-// Obsah kapitol
+// Obsah kapitol: na počítači sloupec vlevo, na telefonu a tabletu lišta pod hlavičkou, která
+// se posouvá do stran k aktivní kapitole (R116, lib/sectionNav.js)
 .legal-toc {
+    @include below-lg {
+        @include section-bar;
+    }
+
     @include from-lg {
         position: sticky;
         top: var(--header-scroll-offset);
@@ -102,41 +113,6 @@
         overflow-y: auto;
         padding-left: var(--space-3);
         border-left: 2px solid var(--color-border);
-    }
-
-    // Telefon a tablet: tlačítko „Obsah“ rozbalí seznam
-    &__toggle {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        width: 100%;
-        padding: var(--space-2) var(--space-3);
-        background: var(--color-surface);
-        border: 1px solid var(--color-border);
-        border-radius: var(--radius-md);
-        color: var(--color-text);
-        font: inherit;
-        font-weight: var(--font-weight-extrabold);
-        cursor: pointer;
-
-        &[aria-expanded='true'] .legal-toc__chevron {
-            transform: rotate(180deg);
-        }
-
-        @include from-lg {
-            display: none;
-        }
-    }
-
-    &__chevron {
-        width: var(--icon-size);
-        height: var(--icon-size);
-        fill: none;
-        stroke: currentcolor;
-        stroke-width: var(--svg-stroke-icon);
-        stroke-linecap: round;
-        stroke-linejoin: round;
-        transition: transform var(--duration-fast);
     }
 
     &__title {
@@ -154,20 +130,18 @@
     }
 
     &__list {
-        display: none;
-        flex-direction: column;
+        display: flex;
         gap: var(--space-1);
-        margin: var(--space-2) 0 0;
+        margin: 0;
         padding: 0;
         list-style: none;
 
-        &--open {
-            display: flex;
+        @include from-lg {
+            flex-direction: column;
         }
 
-        @include from-lg {
-            display: flex;
-            margin: 0;
+        > li {
+            flex: none;
         }
     }
 
@@ -191,6 +165,10 @@
             background: var(--color-accent-soft);
             color: var(--color-accent-strong);
             font-weight: var(--font-weight-bold);
+        }
+
+        @include below-lg {
+            white-space: nowrap;
         }
     }
 }

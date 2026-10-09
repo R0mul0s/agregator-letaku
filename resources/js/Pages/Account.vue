@@ -26,6 +26,7 @@ import { confirmDialog } from '@/lib/confirm';
 import { useTranslations } from '@/lib/i18n';
 import { squareImage } from '@/lib/image';
 import { useScrollSpy } from '@/lib/scrollSpy';
+import { useSectionNav } from '@/lib/sectionNav';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 
@@ -72,13 +73,18 @@ const SECTIONS = [
 const user = computed(() => page.props.auth.user);
 
 /**
- * Sekce, ve které uživatel právě je — zvýrazní se v navigaci (R63). Čára je odsazení kotev
- * pod hlavičkou (scroll-padding-top).
+ * Sekce, ve které uživatel právě je — zvýrazní se v navigaci (R63). Čára je místo, kam
+ * dojede začátek sekce po skoku na kotvu: odsazení pod hlavičkou (scroll-padding-top),
+ * na telefonu pod lištou sekcí (R116).
  */
 const { activeId: activeSection, select: selectSection } = useScrollSpy(
     SECTIONS.map((section) => section.id),
     () => parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0,
 );
+
+/** Lišta sekcí na telefonu pod hlavičkou, posune se k aktivní sekci (R116). */
+const sectionNav = ref(null);
+useSectionNav(sectionNav, activeSection);
 
 /** Přihlášení i jinde než tady — jen pak má smysl odhlásit ostatní zařízení. */
 const hasOtherSessions = computed(() => props.sessions.some((session) => !session.current));
@@ -257,8 +263,8 @@ async function deleteAccount() {
         </header>
 
         <div class="account">
-            <!-- Sekce stránky: na počítači vlevo a jedou s ní, na telefonu řada odkazů nahoře -->
-            <nav class="account-nav" :aria-label="t('account.nav_label')">
+            <!-- Sekce stránky: na počítači vlevo a jedou s ní, na telefonu lišta pod hlavičkou (R116) -->
+            <nav ref="sectionNav" class="account-nav" data-section-bar :aria-label="t('account.nav_label')">
                 <a
                     v-for="section in SECTIONS"
                     :key="section.id"

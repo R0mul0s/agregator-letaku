@@ -23,11 +23,16 @@
     }
 }
 
-// Navigace sekcí: na telefonu řada odkazů, na počítači sloupec, který jede se stránkou
+// Navigace sekcí: na telefonu a tabletu lišta přilepená pod hlavičkou přes celou šířku, která
+// se posouvá do stran k aktivní sekci (R116, lib/sectionNav.js); na počítači sloupec, který
+// jede se stránkou
 .account-nav {
     display: flex;
-    flex-wrap: wrap;
     gap: var(--space-1);
+
+    @include below-lg {
+        @include section-bar;
+    }
 
     @include from-lg {
         position: sticky;
@@ -36,11 +41,16 @@
     }
 
     &__link {
+        flex: none;
         padding: var(--space-1) var(--space-3);
         border-radius: var(--radius-pill);
         color: var(--color-text-muted);
         font-weight: var(--font-weight-semibold);
         text-decoration: none;
+
+        @include below-lg {
+            white-space: nowrap;
+        }
 
         &:hover,
         &:focus-visible {

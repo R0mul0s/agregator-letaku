@@ -85,6 +85,34 @@
     }
 }
 
+/// Styly pod širokým displejem — telefon a tablet.
+@mixin below-lg {
+    @media (max-width: $breakpoint-lg - 1px) {
+        @content;
+    }
+}
+
+/// Lišta sekcí stránky (Můj účet, právní texty, R116): přilepená pod plovoucí hlavičkou
+/// (výšku měří lib/sectionNav.js do --section-nav-top), přes odsazení stránky (.page) až
+/// k okrajům displeje, posouvá se do stran bez posuvníku. Odkazy uvnitř `flex: none`
+/// a bez zalomení; lišta potřebuje atribut data-section-bar — kotvy pak dojedou pod ni (_reset.scss).
+@mixin section-bar {
+    position: sticky;
+    z-index: var(--z-section-nav);
+    top: var(--section-nav-top, 0);
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    min-height: var(--section-bar-height);
+    margin-inline: calc(-1 * max(var(--space-3), env(safe-area-inset-left))) calc(-1 * max(var(--space-3), env(safe-area-inset-right)));
+    padding-inline: max(var(--space-3), env(safe-area-inset-left)) max(var(--space-3), env(safe-area-inset-right));
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    background: var(--color-bg);
+    border-bottom: 1px solid var(--color-border);
+}
+
 /// Štítek s krátkým textem (číslo, „−25 %“) svisle uprostřed. Písmo nechává pod účařím místo
 /// pro dotažnice a nad verzálkami pro diakritiku, takže číslice by seděly výš; text-box ořízne
 /// řádek na výšku verzálek a odsazení je pak nahoře i dole stejné. Bez podpory zůstane řádek.
