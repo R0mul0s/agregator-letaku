@@ -400,14 +400,19 @@ patří sem pod tenhle postup; po nasazení se přesunou tam (R106).
 
 **Kritická revize (R106):** hranice nových akcí při souběhu se stažením, časový rozpočet cronu
 souhrnů, seznam prodejen až po otevření okna, „Načíst další“ jen s novou stránkou, sdílené
-kontroly parserů letáků. Bez SQL skriptu, bez `vendor/` (`composer.lock` beze změny), cron
-i `.env` beze změny, žádný soubor nezmizel.
+kontroly parserů letáků. **Ovoce, zelenina a maso na kg z letáků Albertu a Penny (R107):**
+dlaždice 1 kg / 1 ks se sedící slevou, zmínky s vyloučenými slovy v okolí slova a bez prošlých
+akcí. Bez SQL skriptu, bez `vendor/` (`composer.lock` beze změny), cron i `.env` beze změny
+(`letaky.mentions.exclude_window_words` má výchozí hodnotu v `config/letaky.php`), žádný soubor
+nezmizel.
 
 1. **Nahraj `deploy/upload/`** bez `vendor/`, s `bootstrap/cache/packages.php`, `public/build/`
    a `public/version.txt`.
 2. **Ověř:** `version.txt`; ve Všech akcích „Načíst další“ připojí akce bez skoku stránky
    (v síti jen jedna stránka akcí); u akce Kauflandu „Jen …“ otevře seznam prodejen; ruční
-   `/cron/send-digests?token=…` doběhne s počty u všech pěti kroků.
+   `/cron/send-digests?token=…` doběhne s počty u všech pěti kroků. Po ručním
+   `/cron/import-offers?chain=albert&token=…` a `chain=penny` jsou ve Všech akcích pod
+   `/akce/banany` akce Albertu a Penny z letáku (pokud je leták nese).
 3. Zapiš verzi do *Nasazené verze* a tuhle sekci přesuň do `HISTORIE_NASAZENI.md`.
 
 ---
