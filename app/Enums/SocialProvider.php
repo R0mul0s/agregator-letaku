@@ -49,8 +49,8 @@ enum SocialProvider: string
     }
 
     /**
-     * Barví se logo barvou textu tlačítka? Seznam podle manuálu tlačítka smí mít „esko“
-     * jen červené na světlém a bílé na tmavém podkladu — barvu dává token, ne obrázek.
+     * Barví se logo barvou textu tlačítka? Seznam: jednobarevná varianta z manuálu tlačítka (R124)
+     * — „esko“ v barvě textu jako ostatní tlačítka (tmavé na světlém, bílé na tmavém), ne obrázek.
      */
     public function hasTintedLogo(): bool
     {
