@@ -14,10 +14,10 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Domain\Offers\LocalCalendar;
+use App\Domain\Offers\OfferPageChanges;
 use App\Domain\Offers\OfferPages;
 use App\Enums\Chain;
 use App\Models\Offer;
-use App\Models\ScrapeRun;
 use App\Support\Seo\IndexNow;
 use App\Support\Seo\PublicPages;
 use App\Support\Seo\SeoMeta;
@@ -63,24 +63,27 @@ class CrawlerFilesController extends Controller
     /**
      * sitemap.xml: úvodní stránka, Všechny akce, akce jednotlivých obchodů a produktů katalogu
      * s akcemi na čistých adresách (R94), právní stránky (R51) a kontakt.
-     * Datum změny akcí je poslední úspěšné stažení, právních stránek datum jejich účinnosti (R68)
-     * — jinak by se „měnily“ dvakrát denně a Google by datu přestal věřit.
+     * Datum změny stránky akcí je poslední přibytí nebo stažení akce na ní (R122), kontaktu datum
+     * účinnosti právních textů (R68) — jen skutečná změna, jinak by Google datu přestal věřit.
      */
-    public function sitemap(): Response
+    public function sitemap(OfferPageChanges $changes): Response
     {
-        $offersModified = ScrapeRun::lastFinishedAt()?->toAtomString();
+        $chainChanges = $changes->byChain();
+        $productIds = $this->pages->productsWithOffers();
+        $productChanges = $changes->byProduct($productIds);
+        $offersModified = $chainChanges === [] ? null : max($chainChanges)->toAtomString();
         $legalModified = config('letaky.legal.effective_from');
         $urls = [
             ['loc' => SeoMeta::homeUrl(), 'lastmod' => $offersModified],
             ['loc' => route('offers'), 'lastmod' => $offersModified],
             ...array_map(fn (Chain $chain): array => [
                 'loc' => $this->pages->chainUrl($chain, absolute: true),
-                'lastmod' => $offersModified,
+                'lastmod' => ($chainChanges[$chain->value] ?? null)?->toAtomString(),
             ], $this->chainsWithCurrentOffers()),
             ...array_map(fn (int $productId): array => [
                 'loc' => $this->pages->productUrl($productId, absolute: true),
-                'lastmod' => $offersModified,
-            ], $this->pages->productsWithOffers()),
+                'lastmod' => ($productChanges[$productId] ?? null)?->toAtomString(),
+            ], $productIds),
             // Podmínky a zásady ne — jsou noindex (R121)
             ...array_map(fn (string $route): array => ['loc' => route($route), 'lastmod' => $legalModified], PublicPages::indexedRoutes()),
         ];

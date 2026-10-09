@@ -138,6 +138,33 @@ it('sitemap.xml a llms.txt obsahují jen obchody s aktuálními akcemi', functio
         ->assertSeeText('Akce Lidlu');
 });
 
+it('sitemap.xml: lastmod stránky akcí je poslední přibytí nebo stažení akce na ní, ne čas stažení (R122)', function (): void {
+    $beer = Product::factory()->create(['name' => 'Pivo']);
+    $validity = ['valid_from' => '2026-10-01', 'valid_to' => '2026-10-31'];
+
+    $this->travelTo('2026-10-05 08:00:00');
+    Offer::factory()->create(['chain' => Chain::Lidl, ...$validity])
+        ->productAssignments()->create(['product_id' => $beer->id, 'status' => MatchStatus::Match, 'is_manual' => false]);
+    $withdrawn = Offer::factory()->create(['chain' => Chain::Lidl, ...$validity]);
+
+    $this->travelTo('2026-10-06 08:00:00');
+    Offer::factory()->create(['chain' => Chain::Albert, ...$validity]);
+
+    // Obchod akci stáhl — stránka Lidlu se změnila, stránka piva ne
+    $this->travelTo('2026-10-07 08:00:00');
+    $withdrawn->forceFill(['withdrawn_at' => now()])->save();
+
+    // Další stažení beze změny datum neposune
+    $this->travelTo('2026-10-08 12:00:00');
+    $lastmod = fn (string $path, string $at): string => '<loc>'.url($path).'</loc>'."\n".'        <lastmod>'.$at.'</lastmod>';
+
+    $this->get('/sitemap.xml')
+        ->assertSee($lastmod('/akce', '2026-10-07T08:00:00+00:00'), false)
+        ->assertSee($lastmod('/akce/lidl', '2026-10-07T08:00:00+00:00'), false)
+        ->assertSee($lastmod('/akce/albert', '2026-10-06T08:00:00+00:00'), false)
+        ->assertSee($lastmod('/akce/pivo', '2026-10-05T08:00:00+00:00'), false);
+});
+
 it('sitemap.xml: kontakt má datum účinnosti právních textů, ne čas stažení akcí (R68)', function (): void {
     config(['letaky.legal.effective_from' => '2026-10-04']);
 
