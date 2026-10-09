@@ -57,6 +57,7 @@
 @use 'components/waiting-items';
 @use 'components/chain-overview';
 @use 'components/offer-row';
+@use 'components/offer-actions';
 @use 'pages/shopping';
 @use 'pages/preferences';
 @use 'pages/catalog';
@@ -66,3 +67,4 @@
 @use 'pages/contact';
 @use 'pages/notifications';
 @use 'pages/users';
+@use 'pages/reports';

@@ -66,7 +66,7 @@ v [PLAN.md](PLAN.md). Větší celky se z toho stávají etapou.
 
 - **upozornění na chyby e-mailem** (log kanál `mail` nebo denní souhrn chyb) — dnes chyby vidí jen ten, kdo otevře logy přes FTP; Albert padal den, než se na to přišlo (R65)
 - **kontroly kvality v `build-upload.ps1`** — Pest a PHPStan před sestavením balíčku (CI není, R14)
-- **retence:** `offers.raw` se vyprazdňuje (R113); zbývá čistit `offer_stores` a `leaflet_pages` skončených akcí a `scrape_runs`
+- **retence:** `offers.raw` se vyprazdňuje (R113); zbývá čistit `offer_stores` a `leaflet_pages` skončených akcí a `scrape_runs`, skryté akce skončených akcí (`watch_item_offer_exclusions`, R125) a vyřešená hlášení (`offer_reports`)
 - **cron „Spuštění PHP souboru“ místo URL** (DEPLOYMENT.md) — bez limitu délky požadavku a tokenu v URL, vyřešilo by O8; ověřit, jestli ho Websupport umí
 - **nasazení přes FTP není atomické** — režim údržby (`storage/framework/down`) během nahrávání, případně nová složka a přepnutí kořene webu
 - **parsery letáků (Penny SVG, Lidl a Albert PDF) jsou křehké vůči změně rozvržení** — po každé změně měřit na celém letáku (R85–R87); hlídat propad počtu akcí z letáku
@@ -75,7 +75,7 @@ v [PLAN.md](PLAN.md). Větší celky se z toho stávají etapou.
 
 **Odkud:** revize kódu, provozu a frontendu 7. 10. 2026. Hotové body jsou v R106.
 
-- **zálohy:** seznam tabulek v DEPLOYMENT.md (*Záloha databáze*) chybí `social_accounts` (účty bez hesla se po obnově nepřihlásí), `shopping_list_items`, `push_subscriptions`, `notifications`, `announcements` a ruční řádky `offer_product` — zálohovat celou databázi kromě `offers`, `offer_stores`, `leaflet_pages`, `sessions`, `cache`; obnovu jednou vyzkoušet v Dockeru
+- **zálohy:** seznam tabulek v DEPLOYMENT.md (*Záloha databáze*) chybí `social_accounts` (účty bez hesla se po obnově nepřihlásí), `shopping_list_items`, `push_subscriptions`, `notifications`, `announcements`, `watch_item_offer_exclusions` a `offer_reports` (R125) a ruční řádky `offer_product` — zálohovat celou databázi kromě `offers`, `offer_stores`, `leaflet_pages`, `sessions`, `cache`; obnovu jednou vyzkoušet v Dockeru
 - **vypínač obchodu v `.env`**, který skryje i už uložené akce — výzvě obchodu (O6) vyhovět bez nasazení kódu
 - **test shody SQL skriptů s migracemi:** pustit `deploy/migrations-*.sql` na prázdnou databázi a porovnat `SHOW CREATE TABLE` s výsledkem `migrate`
 - UptimeRobot i na `/up` (`/health/tasks` pro prodejny, upozornění, úklid a kategorie hotové, R115)
@@ -158,3 +158,15 @@ funkce, změřit, co lidé opravdu používají, a nepoužívané schovat nebo z
 - **Apple** (Sign in with Apple) — Apple Developer Program 99 USD ročně, balíček `socialiteproviders/apple`, odpověď přichází jako POST z cizí domény (cookie relace `SameSite=Lax` nepřijde → výjimka z CSRF a stav bez relace), klíč klienta je JWT platný nejvýš 6 měsíců, jméno jen při prvním přihlášení; skrytý e-mail (`@privaterelay.appleid.com`) přijímá jen poštu z domény registrované u Applu (SPF/DKIM) — jinak nedojdou souhrny ani ověření
 - Google One Tap (přihlášení bez přesměrování) — skript `accounts.google.com` do CSP a jeho cookies až po souhlasu
 - v přehledu uživatelů pro admina (R84) ukázat, jak se kdo přihlašuje
+
+## Nápady 9. 10. 2026
+
+**Odkud:** návrh nových funkcí 9. 10. 2026 (po R124).
+
+- **„Kam dnes na nákup?“** — z nákupního seznamu nebo hlídaných položek spočítat, ve kterém obchodě (nebo kombinaci dvou) vyjde nákup nejlevněji a kolik se ušetří; podklad je cena za jednotku a `UserPricing`. Odliší nás od agregátorů: ne „kde je co v akci“, ale „kam jít“
+- **cílová cena u hlídané položky** — „ozvi se, až bude máslo pod 180 Kč/kg“ (cena za jednotku); dnes jen minimální sleva pro celý účet (R41). Méně, ale trefnějších upozornění
+- „Tohle ne“ a hlášení chyb hotové (R125) — dál: z hlášení rovnou opravit akci (ručně přepsat cenu nebo ji skrýt všem), e-mail adminovi při novém hlášení (upozornění v telefonu je hotové), poděkovat uživateli v centru upozornění, až je hlášení vyřešené
+- **sdílení akce z karty** (Web Share API, „pošli to partnerovi“) — dnes ho má jen nákupní seznam
+- **jak často bývá zboží v akci** — „Máslo bývá v Lidlu v akci zhruba každé 3 týdny, naposledy 28. 9.“; navazuje na „Vyplatí se počkat“ (R76) a graf ceny (*Historie a porovnání cen*), smysl má až s historií za několik týdnů
+- **veřejná stránka „Nejlepší slevy týdne“** s archivem po týdnech (`/tyden/2026-41`) — nový obsah každý týden pro SEO a odkaz na sociální sítě; patří do `PublicPages`, sitemapy a obsahu bez JS (R94)
+- **admin přehled kvality dat** — u každého obchodu a letáku vývoj počtu akcí za posledních N stažení a podíl neověřených dlaždic, propad vidět hned (rozšiřuje „hlídat propad počtu akcí z letáku“ v *Provoz a údržba*)

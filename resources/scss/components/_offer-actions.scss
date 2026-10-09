@@ -1,0 +1,138 @@
+// _offer-actions.scss
+// „Tohle ne“ a hlášení chyby v akci (R125): obsah okna OfferActionsSheet.vue, tři tečky u akce
+// (OfferMenuButton.vue) a přehled skrytých akcí a slov u hlídané položky (WatchItemActions.vue).
+//
+// @author Roman Hlaváček
+// @created 2026-10-09
+
+// Akce, ke které okno patří — název a obchod
+.offer-actions {
+    &__offer {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 0 var(--space-2);
+        margin-bottom: var(--space-3);
+    }
+
+    &__chain {
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+    }
+
+    &__section {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--space-2);
+
+        // Hlášení chyby oddělené od skrývání čarou
+        & + & {
+            margin-top: var(--space-4);
+            padding-top: var(--space-3);
+            border-top: 1px solid var(--color-border);
+        }
+
+        // Formulář hlášení přes celou šířku okna
+        .form {
+            align-self: stretch;
+        }
+    }
+
+    &__lead {
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+    }
+
+    &__heading {
+        margin-top: var(--space-3);
+        font-size: var(--font-size-md);
+    }
+
+    // Slova z názvu akce k vyloučení
+    &__words {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-2);
+    }
+
+    // Odkaz jako tlačítko: „Je v akci chyba?“, „Vrátit“ u skryté akce
+    &__link {
+        padding: 0;
+        background: none;
+        border: 0;
+        font: inherit;
+        font-size: var(--font-size-sm);
+        cursor: pointer;
+    }
+
+    // Akce je skrytá — místo tlačítka potvrzení s vrácením (okno zůstává otevřené)
+    &__done {
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+        min-height: var(--control-size);
+        color: var(--color-success-text);
+        font-weight: var(--font-weight-bold);
+    }
+
+    // Potvrzení poslední akce v okně — i prázdné zůstává vykreslené (živá oblast pro čtečku)
+    &__status {
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+    }
+
+    &__thanks {
+        align-self: stretch;
+    }
+
+    &__note {
+        min-height: var(--offer-report-note-height);
+        resize: vertical;
+    }
+}
+
+// Přehled skrytého u hlídané položky: tlačítko s počtem v hlavičce skupiny a řádky v okně
+.watch-hidden {
+    &__toggle {
+        gap: var(--space-1);
+        width: auto;
+        padding: 0 var(--space-1);
+    }
+
+    &__count {
+        font-size: var(--font-size-xs);
+        font-weight: var(--font-weight-extrabold);
+    }
+
+    &__list {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    &__row {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        min-height: var(--control-size);
+        padding: var(--space-1) 0;
+        border-bottom: 1px solid var(--color-border);
+
+        &:last-child {
+            border-bottom: 0;
+        }
+    }
+
+    &__name {
+        flex: 1 1 auto;
+        min-width: 0;
+        font-weight: var(--font-weight-semibold);
+    }
+
+    &__price {
+        color: var(--color-price);
+        font-weight: var(--font-weight-black);
+        white-space: nowrap;
+    }
+}

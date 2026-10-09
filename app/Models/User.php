@@ -154,6 +154,16 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Hlášení chyb v akcích, která poslal (R125).
+     *
+     * @return HasMany<OfferReport, $this>
+     */
+    public function offerReports(): HasMany
+    {
+        return $this->hasMany(OfferReport::class);
+    }
+
+    /**
      * Účty u poskytovatelů přihlášení — Google, Facebook (R96).
      *
      * @return HasMany<SocialAccount, $this>

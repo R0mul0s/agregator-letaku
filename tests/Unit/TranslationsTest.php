@@ -14,18 +14,21 @@ use App\Domain\Account\Social\SocialLoginRefused;
 use App\Enums\Chain;
 use App\Enums\LoyaltyProgram;
 use App\Enums\MailingList;
+use App\Enums\OfferReportReason;
 use App\Enums\OfferType;
 use App\Enums\SocialProvider;
 use App\Enums\StoreFormat;
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\AvatarController;
 use App\Http\Controllers\CatalogController;
+use App\Http\Controllers\OfferReportController;
 use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\ShoppingListController;
 use App\Http\Controllers\ShoppingPreferencesController;
 use App\Http\Controllers\SocialLoginController;
 use App\Http\Controllers\UnsubscribeController;
 use App\Http\Controllers\WatchItemController;
+use App\Http\Controllers\WatchItemExclusionController;
 use App\Http\Responses\ErrorToast;
 use App\Http\Responses\RegisterResponse;
 use App\Http\Responses\VerifyEmailResponse;
@@ -82,7 +85,17 @@ it('má text toastu pro každý kód stavu po uložení (R47)', function (string
     SocialLoginController::STATUS_LINKED,
     SocialLoginController::STATUS_UNLINKED,
     SocialLoginController::STATUS_CONFIRMED,
+    WatchItemExclusionController::STATUS_OFFER_HIDDEN,
+    WatchItemExclusionController::STATUS_OFFER_RESTORED,
+    WatchItemExclusionController::STATUS_WORD_EXCLUDED,
+    WatchItemExclusionController::STATUS_WORD_RESTORED,
+    OfferReportController::STATUS_REPORTED,
+    OfferReportController::STATUS_RESOLVED,
 ]);
+
+it('má název pro každý důvod hlášení chyby v akci (R125)', function (OfferReportReason $reason): void {
+    expect(trans()->has('app.ui.offer_reports.reasons.'.$reason->value))->toBeTrue();
+})->with(OfferReportReason::cases());
 
 it('má název a důvody odmítnutí pro přihlášení přes poskytovatele (R96)', function (): void {
     foreach (SocialProvider::cases() as $provider) {

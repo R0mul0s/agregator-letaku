@@ -14,6 +14,7 @@ import WatchGroupBar from '@/Components/WatchGroupBar.vue';
 import { formatDate } from '@/lib/format';
 import { useTranslations } from '@/lib/i18n';
 import { upcomingAnchor } from '@/lib/offer';
+import { showOfferActions } from '@/lib/offerActions';
 import { usePage } from '@inertiajs/vue3';
 import { computed, useId } from 'vue';
 
@@ -66,8 +67,10 @@ const summaryText = computed(() => t('home.upcoming_summary', { count: count.val
                     <!-- Kotva pro „+1 brzy“ ze sekce Zatím bez akce — fokus sem přesune stránka -->
                     <h3 :id="upcomingAnchor(item.id)" class="watch-group__subtitle" tabindex="-1">{{ item.name }}</h3>
                     <div class="offer-grid">
-                        <OfferCard v-for="offer in item.upcoming" :key="offer.id" :offer="offer" :heading-level="4">
+                        <OfferCard v-for="offer in item.upcoming" :key="offer.id" :offer="offer" :heading-level="4" :watch-item="item">
                             <ShoppingToggle :offer-id="offer.id" />
+                            <!-- Akce sem nepatří — skrýt ji nebo podobné (R125) -->
+                            <button type="button" class="button button--ghost offer-card__dismiss" @click="showOfferActions(offer, item)">{{ t('offer_actions.dismiss') }}</button>
                         </OfferCard>
                     </div>
                 </template>

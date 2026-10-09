@@ -89,6 +89,23 @@
         stroke-linejoin: round;
     }
 
+    // Počet otevřených hlášení u položky Hlášení (R125)
+    &__badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: var(--notification-count-size);
+        height: var(--notification-count-size);
+        margin-left: auto;
+        padding: 0 var(--space-1);
+        border-radius: var(--radius-pill);
+        background: var(--color-accent);
+        color: var(--color-on-accent);
+        font-size: var(--font-size-xs);
+        font-weight: var(--font-weight-extrabold);
+        line-height: 1;
+    }
+
     // Přepínač vzhledu na vlastním řádku mezi oddělovači
     &__theme {
         display: flex;

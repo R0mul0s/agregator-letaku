@@ -1,0 +1,45 @@
+// _reports.scss
+// Hlášení pro admina (Reports.vue, R125): nahlášené akce s důvody a tabulky toho, co uživatelé
+// skrývají u produktů katalogu.
+//
+// @author Roman Hlaváček
+// @created 2026-10-09
+
+.reports-section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+
+    & + & {
+        margin-top: var(--space-5);
+    }
+}
+
+// Hlášení jedné akce pod sebou — důvod, kdy a popis
+.reports-list {
+    flex: 1 1 100%;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    &__item {
+        padding: var(--space-1) 0;
+        border-bottom: 1px solid var(--color-border);
+        font-size: var(--font-size-sm);
+
+        &:last-child {
+            border-bottom: 0;
+        }
+    }
+
+    &__time {
+        margin-left: var(--space-2);
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+    }
+
+    &__note {
+        margin-top: var(--space-1);
+        white-space: pre-line;
+    }
+}

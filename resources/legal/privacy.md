@@ -32,7 +32,8 @@ nevyžaduje. Se vším, co se týká vašich údajů, se obracejte na uvedený e
 | jméno, e-mail, heslo (uložené jen jako nevratný otisk) | vedení účtu, přihlášení, ověření e-mailu, obnova hesla | plnění smlouvy, tedy podmínek užití (čl. 6 odst. 1 písm. b GDPR) |
 | identifikátor účtu u Googlu, Seznamu nebo Facebooku (jen když se přes něj přihlašujete) | přihlášení přes Google, Seznam nebo Facebook, potvrzení, že jste to vy, před změnou e-mailu nebo zrušením účtu | plnění smlouvy |
 | profilový obrázek (nepovinný) | zobrazení ve vašem účtu | plnění smlouvy |
-| hlídané položky, nákupní seznam, vybrané obchody a prodejny, věrnostní programy, které máte (jen název programu, ne číslo karty), předvolby zobrazení | zobrazení slev, které vás zajímají | plnění smlouvy |
+| hlídané položky (i akce a slova, které jste u nich skryli), nákupní seznam, vybrané obchody a prodejny, věrnostní programy, které máte (jen název programu, ne číslo karty), předvolby zobrazení | zobrazení slev, které vás zajímají | plnění smlouvy |
+| hlášení chyby v akci (která akce, co nesedí a váš popis) | oprava údajů o akcích; slova a akce skryté u produktů z našeho katalogu nám bez vašeho jména pomáhají katalog zpřesnit | oprávněný zájem |
 | čas přijetí podmínek a jejich verze | doložení, s jakými podmínkami jste souhlasili | oprávněný zájem (čl. 6 odst. 1 písm. f GDPR) |
 
 Výběr prodejen může prozradit, kde přibližně nakupujete. Slouží jen k zobrazení akcí
@@ -156,7 +157,7 @@ a cílení reklamy (Google signály). Reklamu zatím nezobrazujeme.
 
 | Údaje | Doba |
 |---|---|
-| účet a vše, co k němu patří (hlídané položky, nákupní seznam, obchody, předvolby, obrázek, souhlasy, čas poslední aktivity, propojení s Googlem nebo Facebookem) | do zrušení účtu; propojení s Googlem nebo Facebookem do jeho zrušení |
+| účet a vše, co k němu patří (hlídané položky, nákupní seznam, obchody, předvolby, obrázek, souhlasy, čas poslední aktivity, propojení s Googlem nebo Facebookem, hlášení chyb v akcích) | do zrušení účtu; propojení s Googlem nebo Facebookem do jeho zrušení |
 | záznamy v centru upozornění | {notifications_retention_days} dní, potom se smažou nejpozději do 24 hodin |
 | odběr upozornění v telefonu | do vypnutí upozornění, odhlášení na zařízení nebo zrušení účtu; odběr, který push služba přestane přijímat, se smaže při dalším upozornění |
 | relace (IP adresa, prohlížeč) | 2 hodiny od poslední aktivity, potom se smaže nejpozději do 24 hodin |

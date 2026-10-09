@@ -95,6 +95,17 @@ final class WatchItemMatcher
     }
 
     /**
+     * Začíná v normalizovaném textu nabídky některé slovo kterýmkoli z vyloučených slov? Vlastní
+     * vyloučení položky z katalogu nad uloženým přiřazením k produktu („Tohle ne“, R125).
+     *
+     * @param  list<string>  $words  Normalizovaná slova (WatchRule::words)
+     */
+    public function containsAnyWord(string $text, array $words): bool
+    {
+        return array_any($words, fn (string $word): bool => $this->containsWord($text, $word));
+    }
+
+    /**
      * Stav zmínky na stránce letáku (R27); null = stránka položku nezmiňuje.
      *
      * Stránka je směs desítek produktů, proto se hledají jen celá slova („máslo“ nenajde

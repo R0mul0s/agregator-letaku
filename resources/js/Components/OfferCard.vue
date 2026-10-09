@@ -9,6 +9,7 @@
 import ChainLogo from '@/Components/ChainLogo.vue';
 import ChainWatermark from '@/Components/ChainWatermark.vue';
 import InfoIcon from '@/Components/InfoIcon.vue';
+import OfferMenuButton from '@/Components/OfferMenuButton.vue';
 import { formatDate, formatDiscount, formatPrice } from '@/lib/format';
 import { useTranslations } from '@/lib/i18n';
 import { discountPercent, MATCH_MAYBE, OFFER_TYPE, offerUnitPriceLabel, packageLabel, startsLabel } from '@/lib/offer';
@@ -24,6 +25,10 @@ const props = defineProps({
     offer: { type: Object, required: true },
     /** Úroveň nadpisu názvu akce podle místa na stránce (pod h2 skupiny h3, R99). */
     headingLevel: { type: Number, default: 2 },
+    /** Hlídaná položka v Mých slevách — tři tečky nabídnou i „Tohle ne“ (R125). */
+    watchItem: { type: Object, default: null },
+    /** Tři tečky s hlášením chyby (R125) — na stránkách admina (katalog, Hlášení) ne. */
+    withMenu: { type: Boolean, default: true },
 });
 
 const t = useTranslations();
@@ -168,7 +173,11 @@ const historyLabel = computed(() => {
 
         <footer class="offer-card__footer">
             <span>{{ t('offers.valid', { from: formatDate(offer.validFrom, locale), to: formatDate(offer.validTo, locale) }) }}</span>
-            <a v-if="offer.sourceUrl" :href="offer.sourceUrl" class="link" target="_blank" rel="noopener noreferrer">{{ t(offer.sourceIsLeaflet ? 'offers.source_leaflet' : 'offers.source') }}</a>
+            <span class="offer-card__links">
+                <a v-if="offer.sourceUrl" :href="offer.sourceUrl" class="link" target="_blank" rel="noopener noreferrer">{{ t(offer.sourceIsLeaflet ? 'offers.source_leaflet' : 'offers.source') }}</a>
+                <!-- Hlášení chyby, v Mých slevách i „Tohle ne“ (R125) -->
+                <OfferMenuButton v-if="withMenu" :offer="offer" :watch-item="watchItem" />
+            </span>
         </footer>
         <!-- Akce ke kartě (oprava přiřazení v katalogu) -->
         <div v-if="$slots.default" class="offer-card__actions">

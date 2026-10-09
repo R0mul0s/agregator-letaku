@@ -254,6 +254,10 @@ return [
         'more' => 'a :count další…|a :count další…|a :count dalších…',
         'test_title' => 'Upozornění fungují',
         'test_body' => 'Přesně takhle vám zaťukáme, až bude hlídané zboží v akci.',
+        // Adminům při novém hlášení chyby v akci (R125, NotifyAdminsOfReport)
+        'report_title' => 'Nové hlášení chyby v akci',
+        'report_body' => ':reason — :offer (:chain)',
+        'report_note' => '„:note“',
         'done' => 'Upozornění v telefonu — odesláno: :count',
         'failed' => 'Upozornění v telefonu — chyba: :error',
         'keys_generated' => 'Klíče VAPID — vložte je do .env (na produkci do .env na hostingu):',
@@ -408,6 +412,82 @@ return [
             'restore' => 'Vrátit',
             'add_offer' => 'Přiřadit akci ručně',
             'include' => 'Sem patří',
+            // Co u produktu skrývají uživatelé („Tohle ne“, R125)
+            'hidden_by_users' => 'Skryto uživateli: :count',
+            'user_words' => 'Uživatelé vylučují',
+            'user_words_hint' => 'Kandidáti na vyloučená slova produktu, v závorce počet lidí.',
+            'user_word' => ':word (:count)',
+        ],
+
+        // „Tohle ne“ u akce v Mých slevách a tři tečky na kartě akce (R125)
+        'offer_actions' => [
+            'menu' => 'Další možnosti akce',
+            'dismiss' => 'Tohle ne',
+            'title_watch' => 'Tohle ne',
+            'title_report' => 'Nahlásit chybu v akci',
+            'lead' => 'Akce se ukazuje u „:name“. Co s ní uděláme?',
+            'hide_offer' => 'Skrýt jen tuhle akci',
+            'similar_title' => 'Skrýt i podobné',
+            'similar_hint' => 'Klepněte na slovo, které k „:name“ nepatří — akce s ním už u téhle položky neukážeme.',
+            'exclude_word' => 'Skrýt akce se slovem „:word“',
+            'report_toggle' => 'Je v akci chyba? Dejte nám vědět',
+            'word_not_allowed' => 'Přes tohle slovo položku hledáme, vyloučit ho nejde. Zkuste jiné.',
+            // Potvrzení v okně — okno zůstane otevřené, jde pokračovat dalším slovem nebo hlášením
+            'offer_hidden' => 'Skryto',
+            'offer_hidden_status' => 'Akci jsme u „:name“ skryli.',
+            'offer_restored_status' => 'Akce je u „:name“ zpátky.',
+            'word_excluded_status' => 'Akce se slovem „:word“ už u „:name“ neukážeme.',
+            'word_restored_status' => 'Akce se slovem „:word“ se zase ukážou.',
+            'excluded_word' => 'Vyloučeno slovo „:word“ — klepnutím vrátit',
+            'report_sent' => 'Díky! Hlášení máme a podíváme se na něj.',
+            'words_full' => 'Vyloučených slov je u položky už moc. Některá vraťte v přehledu skrytých.',
+            'hidden_title' => 'Skryté akce a slova',
+            'hidden_label' => 'Skryté u „:name“: :count',
+            'hidden_sheet_title' => 'Skryté u „:name“',
+            'hidden_hint' => 'Tohle u položky neukazujeme v Mých slevách, souhrnech ani upozorněních.',
+            'hidden_offers' => 'Akce',
+            'hidden_words' => 'Slova',
+            'restore' => 'Vrátit',
+        ],
+
+        // Hlášení chyby v akci (R125)
+        'offer_reports' => [
+            'intro' => 'Ceny čteme z letáků automaticky a sem tam se spleteme. Díky, že pomáháte.',
+            'reason' => 'Co nesedí?',
+            'reasons' => [
+                'wrong_price' => 'Cena je jiná',
+                'wrong_validity' => 'Platí jindy',
+                'not_on_sale' => 'Není to akce, nebo v obchodě není',
+                'wrong_product' => 'Název, obrázek nebo balení nesedí',
+                'other' => 'Něco jiného',
+            ],
+            'note' => 'Popis (nepovinné)',
+            'note_hint' => 'Třeba „v letáku je 39,90 Kč“.',
+            'submit' => 'Odeslat hlášení',
+            'limit' => 'Dnes od vás máme hlášení opravdu hodně — díky! Další prosím až zítra.',
+        ],
+
+        // Hlášení pro admina (R125)
+        'reports' => [
+            'title' => 'Hlášení',
+            'intro' => 'Chyby v akcích, které nahlásili uživatelé, a co u produktů katalogu skrývají.',
+            'open_title' => 'Nahlášené chyby',
+            'open_count' => ':count akce|:count akce|:count akcí',
+            'open_empty' => 'Žádné otevřené hlášení. Paráda.',
+            'resolve' => 'Vyřešeno',
+            'resolve_hint' => '„Vyřešeno“ jen uzavře hlášení akce, akci samotnou nemění — špatně přiřazenou akci vyřaďte v detailu produktu katalogu. Nové hlášení stejné akce ji sem vrátí.',
+            'hidden_title' => 'Skryté akce u produktů katalogu',
+            'hidden_hint' => 'Akci, kterou skrylo víc lidí, nejspíš chytají pravidla produktu omylem — v detailu produktu ji vyřaďte, nebo doplňte vyloučené slovo.',
+            'hidden_empty' => 'Nikdo zatím u produktu katalogu nic neskryl.',
+            'words_title' => 'Vyloučená slova u produktů katalogu',
+            'words_hint' => 'Slovo, které vylučuje víc lidí, nejspíš patří mezi vyloučená slova produktu.',
+            'words_empty' => 'Nikdo zatím u produktu katalogu žádné slovo nevyloučil.',
+            'columns' => [
+                'product' => 'Produkt',
+                'offer' => 'Akce',
+                'word' => 'Slovo',
+                'users' => 'Lidí',
+            ],
         ],
 
         'watch' => [
@@ -1104,6 +1184,8 @@ return [
             // Jen admin (R74, 11d)
             'announcements' => 'Zprávy uživatelům',
             'users' => 'Uživatelé',
+            // Hlášení chyb a co uživatelé skrývají (R125)
+            'reports' => 'Hlášení',
         ],
 
         'account' => [
@@ -1402,6 +1484,14 @@ return [
                 'product-saved' => 'Produkt je uložený.',
                 'product-deleted' => 'Produkt je smazaný.',
                 'assignment-changed' => 'Přiřazení akce je opravené.',
+                // WatchItemExclusionController („Tohle ne“, R125)
+                'offer-hidden' => 'Akci jsme u položky skryli.',
+                'offer-restored' => 'Akce je zpátky.',
+                'word-excluded' => 'Podobné akce už u položky neukážeme.',
+                'word-restored' => 'Slovo je zpátky — akce s ním se zase ukážou.',
+                // OfferReportController (R125)
+                'offer-reported' => 'Díky! Podíváme se na to.',
+                'offer-report-resolved' => 'Hlášení je vyřešené.',
             ],
         ],
     ],

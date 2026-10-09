@@ -19,6 +19,7 @@ import CookieConsent from '@/Components/CookieConsent.vue';
 import EmailVerificationBar from '@/Components/EmailVerificationBar.vue';
 import InstallPrompt from '@/Components/InstallPrompt.vue';
 import NotificationBell from '@/Components/NotificationBell.vue';
+import OfferActionsSheet from '@/Components/OfferActionsSheet.vue';
 import OfflineBar from '@/Components/OfflineBar.vue';
 import PullToRefresh from '@/Components/PullToRefresh.vue';
 import StoresDialog from '@/Components/StoresDialog.vue';
@@ -177,4 +178,6 @@ onBeforeUnmount(() => {
     <ConfirmDialog />
     <CookieConsent />
     <StoresDialog />
+    <!-- „Tohle ne“ a hlášení chyby v akci (R125) — jen přihlášený -->
+    <OfferActionsSheet v-if="page.props.offerReports" />
 </template>

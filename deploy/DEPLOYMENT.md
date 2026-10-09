@@ -414,20 +414,27 @@ patří sem pod tenhle postup; po nasazení se přesunou tam (R106).
 
 Bez posunu rozvržení po načtení — přednačtená písma a loga obchodů s rozměry; přihlášení
 a registrace s vlastním titulkem a nadpisem i bez JavaScriptu (R123); tlačítko Seznamu v jednobarevné
-variantě jako Google a Facebook (R124, jen `public/build/`). Bez SQL skriptu, `.env`
-beze změny, žádný soubor nezmizel; `lang/cs/app.php` se změnil — verze Inertie se změní a otevřené
+variantě jako Google a Facebook (R124, jen `public/build/`). `.env` beze změny, žádný soubor
+nezmizel; `lang/cs/app.php` se změnil — verze Inertie se změní a otevřené
 stránky se načtou znovu.
 
+Navíc „Tohle ne“ a hlášení chyb v akcích (R125) — **s SQL skriptem**.
+
+0. **Záloha databáze** a v phpMyAdminu `deploy/migrations-2026-10-09-tohle-ne.sql` (před nahráním kódu).
 1. **Nahraj** z `deploy/upload/`: `public/build/` (celý, starý obsah můžeš smazat),
-   `app/Http/Middleware/HandleInertiaRequests.php`, `app/Support/Seo/SeoMeta.php`, nový
-   `app/Support/SvgSize.php`, `vendor/composer/` (nová třída v autoloaderu), `config/letaky.php`,
-   `lang/cs/app.php`, `resources/views/app.blade.php`, `resources/views/seo/content.blade.php`
-   a `public/version.txt`.
+   `app/` (R125 mění a přidává soubory v `Domain/Catalog`, `Domain/Matching`, `Enums`,
+   `Http/Controllers`, `Http/Requests`, `Http/Middleware`, `Models`, `Providers` — nejjednodušší celou
+   složku), `vendor/composer/` (nové třídy v autoloaderu), `config/letaky.php`, `routes/web.php`,
+   `database/migrations/`, `lang/cs/app.php`, `resources/legal/privacy.md`, `resources/views/app.blade.php`,
+   `resources/views/seo/content.blade.php` a `public/version.txt`.
 2. **Ověř:** `version.txt`; ve zdroji úvodní stránky dva `<link rel="preload" as="font">`;
    `/registrace` má titulek „Registrace · Slevohlídka“ a v obsahu bez JS `<h1>`; loga obchodů
    mají `width` a `height`; „Přihlásit přes Seznam“ tmavé jako ostatní tlačítka. Za pár dní DebugBear
-   nebo PageSpeed: CLS pod 0,1.
-3. Zapiš verzi do *Nasazené verze* a tuhle sekci přesuň do `HISTORIE_NASAZENI.md`.
+   nebo PageSpeed: CLS pod 0,1. R125: v Mých slevách „Tohle ne“ u akce skryje akci (toast
+   s „Vrátit“), u položky ikona oka s počtem; tři tečky na kartě ve Všech akcích → hlášení;
+   admin v menu **Hlášení** (`/hlaseni`) hlášení vidí a vyřeší; s upozorněními zapnutými v Můj účet mu nové hlášení (z jiného účtu) přijde do telefonu.
+3. Zapiš verzi do *Nasazené verze*, SQL skript do *Historie SQL skriptů* (datum) a tuhle sekci
+   přesuň do `HISTORIE_NASAZENI.md`.
 
 ---
 
@@ -438,8 +445,9 @@ a ruční opravy katalogu. Před každým SQL skriptem a jinak aspoň jednou mě
 
 1. phpMyAdmin → databáze → *Exportovat* → metoda *Vlastní*, formát SQL,
    komprese **gzip**, zaškrtnout *Přidat příkaz DROP TABLE*
-2. Tabulky stačí `users`, `followed_chains`, `watch_items`, `products`, `categories`,
-   `offer_product_exclusions`, `migrations` — akce a jejich přiřazení stáhne a dopočítá cron
+2. Tabulky stačí `users`, `followed_chains`, `watch_items`, `watch_item_offer_exclusions`,
+   `offer_reports`, `products`, `categories`, `offer_product_exclusions`, `migrations` — akce
+   a jejich přiřazení stáhne a dopočítá cron
 3. Soubor ulož mimo hosting jako `slevohlidka-RRRR-MM-DD.sql.gz` — na vlastní disk, ne do cloudového
    úložiště (to by byl další příjemce údajů, zásady kap. 4)
 4. **Zálohy starší než 6 měsíců smaž** — zásady (kap. 3) slibují nejdéle 6 měsíců (R69)
@@ -461,6 +469,7 @@ a ruční opravy katalogu. Před každým SQL skriptem a jinak aspoň jednou mě
 | `migrations-2026-10-06-prihlaseni-pres-google.sql` | přihlášení přes Google a Facebook (R96): tabulka `social_accounts`, `users.password` nepovinné; opakovatelný, pustit **před** nahráním kódu | 2026-10-06 |
 | `migrations-2026-10-09-indexy.sql` | indexy pro rostoucí historii (R113): `offers.valid_from`, `created_at`, `withdrawn_at`, `scrape_runs (status, finished_at)`; opakovatelný, pustit kdykoli (stará verze kódu s ním běží) | 2026-10-09 |
 | `migrations-2026-10-09-hlidani-uloh.sql` | hlídání úloh cronu (R115): tabulka `task_heartbeats`; opakovatelný, pustit **před** nahráním kódu | 2026-10-09 |
+| `migrations-2026-10-09-tohle-ne.sql` | „Tohle ne“ a hlášení chyb (R125): tabulky `watch_item_offer_exclusions` a `offer_reports`; opakovatelný, pustit **před** nahráním kódu | — |
 
 ## Nasazené verze
 

@@ -10,6 +10,10 @@
  *
  * K tomu zmínky na stránkách letáků bez ceny (R27, LeafletMentions).
  *
+ * Akce, které uživatel u položky skryl („Tohle ne“, R125), se vynechají — Moje slevy, Hlídám,
+ * souhrny i upozornění berou akce odsud. Položka z katalogu navíc vynechá akce s jejími vlastními
+ * vyloučenými slovy (přiřazení k produktu je společné všem uživatelům).
+ *
  * @author Roman Hlaváček
  *
  * @created 2026-10-02
@@ -31,6 +35,7 @@ use App\Models\Offer;
 use App\Models\OfferProduct;
 use App\Models\User;
 use App\Models\WatchItem;
+use App\Models\WatchItemOfferExclusion;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -50,12 +55,13 @@ final class MyOffers
      * Pro každou hlídanou položku nabídky seřazené od nejnižší ceny za jednotku,
      * shody před „možná“. Ceny s kartou počítá jen u karet, které uživatel má. Akce, které
      * ještě nezačaly, jsou zvlášť v `upcoming` (R76), seřazené stejně. K tomu zmínky
-     * v letácích bez ceny.
+     * v letácích bez ceny. Ve skupině i pravidla položky (`rule`) a neskončené akce, které
+     * uživatel u ní skryl (`hidden`, R125).
      *
      * @param  bool  $withMentions  Hledat i zmínky v letácích (souhrn je nepotřebuje)
      * @param  bool  $allStores  Akce všech prodejen, ne jen vybraných (R49) — dočasné přepnutí
      *                           v Mých slevách, třeba na cestách (R101); nastavení se nemění
-     * @return list<array{watchItem: WatchItem, offers: list<array{offer: Offer, status: MatchStatus}>, upcoming: list<array{offer: Offer, status: MatchStatus}>, mentions: list<array{page: LeafletPage, status: MatchStatus}>}>
+     * @return list<array{watchItem: WatchItem, rule: WatchRule, offers: list<array{offer: Offer, status: MatchStatus}>, upcoming: list<array{offer: Offer, status: MatchStatus}>, mentions: list<array{page: LeafletPage, status: MatchStatus}>, hidden: list<Offer>}>
      */
     public function forUser(User $user, bool $withMentions = true, bool $allStores = false): array
     {
@@ -87,24 +93,76 @@ final class MyOffers
         $endedSince = $this->mentions->earliestLeafletStart($pages, $today);
         $candidates = $searchable && $keywordRules !== [] ? $this->candidates($followed, $keywordRules, $endedSince) : [];
         $assignments = $searchable && $productIds !== [] ? $this->assignments($followed, $productIds, $endedSince) : new Collection;
+        $hidden = $this->hiddenOffers(array_values($watchItems->modelKeys()), $endedSince);
 
         $groups = [];
         foreach ($watchItems as $item) {
             $found = $item->product_id === null
                 ? $this->matchByRule($rules[$item->id], $candidates)
-                : $this->matchByProduct($item->product_id, $assignments);
+                : $this->withoutOwnExclusions($item, $this->matchByProduct($item->product_id, $assignments));
+            $hiddenOffers = $hidden[$item->id] ?? [];
+            // Skrytá akce nezakryje ani zmínku v letáku — uživatel ji označil za cizí
+            $found = array_values(array_filter($found, fn (array $match): bool => ! isset($hiddenOffers[$match['offer']->id])));
             $all = $this->availableSorted($user, $found);
             $offers = array_values(array_filter($all, fn (array $match): bool => ! $match['offer']->valid_to->lessThan($today)));
             $isUpcoming = fn (array $match): bool => $match['offer']->isUpcoming($today);
             $groups[] = [
                 'watchItem' => $item,
+                'rule' => $rules[$item->id],
                 'offers' => array_values(array_filter($offers, fn (array $match): bool => ! $isUpcoming($match))),
                 'upcoming' => array_values(array_filter($offers, $isUpcoming)),
                 'mentions' => $this->mentions->forRule($rules[$item->id], $pages, array_column($all, 'offer')),
+                'hidden' => array_values(array_filter($hiddenOffers, fn (Offer $offer): bool => ! $offer->valid_to->lessThan($today))),
             ];
         }
 
         return $groups;
+    }
+
+    /**
+     * Akce skryté u položek („Tohle ne“, R125), které obchod nestáhl a neskončily před daným dnem;
+     * podle ID položky a ID akce, seřazené podle názvu.
+     *
+     * @param  list<int>  $watchItemIds
+     * @return array<int, array<int, Offer>>
+     */
+    private function hiddenOffers(array $watchItemIds, CarbonImmutable $endedSince): array
+    {
+        if ($watchItemIds === []) {
+            return [];
+        }
+
+        $hidden = [];
+        $exclusions = WatchItemOfferExclusion::query()
+            ->whereIn('watch_item_id', $watchItemIds)
+            ->whereHas('offer', fn (Builder $query) => $query->active()->notExpired($endedSince))
+            ->with(['offer' => fn ($query) => $query->withoutRaw()])
+            ->get()
+            ->sortBy(fn (WatchItemOfferExclusion $exclusion): string => $exclusion->offer->name);
+        foreach ($exclusions as $exclusion) {
+            $hidden[$exclusion->watch_item_id][$exclusion->offer_id] = $exclusion->offer;
+        }
+
+        return $hidden;
+    }
+
+    /**
+     * Akce položky z katalogu bez akcí s jejími vlastními vyloučenými slovy (R125).
+     *
+     * @param  list<array{offer: Offer, status: MatchStatus}>  $matches
+     * @return list<array{offer: Offer, status: MatchStatus}>
+     */
+    private function withoutOwnExclusions(WatchItem $item, array $matches): array
+    {
+        $words = WatchRule::words($item->exclude_keywords, $this->normalizer);
+        if ($words === []) {
+            return $matches;
+        }
+
+        return array_values(array_filter(
+            $matches,
+            fn (array $match): bool => ! $this->matcher->containsAnyWord($this->matcher->offerText($match['offer']), $words),
+        ));
     }
 
     /**

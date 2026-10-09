@@ -38,12 +38,46 @@ final readonly class WatchRule
      */
     public static function fromWatchItem(WatchItem $item, TextNormalizer $normalizer): self
     {
-        // Položka z katalogu (R31) má pravidla produktu — relace musí být načtená
+        // Položka z katalogu (R31) má pravidla produktu — relace musí být načtená — a k nim
+        // vyloučená slova uživatele („Tohle ne“, R125)
         if ($item->product_id !== null && $item->product !== null) {
-            return self::fromProduct($item->product, $normalizer);
+            $product = self::fromProduct($item->product, $normalizer);
+
+            return new self(
+                $product->keywords,
+                $product->variant,
+                array_values(array_unique([...$product->exclude, ...self::words($item->exclude_keywords, $normalizer)])),
+            );
         }
 
         return self::fromText($item->keywords, $item->variant_keywords, $item->exclude_keywords, $normalizer);
+    }
+
+    /**
+     * Normalizovaná slova zápisu vyloučení (alternativy jako samostatná slova) — vlastní
+     * vyloučení položky z katalogu, která se uplatní nad přiřazením k produktu (R125).
+     *
+     * @return list<string>
+     */
+    public static function words(?string $text, TextNormalizer $normalizer): array
+    {
+        return array_merge(...self::terms($text, $normalizer) ?: [[]]);
+    }
+
+    /**
+     * Je slovo hledaným slovem nebo variantou položky, jejich začátkem, nebo jejich tvarem
+     * („mas“ i „avokado“ u „avokad“)? Jako vyloučené by skrylo všechny akce, nebo akce, které
+     * položka najde právě přes něj (R125).
+     */
+    public function isSearchedWord(string $normalizedWord): bool
+    {
+        foreach ([...$this->keywords, ...$this->variant] as $alternatives) {
+            if (array_any($alternatives, fn (string $word): bool => str_starts_with($word, $normalizedWord) || str_starts_with($normalizedWord, $word))) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -62,7 +96,7 @@ final readonly class WatchRule
         return new self(
             self::terms($keywords, $normalizer),
             self::terms($variant, $normalizer),
-            array_merge(...self::terms($exclude, $normalizer) ?: [[]]),
+            self::words($exclude, $normalizer),
         );
     }
 

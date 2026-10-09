@@ -126,6 +126,13 @@ onBeforeUnmount(() => {
                 </svg>
                 {{ t('user_menu.users') }}
             </Link>
+            <!-- Hlášení chyb v akcích a co uživatelé skrývají (R125), s počtem otevřených hlášení -->
+            <Link v-if="page.props.auth.reports" :href="page.props.auth.reports.url" class="user-menu__item">
+                <!-- Vlajka -->
+                <svg class="user-menu__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 21V4M5 4h11l-2 4 2 4H5" /></svg>
+                {{ t('user_menu.reports') }}
+                <span v-if="page.props.auth.reports.open" class="user-menu__badge">{{ page.props.auth.reports.open }}</span>
+            </Link>
             <Link v-if="page.props.auth.announcementsUrl" :href="page.props.auth.announcementsUrl" class="user-menu__item">
                 <!-- Megafon -->
                 <svg class="user-menu__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10v4h3l7 4V6L6 10H3z" /><path d="M16 9a4 4 0 0 1 0 6" /></svg>

@@ -16,8 +16,10 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Domain\Matching\ChainOverview;
+use App\Domain\Matching\ExclusionSuggestions;
 use App\Domain\Matching\MyOffers;
 use App\Domain\Matching\WaitAdvice;
+use App\Domain\Matching\WatchRule;
 use App\Domain\Offers\LocalCalendar;
 use App\Domain\Offers\MentionPresenter;
 use App\Domain\Offers\OfferPresenter;
@@ -26,7 +28,9 @@ use App\Domain\Offers\PriceHistory;
 use App\Domain\Offers\UserPricing;
 use App\Enums\DigestFrequency;
 use App\Enums\OffersSort;
+use App\Models\Offer;
 use App\Models\User;
+use App\Models\WatchItem;
 use App\Support\CzechVocative;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -45,7 +49,7 @@ class HomeController extends Controller
      * v letácích bez ceny (R27); akce, které ještě nezačaly, zvlášť (R76). U akcí příznaky pro
      * štítky Nové a Končí brzy, `?prodejny=vse` dočasně ukáže akce všech prodejen (R101).
      */
-    public function __invoke(Request $request, MyOffers $myOffers, UserPricing $pricing, OfferPresenter $presenter, MentionPresenter $mentionPresenter, LandingController $landing, CzechVocative $vocative, PriceHistory $priceHistory, WaitAdvice $waitAdvice, LocalCalendar $calendar, OfferSearch $search, ChainOverview $chainOverview): Response
+    public function __invoke(Request $request, MyOffers $myOffers, UserPricing $pricing, OfferPresenter $presenter, MentionPresenter $mentionPresenter, LandingController $landing, CzechVocative $vocative, PriceHistory $priceHistory, WaitAdvice $waitAdvice, LocalCalendar $calendar, OfferSearch $search, ChainOverview $chainOverview, ExclusionSuggestions $suggestions): Response
     {
         // Nepřihlášený má na stejné adrese úvodní stránku (R44)
         $user = $request->user();
@@ -66,8 +70,10 @@ class HomeController extends Controller
         $today = $calendar->today();
         $freshSince = $search->freshSince();
         $endingSoonBy = $today->addDays(config()->integer('letaky.offers.ending_soon_days'));
-        $offerToPage = fn (array $match): array => [
+        $offerToPage = fn (array $match, WatchRule $rule): array => [
             ...$presenter->toPage($match['offer'], $storeCodes, $history[$match['offer']->id] ?? null),
+            // „Tohle ne“ (R125): slova z názvu, která jde u položky vyloučit
+            'excludeWords' => $suggestions->for($rule, $match['offer']),
             'matchStatus' => $match['status']->value,
             // Cena, kterou uživatel zaplatí (s kartou, pokud ji má) — nejnižší cena
             // v hlavičce skupiny se počítá z akcí na stránce, i po výběru obchodu (R55)
@@ -121,9 +127,13 @@ class HomeController extends Controller
                 'fromCatalog' => $group['watchItem']->product_id !== null,
                 'editUrl' => route('watch-items.index', [WatchItemController::EDIT_PARAMETER => $group['watchItem']->id], absolute: false),
                 'deleteUrl' => route('watch-items.destroy', $group['watchItem'], absolute: false),
-                'offers' => array_map($offerToPage, $group['offers']),
+                'offers' => array_map(fn (array $match): array => $offerToPage($match, $group['rule']), $group['offers']),
                 // Akce, které ještě nezačaly — sekce „Brzy“ (R76)
-                'upcoming' => array_map($offerToPage, $group['upcoming']),
+                'upcoming' => array_map(fn (array $match): array => $offerToPage($match, $group['rule']), $group['upcoming']),
+                // „Tohle ne“ (R125): skrýt akci, vyloučit slovo a přehled skrytého s vrácením
+                'hideOfferUrl' => route('watch-items.hidden-offers.store', $group['watchItem'], absolute: false),
+                'excludeWordUrl' => route('watch-items.excluded-words.store', $group['watchItem'], absolute: false),
+                'hidden' => $this->hidden($group['watchItem'], $group['hidden'], $presenter),
                 // „Vyplatí se počkat“ (R76): budoucí akce výrazně levnější než dnešní
                 'waitTip' => $waitAdvice->for($user, array_column($group['offers'], 'offer'), array_column($group['upcoming'], 'offer')),
                 'mentions' => array_map(
@@ -132,5 +142,26 @@ class HomeController extends Controller
                 ),
             ], $groups),
         ]);
+    }
+
+    /**
+     * Co uživatel u položky skryl („Tohle ne“, R125): neskončené skryté akce a vyloučená slova,
+     * každé s adresou pro vrácení.
+     *
+     * @param  list<Offer>  $offers
+     * @return array{offers: list<array<string, mixed>>, words: list<array{word: string, restoreUrl: string}>}
+     */
+    private function hidden(WatchItem $item, array $offers, OfferPresenter $presenter): array
+    {
+        return [
+            'offers' => array_map(fn (Offer $offer): array => [
+                ...$presenter->toPage($offer),
+                'restoreUrl' => route('watch-items.hidden-offers.destroy', [$item, $offer], absolute: false),
+            ], $offers),
+            'words' => array_map(fn (string $word): array => [
+                'word' => $word,
+                'restoreUrl' => route('watch-items.excluded-words.destroy', [$item, $word], absolute: false),
+            ], preg_split('/\s+/u', trim((string) $item->exclude_keywords), flags: PREG_SPLIT_NO_EMPTY) ?: []),
+        ];
     }
 }

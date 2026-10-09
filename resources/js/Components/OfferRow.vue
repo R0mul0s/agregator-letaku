@@ -10,6 +10,7 @@
     @created 2026-10-04
 -->
 <script setup>
+import OfferMenuButton from '@/Components/OfferMenuButton.vue';
 import ShoppingToggle from '@/Components/ShoppingToggle.vue';
 import { formatDiscount, formatPrice } from '@/lib/format';
 import { useTranslations } from '@/lib/i18n';
@@ -25,6 +26,8 @@ const props = defineProps({
     offer: { type: Object, required: true },
     /** Vypsat i obchod — řádky nejsou rozdělené po obchodech (centrum upozornění). */
     withChain: { type: Boolean, default: false },
+    /** Hlídaná položka v Mých slevách — tři tečky nabídnou i „Tohle ne“ (R125). */
+    watchItem: { type: Object, default: null },
 });
 
 const t = useTranslations();
@@ -102,6 +105,10 @@ const unitPrice = computed(() => offerUnitPriceLabel(props.offer, locale.value, 
             <span class="offer-row__price" :class="{ 'offer-row__price--text': isPromotionText }">{{ price }}</span>
             <span v-if="discount" class="offer-row__discount">{{ formatDiscount(discount) }}</span>
         </div>
-        <ShoppingToggle v-if="!offer.ended" :offer-id="offer.id" compact />
+        <div v-if="!offer.ended" class="offer-row__actions">
+            <ShoppingToggle :offer-id="offer.id" compact />
+            <!-- Hlášení chyby, v Mých slevách i „Tohle ne“ (R125) -->
+            <OfferMenuButton :offer="offer" :watch-item="watchItem" />
+        </div>
     </li>
 </template>

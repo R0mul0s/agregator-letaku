@@ -16,8 +16,10 @@ import { ref } from 'vue';
 const props = defineProps({
     product: { type: Object, required: true },
     categories: { type: Array, required: true },
-    /** Přiřazené neskončené akce s matchStatus, isManual a excludeUrl. */
+    /** Přiřazené neskončené akce s matchStatus, isManual, excludeUrl a hiddenByUsers (R125). */
     assigned: { type: Array, required: true },
+    /** Slova, která u produktu vylučují uživatelé [{ word, users }] (R125). */
+    excludedWords: { type: Array, required: true },
     /** Ručně vyřazené neskončené akce s restoreUrl. */
     excluded: { type: Array, required: true },
     /** Hledání akcí k ručnímu přiřazení: parameter, query, results (s includeUrl). */
@@ -74,8 +76,10 @@ async function remove() {
                 </h2>
                 <p v-if="!assigned.length" class="page__empty">{{ t('catalog.assigned_empty') }}</p>
                 <div v-else class="offer-grid">
-                    <OfferCard v-for="offer in assigned" :key="offer.id" :offer="offer" :heading-level="3">
+                    <OfferCard v-for="offer in assigned" :key="offer.id" :offer="offer" :heading-level="3" :with-menu="false">
                         <span v-if="offer.isManual" class="tag">{{ t('catalog.manual') }}</span>
+                        <!-- Uživatelé akci u produktu skryli („Tohle ne“, R125) — nejspíš sem nepatří -->
+                        <span v-if="offer.hiddenByUsers" class="tag tag--warning">{{ t('catalog.hidden_by_users', { count: offer.hiddenByUsers }) }}</span>
                         <button type="button" class="button button--ghost" @click="correct('delete', offer.excludeUrl)">{{ t('catalog.exclude') }}</button>
                     </OfferCard>
                 </div>
@@ -83,7 +87,7 @@ async function remove() {
                 <template v-if="excluded.length">
                     <h2 class="watch-group__title catalog-section">{{ t('catalog.excluded') }}</h2>
                     <div class="offer-grid">
-                        <OfferCard v-for="offer in excluded" :key="offer.id" :offer="offer" :heading-level="3">
+                        <OfferCard v-for="offer in excluded" :key="offer.id" :offer="offer" :heading-level="3" :with-menu="false">
                             <button type="button" class="button button--ghost" @click="correct('delete', offer.restoreUrl)">{{ t('catalog.restore') }}</button>
                         </OfferCard>
                     </div>
@@ -99,7 +103,7 @@ async function remove() {
                 </form>
                 <p v-if="search.query && !search.results.length" class="page__empty">{{ t('offers.empty') }}</p>
                 <div v-if="search.results.length" class="offer-grid">
-                    <OfferCard v-for="offer in search.results" :key="offer.id" :offer="offer" :heading-level="3">
+                    <OfferCard v-for="offer in search.results" :key="offer.id" :offer="offer" :heading-level="3" :with-menu="false">
                         <button type="button" class="button button--ghost" @click="correct('post', offer.includeUrl)">{{ t('catalog.include') }}</button>
                     </OfferCard>
                 </div>
@@ -109,6 +113,14 @@ async function remove() {
                 <h2 class="card__title">{{ t('catalog.edit_title') }}</h2>
                 <p class="form-field__hint">{{ t('catalog.edit_hint') }}</p>
                 <ProductForm :url="product.updateUrl" method="put" :product="product" :categories="categories" :submit-label="t('catalog.save')" />
+                <!-- Co u produktu vylučují uživatelé (R125) — kandidáti na vyloučená slova produktu -->
+                <template v-if="excludedWords.length">
+                    <h3 class="catalog-detail__subtitle">{{ t('catalog.user_words') }}</h3>
+                    <p class="form-field__hint">{{ t('catalog.user_words_hint') }}</p>
+                    <ul class="catalog-detail__words">
+                        <li v-for="entry in excludedWords" :key="entry.word" class="tag">{{ t('catalog.user_word', { word: entry.word, count: entry.users }) }}</li>
+                    </ul>
+                </template>
                 <div class="form__actions">
                     <button type="button" class="button button--ghost" @click="remove">{{ t('catalog.delete') }}</button>
                 </div>

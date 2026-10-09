@@ -809,6 +809,20 @@ return [
         // Nejdelší hledané slovo aspoň takhle dlouhé — jedno písmeno nebo číslice by pustily
         // do předvýběru skoro všechny nabídky (R54, App\Rules\SearchableKeywords); „wc“ projde
         'min_search_word_length' => 2,
+        // „Tohle ne“ (R125): kolik slov z názvu akce nabídnout k vyloučení a nejkratší takové
+        // slovo — krátké („bez“, „s“) by skrylo i akce, které uživatel chce
+        'exclusion_suggestions' => 6,
+        'exclusion_min_length' => 3,
+        'exclusion_word_max_length' => 40,
+    ],
+
+    // Hlášení chyb v akcích od uživatelů (R125)
+    'offer_reports' => [
+        'note_max_length' => 500,
+        // Nejvíc hlášení od jednoho uživatele za den — ochrana proti zahlcení fronty admina
+        'max_per_user_per_day' => 30,
+        // Kolik znaků popisu od uživatele se vejde do upozornění adminům v telefonu
+        'push_note_length' => 120,
     ],
 
 ];

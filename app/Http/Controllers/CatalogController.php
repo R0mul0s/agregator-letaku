@@ -18,6 +18,7 @@ use App\Domain\Catalog\Actions\CorrectAssignment;
 use App\Domain\Catalog\Actions\DeleteProduct;
 use App\Domain\Catalog\CatalogTable;
 use App\Domain\Catalog\CategoryPaths;
+use App\Domain\Catalog\UserFeedback;
 use App\Domain\Matching\TextNormalizer;
 use App\Domain\Offers\OfferFilters;
 use App\Domain\Offers\OfferPresenter;
@@ -118,8 +119,14 @@ class CatalogController extends Controller
      * Detail produktu: pravidla, přiřazené a vyřazené neskončené nabídky a hledání nabídek
      * k ručnímu přiřazení.
      */
-    public function show(Request $request, Product $product, OfferPresenter $presenter, OfferSearch $search): Response
+    public function show(Request $request, Product $product, OfferPresenter $presenter, OfferSearch $search, UserFeedback $feedback): Response
     {
+        // Co u produktu skrývají uživatelé („Tohle ne“, R125) — podklad pro opravu pravidel
+        $hiddenBy = [];
+        foreach ($feedback->hiddenOffers($product->id) as $row) {
+            $hiddenBy[$row['offer']->id] = $row['users'];
+        }
+
         $assignments = $this->table->withCurrentOffer($product->assignments()->getQuery())
             ->with(['offer' => fn ($query) => $query->withoutRaw()])
             ->get()
@@ -157,7 +164,9 @@ class CatalogController extends Controller
                 'matchStatus' => $assignment->status->value,
                 'isManual' => $assignment->is_manual,
                 'excludeUrl' => route('catalog.offers.exclude', [$product, $assignment->offer_id], absolute: false),
+                'hiddenByUsers' => $hiddenBy[$assignment->offer_id] ?? 0,
             ])->values(),
+            'excludedWords' => array_map(fn (array $row): array => ['word' => $row['word'], 'users' => $row['users']], $feedback->excludedWords($product->id)),
             'excluded' => $exclusions->map(fn (OfferProductExclusion $exclusion): array => [
                 ...$presenter->toPage($exclusion->offer),
                 'restoreUrl' => route('catalog.offers.restore', [$product, $exclusion->offer_id], absolute: false),

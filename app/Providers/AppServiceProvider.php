@@ -69,6 +69,8 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('send-announcements', fn (User $user): bool => $user->is_admin);
         // Přehled uživatelů s poslední aktivitou a nastavením (R84) vidí admin
         Gate::define('view-users', fn (User $user): bool => $user->is_admin);
+        // Hlášení chyb v akcích a co uživatelé skrývají u produktů katalogu (R125) vidí admin
+        Gate::define('review-reports', fn (User $user): bool => $user->is_admin);
 
         // Omezení počtu požadavků (R45)
         RateLimits::register();

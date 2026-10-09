@@ -23,17 +23,23 @@ const t = useTranslations();
 
 /**
  * Akce podle položky a ID — stejná akce může patřit ke dvěma položkám s jiným stavem shody
- * (Coca-Cola jistě, Coca-Cola Zero „možná“), proto klíč „položka:akce“. Názvy položek podle ID.
+ * (Coca-Cola jistě, Coca-Cola Zero „možná“), proto klíč „položka:akce“. Položky podle ID (název,
+ * „Tohle ne“ u řádku, R125).
  */
 const offersByItem = computed(() => new Map(props.watchItems.flatMap((item) => item.offers.map((offer) => [`${item.id}:${offer.id}`, offer]))));
-const itemNames = computed(() => new Map(props.watchItems.map((item) => [item.id, item.name])));
+const itemsById = computed(() => new Map(props.watchItems.map((item) => [item.id, item])));
 
 /** Obchody s řádky: nejdřív položky, kde je obchod nejlevněji, pak podle názvu položky. */
 const chains = computed(() =>
     props.byChain.map((entry) => ({
         ...entry,
         rows: entry.items
-            .map((item) => ({ ...item, name: itemNames.value.get(item.watchItemId), offer: offersByItem.value.get(`${item.watchItemId}:${item.offerId}`) }))
+            .map((item) => ({
+                ...item,
+                watchItem: itemsById.value.get(item.watchItemId),
+                name: itemsById.value.get(item.watchItemId)?.name,
+                offer: offersByItem.value.get(`${item.watchItemId}:${item.offerId}`),
+            }))
             .filter((row) => row.offer)
             .sort((a, b) => Number(b.cheapest) - Number(a.cheapest) || a.name.localeCompare(b.name)),
     })),
@@ -48,7 +54,7 @@ const chains = computed(() =>
                 <span class="chain-overview__summary">{{ t('home.by_chain_summary', { cheapest: entry.cheapestCount, count: entry.rows.length }) }}</span>
             </h2>
             <ul class="offer-rows">
-                <OfferRow v-for="row in entry.rows" :key="row.watchItemId" :offer="row.offer">
+                <OfferRow v-for="row in entry.rows" :key="row.watchItemId" :offer="row.offer" :watch-item="row.watchItem">
                     <template #label>
                         {{ row.name }}
                         <span v-if="row.cheapest" class="tag tag--success">{{ t('home.cheapest_here') }}</span>

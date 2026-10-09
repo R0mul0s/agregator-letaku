@@ -17,6 +17,7 @@ use Database\Factories\WatchItemFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * @property int $id
@@ -25,7 +26,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int|null $product_id Produkt katalogu (R31); null = vlastní slova
  * @property string|null $keywords Vlastní slova; null u položky z katalogu
  * @property string|null $variant_keywords
- * @property string|null $exclude_keywords
+ * @property string|null $exclude_keywords Vyloučená slova; u položky z katalogu navíc k pravidlům produktu (R125)
  * @property CarbonImmutable $created_at
  * @property CarbonImmutable $updated_at
  */
@@ -74,5 +75,15 @@ class WatchItem extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    /**
+     * Akce, které uživatel u položky skryl („Tohle ne“, R125).
+     *
+     * @return HasMany<WatchItemOfferExclusion, $this>
+     */
+    public function offerExclusions(): HasMany
+    {
+        return $this->hasMany(WatchItemOfferExclusion::class);
     }
 }

@@ -26,6 +26,7 @@ use App\Http\Controllers\LegacyAuthRedirectController;
 use App\Http\Controllers\LegalController;
 use App\Http\Controllers\ManifestController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\OfferReportController;
 use App\Http\Controllers\OffersController;
 use App\Http\Controllers\OfferStoresController;
 use App\Http\Controllers\OfferSuggestionsController;
@@ -39,6 +40,7 @@ use App\Http\Controllers\UnsubscribeController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WatchDemoController;
 use App\Http\Controllers\WatchItemController;
+use App\Http\Controllers\WatchItemExclusionController;
 use App\Http\Middleware\ReadOnlySession;
 use App\Support\RateLimits;
 use App\Support\Seo\IndexNow;
@@ -159,6 +161,16 @@ Route::middleware('auth')->group(function (): void {
         ->name('watch-items.preview');
     Route::put('/hlidam/{watchItem}', [WatchItemController::class, 'update'])->name('watch-items.update');
     Route::delete('/hlidam/{watchItem}', [WatchItemController::class, 'destroy'])->name('watch-items.destroy');
+    // „Tohle ne“ (R125): skrýt akci u položky, vyloučit slovo z názvu akce, a obojí vrátit
+    Route::post('/hlidam/{watchItem}/skryte-akce', [WatchItemExclusionController::class, 'hideOffer'])->name('watch-items.hidden-offers.store');
+    Route::delete('/hlidam/{watchItem}/skryte-akce/{offer}', [WatchItemExclusionController::class, 'restoreOffer'])
+        ->whereNumber('offer')
+        ->name('watch-items.hidden-offers.destroy');
+    Route::post('/hlidam/{watchItem}/vyloucena-slova', [WatchItemExclusionController::class, 'excludeWord'])->name('watch-items.excluded-words.store');
+    Route::delete('/hlidam/{watchItem}/vyloucena-slova/{word}', [WatchItemExclusionController::class, 'restoreWord'])->name('watch-items.excluded-words.destroy');
+
+    // Hlášení chyby v akci z karty (R125)
+    Route::post('/nahlasit-chybu', [OfferReportController::class, 'store'])->name('offer-reports.store');
 
     // Nákupní seznam (R61): přidat / odebrat z karty akce, odškrtnout v obchodě, uklidit po nákupu
     Route::get('/seznam', [ShoppingListController::class, 'index'])->name('shopping-list.index');
@@ -201,6 +213,12 @@ Route::middleware('auth')->group(function (): void {
     Route::middleware('can:view-users')->group(function (): void {
         Route::get('/uzivatele', [UserController::class, 'index'])->name('users.index');
         Route::get('/uzivatele/{user}/obrazek', [UserController::class, 'avatar'])->name('users.avatar');
+    });
+
+    // Hlášení chyb v akcích a co uživatelé skrývají u produktů katalogu vidí admin (R125)
+    Route::middleware('can:review-reports')->group(function (): void {
+        Route::get('/hlaseni', [OfferReportController::class, 'index'])->name('reports.index');
+        Route::patch('/hlaseni/{offer}', [OfferReportController::class, 'resolve'])->whereNumber('offer')->name('reports.resolve');
     });
 
     // Katalog produktů spravuje admin (R29)

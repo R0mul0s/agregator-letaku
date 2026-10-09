@@ -19,6 +19,7 @@ import WatchItemActions from '@/Components/WatchItemActions.vue';
 import { formatDate, formatDiscount, formatPrice } from '@/lib/format';
 import { useTranslations } from '@/lib/i18n';
 import { discountPercent, unitPriceLabel } from '@/lib/offer';
+import { showOfferActions } from '@/lib/offerActions';
 import { usePage } from '@inertiajs/vue3';
 import { computed, useId } from 'vue';
 
@@ -119,11 +120,13 @@ const bestDiscount = computed(() => {
                     <strong>{{ t('watch.wait_tip') }}:</strong> {{ waitTipText }}
                 </p>
                 <ul v-if="item.offers.length && compact" class="offer-rows">
-                    <OfferRow v-for="offer in item.offers" :key="offer.id" :offer="offer" :with-chain="withChain" />
+                    <OfferRow v-for="offer in item.offers" :key="offer.id" :offer="offer" :with-chain="withChain" :watch-item="item" />
                 </ul>
                 <div v-else-if="item.offers.length" class="offer-grid">
-                    <OfferCard v-for="offer in item.offers" :key="offer.id" :offer="offer" :heading-level="3">
+                    <OfferCard v-for="offer in item.offers" :key="offer.id" :offer="offer" :heading-level="3" :watch-item="item">
                         <ShoppingToggle :offer-id="offer.id" />
+                        <!-- Akce sem nepatří — skrýt ji nebo podobné (R125) -->
+                        <button type="button" class="button button--ghost offer-card__dismiss" @click="showOfferActions(offer, item)">{{ t('offer_actions.dismiss') }}</button>
                     </OfferCard>
                 </div>
 

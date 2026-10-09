@@ -15,7 +15,9 @@ namespace App\Http\Middleware;
 use App\Domain\Offers\OfferPages;
 use App\Domain\Sources\SourceRegistry;
 use App\Enums\Chain;
+use App\Enums\OfferReportReason;
 use App\Http\Controllers\WatchItemController;
+use App\Models\OfferReport;
 use App\Models\ScrapeRun;
 use App\Models\User;
 use App\Support\Legal\LegalDocuments;
@@ -109,14 +111,27 @@ class HandleInertiaRequests extends Middleware
                 // Účet je v menu pod avatarem vpravo nahoře (R40), ne v hlavní navigaci; na stránce
                 // z menu je avatar „aktivní položkou“
                 'accountUrl' => route('account', absolute: false),
-                'accountActive' => $request->routeIs('account', 'catalog.*', 'announcements.*', 'users.*'),
+                'accountActive' => $request->routeIs('account', 'catalog.*', 'announcements.*', 'users.*', 'reports.*'),
                 // Admin má v menu pod avatarem i katalog (R29) a zprávy od nás (R74, 11d) — v hlavičce
                 // by se navigace zalamovala (R75)
                 'catalogUrl' => $user instanceof User && $user->is_admin ? route('catalog.index', absolute: false) : null,
                 'announcementsUrl' => $user instanceof User && $user->is_admin ? route('announcements.index', absolute: false) : null,
                 // Přehled uživatelů s poslední aktivitou (R84)
                 'usersUrl' => $user instanceof User && $user->is_admin ? route('users.index', absolute: false) : null,
+                // Hlášení chyb v akcích a co uživatelé skrývají (R125) s počtem otevřených hlášení
+                'reports' => $user instanceof User && $user->is_admin ? [
+                    'url' => route('reports.index', absolute: false),
+                    'open' => OfferReport::query()->open()->distinct()->count('offer_id'),
+                ] : null,
             ],
+            // Hlášení chyby z karty akce (R125): adresa a důvody; nepřihlášený null — tlačítko nevidí
+            'offerReports' => fn (): ?array => $user instanceof User ? [
+                'storeUrl' => route('offer-reports.store', absolute: false),
+                'reasons' => array_map(
+                    fn (OfferReportReason $reason): array => ['value' => $reason->value, 'label' => $reason->label()],
+                    OfferReportReason::cases(),
+                ),
+            ] : null,
             // Nákupní seznam (R61): které akce v něm jsou — tlačítko na kartě akce ukáže stav;
             // název se nesmí krýt s propem stránky
             'shoppingList' => fn (): ?array => $user instanceof User ? [
