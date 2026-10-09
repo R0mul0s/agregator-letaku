@@ -1,12 +1,13 @@
 <!--
-    Plovoucí lišta hledání, řazení a filtrů na telefonu (R119): když lišta Seřadit / Filtry
-    (FilterBar) odjede pod hlavičku webu, objeví se pod hlavičkou tenká lišta s ikonami —
-    Hledat (dá fokus poli hledání — na telefonu se otevře přes celou obrazovku, stránka se
-    neposune), Seřadit, Filtry s počtem zapnutých a přepínač karty / řádky ve slotu. Okna
-    otevírá stránka stejně jako z FilterBar.
+    Plovoucí lišta řazení a filtrů na telefonu (R119, R120): když lišta Seřadit / Filtry
+    (FilterBar) odjede pod hlavičku webu, objeví se pod hlavičkou tenká lišta s ikonami Seřadit
+    a Filtry s počtem zapnutých. Další ikony dodá stránka — před ně slot `start` (Všechny akce:
+    Hledat; Moje slevy: Jsem v obchodě), za ně výchozí slot vpravo (karty / řádky, Rozbalit vše).
+    Okna otevírá stránka stejně jako z FilterBar; ikona ve slotu má třídu floating-filter-bar__button.
 
     V rozvržení nezabírá místo (position: fixed), skrytá je `inert` — klávesnice ani čtečka
     ji nenajdou, dokud není vidět. Od středního displeje se nezobrazuje (tam není FilterBar).
+    Přilepená hlavička skupiny Mých slev (R117) a kotvy se na telefonu odsadí o její výšku (CSS).
 
     @author Roman Hlaváček
     @created 2026-10-09
@@ -26,7 +27,7 @@ const props = defineProps({
     filterCount: { type: Number, default: 0 },
 });
 
-const emit = defineEmits(['search', 'sort', 'filters']);
+const emit = defineEmits(['sort', 'filters']);
 
 const t = useTranslations();
 const visible = ref(false);
@@ -75,11 +76,8 @@ onBeforeUnmount(() => {
 
 <template>
     <div class="floating-filter-bar" :class="{ 'floating-filter-bar--visible': visible }" :inert="!visible">
-        <button type="button" class="floating-filter-bar__button" :title="t('offers.search')" @click="emit('search')">
-            <!-- Lupa -->
-            <svg class="filter-bar__icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5" /><path d="m20 20-4.4-4.4" /></svg>
-            <span class="visually-hidden">{{ t('offers.search') }}</span>
-        </button>
+        <!-- Ikony stránky před řazením (Hledat, Jsem v obchodě) -->
+        <slot name="start" />
         <button type="button" class="floating-filter-bar__button" :title="sortLabel" @click="emit('sort')">
             <!-- Šipky nahoru a dolů -->
             <svg class="filter-bar__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4v16M4 8l4-4 4 4M16 20V4M12 16l4 4 4-4" /></svg>
@@ -91,7 +89,7 @@ onBeforeUnmount(() => {
             <span class="visually-hidden">{{ t('sheet.filters') }}</span>
             <span v-if="filterCount" class="filter-bar__count floating-filter-bar__count">{{ filterCount }}</span>
         </button>
-        <!-- Karty / řádky vpravo -->
+        <!-- Vpravo: karty / řádky, Rozbalit vše -->
         <div class="floating-filter-bar__end">
             <slot />
         </div>

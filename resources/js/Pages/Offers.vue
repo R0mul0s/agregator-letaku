@@ -395,10 +395,16 @@ onBeforeUnmount(() => liveSearch.cancel());
             :anchor="filterBar"
             :sort-label="sortLabel"
             :filter-count="activeFilterChips.length"
-            @search="focusSearch"
             @sort="sortOpen = true"
             @filters="filtersOpen = true"
         >
+            <template #start>
+                <button type="button" class="floating-filter-bar__button" :title="t('offers.search')" @click="focusSearch">
+                    <!-- Lupa -->
+                    <svg class="filter-bar__icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5" /><path d="m20 20-4.4-4.4" /></svg>
+                    <span class="visually-hidden">{{ t('offers.search') }}</span>
+                </button>
+            </template>
             <ViewToggle v-model="compact" />
         </FloatingFilterBar>
         <ActiveFilters :chips="activeFilterChips" />

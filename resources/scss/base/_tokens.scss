@@ -192,6 +192,12 @@
     --section-bar-height: 3rem;
     // Přilepená hlavička rozbalené skupiny v Mých slevách na telefonu (R117) — jeden řádek
     --group-bar-height: 2.75rem;
+    // Plovoucí lišta řazení a filtrů na telefonu (R119, R120) — pevná výška, o ni se odsadí přilepená
+    // hlavička skupiny i kotvy
+    --floating-bar-size: 3rem;
+    // Kam se lepí prvky pod hlavičkou webu (výšku měří lib/appHeader.js); na stránce s plovoucí
+    // lištou filtrů ještě pod ni (_reset.scss, R120)
+    --sticky-top: var(--app-header-height, 0px);
     --account-section-header-width: 14rem;
     // Karta obchodu v Mých obchodech — tři v řádku do šířky obsahu (69rem bez odsazení)
     --chain-card-min-width: 20rem;
@@ -277,6 +283,8 @@
     --store-chip-remove-size: 1.5rem;
     // Lišta sekcí stránky přilepená pod hlavičkou (Můj účet, R116): nad obsahem, pod rozbalovacími seznamy
     --z-section-nav: 10;
+    // Plovoucí lišta filtrů (R119) nad přilepenou hlavičkou skupiny, která pod ní jede
+    --z-floating-bar: 11;
     --z-dropdown: 20;
     // Plovoucí hlavička nad obsahem i jeho rozbalovacími seznamy, tlačítko nahoru nad vším
     --z-header: 30;

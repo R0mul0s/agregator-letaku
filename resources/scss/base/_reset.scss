@@ -25,6 +25,16 @@ html {
     }
 }
 
+// Stránka s plovoucí lištou filtrů na telefonu (R119, R120): po odjetí lišty Seřadit / Filtry je
+// pod hlavičkou ještě plovoucí lišta — přilepená hlavička skupiny (--sticky-top) i kotvy pod ni
+@include below-md {
+    html:has(.floating-filter-bar) {
+        --sticky-top: calc(var(--app-header-height, 0px) + var(--floating-bar-size));
+
+        scroll-padding-top: calc(var(--app-header-height, var(--header-scroll-offset)) + var(--floating-bar-size) + var(--space-3));
+    }
+}
+
 // Posuvník v barvách webu. Chromium a Safari kreslí podle ::-webkit-scrollbar (zaoblený jezdec
 // s proužkem dráhy kolem); scrollbar-color by ho v Chromiu přebil, proto jen tam, kde
 // ::-webkit-scrollbar není (Firefox)

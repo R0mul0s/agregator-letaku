@@ -10,14 +10,16 @@
 
 .floating-filter-bar {
     position: fixed;
-    z-index: var(--z-section-nav);
+    z-index: var(--z-floating-bar);
     top: var(--app-header-height, 0);
     right: 0;
     left: 0;
     display: flex;
     align-items: center;
     gap: var(--space-2);
-    padding: var(--space-1) max(var(--space-3), env(safe-area-inset-right)) var(--space-1) max(var(--space-3), env(safe-area-inset-left));
+    // Pevná výška — o ni se odsadí přilepená hlavička skupiny a kotvy (_reset.scss, R120)
+    height: var(--floating-bar-size);
+    padding: 0 max(var(--space-3), env(safe-area-inset-right)) 0 max(var(--space-3), env(safe-area-inset-left));
     background: var(--color-bg);
     border-bottom: 1px solid var(--color-border);
     box-shadow: var(--shadow-card);
@@ -66,7 +68,18 @@
         right: calc(-1 * var(--space-1));
     }
 
+    // Vpravo karty / řádky a Rozbalit vše (Moje slevy, R120)
     &__end {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
         margin-left: auto;
+    }
+
+    // Logo vybraného obchodu místo ikony „Jsem v obchodě“ (R120) — vejde se do kulatého tlačítka
+    &__logo .chain-logo__image {
+        height: var(--icon-size);
+        padding: 0;
+        border: 0;
     }
 }

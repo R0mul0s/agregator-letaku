@@ -12,7 +12,6 @@
     @created 2026-10-09
 -->
 <script setup>
-import { appHeaderHeight } from '@/lib/appHeader';
 import { MEDIA_BELOW_LG } from '@/lib/breakpoints';
 import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
 
@@ -52,7 +51,8 @@ function update() {
         return;
     }
 
-    const line = appHeaderHeight();
+    // Kam se lišta lepí — pod hlavičku webu, na telefonu i pod plovoucí lištu filtrů (--sticky-top, R120)
+    const line = parseFloat(getComputedStyle(bar).top) || 0;
     stuck.value = header.getBoundingClientRect().bottom <= line + bar.offsetHeight && section.getBoundingClientRect().bottom > line;
 }
 

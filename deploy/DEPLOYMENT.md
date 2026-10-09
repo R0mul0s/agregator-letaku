@@ -413,7 +413,7 @@ patří sem pod tenhle postup; po nasazení se přesunou tam (R106).
 ### Aktualizace z `1b23d0c` (připravuje se)
 
 Přilepené lišty na telefonu: sekce Mého účtu a kapitoly podmínek a zásad (R116), hlavička
-rozbalené skupiny v Mých slevách (R117), plovoucí ikony hledání a filtrů ve Všech akcích (R119);
+rozbalené skupiny v Mých slevách (R117), plovoucí ikony hledání a filtrů ve Všech akcích (R119) a v Mých slevách (R120);
 název obchodu klepnutím na logo a výraznější Hlídat / Do seznamu na kartě (R118). Mění se jen
 frontend — bez SQL skriptu, bez `vendor/`, `app/`, `config/`, `lang/` i `.env` beze změny, žádný
 soubor nezmizel.
@@ -422,7 +422,8 @@ soubor nezmizel.
 2. **Ověř na telefonu:** `version.txt`; v Mém účtu a na `/podminky` lišta sekcí pod hlavičkou
    dojíždí k aktivní sekci a nadpis po klepnutí nezajede pod ni; v Mých slevách u rozbalené
    položky přilepená hlavička na jeden řádek, klepnutí ji sbalí; ve Všech akcích po odskrolování
-   plovoucí ikony, lupa otevře hledání bez posunu stránky; klepnutí na logo obchodu na kartě
+   plovoucí ikony, lupa otevře hledání bez posunu stránky; v Mých slevách plovoucí ikony a přilepená
+   hlavička skupiny pod nimi, ikona obchodu otevře okno s obchody; klepnutí na logo obchodu na kartě
    ukáže název.
 3. Zapiš verzi do *Nasazené verze* a tuhle sekci přesuň do `HISTORIE_NASAZENI.md`.
 

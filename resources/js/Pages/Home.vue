@@ -17,11 +17,13 @@
 <script setup>
 import ActiveFilters from '@/Components/ActiveFilters.vue';
 import BottomSheet from '@/Components/BottomSheet.vue';
+import ChainLogo from '@/Components/ChainLogo.vue';
 import ChainOverview from '@/Components/ChainOverview.vue';
 import ChainSelect from '@/Components/ChainSelect.vue';
 import EmptyState from '@/Components/EmptyState.vue';
 import FilterBar from '@/Components/FilterBar.vue';
 import FilterChip from '@/Components/FilterChip.vue';
+import FloatingFilterBar from '@/Components/FloatingFilterBar.vue';
 import OfferFilterChips from '@/Components/OfferFilterChips.vue';
 import SortSelect from '@/Components/SortSelect.vue';
 import SortSheet from '@/Components/SortSheet.vue';
@@ -30,6 +32,7 @@ import ViewToggle from '@/Components/ViewToggle.vue';
 import WaitingSection from '@/Components/WaitingSection.vue';
 import WatchGroup from '@/Components/WatchGroup.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
+import { appHeaderHeight } from '@/lib/appHeader';
 import { useExpandedGroups } from '@/lib/expandedGroups';
 import { formatDiscount } from '@/lib/format';
 import { useTranslations } from '@/lib/i18n';
@@ -166,6 +169,19 @@ const offerFilterChips = computed(() =>
 );
 
 /**
+ * Po změně, která výpis zkrátí (obchod, prodejny, filtr, Sbalit vše), vrátí stránku na začátek
+ * seznamu — ale jen když je uživatel pod ním (plovoucí lišta, R120). Jinak by po zkrácení
+ * stránky skončil na jejím konci, kam ho prohlížeč posune.
+ */
+async function returnToList() {
+    await nextTick();
+    const toolbar = document.getElementById(TOOLBAR_ID);
+    if (toolbar && toolbar.getBoundingClientRect().top < appHeaderHeight()) {
+        scrollIntoViewGently(toolbar);
+    }
+}
+
+/**
  * Přepne štítek filtru a rozbalí skupiny jako nový výběr.
  *
  * @param {string} key fresh | endingSoon | sure
@@ -173,6 +189,7 @@ const offerFilterChips = computed(() =>
 function toggleOfferFilter(key) {
     offerFilters[key] = !offerFilters[key];
     groups.resetFocus();
+    returnToList();
 }
 
 /**
@@ -208,7 +225,7 @@ const upcomingItems = computed(() => props.watchItems.filter((item) => item.upco
  */
 function toggleAllStores() {
     const { parameter, allValue, all, url } = props.stores;
-    router.get(url, all ? {} : { [parameter]: allValue }, { preserveScroll: true, preserveState: true, replace: true });
+    router.get(url, all ? {} : { [parameter]: allValue }, { preserveScroll: true, preserveState: true, replace: true, onSuccess: returnToList });
 }
 
 /**
@@ -349,6 +366,41 @@ const filtersOpen = ref(false);
 /** Název zvoleného řazení na tlačítku „Seřadit“. */
 const sortLabel = computed(() => props.offersPreferences.sortOptions.find((option) => option.value === sort.value)?.label ?? '');
 
+/** Lišta Seřadit / Filtry — po odjetí pod hlavičku ji nahradí plovoucí lišta (R120). */
+const filterBar = ref(null);
+
+/** Okno „Jsem v obchodě“ z plovoucí lišty (R120) — stejný výběr jako ChainSelect nahoře. */
+const chainSheetOpen = ref(false);
+
+/** Možnosti okna: všechny obchody a obchody s akcí nebo zmínkou. */
+const chainOptions = computed(() => [
+    { value: '', label: t('offers.all_chains') },
+    ...filterChains.value.map((chain) => ({ value: chain, label: page.props.chainInfo[chain]?.name ?? chain })),
+]);
+
+/** Název vybraného obchodu pro čtečku u ikony v plovoucí liště. */
+const chainFilterLabel = computed(() => chainOptions.value.find((option) => option.value === chainFilter.value)?.label ?? '');
+
+/**
+ * Vybere obchod z okna — jako změna v ChainSelect skupiny rozbalí jako nový výběr.
+ *
+ * @param {string} chain '' = všechny
+ */
+function chooseChain(chain) {
+    chainFilter.value = chain;
+    groups.resetFocus();
+    returnToList();
+}
+
+/** Rozbalit / Sbalit vše; po sbalení zpět na začátek seznamu — stránka se zkrátí. */
+function toggleAllGroups() {
+    const collapsing = allExpanded.value;
+    toggleAll();
+    if (collapsing) {
+        returnToList();
+    }
+}
+
 /** Zapnuté filtry pod lištou na telefonu — klepnutí filtr vypne; vypnuté prodejny se zapnou. */
 const activeFilterChips = computed(() => [
     ...offerFilterChips.value.filter((chip) => offerFilters[chip.key]).map((chip) => ({ key: chip.key, label: chip.label, action: () => toggleOfferFilter(chip.key) })),
@@ -363,6 +415,7 @@ function clearOfferFilters() {
     for (const key of Object.keys(offerFilters)) {
         offerFilters[key] = false;
     }
+    returnToList();
 }
 
 onMounted(async () => {
@@ -471,7 +524,7 @@ onMounted(async () => {
                     <SortSelect id="home-sort" v-model="sort" class="sort-select--desktop" :label="t('home.sort')" :options="offersPreferences.sortOptions" @change="saveSort" />
                     <!-- Karty s obrázkem, nebo řádky (R62, R82); na telefonu v liště -->
                     <ViewToggle v-model="compact" class="view-toggle--desktop" />
-                    <button v-if="visibleItems.length" type="button" class="button button--ghost" @click="toggleAll">
+                    <button v-if="visibleItems.length" type="button" class="button button--ghost" @click="toggleAllGroups">
                         {{ allExpanded ? t('home.collapse_all') : t('home.expand_all') }}
                     </button>
                 </template>
@@ -482,9 +535,34 @@ onMounted(async () => {
             </template>
             <template v-else>
                 <!-- Telefon (R102): Seřadit a Filtry v oknech zespodu, pod nimi zapnuté filtry -->
-                <FilterBar :sort-label="sortLabel" :filter-count="activeFilterChips.length" @sort="sortOpen = true" @filters="filtersOpen = true">
+                <FilterBar ref="filterBar" :sort-label="sortLabel" :filter-count="activeFilterChips.length" @sort="sortOpen = true" @filters="filtersOpen = true">
                     <ViewToggle v-model="compact" />
                 </FilterBar>
+                <!-- Po odjetí lišty pod hlavičku plovoucí ikony (R120); Položky / Obchody zůstává nahoře -->
+                <FloatingFilterBar :anchor="filterBar" :sort-label="sortLabel" :filter-count="activeFilterChips.length" @sort="sortOpen = true" @filters="filtersOpen = true">
+                    <template #start>
+                        <button v-if="filterChains.length > 1" type="button" class="floating-filter-bar__button" :title="t('home.chain_filter')" @click="chainSheetOpen = true">
+                            <!-- Vybraný obchod je vidět jeho logem — režim „v obchodě“ je zapnutý -->
+                            <ChainLogo v-if="chainFilter" :chain="chainFilter" class="floating-filter-bar__logo" aria-hidden="true" />
+                            <!-- Obchod s markýzou -->
+                            <svg v-else class="filter-bar__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 4h15L21 9H3zM3 9c0 1.7 1.3 3 3 3s3-1.3 3-3c0 1.7 1.3 3 3 3s3-1.3 3-3c0 1.7 1.3 3 3 3s3-1.3 3-3M5 12v8h14v-8M10 20v-5h4v5" /></svg>
+                            <span class="visually-hidden">{{ t('home.chain_filter') }}: {{ chainFilterLabel }}</span>
+                        </button>
+                    </template>
+                    <ViewToggle v-model="compact" />
+                    <button v-if="visibleItems.length" type="button" class="floating-filter-bar__button" :title="allExpanded ? t('home.collapse_all') : t('home.expand_all')" @click="toggleAllGroups">
+                        <!-- Šipky k sobě (sbalit), nebo od sebe (rozbalit) -->
+                        <svg v-if="allExpanded" class="filter-bar__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m7 4 5 5 5-5M7 20l5-5 5 5" /></svg>
+                        <svg v-else class="filter-bar__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m7 9 5-5 5 5M7 15l5 5 5-5" /></svg>
+                        <span class="visually-hidden">{{ allExpanded ? t('home.collapse_all') : t('home.expand_all') }}</span>
+                    </button>
+                </FloatingFilterBar>
+                <SortSheet v-model:open="chainSheetOpen" :title="t('home.chain_filter')" :options="chainOptions" :value="chainFilter" @change="chooseChain">
+                    <template #option="{ option }">
+                        <ChainLogo v-if="option.value" :chain="option.value" with-name />
+                        <template v-else>{{ option.label }}</template>
+                    </template>
+                </SortSheet>
                 <ActiveFilters :chips="activeFilterChips" />
                 <SortSheet v-model:open="sortOpen" :options="offersPreferences.sortOptions" :value="sort" @change="(value) => ((sort = value), saveSort(value))" />
                 <BottomSheet v-model:open="filtersOpen" :title="t('sheet.filters')">
