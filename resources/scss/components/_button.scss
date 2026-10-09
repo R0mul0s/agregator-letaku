@@ -50,6 +50,18 @@
         }
     }
 
+    // Akce u karty akce (Hlídat, Do seznamu, R118): plné jemné pozadí — výraznější než ghost
+    // a nepropustí vodoznak obchodu za ním
+    &--soft {
+        background: var(--color-accent-soft);
+        border-color: var(--color-accent-soft);
+        color: var(--color-accent-strong);
+
+        &:hover:not(:disabled) {
+            border-color: var(--color-accent);
+        }
+    }
+
     // Méně výrazná akce
     &--ghost {
         background: none;

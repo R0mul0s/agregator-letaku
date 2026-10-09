@@ -57,8 +57,8 @@ function toggle() {
     <button
         v-if="list"
         type="button"
-        class="button button--ghost shopping-toggle"
-        :class="{ 'shopping-toggle--added': inList, 'shopping-toggle--compact': compact }"
+        class="button shopping-toggle"
+        :class="{ 'button--ghost': compact, 'button--soft': !compact, 'shopping-toggle--added': inList, 'shopping-toggle--compact': compact }"
         :aria-pressed="compact ? (inList ? 'true' : 'false') : undefined"
         :disabled="processing"
         @click="toggle"

@@ -49,7 +49,7 @@ const imageBroken = ref(false);
         />
         <div class="mention-card__body">
             <div class="offer-card__badges">
-                <ChainLogo :chain="mention.chain" />
+                <ChainLogo :chain="mention.chain" revealable />
                 <span v-if="starts" class="tag tag--upcoming">{{ starts }}</span>
                 <span v-if="mention.storeFormatName" class="tag">{{ mention.storeFormatName }}</span>
                 <!-- Vysvětlení klepnutím — title se na dotykovém displeji neukáže (R55) -->

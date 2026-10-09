@@ -99,7 +99,8 @@ const historyLabel = computed(() => {
     <article class="offer-card" :class="{ 'offer-card--upcoming': starts }">
         <ChainWatermark :chain="offer.chain" />
         <div class="offer-card__badges">
-            <ChainLogo :chain="offer.chain" />
+            <!-- Klepnutím název obchodu (R118) -->
+            <ChainLogo :chain="offer.chain" revealable />
             <!-- Ještě nezačala (R76) — v obchodě zatím neplatí -->
             <span v-if="starts" class="tag tag--upcoming">{{ starts }}</span>
             <!-- Vysvětlení klepnutím — title se na dotykovém displeji neukáže (R55) -->

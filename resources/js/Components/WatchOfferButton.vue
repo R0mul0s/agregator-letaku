@@ -51,11 +51,11 @@ function watchProduct() {
 
 <template>
     <span v-if="target.watched" class="watch-offer watch-offer--done">{{ t('offers.watch.watched', { name: target.name }) }}</span>
-    <Link v-else-if="isGuest" :href="registerHref" class="button button--ghost watch-offer">
+    <Link v-else-if="isGuest" :href="registerHref" class="button button--soft watch-offer">
         {{ target.productId ? t('offers.watch.product', { name: target.name }) : t('offers.watch.own') }}
     </Link>
-    <button v-else-if="target.productId" type="button" class="button button--ghost watch-offer" :disabled="processing" @click="watchProduct">
+    <button v-else-if="target.productId" type="button" class="button button--soft watch-offer" :disabled="processing" @click="watchProduct">
         {{ t('offers.watch.product', { name: target.name }) }}
     </button>
-    <Link v-else :href="prefillHref" class="button button--ghost watch-offer">{{ t('offers.watch.own') }}</Link>
+    <Link v-else :href="prefillHref" class="button button--soft watch-offer">{{ t('offers.watch.own') }}</Link>
 </template>

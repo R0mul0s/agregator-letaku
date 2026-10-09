@@ -27,6 +27,19 @@
     &--large &__image {
         height: var(--chain-logo-height-large);
     }
+
+    // Logo na kartě akce rozklikne název (R118) — tlačítko bez vlastního vzhledu, název jako text
+    // vedle loga
+    &--button {
+        padding: 0;
+        background: none;
+        border: 0;
+        border-radius: var(--radius-sm);
+        color: var(--color-text);
+        font: inherit;
+        font-size: var(--font-size-sm);
+        cursor: pointer;
+    }
 }
 
 .chain-select {
