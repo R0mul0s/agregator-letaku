@@ -3,6 +3,7 @@
     v letáku bez ceny. Jsou pod ostatními, aby skupiny s akcemi byly na první obrazovce; sbalitelná
     jako skupiny (výchozí stav a zapamatování řídí stránka). Hlavička ukáže počet a názvy, po
     rozbalení řádky s akcemi upravit / přestat hlídat a jestli o akcích dáme vědět e-mailem.
+    Položka s akcemi, které ještě nezačaly, vede klepnutím do sekce Brzy.
 
     @author Roman Hlaváček
     @created 2026-10-07
@@ -20,7 +21,12 @@ const props = defineProps({
     digestFrequency: { type: String, default: null },
     /** Nastavení souhrnu v účtu. */
     digestUrl: { type: String, required: true },
+    /** Je na stránce sekce Brzy? Ve výběru obchodu ne — „+1 brzy“ pak nikam nevede. */
+    upcomingShown: { type: Boolean, default: true },
 });
+
+/** „+1 brzy“ u položky: stránka rozbalí sekci Brzy a posune se na položku (ID hlídané položky). */
+const emit = defineEmits(['show-upcoming']);
 
 /** Rozbalená sekce (řídí stránka — pamatuje si stav). */
 const expanded = defineModel('expanded', { type: Boolean, default: false });
@@ -63,9 +69,16 @@ const names = computed(() => props.items.map((item) => item.name).join(', '));
             <ul class="waiting-items">
                 <!-- Kotva jako u skupiny — odkaz z Hlídám (#polozka-{id}) vede i sem -->
                 <li v-for="item in items" :id="`polozka-${item.id}`" :key="item.id" class="waiting-items__item">
-                    <span class="waiting-items__name">{{ item.name }}</span>
-                    <!-- Akce, které ještě nezačaly (R76) — jsou v sekci Brzy -->
-                    <span v-if="item.upcoming.length" class="watch-group__upcoming">{{ t('watch.upcoming_count', { count: item.upcoming.length }) }}</span>
+                    <!-- Akce, které ještě nezačaly (R76) jsou v sekci Brzy — klepnutí na název
+                         nebo počet ji rozbalí a posune stránku na akce položky -->
+                    <button v-if="item.upcoming.length && upcomingShown" type="button" class="waiting-items__name waiting-items__name--link" @click="emit('show-upcoming', item.id)">
+                        <span class="waiting-items__label">{{ item.name }}</span>
+                        <span class="watch-group__upcoming">{{ t('watch.upcoming_count', { count: item.upcoming.length }) }}</span>
+                    </button>
+                    <template v-else>
+                        <span class="waiting-items__name">{{ item.name }}</span>
+                        <span v-if="item.upcoming.length" class="watch-group__upcoming">{{ t('watch.upcoming_count', { count: item.upcoming.length }) }}</span>
+                    </template>
                     <WatchItemActions :item="item" />
                 </li>
             </ul>

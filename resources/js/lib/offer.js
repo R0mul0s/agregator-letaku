@@ -61,3 +61,13 @@ export function startsLabel(entry, locale, t) {
 
     return entry.startsInDays === STARTS_TOMORROW_DAYS ? t('offers.starts_tomorrow') : t('offers.starts_on', { date: formatDate(entry.validFrom, locale) });
 }
+
+/**
+ * Kotva položky v sekci Brzy (R76) — „+1 brzy“ v sekci Zatím bez akce na ni posune stránku.
+ *
+ * @param {number} itemId ID hlídané položky
+ * @returns {string}
+ */
+export function upcomingAnchor(itemId) {
+    return `brzy-polozka-${itemId}`;
+}

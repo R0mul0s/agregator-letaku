@@ -12,6 +12,7 @@ import OfferCard from '@/Components/OfferCard.vue';
 import ShoppingToggle from '@/Components/ShoppingToggle.vue';
 import { formatDate } from '@/lib/format';
 import { useTranslations } from '@/lib/i18n';
+import { upcomingAnchor } from '@/lib/offer';
 import { usePage } from '@inertiajs/vue3';
 import { computed, useId } from 'vue';
 
@@ -56,7 +57,8 @@ const firstStart = computed(() =>
             <template v-if="expanded">
                 <p class="watch-group__hint">{{ t('home.upcoming_hint') }}</p>
                 <template v-for="item in items" :key="item.id">
-                    <h3 class="watch-group__subtitle">{{ item.name }}</h3>
+                    <!-- Kotva pro „+1 brzy“ ze sekce Zatím bez akce — fokus sem přesune stránka -->
+                    <h3 :id="upcomingAnchor(item.id)" class="watch-group__subtitle" tabindex="-1">{{ item.name }}</h3>
                     <div class="offer-grid">
                         <OfferCard v-for="offer in item.upcoming" :key="offer.id" :offer="offer" :heading-level="4">
                             <ShoppingToggle :offer-id="offer.id" />

@@ -226,6 +226,11 @@
     &__subtitle {
         margin: var(--space-4) 0 var(--space-1);
         font-size: var(--font-size-md);
+
+        // Fokus sem přesune stránka („+1 brzy“) — programový, ne z klávesnice (R99)
+        &:focus {
+            outline: none;
+        }
     }
 
     &__hint {
@@ -633,6 +638,29 @@
         min-width: 0;
         font-weight: 700;
         overflow-wrap: anywhere;
+    }
+
+    // Položka s akcemi, které ještě nezačaly: název i „+1 brzy“ vedou do sekce Brzy (R76)
+    &__name--link {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        padding: 0;
+        background: none;
+        border: 0;
+        color: var(--color-text);
+        font: inherit;
+        font-weight: 700;
+        text-align: left;
+        cursor: pointer;
+
+        .watch-group__upcoming {
+            margin-left: auto;
+        }
+
+        &:hover .waiting-items__label {
+            text-decoration: underline;
+        }
     }
 }
 

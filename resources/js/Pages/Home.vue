@@ -31,7 +31,7 @@ import WatchGroup from '@/Components/WatchGroup.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { useExpandedGroups } from '@/lib/expandedGroups';
 import { useTranslations } from '@/lib/i18n';
-import { discountPercent } from '@/lib/offer';
+import { discountPercent, upcomingAnchor } from '@/lib/offer';
 import { readStored, writeStored } from '@/lib/storage';
 import { useCompactView } from '@/lib/viewMode';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
@@ -308,6 +308,20 @@ async function revealItem(id) {
     document.getElementById(`polozka-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
+/**
+ * „+1 brzy“ v sekci Zatím bez akce: rozbalí sekci Brzy, posune stránku na akce položky a přesune
+ * na ně fokus (čtečka i klávesnice pokračují tam, kam se stránka posunula).
+ *
+ * @param {number} id ID hlídané položky
+ */
+async function showUpcoming(id) {
+    upcomingExpanded.value = true;
+    await nextTick();
+    const target = document.getElementById(upcomingAnchor(id));
+    target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    target?.focus({ preventScroll: true });
+}
+
 /** „28 akcí“ v úvodním pruhu: pohled Podle položek se vším rozbaleným. */
 async function showAllOffers() {
     groupView.value = VIEW_ITEMS;
@@ -530,7 +544,15 @@ onMounted(async () => {
                 <!-- Akce, které ještě nezačaly (R76) — v obchodě (výběr obchodu) se neukazují -->
                 <UpcomingSection v-if="!focused && upcomingItems.length" v-model:expanded="upcomingExpanded" :items="upcomingItems" />
                 <!-- Položky, které teď v akci nejsou (R100) — v obchodě se neukazují -->
-                <WaitingSection v-if="waitingItems.length" v-model:expanded="waitingExpanded" :items="waitingItems" :digest-frequency="digestFrequency" :digest-url="urls.digest" />
+                <WaitingSection
+                    v-if="waitingItems.length"
+                    v-model:expanded="waitingExpanded"
+                    :items="waitingItems"
+                    :digest-frequency="digestFrequency"
+                    :digest-url="urls.digest"
+                    :upcoming-shown="!focused && upcomingItems.length > 0"
+                    @show-upcoming="showUpcoming"
+                />
             </template>
         </template>
     </AppLayout>
