@@ -361,3 +361,38 @@ beze změny. Nahrané ručně po souborech včetně `public/build/`, `config/let
 
 - **Ověřeno:** Test rozšířených výsledků Googlu na `/akce` bez produktových úryvků (dřív 50 neplatných),
   jen navigační struktura, místní firmy a organizace.
+
+### Aktualizace z `7e90785` (dvacáté osmé nasazení — provedeno, `1b23d0c`)
+
+„+1 brzy“ v sekci Zatím bez akce otevře akce položky v sekci Brzy, v aplikaci z plochy stažení
+stránky dolů načte data znovu (R112). **Audit technického dluhu (R113) a úklid (R114):** data
+z letáků přes Nový rok, zámek cronu upozornění, zrušení účtu i s centrem upozornění, jeden výpočet
+slevy, rozdělený import a sdílené části parserů PDF, frontend po komponentách. **Hlídání úloh cronu
+`/health/tasks` (R115).** Mění se backend (`app/`, `config/letaky.php`, `lang/`, `routes/`,
+`resources/views/`) i frontend; **dva SQL skripty**; `vendor/` beze změny (`composer.lock` stejný),
+`.env` a cron beze změny; **jeden soubor zmizel**.
+
+1. **Záloha databáze** (*Záloha databáze* níže).
+2. **SQL** v phpMyAdminu, oba opakovatelné a stará verze kódu s nimi běží:
+   `migrations-2026-10-09-indexy.sql` (indexy pro rostoucí historii, R113) a
+   `migrations-2026-10-09-hlidani-uloh.sql` (tabulka `task_heartbeats`, R115).
+3. **Nahraj `deploy/upload/`** bez `vendor/`, ale **s `vendor/composer/`** (optimalizovaný autoloader
+   zná nové třídy) a s `bootstrap/cache/packages.php`, `public/build/` (starý obsah nejdřív smaž)
+   a `public/version.txt`.
+4. **Smaž na hostingu** `app/Domain/Sources/ImportFreshness.php` (nahradil ho `ScrapeRun::lastFinishedAt`).
+5. **Zavolej ručně** `/cron/prune-sessions?token=…`, `/cron/import-categories?token=…`
+   a `/cron/send-digests?token=…` — jinak `/health/tasks` hlásí „nikdy“ do jejich cronu
+   (kategorie až 1. 11.). Úklid poprvé vyprázdní `raw` akcí skončených před 60 dny (R113).
+6. **Ověř:**
+   - `version.txt`; `/health/imports` i `/health/tasks` vrací 200 (prodejny Kauflandu OK
+     po ranním nebo poledním `import-stores`),
+   - našeptávač hledání, okna Filtry a Seřadit na telefonu, potvrzovací dialog (např. odebrání
+     hlídané položky), sekce Mého účtu s navigací, Všechny akce s „Načíst další“,
+   - v Mých slevách „+1 brzy“ v sekci Zatím bez akce rozbalí sekci Brzy; v aplikaci z plochy
+     tah dolů na začátku stránky vysune kruh se šipkou a stránku načte znovu.
+7. **UptimeRobot:** druhý monitor na `/health/tasks` (*Monitoring: hlídání stahování*).
+8. Zapiš verzi do *Nasazené verze*, u obou SQL skriptů datum v *Historie SQL skriptů* a tuhle sekci
+   přesuň do `HISTORIE_NASAZENI.md`.
+
+- **Ověřeno:** `version.txt` = `1b23d0c`; `/health/imports` i `/health/tasks` vrací 200, všechny úlohy OK
+  po ručním zavolání cronů (9. 10. 17:05).

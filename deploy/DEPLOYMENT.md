@@ -410,38 +410,6 @@ Co bylo zvláštní na jednotlivých dřívějších nasazeních (SQL skripty, n
 je v [HISTORIE_NASAZENI.md](HISTORIE_NASAZENI.md). Poznámky k nasazení, které se teprve chystá,
 patří sem pod tenhle postup; po nasazení se přesunou tam (R106).
 
-### Aktualizace z `7e90785` (připravuje se)
-
-„+1 brzy“ v sekci Zatím bez akce otevře akce položky v sekci Brzy, v aplikaci z plochy stažení
-stránky dolů načte data znovu (R112). **Audit technického dluhu (R113) a úklid (R114):** data
-z letáků přes Nový rok, zámek cronu upozornění, zrušení účtu i s centrem upozornění, jeden výpočet
-slevy, rozdělený import a sdílené části parserů PDF, frontend po komponentách. **Hlídání úloh cronu
-`/health/tasks` (R115).** Mění se backend (`app/`, `config/letaky.php`, `lang/`, `routes/`,
-`resources/views/`) i frontend; **dva SQL skripty**; `vendor/` beze změny (`composer.lock` stejný),
-`.env` a cron beze změny; **jeden soubor zmizel**.
-
-1. **Záloha databáze** (*Záloha databáze* níže).
-2. **SQL** v phpMyAdminu, oba opakovatelné a stará verze kódu s nimi běží:
-   `migrations-2026-10-09-indexy.sql` (indexy pro rostoucí historii, R113) a
-   `migrations-2026-10-09-hlidani-uloh.sql` (tabulka `task_heartbeats`, R115).
-3. **Nahraj `deploy/upload/`** bez `vendor/`, ale **s `vendor/composer/`** (optimalizovaný autoloader
-   zná nové třídy) a s `bootstrap/cache/packages.php`, `public/build/` (starý obsah nejdřív smaž)
-   a `public/version.txt`.
-4. **Smaž na hostingu** `app/Domain/Sources/ImportFreshness.php` (nahradil ho `ScrapeRun::lastFinishedAt`).
-5. **Zavolej ručně** `/cron/prune-sessions?token=…`, `/cron/import-categories?token=…`
-   a `/cron/send-digests?token=…` — jinak `/health/tasks` hlásí „nikdy“ do jejich cronu
-   (kategorie až 1. 11.). Úklid poprvé vyprázdní `raw` akcí skončených před 60 dny (R113).
-6. **Ověř:**
-   - `version.txt`; `/health/imports` i `/health/tasks` vrací 200 (prodejny Kauflandu OK
-     po ranním nebo poledním `import-stores`),
-   - našeptávač hledání, okna Filtry a Seřadit na telefonu, potvrzovací dialog (např. odebrání
-     hlídané položky), sekce Mého účtu s navigací, Všechny akce s „Načíst další“,
-   - v Mých slevách „+1 brzy“ v sekci Zatím bez akce rozbalí sekci Brzy; v aplikaci z plochy
-     tah dolů na začátku stránky vysune kruh se šipkou a stránku načte znovu.
-7. **UptimeRobot:** druhý monitor na `/health/tasks` (*Monitoring: hlídání stahování*).
-8. Zapiš verzi do *Nasazené verze*, u obou SQL skriptů datum v *Historie SQL skriptů* a tuhle sekci
-   přesuň do `HISTORIE_NASAZENI.md`.
-
 ---
 
 ## Záloha databáze
@@ -472,8 +440,8 @@ a ruční opravy katalogu. Před každým SQL skriptem a jinak aspoň jednou mě
 | `migrations-2026-10-05-centrum-upozorneni.sql` | centrum upozornění (R74): tabulky `notifications` a `announcements`, `users.notified_at`; opakovatelný, pustit **před** nahráním kódu | 2026-10-05 |
 | `migrations-2026-10-05-posledni-aktivita.sql` | poslední aktivita (R84): `users.last_seen_at` s indexem, dosavadním účtům doplní z relací; opakovatelný, pustit **před** nahráním kódu | 2026-10-05 |
 | `migrations-2026-10-06-prihlaseni-pres-google.sql` | přihlášení přes Google a Facebook (R96): tabulka `social_accounts`, `users.password` nepovinné; opakovatelný, pustit **před** nahráním kódu | 2026-10-06 |
-| `migrations-2026-10-09-indexy.sql` | indexy pro rostoucí historii (R113): `offers.valid_from`, `created_at`, `withdrawn_at`, `scrape_runs (status, finished_at)`; opakovatelný, pustit kdykoli (stará verze kódu s ním běží) | — |
-| `migrations-2026-10-09-hlidani-uloh.sql` | hlídání úloh cronu (R115): tabulka `task_heartbeats`; opakovatelný, pustit **před** nahráním kódu | — |
+| `migrations-2026-10-09-indexy.sql` | indexy pro rostoucí historii (R113): `offers.valid_from`, `created_at`, `withdrawn_at`, `scrape_runs (status, finished_at)`; opakovatelný, pustit kdykoli (stará verze kódu s ním běží) | 2026-10-09 |
+| `migrations-2026-10-09-hlidani-uloh.sql` | hlídání úloh cronu (R115): tabulka `task_heartbeats`; opakovatelný, pustit **před** nahráním kódu | 2026-10-09 |
 
 ## Nasazené verze
 
@@ -509,3 +477,4 @@ Co běží na produkci — pro `git log <commit>..HEAD` při dalším nasazení
 | 2026-10-07 | `2f60395` | dvacáté páté nasazení: IndexNow (R105) — stažení obchodu ohlásí změněné stránky Bingu, Seznamu a dalším, klíč na `/<klíč>.txt` (ověřeno: 200 s klíčem, jiný název 404); nahraných šest souborů v `app/`, `config/` a `routes/`, bez SQL skriptu, bez `vendor/` a `public/build/` |
 | 2026-10-09 | `b75955a` | dvacáté šesté nasazení: kritická revize (R106) — hranice nových akcí při souběhu se stažením, časový rozpočet cronu souhrnů, seznam prodejen po otevření okna, „Načíst další“ jen s novou stránkou, sdílené kontroly parserů letáků; ovoce, zelenina a maso na kg z letáků Albertu a Penny, zmínky bez cizích produktů a prošlých akcí (R107); celý balíček bez `vendor/`, bez SQL skriptu |
 | 2026-10-09 | `7e90785` | dvacáté sedmé nasazení: fotky Billy a Penny v menší variantě CDN (R108), odkaz akce Kauflandu na detail akce (R109), popis shodný s balením se neopakuje, „Do letáku“ (R110), schema.org bez `Product` — test rozšířených výsledků bez chyb (R111); nahrané ručně včetně `public/build/`, bez SQL skriptu a `vendor/`; `version.txt` zůstal `b75955a` |
+| 2026-10-09 | `1b23d0c` | dvacáté osmé nasazení: „+1 brzy“ otevře sekci Brzy, stažení stránky dolů v aplikaci z plochy (R112), audit technického dluhu (R113) a úklid (R114), hlídání úloh cronu `/health/tasks` (R115); SQL `migrations-2026-10-09-indexy.sql` a `migrations-2026-10-09-hlidani-uloh.sql`, bez `vendor/` (jen `vendor/composer/`), smazaný `ImportFreshness.php` |
