@@ -410,31 +410,6 @@ Co bylo zvláštní na jednotlivých dřívějších nasazeních (SQL skripty, n
 je v [HISTORIE_NASAZENI.md](HISTORIE_NASAZENI.md). Poznámky k nasazení, které se teprve chystá,
 patří sem pod tenhle postup; po nasazení se přesunou tam (R106).
 
-### Aktualizace z `1b23d0c` (připravuje se)
-
-Přilepené lišty na telefonu: sekce Mého účtu a kapitoly podmínek a zásad (R116), hlavička
-rozbalené skupiny v Mých slevách (R117), plovoucí ikony hledání a filtrů ve Všech akcích (R119) a v Mých slevách (R120);
-název obchodu klepnutím na logo a výraznější Hlídat / Do seznamu na kartě (R118). Podmínky a zásady
-bez indexace vyhledávači a mimo sitemap (R121), `lastmod` v sitemapě podle skutečné změny stránky (R122).
-Mění se frontend a čtyři soubory backendu
-(`app/Support/Seo/PublicPages.php`, `app/Support/Seo/SeoMeta.php`, `app/Http/Controllers/CrawlerFilesController.php`,
-nový `app/Domain/Offers/OfferPageChanges.php`; nová třída = i `vendor/composer/` kvůli autoloaderu)
-— bez SQL skriptu, z `vendor/` jen `composer/`, `config/`, `lang/` i `.env` beze změny, žádný
-soubor nezmizel.
-
-1. **Nahraj** `public/build/` (celý, starý obsah můžeš smazat), čtyři soubory z `app/` výše, `vendor/composer/` a `public/version.txt`
-   z `deploy/upload/`.
-2. **Ověř na telefonu:** `version.txt`; v Mém účtu a na `/podminky` lišta sekcí pod hlavičkou
-   dojíždí k aktivní sekci a nadpis po klepnutí nezajede pod ni; v Mých slevách u rozbalené
-   položky přilepená hlavička na jeden řádek, klepnutí ji sbalí; ve Všech akcích po odskrolování
-   plovoucí ikony, lupa otevře hledání bez posunu stránky; v Mých slevách plovoucí ikony a přilepená
-   hlavička skupiny pod nimi, ikona obchodu otevře okno s obchody; klepnutí na logo obchodu na kartě
-   ukáže název. `/podminky` a `/ochrana-udaju` mají `noindex, follow` a v `/sitemap.xml` nejsou;
-   v `/sitemap.xml` mají obchody a produkty různá data `lastmod` (ne všechny stejný čas).
-   V Google Search Console *Kontrola URL* → `https://slevohlidka.cz/` → *Požádat o indexování* (Google
-   má u úvodní stránky ještě titulek staré stránky Brzy).
-3. Zapiš verzi do *Nasazené verze* a tuhle sekci přesuň do `HISTORIE_NASAZENI.md`.
-
 ---
 
 ## Záloha databáze
@@ -503,3 +478,4 @@ Co běží na produkci — pro `git log <commit>..HEAD` při dalším nasazení
 | 2026-10-09 | `b75955a` | dvacáté šesté nasazení: kritická revize (R106) — hranice nových akcí při souběhu se stažením, časový rozpočet cronu souhrnů, seznam prodejen po otevření okna, „Načíst další“ jen s novou stránkou, sdílené kontroly parserů letáků; ovoce, zelenina a maso na kg z letáků Albertu a Penny, zmínky bez cizích produktů a prošlých akcí (R107); celý balíček bez `vendor/`, bez SQL skriptu |
 | 2026-10-09 | `7e90785` | dvacáté sedmé nasazení: fotky Billy a Penny v menší variantě CDN (R108), odkaz akce Kauflandu na detail akce (R109), popis shodný s balením se neopakuje, „Do letáku“ (R110), schema.org bez `Product` — test rozšířených výsledků bez chyb (R111); nahrané ručně včetně `public/build/`, bez SQL skriptu a `vendor/`; `version.txt` zůstal `b75955a` |
 | 2026-10-09 | `1b23d0c` | dvacáté osmé nasazení: „+1 brzy“ otevře sekci Brzy, stažení stránky dolů v aplikaci z plochy (R112), audit technického dluhu (R113) a úklid (R114), hlídání úloh cronu `/health/tasks` (R115); SQL `migrations-2026-10-09-indexy.sql` a `migrations-2026-10-09-hlidani-uloh.sql`, bez `vendor/` (jen `vendor/composer/`), smazaný `ImportFreshness.php` |
+| 2026-10-09 | `ff76607` | dvacáté deváté nasazení: přilepené a plovoucí lišty na telefonu (R116, R117, R119, R120), název obchodu klepnutím na logo a výraznější Hlídat / Do seznamu (R118), podmínky a zásady `noindex` a mimo sitemap (R121), `lastmod` v sitemapě podle skutečné změny stránky (R122); `public/build/`, čtyři soubory z `app/` a `vendor/composer/`, bez SQL skriptu |
