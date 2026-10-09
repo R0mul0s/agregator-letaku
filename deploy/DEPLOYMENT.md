@@ -414,17 +414,22 @@ patří sem pod tenhle postup; po nasazení se přesunou tam (R106).
 
 Přilepené lišty na telefonu: sekce Mého účtu a kapitoly podmínek a zásad (R116), hlavička
 rozbalené skupiny v Mých slevách (R117), plovoucí ikony hledání a filtrů ve Všech akcích (R119) a v Mých slevách (R120);
-název obchodu klepnutím na logo a výraznější Hlídat / Do seznamu na kartě (R118). Mění se jen
-frontend — bez SQL skriptu, bez `vendor/`, `app/`, `config/`, `lang/` i `.env` beze změny, žádný
+název obchodu klepnutím na logo a výraznější Hlídat / Do seznamu na kartě (R118). Podmínky a zásady
+bez indexace vyhledávači a mimo sitemap (R121). Mění se frontend a tři soubory backendu
+(`app/Support/Seo/PublicPages.php`, `app/Support/Seo/SeoMeta.php`, `app/Http/Controllers/CrawlerFilesController.php`)
+— bez SQL skriptu, `vendor/`, `config/`, `lang/` i `.env` beze změny, žádný
 soubor nezmizel.
 
-1. **Nahraj** `public/build/` (celý, starý obsah můžeš smazat) a `public/version.txt` z `deploy/upload/`.
+1. **Nahraj** `public/build/` (celý, starý obsah můžeš smazat), tři soubory z `app/` výše a `public/version.txt`
+   z `deploy/upload/`.
 2. **Ověř na telefonu:** `version.txt`; v Mém účtu a na `/podminky` lišta sekcí pod hlavičkou
    dojíždí k aktivní sekci a nadpis po klepnutí nezajede pod ni; v Mých slevách u rozbalené
    položky přilepená hlavička na jeden řádek, klepnutí ji sbalí; ve Všech akcích po odskrolování
    plovoucí ikony, lupa otevře hledání bez posunu stránky; v Mých slevách plovoucí ikony a přilepená
    hlavička skupiny pod nimi, ikona obchodu otevře okno s obchody; klepnutí na logo obchodu na kartě
-   ukáže název.
+   ukáže název. `/podminky` a `/ochrana-udaju` mají `noindex, follow` a v `/sitemap.xml` nejsou.
+   V Google Search Console *Kontrola URL* → `https://slevohlidka.cz/` → *Požádat o indexování* (Google
+   má u úvodní stránky ještě titulek staré stránky Brzy).
 3. Zapiš verzi do *Nasazené verze* a tuhle sekci přesuň do `HISTORIE_NASAZENI.md`.
 
 ---

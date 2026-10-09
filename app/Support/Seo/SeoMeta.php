@@ -182,7 +182,7 @@ final class SeoMeta
     }
 
     /**
-     * Pravidlo pro roboty: veřejné stránky indexovat, výsledky hledání ne (nekonečně
+     * Pravidlo pro roboty: veřejné stránky indexovat (kromě podmínek a zásad, R121), výsledky hledání ne (nekonečně
      * kombinací, slabý obsah), produkt bez akcí ne (prázdná stránka), přihlášení
      * a registraci ne, vše ostatní ani sledovat.
      */
@@ -198,7 +198,8 @@ final class SeoMeta
                 : self::INDEX;
         }
         if (PublicPages::isPublic($page)) {
-            return self::INDEX;
+            // Podmínky a zásady veřejné, ale ne ve výsledcích hledání (R121)
+            return PublicPages::isIndexed($page) ? self::INDEX : self::NOINDEX_FOLLOW;
         }
 
         return in_array($routeName, self::AUTH_ROUTES, true) ? self::NOINDEX_FOLLOW : self::NOINDEX;

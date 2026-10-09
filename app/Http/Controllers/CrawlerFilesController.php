@@ -81,7 +81,8 @@ class CrawlerFilesController extends Controller
                 'loc' => $this->pages->productUrl($productId, absolute: true),
                 'lastmod' => $offersModified,
             ], $this->pages->productsWithOffers()),
-            ...array_map(fn (string $route): array => ['loc' => route($route), 'lastmod' => $legalModified], array_keys(PublicPages::PAGES)),
+            // Podmínky a zásady ne — jsou noindex (R121)
+            ...array_map(fn (string $route): array => ['loc' => route($route), 'lastmod' => $legalModified], PublicPages::indexedRoutes()),
         ];
 
         return response()

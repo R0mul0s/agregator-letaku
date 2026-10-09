@@ -27,7 +27,8 @@ it('ukáže právní stránku s údaji provozovatele z konfigurace', function (s
 
     $this->get(route($route))
         ->assertOk()
-        ->assertSee('<meta name="robots" content="index, follow">', escape: false)
+        // Veřejná, ale ne ve výsledcích hledání (R121)
+        ->assertSee('<meta name="robots" content="noindex, follow">', escape: false)
         ->assertInertia(fn (Assert $page) => $page
             ->component('Legal')
             ->where('title', $title)
@@ -64,10 +65,10 @@ it('sdílí patičku s obchody, časem posledního stažení a odkazy, bez adres
             ->where('siteFooter.privacyUrl', '/ochrana-udaju'));
 });
 
-it('má právní stránky v sitemap', function (): void {
+it('právní stránky nejsou v sitemap — jsou noindex (R121)', function (): void {
     $this->get(route('sitemap'))
-        ->assertSee(route('legal.terms'))
-        ->assertSee(route('legal.privacy'));
+        ->assertDontSee('<loc>'.route('legal.terms').'</loc>', false)
+        ->assertDontSee('<loc>'.route('legal.privacy').'</loc>', false);
 });
 
 it('neexistující stránku ukáže česky', function (): void {

@@ -138,23 +138,34 @@ it('sitemap.xml a llms.txt obsahují jen obchody s aktuálními akcemi', functio
         ->assertSeeText('Akce Lidlu');
 });
 
-it('sitemap.xml: právní stránky mají datum účinnosti, ne čas stažení akcí (R68)', function (): void {
+it('sitemap.xml: kontakt má datum účinnosti právních textů, ne čas stažení akcí (R68)', function (): void {
     config(['letaky.legal.effective_from' => '2026-10-04']);
 
     $this->get('/sitemap.xml')
-        ->assertSee('<loc>'.route('legal.terms').'</loc>'."\n".'        <lastmod>2026-10-04</lastmod>', false)
+        ->assertSee('<loc>'.route('contact').'</loc>'."\n".'        <lastmod>2026-10-04</lastmod>', false)
         ->assertDontSee('changefreq', false);
 });
 
-it('každá stránka z registru veřejných stránek je indexovaná, v sitemap, llms.txt i v obsahu bez JS (R113)', function (string $route, string $kind): void {
+it('podmínky a zásady jsou veřejné, ale noindex a mimo sitemap; kontakt indexovaný (R121)', function (): void {
+    expect(PublicPages::indexedRoutes())->toBe(['contact']);
+
+    $this->get('/sitemap.xml')
+        ->assertDontSee('<loc>'.route('legal.terms').'</loc>', false)
+        ->assertDontSee('<loc>'.route('legal.privacy').'</loc>', false)
+        ->assertSee('<loc>'.route('contact').'</loc>', false);
+});
+
+it('každá stránka z registru veřejných stránek má robots podle registru, je v llms.txt i v obsahu bez JS (R113, R121)', function (string $route, string $kind): void {
     expect(__("app.seo.pages.$kind.title"))->not->toBe("app.seo.pages.$kind.title")
         ->and(__("app.ui.footer.$kind"))->not->toBe("app.ui.footer.$kind")
         ->and(__("app.llms.$kind"))->not->toBe("app.llms.$kind");
 
     $html = $this->get(route($route))->assertOk()->getContent();
-    expect(metaContent($html, 'robots'))->toBe('index, follow');
+    $indexed = PublicPages::isIndexed($kind);
+    expect(metaContent($html, 'robots'))->toBe($indexed ? 'index, follow' : 'noindex, follow');
 
-    $this->get('/sitemap.xml')->assertSee('<loc>'.route($route).'</loc>', false);
+    $sitemap = $this->get('/sitemap.xml');
+    $indexed ? $sitemap->assertSee('<loc>'.route($route).'</loc>', false) : $sitemap->assertDontSee('<loc>'.route($route).'</loc>', false);
     $this->get('/llms.txt')->assertSee('('.route($route).')', false);
     $this->get('/akce')->assertSee('<a href="'.route($route).'">'.__("app.ui.footer.$kind").'</a>', false);
 })->with(fn (): array => array_map(null, array_keys(PublicPages::PAGES), array_values(PublicPages::PAGES)));
