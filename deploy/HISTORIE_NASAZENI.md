@@ -331,3 +331,33 @@ a drobnosti vzhledu. Bez SQL skriptu a bez `vendor/` (`composer.lock` beze změn
 2. **Ověř:** `https://slevohlidka.cz/<klíč>.txt` vrací samotný klíč, jiný název 404; po nejbližším cronu
    stažení jsou v Bing Webmaster Tools → *IndexNow* ohlášené adresy (jinak hledej `IndexNow:` v logu).
 3. Zapiš verzi do *Nasazené verze*.
+
+### Aktualizace z `2f60395` (dvacáté šesté nasazení — provedeno, `b75955a`)
+
+**Kritická revize (R106):** hranice nových akcí při souběhu se stažením, časový rozpočet cronu
+souhrnů, seznam prodejen až po otevření okna, „Načíst další“ jen s novou stránkou, sdílené
+kontroly parserů letáků. **Ovoce, zelenina a maso na kg z letáků Albertu a Penny (R107):**
+dlaždice 1 kg / 1 ks se sedící slevou, zmínky s vyloučenými slovy v okolí slova a bez prošlých
+akcí. Bez SQL skriptu, bez `vendor/` (`composer.lock` beze změny), cron i `.env` beze změny
+(`letaky.mentions.exclude_window_words` má výchozí hodnotu v `config/letaky.php`), žádný soubor
+nezmizel.
+
+1. **Nahraj `deploy/upload/`** bez `vendor/`, s `bootstrap/cache/packages.php`, `public/build/`
+   a `public/version.txt`.
+2. **Ověř:** `version.txt`; ve Všech akcích „Načíst další“ připojí akce bez skoku stránky
+   (v síti jen jedna stránka akcí); u akce Kauflandu „Jen …“ otevře seznam prodejen; ruční
+   `/cron/send-digests?token=…` doběhne s počty u všech pěti kroků. Po ručním
+   `/cron/import-offers?chain=albert&token=…` a `chain=penny` jsou ve Všech akcích pod
+   `/akce/banany` akce Albertu a Penny z letáku (pokud je leták nese).
+3. Zapiš verzi do *Nasazené verze* a tuhle sekci přesuň do `HISTORIE_NASAZENI.md`.
+
+### Aktualizace z `b75955a` (dvacáté sedmé nasazení — provedeno, `7e90785`)
+
+Fotky Billy a Penny v menší variantě CDN (R108), odkaz akce Kauflandu na detail akce (R109),
+popis shodný s balením se na kartě neopakuje, „Do letáku“ u odkazu na stránku letáku (R110),
+akce ve schema.org bez vnořeného `Product` (R111). Bez SQL skriptu, bez `vendor/`, cron i `.env`
+beze změny. Nahrané ručně po souborech včetně `public/build/`, `config/letaky.php` a `lang/cs/app.php`;
+`public/version.txt` zůstal `b75955a`.
+
+- **Ověřeno:** Test rozšířených výsledků Googlu na `/akce` bez produktových úryvků (dřív 50 neplatných),
+  jen navigační struktura, místní firmy a organizace.

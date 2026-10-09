@@ -396,25 +396,6 @@ Co bylo zvláštní na jednotlivých dřívějších nasazeních (SQL skripty, n
 je v [HISTORIE_NASAZENI.md](HISTORIE_NASAZENI.md). Poznámky k nasazení, které se teprve chystá,
 patří sem pod tenhle postup; po nasazení se přesunou tam (R106).
 
-### Aktualizace z `2f60395` (připravuje se)
-
-**Kritická revize (R106):** hranice nových akcí při souběhu se stažením, časový rozpočet cronu
-souhrnů, seznam prodejen až po otevření okna, „Načíst další“ jen s novou stránkou, sdílené
-kontroly parserů letáků. **Ovoce, zelenina a maso na kg z letáků Albertu a Penny (R107):**
-dlaždice 1 kg / 1 ks se sedící slevou, zmínky s vyloučenými slovy v okolí slova a bez prošlých
-akcí. Bez SQL skriptu, bez `vendor/` (`composer.lock` beze změny), cron i `.env` beze změny
-(`letaky.mentions.exclude_window_words` má výchozí hodnotu v `config/letaky.php`), žádný soubor
-nezmizel.
-
-1. **Nahraj `deploy/upload/`** bez `vendor/`, s `bootstrap/cache/packages.php`, `public/build/`
-   a `public/version.txt`.
-2. **Ověř:** `version.txt`; ve Všech akcích „Načíst další“ připojí akce bez skoku stránky
-   (v síti jen jedna stránka akcí); u akce Kauflandu „Jen …“ otevře seznam prodejen; ruční
-   `/cron/send-digests?token=…` doběhne s počty u všech pěti kroků. Po ručním
-   `/cron/import-offers?chain=albert&token=…` a `chain=penny` jsou ve Všech akcích pod
-   `/akce/banany` akce Albertu a Penny z letáku (pokud je leták nese).
-3. Zapiš verzi do *Nasazené verze* a tuhle sekci přesuň do `HISTORIE_NASAZENI.md`.
-
 ---
 
 ## Záloha databáze
@@ -478,3 +459,5 @@ Co běží na produkci — pro `git log <commit>..HEAD` při dalším nasazení
 | 2026-10-07 | `16b4832` | dvacáté třetí nasazení: audit přístupnosti, SEO a zobrazení (R99) — strukturovaná data v jednom grafu (organizace, drobečková navigace, akce jako `Offer`, `FAQPage` kontaktu), `/index.php` přesměruje 301, texty UI jen při celém načtení (odpověď přechodu na `/akce` 52 kB místo 104 kB), vložený `theme-init.js` bez komentářů s novým otiskem v CSP (ověřeno, že sedí), fokus, kontrasty a čtečky; bez SQL skriptu a bez `vendor/` |
 | 2026-10-07 | `9324560` | dvacáté čtvrté nasazení: řazení a nastavení Mých obchodů ve Všech akcích, štítky filtrů, kategorie, Moje slevy podle obchodů a filtry na telefonu v okně (R100–R102); Microsoft Clarity po souhlasu s analytickými cookies, verze souhlasu 2, CSP a zásady (R103); náhled vlastních slov s poslední akcí z historie (R104); čitelná lišta ověření e-mailu, šipka výběrů a seznam selectu v tmavém režimu; bez SQL skriptu a bez `vendor/` |
 | 2026-10-07 | `2f60395` | dvacáté páté nasazení: IndexNow (R105) — stažení obchodu ohlásí změněné stránky Bingu, Seznamu a dalším, klíč na `/<klíč>.txt` (ověřeno: 200 s klíčem, jiný název 404); nahraných šest souborů v `app/`, `config/` a `routes/`, bez SQL skriptu, bez `vendor/` a `public/build/` |
+| 2026-10-09 | `b75955a` | dvacáté šesté nasazení: kritická revize (R106) — hranice nových akcí při souběhu se stažením, časový rozpočet cronu souhrnů, seznam prodejen po otevření okna, „Načíst další“ jen s novou stránkou, sdílené kontroly parserů letáků; ovoce, zelenina a maso na kg z letáků Albertu a Penny, zmínky bez cizích produktů a prošlých akcí (R107); celý balíček bez `vendor/`, bez SQL skriptu |
+| 2026-10-09 | `7e90785` | dvacáté sedmé nasazení: fotky Billy a Penny v menší variantě CDN (R108), odkaz akce Kauflandu na detail akce (R109), popis shodný s balením se neopakuje, „Do letáku“ (R110), schema.org bez `Product` — test rozšířených výsledků bez chyb (R111); nahrané ručně včetně `public/build/`, bez SQL skriptu a `vendor/`; `version.txt` zůstal `b75955a` |
