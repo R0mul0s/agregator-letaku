@@ -14,7 +14,7 @@
     $offerPages = app(\App\Domain\Offers\OfferPages::class);
     $withLinks = in_array($component, ['Landing', 'Offers'], true);
 @endphp
-@if (in_array($component, ['Landing', 'Offers', 'Contact', 'Legal'], true))
+@if (in_array($component, ['Landing', 'Offers', 'Contact', 'Legal', 'Auth/Login', 'Auth/Register'], true))
     <div class="seo-content" data-seo-content>
         <h1>{{ $seo['heading'] }}</h1>
 
@@ -60,6 +60,17 @@
             @case('Legal')
                 {{-- Vlastní právní text převedený z Markdownu bez HTML ze zdroje (LegalDocuments, R51) --}}
                 {!! $props['html'] ?? '' !!}
+                @break
+
+            {{-- Přihlášení a registrace (R123): nadpis, k čemu účet je, a cesta na druhou stránku --}}
+            @case('Auth/Login')
+                <p>{{ $seo['description'] }}</p>
+                <p><a href="{{ route('register') }}">{{ __('app.ui.auth.login.register') }}</a></p>
+                @break
+
+            @case('Auth/Register')
+                <p>{{ $seo['description'] }}</p>
+                <p><a href="{{ route('login') }}">{{ __('app.ui.auth.register.login') }}</a></p>
                 @break
         @endswitch
 

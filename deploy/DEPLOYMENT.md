@@ -410,6 +410,23 @@ Co bylo zvláštní na jednotlivých dřívějších nasazeních (SQL skripty, n
 je v [HISTORIE_NASAZENI.md](HISTORIE_NASAZENI.md). Poznámky k nasazení, které se teprve chystá,
 patří sem pod tenhle postup; po nasazení se přesunou tam (R106).
 
+### Aktualizace z `ff76607` (připravuje se)
+
+Bez posunu rozvržení po načtení — přednačtená písma a loga obchodů s rozměry; přihlášení
+a registrace s vlastním titulkem a nadpisem i bez JavaScriptu (R123). Bez SQL skriptu, `.env`
+beze změny, žádný soubor nezmizel; `lang/cs/app.php` se změnil — verze Inertie se změní a otevřené
+stránky se načtou znovu.
+
+1. **Nahraj** z `deploy/upload/`: `public/build/` (celý, starý obsah můžeš smazat),
+   `app/Http/Middleware/HandleInertiaRequests.php`, `app/Support/Seo/SeoMeta.php`, nový
+   `app/Support/SvgSize.php`, `vendor/composer/` (nová třída v autoloaderu), `config/letaky.php`,
+   `lang/cs/app.php`, `resources/views/app.blade.php`, `resources/views/seo/content.blade.php`
+   a `public/version.txt`.
+2. **Ověř:** `version.txt`; ve zdroji úvodní stránky dva `<link rel="preload" as="font">`;
+   `/registrace` má titulek „Registrace · Slevohlídka“ a v obsahu bez JS `<h1>`; loga obchodů
+   mají `width` a `height`. Za pár dní DebugBear nebo PageSpeed: CLS pod 0,1.
+3. Zapiš verzi do *Nasazené verze* a tuhle sekci přesuň do `HISTORIE_NASAZENI.md`.
+
 ---
 
 ## Záloha databáze

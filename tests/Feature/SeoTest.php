@@ -267,6 +267,26 @@ it('stránka produktu a sitemap: titulek s produktem, čistá adresa v sitemap j
         ->assertDontSee('/akce/maslo', false);
 });
 
+it('přihlášení a registrace mají vlastní titulek a nadpis i bez JavaScriptu, zůstávají noindex (R123)', function (string $route, string $kind, string $other): void {
+    $html = $this->get(route($route))->assertOk()->getContent();
+
+    expect($html)->toContain('<title inertia>'.__("app.seo.pages.$kind.title").'</title>')
+        ->and($html)->toContain('<h1>'.__("app.seo.pages.$kind.heading").'</h1>')
+        ->and($html)->toContain('href="'.route($other).'"')
+        ->and(metaContent($html, 'robots'))->toBe('noindex, follow');
+})->with([
+    'přihlášení' => ['login', 'login', 'register'],
+    'registrace' => ['register', 'register', 'login'],
+]);
+
+it('stránka přednačte písma a loga obchodů mají poměr stran — text ani řada log po načtení neposkočí (R123)', function (): void {
+    $this->get(route('offers'))
+        ->assertSee('as="font" type="font/woff2" crossorigin', false)
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('chainInfo.tesco.logoSize', ['width' => 346, 'height' => 100])
+            ->where('chainInfo.lidl.logoSize', ['width' => 100, 'height' => 100]));
+});
+
 it('obsah pro roboty bez JavaScriptu: nadpis, akce s cenou a odkazy na obchody a produkty (R94)', function (): void {
     $beer = Product::factory()->create(['name' => 'Pivo']);
     Offer::factory()->create(['chain' => Chain::Lidl, 'name' => 'Braník 0,5 l', 'price' => 1990, 'quantity' => 500, 'unit' => PackageUnit::Milliliter])

@@ -59,6 +59,17 @@ return [
                 'heading' => 'Kontakt',
                 'description' => 'Kdo Slevohlídku provozuje a jak se nám ozvat — chybná cena, nápad, spolupráce s obchody nebo dotaz k osobním údajům.',
             ],
+            // Přihlášení a registrace (noindex) — titulek a nadpis i pro roboty bez JS (R123)
+            'login' => [
+                'title' => 'Přihlášení · Slevohlídka',
+                'heading' => 'Přihlášení',
+                'description' => 'Přihlaste se do Slevohlídky — uvidíte akce z letáků na to, co hlídáte, a kde je to nejlevněji za kilo nebo litr.',
+            ],
+            'register' => [
+                'title' => 'Registrace · Slevohlídka',
+                'heading' => 'Začněte hlídat slevy',
+                'description' => 'Registrace do Slevohlídky je zdarma. Řeknete, co kupujete, a my pohlídáme akce z letáků Kauflandu, Tesca, Albertu, Lidlu, Penny, Globusu a Billy.',
+            ],
             'default' => [
                 'title' => 'Slevohlídka',
                 'heading' => 'Slevohlídka',

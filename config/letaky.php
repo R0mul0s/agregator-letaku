@@ -36,6 +36,16 @@ return [
     'chain_logo_path' => 'images/chains/%s.svg',
 
     /*
+    | Písma přednačtená v hlavičce stránky (R123) — zdroje v manifestu Vite, stejné soubory jako
+    | @font-face v resources/scss/base/_fonts.scss. Bez přednačtení je prohlížeč objeví až po
+    | vykreslení textu aplikací a text se po jejich příchodu přeskládá (layout shift).
+    */
+    'preload_fonts' => [
+        'node_modules/@fontsource-variable/nunito/files/nunito-latin-wght-normal.woff2',
+        'resources/fonts/nunito-czech-wght-normal.woff2',
+    ],
+
+    /*
     | Barva lišty prohlížeče na mobilu podle režimu (= --color-bg v base/_tokens.scss).
     */
     'theme_colors' => [

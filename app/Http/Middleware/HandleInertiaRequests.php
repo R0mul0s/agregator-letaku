@@ -20,6 +20,7 @@ use App\Models\ScrapeRun;
 use App\Models\User;
 use App\Support\Legal\LegalDocuments;
 use App\Support\Seo\SeoMeta;
+use App\Support\SvgSize;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Vite;
 use Inertia\Inertia;
@@ -84,6 +85,8 @@ class HandleInertiaRequests extends Middleware
                 array_map(fn (Chain $chain): array => [
                     'name' => $chain->label(),
                     'logo' => asset(sprintf(config()->string('letaky.chain_logo_path'), $chain->value)),
+                    // Poměr stran pro width / height u <img> — bez nich logo po načtení posune obsah (R123)
+                    'logoSize' => SvgSize::of(public_path(sprintf(config()->string('letaky.chain_logo_path'), $chain->value))),
                 ], Chain::cases()),
             ),
             // Titulek veřejné stránky stejný jako ze serveru (R68) — <Head> ve Vue by ho jinak přepsal

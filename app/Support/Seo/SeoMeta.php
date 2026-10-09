@@ -46,6 +46,9 @@ final class SeoMeta
     /** Stránky přihlášení a registrace — odkazy z nich ano, samy do výsledků ne. */
     private const AUTH_ROUTES = ['login', 'register', 'password.request', 'password.reset'];
 
+    /** Přihlášení a registrace — vlastní texty v app.seo.pages (název routy = druh stránky, R123). */
+    private const AUTH_PAGES = ['login', 'register'];
+
     /** Obrázek pro sdílení (1200 × 630, zdroj resources/brand/og-image.html), i pro schema.org. */
     public const OG_IMAGE_PATH = 'images/brand/og-image.png';
 
@@ -136,6 +139,8 @@ final class SeoMeta
             $this->isOffers($routeName) && $productId !== null => 'offers_product',
             $this->isOffers($routeName) && $chain !== null => 'offers_chain',
             $this->isOffers($routeName) => 'offers',
+            // Vlastní titulek a nadpis i v obsahu bez JS (R123) — noindex, ale robot je projde
+            in_array($routeName, self::AUTH_PAGES, true) => $routeName,
             default => PublicPages::kind($routeName) ?? 'default',
         };
     }

@@ -1,5 +1,7 @@
 <!--
     Logo obchodu (public/images/chains) s názvem pro čtečky; volitelně i s viditelným názvem.
+    Atributy width a height nesou poměr stran loga (chainInfo.logoSize) — místo je vyhrazené
+    před načtením obrázku a řada log neposkočí (R123); velikost řídí CSS.
     Na kartě akce jde logo rozkliknout (R118) — malé logo nemusí každý poznat a title se na
     dotykovém displeji neukáže (R55), klepnutí ukáže název vedle loga.
 
@@ -41,11 +43,11 @@ const nameShown = ref(false);
         :aria-expanded="nameShown ? 'true' : 'false'"
         @click="nameShown = !nameShown"
     >
-        <img :src="info.logo" alt="" class="chain-logo__image" />
+        <img :src="info.logo" alt="" class="chain-logo__image" :width="info.logoSize?.width" :height="info.logoSize?.height" />
         <span class="chain-logo__name" :class="{ 'visually-hidden': !nameShown }">{{ info.name }}</span>
     </button>
     <span v-else class="chain-logo" :class="{ 'chain-logo--large': large }" :title="info.name">
-        <img v-if="info.logo" :src="info.logo" :alt="withName ? '' : info.name" class="chain-logo__image" />
+        <img v-if="info.logo" :src="info.logo" :alt="withName ? '' : info.name" class="chain-logo__image" :width="info.logoSize?.width" :height="info.logoSize?.height" />
         <span v-if="withName || !info.logo" class="chain-logo__name">{{ info.name }}</span>
     </span>
 </template>

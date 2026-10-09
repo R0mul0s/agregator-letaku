@@ -32,7 +32,7 @@ Hotové etapy a funkce jsou v PLAN.md (tabulka *Co platí a co ne*, kap. 6 Etapy
 | Hlídám, katalog (admin), nákupní seznam | `/hlidam`, `/katalog`, `/seznam` | R39, R47 / R24, R28–R31 / R61 |
 | Centrum upozornění, zprávy od nás (admin), uživatelé (admin) | `/upozorneni`, `/zpravy`, `/uzivatele` | R74, R84 |
 | Můj účet, Moje obchody | `/ucet`, `/obchody` | R40, R63, R64, R96, R98, R116 |
-| Přihlášení, registrace, kontakt, právní texty | `/prihlaseni`, `/registrace`, `/kontakt`, `/podminky`, `/ochrana-udaju` | R51, R72, R73, R116, R121 |
+| Přihlášení, registrace, kontakt, právní texty | `/prihlaseni`, `/registrace`, `/kontakt`, `/podminky`, `/ochrana-udaju` | R51, R72, R73, R116, R121, R123 |
 
 Produkce běží na `https://slevohlidka.cz` (nasazeno 2026-10-02, přestěhováno ze `slevohlidka.rhsoft.cz` R93, naposledy `ff76607` 2026-10-09);
 postup aktualizace a nasazené verze jsou v `deploy/DEPLOYMENT.md`, poznámky k dřívějším nasazením
@@ -126,7 +126,7 @@ powershell -ExecutionPolicy Bypass -File deploy\build-upload.ps1   # jen z commi
   `logo-mark-128.webp`), PNG jen pro favicony, manifest, upozornění a schema.org. Písmo Nunito je
   v `resources/scss/base/_fonts.scss`: latinka z `@fontsource`, české a slovenské znaky jen jako
   podmnožina `resources/fonts/nunito-czech-wght-normal.woff2` — jiný znak mimo Latin-1 (např. polské
-  ł) se vykreslí náhradním písmem; rozšířit = nová podmnožina (příkaz v hlavičce souboru).
+  ł) se vykreslí náhradním písmem; rozšířit = nová podmnožina (příkaz v hlavičce souboru). Obě písma se přednačítají (`letaky.preload_fonts`, R123) — nový soubor písma patří i tam, jinak se text po jeho příchodu přeskládá (CLS). Obrázek bez rozměrů posune obsah po načtení — loga obchodů mají `width`/`height` z `SvgSize` (`chainInfo.*.logoSize`).
 - **Dlouhé požadavky:** stažení Tesca trvá ~45 s; limit hostingu se ověří při nasazení (O8).
 - Nepřidávej závislost, kterou hosting nemá (Redis, fronta). Hosting ověřený 2026-10-06 (R86): PHP 8.4 FPM, `memory_limit` 512M,
   `max_execution_time` 600, `proc_open` povolené, `/usr/bin/pdftotext` 22.02 a `gs`, rozšíření GD i Imagick (kontejner GD nemá).

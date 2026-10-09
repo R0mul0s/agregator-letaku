@@ -76,6 +76,10 @@
         @else
             <script src="/theme-init.js"></script>
         @endif
+        {{-- Písmo přednačíst s HTML (R123) — jinak se text po jeho příchodu přeskládá (layout shift) --}}
+        @foreach (config('letaky.preload_fonts') as $font)
+            <link rel="preload" href="{{ Vite::asset($font) }}" as="font" type="font/woff2" crossorigin>
+        @endforeach
         {{-- Kód aktuální stránky (a co importuje) přednačíst hned s HTML — jinak ho prohlížeč objeví až
              po spuštění app.js a první vykreslení čeká o kolo síťových požadavků déle --}}
         @vite(['resources/scss/app.scss', 'resources/js/app.js', "resources/js/Pages/{$page['component']}.vue"])
