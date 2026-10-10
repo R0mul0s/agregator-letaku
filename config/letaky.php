@@ -597,6 +597,7 @@ return [
             'starting_today' => 9,
             'digest' => 9,
             'push' => 9,
+            'health_alerts' => 9,
             // Úklid jednou denně (3:15), rezerva na posun cronu
             'maintenance' => 26,
             // Kategorie 1. v měsíci — 32 dní

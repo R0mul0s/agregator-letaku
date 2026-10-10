@@ -4,6 +4,7 @@
  * Odpověď hlídání pro monitoring (UptimeRobot): na každém řádku jedna kontrolovaná věc
  * („Tesco — OK, naposledy 2. 10. 11:00“), 200, když jsou všechny v pořádku, jinak 503.
  * Sdílí `/health/imports` a `/health/tasks` (R115). Veřejné — jen časy, žádný text chyby.
+ * Výpadky zvlášť (outages) čte upozornění adminům (RecordHealthAlerts, R126).
  *
  * @author Roman Hlaváček
  *
@@ -25,6 +26,14 @@ final class HealthReport
     /** @var list<string> */
     private array $lines = [];
 
+    /**
+     * Řádky výpadků podle názvu kontrolované věci — upozornění adminům (R126) porovnává názvy,
+     * text se mění s časem.
+     *
+     * @var array<string, string>
+     */
+    private array $outages = [];
+
     private bool $healthy = true;
 
     /**
@@ -44,6 +53,19 @@ final class HealthReport
         }
 
         $this->lines[] = $line;
+        if (! $ok) {
+            $this->outages[$name] = $line;
+        }
+    }
+
+    /**
+     * Výpadky: název kontrolované věci => řádek výpisu.
+     *
+     * @return array<string, string>
+     */
+    public function outages(): array
+    {
+        return $this->outages;
     }
 
     /**

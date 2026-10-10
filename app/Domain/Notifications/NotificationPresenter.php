@@ -33,8 +33,8 @@ final class NotificationPresenter
             return null;
         }
 
-        if ($kind === NotificationKind::Announcement) {
-            // Zpráva od nás (11d): nadpis zprávy a začátek textu
+        if ($kind === NotificationKind::Announcement || $kind->isAdminAlert()) {
+            // Zpráva od nás (11d) a upozornění adminům (R125, R126): nadpis a začátek textu
             $announcement = AnnouncementRecord::read($notification);
             $title = $announcement['title'];
             $text = Str::limit($announcement['body'], config()->integer('letaky.notifications.announcement_excerpt'));
@@ -83,7 +83,7 @@ final class NotificationPresenter
             },
             NotificationKind::EndingSoon => trans_choice('app.notifications.ending_soon.title', $offerCount),
             NotificationKind::StartingToday => trans_choice('app.notifications.starting_today.title', $offerCount),
-            NotificationKind::Announcement => throw new InvalidArgumentException('Zpráva od nás má nadpis ve svých datech.'),
+            NotificationKind::Announcement, NotificationKind::OfferReport, NotificationKind::SystemAlert => throw new InvalidArgumentException('Záznam bez akcí má nadpis ve svých datech.'),
         };
     }
 }

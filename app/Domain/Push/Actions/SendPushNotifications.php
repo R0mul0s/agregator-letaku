@@ -115,13 +115,18 @@ final class SendPushNotifications
 
     /**
      * Záznamy, které jdou do telefonu: všechny s akcemi, zprávy od nás jen se zaškrtnutým
-     * „i do telefonu“ (jen zprávy o službě, 11d).
+     * „i do telefonu“ (jen zprávy o službě, 11d). Upozornění adminům ne — odešla hned při
+     * zápisu (AdminAlerts, R125, R126).
      *
      * @param  Builder<DatabaseNotification>  $query
      */
     private function wherePushable(Builder $query): void
     {
-        $query->where(fn (Builder $query) => $query
+        $adminAlerts = array_map(
+            fn (NotificationKind $kind): string => $kind->value,
+            array_filter(NotificationKind::cases(), fn (NotificationKind $kind): bool => $kind->isAdminAlert()),
+        );
+        $query->whereNotIn('type', $adminAlerts)->where(fn (Builder $query) => $query
             ->where('type', '!=', NotificationKind::Announcement->value)
             ->orWhere('data->push', true));
     }

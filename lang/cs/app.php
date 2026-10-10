@@ -223,8 +223,26 @@ return [
             'title' => 'Od dneška platí :count akce, na kterou čekáte|Od dneška platí :count akce, na které čekáte|Od dneška platí :count akcí, na které čekáte',
             'shopping_list' => 'Nákupní seznam',
         ],
+        // Jen adminům: nové hlášení chyby v akci (R125, NotifyAdminsOfReport)
+        'offer_report' => [
+            'title' => 'Nové hlášení chyby v akci',
+            'body' => ':reason — :offer (:chain)',
+            'note' => '„:note“',
+        ],
+        // Jen adminům: výpadek stahování nebo úlohy cronu (R126, RecordHealthAlerts)
+        'system_alert' => [
+            'title' => 'Výpadek: :count věc nefunguje|Výpadek: :count věci nefungují|Výpadek: :count věcí nefunguje',
+            'recovered_title' => 'Všechno zase běží',
+            'recovered_body' => 'Stahování i úlohy cronu zase fungují. Výpadek měly: :names.',
+        ],
         'done' => 'Centrum upozornění — zapsáno: :count',
         'failed' => 'Centrum upozornění — chyba: :error',
+    ],
+
+    // Upozornění adminům na výpadek (R126, RecordHealthAlerts) — výstup cronu
+    'health_alerts' => [
+        'done' => 'Upozornění adminům na výpadek — upozorněno: :count',
+        'failed' => 'Upozornění adminům na výpadek — chyba: :error',
     ],
 
     // Cron URL a artisan příkazy úloh — souběžné spuštění (R57, R113)
@@ -254,10 +272,6 @@ return [
         'more' => 'a :count další…|a :count další…|a :count dalších…',
         'test_title' => 'Upozornění fungují',
         'test_body' => 'Přesně takhle vám zaťukáme, až bude hlídané zboží v akci.',
-        // Adminům při novém hlášení chyby v akci (R125, NotifyAdminsOfReport)
-        'report_title' => 'Nové hlášení chyby v akci',
-        'report_body' => ':reason — :offer (:chain)',
-        'report_note' => '„:note“',
         'done' => 'Upozornění v telefonu — odesláno: :count',
         'failed' => 'Upozornění v telefonu — chyba: :error',
         'keys_generated' => 'Klíče VAPID — vložte je do .env (na produkci do .env na hostingu):',
@@ -278,6 +292,7 @@ return [
             'starting_today' => 'Centrum upozornění — dnes začínající akce',
             'digest' => 'E-mailové souhrny',
             'push' => 'Upozornění v telefonu',
+            'health_alerts' => 'Upozornění adminům na výpadek',
             'maintenance' => 'Denní úklid',
             'categories' => 'Kategorie katalogu',
         ],
@@ -1110,6 +1125,8 @@ return [
             'bell' => 'Upozornění',
             'bell_unread' => 'Upozornění, :count nepřečtené|Upozornění, :count nepřečtená|Upozornění, :count nepřečtených',
             'unread' => 'Nové',
+            // Přečtený je záznam až po otevření (R127) — všechny najednou
+            'mark_all_read' => 'Označit vše jako přečtené',
             'today' => 'Dnes',
             'yesterday' => 'Včera',
             'empty_title' => 'Zatím je tu ticho',

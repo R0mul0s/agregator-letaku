@@ -48,7 +48,7 @@ it('uloží hlášení a další hlášení stejné akce ho přepíše a znovu o
         ->resolved_at->toBeNull();
 });
 
-it('pošle adminům upozornění do telefonu, kromě toho, kdo hlásí, a chyba push služby hlášení nezastaví', function (): void {
+it('pošle adminům upozornění do telefonu, i tomu, kdo hlásí, a chyba push služby hlášení nezastaví', function (): void {
     $sender = new class implements PushSender
     {
         /** @var list<array{endpoint: string, message: PushMessage}> */
@@ -80,9 +80,13 @@ it('pošle adminům upozornění do telefonu, kromě toho, kdo hlásí, a chyba 
         ->assertSessionHasNoErrors();
 
     expect(OfferReport::query()->count())->toBe(1)
-        ->and(array_column($sender->sent, 'endpoint'))->toBe(['https://fcm.googleapis.com/fcm/send/admin'])
+        ->and(array_column($sender->sent, 'endpoint'))->toEqualCanonicalizing(['https://fcm.googleapis.com/fcm/send/admin', 'https://fcm.googleapis.com/fcm/send/hlasi'])
         ->and($sender->sent[0]['message']->body)->toBe('Cena je jiná — Máslo Tatra (Lidl) „V letáku je 39,90“')
-        ->and($sender->sent[0]['message']->url)->toBe('/hlaseni');
+        // Klepnutí otevře záznam v centru upozornění, z něj tlačítko vede na Hlášení
+        ->and($sender->sent[0]['message']->url)->toBe('/upozorneni/'.$admin->notifications()->sole()->id)
+        ->and($admin->notifications()->sole()->data['url'])->toBe('/hlaseni')
+        ->and($reportingAdmin->notifications()->count())->toBe(1)
+        ->and($this->user->notifications()->count())->toBe(0);
 });
 
 it('hlášení z okna akce nepošle toast — poděkuje okno', function (): void {

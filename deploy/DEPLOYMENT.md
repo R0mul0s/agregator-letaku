@@ -418,7 +418,7 @@ variantě jako Google a Facebook (R124, jen `public/build/`). `.env` beze změny
 nezmizel; `lang/cs/app.php` se změnil — verze Inertie se změní a otevřené
 stránky se načtou znovu.
 
-Navíc „Tohle ne“ a hlášení chyb v akcích (R125) — **s SQL skriptem**.
+Navíc „Tohle ne“ a hlášení chyb v akcích (R125) — **s SQL skriptem** — a upozornění adminům na hlášení a výpadky v centru upozornění (R126, bez SQL skriptu).
 
 0. **Záloha databáze** a v phpMyAdminu `deploy/migrations-2026-10-09-tohle-ne.sql` (před nahráním kódu).
 1. **Nahraj** z `deploy/upload/`: `public/build/` (celý, starý obsah můžeš smazat),
@@ -432,7 +432,7 @@ Navíc „Tohle ne“ a hlášení chyb v akcích (R125) — **s SQL skriptem**.
    mají `width` a `height`; „Přihlásit přes Seznam“ tmavé jako ostatní tlačítka. Za pár dní DebugBear
    nebo PageSpeed: CLS pod 0,1. R125: v Mých slevách „Tohle ne“ u akce skryje akci (toast
    s „Vrátit“), u položky ikona oka s počtem; tři tečky na kartě ve Všech akcích → hlášení;
-   admin v menu **Hlášení** (`/hlaseni`) hlášení vidí a vyřeší; s upozorněními zapnutými v Můj účet mu nové hlášení (z jiného účtu) přijde do telefonu.
+   admin v menu **Hlášení** (`/hlaseni`) hlášení vidí a vyřeší; s upozorněními zapnutými v Můj účet mu nové hlášení (i vlastní) přijde do centra upozornění (zvonek) i do telefonu. R126: po nejbližším cronu upozornění je na `/health/tasks` řádek „Upozornění adminům na výpadek — OK“; při výpadku přijde adminovi záznam „Výpadek: …“.
 3. Zapiš verzi do *Nasazené verze*, SQL skript do *Historie SQL skriptů* (datum) a tuhle sekci
    přesuň do `HISTORIE_NASAZENI.md`.
 

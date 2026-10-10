@@ -1,6 +1,7 @@
 <!--
     Zvonek v hlavičce (R74) — odkaz do centra upozornění s počtem nepřečtených záznamů.
-    Stejné číslo je na ikoně aplikace v telefonu (lib/pwa.js).
+    Stejné číslo je na ikoně aplikace v telefonu (lib/pwa.js). S nepřečtenými po načtení stránky
+    párkrát zacinká (R127) — layout se vykreslí s každou stránkou, takže znovu při každém přechodu.
 
     @author Roman Hlaváček
     @created 2026-10-05
@@ -29,7 +30,7 @@ const label = computed(() => (center.value.unread ? t('notifications.bell_unread
         v-if="center"
         :href="center.url"
         class="notification-bell"
-        :class="{ 'notification-bell--active': center.active }"
+        :class="{ 'notification-bell--active': center.active, 'notification-bell--ringing': center.unread > 0 }"
         :aria-current="center.active ? 'page' : undefined"
         :aria-label="label"
         :title="label"

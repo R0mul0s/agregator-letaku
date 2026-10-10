@@ -2,7 +2,8 @@
 
 /**
  * Kanály cronu upozornění v pevném pořadí — záznamy centra (nové, končící, dnes začínající
- * akce), e-mailové souhrny a upozornění v telefonu (R42, R66, R74, R76). Volá ho cron URL
+ * akce), e-mailové souhrny, upozornění v telefonu a upozornění adminům na výpadek (R42, R66,
+ * R74, R76, R126). Volá ho cron URL
  * /cron/send-digests i příkaz letaky:send-digests, ať se pořadí nerozejde.
  *
  * Běží jen jedno spuštění najednou (R113): kanály vybírají uživatele podle času posledního
@@ -36,6 +37,7 @@ final readonly class RunNotificationChannels
         private RecordStartingOffers $recordStarting,
         private SendDigests $digests,
         private SendPushNotifications $push,
+        private RecordHealthAlerts $healthAlerts,
     ) {}
 
     /**
@@ -64,6 +66,8 @@ final readonly class RunNotificationChannels
             [CronTask::StartingToday, $this->recordStarting],
             [CronTask::Digest, $this->digests],
             [CronTask::Push, $this->push],
+            // Až po ostatních kanálech — vidí jejich dnešní výsledek (R126)
+            [CronTask::HealthAlerts, $this->healthAlerts],
         ];
 
         $results = [];

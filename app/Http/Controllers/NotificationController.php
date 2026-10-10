@@ -120,13 +120,14 @@ class NotificationController extends Controller
     }
 
     /**
-     * Text a odkaz zprávy od nás; null u záznamů s akcemi.
+     * Text a odkaz zprávy od nás a upozornění adminům (R125, R126); null u záznamů s akcemi.
      *
      * @return array{body: string, url: string|null, external: bool}|null
      */
     private function announcement(DatabaseNotification $record): ?array
     {
-        if ($record->type !== NotificationKind::Announcement->value) {
+        $kind = NotificationKind::tryFrom($record->type);
+        if ($kind !== NotificationKind::Announcement && ! $kind?->isAdminAlert()) {
             return null;
         }
 

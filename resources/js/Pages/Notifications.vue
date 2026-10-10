@@ -1,8 +1,9 @@
 <!--
     Centrum upozornění (R74) — záznamy po dnech, od nejnovějšího: nové akce na hlídané zboží
     a akce z nákupního seznamu, které zítra končí, zprávy od nás (ikona podle druhu).
-    Nepřečtené jsou zvýrazněné; po zobrazení je stránka označí jako přečtené (zvonek i číslo
-    na ikoně aplikace zmizí), zvýraznění ale zůstane, dokud uživatel stránku neopustí.
+    Nepřečtené jsou zvýrazněné a zůstanou nepřečtené, dokud je uživatel neotevře (detail záznamu
+    ho označí, R127) — samotné zobrazení seznamu číslo u zvonku nemaže. Všechny najednou označí
+    tlačítko „Označit vše jako přečtené“.
 
     @author Roman Hlaváček
     @created 2026-10-05
@@ -12,7 +13,7 @@ import EmptyState from '@/Components/EmptyState.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { useTranslations } from '@/lib/i18n';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
-import { computed, onMounted } from 'vue';
+import { computed, ref } from 'vue';
 
 const props = defineProps({
     /** Záznamy od nejnovějšího [{ id, kind, title, text, createdAt, unread, url }] (NotificationPresenter). */
@@ -37,13 +38,33 @@ const KIND_ICONS = {
     starting_today: ['M4 6h16v14H4z', 'M4 10h16', 'M8 3v4M16 3v4'],
     // Megafon — zpráva od nás
     announcement: ['M3 10v4h3l7 4V6L6 10H3z', 'M16 9a4 4 0 0 1 0 6'],
+    // Vlajka — jen admin: hlášení chyby v akci (R125)
+    offer_report: ['M5 21V4', 'M5 4h11l-2 4 2 4H5'],
+    // Výstražný trojúhelník — jen admin: výpadek stahování nebo úlohy cronu (R126)
+    system_alert: ['M12 3l10 18H2L12 3z', 'M12 10v5', 'M12 18h.01'],
 };
 
 const t = useTranslations();
 const page = usePage();
 
-/** Nepřečtené při otevření stránky — zvýraznění vydrží i po označení jako přečtené. */
-const unreadIds = new Set(props.notifications.filter((item) => item.unread).map((item) => item.id));
+/** ID nepřečtených záznamů — po označení přijdou ze serveru znovu (už bez nich). */
+const unreadIds = computed(() => new Set(props.notifications.filter((item) => item.unread).map((item) => item.id)));
+
+const markingAll = ref(false);
+
+/** Označí všechny nepřečtené záznamy na stránce jako přečtené (zvonek i číslo na ikoně aplikace zmizí). */
+function markAllRead() {
+    router.post(
+        props.readUrl,
+        { ids: [...unreadIds.value] },
+        {
+            preserveScroll: true,
+            preserveState: true,
+            onStart: () => (markingAll.value = true),
+            onFinish: () => (markingAll.value = false),
+        },
+    );
+}
 
 /**
  * Místní den (zóna zobrazení) jako klíč YYYY-MM-DD.
@@ -94,11 +115,6 @@ const days = computed(() => {
     return [...groups].map(([day, items]) => ({ day, label: dayLabel(day), items }));
 });
 
-onMounted(() => {
-    if (unreadIds.size) {
-        router.post(props.readUrl, { ids: [...unreadIds] }, { preserveScroll: true, preserveState: true });
-    }
-});
 </script>
 
 <template>
@@ -109,6 +125,11 @@ onMounted(() => {
             <h1 class="page__title">{{ t('notifications.title') }}</h1>
             <p class="page__subtitle">{{ t('notifications.intro', { days: retentionDays }) }}</p>
         </header>
+
+        <!-- Přečtený je záznam až po otevření (R127) — všechny najednou tímhle -->
+        <p v-if="unreadIds.size" class="notifications__actions">
+            <button type="button" class="button button--ghost" :disabled="markingAll" @click="markAllRead">{{ t('notifications.mark_all_read') }}</button>
+        </p>
 
         <EmptyState v-if="!notifications.length" :text="t('notifications.empty_title')">
             <p class="notifications__empty-hint">{{ t('notifications.empty') }}</p>

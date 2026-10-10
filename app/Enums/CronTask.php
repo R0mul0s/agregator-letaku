@@ -25,6 +25,8 @@ enum CronTask: string
     case StartingToday = 'starting_today';
     case Digest = 'digest';
     case Push = 'push';
+    // Upozornění adminům na výpadek (R126)
+    case HealthAlerts = 'health_alerts';
     case Maintenance = 'maintenance';
     case Categories = 'categories';
 

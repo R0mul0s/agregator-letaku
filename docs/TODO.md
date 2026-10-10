@@ -64,7 +64,7 @@ v [PLAN.md](PLAN.md). Větší celky se z toho stávají etapou.
 
 **Odkud:** kritická revize 4. 10. 2026 (R54–R65 vyřešily chyby importu, souhrnů a zámek stažení).
 
-- **upozornění na chyby e-mailem** (log kanál `mail` nebo denní souhrn chyb) — dnes chyby vidí jen ten, kdo otevře logy přes FTP; Albert padal den, než se na to přišlo (R65)
+- **upozornění na chyby e-mailem** (log kanál `mail` nebo denní souhrn chyb) — výpadky stahování a úloh cronu už hlásí centrum upozornění adminům (R126), chyby v logu (výjimky, které výpadek nezpůsobí) dál vidí jen ten, kdo otevře logy přes FTP
 - **kontroly kvality v `build-upload.ps1`** — Pest a PHPStan před sestavením balíčku (CI není, R14)
 - **retence:** `offers.raw` se vyprazdňuje (R113); zbývá čistit `offer_stores` a `leaflet_pages` skončených akcí a `scrape_runs`, skryté akce skončených akcí (`watch_item_offer_exclusions`, R125) a vyřešená hlášení (`offer_reports`)
 - **cron „Spuštění PHP souboru“ místo URL** (DEPLOYMENT.md) — bez limitu délky požadavku a tokenu v URL, vyřešilo by O8; ověřit, jestli ho Websupport umí

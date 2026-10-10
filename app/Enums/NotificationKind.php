@@ -27,6 +27,21 @@ enum NotificationKind: string
     /** Zpráva od nás — o službě, nebo propagační jen se souhlasem (etapa 11d). */
     case Announcement = 'announcement';
 
+    /** Jen admin: nové hlášení chyby v akci (R125). */
+    case OfferReport = 'offer_report';
+
+    /** Jen admin: výpadek stahování nebo úlohy cronu, nebo že zase vše běží (R126). */
+    case SystemAlert = 'system_alert';
+
+    /**
+     * Záznam pro adminy — nadpis a text jsou v datech (AdminAlerts) a do telefonu jde hned při
+     * zápisu, ne z cronu upozornění (SendPushNotifications ho vynechá).
+     */
+    public function isAdminAlert(): bool
+    {
+        return $this === self::OfferReport || $this === self::SystemAlert;
+    }
+
     /**
      * Značka upozornění v telefonu — nové nahradí předchozí stejného druhu v liště telefonu,
      * jiný druh ho nepřepíše.
@@ -38,6 +53,8 @@ enum NotificationKind: string
             self::EndingSoon => 'ending-soon',
             self::StartingToday => 'starting-today',
             self::Announcement => 'announcement',
+            self::OfferReport => 'offer-report',
+            self::SystemAlert => 'system-alert',
         };
     }
 }

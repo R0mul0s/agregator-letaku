@@ -7,6 +7,13 @@
 // @created 2026-10-05
 
 .notifications {
+    // „Označit vše jako přečtené“ nad seznamem vpravo (R127)
+    &__actions {
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: var(--space-3);
+    }
+
     &__day {
         margin-bottom: var(--space-4);
     }
@@ -83,6 +90,13 @@
         &--announcement {
             background: var(--color-success-soft);
             color: var(--color-success-text);
+        }
+
+        // Jen admin: hlášení chyby (R125) a výpadek (R126) — žlutě jako varování
+        &--offer_report,
+        &--system_alert {
+            background: var(--color-warning-soft);
+            color: var(--color-warning-text);
         }
 
         svg {

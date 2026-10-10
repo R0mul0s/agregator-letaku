@@ -26,6 +26,17 @@
         color: var(--color-accent-strong);
     }
 
+    // S nepřečtenými záznamy zvonek po načtení stránky párkrát zacinká (R127) — kolem úchytu
+    // nahoře; ne donekonečna (R99) a s omezením animací vůbec
+    &--ringing &__icon {
+        transform-origin: 50% 10%;
+        animation: notification-bell-ring var(--bell-ring-duration) ease-in-out var(--bell-ring-delay) var(--bell-ring-iterations);
+
+        @media (prefers-reduced-motion: reduce) {
+            animation: none;
+        }
+    }
+
     &__icon {
         width: var(--icon-size);
         height: var(--icon-size);
@@ -52,5 +63,26 @@
         font-size: var(--font-size-xs);
         font-weight: var(--font-weight-extrabold);
         line-height: 1;
+    }
+}
+
+// Zacinkání: krátké kývání na začátku cyklu, zbytek klid — mezi zacinkáními je pauza
+@keyframes notification-bell-ring {
+    0%,
+    40%,
+    100% {
+        transform: rotate(0);
+    }
+
+    5%,
+    15%,
+    25% {
+        transform: rotate(var(--bell-ring-angle));
+    }
+
+    10%,
+    20%,
+    30% {
+        transform: rotate(calc(-1 * var(--bell-ring-angle)));
     }
 }

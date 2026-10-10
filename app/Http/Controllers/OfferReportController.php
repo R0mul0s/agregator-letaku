@@ -14,8 +14,8 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Domain\Catalog\UserFeedback;
+use App\Domain\Notifications\Actions\NotifyAdminsOfReport;
 use App\Domain\Offers\OfferPresenter;
-use App\Domain\Push\Actions\NotifyAdminsOfReport;
 use App\Http\Requests\OfferReportRequest;
 use App\Models\Offer;
 use App\Models\OfferReport;
@@ -44,7 +44,7 @@ class OfferReportController extends Controller
             ['offer_id' => $request->integer('offer_id'), 'user_id' => $user->id],
             [...$request->reportData(), 'resolved_at' => null],
         );
-        // Adminům hned do telefonu — cron by hlášení poslal až za hodinu
+        // Adminům do centra upozornění a hned do telefonu — cron by hlášení poslal až za hodinu
         $notifyAdmins($report);
 
         // Z okna akce bez toastu — poděkuje okno samo
