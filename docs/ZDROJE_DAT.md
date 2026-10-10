@@ -607,9 +607,37 @@ detaily produktů `…/p/` a podstránky akční nabídky jednotlivých hypermar
 
 `page` od 0, `pageSize` nejvýš 200. Katalog: **`totalCount` nesedí** (869 vs. 913) — stránkuje se, dokud
 `paginationShowMore` je `true`. Položky letáku `paginationShowMore` nemají — stránkuje se do kratší stránky. Celé
-stažení ~11 požadavků, ~23 s; s PDF budoucího letáku 13 požadavků, ~26 s. 16 hypermarketů (`gsoaId` v `__NUXT_DATA__`), stahuje se 4005 Čakovice
-(`letaky.sources.globus.house_id`); mezi prodejnami se liší jen krátké místní akce (Brno × Čakovice: 900 z 912
-stejně).
+stažení jednoho hypermarketu ~11 požadavků, ~23 s. 16 hypermarketů (`gsoaId` v `__NUXT_DATA__` stránky letáků, API se
+seznamem hypermarketů není — `/api/v1/gsoa/houses` vrací 500); stahují se všechny (R131, níže), výchozí je 4005 Čakovice
+(`letaky.sources.globus.house_id`).
+
+### Po hypermarketech (R131, průzkum 10. 10. 2026)
+Web má výběr pobočky a nabídka se po hypermarketech **liší** — R46 vycházelo z jednoho srovnání Brno × Čakovice.
+Katalogy akcí všech 16 hypermarketů týž den (656 akcí VKA0 bez módy):
+
+| | Akcí |
+|---|---|
+| ve všech stejné | 321 |
+| ve všech, liší se jen začátek platnosti o den (`priceValidFrom` 6. 10. × 7. 10.) | 207 |
+| ve všech, **jiná cena** v části hypermarketů | 31 — 11× cenové pásmo (Praha 4002, 4003, 4005, 4026 a Brno 4001 o 1–3 Kč dražší: Président 35,90 × 32,90), 10× jen Štěrboholy, zbytek jednotlivé hypermarkety |
+| **jen v části** hypermarketů | 97 — 78 chybí jen ve Štěrboholech (menší hypermarket), 13 místních akcí jednoho hypermarketu |
+
+- **Seznam letáků** (`actionOffers`) je všude stejný, kromě Štěrbohol (bez katalogů Textil a Elektro, vlastní katalog úklidu `…_Úklid_PRST`).
+- **PDF letáku má každý hypermarket vlastní** (`storeDocuments[0].pdfAsset` se liší): Čakovice × Brno stejné ceny, jiné rozvržení
+  a jedna místní akce; Čakovice × Ostrava jiné ceny (Klausovky 34,90 × 32,90) a jiné pultové zboží (řeznictví, lahůdky);
+  Štěrboholy 51 stran místo 56.
+- **Globus Fresh** (4301, 4303, 4304, 4353, `motherGsoaId`) letáky nemá („Pobočka nemá tuto možnost“), API vrací data mateřského hypermarketu.
+- Stránka katalogu (200 položek, ~750 kB) trvá **~2,4 s**; položky letáku ~0,6 s.
+
+**Stažení** (`GlobusOfferSource`, `GlobusHouseOffers`): katalogy hypermarketů z `price_zones` po stránkách souběžně (nejvýš
+`house_concurrency` = 4 požadavky, `SourceHttp::pool`), položky letáku a seznam letáků jen od zástupců cenových pásem (4005, 4007).
+Akce se slučují po `vanr` a cenách (cena, původní, Můj Globus): stejné ceny = jedna nabídka s platností od nejdřívějšího začátku do
+nejpozdějšího konce, ve všech hypermarketech bez prodejen, jinak s prodejnami (`offer_stores`). Jiná cena = vlastní nabídka s ID
+`vanr-cena-původní-karta` v haléřích (`00689137004-3290-5190-0`); bez přípony je skupina s Čakovicemi, jinak ta s nejvíc hypermarkety.
+PDF budoucích letáků za každé pásmo — akce z PDF zástupce platí v hypermarketech pásma, stejná akce (otisk) ze všech pásem všude.
+Chyba katalogu kteréhokoli hypermarketu stažení ukončí. Hypermarkety (prodejny) zakládá migrace `2026_10_10_300000_add_globus_stores`;
+nový hypermarket = nová migrace a řádek v `price_zones`. Pásma jsou z průzkumu — když se změní, pozná se na akcích jednoho
+pásma se dvěma cenami (dvě nabídky v rámci pásma).
 
 ### Převod (`GlobusParser`)
 - `productInHouse.actualPrice` / `originalPrice` / `discountPercentage` jsou **float v Kč**. S původní cenou

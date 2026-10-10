@@ -77,6 +77,8 @@ beforeEach(function (): void {
     $this->travelTo('2026-10-02 10:00:00');
     // Fixtures mají jen pár stran letáku — práh ověřených akcí hlavního letáku (~200 na celém letáku) snížit
     config(['letaky.sources.globus.pdf_main_min_offers' => 5]);
+    // Jen výchozí hypermarket — akce po hypermarketech (R131) zkouší GlobusStoresTest
+    config(['letaky.sources.globus.price_zones' => [4005 => [4005]]]);
 });
 
 it('uloží akce z obou stránek katalogu do průběžného zdroje a vynechá ceny, které nejsou akce, a oblečení', function (): void {

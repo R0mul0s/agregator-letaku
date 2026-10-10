@@ -256,8 +256,20 @@ return [
             'api_url' => 'https://www.globus.cz/api/v1/gsoa/actionOffers/houses/%d/',
             'catalog_path' => 'actionProductsCatalog',
             'leaflet_items_path' => 'actionProducts',
-            // Hypermarkety se liší jen pár krátkými místními akcemi — stačí jeden (4005 = Praha Čakovice)
+            // Výchozí hypermarket (4005 = Praha-Čakovice): položky letáku k popisu a akce, které tu
+            // platí, mají ID bez přípony (R131 — dřív se stahoval jen on, R46)
             'house_id' => 4005,
+            // Hypermarkety po cenových pásmech (R131, průzkum 10. 10. 2026): Praha a Brno mají u části
+            // akcí vyšší cenu než ostatní. Katalog akcí se stahuje ze všech; klíč pásma je hypermarket,
+            // jehož PDF budoucích letáků platí pro celé pásmo (PDF se po hypermarketech liší cenou
+            // i pultovým zbožím). Kódy musí sedět s tabulkou stores (migrace 2026_10_10_300000).
+            'price_zones' => [
+                4005 => [4001, 4002, 4003, 4005, 4026],
+                4007 => [4004, 4006, 4007, 4008, 4009, 4010, 4011, 4012, 4014, 4015, 4019],
+            ],
+            // Souběžné požadavky na katalogy hypermarketů — stránka katalogu trvá ~2,4 s, 16 hypermarketů
+            // po jednom by se do limitu cronu (cron.time_limit_seconds) nevešlo
+            'house_concurrency' => 4,
             // Nejvíc, co API dovolí
             'page_size' => 200,
             // Typ ceny akce; VKP0 (pult, platnost do 9999) ani ZTP0 (doprodej) akce z letáku nejsou

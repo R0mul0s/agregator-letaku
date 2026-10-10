@@ -130,7 +130,7 @@ function submit() {
 
                         <div v-if="chain.stores.length" class="chain-card__setting chain-card__setting--block">
                             <span class="chain-card__setting-label">{{ t('preferences.stores') }}</span>
-                            <p class="form-field__hint">{{ t('preferences.stores_hint') }}</p>
+                            <p class="form-field__hint">{{ t(`preferences.stores_hints.${chain.value}`) }}</p>
                             <StoreSelect v-model="chainSettings[chain.value].storeCodes" :stores="chain.stores" :max="maxSelectedStores" />
                         </div>
 

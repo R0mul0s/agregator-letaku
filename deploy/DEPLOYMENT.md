@@ -446,6 +446,7 @@ a ruční opravy katalogu. Před každým SQL skriptem a jinak aspoň jednou mě
 | `migrations-2026-10-09-tohle-ne.sql` | „Tohle ne“ a hlášení chyb (R125): tabulky `watch_item_offer_exclusions` a `offer_reports`; opakovatelný, pustit **před** nahráním kódu | 2026-10-10 |
 | `migrations-2026-10-10-kvalita-dat.sql` | přehled kvality dat (R129): tabulka `leaflet_stats` se statistikou letáků za každé stažení; opakovatelný, pustit **před** nahráním kódu | 2026-10-10 |
 | `migrations-2026-10-10-nakupni-seznam-sdileni.sql` | nákupní seznam (R130): `shopping_list_items.offer_id` nepovinné, `custom_name` a `chain` vlastní položky, `users.shopping_share_token`; opakovatelný, pustit **před** nahráním kódu | 2026-10-10 |
+| `migrations-2026-10-10-globus-prodejny.sql` | hypermarkety Globusu jako prodejny (R131): 16 řádků v `stores` (jen data); opakovatelný, pustit **před** nahráním kódu | — |
 
 ## Nasazené verze
 

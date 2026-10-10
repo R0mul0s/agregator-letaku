@@ -76,7 +76,7 @@ it('uloží prodejny bez názvu obchodu a seznam jejich akcí; prodejnu, která 
     $this->artisan('letaky:import-stores', ['chain' => ['kaufland']])->assertSuccessful();
 
     $trutnov = Store::query()->where('code', 'CZ4400')->sole();
-    expect(Store::query()->orderBy('code')->pluck('name', 'code')->all())->toBe(['CZ1550' => 'Vrchlabí', 'CZ3300' => 'Praha-Vypich', 'CZ4400' => 'Trutnov'])
+    expect(Store::query()->where('chain', Chain::Kaufland)->orderBy('code')->pluck('name', 'code')->all())->toBe(['CZ1550' => 'Vrchlabí', 'CZ3300' => 'Praha-Vypich', 'CZ4400' => 'Trutnov'])
         ->and($trutnov->city)->toBe('Trutnov')
         ->and($trutnov->offer_keys)->toContain(KAUFLAND_NECK.'|2026-09-30|2026-10-06')
         ->and($trutnov->offer_keys_fetched_at?->toDateTimeString())->toBe('2026-10-03 10:00:00');

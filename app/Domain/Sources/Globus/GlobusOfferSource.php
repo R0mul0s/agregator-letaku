@@ -2,16 +2,20 @@
 
 /**
  * Zdroj akční nabídky Globusu — veřejné REST API webu (R46) a PDF budoucích letáků (R88,
- * ZDROJE_DAT.md, Globus).
+ * ZDROJE_DAT.md, Globus), po hypermarketech (R131).
  *
- * Akce s cenou a platností jsou v katalogu akcí jednoho hypermarketu; položky letáku
- * se stahují kvůli popisu („různé druhy“) a názvu, cenu nesou ty z katalogu. Akce mají
- * různou platnost (týden, dva týdny, měsíc), proto jsou všechny v jednom průběžném
- * zdroji „akční nabídka“ jako akce e-shopu Tesca.
+ * Akce s cenou a platností jsou v katalogu akcí každého hypermarketu; katalogy se stahují ze
+ * všech hypermarketů cenových pásem (`price_zones`) souběžně a slučují po položce a ceně
+ * (`GlobusHouseOffers`) — akce, která neplatí všude nebo má v části hypermarketů jinou cenu,
+ * dostane prodejny (R49). Položky letáku se stahují kvůli popisu („různé druhy“) a názvu, cenu
+ * nesou ty z katalogu. Akce mají různou platnost (týden, dva týdny, měsíc), proto jsou všechny
+ * v jednom průběžném zdroji „akční nabídka“ jako akce e-shopu Tesca.
  *
  * API vrací jen akce, které už platí. Akce letáků, které ještě nezačaly, se proto berou z PDF
- * (`GlobusLeafletParser`) — každý leták je vlastní zdroj. Až akce začne, vrátí ji API a import
- * převezme řádek z letáku (`OfferData::$supersedes`), takže se neohlásí podruhé jako nová.
+ * (`GlobusLeafletParser`) — každý leták je vlastní zdroj. PDF má každý hypermarket vlastní (jiné
+ * ceny po pásmech, jiné pultové zboží); stahuje se jedno za cenové pásmo a jeho akce platí
+ * v hypermarketech pásma. Až akce začne, vrátí ji API a import převezme řádek z letáku
+ * (`OfferData::$supersedes`), takže se neohlásí podruhé jako nová.
  *
  * @author Roman Hlaváček
  *
@@ -25,6 +29,7 @@ namespace App\Domain\Sources\Globus;
 use App\Domain\Offers\Data\LeafletData;
 use App\Domain\Offers\Data\OfferData;
 use App\Domain\Offers\Data\SourceBatch;
+use App\Domain\Offers\Data\TileStats;
 use App\Domain\Offers\LocalCalendar;
 use App\Domain\Sources\Exceptions\PdfTextFailed;
 use App\Domain\Sources\Exceptions\SourceResponseChanged;
@@ -34,7 +39,9 @@ use App\Domain\Sources\SourceHttp;
 use App\Enums\Chain;
 use App\Enums\LeafletKind;
 use Carbon\CarbonImmutable;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\RequestException;
+use Illuminate\Http\Client\Response;
 
 final class GlobusOfferSource implements OfferSource
 {
@@ -61,27 +68,25 @@ final class GlobusOfferSource implements OfferSource
     }
 
     /**
-     * Dávka se všemi akcemi katalogu a za každý leták, který ještě nezačal, dávka s akcemi z PDF.
-     * Nepovedené stažení nebo převod PDF ukončí celé stažení chybou: bez akcí letáku by je import
-     * označil jako stažené obchodem (R16).
+     * Dávka se všemi akcemi katalogů a za každý leták, který ještě nezačal, dávka s akcemi z PDF.
+     * Nepovedené stažení katalogu některého hypermarketu nebo stažení či převod PDF ukončí celé
+     * stažení chybou: bez nich by import akce označil jako stažené obchodem (R16) nebo je přiřadil
+     * špatným prodejnám.
      *
      * @throws SourceResponseChanged
      * @throws PdfTextFailed
      * @throws RequestException
+     * @throws ConnectionException
      */
     public function fetch(): array
     {
-        $items = $this->leafletItems();
-        $descriptions = $this->parser->descriptionsByEan($items);
-        $names = $this->parser->leafletNamesByEan($items);
+        $zones = $this->priceZones();
+        $houses = array_values(array_unique(array_merge(...array_column($zones, 'houses'))));
+        $representatives = array_column($zones, 'representative');
 
-        $offers = [];
-        foreach ($this->catalogProducts() as $product) {
-            $offer = $this->parser->offer($product, $descriptions, $names);
-            if ($offer !== null) {
-                $offers[] = $offer;
-            }
-        }
+        $items = $this->leafletItems($representatives);
+        $offers = $this->catalogOffers($houses, $this->parser->descriptionsByEan($items), $this->parser->leafletNamesByEan($items));
+        unset($items);
 
         $batches = [new SourceBatch(
             new LeafletData(
@@ -92,8 +97,8 @@ final class GlobusOfferSource implements OfferSource
             $offers,
         )];
 
-        foreach ($this->upcomingLeaflets() as $leaflet) {
-            $leafletOffers = $this->leafletOffers($leaflet, $offers);
+        foreach ($this->upcomingLeaflets($zones) as $leaflet) {
+            [$leafletOffers, $tiles] = $this->leafletOffers($leaflet, $houses, $offers);
             $batches[] = new SourceBatch(
                 new LeafletData(
                     kind: LeafletKind::Leaflet,
@@ -104,8 +109,8 @@ final class GlobusOfferSource implements OfferSource
                     sourceUrl: config()->string('letaky.sources.globus.offers_page_url'),
                 ),
                 $leafletOffers,
-                // Nalezené a ověřené ceny letáku pro přehled kvality dat (R129)
-                tiles: $this->leafletParser->lastStats(),
+                // Nalezené a ověřené ceny letáku pro přehled kvality dat (R129) — z PDF výchozího pásma
+                tiles: $tiles,
             );
         }
 
@@ -113,28 +118,143 @@ final class GlobusOfferSource implements OfferSource
     }
 
     /**
-     * Akce z PDF letáku, které ještě nezačaly; akci, kterou už vrací API (stejný otisk názvu
-     * a ceny, překrývající se platnost), vynechá — tu nese dávka katalogu.
+     * Cenová pásma: hypermarket, jehož PDF letáku platí pro pásmo, a hypermarkety pásma. Pásmo
+     * s výchozím hypermarketem je první a výchozí hypermarket v něm taky (jeho položky letáku,
+     * PDF a údaje akcí mají přednost); bez pásem v konfiguraci jen výchozí hypermarket.
      *
-     * @param  array{id: string, name: string, type: string, validFrom: CarbonImmutable, validTo: CarbonImmutable, pdfUrl: string}  $leaflet
-     * @param  list<OfferData>  $apiOffers
+     * @return non-empty-list<array{representative: string, houses: non-empty-list<string>}>
+     */
+    private function priceZones(): array
+    {
+        $reference = (string) config()->integer('letaky.sources.globus.house_id');
+        $zones = [];
+        foreach (config()->array('letaky.sources.globus.price_zones') as $representative => $houses) {
+            $houses = array_values(array_map(strval(...), is_array($houses) ? $houses : []));
+            if (in_array($reference, $houses, true)) {
+                array_unshift($zones, ['representative' => (string) $representative, 'houses' => [$reference, ...array_values(array_diff($houses, [$reference]))]]);
+            } elseif ($houses !== []) {
+                $zones[] = ['representative' => (string) $representative, 'houses' => $houses];
+            }
+        }
+
+        return $zones === [] ? [['representative' => $reference, 'houses' => [$reference]]] : $zones;
+    }
+
+    /**
+     * Akce z katalogů hypermarketů sloučené po položce a ceně (`GlobusHouseOffers`). Katalogy se
+     * stahují po stránkách souběžně; stránkuje se podle `paginationShowMore` — `totalCount` nesedí.
+     *
+     * @param  list<string>  $houses  Hypermarkety, výchozí první
+     * @param  array<string, string>  $descriptions  Popisy z letáku podle EAN
+     * @param  array<string, string>  $names  Názvy položek letáku podle EAN
      * @return list<OfferData>
+     *
+     * @throws SourceResponseChanged
+     * @throws RequestException
+     * @throws ConnectionException
+     */
+    private function catalogOffers(array $houses, array $descriptions, array $names): array
+    {
+        $merged = new GlobusHouseOffers($houses[0]);
+        $pending = $houses;
+        $page = 0;
+
+        while ($pending !== []) {
+            $responses = $this->pages($pending, 'catalog_path', $page);
+            $next = [];
+            foreach ($pending as $house) {
+                $result = $this->parser->catalogPage($this->json($responses[$house]));
+                unset($responses[$house]);
+                foreach ($result['products'] as $product) {
+                    $offer = $this->parser->offer($product, $descriptions, $names);
+                    if ($offer !== null) {
+                        $merged->add($house, $offer);
+                    }
+                }
+                if ($result['hasMore'] && $result['products'] !== []) {
+                    $next[] = $house;
+                }
+            }
+            $pending = $next;
+            $page++;
+        }
+
+        return $merged->offers($houses);
+    }
+
+    /**
+     * Položky letáků hypermarketů (zástupců pásem); položky prvního jsou první — u stejného EAN
+     * vyhrává jeho popis. Poslední stránka je kratší než plná.
+     *
+     * @param  list<string>  $houses
+     * @return list<array<string, mixed>>
+     *
+     * @throws SourceResponseChanged
+     * @throws RequestException
+     * @throws ConnectionException
+     */
+    private function leafletItems(array $houses): array
+    {
+        $pageSize = config()->integer('letaky.sources.globus.page_size');
+        $items = array_fill_keys($houses, []);
+        $pending = $houses;
+        $page = 0;
+
+        while ($pending !== []) {
+            $responses = $this->pages($pending, 'leaflet_items_path', $page);
+            $next = [];
+            foreach ($pending as $house) {
+                $pageItems = $this->parser->leafletItemsPage($this->json($responses[$house]));
+                array_push($items[$house], ...$pageItems);
+                if (count($pageItems) === $pageSize) {
+                    $next[] = $house;
+                }
+            }
+            $pending = $next;
+            $page++;
+        }
+
+        return array_merge(...array_values($items));
+    }
+
+    /**
+     * Akce z PDF letáku za každé cenové pásmo, které leták má. Akce stejná ve více pásmech (stejný
+     * otisk názvu a ceny i platnost) je jedna a platí v hypermarketech těch pásem. Vynechá akce,
+     * které už platí, a akce, které už vrací API (stejný otisk, překrývající se platnost) — ty
+     * nese dávka katalogu.
+     *
+     * @param  array{id: string, name: string, type: string, validFrom: CarbonImmutable, validTo: CarbonImmutable, pdfs: list<array{url: string, representative: string, houses: list<string>}>}  $leaflet
+     * @param  list<string>  $houses  Všechny hypermarkety
+     * @param  list<OfferData>  $apiOffers
+     * @return array{list<OfferData>, TileStats|null} Akce a statistika PDF prvního pásma
      *
      * @throws SourceResponseChanged
      * @throws PdfTextFailed
      * @throws RequestException
      */
-    private function leafletOffers(array $leaflet, array $apiOffers): array
+    private function leafletOffers(array $leaflet, array $houses, array $apiOffers): array
     {
-        $offers = $this->leafletParser->offers(
-            $this->pdf->readUrl($this->http, $leaflet['pdfUrl']),
-            [$leaflet['validFrom'], $leaflet['validTo']],
-            config()->string('letaky.sources.globus.offers_page_url'),
-        );
-
         $minimum = config()->integer('letaky.sources.globus.pdf_main_min_offers');
-        if ($leaflet['type'] === config()->string('letaky.sources.globus.pdf_main_type') && count($offers) < $minimum) {
-            throw SourceResponseChanged::because(Chain::Globus, "leták {$leaflet['name']} má jen ".count($offers)." ověřených akcí z PDF (méně než {$minimum})");
+        $isMain = $leaflet['type'] === config()->string('letaky.sources.globus.pdf_main_type');
+        $found = [];
+        $tiles = null;
+
+        foreach ($leaflet['pdfs'] as $pdf) {
+            $offers = $this->leafletParser->offers(
+                $this->pdf->readUrl($this->http, $pdf['url']),
+                [$leaflet['validFrom'], $leaflet['validTo']],
+                config()->string('letaky.sources.globus.offers_page_url'),
+            );
+            $tiles ??= $this->leafletParser->lastStats();
+
+            if ($isMain && count($offers) < $minimum) {
+                throw SourceResponseChanged::because(Chain::Globus, "leták {$leaflet['name']} (hypermarket {$pdf['representative']}) má jen ".count($offers)." ověřených akcí z PDF (méně než {$minimum})");
+            }
+
+            foreach ($offers as $offer) {
+                $found[$offer->key()]['offer'] ??= $offer;
+                $found[$offer->key()]['houses'] = [...$found[$offer->key()]['houses'] ?? [], ...$pdf['houses']];
+            }
         }
 
         $claimed = [];
@@ -145,40 +265,82 @@ final class GlobusOfferSource implements OfferSource
         }
 
         $today = $this->calendar->today();
-
-        return array_values(array_filter($offers, function (OfferData $offer) use ($today, $claimed): bool {
-            if (! $offer->validFrom->greaterThan($today)) {
-                return false;
+        $result = [];
+        foreach ($found as ['offer' => $offer, 'houses' => $offerHouses]) {
+            if (! $offer->validFrom->greaterThan($today) || $this->isClaimed($offer, $claimed)) {
+                continue;
             }
-            foreach ($claimed[$offer->externalId] ?? [] as [$from, $to]) {
-                if ($from->lessThanOrEqualTo($offer->validTo) && $to->greaterThanOrEqualTo($offer->validFrom)) {
-                    return false;
-                }
-            }
+            $codes = array_values(array_unique($offerHouses));
+            sort($codes);
+            $result[] = $offer->withStoreCodes(count($codes) === count($houses) ? null : $codes);
+        }
 
-            return true;
-        }));
+        return [$result, $tiles];
+    }
+
+    /**
+     * Vrací akci z PDF už API (stejný otisk a překrývající se platnost)?
+     *
+     * @param  array<string, list<array{CarbonImmutable, CarbonImmutable}>>  $claimed  Otisk => platnosti akcí z API
+     */
+    private function isClaimed(OfferData $offer, array $claimed): bool
+    {
+        foreach ($claimed[$offer->externalId] ?? [] as [$from, $to]) {
+            if ($from->lessThanOrEqualTo($offer->validTo) && $to->greaterThanOrEqualTo($offer->validFrom)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
      * Letáky a katalogy, které ještě nezačaly a mají se stáhnout z PDF: hlavní leták, tematický
-     * leták bez hlavního letáku v seznamu a katalog s potravinami, drogerií nebo krmivy.
+     * leták bez hlavního letáku v seznamu a katalog s potravinami, drogerií nebo krmivy. Seznam
+     * letáků se stahuje od zástupce každého pásma — PDF stejného letáku má každý hypermarket vlastní;
+     * leták nese PDF každého pásma, které ho má, s hypermarkety pásma.
      *
-     * @return list<array{id: string, name: string, type: string, validFrom: CarbonImmutable, validTo: CarbonImmutable, pdfUrl: string}>
+     * @param  non-empty-list<array{representative: string, houses: non-empty-list<string>}>  $zones  Výchozí první
+     * @return list<array{id: string, name: string, type: string, validFrom: CarbonImmutable, validTo: CarbonImmutable, pdfs: list<array{url: string, representative: string, houses: list<string>}>}>
      *
      * @throws SourceResponseChanged
      * @throws RequestException
+     * @throws ConnectionException
      */
-    private function upcomingLeaflets(): array
+    private function upcomingLeaflets(array $zones): array
     {
         $pageSize = config()->integer('letaky.sources.globus.leaflets_page_size');
+        $zoneHouses = [];
+        foreach ($zones as $zone) {
+            $zoneHouses[$zone['representative']] = $zone['houses'];
+        }
+
         $leaflets = [];
+        $pending = array_column($zones, 'representative');
         $page = 0;
-        do {
-            $pageLeaflets = $this->parser->leafletsPage($this->get('leaflets_path', $page, $pageSize));
-            array_push($leaflets, ...$pageLeaflets);
+        while ($pending !== []) {
+            $responses = $this->pages($pending, 'leaflets_path', $page, $pageSize);
+            $next = [];
+            foreach ($pending as $representative) {
+                $pageLeaflets = $this->parser->leafletsPage($this->json($responses[$representative]));
+                foreach ($pageLeaflets as $leaflet) {
+                    $leaflets[$leaflet['id']] ??= [
+                        'id' => $leaflet['id'],
+                        'name' => $leaflet['name'],
+                        'type' => $leaflet['type'],
+                        'validFrom' => $leaflet['validFrom'],
+                        'validTo' => $leaflet['validTo'],
+                        'pdfs' => [],
+                    ];
+                    $leaflets[$leaflet['id']]['pdfs'][] = ['url' => $leaflet['pdfUrl'], 'representative' => $representative, 'houses' => $zoneHouses[$representative]];
+                }
+                if (count($pageLeaflets) === $pageSize) {
+                    $next[] = $representative;
+                }
+            }
+            $pending = $next;
             $page++;
-        } while (count($pageLeaflets) === $pageSize);
+        }
 
         $mainIds = [];
         foreach ($leaflets as $leaflet) {
@@ -199,65 +361,39 @@ final class GlobusOfferSource implements OfferSource
     }
 
     /**
-     * Všechny položky katalogu akcí. Stránkuje se podle `paginationShowMore` — `totalCount` nesedí.
+     * Stejná stránka výpisu API několika hypermarketů souběžně.
      *
-     * @return list<array<string, mixed>>
-     *
-     * @throws SourceResponseChanged
-     * @throws RequestException
-     */
-    private function catalogProducts(): array
-    {
-        $products = [];
-        $page = 0;
-        do {
-            $result = $this->parser->catalogPage($this->get('catalog_path', $page));
-            array_push($products, ...$result['products']);
-            $page++;
-        } while ($result['hasMore'] && $result['products'] !== []);
-
-        return $products;
-    }
-
-    /**
-     * Všechny položky letáků; poslední stránka je kratší než plná.
-     *
-     * @return list<array<string, mixed>>
-     *
-     * @throws SourceResponseChanged
-     * @throws RequestException
-     */
-    private function leafletItems(): array
-    {
-        $pageSize = config()->integer('letaky.sources.globus.page_size');
-        $items = [];
-        $page = 0;
-        do {
-            $pageItems = $this->parser->leafletItemsPage($this->get('leaflet_items_path', $page));
-            array_push($items, ...$pageItems);
-            $page++;
-        } while (count($pageItems) === $pageSize);
-
-        return $items;
-    }
-
-    /**
-     * Stránka výpisu API hypermarketu z konfigurace.
-     *
+     * @param  list<string>  $houses
      * @param  string  $pathKey  Klíč cesty v konfiguraci zdroje
      * @param  int|null  $pageSize  Velikost stránky; null = `page_size` zdroje
-     * @return array<mixed>
+     * @return array<string, Response> Odpověď podle hypermarketu
      *
      * @throws RequestException
+     * @throws ConnectionException
      */
-    private function get(string $pathKey, int $page, ?int $pageSize = null): array
+    private function pages(array $houses, string $pathKey, int $page, ?int $pageSize = null): array
     {
-        $url = sprintf(config()->string('letaky.sources.globus.api_url'), config()->integer('letaky.sources.globus.house_id'))
-            .config()->string("letaky.sources.globus.{$pathKey}");
-        $response = $this->http->request()
-            ->get($url, ['page' => $page, 'pageSize' => $pageSize ?? config()->integer('letaky.sources.globus.page_size')])
-            ->json();
+        $query = ['page' => $page, 'pageSize' => $pageSize ?? config()->integer('letaky.sources.globus.page_size')];
+        $requests = [];
+        foreach ($houses as $house) {
+            $requests[$house] = [
+                sprintf(config()->string('letaky.sources.globus.api_url'), (int) $house).config()->string("letaky.sources.globus.{$pathKey}"),
+                $query,
+            ];
+        }
 
-        return is_array($response) ? $response : [];
+        return $this->http->pool($requests, config()->integer('letaky.sources.globus.house_concurrency'));
+    }
+
+    /**
+     * Tělo odpovědi API jako pole; jiný tvar je prázdné pole (parser ho odmítne).
+     *
+     * @return array<mixed>
+     */
+    private function json(Response $response): array
+    {
+        $json = $response->json();
+
+        return is_array($json) ? $json : [];
     }
 }

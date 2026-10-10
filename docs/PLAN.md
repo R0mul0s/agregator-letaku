@@ -33,8 +33,9 @@ Log rozhodnutí (kap. 8) se nepřepisuje — starší rozhodnutí nahrazují nov
 
 | Platí | Neplatí (čím nahrazeno) |
 |---|---|
-| Obchody se sledují celé, u Tesca (a Albertu) podle **typu prodejny** HM / SM (R19, R21); **u Kauflandu výběr více prodejen** (R49) | Výběr **konkrétních prodejen** a seznamy prodejen (R3 → R21), výběr prodejen Kauflandu (R19 → R21) |
+| Obchody se sledují celé, u Tesca (a Albertu) podle **typu prodejny** HM / SM (R19, R21); **u Kauflandu a Globusu výběr více prodejen** (R49, R131) | Výběr **konkrétních prodejen** a seznamy prodejen (R3 → R21), výběr prodejen Kauflandu (R19 → R21) |
 | Kaufland po prodejnách (R49): seznam 149 prodejen a jejich akcí (cron `import-stores`), k výchozí nabídce stránky prodejen s chybějícími akcemi; akce, která neplatí všude, má prodejny (`offer_stores`); Moje slevy jen akce vybraných prodejen, u akce „Jen Trutnov“ | Jedna výchozí varianta pro všechny prodejny (R15 → R49); stahování jen prodejen vybraných uživateli (R3) |
+| Globus po hypermarketech (R131): katalog akcí všech 16 hypermarketů souběžně, akce s jinou cenou v části hypermarketů jako samostatná nabídka s prodejnami (ID `vanr-ceny`), PDF budoucích letáků za každé cenové pásmo (Praha a Brno, ostatní); hypermarkety v `stores` zakládá migrace | Jeden hypermarket (Čakovice) pro všechny (R46 → R131); všech 16 PDF letáků (hosting by nestihl) |
 | Bez LLM: Kaufland, Tesco, Lidl (kampaně na webu + PDF letáku), Penny (API + parser SVG letáku), Albert (PDF letáku), Globus (REST API webu), Billa (API celého katalogu + PDF budoucích letáků) (R23, R25, R26, R46, R48, R85–R89); dlaždice 1 kg / 1 ks bez ceny za jednotku u Albertu a Penny podle polohy a štítku slevy (R107) | LLM jako hlavní cesta pro letáky (R6 → R23); LLM jen v etapě 6, pokud bude potřeba |
 | **Zmínky v letácích bez ceny** — Lidl, Penny a Albert (R27, R36); vyloučená slova položky jen v okolí hledaného slova, zmínku skryje i akce, která už skončila, ale platila v období letáku (R107) | Vyhledávací API letáků Lidlu (zakázané v robots.txt); zmínky bez vyloučených slov (R27 → R107) |
 | Hlídaná položka = slova + varianta + vyloučení (R18); katalog produktů (R24, R28–R31) — kategorie ze stromu Tesca, produkty spravuje admin, přiřazení nabídek se ukládá s ručními opravami; hlídaná položka = produkt z katalogu, nebo vlastní slova | Dva oddělené typy hlídání produkt / kategorie (R9 → R18; tři stavy shody platí dál); vymýšlení vlastních kategorií (→ R28); šablony hlídaných položek v konfiguraci (→ produkty katalogu, R31) |
@@ -59,7 +60,7 @@ Log rozhodnutí (kap. 8) se nepřepisuje — starší rozhodnutí nahrazují nov
 | **Přihlášení přes Google, Seznam (R98) a Facebook (R96):** tlačítka nad přihlášením a registrací (Seznam v jednobarevné variantě manuálu jako ostatní, text „Přihlásit přes Seznam“ předepsaný, R124), nový účet dokončí registraci se souhlasy a nemá heslo; k existujícímu účtu se sám připojí jen e-mail ověřený Googlem (Seznam a Facebook ne); v Mém účtu propojit / odpojit, účet bez hesla potvrzuje citlivé změny přihlášením u poskytovatele | Přihlášení jen e-mailem a heslem; Instagram (Meta ho pro běžné uživatele zrušila) a Apple (placený program) zatím ne |
 | Hlídám: jedno pole s našeptávačem katalogu a volbou vlastních slov, dlaždice položek s počtem akcí a nejnižší cenou (R39); katalog k procházení jako v e-shopu — dlaždice oddělení s ikonou, po klepnutí pododdělení s produkty (R47) | Seznam katalogu a formulář vlastních slov stále rozbalené vedle seznamu položek (R31 → R39); sbalený seznam všech produktů s čipy oddělení (R39 → R47) |
 | Potvrzení po uložení jako toast dole uprostřed obrazovky (kód stavu v `session('status')` → `ui.toast.messages`); nevratné akce potvrzuje vlastní okno (`<dialog>`); Moje obchody jako karty s přepínači; oslovení v 5. pádě („Ahoj, Romane!“) (R47) | Zpráva o uložení v obsahu stránky jen na Účtu a v Mých obchodech, jinde nic; `window.confirm`; Moje obchody se zaškrtávátky a červeným rámečkem u každého obchodu |
-| Globus z REST API webu: jeden hypermarket, jen akce VKA0, bez oblečení a obuvi, cena s aplikací Můj Globus (R46) | Globus jen jako budoucí průzkum; Makro bez zdroje (ochrana proti robotům) |
+| Globus z REST API webu: všechny hypermarkety (R131), jen akce VKA0, bez oblečení a obuvi, cena s aplikací Můj Globus (R46) | Globus jen jako budoucí průzkum; Makro bez zdroje (ochrana proti robotům) |
 | Billa z API celého katalogu (kvůli akcím jen s BILLA Klubem), platnost = akční týden středa–úterý, který obsahuje dnešek (R48); letáky, které ještě nezačaly, z PDF spárované s katalogem — akce celého týdne pod kódem produktu, jiná platnost pod předběžným ID (R89) | Jen filtr `inPromotion` (bez akcí s Klubem) |
 | Krmivo pro zvířata se ukáže jen u hlídání o zvířatech (R50) — pozná ho kategorie obchodu nebo slova a značky v textu, platí pro hlídané položky i katalog | Vylučovat krmivo vyjmenovanými slovy u každého produktu zvlášť (Friskies, Cesar… chyběly) |
 | Příprava na zveřejnění (R51): podmínky užití a zásady zpracování osobních údajů (`resources/legal`), patička webu s provozovatelem (e-maily jen s mottem, R81), povinný souhlas s podmínkami a dobrovolný souhlas s obchodními sděleními při registraci, **ověření e-mailu** (souhrn jen na ověřenou adresu), odhlášení z e-mailů jedním klepnutím, české chybové stránky; lišta souhlasu s cookies a Google Analytics až po souhlasu (R52) | Ověření e-mailu vypnuté (R13 → R51); souhrn na neověřenou adresu; odhlášení jen po přihlášení; anglické chybové stránky Laravelu; provozovatel v patičce e-mailů (R51 → R81) |
@@ -126,7 +127,7 @@ v [ZDROJE_DAT.md](ZDROJE_DAT.md). Přehled:
 | **Lidl** | JSON v HTML kampaňových stránek `lidl.cz/c/…` (`data-grid-data`), ~140 potravin týdně + PDF letáku přes `pdftotext` (R86), ~90 akcí navíc z každého potravinového letáku — hotovo | LLM pro neověřené dlaždice letáku | web ~1/3, s letákem ~60 % cen letáku | střední |
 | **Penny** | JSON API `penny.cz/api/product-discovery` + parser vektorové vrstvy letáku (R26, R85) — hotovo, ~500 akcí týdně | LLM pro neověřené dlaždice letáku | API 33 položek, s letákem ~85 % cen letáku | střední až vysoká |
 | **Albert** | GraphQL `getLeaflets` + Publitas `data.json` → **PDF letáku přes `pdftotext`** (R87), ~400 akcí v hypermarketu a ~300 v supermarketu týdně; text stránek pro zmínky (R36) — hotovo | LLM pro neověřené dlaždice letáku | ~70 % cen letáku | střední |
-| **Globus** | REST API webu `globus.cz/api/v1/gsoa/actionOffers` — katalog akcí hypermarketu s cenou, platností a cenou Můj Globus, popis z položek letáku (R46) — hotovo, ~650 akcí bez oblečení; API má jen akce, které už platí, **budoucí leták z PDF přes `pdftotext`** (R88), ~140 akcí na příští týden | LLM pro neověřené dlaždice letáku | platné ~100 %, budoucí ~55 % cen letáku | nízká až střední |
+| **Globus** | REST API webu `globus.cz/api/v1/gsoa/actionOffers` — katalog akcí všech hypermarketů s cenou, platností a cenou Můj Globus, popis z položek letáku (R46, R131) — hotovo, ~650 akcí bez oblečení; API má jen akce, které už platí, **budoucí leták z PDF přes `pdftotext`** (R88), ~140 akcí na příští týden | LLM pro neověřené dlaždice letáku | platné ~100 %, budoucí ~55 % cen letáku | nízká až střední |
 | **Billa** | JSON API `billa.cz/api/product-discovery` s celým katalogem (R48) — hotovo, ~3 400 akcí včetně ~370 jen s BILLA Klubem; letáky, které ještě nezačaly, z **PDF přes `pdftotext`** spárované s katalogem podle běžné ceny (R89), ~190 akcí na příští týden | LLM pro neověřené dlaždice letáku | API nemá platnost akcí — akční týden st–út; budoucí ~50 % ověřených dlaždic letáku | nízká až střední |
 
 Ověřeno na všech obchodech: **nikde není potřeba headless prohlížeč ani obcházení
@@ -142,7 +143,7 @@ ochrany proti botům**. Stačí HTTP klient Laravelu.
 | Lidl | celostátně, „Rozšířená nabídka“ jen ve vybraných prodejnách | příznak u položky |
 | Penny | celostátně | — |
 | Billa | velký a malý leták podle velikosti prodejny, API jedna celostátní cena | — |
-| Globus | jen krátké místní akce (Brno × Čakovice: 900 z 912 stejně) | stahuje se jeden hypermarket (4005 Čakovice) |
+| Globus | cenová pásma a místní akce: z 656 akcí 31 s jinou cenou v části hypermarketů (Praha a Brno dražší), 97 jen někde (10. 10. 2026); PDF letáku má každý hypermarket vlastní | katalog akcí každého hypermarketu `/houses/{gsoaId}/actionProductsCatalog`, PDF za cenové pásmo (R131) |
 
 ---
 
@@ -167,7 +168,7 @@ Stejný stack jako projekt Počasí ([R2](ROZHODNUTI.md)).
 ## 4. Datový model
 
 Tabulky `leaflets`, `offers` a `scrape_runs` existují od etapy 2, tabulky hlídání od etapy 3.
-Tabulka prodejen `stores` byla v etapách 1–3 a zrušila se (R21); znovu je od R49, jen pro obchody, jejichž akce se liší po prodejnách (Kaufland), s vazbou `offer_stores`. Obchody (řetězce) jsou pevný výčet `Chain` v kódu, jejich nastavení je
+Tabulka prodejen `stores` byla v etapách 1–3 a zrušila se (R21); znovu je od R49, jen pro obchody, jejichž akce se liší po prodejnách (Kaufland, Globus R131), s vazbou `offer_stores`. Obchody (řetězce) jsou pevný výčet `Chain` v kódu, jejich nastavení je
 v `config/letaky.php`.
 
 ### `leaflets`: zdroje nabídek (leták, kampaňová stránka, e-shop)
@@ -186,7 +187,7 @@ Klíč je `chain` + `kind` + `external_id` (Kaufland `nabidka-2026-09-30`, Tesco
 |---|---|
 | `chain`, `leaflet_id` | obchod a zdroj; nabídka e-shopu Tesco, která je v letáku, patří k letáku ([R17](ROZHODNUTI.md)) |
 | `store_format` | `hypermarket` / `supermarket`; null = všechny prodejny obchodu |
-| prodejny (`offer_stores`) | jen u akce, která neplatí ve všech prodejnách (Kaufland, R49); bez řádků = všude |
+| prodejny (`offer_stores`) | jen u akce, která neplatí ve všech prodejnách (Kaufland R49, Globus R131); bez řádků = všude |
 | `scrape_run_id`, `withdrawn_at` | stažení, ve kterém se nabídka naposledy objevila; kdy ji obchod stáhl před koncem platnosti ([R16](ROZHODNUTI.md)) |
 | `external_id` | ID položky u obchodu (Kaufland `klNr`, Tesco `id` produktu…) |
 | `name`, `brand`, `description` | |
@@ -225,7 +226,7 @@ Stránka se při dalším stažení přepíše. Slouží jen pro zmínky bez cen
 
 ### Uživatelé a hlídání (etapa 3)
 - `users`: účty (Fortify), `password` null = účet bez hesla založený přes Google nebo Facebook (R96); `loyalty_programs` = JSON seznam karet a aplikací, které uživatel má ([R19](ROZHODNUTI.md)); předvolby Mých slev `offers_sort`, `min_discount_percent` (R41); upozornění `digest_frequency` (off / instant / daily / weekly) a `digest_sent_at` = poslední zpracování (R42, R54, R58); souhlasy `terms_*`, `marketing_consent_*` (R51); `avatar_path` (R40)
-- `followed_chains`: sledované obchody — `chain`, `store_format` (null = všechny typy prodejen), `include_online_only`, `store_codes` (vybrané prodejny Kauflandu, R49) ([R19](ROZHODNUTI.md)); nový účet sleduje všechny obchody (R55)
+- `followed_chains`: sledované obchody — `chain`, `store_format` (null = všechny typy prodejen), `include_online_only`, `store_codes` (vybrané prodejny Kauflandu a hypermarkety Globusu, R49, R131) ([R19](ROZHODNUTI.md)); nový účet sleduje všechny obchody (R55)
 - `watch_items`: hlídané položky — `name`, `product_id` (produkt katalogu, R31) nebo vlastní `keywords`, `variant_keywords`, `exclude_keywords` ([R18](ROZHODNUTI.md))
 - `shopping_list_items`: nákupní seznam — `user_id`, `offer_id` (unikátní dvojice), `checked_at` = odškrtnuto v obchodě ([R61](ROZHODNUTI.md)); vlastní položka bez akce má `offer_id` null, `custom_name` a nepovinný `chain`, sdílený odkaz `users.shopping_share_token` ([R130](ROZHODNUTI.md))
 - `social_accounts`: propojené účty Google a Facebook — `user_id`, `provider`, `provider_user_id` (unikátní dvojice poskytovatel + ID i uživatel + poskytovatel) ([R96](ROZHODNUTI.md))

@@ -109,6 +109,22 @@ final readonly class OfferData
     }
 
     /**
+     * Kopie s jiným koncem platnosti — sloučená akce hypermarketů Globusu (R131).
+     */
+    public function withValidTo(CarbonImmutable $validTo): self
+    {
+        return new self(...[...get_object_vars($this), 'validTo' => $validTo]);
+    }
+
+    /**
+     * Kopie s jiným ID — akce Globusu s jinou cenou v části hypermarketů (R131).
+     */
+    public function withExternalId(string $externalId): self
+    {
+        return new self(...[...get_object_vars($this), 'externalId' => $externalId]);
+    }
+
+    /**
      * Klíč pro deduplikaci — odpovídá unikátnímu indexu tabulky offers (bez obchodu, ten má celá dávka společný).
      */
     public function key(): string

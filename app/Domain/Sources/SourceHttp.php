@@ -16,7 +16,9 @@ declare(strict_types=1);
 namespace App\Domain\Sources;
 
 use Carbon\CarbonImmutable;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\PendingRequest;
+use Illuminate\Http\Client\Pool;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\Client\Response as ClientResponse;
 use Illuminate\Support\Facades\Http;
@@ -51,6 +53,44 @@ final class SourceHttp
         return $request
             ->retry(config()->integer('letaky.http.retries'), config()->integer('letaky.http.retry_delay_ms'), $this->shouldRetry(...), throw: false)
             ->throwIf(fn (ClientResponse $response): bool => $response->status() !== Response::HTTP_NOT_FOUND);
+    }
+
+    /**
+     * Několik GET požadavků souběžně, nejvýš `$concurrency` najednou (Globus: katalogy hypermarketů,
+     * R131), se stejným User-Agentem, timeoutem a opakováním jako request(). Pauza se počká jednou
+     * před celou dávkou. Chyba kteréhokoli požadavku po vyčerpání opakování vyhodí výjimku.
+     *
+     * @param  array<string, array{string, array<string, mixed>}>  $requests  Klíč => [adresa, parametry dotazu]
+     * @param  int|null  $delayMs  Pauza zdroje; null = výchozí z konfigurace
+     * @return array<string, ClientResponse> Odpovědi podle klíče
+     *
+     * @throws RequestException
+     * @throws ConnectionException
+     */
+    public function pool(array $requests, int $concurrency, ?int $delayMs = null): array
+    {
+        $this->waitForTurn($delayMs ?? config()->integer('letaky.http.request_delay_ms'));
+
+        // Pool si požadavky pamatuje sám (`as`) — návratová hodnota callbacku se nepoužívá
+        $results = Http::pool(function (Pool $pool) use ($requests): void {
+            foreach ($requests as $key => [$url, $query]) {
+                $pool->as((string) $key)
+                    ->withUserAgent(config()->string('letaky.http.user_agent'))
+                    ->timeout(config()->integer('letaky.http.timeout_seconds'))
+                    ->retry(config()->integer('letaky.http.retries'), config()->integer('letaky.http.retry_delay_ms'), $this->shouldRetry(...))
+                    ->get($url, $query);
+            }
+        }, max(1, $concurrency));
+
+        $responses = [];
+        foreach ($results as $key => $result) {
+            if ($result instanceof Throwable) {
+                throw $result;
+            }
+            $responses[(string) $key] = $result->throw();
+        }
+
+        return $responses;
     }
 
     /**

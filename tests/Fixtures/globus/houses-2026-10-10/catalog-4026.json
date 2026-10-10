@@ -1,0 +1,273 @@
+{
+ "products": [
+  {
+   "brand": {
+    "brandId": "0",
+    "name": "Normální"
+   },
+   "imgDetail": "https://gapi.globus.cz/OnlineAsset/3/asset?assetID=af6af981-75c7-4557-815e-9ea2c78a7ff4&type=1",
+   "producer": "LACTALIS CZ, S.R.O.",
+   "producerId": "37283",
+   "productCategories": [
+    "cls_czr_gervais_and_cream_cheese",
+    "cls_czr_fresh_quark_cheese",
+    "cls_czr_cheese",
+    "cls_czr_milk_dairy_products_and_eggs",
+    "cls_czr_click_and_collect"
+   ],
+   "hasFictiveStock": false,
+   "originalRebateIds": null,
+   "sellUnitSizeText": "100 g",
+   "countriesOfOrigin": [
+    "FR"
+   ],
+   "commonBrand": {
+    "id": "16173",
+    "name": "Président"
+   },
+   "ageLimitation": null,
+   "baseVariantQuantity": 1,
+   "articleType": 0,
+   "billName": "LA PDT ROND.OŘ. 100G",
+   "pointRelevant": false,
+   "otherLegalRequirements": "",
+   "containsMicronutrients": false,
+   "qcommSell": true,
+   "micronutrients": [],
+   "matlType": "ZHAW",
+   "valClass": "Z300",
+   "ean": [
+    "3228023110064",
+    "3228024090211"
+   ],
+   "vanr": "00689137004",
+   "productTagIds": [
+    "CMW29"
+   ],
+   "warengroup": "635W9117",
+   "name": "Président Rondelé vlašské ořechy 100 g",
+   "productInHouse": {
+    "globusBonusCredit": null,
+    "actualPrice": 35.9,
+    "originalPrice": 51.9,
+    "discountPercentage": 30,
+    "priceValidFrom": "2026-10-06T00:00:00.000+02:00",
+    "priceValidTo": "2026-10-13T23:59:59.000+02:00",
+    "houseNumber": 4026,
+    "houseName": "Globus ČR, v.o.s. Štěrboholy ",
+    "placements": [
+     {
+      "placement": "13503010",
+      "facing": 2,
+      "presentationType": 0,
+      "presentationStock": 5,
+      "planogramKey": "1436556",
+      "name": "Syry_Cerstve roztiratelne_Cottage_Kozi, ovci_Salatove_6RJ_26_6P",
+      "category": "Syry",
+      "subcategory": "Cerstve syry",
+      "department": "Cerstve potraviny"
+     }
+    ],
+    "modified": "2026-10-06T09:55:47.000+02:00",
+    "stockAmount": 41,
+    "minimumPresentationStock": 5,
+    "priceTagId": "11",
+    "priceType": "VKA0",
+    "comparisonPrice": 35.9,
+    "comparisonSaleUnitSizeText": "100,00 g",
+    "baseComparisonPrice": 359,
+    "baseComparisonSaleUnitSizeText": "1 kg",
+    "securityTag": false,
+    "availability": "A",
+    "blickPunkt": true,
+    "customerClubDiscounts": [],
+    "modifiedStockAmount": "2026-10-10T16:36:46.000+02:00",
+    "bonusProgramPrice": null,
+    "GraphicId": 123,
+    "Color": "1",
+    "isActive": true
+   },
+   "unitId": "g",
+   "unitAmount": 100,
+   "placementOrder": 0,
+   "imgIcon": "https://gapi.globus.cz/OnlineAsset/3/asset?assetID=af6af981-75c7-4557-815e-9ea2c78a7ff4&type=3",
+   "imgThumbnail": "https://gapi.globus.cz/OnlineAsset/3/asset?assetID=af6af981-75c7-4557-815e-9ea2c78a7ff4&type=2",
+   "alias": [
+    "čerstvý sýr měkký"
+   ],
+   "modified": "2026-10-06T03:21:11.000+02:00",
+   "imageStepURL": null,
+   "priceCheckerHasPicture": false,
+   "stepID": null,
+   "rabatNumber": null,
+   "originalRebateId": null,
+   "IsBaseVariant": false,
+   "ribbon": {
+    "vSale": {
+     "display": true,
+     "label": "-30 %"
+    }
+   },
+   "badges": [],
+   "calculatedPrice": {
+    "currentPrice": 35.9,
+    "normalPrice": 51.9
+   }
+  },
+  {
+   "brand": {
+    "brandId": "0",
+    "name": "Normální"
+   },
+   "imgDetail": "https://gapi.globus.cz/OnlineAsset/3/asset?assetID=edc1aa4e-183c-4449-9c00-5acc55ecd81d&type=1",
+   "producer": "PLZEŇSKÝ PRAZDROJ, A. S.",
+   "producerId": "30094",
+   "productCategories": [
+    "cls_czr_lagers_up_to_12",
+    "cls_czr_beer",
+    "cls_czr_drinks",
+    "cls_czr_click_and_collect",
+    "cls_czr_ideas_and_recipes",
+    "cls_czr_events_news_sales"
+   ],
+   "hasFictiveStock": false,
+   "originalRebateIds": [
+    "30145792"
+   ],
+   "sellUnitSizeText": "0,5 l",
+   "countriesOfOrigin": [
+    "CZ"
+   ],
+   "commonBrand": {
+    "id": "16120",
+    "name": "Pilsner Urquell"
+   },
+   "ageLimitation": 18,
+   "baseVariantQuantity": 1,
+   "articleType": 0,
+   "billName": "PL PILSNER URQ. 0,5L",
+   "pointRelevant": false,
+   "otherLegalRequirements": "",
+   "containsMicronutrients": false,
+   "qcommSell": true,
+   "micronutrients": [],
+   "matlType": "ZVOL",
+   "valClass": "Z300",
+   "ean": [
+    "8594404110110"
+   ],
+   "vanr": "00088249001",
+   "productTagIds": [
+    "CMW10",
+    "CMW29"
+   ],
+   "warengroup": "800W4311",
+   "name": "Pilsner Urquell Pivo ležák světlý sklo 0,5l",
+   "productInHouse": {
+    "globusBonusCredit": null,
+    "actualPrice": 25.9,
+    "originalPrice": null,
+    "discountPercentage": null,
+    "priceValidFrom": "2026-10-06T00:00:00.000+02:00",
+    "priceValidTo": "2026-10-13T23:59:59.000+02:00",
+    "houseNumber": 4026,
+    "houseName": "Globus ČR, v.o.s. Štěrboholy ",
+    "placements": [
+     {
+      "placement": "43603010",
+      "facing": 2,
+      "presentationType": 2,
+      "presentationStock": 320,
+      "planogramKey": "1411673",
+      "name": "Pivo1_9PAL_specialy_26",
+      "category": "Piva",
+      "subcategory": "",
+      "department": "Napojove centrum (spodni patro)"
+     }
+    ],
+    "modified": "2026-10-06T09:15:55.000+02:00",
+    "stockAmount": 2975,
+    "minimumPresentationStock": 320,
+    "priceTagId": "12",
+    "priceType": "VKA0",
+    "comparisonPrice": 5.18,
+    "comparisonSaleUnitSizeText": "100,00 ml",
+    "baseComparisonPrice": 51.8,
+    "baseComparisonSaleUnitSizeText": "1 l",
+    "securityTag": false,
+    "availability": "A",
+    "blickPunkt": true,
+    "customerClubDiscounts": [
+     {
+      "discount": 0,
+      "discountIndex": 0,
+      "customerClub": "1",
+      "rebateId": "30145792",
+      "customerCard": false,
+      "conditionPercent": null
+     }
+    ],
+    "modifiedStockAmount": "2026-10-10T16:47:01.000+02:00",
+    "bonusProgramPrice": null,
+    "GraphicId": 121,
+    "Color": "1",
+    "isActive": true
+   },
+   "unitId": "ml",
+   "unitAmount": 500,
+   "placementOrder": 0,
+   "imgIcon": "https://gapi.globus.cz/OnlineAsset/3/asset?assetID=edc1aa4e-183c-4449-9c00-5acc55ecd81d&type=3",
+   "imgThumbnail": "https://gapi.globus.cz/OnlineAsset/3/asset?assetID=edc1aa4e-183c-4449-9c00-5acc55ecd81d&type=2",
+   "alias": [
+    "lager",
+    "lager skleněná lahev",
+    "lager sklo",
+    "lager v skleněné lahvi",
+    "lager ve skle",
+    "pils",
+    "pils skleněná lahev",
+    "pils sklo",
+    "pils v skleněné lahvi",
+    "pils ve skle",
+    "pivo 12°",
+    "skleněná lahev lager",
+    "skleněná lahev pils",
+    "skleněná lahev sklo vratné",
+    "sklo lager",
+    "sklo pils",
+    "sklo vratné skleněná lahev",
+    "sklo vratné v skleněné lahvi",
+    "sklo vratné ve skle",
+    "světlý lager",
+    "světlý pils",
+    "světlý sklo vratné"
+   ],
+   "modified": "2026-10-06T02:19:24.000+02:00",
+   "imageStepURL": null,
+   "priceCheckerHasPicture": false,
+   "stepID": null,
+   "rabatNumber": [
+    "30145792"
+   ],
+   "originalRebateId": [
+    "30145792"
+   ],
+   "IsBaseVariant": false,
+   "ribbon": [],
+   "badges": {
+    "vCZProduct": {
+     "display": true
+    },
+    "vAgeLimit": {
+     "display": true
+    }
+   },
+   "calculatedPrice": {
+    "currentPrice": 25.9,
+    "normalPrice": 0
+   }
+  }
+ ],
+ "paginationShowMore": false,
+ "totalCount": 2
+}

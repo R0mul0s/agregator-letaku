@@ -58,16 +58,13 @@ final class ChainCatalog
 
     /**
      * Prodejny obchodu k výběru (R49), podle města a názvu; prázdné u obchodu, jehož akce
-     * se po prodejnách neliší.
+     * se po prodejnách neliší. Kaufland je stahuje (ImportStores), hypermarkety Globusu
+     * zakládá migrace (R131).
      *
      * @return list<array{code: string, name: string, city: string}>
      */
     public function stores(Chain $chain): array
     {
-        if (config("letaky.sources.{$chain->value}.stores_source") === null) {
-            return [];
-        }
-
         return array_values(Store::query()->where('chain', $chain)->orderBy('city')->orderBy('name')->get(['code', 'name', 'city'])
             ->map(fn (Store $store): array => ['code' => $store->code, 'name' => $store->name, 'city' => $store->city])
             ->all());

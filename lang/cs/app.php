@@ -611,7 +611,11 @@ return [
             'include_online_only' => 'Ukazovat i akce jen pro e-shop',
             // Výběr prodejen (R49, StoreSelect.vue)
             'stores' => 'Moje prodejny',
-            'stores_hint' => 'Pultové maso, ryby a pár dalších akcí se liší po prodejnách. Bez výběru uvidíte akce všech prodejen.',
+            // Proč vybírat prodejny, podle obchodu (R49, R131)
+            'stores_hints' => [
+                'kaufland' => 'Pultové maso, ryby a pár dalších akcí se liší po prodejnách. Bez výběru uvidíte akce všech prodejen.',
+                'globus' => 'Část akcí má v některých hypermarketech jinou cenu a pár jich platí jen někde. Bez výběru uvidíte akce všech hypermarketů.',
+            ],
             'stores_search' => 'Hledat prodejnu nebo město',
             'stores_all' => 'Všechny prodejny',
             'stores_remove' => 'Odebrat prodejnu :store',
@@ -1524,7 +1528,7 @@ return [
                 ],
                 'stores' => [
                     'question' => 'Platí akce ve všech prodejnách?',
-                    'answer' => 'Většinou ano. Kaufland má některé akce jen v části prodejen — u takové akce to uvidíte a v Mých obchodech si vyberete prodejny, kam chodíte.',
+                    'answer' => 'Většinou ano. Kaufland a Globus mají některé akce jen v části prodejen a Globus u některých i jinou cenu — u takové akce to uvidíte a v Mých obchodech si vyberete prodejny, kam chodíte.',
                 ],
                 'app' => [
                     'question' => 'Funguje Slevohlídka v telefonu jako aplikace?',

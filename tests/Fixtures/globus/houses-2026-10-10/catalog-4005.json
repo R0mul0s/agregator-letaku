@@ -1,0 +1,398 @@
+{
+ "products": [
+  {
+   "brand": {
+    "brandId": "0",
+    "name": "Normální"
+   },
+   "imgDetail": "https://gapi.globus.cz/OnlineAsset/3/asset?assetID=af6af981-75c7-4557-815e-9ea2c78a7ff4&type=1",
+   "producer": "LACTALIS CZ, S.R.O.",
+   "producerId": "37283",
+   "productCategories": [
+    "cls_czr_gervais_and_cream_cheese",
+    "cls_czr_fresh_quark_cheese",
+    "cls_czr_cheese",
+    "cls_czr_milk_dairy_products_and_eggs",
+    "cls_czr_click_and_collect"
+   ],
+   "hasFictiveStock": false,
+   "originalRebateIds": null,
+   "sellUnitSizeText": "100 g",
+   "countriesOfOrigin": [
+    "FR"
+   ],
+   "commonBrand": {
+    "id": "16173",
+    "name": "Président"
+   },
+   "ageLimitation": null,
+   "baseVariantQuantity": 1,
+   "articleType": 0,
+   "billName": "LA PDT ROND.OŘ. 100G",
+   "pointRelevant": false,
+   "otherLegalRequirements": "",
+   "containsMicronutrients": false,
+   "qcommSell": true,
+   "micronutrients": [],
+   "matlType": "ZHAW",
+   "valClass": "Z300",
+   "ean": [
+    "3228023110064",
+    "3228024090211"
+   ],
+   "vanr": "00689137004",
+   "productTagIds": [
+    "CMW29"
+   ],
+   "warengroup": "635W9117",
+   "name": "Président Rondelé vlašské ořechy 100 g",
+   "productInHouse": {
+    "globusBonusCredit": null,
+    "actualPrice": 35.9,
+    "originalPrice": 51.9,
+    "discountPercentage": 30,
+    "priceValidFrom": "2026-10-06T00:00:00.000+02:00",
+    "priceValidTo": "2026-10-13T23:59:59.000+02:00",
+    "houseNumber": 4005,
+    "houseName": "Globus ČR, v.o.s. Čakovice ",
+    "placements": [
+     {
+      "placement": "10907020",
+      "facing": 3,
+      "presentationType": 0,
+      "presentationStock": 6,
+      "planogramKey": "333543",
+      "name": "Syry_Cerstve roztiratelne_4RJ_05_4P",
+      "category": "Syry",
+      "subcategory": "Cerstve syry",
+      "department": "Cerstve potraviny"
+     }
+    ],
+    "modified": "2026-10-06T08:47:32.000+02:00",
+    "stockAmount": 95,
+    "minimumPresentationStock": 6,
+    "priceTagId": "11",
+    "priceType": "VKA0",
+    "comparisonPrice": 35.9,
+    "comparisonSaleUnitSizeText": "100,00 g",
+    "baseComparisonPrice": 359,
+    "baseComparisonSaleUnitSizeText": "1 kg",
+    "securityTag": false,
+    "availability": "A",
+    "blickPunkt": true,
+    "customerClubDiscounts": [],
+    "modifiedStockAmount": "2026-10-10T15:26:26.000+02:00",
+    "bonusProgramPrice": null,
+    "GraphicId": 123,
+    "Color": "1",
+    "isActive": true
+   },
+   "unitId": "g",
+   "unitAmount": 100,
+   "placementOrder": 0,
+   "imgIcon": "https://gapi.globus.cz/OnlineAsset/3/asset?assetID=af6af981-75c7-4557-815e-9ea2c78a7ff4&type=3",
+   "imgThumbnail": "https://gapi.globus.cz/OnlineAsset/3/asset?assetID=af6af981-75c7-4557-815e-9ea2c78a7ff4&type=2",
+   "alias": [
+    "čerstvý sýr měkký"
+   ],
+   "modified": "2026-10-06T03:21:11.000+02:00",
+   "imageStepURL": null,
+   "priceCheckerHasPicture": false,
+   "stepID": null,
+   "rabatNumber": null,
+   "originalRebateId": null,
+   "IsBaseVariant": false,
+   "ribbon": {
+    "vSale": {
+     "display": true,
+     "label": "-30 %"
+    }
+   },
+   "badges": [],
+   "calculatedPrice": {
+    "currentPrice": 35.9,
+    "normalPrice": 51.9
+   }
+  },
+  {
+   "brand": {
+    "brandId": "0",
+    "name": "Normální"
+   },
+   "imgDetail": "https://gapi.globus.cz/OnlineAsset/3/asset?assetID=edc1aa4e-183c-4449-9c00-5acc55ecd81d&type=1",
+   "producer": "PLZEŇSKÝ PRAZDROJ, A. S.",
+   "producerId": "30094",
+   "productCategories": [
+    "cls_czr_lagers_up_to_12",
+    "cls_czr_beer",
+    "cls_czr_drinks",
+    "cls_czr_click_and_collect",
+    "cls_czr_ideas_and_recipes",
+    "cls_czr_events_news_sales"
+   ],
+   "hasFictiveStock": false,
+   "originalRebateIds": [
+    "30145792"
+   ],
+   "sellUnitSizeText": "0,5 l",
+   "countriesOfOrigin": [
+    "CZ"
+   ],
+   "commonBrand": {
+    "id": "16120",
+    "name": "Pilsner Urquell"
+   },
+   "ageLimitation": 18,
+   "baseVariantQuantity": 1,
+   "articleType": 0,
+   "billName": "PL PILSNER URQ. 0,5L",
+   "pointRelevant": false,
+   "otherLegalRequirements": "",
+   "containsMicronutrients": false,
+   "qcommSell": true,
+   "micronutrients": [],
+   "matlType": "ZVOL",
+   "valClass": "Z300",
+   "ean": [
+    "8594404110110"
+   ],
+   "vanr": "00088249001",
+   "productTagIds": [
+    "CMW10",
+    "CMW29"
+   ],
+   "warengroup": "800W4311",
+   "name": "Pilsner Urquell Pivo ležák světlý sklo 0,5l",
+   "productInHouse": {
+    "globusBonusCredit": null,
+    "actualPrice": 25.9,
+    "originalPrice": null,
+    "discountPercentage": null,
+    "priceValidFrom": "2026-10-07T00:00:00.000+02:00",
+    "priceValidTo": "2026-10-13T23:59:59.000+02:00",
+    "houseNumber": 4005,
+    "houseName": "Globus ČR, v.o.s. Čakovice ",
+    "placements": [
+     {
+      "placement": "58013010",
+      "facing": 2,
+      "presentationType": 2,
+      "presentationStock": 640,
+      "planogramKey": "1527469",
+      "name": "Pivo1_lezaky_14pal + impuls_specialy_05",
+      "category": "nealko",
+      "subcategory": "nealko",
+      "department": "Napojove centrum"
+     },
+     {
+      "placement": "58014010",
+      "facing": 2,
+      "presentationType": 2,
+      "presentationStock": 640,
+      "planogramKey": "1527469",
+      "name": "Pivo1_lezaky_14pal + impuls_specialy_05",
+      "category": "nealko",
+      "subcategory": "nealko",
+      "department": "Napojove centrum"
+     }
+    ],
+    "modified": "2026-10-05T23:22:04.000+02:00",
+    "stockAmount": 2212,
+    "minimumPresentationStock": 640,
+    "priceTagId": "12",
+    "priceType": "VKA0",
+    "comparisonPrice": 5.18,
+    "comparisonSaleUnitSizeText": "100,00 ml",
+    "baseComparisonPrice": 51.8,
+    "baseComparisonSaleUnitSizeText": "1 l",
+    "securityTag": true,
+    "availability": "A",
+    "blickPunkt": true,
+    "customerClubDiscounts": [
+     {
+      "discount": 0,
+      "discountIndex": 0,
+      "customerClub": "1",
+      "rebateId": "30145792",
+      "customerCard": false,
+      "conditionPercent": null
+     }
+    ],
+    "modifiedStockAmount": "2026-10-10T15:46:03.000+02:00",
+    "bonusProgramPrice": null,
+    "GraphicId": 121,
+    "Color": "1",
+    "isActive": true
+   },
+   "unitId": "ml",
+   "unitAmount": 500,
+   "placementOrder": 0,
+   "imgIcon": "https://gapi.globus.cz/OnlineAsset/3/asset?assetID=edc1aa4e-183c-4449-9c00-5acc55ecd81d&type=3",
+   "imgThumbnail": "https://gapi.globus.cz/OnlineAsset/3/asset?assetID=edc1aa4e-183c-4449-9c00-5acc55ecd81d&type=2",
+   "alias": [
+    "lager",
+    "lager skleněná lahev",
+    "lager sklo",
+    "lager v skleněné lahvi",
+    "lager ve skle",
+    "pils",
+    "pils skleněná lahev",
+    "pils sklo",
+    "pils v skleněné lahvi",
+    "pils ve skle",
+    "pivo 12°",
+    "skleněná lahev lager",
+    "skleněná lahev pils",
+    "skleněná lahev sklo vratné",
+    "sklo lager",
+    "sklo pils",
+    "sklo vratné skleněná lahev",
+    "sklo vratné v skleněné lahvi",
+    "sklo vratné ve skle",
+    "světlý lager",
+    "světlý pils",
+    "světlý sklo vratné"
+   ],
+   "modified": "2026-10-06T02:19:24.000+02:00",
+   "imageStepURL": null,
+   "priceCheckerHasPicture": false,
+   "stepID": null,
+   "rabatNumber": [
+    "30145792"
+   ],
+   "originalRebateId": [
+    "30145792"
+   ],
+   "IsBaseVariant": false,
+   "ribbon": [],
+   "badges": {
+    "vCZProduct": {
+     "display": true
+    },
+    "vAgeLimit": {
+     "display": true
+    },
+    "vSecurityTag": {
+     "display": true
+    }
+   },
+   "calculatedPrice": {
+    "currentPrice": 25.9,
+    "normalPrice": 0
+   }
+  },
+  {
+   "brand": null,
+   "imgDetail": "https://gapi.globus.cz/OnlineAsset/3/asset?assetID=1baab832-2ff1-40f5-bd94-1815435a614c&type=1",
+   "producer": "ELECTRA TRADE S.R.O.",
+   "producerId": "36652",
+   "productCategories": [],
+   "hasFictiveStock": false,
+   "originalRebateIds": null,
+   "sellUnitSizeText": "1 ks",
+   "countriesOfOrigin": [
+    "CN"
+   ],
+   "commonBrand": {
+    "id": "18083",
+    "name": "Rohnson"
+   },
+   "ageLimitation": null,
+   "baseVariantQuantity": 1,
+   "articleType": 0,
+   "billName": "VAR. KONVICE R-7700",
+   "pointRelevant": false,
+   "otherLegalRequirements": "",
+   "containsMicronutrients": false,
+   "qcommSell": false,
+   "micronutrients": [],
+   "matlType": "ZHAW",
+   "valClass": "Z300",
+   "ean": [
+    "5202561532937"
+   ],
+   "vanr": "02344718009",
+   "productTagIds": [],
+   "warengroup": "695W4213",
+   "name": "Rohnson Varná konvice R-7700 Color Touch",
+   "productInHouse": {
+    "globusBonusCredit": null,
+    "actualPrice": 599.9,
+    "originalPrice": 999.9,
+    "discountPercentage": 40,
+    "priceValidFrom": "2026-10-06T00:00:00.000+02:00",
+    "priceValidTo": "2026-11-02T23:59:59.000+01:00",
+    "houseNumber": 4005,
+    "houseName": "Globus ČR, v.o.s. Čakovice ",
+    "placements": [
+     {
+      "placement": "51403302",
+      "facing": 1,
+      "presentationType": 0,
+      "presentationStock": 2,
+      "planogramKey": "1714506",
+      "name": "RYCHLOVARNE_KONVICE_V2RJ_005",
+      "category": "Kuchynske spotrebice",
+      "subcategory": "Rychlovarne konvice",
+      "department": "Elektro"
+     },
+     {
+      "placement": "51403102",
+      "facing": 1,
+      "presentationType": 3,
+      "presentationStock": 2,
+      "planogramKey": "1714506",
+      "name": "RYCHLOVARNE_KONVICE_V2RJ_005",
+      "category": "Kuchynske spotrebice",
+      "subcategory": "Rychlovarne konvice",
+      "department": "Elektro"
+     }
+    ],
+    "modified": "2026-10-04T22:23:22.000+02:00",
+    "stockAmount": 2,
+    "minimumPresentationStock": 2,
+    "priceTagId": "11",
+    "priceType": "VKA0",
+    "comparisonPrice": null,
+    "comparisonSaleUnitSizeText": null,
+    "baseComparisonPrice": null,
+    "baseComparisonSaleUnitSizeText": null,
+    "securityTag": false,
+    "availability": "A",
+    "blickPunkt": true,
+    "customerClubDiscounts": [],
+    "modifiedStockAmount": "2026-10-10T10:16:12.000+02:00",
+    "bonusProgramPrice": null,
+    "GraphicId": 123,
+    "Color": "1",
+    "isActive": true
+   },
+   "unitId": "KS",
+   "unitAmount": 1,
+   "placementOrder": 0,
+   "imgIcon": "https://gapi.globus.cz/OnlineAsset/3/asset?assetID=1baab832-2ff1-40f5-bd94-1815435a614c&type=3",
+   "imgThumbnail": "https://gapi.globus.cz/OnlineAsset/3/asset?assetID=1baab832-2ff1-40f5-bd94-1815435a614c&type=2",
+   "alias": [],
+   "modified": "2026-10-08T14:45:00.000+02:00",
+   "imageStepURL": null,
+   "priceCheckerHasPicture": false,
+   "stepID": null,
+   "rabatNumber": null,
+   "originalRebateId": null,
+   "IsBaseVariant": false,
+   "ribbon": {
+    "vSale": {
+     "display": true,
+     "label": "-40 %"
+    }
+   },
+   "badges": [],
+   "calculatedPrice": {
+    "currentPrice": 599.9,
+    "normalPrice": 999.9
+   }
+  }
+ ],
+ "paginationShowMore": false,
+ "totalCount": 3
+}
