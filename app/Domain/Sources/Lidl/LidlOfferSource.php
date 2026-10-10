@@ -108,7 +108,8 @@ final class LidlOfferSource implements OfferSource
                 fn (OfferData $offer): bool => ! array_any($webOffers, fn (OfferData $webOffer): bool => $this->isSameOffer($offer, $webOffer)),
             ));
 
-            $batches[] = new SourceBatch($flyer->leaflet, $offers, $flyer->pages);
+            // Nalezené a ověřené ceny letáku pro přehled kvality dat (R129)
+            $batches[] = new SourceBatch($flyer->leaflet, $offers, $flyer->pages, $this->leafletParser->lastStats());
         }
 
         return $batches;

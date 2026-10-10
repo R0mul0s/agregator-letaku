@@ -126,7 +126,8 @@ final class BillaOfferSource implements OfferSource
     }
 
     /**
-     * Dávky s akcemi PDF letáků, které ještě nezačaly; leták bez spárované akce dávku nemá.
+     * Dávky s akcemi PDF letáků, které ještě nezačaly; leták bez spárované akce má prázdnou
+     * dávku se statistikou dlaždic (R129).
      * Akce stejného produktu z více letáků (velký a malý leták) se uloží jednou — z prvního.
      *
      * @param  array<string, OfferData>  $apiOffers  Dnešní akce z API podle kódu produktu
@@ -161,19 +162,20 @@ final class BillaOfferSource implements OfferSource
                 }
             }
 
-            if ($offers !== []) {
-                $batches[] = new SourceBatch(
-                    new LeafletData(
-                        kind: LeafletKind::Leaflet,
-                        externalId: self::PDF_LEAFLET_PREFIX.(preg_match(self::PUBLITAS_ID_PATTERN, $pdfUrl, $m) === 1 ? $m[1] : md5($pdfUrl)),
-                        title: $leaflet['title'],
-                        validFrom: $leaflet['validFrom'],
-                        validTo: $leaflet['validTo'],
-                        sourceUrl: $pageUrl,
-                    ),
-                    $offers,
-                );
-            }
+            // I leták bez nové akce má dávku — jeho nalezené a ověřené ceny patří do přehledu kvality
+            // dat (R129), nula ověřených je právě to, co má být vidět
+            $batches[] = new SourceBatch(
+                new LeafletData(
+                    kind: LeafletKind::Leaflet,
+                    externalId: self::PDF_LEAFLET_PREFIX.(preg_match(self::PUBLITAS_ID_PATTERN, $pdfUrl, $m) === 1 ? $m[1] : md5($pdfUrl)),
+                    title: $leaflet['title'],
+                    validFrom: $leaflet['validFrom'],
+                    validTo: $leaflet['validTo'],
+                    sourceUrl: $pageUrl,
+                ),
+                $offers,
+                tiles: $this->leafletParser->lastStats(),
+            );
         }
 
         return $batches;

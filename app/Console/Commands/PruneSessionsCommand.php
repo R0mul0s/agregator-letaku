@@ -25,13 +25,14 @@ class PruneSessionsCommand extends Command
     protected $description = 'Smaže vypršelé relace a propadlé odkazy pro obnovu hesla a vyprázdní surové odpovědi starých akcí';
 
     /**
-     * Uklidí a vypíše počet smazaných relací a upravených akcí.
+     * Uklidí a vypíše počet smazaných relací, upravených akcí a smazaných statistik letáků.
      */
     public function handle(RunMaintenance $maintenance): int
     {
         $result = $maintenance();
         $this->info(__('app.maintenance.sessions_pruned', ['count' => $result['sessions']]));
         $this->info(__('app.maintenance.offer_raw_pruned', ['count' => $result['offer_raw']]));
+        $this->info(__('app.maintenance.leaflet_stats_pruned', ['count' => $result['leaflet_stats']]));
 
         return self::SUCCESS;
     }

@@ -113,7 +113,7 @@ class HandleInertiaRequests extends Middleware
                 // Účet je v menu pod avatarem vpravo nahoře (R40), ne v hlavní navigaci; na stránce
                 // z menu je avatar „aktivní položkou“
                 'accountUrl' => route('account', absolute: false),
-                'accountActive' => $request->routeIs('account', 'catalog.*', 'announcements.*', 'users.*', 'reports.*'),
+                'accountActive' => $request->routeIs('account', 'catalog.*', 'announcements.*', 'users.*', 'reports.*', 'data-quality'),
                 // Admin má v menu pod avatarem i katalog (R29) a zprávy od nás (R74, 11d) — v hlavičce
                 // by se navigace zalamovala (R75)
                 'catalogUrl' => $user instanceof User && $user->is_admin ? route('catalog.index', absolute: false) : null,
@@ -125,6 +125,8 @@ class HandleInertiaRequests extends Middleware
                     'url' => route('reports.index', absolute: false),
                     'open' => OfferReport::query()->open()->distinct()->count('offer_id'),
                 ] : null,
+                // Přehled kvality stažených dat (R129)
+                'dataQualityUrl' => $user instanceof User && $user->is_admin ? route('data-quality', absolute: false) : null,
             ],
             // Hlášení chyby z karty akce (R125): adresa a důvody; nepřihlášený null — tlačítko nevidí
             'offerReports' => fn (): ?array => $user instanceof User ? [

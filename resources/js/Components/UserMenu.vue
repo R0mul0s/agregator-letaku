@@ -133,6 +133,12 @@ onBeforeUnmount(() => {
                 {{ t('user_menu.reports') }}
                 <span v-if="page.props.auth.reports.open" class="user-menu__badge">{{ page.props.auth.reports.open }}</span>
             </Link>
+            <!-- Kvalita stažených dat — akce a ověřené ceny po letácích (R129) -->
+            <Link v-if="page.props.auth.dataQualityUrl" :href="page.props.auth.dataQualityUrl" class="user-menu__item">
+                <!-- Graf -->
+                <svg class="user-menu__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4v16h16" /><path d="m7 15 4-4 3 3 5-6" /></svg>
+                {{ t('user_menu.data_quality') }}
+            </Link>
             <Link v-if="page.props.auth.announcementsUrl" :href="page.props.auth.announcementsUrl" class="user-menu__item">
                 <!-- Megafon -->
                 <svg class="user-menu__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10v4h3l7 4V6L6 10H3z" /><path d="M16 9a4 4 0 0 1 0 6" /></svg>

@@ -40,6 +40,7 @@ use App\Domain\Offers\Parsing\PackageParser;
 use App\Domain\Offers\Parsing\PriceParser;
 use App\Domain\Offers\Parsing\Text;
 use App\Domain\Offers\Parsing\VariantNote;
+use App\Domain\Sources\Pdf\CountsTiles;
 use App\Domain\Sources\Pdf\DiscountCheck;
 use App\Domain\Sources\Pdf\PdfBox;
 use App\Domain\Sources\Pdf\PdfLayout;
@@ -55,6 +56,8 @@ use Carbon\CarbonImmutable;
 
 final class GlobusLeafletParser
 {
+    use CountsTiles;
+
     /** Výška slov názvu (body PDF; název i „VÁŠ VÝBĚR“ mají ~12,6). */
     private const NAME_MIN_HEIGHT = 11.5;
 
@@ -209,6 +212,7 @@ final class GlobusLeafletParser
      */
     public function offers(array $pages, array $validity, string $sourceUrl): array
     {
+        $this->resetTileCount();
         $offers = [];
         foreach ($pages as $page) {
             foreach ($this->pageOffers($page, $validity, $sourceUrl) as $offer) {
@@ -243,6 +247,7 @@ final class GlobusLeafletParser
                 $offers[] = $offer;
             }
         }
+        $this->countTiles(count($anchors), count($offers));
 
         return $offers;
     }

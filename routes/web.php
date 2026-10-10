@@ -21,6 +21,7 @@ use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\CrawlerFilesController;
 use App\Http\Controllers\CronController;
+use App\Http\Controllers\DataQualityController;
 use App\Http\Controllers\HealthImportsController;
 use App\Http\Controllers\HealthTasksController;
 use App\Http\Controllers\HomeController;
@@ -229,6 +230,9 @@ Route::middleware('auth')->group(function (): void {
         Route::get('/hlaseni', [OfferReportController::class, 'index'])->name('reports.index');
         Route::patch('/hlaseni/{offer}', [OfferReportController::class, 'resolve'])->whereNumber('offer')->name('reports.resolve');
     });
+
+    // Přehled kvality stažených dat vidí admin (R129)
+    Route::get('/kvalita-dat', DataQualityController::class)->middleware('can:view-data-quality')->name('data-quality');
 
     // Katalog produktů spravuje admin (R29)
     Route::middleware('can:manage-catalog')->prefix('katalog')->name('catalog.')->group(function (): void {

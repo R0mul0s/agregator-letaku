@@ -42,6 +42,7 @@ use App\Domain\Offers\Parsing\PackageParser;
 use App\Domain\Offers\Parsing\PriceParser;
 use App\Domain\Offers\Parsing\Text;
 use App\Domain\Offers\Parsing\VariantNote;
+use App\Domain\Sources\Pdf\CountsTiles;
 use App\Domain\Sources\Pdf\DiscountCheck;
 use App\Domain\Sources\Pdf\PdfLayout;
 use App\Domain\Sources\Pdf\UnitPriceCheck;
@@ -59,6 +60,8 @@ use Carbon\CarbonImmutable;
  */
 final class PennyLeafletParser
 {
+    use CountsTiles;
+
     private const RED = 'rgb(255,45,22)';
 
     private const WHITE = 'rgb(255,255,255)';
@@ -320,6 +323,9 @@ final class PennyLeafletParser
                 $offers[] = $offer;
             }
         }
+        // Penny se zpracovává po stranách — počítání platí pro tuhle stranu, leták sčítá zdroj
+        $this->resetTileCount();
+        $this->countTiles(count($anchors), count($offers));
 
         return $offers;
     }

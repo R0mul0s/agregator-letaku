@@ -124,7 +124,8 @@ it('uloží akce z obou stránek katalogu s platností akčního týdne', functi
 
     $this->artisan('letaky:import-offers', ['chain' => ['billa']])->assertSuccessful();
 
-    $leaflet = Leaflet::query()->sole();
+    // PDF leták bez nové akce má prázdnou dávku se statistikou dlaždic (R129)
+    $leaflet = Leaflet::query()->where('kind', LeafletKind::Web)->sole();
     expect(ScrapeRun::query()->sole()->status)->toBe(ScrapeStatus::Succeeded)
         ->and($leaflet->kind)->toBe(LeafletKind::Web)
         ->and($leaflet->external_id)->toBe('web-2026-09-30')

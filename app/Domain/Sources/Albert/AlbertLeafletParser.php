@@ -44,6 +44,7 @@ use App\Domain\Offers\Parsing\PackageParser;
 use App\Domain\Offers\Parsing\PriceParser;
 use App\Domain\Offers\Parsing\Text;
 use App\Domain\Offers\Parsing\VariantNote;
+use App\Domain\Sources\Pdf\CountsTiles;
 use App\Domain\Sources\Pdf\DiscountCheck;
 use App\Domain\Sources\Pdf\PdfBox;
 use App\Domain\Sources\Pdf\PdfLayout;
@@ -59,6 +60,8 @@ use Carbon\CarbonImmutable;
 
 final class AlbertLeafletParser
 {
+    use CountsTiles;
+
     /** Výška slov názvu (body PDF; název má ~14,6). */
     private const NAME_MIN_HEIGHT = 13.0;
 
@@ -212,6 +215,7 @@ final class AlbertLeafletParser
      */
     public function offers(array $pages, array $validity, string $pageUrl): array
     {
+        $this->resetTileCount();
         $offers = [];
         foreach ($pages as $page) {
             foreach ($this->pageOffers($page, $validity, sprintf($pageUrl, $page->number)) as $offer) {
@@ -249,6 +253,7 @@ final class AlbertLeafletParser
                 $offers[] = $offer;
             }
         }
+        $this->countTiles(count($big), count($offers));
 
         return $offers;
     }

@@ -17,6 +17,7 @@ use App\Enums\OfferType;
 use App\Enums\PackageUnit;
 use App\Enums\ScrapeStatus;
 use App\Models\Leaflet;
+use App\Models\LeafletStat;
 use App\Models\Offer;
 use App\Models\ScrapeRun;
 use Illuminate\Http\Client\Factory as HttpFactory;
@@ -68,6 +69,21 @@ it('uloží akce z API i z letáku a stránku letáku bez textu přeskočí', fu
         ->and(Offer::query()->whereHas('leaflet', fn ($q) => $q->where('kind', LeafletKind::Web))->where('image_url', 'like', '%-medium.jpg')->count())->toBe(33)
         // Strany 1, 4 a 30 dají 44 dlaždic (R26, R85, R107 — kuřecí řízky „cena za 1 kg“); 17 z nich nese i API
         ->and(Offer::query()->whereHas('leaflet', fn ($q) => $q->where('kind', LeafletKind::Leaflet))->count())->toBe(27);
+});
+
+it('zapíše statistiku letáků pro přehled kvality dat: akce a nalezené a ověřené ceny z SVG (R129)', function (): void {
+    fakePenny();
+
+    $this->artisan('letaky:import-offers', ['chain' => ['penny']])->assertSuccessful();
+
+    $leaflet = LeafletStat::query()->whereHas('leaflet', fn ($q) => $q->where('kind', LeafletKind::Leaflet))->sole();
+    $web = LeafletStat::query()->whereHas('leaflet', fn ($q) => $q->where('kind', LeafletKind::Web))->sole();
+    expect($leaflet->offers_count)->toBe(27)
+        // 44 ověřených dlaždic ze stran 1, 4 a 30 (před vyřazením akcí, které nese API)
+        ->and($leaflet->tiles_verified)->toBe(44)
+        ->and($leaflet->tile_candidates)->toBeGreaterThanOrEqual(44)
+        ->and($web->offers_count)->toBe(33)
+        ->and($web->tile_candidates)->toBeNull();
 });
 
 it('najde i leták se složkou s příponou verze (07_10_2026_tl2)', function (): void {

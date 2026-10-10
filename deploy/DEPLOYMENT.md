@@ -410,6 +410,24 @@ Co bylo zvláštní na jednotlivých dřívějších nasazeních (SQL skripty, n
 je v [HISTORIE_NASAZENI.md](HISTORIE_NASAZENI.md). Poznámky k nasazení, které se teprve chystá,
 patří sem pod tenhle postup; po nasazení se přesunou tam (R106).
 
+### Aktualizace z `3d36522` (připravuje se)
+
+Přehled kvality dat pro admina `/kvalita-dat` a upozornění na propad akcí nebo ověřených cen
+(R129) — **s SQL skriptem**. Mění se parsery letáků (jen počítají, výběr akcí stejný), import,
+upozornění adminům a denní úklid; `.env` beze změny, žádný soubor nezmizel; `lang/cs/app.php`
+se změnil — verze Inertie se změní a otevřené stránky se načtou znovu.
+
+0. **Záloha databáze** a v phpMyAdminu `deploy/migrations-2026-10-10-kvalita-dat.sql` (před nahráním kódu).
+1. **Nahraj** z `deploy/upload/`: `public/build/` (celý), `app/` (celou složku — nové třídy
+   v `Domain/Offers`, `Domain/Sources/Pdf`, `Http/Controllers`, `Models`), `vendor/composer/` (autoloader),
+   `config/letaky.php`, `routes/web.php`, `database/migrations/`, `lang/cs/app.php` a `public/version.txt`.
+2. **Ověř:** `version.txt`; admin má v menu pod avatarem **Kvalita dat** — po dalším stažení
+   každého obchodu tabulka letáků s počtem akcí a u Penny, Lidlu, Albertu, Globusu a Billy (leták
+   na příští týden) podíl ověřených cen; `/kvalita-dat` pro ne-admina 403; `/cron/prune-sessions`
+   vypíše i „smazáno starých statistik letáků“; `/health/imports` a `/health/tasks` 200.
+3. Zapiš verzi do *Nasazené verze*, SQL skript do *Historie SQL skriptů* (datum) a tuhle sekci
+   přesuň do `HISTORIE_NASAZENI.md`.
+
 ---
 
 ## Záloha databáze
@@ -444,6 +462,7 @@ a ruční opravy katalogu. Před každým SQL skriptem a jinak aspoň jednou mě
 | `migrations-2026-10-09-indexy.sql` | indexy pro rostoucí historii (R113): `offers.valid_from`, `created_at`, `withdrawn_at`, `scrape_runs (status, finished_at)`; opakovatelný, pustit kdykoli (stará verze kódu s ním běží) | 2026-10-09 |
 | `migrations-2026-10-09-hlidani-uloh.sql` | hlídání úloh cronu (R115): tabulka `task_heartbeats`; opakovatelný, pustit **před** nahráním kódu | 2026-10-09 |
 | `migrations-2026-10-09-tohle-ne.sql` | „Tohle ne“ a hlášení chyb (R125): tabulky `watch_item_offer_exclusions` a `offer_reports`; opakovatelný, pustit **před** nahráním kódu | 2026-10-10 |
+| `migrations-2026-10-10-kvalita-dat.sql` | přehled kvality dat (R129): tabulka `leaflet_stats` se statistikou letáků za každé stažení; opakovatelný, pustit **před** nahráním kódu | — |
 
 ## Nasazené verze
 

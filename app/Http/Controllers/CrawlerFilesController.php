@@ -33,7 +33,7 @@ class CrawlerFilesController extends Controller
      */
     private const DISALLOWED_PATHS = [
         '/hlidam', '/seznam', '/obchody', '/ucet', '/katalog', '/akce/naseptavac', '/ukazka-hlidani',
-        '/cron/', '/health/', '/up', '/odhlaseni/', '/email/',
+        '/cron/', '/health/', '/up', '/odhlaseni/', '/email/', '/kvalita-dat',
     ];
 
     /** Jak dlouho smí odpověď ležet v cache (sekundy) — obsah se mění jen se staženými akcemi. */

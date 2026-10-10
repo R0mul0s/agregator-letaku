@@ -39,6 +39,7 @@ namespace App\Domain\Sources\Billa;
 use App\Domain\Offers\Parsing\LeafletDates;
 use App\Domain\Offers\Parsing\PriceParser;
 use App\Domain\Offers\Parsing\Text;
+use App\Domain\Sources\Pdf\CountsTiles;
 use App\Domain\Sources\Pdf\DiscountCheck;
 use App\Domain\Sources\Pdf\PdfBox;
 use App\Domain\Sources\Pdf\PdfLayout;
@@ -54,6 +55,8 @@ use Carbon\CarbonImmutable;
 
 final class BillaLeafletParser
 {
+    use CountsTiles;
+
     /** Glyfy písma Billy => správné znaky. */
     private const GLYPHS = ['ż' => 'ž', 'Ż' => 'Ž', 'ŭ' => 'ů', 'Ŭ' => 'Ů', 'ǜ' => '’'];
 
@@ -205,6 +208,7 @@ final class BillaLeafletParser
      */
     public function items(array $pages, array $validity): array
     {
+        $this->resetTileCount();
         $items = [];
         $previousHeader = null;
         foreach ($pages as $page) {
@@ -258,6 +262,7 @@ final class BillaLeafletParser
                 $items[] = $item;
             }
         }
+        $this->countTiles(count($prices), count($items));
 
         return $items;
     }

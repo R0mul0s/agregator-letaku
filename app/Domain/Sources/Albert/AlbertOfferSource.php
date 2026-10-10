@@ -17,6 +17,7 @@ use App\Domain\Offers\Data\LeafletData;
 use App\Domain\Offers\Data\LeafletPageData;
 use App\Domain\Offers\Data\OfferData;
 use App\Domain\Offers\Data\SourceBatch;
+use App\Domain\Offers\Data\TileStats;
 use App\Domain\Sources\Exceptions\PdfTextFailed;
 use App\Domain\Sources\Exceptions\SourceResponseChanged;
 use App\Domain\Sources\OfferSource;
@@ -79,7 +80,9 @@ final class AlbertOfferSource implements OfferSource
                     config()->string('letaky.sources.albert.page_path'),
                 );
 
-                $leaflets[] = [$leaflet['leaflet'], $this->leafletOffers($leaflet['leaflet'], $leaflet['viewUrl']), $pages];
+                $offers = $this->leafletOffers($leaflet['leaflet'], $leaflet['viewUrl']);
+                // Nalezené a ověřené ceny letáku pro přehled kvality dat (R129)
+                $leaflets[] = [$leaflet['leaflet'], $offers, $pages, $this->leafletParser->lastStats()];
             }
         }
 
@@ -122,7 +125,7 @@ final class AlbertOfferSource implements OfferSource
      * cena a platnost), platí ve všech prodejnách — bez formátu; uloží ji první dávka, import
      * ji v další přeskočí.
      *
-     * @param  list<array{LeafletData, list<OfferData>, list<LeafletPageData>}>  $leaflets
+     * @param  list<array{LeafletData, list<OfferData>, list<LeafletPageData>, TileStats}>  $leaflets
      * @return list<SourceBatch>
      */
     private function batches(array $leaflets): array
@@ -138,6 +141,7 @@ final class AlbertOfferSource implements OfferSource
             $leaflet[0],
             array_map(fn (OfferData $offer): OfferData => count($formats[$offer->key()]) > 1 ? $offer->withAvailability(onlineOnly: false, storeFormat: null) : $offer, $leaflet[1]),
             $leaflet[2],
+            $leaflet[3],
         ), $leaflets);
     }
 

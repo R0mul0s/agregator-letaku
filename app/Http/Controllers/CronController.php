@@ -125,8 +125,8 @@ class CronController extends Controller
     }
 
     /**
-     * Úklid vypršelých relací a odkazů pro obnovu hesla (R53) a surových odpovědí starých
-     * akcí (R113), jednou denně.
+     * Úklid vypršelých relací a odkazů pro obnovu hesla (R53), surových odpovědí starých
+     * akcí (R113) a starých statistik letáků (R129), jednou denně.
      */
     public function pruneSessions(CronRequest $request, RunMaintenance $maintenance): Response
     {
@@ -135,6 +135,7 @@ class CronController extends Controller
         return $this->text(implode("\n", [
             __('app.maintenance.sessions_pruned', ['count' => $result['sessions']]),
             __('app.maintenance.offer_raw_pruned', ['count' => $result['offer_raw']]),
+            __('app.maintenance.leaflet_stats_pruned', ['count' => $result['leaflet_stats']]),
         ]));
     }
 

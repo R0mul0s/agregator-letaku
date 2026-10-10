@@ -579,6 +579,29 @@ return [
     ],
 
     /*
+    | Přehled kvality dat (R129, /kvalita-dat): statistika letáků za každé stažení (leaflet_stats).
+    | Graf ukáže history_runs posledních stažení, starší řádky než retention_days maže denní úklid.
+    |
+    | Propad (upozornění adminům jako výpadek, R126):
+    | - akcí: stažení letáku uložilo o víc než offers_drop_share méně akcí než nejvíc z předchozích
+    |   offers_baseline_runs stažení téhož letáku (jen letáky, které měly aspoň min_offers akcí);
+    | - ověřených cen (PDF/SVG): podíl ověřených je o víc než verified_drop_share nižší než medián
+    |   ostatních letáků obchodu za verified_baseline_days (nový leták s jiným rozvržením nemá
+    |   vlastní historii), bez nich nejvyšší podíl předchozích stažení téhož letáku; jen leták
+    |   s aspoň min_candidates nalezenými cenami (titulní strana, malé letáky kolísají).
+    */
+    'data_quality' => [
+        'history_runs' => 14,
+        'retention_days' => 90,
+        'offers_drop_share' => 0.3,
+        'offers_baseline_runs' => 3,
+        'min_offers' => 10,
+        'verified_drop_share' => 0.3,
+        'verified_baseline_days' => 14,
+        'min_candidates' => 20,
+    ],
+
+    /*
     | Hlídání stahování (/health/imports): obchod bez úspěšného stažení za tuto dobu = výpadek;
     | ostatní úlohy cronu hlídá /health/tasks (R115).
     | Cron stahuje jednou až dvakrát denně, rezerva na jeden vynechaný běh.

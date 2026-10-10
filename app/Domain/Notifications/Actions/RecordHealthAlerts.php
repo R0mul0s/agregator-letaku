@@ -2,7 +2,8 @@
 
 /**
  * Upozornění adminům na výpadek (R126): stejné kontroly jako `/health/imports`
- * a `/health/tasks` (HealthChecks). Ozve se jen při změně — když něco nově přestane fungovat
+ * a `/health/tasks` (HealthChecks) a propady kvality dat — málo akcí nebo ověřených cen
+ * v letáku (DataQuality, R129). Ozve se jen při změně — když něco nově přestane fungovat
  * (záznam s výpisem všech výpadků), a jednou, až zase funguje všechno. Výpadek, který trvá, se
  * každou hodinu neopakuje. Které výpadky už admini znají, je v cache.
  *
@@ -19,6 +20,7 @@ declare(strict_types=1);
 namespace App\Domain\Notifications\Actions;
 
 use App\Domain\Notifications\AdminAlerts;
+use App\Domain\Offers\Quality\DataQuality;
 use App\Enums\CronTask;
 use App\Enums\NotificationKind;
 use App\Support\Deadline;
@@ -33,15 +35,17 @@ final readonly class RecordHealthAlerts
     public function __construct(
         private HealthChecks $checks,
         private AdminAlerts $alerts,
+        private DataQuality $quality,
     ) {}
 
     /**
      * Porovná výpadky s minule ohlášenými a při změně upozorní adminy; vrátí počet upozorněných.
-     * Rozpočet cronu nepotřebuje — dva dotazy a pár adminů.
+     * Rozpočet cronu nepotřebuje — pár dotazů a pár adminů.
      */
     public function __invoke(?Deadline $deadline = null): int
     {
-        $outages = $this->checks->imports()->outages() + $this->checks->tasks()->outages();
+        $drops = $this->quality->drops();
+        $outages = $this->checks->imports()->outages() + $this->checks->tasks()->outages() + $drops;
         // Sebe nehlídá — běh se zapíše až po něm, první běh by se ohlásil jako výpadek
         unset($outages[CronTask::HealthAlerts->label()]);
         /** @var list<string> $known */
@@ -53,7 +57,8 @@ final readonly class RecordHealthAlerts
                 NotificationKind::SystemAlert,
                 trans_choice('app.notifications.system_alert.title', count($outages)),
                 implode("\n", $outages),
-                null,
+                // Propad kvality dat — rovnou na přehled s grafy
+                $drops === [] ? null : route('data-quality', absolute: false),
             );
         } elseif ($outages === [] && $known !== []) {
             $notified = $this->alerts->send(

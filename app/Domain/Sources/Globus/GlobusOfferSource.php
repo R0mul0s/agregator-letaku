@@ -93,6 +93,7 @@ final class GlobusOfferSource implements OfferSource
         )];
 
         foreach ($this->upcomingLeaflets() as $leaflet) {
+            $leafletOffers = $this->leafletOffers($leaflet, $offers);
             $batches[] = new SourceBatch(
                 new LeafletData(
                     kind: LeafletKind::Leaflet,
@@ -102,7 +103,9 @@ final class GlobusOfferSource implements OfferSource
                     validTo: $leaflet['validTo'],
                     sourceUrl: config()->string('letaky.sources.globus.offers_page_url'),
                 ),
-                $this->leafletOffers($leaflet, $offers),
+                $leafletOffers,
+                // Nalezené a ověřené ceny letáku pro přehled kvality dat (R129)
+                tiles: $this->leafletParser->lastStats(),
             );
         }
 

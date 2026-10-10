@@ -21,6 +21,7 @@ use App\Domain\Offers\Data\LeafletData;
 use App\Domain\Offers\Data\LeafletPageData;
 use App\Domain\Offers\Data\OfferData;
 use App\Domain\Offers\Data\SourceBatch;
+use App\Domain\Offers\Data\TileStats;
 use App\Domain\Sources\Exceptions\SourceResponseChanged;
 use App\Domain\Sources\OfferSource;
 use App\Domain\Sources\SourceHttp;
@@ -75,11 +76,11 @@ final class PennyOfferSource implements OfferSource
         $apiWords = array_map(fn (OfferData $offer): array => $this->words($offer->name), $apiOffers);
 
         foreach ($this->leafletFolders() as $folder) {
-            [$leaflet, $offers, $pages] = $this->leafletOffers($folder);
+            [$leaflet, $offers, $pages, $tiles] = $this->leafletOffers($folder);
             $batches[] = new SourceBatch($leaflet, array_values(array_filter(
                 $offers,
                 fn (OfferData $offer): bool => ! $this->isInApi($offer, $apiOffers, $apiWords),
-            )), $pages);
+            )), $pages, $tiles);
         }
 
         return $batches;
@@ -153,9 +154,10 @@ final class PennyOfferSource implements OfferSource
     }
 
     /**
-     * Leták, jeho ověřené akce ze všech stránek a text stránek pro zmínky bez ceny (R27).
+     * Leták, jeho ověřené akce ze všech stránek, text stránek pro zmínky bez ceny (R27)
+     * a nalezené a ověřené ceny letáku (R129).
      *
-     * @return array{LeafletData, list<OfferData>, list<LeafletPageData>}
+     * @return array{LeafletData, list<OfferData>, list<LeafletPageData>, TileStats}
      *
      * @throws SourceResponseChanged
      */
@@ -197,9 +199,11 @@ final class PennyOfferSource implements OfferSource
 
         $offers = [];
         $pageTexts = [];
+        $tiles = new TileStats;
         foreach ($pages as $page => $tokens) {
             $validity = $this->leaflet->pageValidity($tokens) ?? $default;
             array_push($offers, ...$this->leaflet->offers($tokens, $validity, $page, $baseUrl.$page.'/', $leafletOffsets));
+            $tiles = $tiles->plus($this->leaflet->lastStats());
             $text = $this->leaflet->pageText($tokens);
             if ($text !== null) {
                 $pageTexts[] = new LeafletPageData(number: $page, text: $text, pageUrl: $baseUrl.$page.'/');
@@ -210,6 +214,7 @@ final class PennyOfferSource implements OfferSource
             new LeafletData(kind: LeafletKind::Leaflet, externalId: $folder, validFrom: $default[0], validTo: $default[1], sourceUrl: $baseUrl),
             $offers,
             $pageTexts,
+            $tiles,
         ];
     }
 

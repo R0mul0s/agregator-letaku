@@ -191,10 +191,22 @@ return [
         'contact' => 'Kontakt',
     ],
 
+    // Propady kvality dat v upozornění adminům (R129, DataQuality) — klíč bez čísel pozná, že propad trvá
+    'data_quality' => [
+        'alert' => [
+            'leaflet' => ':chain – :leaflet',
+            'key_offers' => ':name: málo akcí',
+            'key_verified' => ':name: málo ověřených cen',
+            'line_offers' => ':name: :current akcí (předtím až :baseline)',
+            'line_verified' => ':name: ověřeno :current % cen (obvykle :baseline %)',
+        ],
+    ],
+
     // Úklid osobních údajů po vypršení (R53, PruneExpiredSessions)
     'maintenance' => [
         'sessions_pruned' => 'Úklid — smazáno vypršelých relací: :count',
         'offer_raw_pruned' => 'Úklid — vyprázdněno surových odpovědí starých akcí: :count',
+        'leaflet_stats_pruned' => 'Úklid — smazáno starých statistik letáků: :count',
     ],
 
     // E-mailový souhrn nových akcí (R42, App\Mail\DigestMail)
@@ -242,7 +254,7 @@ return [
         'system_alert' => [
             'title' => 'Výpadek: :count věc nefunguje|Výpadek: :count věci nefungují|Výpadek: :count věcí nefunguje',
             'recovered_title' => 'Všechno zase běží',
-            'recovered_body' => 'Stahování i úlohy cronu zase fungují. Výpadek měly: :names.',
+            'recovered_body' => 'Stahování, úlohy cronu i kvalita dat jsou zase v pořádku. Výpadek měly: :names.',
         ],
         'done' => 'Centrum upozornění — zapsáno: :count',
         'failed' => 'Centrum upozornění — chyba: :error',
@@ -1214,6 +1226,8 @@ return [
             'users' => 'Uživatelé',
             // Hlášení chyb a co uživatelé skrývají (R125)
             'reports' => 'Hlášení',
+            // Přehled kvality stažených dat (R129)
+            'data_quality' => 'Kvalita dat',
         ],
 
         'account' => [
@@ -1331,6 +1345,39 @@ return [
             'analytics_text' => 'Google Analytics — statistiky návštěvnosti (které stránky se čtou, z jakého zařízení). Microsoft Clarity — záznam, kam na stránce klepete a jak se posouváte, bez toho, co píšete do polí. Podle obojího Slevohlídku vylepšujeme.',
             'marketing_title' => 'Marketingové',
             'marketing_text' => 'Dovolí Googlu použít data z návštěvy pro měření a cílení reklamy. Reklamu zatím nezobrazujeme.',
+        ],
+
+        // Kvalita dat pro admina (R129, DataQuality.vue)
+        'data_quality' => [
+            'title' => 'Kvalita dat',
+            'intro' => 'Jak dopadla poslední stažení: kolik akcí každý leták přinesl a u letáků z PDF kolik nalezených cen jsme ověřili. Propad proti obvyklému stavu přijde adminům i do centra upozornění.',
+            'last_run' => 'Staženo :when · :offers akcí · staženo obchodem :withdrawn',
+            'never' => 'Zatím žádné stažení.',
+            'no_stats' => 'Statistiky letáků zatím nemáme — objeví se po dalším stažení.',
+            'statuses' => [
+                'succeeded' => 'V pořádku',
+                'partial' => 'Částečně',
+                'failed' => 'Chyba',
+                'running' => 'Běží',
+            ],
+            'columns' => [
+                'leaflet' => 'Leták',
+                'offers' => 'Akcí',
+                'offers_trend' => 'Akce za :count stažení',
+                'verified' => 'Ověřeno',
+                'verified_trend' => 'Ověřeno za :count stažení',
+            ],
+            'source_pdf' => 'PDF / SVG',
+            'source_api' => 'API / web',
+            'verified_value' => ':percent %',
+            'verified_counts' => ':verified z :candidates',
+            'not_applicable' => '—',
+            'issues' => [
+                'offers' => 'Propad akcí: :current (předtím až :baseline)',
+                'verified' => 'Propad ověřených: :current % (obvykle :baseline %)',
+            ],
+            'chart_label' => 'Vývoj za posledních :count stažení: :values',
+            'chart_gap' => 'nestaženo',
         ],
 
         // Nejlepší slevy týdne (R128, Weekly.vue) — ISO týden po–ne, archiv po týdnech

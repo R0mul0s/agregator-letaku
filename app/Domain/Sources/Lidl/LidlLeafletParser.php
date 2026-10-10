@@ -39,6 +39,7 @@ use App\Domain\Offers\Parsing\PackageParser;
 use App\Domain\Offers\Parsing\PriceParser;
 use App\Domain\Offers\Parsing\Text;
 use App\Domain\Offers\Parsing\VariantNote;
+use App\Domain\Sources\Pdf\CountsTiles;
 use App\Domain\Sources\Pdf\DiscountCheck;
 use App\Domain\Sources\Pdf\PdfLine;
 use App\Domain\Sources\Pdf\PdfPage;
@@ -54,6 +55,8 @@ use Carbon\CarbonImmutable;
  */
 final class LidlLeafletParser
 {
+    use CountsTiles;
+
     /** Cena v letáku: „25.90“ (tečka, dvě desetinná místa). */
     private const PRICE_PATTERN = '/^\d{1,4}\.\d{2}$/';
 
@@ -163,6 +166,7 @@ final class LidlLeafletParser
      */
     public function offers(array $pages, LeafletData $leaflet, string $slug, string $pageUrlPattern): array
     {
+        $this->resetTileCount();
         $offers = [];
         foreach ($pages as $page) {
             foreach ($this->pageOffers($page, $leaflet, sprintf($pageUrlPattern, $slug, $page->number)) as $offer) {
@@ -193,7 +197,8 @@ final class LidlLeafletParser
 
         $tiles = [];
         $consumed = [];
-        foreach (array_filter($segments, $this->isBigPrice(...)) as $anchor) {
+        $anchors = array_filter($segments, $this->isBigPrice(...));
+        foreach ($anchors as $anchor) {
             $tile = $this->tile($anchor, $segments, $smallPrices);
             if ($tile !== null) {
                 $tiles[] = [$anchor, $tile];
@@ -211,6 +216,8 @@ final class LidlLeafletParser
                 $offers[] = $offer;
             }
         }
+        // Běžná cena nad cenou s Lidl Plus není samostatná akce — mezi kandidáty nepatří
+        $this->countTiles(count(array_filter($anchors, fn (PdfLine $anchor): bool => ! in_array($anchor, $consumed, true))), count($offers));
 
         return $offers;
     }

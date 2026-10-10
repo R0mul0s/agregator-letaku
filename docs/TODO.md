@@ -69,7 +69,7 @@ v [PLAN.md](PLAN.md). Větší celky se z toho stávají etapou.
 - **retence:** `offers.raw` se vyprazdňuje (R113); zbývá čistit `offer_stores` a `leaflet_pages` skončených akcí a `scrape_runs`, skryté akce skončených akcí (`watch_item_offer_exclusions`, R125) a vyřešená hlášení (`offer_reports`)
 - **cron „Spuštění PHP souboru“ místo URL** (DEPLOYMENT.md) — bez limitu délky požadavku a tokenu v URL, vyřešilo by O8; ověřit, jestli ho Websupport umí
 - **nasazení přes FTP není atomické** — režim údržby (`storage/framework/down`) během nahrávání, případně nová složka a přepnutí kořene webu
-- **parsery letáků (Penny SVG, Lidl a Albert PDF) jsou křehké vůči změně rozvržení** — po každé změně měřit na celém letáku (R85–R87); hlídat propad počtu akcí z letáku
+- **parsery letáků (Penny SVG, Lidl a Albert PDF) jsou křehké vůči změně rozvržení** — po každé změně měřit na celém letáku (R85–R87); propad počtu akcí a ověřených cen hlídá přehled kvality dat (R129)
 
 ## Z kritické revize 7. 10. 2026 (R106) — zatím neudělané
 
@@ -169,4 +169,4 @@ funkce, změřit, co lidé opravdu používají, a nepoužívané schovat nebo z
 - **sdílení akce z karty** (Web Share API, „pošli to partnerovi“) — dnes ho má jen nákupní seznam
 - **jak často bývá zboží v akci** — „Máslo bývá v Lidlu v akci zhruba každé 3 týdny, naposledy 28. 9.“; navazuje na „Vyplatí se počkat“ (R76) a graf ceny (*Historie a porovnání cen*), smysl má až s historií za několik týdnů
 - Nejlepší slevy týdne hotové (R128) — dál: vlastní obrázek pro sdílení (OG) s číslem týdne a třemi nejvyššími slevami, příspěvek na sociální sítě v pondělí
-- **admin přehled kvality dat** — u každého obchodu a letáku vývoj počtu akcí za posledních N stažení a podíl neověřených dlaždic, propad vidět hned (rozšiřuje „hlídat propad počtu akcí z letáku“ v *Provoz a údržba*)
+- přehled kvality dat hotový (R129) — dál: nesoulad se štítkem slevy jako další číslo statistiky, porovnání nového letáku s předchozími letáky stejné řady (velikost), propad u Kauflandu po prodejnách (počet seznamů akcí prodejen)

@@ -27,6 +27,7 @@ use App\Domain\Offers\Exceptions\ImportAlreadyRunning;
 use App\Domain\Offers\Exceptions\SourceReturnedNoOffers;
 use App\Domain\Offers\Exceptions\SuspiciousWithdrawal;
 use App\Domain\Offers\Import\BatchWriter;
+use App\Domain\Offers\Import\RecordLeafletStats;
 use App\Domain\Offers\LocalCalendar;
 use App\Domain\Sources\SourceRegistry;
 use App\Enums\Chain;
@@ -51,6 +52,7 @@ final class ImportChainOffers
         private readonly AssignProducts $assignProducts,
         private readonly ChangedOfferPages $changedPages,
         private readonly IndexNow $indexNow,
+        private readonly RecordLeafletStats $leafletStats,
     ) {}
 
     /**
@@ -120,6 +122,8 @@ final class ImportChainOffers
                 }
 
                 $this->writer->storeAvailability($run, $stored);
+                // Přehled kvality dat (R129): akce a ověřené ceny po letácích
+                $this->leafletStats->record($chain, $run, $batches);
                 $withdrawn = $this->markWithdrawn($chain, $run);
                 $this->assignProducts->forChain($chain);
 
