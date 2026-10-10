@@ -410,32 +410,6 @@ Co bylo zvláštní na jednotlivých dřívějších nasazeních (SQL skripty, n
 je v [HISTORIE_NASAZENI.md](HISTORIE_NASAZENI.md). Poznámky k nasazení, které se teprve chystá,
 patří sem pod tenhle postup; po nasazení se přesunou tam (R106).
 
-### Aktualizace z `3d36522` (připravuje se)
-
-Přehled kvality dat pro admina `/kvalita-dat` a upozornění na propad akcí nebo ověřených cen
-(R129) — **s SQL skriptem**. Mění se parsery letáků (jen počítají, výběr akcí stejný), import,
-upozornění adminům a denní úklid; `.env` beze změny, žádný soubor nezmizel; `lang/cs/app.php`
-se změnil — verze Inertie se změní a otevřené stránky se načtou znovu.
-
-Navíc nákupní seznam s vlastními položkami, sdílením odkazem a „Smazat skončené akce“ a sdílení
-akce z karty (R130) — **s druhým SQL skriptem**; zásady ochrany údajů mají novou část o sdílení seznamu.
-
-0. **Záloha databáze** a v phpMyAdminu `deploy/migrations-2026-10-10-kvalita-dat.sql`
-   a `deploy/migrations-2026-10-10-nakupni-seznam-sdileni.sql` (před nahráním kódu, hned za ním kód —
-   vlastní položky bez akce stará verze nezobrazí).
-1. **Nahraj** z `deploy/upload/`: `public/build/` (celý), `app/` (celou složku — nové třídy
-   v `Domain/Offers`, `Domain/Sources/Pdf`, `Http/Controllers`, `Models`), `vendor/composer/` (autoloader),
-   `config/letaky.php`, `routes/web.php`, `database/migrations/`, `lang/cs/app.php`, `resources/legal/privacy.md`
-   a `public/version.txt`.
-2. **Ověř:** `version.txt`; R130: na `/seznam` pole „Co koupit“ našeptává akce a „Almette“ přidá jako
-   vlastní položku, „Sdílet odkaz“ — odkaz otevřený v anonymním okně ukáže seznam a odškrtnutí je vidět
-   u vlastníka, „Zrušit odeslané odkazy“ → starý odkaz 404; karta akce má ikonu „Poslat akci“; admin má v menu pod avatarem **Kvalita dat** — po dalším stažení
-   každého obchodu tabulka letáků s počtem akcí a u Penny, Lidlu, Albertu, Globusu a Billy (leták
-   na příští týden) podíl ověřených cen; `/kvalita-dat` pro ne-admina 403; `/cron/prune-sessions`
-   vypíše i „smazáno starých statistik letáků“; `/health/imports` a `/health/tasks` 200.
-3. Zapiš verzi do *Nasazené verze*, SQL skript do *Historie SQL skriptů* (datum) a tuhle sekci
-   přesuň do `HISTORIE_NASAZENI.md`.
-
 ---
 
 ## Záloha databáze
@@ -470,8 +444,8 @@ a ruční opravy katalogu. Před každým SQL skriptem a jinak aspoň jednou mě
 | `migrations-2026-10-09-indexy.sql` | indexy pro rostoucí historii (R113): `offers.valid_from`, `created_at`, `withdrawn_at`, `scrape_runs (status, finished_at)`; opakovatelný, pustit kdykoli (stará verze kódu s ním běží) | 2026-10-09 |
 | `migrations-2026-10-09-hlidani-uloh.sql` | hlídání úloh cronu (R115): tabulka `task_heartbeats`; opakovatelný, pustit **před** nahráním kódu | 2026-10-09 |
 | `migrations-2026-10-09-tohle-ne.sql` | „Tohle ne“ a hlášení chyb (R125): tabulky `watch_item_offer_exclusions` a `offer_reports`; opakovatelný, pustit **před** nahráním kódu | 2026-10-10 |
-| `migrations-2026-10-10-kvalita-dat.sql` | přehled kvality dat (R129): tabulka `leaflet_stats` se statistikou letáků za každé stažení; opakovatelný, pustit **před** nahráním kódu | — |
-| `migrations-2026-10-10-nakupni-seznam-sdileni.sql` | nákupní seznam (R130): `shopping_list_items.offer_id` nepovinné, `custom_name` a `chain` vlastní položky, `users.shopping_share_token`; opakovatelný, pustit **před** nahráním kódu | — |
+| `migrations-2026-10-10-kvalita-dat.sql` | přehled kvality dat (R129): tabulka `leaflet_stats` se statistikou letáků za každé stažení; opakovatelný, pustit **před** nahráním kódu | 2026-10-10 |
+| `migrations-2026-10-10-nakupni-seznam-sdileni.sql` | nákupní seznam (R130): `shopping_list_items.offer_id` nepovinné, `custom_name` a `chain` vlastní položky, `users.shopping_share_token`; opakovatelný, pustit **před** nahráním kódu | 2026-10-10 |
 
 ## Nasazené verze
 
@@ -511,3 +485,4 @@ Co běží na produkci — pro `git log <commit>..HEAD` při dalším nasazení
 | 2026-10-09 | `ff76607` | dvacáté deváté nasazení: přilepené a plovoucí lišty na telefonu (R116, R117, R119, R120), název obchodu klepnutím na logo a výraznější Hlídat / Do seznamu (R118), podmínky a zásady `noindex` a mimo sitemap (R121), `lastmod` v sitemapě podle skutečné změny stránky (R122); `public/build/`, čtyři soubory z `app/` a `vendor/composer/`, bez SQL skriptu |
 | 2026-10-10 | `b3ad7d2` | třicáté nasazení: bez posunu rozvržení po načtení, přihlášení a registrace s nadpisem i bez JS (R123), tlačítko Seznamu jednobarevně (R124), „Tohle ne“ a hlášení chyb v akcích (R125), upozornění adminům na hlášení a výpadky v centru upozornění (R126), přečtení záznamu až po otevření a cinkající zvonek (R127); SQL `migrations-2026-10-09-tohle-ne.sql` |
 | 2026-10-10 | `3d36522` | třicáté první nasazení: veřejná stránka Nejlepší slevy týdne `/tyden/2026-41` s archivem po týdnech, v sitemapě, `llms.txt` a obsahu bez JS (R128); bez SQL skriptu |
+| 2026-10-10 | `1ad9cbd` | třicáté druhé nasazení: přehled kvality dat pro admina `/kvalita-dat` a upozornění na propad akcí nebo ověřených cen (R129), nákupní seznam s vlastními položkami, sdílením odkazem a „Smazat skončené akce“, sdílení akce z karty (R130); SQL `migrations-2026-10-10-kvalita-dat.sql` a `migrations-2026-10-10-nakupni-seznam-sdileni.sql` |

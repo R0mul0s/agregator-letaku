@@ -466,3 +466,33 @@ a `seo/offers.blade.php`, `public/build/` — bez SQL skriptu, `.env` beze změn
   `index, follow`, titulek „Nejlepší slevy 41. týdne 2026 · Slevohlídka“, žebříček a sekce všech
   7 obchodů; v sitemapě 41. týden s `lastmod` poslední změny akcí týdne a 40. týden s koncem týdne
   (`2026-10-04T22:00:00+00:00`); `llms.txt` s odkazem; `/health/imports` i `/health/tasks` 200.
+
+### Aktualizace z `3d36522` (třicáté druhé nasazení — provedeno, `1ad9cbd`)
+
+Přehled kvality dat pro admina `/kvalita-dat` a upozornění na propad akcí nebo ověřených cen
+(R129) — **s SQL skriptem**. Mění se parsery letáků (jen počítají, výběr akcí stejný), import,
+upozornění adminům a denní úklid; `.env` beze změny, žádný soubor nezmizel; `lang/cs/app.php`
+se změnil — verze Inertie se změní a otevřené stránky se načtou znovu.
+
+Navíc nákupní seznam s vlastními položkami, sdílením odkazem a „Smazat skončené akce“ a sdílení
+akce z karty (R130) — **s druhým SQL skriptem**; zásady ochrany údajů mají novou část o sdílení seznamu.
+
+0. **Záloha databáze** a v phpMyAdminu `deploy/migrations-2026-10-10-kvalita-dat.sql`
+   a `deploy/migrations-2026-10-10-nakupni-seznam-sdileni.sql` (před nahráním kódu, hned za ním kód —
+   vlastní položky bez akce stará verze nezobrazí).
+1. **Nahraj** z `deploy/upload/`: `public/build/` (celý), `app/` (celou složku — nové třídy
+   v `Domain/Offers`, `Domain/Sources/Pdf`, `Http/Controllers`, `Models`), `vendor/composer/` (autoloader),
+   `config/letaky.php`, `routes/web.php`, `database/migrations/`, `lang/cs/app.php`, `resources/legal/privacy.md`
+   a `public/version.txt`.
+2. **Ověř:** `version.txt`; R130: na `/seznam` pole „Co koupit“ našeptává akce a „Almette“ přidá jako
+   vlastní položku, „Sdílet odkaz“ — odkaz otevřený v anonymním okně ukáže seznam a odškrtnutí je vidět
+   u vlastníka, „Zrušit odeslané odkazy“ → starý odkaz 404; karta akce má ikonu „Poslat akci“; admin má v menu pod avatarem **Kvalita dat** — po dalším stažení
+   každého obchodu tabulka letáků s počtem akcí a u Penny, Lidlu, Albertu, Globusu a Billy (leták
+   na příští týden) podíl ověřených cen; `/kvalita-dat` pro ne-admina 403; `/cron/prune-sessions`
+   vypíše i „smazáno starých statistik letáků“; `/health/imports` a `/health/tasks` 200.
+3. Zapiš verzi do *Nasazené verze*, SQL skript do *Historie SQL skriptů* (datum) a tuhle sekci
+   přesuň do `HISTORIE_NASAZENI.md`.
+
+- **Ověřeno:** `version.txt` = `1ad9cbd`; `/health/imports` i `/health/tasks` 200; `/kvalita-dat`
+  nepřihlášeného přesměruje na přihlášení; neplatný odkaz `/seznam/s/…` 404; `robots.txt` zakazuje
+  `/kvalita-dat` (10. 10.).
