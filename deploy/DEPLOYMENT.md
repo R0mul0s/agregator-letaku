@@ -446,7 +446,7 @@ a ruční opravy katalogu. Před každým SQL skriptem a jinak aspoň jednou mě
 | `migrations-2026-10-09-tohle-ne.sql` | „Tohle ne“ a hlášení chyb (R125): tabulky `watch_item_offer_exclusions` a `offer_reports`; opakovatelný, pustit **před** nahráním kódu | 2026-10-10 |
 | `migrations-2026-10-10-kvalita-dat.sql` | přehled kvality dat (R129): tabulka `leaflet_stats` se statistikou letáků za každé stažení; opakovatelný, pustit **před** nahráním kódu | 2026-10-10 |
 | `migrations-2026-10-10-nakupni-seznam-sdileni.sql` | nákupní seznam (R130): `shopping_list_items.offer_id` nepovinné, `custom_name` a `chain` vlastní položky, `users.shopping_share_token`; opakovatelný, pustit **před** nahráním kódu | 2026-10-10 |
-| `migrations-2026-10-10-globus-prodejny.sql` | hypermarkety Globusu jako prodejny (R131): 16 řádků v `stores` (jen data); opakovatelný, pustit **před** nahráním kódu | — |
+| `migrations-2026-10-10-globus-prodejny.sql` | hypermarkety Globusu jako prodejny (R131): 16 řádků v `stores` (jen data); opakovatelný, pustit **před** nahráním kódu | 2026-10-10 |
 
 ## Nasazené verze
 
@@ -487,3 +487,4 @@ Co běží na produkci — pro `git log <commit>..HEAD` při dalším nasazení
 | 2026-10-10 | `b3ad7d2` | třicáté nasazení: bez posunu rozvržení po načtení, přihlášení a registrace s nadpisem i bez JS (R123), tlačítko Seznamu jednobarevně (R124), „Tohle ne“ a hlášení chyb v akcích (R125), upozornění adminům na hlášení a výpadky v centru upozornění (R126), přečtení záznamu až po otevření a cinkající zvonek (R127); SQL `migrations-2026-10-09-tohle-ne.sql` |
 | 2026-10-10 | `3d36522` | třicáté první nasazení: veřejná stránka Nejlepší slevy týdne `/tyden/2026-41` s archivem po týdnech, v sitemapě, `llms.txt` a obsahu bez JS (R128); bez SQL skriptu |
 | 2026-10-10 | `1ad9cbd` | třicáté druhé nasazení: přehled kvality dat pro admina `/kvalita-dat` a upozornění na propad akcí nebo ověřených cen (R129), nákupní seznam s vlastními položkami, sdílením odkazem a „Smazat skončené akce“, sdílení akce z karty (R130); SQL `migrations-2026-10-10-kvalita-dat.sql` a `migrations-2026-10-10-nakupni-seznam-sdileni.sql` |
+| 2026-10-10 | `5c2fd0a` | třicáté třetí nasazení: Globus po hypermarketech — katalog akcí všech 16 hypermarketů, jiná cena v části hypermarketů jako samostatná akce, PDF budoucích letáků za cenové pásmo, výběr hypermarketů v Mých obchodech (R131); SQL `migrations-2026-10-10-globus-prodejny.sql`; první stažení z cronu uložilo 848 akcí |
