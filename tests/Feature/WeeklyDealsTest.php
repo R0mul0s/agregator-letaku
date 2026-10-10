@@ -189,6 +189,9 @@ it('aktuální týden bez slev se neindexuje a není v sitemap.xml', function ()
 it('sitemap.xml má týdny archivu: aktuální s poslední změnou akcí, skončený s koncem týdne', function (): void {
     weeklyOffer('Říjen', ['created_at' => '2026-09-29 08:00:00', 'valid_from' => '2026-09-28', 'valid_to' => '2026-10-04']);
     weeklyOffer('Tento týden', ['created_at' => '2026-10-06 05:30:00']);
+    // Leták na příští týden ani akce bez slevy aktuální týden nezmění
+    weeklyOffer('Příští týden', ['created_at' => '2026-10-07 06:00:00', 'valid_from' => '2026-10-12', 'valid_to' => '2026-10-18']);
+    weeklyOffer('Bez slevy', ['created_at' => '2026-10-07 06:00:00', 'offer_type' => OfferType::PromoPrice, 'discount_percent' => null]);
 
     $this->get('/sitemap.xml')
         ->assertSee('<loc>'.url('/tyden/2026-41')."</loc>\n        <lastmod>2026-10-06T05:30:00+00:00</lastmod>", false)

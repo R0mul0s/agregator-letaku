@@ -85,7 +85,7 @@ class CrawlerFilesController extends Controller
                 'loc' => $this->pages->productUrl($productId, absolute: true),
                 'lastmod' => ($productChanges[$productId] ?? null)?->toAtomString(),
             ], $productIds),
-            ...$this->weeklyUrls($weekly, $offersModified),
+            ...$this->weeklyUrls($weekly, $changes),
             // Podmínky a zásady ne — jsou noindex (R121)
             ...array_map(fn (string $route): array => ['loc' => route($route), 'lastmod' => $legalModified], PublicPages::indexedRoutes()),
         ];
@@ -143,13 +143,14 @@ class CrawlerFilesController extends Controller
     }
 
     /**
-     * Stránky Nejlepší slevy týdne (R128): aktuální týden se mění s akcemi (poslední změna akcí,
-     * R122), jen má-li slevy (jinak noindex); týden, který skončil, se naposledy změnil s jeho
+     * Stránky Nejlepší slevy týdne (R128): aktuální týden se mění s akcemi se slevou platnými
+     * v tom týdnu (leták na příští týden ho nezmění, R122), jen má-li slevy (jinak noindex);
+     * týden, který skončil, se naposledy změnil s jeho
      * koncem — z výběru toho, co se dá koupit, se stal archiv všech akcí týdne.
      *
      * @return list<array{loc: string, lastmod: string|null}>
      */
-    private function weeklyUrls(WeeklyDeals $weekly, ?string $offersModified): array
+    private function weeklyUrls(WeeklyDeals $weekly, OfferPageChanges $changes): array
     {
         $current = $weekly->currentWeek();
         $urls = [];
@@ -157,7 +158,7 @@ class CrawlerFilesController extends Controller
             if ($week->equals($current)) {
                 $deals = $weekly->forWeek($week);
                 if ($deals['top'] !== [] || $deals['chainSections'] !== []) {
-                    $urls[] = ['loc' => $weekly->url($week, absolute: true), 'lastmod' => $offersModified];
+                    $urls[] = ['loc' => $weekly->url($week, absolute: true), 'lastmod' => $changes->byPeriod($week->monday(), $week->sunday())?->toAtomString()];
                 }
 
                 continue;

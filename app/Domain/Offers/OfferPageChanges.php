@@ -5,8 +5,8 @@
  *
  * Změna = akce přibyla (`created_at`), nebo ji obchod stáhl (`withdrawn_at`) — stejně jako
  * u ohlášení přes IndexNow (ChangedOfferPages, R105). Stránka obchodu bere akce obchodu,
- * stránka produktu akce přiřazené k produktu, úvodní stránka a Všechny akce nejpozdější změnu
- * vůbec. `updated_at` se nepoužívá — hromadný zápis ho přepíše při každém stažení i u akce,
+ * stránka produktu akce přiřazené k produktu, aktuální týden Nejlepších slev akce se slevou
+ * platné v tom týdnu (R128), úvodní stránka a Všechny akce nejpozdější změnu vůbec. `updated_at` se nepoužívá — hromadný zápis ho přepíše při každém stažení i u akce,
  * která se nezměnila; čas stažení taky ne — posouval by datum všech stránek ~14× denně a Google
  * by mu přestal věřit. Začátek a konec platnosti beze stažení se nepočítá — stažení dvakrát
  * denně ho téměř vždy zachytí.
@@ -20,6 +20,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Offers;
 
+use App\Enums\OfferType;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 
@@ -63,6 +64,22 @@ final class OfferPageChanges
             ->pluck('changed_at', 'product_id');
 
         return $this->parse($rows->all());
+    }
+
+    /**
+     * Poslední změna akcí se slevou, které platí aspoň jeden den období — stránka Nejlepší slevy
+     * týdne (R128). Leták na příští týden aktuální týden nezmění.
+     */
+    public function byPeriod(CarbonImmutable $localFrom, CarbonImmutable $localTo): ?CarbonImmutable
+    {
+        $changedAt = DB::table('offers')
+            ->where('offers.offer_type', OfferType::Discount->value)
+            ->where('offers.valid_from', '<=', $localTo->toDateString())
+            ->where('offers.valid_to', '>=', $localFrom->toDateString())
+            ->selectRaw(self::LAST_CHANGE_SQL)
+            ->value('changed_at');
+
+        return $this->parse(['period' => $changedAt])['period'] ?? null;
     }
 
     /**
