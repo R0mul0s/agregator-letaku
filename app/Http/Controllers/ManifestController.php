@@ -60,6 +60,10 @@ class ManifestController extends Controller
             'dir' => 'ltr',
             'start_url' => route('home', absolute: false),
             'scope' => '/',
+            // Odkaz otevřený z jiné aplikace (Instagram, WhatsApp) s už spuštěnou aplikací z plochy:
+            // přejít na jeho adresu — bez toho ji Android jen přenese do popředí na poslední stránce
+            // a sdílený nákupní seznam (R130) se neotevře (R132)
+            'launch_handler' => ['client_mode' => ['navigate-existing', 'auto']],
             'display' => 'standalone',
             'categories' => ['shopping', 'lifestyle'],
             'background_color' => $color,

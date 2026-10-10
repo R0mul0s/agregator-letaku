@@ -410,6 +410,17 @@ Co bylo zvláštní na jednotlivých dřívějších nasazeních (SQL skripty, n
 je v [HISTORIE_NASAZENI.md](HISTORIE_NASAZENI.md). Poznámky k nasazení, které se teprve chystá,
 patří sem pod tenhle postup; po nasazení se přesunou tam (R106).
 
+### Aktualizace z `5c2fd0a` (připravuje se)
+
+Odkaz z jiné aplikace (Instagram, WhatsApp) otevře spuštěnou aplikaci z plochy na své adrese
+(R132) — jen manifest, bez SQL skriptu, `.env` beze změny.
+
+1. **Nahraj** z `deploy/upload/`: `app/Http/Controllers/ManifestController.php` a `public/version.txt`.
+2. **Ověř:** `version.txt`; `/manifest.webmanifest` obsahuje `"launch_handler"` s `navigate-existing`.
+   Telefon si manifest načte znovu do dne (cache) — pak odkaz na sdílený seznam poslaný přes
+   Instagram otevře aplikace z plochy přímo na seznamu.
+3. Zapiš verzi do *Nasazené verze* a tuhle sekci přesuň do `HISTORIE_NASAZENI.md`.
+
 ---
 
 ## Záloha databáze

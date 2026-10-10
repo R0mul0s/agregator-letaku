@@ -44,6 +44,10 @@ it('manifest má maskovatelnou ikonu a zkratky na hlavní stránky', function ()
         ->and(array_column($response->json('shortcuts'), 'name'))->toBe(['Moje slevy', 'Seznam', 'Hlídám', 'Všechny akce']);
 });
 
+it('odkaz z jiné aplikace otevře spuštěná aplikace z plochy na své adrese, ne na poslední stránce (R132)', function (): void {
+    $this->get(route('manifest'))->assertJsonPath('launch_handler.client_mode', ['navigate-existing', 'auto']);
+});
+
 it('stránka má meta značky pro iPhone a existující úvodní obrazovky', function (): void {
     $response = $this->get(route('home'))
         ->assertOk()
