@@ -53,6 +53,7 @@ final class StructuredData
         'offers' => 'CollectionPage',
         'offers_chain' => 'CollectionPage',
         'offers_product' => 'CollectionPage',
+        'weekly' => 'CollectionPage',
     ];
 
     public function __construct(
@@ -187,8 +188,8 @@ final class StructuredData
     }
 
     /**
-     * Drobečková navigace: Slevohlídka › Všechny akce › obchod nebo produkt; právní stránky
-     * a kontakt přímo pod úvodní stránkou. Úvodní stránka ji nemá.
+     * Drobečková navigace: Slevohlídka › Všechny akce › obchod nebo produkt; právní stránky,
+     * kontakt a Nejlepší slevy týdne přímo pod úvodní stránkou. Úvodní stránka ji nemá.
      *
      * @return array<string, mixed>|null
      */
@@ -221,8 +222,8 @@ final class StructuredData
     }
 
     /**
-     * Akce na stránce jako nabídky obchodů — výpis akcí (aktuální stránka) a nejvyšší slevy
-     * na úvodní stránce. Bez akcí null.
+     * Akce na stránce jako nabídky obchodů — výpis akcí (aktuální stránka), nejvyšší slevy
+     * na úvodní stránce a žebříček Nejlepších slev týdne (R128). Bez akcí null.
      *
      * @param  array<string, mixed>  $props
      * @return array<string, mixed>|null
@@ -231,6 +232,8 @@ final class StructuredData
     {
         $offers = match (true) {
             $page === 'home' => $props['topOffers'] ?? [],
+            // Nejlepší slevy týdne (R128): žebříček napříč obchody
+            $page === 'weekly' => $props['top'] ?? [],
             str_starts_with($page, 'offers') => $props['offers']['data'] ?? [],
             default => [],
         };

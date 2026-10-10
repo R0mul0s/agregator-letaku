@@ -222,7 +222,11 @@ onBeforeUnmount(() => window.clearInterval(stickerTimer));
         <section v-if="topOffers.length" class="landing-section">
             <div class="landing-section__header">
                 <h2 class="landing-section__title">{{ t('landing.top_title') }}</h2>
-                <Link :href="urls.offers" class="link">{{ t('landing.top_more') }} →</Link>
+                <span class="landing-section__links">
+                    <!-- Nejlepší slevy týdne (R128) -->
+                    <Link :href="urls.weekly" class="link">{{ t('landing.top_weekly') }} →</Link>
+                    <Link :href="urls.offers" class="link">{{ t('landing.top_more') }} →</Link>
+                </span>
             </div>
             <div class="offer-grid">
                 <OfferCard v-for="offer in topOffers" :key="offer.id" :offer="offer" :heading-level="3" />

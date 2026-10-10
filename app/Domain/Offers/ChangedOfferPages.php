@@ -4,7 +4,7 @@
  * Veřejné stránky, které stažení obchodu změnilo (R105) — pro ohlášení vyhledávačům přes IndexNow.
  *
  * Změna = nová akce nebo akce stažená obchodem v tomto stažení. Pak se změnila úvodní stránka
- * (nejvyšší slevy), Všechny akce, stránka obchodu a stránky produktů katalogu, ke kterým
+ * (nejvyšší slevy), Všechny akce, Nejlepší slevy aktuálního týdne (R128), stránka obchodu a stránky produktů katalogu, ke kterým
  * změněné akce patří — produktů jen těch, které jsou v sitemapě (mají neskončené akce).
  * Stažení beze změny nevrátí nic.
  *
@@ -25,7 +25,10 @@ use Illuminate\Database\Eloquent\Builder;
 
 final class ChangedOfferPages
 {
-    public function __construct(private readonly OfferPages $pages) {}
+    public function __construct(
+        private readonly OfferPages $pages,
+        private readonly WeeklyDeals $weekly,
+    ) {}
 
     /**
      * Absolutní adresy stránek změněných stažením.
@@ -54,6 +57,7 @@ final class ChangedOfferPages
         return [
             SeoMeta::homeUrl(),
             route('offers'),
+            $this->weekly->url($this->weekly->currentWeek(), absolute: true),
             $this->pages->chainUrl($run->chain, absolute: true),
             ...array_map(fn (int $productId): string => $this->pages->productUrl($productId, absolute: true), $published),
         ];

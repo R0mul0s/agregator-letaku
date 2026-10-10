@@ -322,6 +322,13 @@
         }
     }
 
+    // Odkazy vedle nadpisu (Nejlepší slevy týdne, Všechny akce)
+    &__links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-2) var(--space-3);
+    }
+
     // Nadpis oddílu s „rychlostními čárkami“ z loga jako nadpisy stránek
     &__title {
         display: flex;
@@ -331,14 +338,7 @@
         font-size: var(--font-size-card-title);
 
         &::before {
-            content: '';
-            flex: none;
-            width: var(--speed-lines-width);
-            height: var(--speed-lines-height);
-            background:
-                linear-gradient(var(--color-brand), var(--color-brand)) right top / 100% var(--speed-line-thickness) no-repeat,
-                linear-gradient(var(--color-brand), var(--color-brand)) right center / 70% var(--speed-line-thickness) no-repeat,
-                linear-gradient(var(--color-brand), var(--color-brand)) right bottom / 40% var(--speed-line-thickness) no-repeat;
+            @include speed-lines;
         }
     }
 

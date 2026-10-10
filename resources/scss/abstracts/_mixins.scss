@@ -114,6 +114,19 @@
     border-bottom: 1px solid var(--color-border);
 }
 
+/// „Rychlostní čárky“ z loga před nadpisem (tři čárky ubývající délky) — patří do `&::before`
+/// nadpisu, který je flex s mezerou (nadpis stránky, oddíly úvodní stránky a Nejlepších slev týdne).
+@mixin speed-lines {
+    content: '';
+    flex: none;
+    width: var(--speed-lines-width);
+    height: var(--speed-lines-height);
+    background:
+        linear-gradient(var(--color-brand), var(--color-brand)) right top / 100% var(--speed-line-thickness) no-repeat,
+        linear-gradient(var(--color-brand), var(--color-brand)) right center / 70% var(--speed-line-thickness) no-repeat,
+        linear-gradient(var(--color-brand), var(--color-brand)) right bottom / 40% var(--speed-line-thickness) no-repeat;
+}
+
 /// Štítek s krátkým textem (číslo, „−25 %“) svisle uprostřed. Písmo nechává pod účařím místo
 /// pro dotažnice a nad verzálkami pro diakritiku, takže číslice by seděly výš; text-box ořízne
 /// řádek na výšku verzálek a odsazení je pak nahoře i dole stejné. Bez podpory zůstane řádek.

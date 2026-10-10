@@ -168,5 +168,5 @@ funkce, změřit, co lidé opravdu používají, a nepoužívané schovat nebo z
 - „Tohle ne“ a hlášení chyb hotové (R125) — dál: z hlášení rovnou opravit akci (ručně přepsat cenu nebo ji skrýt všem), e-mail adminovi při novém hlášení (upozornění v telefonu je hotové), poděkovat uživateli v centru upozornění, až je hlášení vyřešené
 - **sdílení akce z karty** (Web Share API, „pošli to partnerovi“) — dnes ho má jen nákupní seznam
 - **jak často bývá zboží v akci** — „Máslo bývá v Lidlu v akci zhruba každé 3 týdny, naposledy 28. 9.“; navazuje na „Vyplatí se počkat“ (R76) a graf ceny (*Historie a porovnání cen*), smysl má až s historií za několik týdnů
-- **veřejná stránka „Nejlepší slevy týdne“** s archivem po týdnech (`/tyden/2026-41`) — nový obsah každý týden pro SEO a odkaz na sociální sítě; patří do `PublicPages`, sitemapy a obsahu bez JS (R94)
+- Nejlepší slevy týdne hotové (R128) — dál: vlastní obrázek pro sdílení (OG) s číslem týdne a třemi nejvyššími slevami, příspěvek na sociální sítě v pondělí
 - **admin přehled kvality dat** — u každého obchodu a letáku vývoj počtu akcí za posledních N stažení a podíl neověřených dlaždic, propad vidět hned (rozšiřuje „hlídat propad počtu akcí z letáku“ v *Provoz a údržba*)

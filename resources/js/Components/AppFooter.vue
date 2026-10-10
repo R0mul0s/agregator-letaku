@@ -55,6 +55,10 @@ const updatedAgo = computed(() => (footer.value.lastImportAt ? formatRelativeTim
                         <li v-for="item in page.props.navigation" :key="item.url">
                             <Link :href="item.url" class="app-footer__link">{{ t(item.label) }}</Link>
                         </li>
+                        <!-- Nejlepší slevy týdne (R128): nepřihlášený je má v navigaci, přihlášený jen tady -->
+                        <li v-if="page.props.auth.user">
+                            <Link :href="footer.weeklyUrl" class="app-footer__link">{{ t('footer.weekly') }}</Link>
+                        </li>
                         <template v-if="!page.props.auth.user">
                             <li>
                                 <Link :href="page.props.auth.registerUrl" class="app-footer__link">{{ t('auth.register.title') }}</Link>

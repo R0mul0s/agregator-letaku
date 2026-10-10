@@ -63,7 +63,11 @@ it('je veřejná: nepřihlášený vidí akce a v navigaci jen Všechny akce (R4
             ->where('offers.data.0.name', 'Vejce M')
             ->where('auth.user', null)
             ->where('auth.registerUrl', '/registrace')
-            ->where('navigation', [['url' => '/akce', 'key' => 'offers', 'label' => 'nav.offers', 'tab' => false, 'active' => true]]));
+            ->where('navigation', [
+                ['url' => '/akce', 'key' => 'offers', 'label' => 'nav.offers', 'tab' => false, 'active' => true],
+                // Nejlepší slevy týdne (R128)
+                ['url' => '/tyden', 'key' => 'weekly', 'label' => 'nav.weekly', 'tab' => false, 'active' => false],
+            ]));
     $this->get(route('offers.suggestions', ['q' => 'vej']))->assertOk();
 });
 

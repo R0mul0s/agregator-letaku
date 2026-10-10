@@ -14,7 +14,7 @@
     $offerPages = app(\App\Domain\Offers\OfferPages::class);
     $withLinks = in_array($component, ['Landing', 'Offers'], true);
 @endphp
-@if (in_array($component, ['Landing', 'Offers', 'Contact', 'Legal', 'Auth/Login', 'Auth/Register'], true))
+@if (in_array($component, ['Landing', 'Offers', 'Weekly', 'Contact', 'Legal', 'Auth/Login', 'Auth/Register'], true))
     <div class="seo-content" data-seo-content>
         <h1>{{ $seo['heading'] }}</h1>
 
@@ -41,6 +41,31 @@
                 @if (! empty($props['pagination']['nextUrl']))
                     <p><a href="{{ $props['pagination']['nextUrl'] }}">{{ __('app.seo.content.next_page') }}</a></p>
                 @endif
+                @break
+
+            {{-- Nejlepší slevy týdne (R128): žebříček, slevy po obchodech a odkazy na sousední týdny a archiv --}}
+            @case('Weekly')
+                <p>{{ $seo['description'] }}</p>
+                @include('seo.offers', ['offers' => $props['top'] ?? [], 'title' => __('app.ui.weekly.top_title'), 'withDiscount' => true])
+                @foreach ($props['chainSections'] ?? [] as $section)
+                    @php $chain = \App\Enums\Chain::from($section['chain']); @endphp
+                    @include('seo.offers', ['offers' => $section['offers'], 'title' => __('app.ui.weekly.chain_title', ['chain' => $chain->label()]), 'withDiscount' => true])
+                    <p><a href="{{ $section['url'] }}">{{ __('app.seo.content.chain_link', ['chain' => $chain->genitive()]) }}</a></p>
+                @endforeach
+                <p>
+                    @if (! empty($props['olderUrl']))
+                        <a href="{{ $props['olderUrl'] }}">{{ __('app.ui.weekly.older') }}</a>
+                    @endif
+                    @if (! empty($props['newerUrl']))
+                        @if (! empty($props['olderUrl'])) · @endif<a href="{{ $props['newerUrl'] }}">{{ __('app.ui.weekly.newer') }}</a>
+                    @endif
+                </p>
+                <h2>{{ __('app.ui.weekly.archive_title') }}</h2>
+                <ul>
+                    @foreach ($props['archive'] ?? [] as $item)
+                        <li><a href="{{ $item['url'] }}">{{ __('app.ui.weekly.archive_item', ['number' => $item['number'], 'year' => $item['year'], 'range' => $item['range']]) }}</a></li>
+                    @endforeach
+                </ul>
                 @break
 
             @case('Contact')
@@ -91,8 +116,11 @@
 
         {{-- Patička jako ve Vue (AppFooter.vue): provozovatel a právní stránky z každé stránky --}}
         <p>
+            {{-- Nejlepší slevy týdne (R128) — aktuální týden přímo, ne přes přesměrování z /tyden --}}
+            @php $weekly = app(\App\Domain\Offers\WeeklyDeals::class); @endphp
+            <a href="{{ $weekly->url($weekly->currentWeek(), absolute: true) }}">{{ __('app.ui.footer.weekly') }}</a>
             @foreach (\App\Support\Seo\PublicPages::PAGES as $route => $kind)
-                @if (! $loop->first) · @endif<a href="{{ route($route) }}">{{ __("app.ui.footer.$kind") }}</a>
+                · <a href="{{ route($route) }}">{{ __("app.ui.footer.$kind") }}</a>
             @endforeach
         </p>
         <p>{{ __('app.ui.footer.disclaimer') }}</p>

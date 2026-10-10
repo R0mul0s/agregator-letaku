@@ -1,6 +1,6 @@
 {{--
     Seznam akcí v obsahu pro roboty (R94, seo/content.blade.php): název, obchod, cena (bez ceny
-    běžné cena s kartou), cena za jednotku a platnost. Data z OfferPresenter::toPage.
+    běžné cena s kartou), sleva (jen s `withDiscount`), cena za jednotku a platnost. Data z OfferPresenter::toPage.
 
     @author Roman Hlaváček
     @created 2026-10-06
@@ -27,6 +27,10 @@
                     @if ($withCard)
                         {{ __('app.seo.content.with_card', ['program' => $offer['loyaltyProgramName'] ?? '']) }}
                     @endif
+                @endif
+                {{-- Nejlepší slevy týdne (R128): sleva je důvod, proč akce na stránce je --}}
+                @if (($withDiscount ?? false) && $offer['discountPercent'] !== null)
+                    · {{ __('app.seo.content.discount', ['percent' => $offer['discountPercent']]) }}
                 @endif
                 @if ($unitPrice !== null && $offer['unitPriceUnit'] !== null)
                     ({{ __('app.seo.content.unit_price', ['price' => $prices->format($unitPrice), 'unit' => __('app.ui.unit_price_units.'.$offer['unitPriceUnit'])]) }})

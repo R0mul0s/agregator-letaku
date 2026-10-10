@@ -676,6 +676,21 @@ return [
     ],
 
     /*
+    | Nejlepší slevy týdne (R128, /tyden/2026-41): nahoře top_offers akcí s nejvyšší slevou
+    | a obrázkem napříč obchody (z jednoho obchodu nejvýš top_max_per_chain — Kaufland má
+    | vysoké slevy na maso a jinak by žebříček zabral), pod tím chain_offers nejlepších slev každého obchodu; obojí
+    | z candidates_factor× většího výběru (stejné názvy po prodejnách Kauflandu, střídání obchodů).
+    | Výsledek v cache do dalšího stažení, nejdéle cache_minutes (jako úvodní stránka, R95).
+    */
+    'weekly' => [
+        'top_offers' => 12,
+        'top_max_per_chain' => 3,
+        'chain_offers' => 6,
+        'candidates_factor' => 5,
+        'cache_minutes' => 15,
+    ],
+
+    /*
     | Hledání ve Všech akcích a v Hlídám (R71). Našeptávač ukáže nejvýš tolik produktů katalogu
     | a akcí; prázdné pole oblíbené produkty (nejvíc akcí). Oprava překlepu jen u slov od
     | typo_min_length znaků, do typo_short_word_length znaků o 1 změnu, delší o 2. Slovník

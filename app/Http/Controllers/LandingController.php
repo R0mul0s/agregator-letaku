@@ -16,6 +16,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Domain\Offers\LandingSnapshot;
+use App\Domain\Offers\WeeklyDeals;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -35,6 +36,7 @@ class LandingController extends Controller
                 'register' => route('register', absolute: false),
                 'login' => route('login', absolute: false),
                 'offers' => route('offers', absolute: false),
+                'weekly' => route(WeeklyDeals::INDEX_ROUTE, absolute: false),
                 'suggestions' => route('offers.suggestions', absolute: false),
             ],
             'suggestMinLength' => config()->integer('letaky.offers.suggest_min_length'),

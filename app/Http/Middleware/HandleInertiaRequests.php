@@ -13,6 +13,7 @@ declare(strict_types=1);
 namespace App\Http\Middleware;
 
 use App\Domain\Offers\OfferPages;
+use App\Domain\Offers\WeeklyDeals;
 use App\Domain\Sources\SourceRegistry;
 use App\Enums\Chain;
 use App\Enums\OfferReportReason;
@@ -52,9 +53,10 @@ class HandleInertiaRequests extends Middleware
     /** Soubor s texty UI — jeho změna mění verzi Inertie (překlady se posílají jen jednou, R99). */
     private const TRANSLATIONS_FILE = 'lang/cs/app.php';
 
-    /** Navigace nepřihlášeného (R44): veřejné jsou jen Všechny akce. */
+    /** Navigace nepřihlášeného (R44): veřejné Všechny akce a Nejlepší slevy týdne (R128). */
     private const GUEST_NAVIGATION = [
         'offers' => 'offers',
+        WeeklyDeals::INDEX_ROUTE => 'weekly',
     ];
 
     /**
@@ -164,6 +166,8 @@ class HandleInertiaRequests extends Middleware
                     'url' => app(OfferPages::class)->chainUrl($chain),
                 ], app(SourceRegistry::class)->chainsWithOffers()),
                 'lastImportAt' => ScrapeRun::lastFinishedAt()?->toIso8601String(),
+                // Nejlepší slevy týdne (R128) — přihlášený je nemá v navigaci (spodní lišta je plná)
+                'weeklyUrl' => route(WeeklyDeals::INDEX_ROUTE, absolute: false),
                 'contactUrl' => route('contact', absolute: false),
                 'termsUrl' => route('legal.terms', absolute: false),
                 'privacyUrl' => route('legal.privacy', absolute: false),

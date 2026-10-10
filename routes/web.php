@@ -10,7 +10,9 @@
 
 declare(strict_types=1);
 
+use App\Domain\Offers\IsoWeek;
 use App\Domain\Offers\OfferPages;
+use App\Domain\Offers\WeeklyDeals;
 use App\Enums\SocialProvider;
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\AnnouncementController;
@@ -41,6 +43,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\WatchDemoController;
 use App\Http\Controllers\WatchItemController;
 use App\Http\Controllers\WatchItemExclusionController;
+use App\Http\Controllers\WeeklyDealsController;
 use App\Http\Middleware\ReadOnlySession;
 use App\Support\RateLimits;
 use App\Support\Seo\IndexNow;
@@ -88,6 +91,12 @@ Route::middleware('throttle:'.RateLimits::PUBLIC)->group(function (): void {
     Route::get('/akce/{slug}', OffersController::class)
         ->where('slug', '(?!naseptavac$)[a-z0-9]+(?:-[a-z0-9]+)*')
         ->name(OfferPages::PAGE_ROUTE);
+
+    // Nejlepší slevy týdne s archivem po týdnech (R128): /tyden přesměruje na aktuální týden
+    Route::get('/tyden', [WeeklyDealsController::class, 'current'])->name(WeeklyDeals::INDEX_ROUTE);
+    Route::get('/tyden/{'.WeeklyDeals::WEEK_PARAMETER.'}', [WeeklyDealsController::class, 'show'])
+        ->where(WeeklyDeals::WEEK_PARAMETER, IsoWeek::ROUTE_PATTERN)
+        ->name(WeeklyDeals::ROUTE);
 
     // Právní stránky (R51)
     Route::get('/podminky', [LegalController::class, 'terms'])->name('legal.terms');

@@ -58,6 +58,24 @@ final class LocalCalendar
     }
 
     /**
+     * Okamžik začátku místního dne v UTC (2026-10-05 = „2026-10-04 22:00:00“ UTC) — pro
+     * porovnání se sloupci času (`created_at`, `withdrawn_at`), které databáze drží v UTC.
+     */
+    public function startOfDayInstant(CarbonImmutable $localDate): CarbonImmutable
+    {
+        return CarbonImmutable::createFromFormat('!'.self::DATE_FORMAT, $localDate->format(self::DATE_FORMAT), $this->timezone())?->utc()
+            ?? throw new InvalidArgumentException("Neplatné datum „{$localDate->format(self::DATE_FORMAT)}“.");
+    }
+
+    /**
+     * Místní datum okamžiku v UTC (čas z databáze).
+     */
+    public function dateOfInstant(CarbonImmutable $instant): CarbonImmutable
+    {
+        return $this->date($instant->setTimezone($this->timezone())->format(self::DATE_FORMAT));
+    }
+
+    /**
      * Zobrazovací časová zóna z konfigurace.
      */
     private function timezone(): string

@@ -16,6 +16,7 @@ namespace App\Http\Controllers;
 use App\Domain\Offers\LocalCalendar;
 use App\Domain\Offers\OfferPageChanges;
 use App\Domain\Offers\OfferPages;
+use App\Domain\Offers\WeeklyDeals;
 use App\Enums\Chain;
 use App\Models\Offer;
 use App\Support\Seo\IndexNow;
@@ -62,11 +63,11 @@ class CrawlerFilesController extends Controller
 
     /**
      * sitemap.xml: úvodní stránka, Všechny akce, akce jednotlivých obchodů a produktů katalogu
-     * s akcemi na čistých adresách (R94), právní stránky (R51) a kontakt.
+     * s akcemi na čistých adresách (R94), Nejlepší slevy týdne po týdnech (R128) a kontakt.
      * Datum změny stránky akcí je poslední přibytí nebo stažení akce na ní (R122), kontaktu datum
      * účinnosti právních textů (R68) — jen skutečná změna, jinak by Google datu přestal věřit.
      */
-    public function sitemap(OfferPageChanges $changes): Response
+    public function sitemap(OfferPageChanges $changes, WeeklyDeals $weekly): Response
     {
         $chainChanges = $changes->byChain();
         $productIds = $this->pages->productsWithOffers();
@@ -84,6 +85,7 @@ class CrawlerFilesController extends Controller
                 'loc' => $this->pages->productUrl($productId, absolute: true),
                 'lastmod' => ($productChanges[$productId] ?? null)?->toAtomString(),
             ], $productIds),
+            ...$this->weeklyUrls($weekly, $offersModified),
             // Podmínky a zásady ne — jsou noindex (R121)
             ...array_map(fn (string $route): array => ['loc' => route($route), 'lastmod' => $legalModified], PublicPages::indexedRoutes()),
         ];
@@ -98,10 +100,11 @@ class CrawlerFilesController extends Controller
      * llms.txt (llmstxt.org): stručný popis webu a jeho veřejných stránek v Markdownu
      * pro jazykové modely a AI vyhledávače.
      */
-    public function llms(): Response
+    public function llms(WeeklyDeals $weekly): Response
     {
         $content = view('crawlers.llms', [
             'homeUrl' => SeoMeta::homeUrl(),
+            'weeklyUrl' => $weekly->url($weekly->currentWeek(), absolute: true),
             'chains' => array_map(fn (Chain $chain): array => [
                 'name' => $chain->genitive(),
                 'url' => $this->pages->chainUrl($chain, absolute: true),
@@ -137,6 +140,36 @@ class CrawlerFilesController extends Controller
         abort_unless($indexNow->key() !== null && hash_equals($indexNow->key(), $key), Response::HTTP_NOT_FOUND);
 
         return $this->text($key, 'text/plain');
+    }
+
+    /**
+     * Stránky Nejlepší slevy týdne (R128): aktuální týden se mění s akcemi (poslední změna akcí,
+     * R122), jen má-li slevy (jinak noindex); týden, který skončil, se naposledy změnil s jeho
+     * koncem — z výběru toho, co se dá koupit, se stal archiv všech akcí týdne.
+     *
+     * @return list<array{loc: string, lastmod: string|null}>
+     */
+    private function weeklyUrls(WeeklyDeals $weekly, ?string $offersModified): array
+    {
+        $current = $weekly->currentWeek();
+        $urls = [];
+        foreach ($weekly->weeks() as $week) {
+            if ($week->equals($current)) {
+                $deals = $weekly->forWeek($week);
+                if ($deals['top'] !== [] || $deals['chainSections'] !== []) {
+                    $urls[] = ['loc' => $weekly->url($week, absolute: true), 'lastmod' => $offersModified];
+                }
+
+                continue;
+            }
+
+            $urls[] = [
+                'loc' => $weekly->url($week, absolute: true),
+                'lastmod' => $this->calendar->startOfDayInstant($week->next()->monday())->toAtomString(),
+            ];
+        }
+
+        return $urls;
     }
 
     /**

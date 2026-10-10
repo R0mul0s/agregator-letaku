@@ -1,0 +1,142 @@
+// _weekly.scss
+// Nejlepší slevy týdne (Weekly.vue, R128): hlavní pruh s číslem týdne a sdílením, přechod
+// na sousední týdny, oddíly se žebříčkem a slevami obchodů, archiv týdnů jako dlaždice.
+//
+// @author Roman Hlaváček
+// @created 2026-10-10
+
+@use '../abstracts/mixins' as *;
+
+// Hlavní pruh jako u Kontaktu: číslo týdne, nadpis s dny, věta a akce
+.weekly-hero {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    margin-bottom: var(--space-4);
+    padding: var(--space-4);
+    background: var(--gradient-hero);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+
+    @include from-md {
+        padding: var(--space-5);
+    }
+
+    &__eyebrow {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--space-2);
+        margin: 0;
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+        font-weight: var(--font-weight-semibold);
+    }
+
+    &__title {
+        margin: 0;
+    }
+
+    &__lead {
+        max-width: var(--weekly-lead-max-width);
+        margin: 0;
+        color: var(--color-text-muted);
+    }
+
+    &__actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-2);
+        margin-top: var(--space-2);
+    }
+}
+
+// Předchozí týden vlevo, další vpravo (i když předchozí chybí)
+.weekly-pager {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: var(--space-2);
+    margin-bottom: var(--space-4);
+
+    &__link--newer {
+        margin-left: auto;
+    }
+}
+
+.weekly-section {
+    margin-bottom: var(--space-5);
+
+    &__header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: var(--space-2);
+        margin-bottom: var(--space-3);
+
+        .weekly-section__title {
+            margin-bottom: 0;
+        }
+    }
+
+    // Nadpis oddílu s „rychlostními čárkami“ z loga jako na úvodní stránce
+    &__title {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        margin-bottom: var(--space-3);
+        font-size: var(--font-size-card-title);
+
+        &::before {
+            @include speed-lines;
+        }
+    }
+
+    &__logo {
+        display: inline-flex;
+    }
+}
+
+// Archiv: týdny jako dlaždice, aktuálně zobrazený zvýrazněný
+.weekly-archive {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--weekly-archive-min-width)), 1fr));
+    gap: var(--space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    &__link {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-1);
+        padding: var(--space-2) var(--space-3);
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-md);
+        color: var(--color-text);
+        font-weight: var(--font-weight-semibold);
+        text-decoration: none;
+
+        &:hover {
+            border-color: var(--color-accent);
+        }
+
+        &:focus-visible {
+            @include focus-ring;
+        }
+
+        &--active {
+            border-color: var(--color-accent);
+            background: var(--color-accent-soft);
+        }
+    }
+
+    &__range {
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+        font-weight: var(--font-weight-regular);
+    }
+}

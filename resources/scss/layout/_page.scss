@@ -51,14 +51,7 @@
         font-size: var(--font-size-lg);
 
         &::before {
-            content: '';
-            flex: none;
-            width: var(--speed-lines-width);
-            height: var(--speed-lines-height);
-            background:
-                linear-gradient(var(--color-brand), var(--color-brand)) right top / 100% var(--speed-line-thickness) no-repeat,
-                linear-gradient(var(--color-brand), var(--color-brand)) right center / 70% var(--speed-line-thickness) no-repeat,
-                linear-gradient(var(--color-brand), var(--color-brand)) right bottom / 40% var(--speed-line-thickness) no-repeat;
+            @include speed-lines;
         }
     }
 

@@ -59,6 +59,12 @@ return [
                 'heading' => 'Kontakt',
                 'description' => 'Kdo Slevohlídku provozuje a jak se nám ozvat — chybná cena, nápad, spolupráce s obchody nebo dotaz k osobním údajům.',
             ],
+            // Nejlepší slevy týdne (R128) — :number a :year ISO týdne, :range dny („5.–11. 10. 2026“)
+            'weekly' => [
+                'title' => 'Nejlepší slevy :number. týdne :year · Slevohlídka',
+                'heading' => 'Nejlepší slevy týdne :range',
+                'description' => 'Nejvyšší slevy z letáků Kauflandu, Tesca, Albertu, Lidlu, Penny, Globusu a Billy v týdnu :range — žebříček a nejlepší slevy každého obchodu.',
+            ],
             // Přihlášení a registrace (noindex) — titulek a nadpis i pro roboty bez JS (R123)
             'login' => [
                 'title' => 'Přihlášení · Slevohlídka',
@@ -82,6 +88,7 @@ return [
             'offers_title' => 'Aktuální akce',
             'offers_empty' => 'Teď tu žádná akce není — Slevohlídka hlídá dál.',
             'with_card' => 's kartou :program',
+            'discount' => 'sleva :percent %',
             'unit_price' => ':price za :unit',
             'valid' => 'platí :from – :to',
             'next_page' => 'Další stránka',
@@ -172,6 +179,8 @@ return [
         'offers' => 'Všechny akce',
         'offers_description' => 'aktuální akce všech obchodů s hledáním, filtrem obchodu, cenou za jednotku a cenou s věrnostní kartou',
         'chain' => 'Akce :chain',
+        'weekly' => 'Nejlepší slevy týdne',
+        'weekly_description' => 'akce s nejvyšší slevou v aktuálním týdnu napříč obchody i po obchodech, s archivem předchozích týdnů',
         'notes_title' => 'Poznámky k datům',
         'note_prices' => 'Ceny jsou v českých korunách včetně DPH, převzaté z letáků a e-shopů obchodů; závazná je vždy cena v obchodě.',
         'note_validity' => 'U každé akce je uvedena platnost (místní datum, Europe/Prague) a odkaz na zdroj u obchodu.',
@@ -324,6 +333,7 @@ return [
             'shopping_list' => 'Seznam',
             'preferences' => 'Obchody',
             'offers' => 'Všechny akce',
+            'weekly' => 'Slevy týdne',
             'catalog' => 'Katalog',
             // Spodní lišta záložek na telefonu (R66, TabBar.vue) — krátké názvy, ať se jich pět vejde
             'tabs_label' => 'Hlavní stránky',
@@ -992,6 +1002,7 @@ return [
             ],
             'top_title' => 'Právě teď nejvyšší slevy',
             'top_more' => 'Všechny akce',
+            'top_weekly' => 'Nejlepší slevy týdne',
             'cta_title' => 'Ať slevy loví Slevohlídka, ne vy',
             'cta_text' => 'Registrace zabere minutu a nestojí ani korunu.',
         ],
@@ -1295,6 +1306,7 @@ return [
             'made' => 'Vyrobeno v Česku, s láskou ke slevám.',
             'disclaimer' => 'Slevohlídka není oficiálním webem žádného obchodu. Názvy a loga obchodů jsou ochranné známky jejich vlastníků. Ceny jsou orientační, závazná je vždy cena v obchodě.',
             'copyright' => '© :year Slevohlídka',
+            'weekly' => 'Nejlepší slevy týdne',
             'terms' => 'Podmínky užití',
             'privacy' => 'Ochrana osobních údajů',
             'contact' => 'Kontakt',
@@ -1319,6 +1331,28 @@ return [
             'analytics_text' => 'Google Analytics — statistiky návštěvnosti (které stránky se čtou, z jakého zařízení). Microsoft Clarity — záznam, kam na stránce klepete a jak se posouváte, bez toho, co píšete do polí. Podle obojího Slevohlídku vylepšujeme.',
             'marketing_title' => 'Marketingové',
             'marketing_text' => 'Dovolí Googlu použít data z návštěvy pro měření a cílení reklamy. Reklamu zatím nezobrazujeme.',
+        ],
+
+        // Nejlepší slevy týdne (R128, Weekly.vue) — ISO týden po–ne, archiv po týdnech
+        'weekly' => [
+            'eyebrow' => ':number. týden :year',
+            'current' => 'Tento týden',
+            'intro_current' => 'Akce s nejvyšší slevou z letáků tohoto týdne — kde a na čem ušetříte nejvíc. Každé pondělí nový žebříček.',
+            'intro_past' => 'Akce s nejvyšší slevou, které v tomhle týdnu platily. Týden už skončil, takže akce níž většinou už neplatí.',
+            'to_current' => 'Slevy tohoto týdne',
+            'top_title' => 'Nejvyšší slevy napříč obchody',
+            'chain_title' => ':chain — nejlepší slevy',
+            'chain_more' => 'Všechny akce :chain',
+            'older' => 'Předchozí týden',
+            'newer' => 'Další týden',
+            'pager_label' => 'Přechod mezi týdny',
+            'archive_title' => 'Archiv týdnů',
+            'archive_item' => ':number. týden :year (:range)',
+            'share' => 'Sdílet',
+            'share_text' => 'Nejlepší slevy týdne :range',
+            'share_copied' => 'Odkaz jsme zkopírovali, můžete ho vložit kamkoli.',
+            'share_failed' => 'Odkaz se nepodařilo zkopírovat.',
+            'empty' => 'Tenhle týden zatím žádné slevy nemáme. Letáky stahujeme každý den, tak se sem brzy vraťte.',
         ],
 
         // Stránka Kontakt (R72, R91, Contact.vue) — předmět i osnova e-mailu se u témat předvyplní

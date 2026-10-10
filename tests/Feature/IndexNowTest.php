@@ -78,6 +78,7 @@ it('na produkci po stažení ohlásí úvodní stránku, Všechny akce a stránk
         ->and($requests[0]['urlList'])->toBe([
             SeoMeta::homeUrl(),
             route('offers'),
+            url('/tyden/2026-40'),
             app(OfferPages::class)->chainUrl(Chain::Kaufland, absolute: true),
         ]);
 });
@@ -144,6 +145,8 @@ it('ke změněným stránkám přidá produkty katalogu s novou nebo staženou a
     expect(app(ChangedOfferPages::class)->forRun($run))->toBe([
         SeoMeta::homeUrl(),
         route('offers'),
+        // Nejlepší slevy aktuálního týdne (R128)
+        url('/tyden/2026-40'),
         $pages->chainUrl(Chain::Lidl, absolute: true),
         $pages->productUrl($butter->id, absolute: true),
     ]);

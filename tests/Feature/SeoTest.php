@@ -88,9 +88,11 @@ it('titulek ze serveru dostane i Vue, aby ho <Head> nepřepsal (R68)', function 
 });
 
 it('titulky a popisy veřejných stránek mají délku vhodnou pro výsledky hledání (R68)', function (string $page): void {
-    expect(mb_strlen(__("app.seo.pages.{$page}.title", ['chain' => 'Kauflandu'])))->toBeLessThanOrEqual(65)
-        ->and(mb_strlen(__("app.seo.pages.{$page}.description", ['chain' => 'Kauflandu'])))->toBeLessThanOrEqual(160);
-})->with(['home', 'offers', 'offers_chain', 'terms', 'privacy']);
+    // Nejdelší hodnoty: obchod a týden přes konec roku (R128)
+    $replace = ['chain' => 'Kauflandu', 'number' => '53', 'year' => '2026', 'range' => "29.\u{A0}12.\u{A0}2025 – 4.\u{A0}1.\u{A0}2026"];
+    expect(mb_strlen(__("app.seo.pages.{$page}.title", $replace)))->toBeLessThanOrEqual(65)
+        ->and(mb_strlen(__("app.seo.pages.{$page}.description", $replace)))->toBeLessThanOrEqual(160);
+})->with(['home', 'offers', 'offers_chain', 'weekly', 'terms', 'privacy']);
 
 it('přihlášení se neindexuje, stránky za přihlášením ani nesledují', function (): void {
     expect(metaContent($this->get('/prihlaseni')->getContent(), 'robots'))->toBe('noindex, follow');

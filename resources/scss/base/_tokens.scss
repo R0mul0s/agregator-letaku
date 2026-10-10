@@ -147,6 +147,9 @@
     --legal-accent-width: 4px;
     // Úvodní věta stránky Kontakt (R72) — kratší řádek se čte líp
     --contact-lead-max-width: 44rem;
+    // Nejlepší slevy týdne (R128): úvodní věta a dlaždice týdne v archivu
+    --weekly-lead-max-width: 44rem;
+    --weekly-archive-min-width: 11rem;
     // Kontakt hravě (R91): maskot v pruhu, holub z úvodní věty, otazníky otázek
     --contact-mascot-size: 10rem;
     --contact-mascot-size-mobile: 6.5rem;

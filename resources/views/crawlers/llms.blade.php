@@ -14,6 +14,7 @@
 
 - [{{ __('app.llms.home') }}]({{ $homeUrl }}): {{ __('app.llms.home_description') }}
 - [{{ __('app.llms.offers') }}]({{ route('offers') }}): {{ __('app.llms.offers_description') }}
+- [{{ __('app.llms.weekly') }}]({{ $weeklyUrl }}): {{ __('app.llms.weekly_description') }}
 @foreach ($chains as $chain)
 - [{{ __('app.llms.chain', ['chain' => $chain['name']]) }}]({{ $chain['url'] }})
 @endforeach

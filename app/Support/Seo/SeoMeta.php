@@ -6,7 +6,7 @@
  * vidět robot bez JavaScriptu nebo náhled odkazu, musí být v šabloně ze serveru.
  *
  * Indexovat se smí jen veřejné stránky: úvodní stránka, Všechny akce (bez hledání), akce
- * obchodu a produktu katalogu na čisté adrese (R94), právní stránky (R51), kontakt (R72).
+ * obchodu a produktu katalogu na čisté adrese (R94), Nejlepší slevy týdne (R128), kontakt (R72).
  * Přihlášení a registrace „noindex, follow“, vše za přihlášením „noindex, nofollow“.
  *
  * @author Roman Hlaváček
@@ -18,9 +18,11 @@ declare(strict_types=1);
 
 namespace App\Support\Seo;
 
+use App\Domain\Offers\IsoWeek;
 use App\Domain\Offers\OfferFilters;
 use App\Domain\Offers\OfferPages;
 use App\Domain\Offers\OfferSearch;
+use App\Domain\Offers\WeeklyDeals;
 use App\Enums\Chain;
 use App\Http\Requests\OffersRequest;
 use Illuminate\Http\Request;
@@ -69,13 +71,13 @@ final class SeoMeta
         $routeName = (string) $request->route()?->getName();
         [$chain, $productId] = $this->target($request, $routeName);
         $page = $this->page($request, $routeName, $chain, $productId);
-        $robots = $this->robots($routeName, $page, $request, $productId);
-        $replace = $this->replacements($chain, $productId);
+        $props = is_array($inertiaPage['props'] ?? null) ? $inertiaPage['props'] : [];
+        $robots = $this->robots($routeName, $page, $request, $productId, $props);
+        $replace = $this->replacements($chain, $productId, $this->week($request, $routeName));
         $title = __("app.seo.pages.{$page}.title", $replace);
         $heading = __("app.seo.pages.{$page}.heading", $replace);
         $description = __("app.seo.pages.{$page}.description", $replace);
         $canonical = $this->canonical($request, $routeName, $chain, $productId);
-        $props = is_array($inertiaPage['props'] ?? null) ? $inertiaPage['props'] : [];
 
         return [
             'title' => $title,
@@ -105,7 +107,7 @@ final class SeoMeta
         $routeName = (string) $request->route()?->getName();
         [$chain, $productId] = $this->target($request, $routeName);
 
-        return __("app.seo.pages.{$this->page($request, $routeName, $chain, $productId)}.title", $this->replacements($chain, $productId));
+        return __("app.seo.pages.{$this->page($request, $routeName, $chain, $productId)}.title", $this->replacements($chain, $productId, $this->week($request, $routeName)));
     }
 
     /**
@@ -117,7 +119,7 @@ final class SeoMeta
         $routeName = (string) $request->route()?->getName();
         [$chain, $productId] = $this->target($request, $routeName);
 
-        return __("app.seo.pages.{$this->page($request, $routeName, $chain, $productId)}.heading", $this->replacements($chain, $productId));
+        return __("app.seo.pages.{$this->page($request, $routeName, $chain, $productId)}.heading", $this->replacements($chain, $productId, $this->week($request, $routeName)));
     }
 
     /**
@@ -139,6 +141,7 @@ final class SeoMeta
             $this->isOffers($routeName) && $productId !== null => 'offers_product',
             $this->isOffers($routeName) && $chain !== null => 'offers_chain',
             $this->isOffers($routeName) => 'offers',
+            $routeName === WeeklyDeals::ROUTE => 'weekly',
             // Vlastní titulek a nadpis i v obsahu bez JS (R123) — noindex, ale robot je projde
             in_array($routeName, self::AUTH_PAGES, true) => $routeName,
             default => PublicPages::kind($routeName) ?? 'default',
@@ -166,15 +169,28 @@ final class SeoMeta
     }
 
     /**
-     * Doplňované hodnoty textů: obchod ve 2. pádě a název produktu.
+     * Týden stránky Nejlepší slevy týdne z adresy (R128); jinde null.
+     */
+    private function week(Request $request, string $routeName): ?IsoWeek
+    {
+        $slug = $request->route(WeeklyDeals::WEEK_PARAMETER);
+
+        return $routeName === WeeklyDeals::ROUTE && is_string($slug) ? IsoWeek::fromSlug($slug) : null;
+    }
+
+    /**
+     * Doplňované hodnoty textů: obchod ve 2. pádě, název produktu a číslo, rok a dny týdne.
      *
      * @return array<string, string>
      */
-    private function replacements(?Chain $chain, ?int $productId): array
+    private function replacements(?Chain $chain, ?int $productId, ?IsoWeek $week = null): array
     {
         return [
             'chain' => $chain?->genitive() ?? '',
             'product' => $productId === null ? '' : (string) $this->pages->productName($productId),
+            'number' => (string) $week?->number,
+            'year' => (string) $week?->year,
+            'range' => $week?->range() ?? '',
         ];
     }
 
@@ -189,10 +205,16 @@ final class SeoMeta
     /**
      * Pravidlo pro roboty: veřejné stránky indexovat (kromě podmínek a zásad, R121), výsledky hledání ne (nekonečně
      * kombinací, slabý obsah), produkt bez akcí ne (prázdná stránka), přihlášení
-     * a registraci ne, vše ostatní ani sledovat.
+     * a registraci ne, vše ostatní ani sledovat. Týden bez slev (jen aktuální, archiv je jen se
+     * slevami — R128) ne.
+     *
+     * @param  array<string, mixed>  $props  Props stránky Inertie
      */
-    private function robots(string $routeName, string $page, Request $request, ?int $productId): string
+    private function robots(string $routeName, string $page, Request $request, ?int $productId, array $props): string
     {
+        if ($page === 'weekly') {
+            return ($props['top'] ?? []) === [] && ($props['chainSections'] ?? []) === [] ? self::NOINDEX_FOLLOW : self::INDEX;
+        }
         if ($page === 'home' || $this->isOffers($routeName)) {
             if ($this->isFiltered($request)) {
                 return self::NOINDEX_FOLLOW;

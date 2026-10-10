@@ -27,6 +27,7 @@ final class OfferHighlights
     public function __construct(
         private readonly LocalCalendar $calendar,
         private readonly SourceRegistry $sources,
+        private readonly DiscountPicker $picker,
     ) {}
 
     /**
@@ -65,31 +66,7 @@ final class OfferHighlights
             ->limit($limit * config()->integer('letaky.landing.top_offers_candidates_factor'))
             ->get();
 
-        $picked = [];
-        $usedChains = [];
-        $usedNames = [];
-        // Dvě kola: v prvním jen obchody, které v ukázce ještě nejsou, ve druhém kdokoli. Stejný
-        // název stejného obchodu jen jednou — Kaufland má akci po prodejnách jako víc řádků (R49)
-        foreach ([true, false] as $distinctChains) {
-            foreach ($candidates as $offer) {
-                if (count($picked) >= $limit) {
-                    break 2;
-                }
-                $name = $offer->chain->value.'|'.mb_strtolower($offer->name);
-                if (isset($picked[$offer->id]) || isset($usedNames[$name]) || ($distinctChains && isset($usedChains[$offer->chain->value]))) {
-                    continue;
-                }
-                $picked[$offer->id] = $offer;
-                $usedChains[$offer->chain->value] = true;
-                $usedNames[$name] = true;
-            }
-        }
-
-        // Druhé kolo přidává až za první — bez seřazení by −66 % stálo pod −56 %
-        $picked = array_values($picked);
-        usort($picked, fn (Offer $a, Offer $b): int => [$b->effectiveDiscountPercent(), $a->id] <=> [$a->effectiveDiscountPercent(), $b->id]);
-
-        return $picked;
+        return $this->picker->pick($candidates, $limit);
     }
 
     /**
