@@ -410,26 +410,6 @@ Co bylo zvláštní na jednotlivých dřívějších nasazeních (SQL skripty, n
 je v [HISTORIE_NASAZENI.md](HISTORIE_NASAZENI.md). Poznámky k nasazení, které se teprve chystá,
 patří sem pod tenhle postup; po nasazení se přesunou tam (R106).
 
-### Aktualizace z `5c2fd0a` (připravuje se)
-
-Odkaz z jiné aplikace (Instagram, WhatsApp) otevře spuštěnou aplikaci z plochy na své adrese
-(R132) a množství položek nákupního seznamu (R133) — **s SQL skriptem**, `.env` beze změny,
-žádný soubor nezmizel; `lang/cs/app.php` se změnil — verze Inertie se změní a otevřené stránky
-se načtou znovu.
-
-0. **Záloha databáze** a v phpMyAdminu `deploy/migrations-2026-10-10-nakupni-seznam-mnozstvi.sql`
-   (před nahráním kódu).
-1. **Nahraj** z `deploy/upload/`: `public/build/` (celý), `app/` (celou složku — nové třídy
-   `Domain/Shopping/ShoppingQuantity` a `Http/Requests/ShoppingListQuantityRequest`), `vendor/composer/`
-   (autoloader), `config/letaky.php`, `routes/web.php`, `database/migrations/`, `lang/cs/app.php`
-   a `public/version.txt`.
-2. **Ověř:** `version.txt`; `/manifest.webmanifest` obsahuje `"launch_handler"` s `navigate-existing`
-   (telefon si manifest načte znovu do dne — pak odkaz na sdílený seznam z Instagramu otevře aplikace
-   z plochy přímo na seznamu); na `/seznam` „2x Kombucha“ přidá Kombuchu se štítkem „2×“, klepnutí
-   na název ukáže −/+, u akce s víc kusy cena „2 × …“ a pod ní cena za celé množství.
-3. Zapiš verzi do *Nasazené verze*, SQL skript do *Historie SQL skriptů* (datum) a tuhle sekci
-   přesuň do `HISTORIE_NASAZENI.md`.
-
 ---
 
 ## Záloha databáze
@@ -466,7 +446,7 @@ a ruční opravy katalogu. Před každým SQL skriptem a jinak aspoň jednou mě
 | `migrations-2026-10-09-tohle-ne.sql` | „Tohle ne“ a hlášení chyb (R125): tabulky `watch_item_offer_exclusions` a `offer_reports`; opakovatelný, pustit **před** nahráním kódu | 2026-10-10 |
 | `migrations-2026-10-10-kvalita-dat.sql` | přehled kvality dat (R129): tabulka `leaflet_stats` se statistikou letáků za každé stažení; opakovatelný, pustit **před** nahráním kódu | 2026-10-10 |
 | `migrations-2026-10-10-nakupni-seznam-sdileni.sql` | nákupní seznam (R130): `shopping_list_items.offer_id` nepovinné, `custom_name` a `chain` vlastní položky, `users.shopping_share_token`; opakovatelný, pustit **před** nahráním kódu | 2026-10-10 |
-| `migrations-2026-10-10-nakupni-seznam-mnozstvi.sql` | množství položky nákupního seznamu (R133): `shopping_list_items.quantity`; opakovatelný, pustit **před** nahráním kódu | — |
+| `migrations-2026-10-10-nakupni-seznam-mnozstvi.sql` | množství položky nákupního seznamu (R133): `shopping_list_items.quantity`; opakovatelný, pustit **před** nahráním kódu | 2026-10-10 |
 | `migrations-2026-10-10-globus-prodejny.sql` | hypermarkety Globusu jako prodejny (R131): 16 řádků v `stores` (jen data); opakovatelný, pustit **před** nahráním kódu | 2026-10-10 |
 
 ## Nasazené verze
@@ -509,3 +489,4 @@ Co běží na produkci — pro `git log <commit>..HEAD` při dalším nasazení
 | 2026-10-10 | `3d36522` | třicáté první nasazení: veřejná stránka Nejlepší slevy týdne `/tyden/2026-41` s archivem po týdnech, v sitemapě, `llms.txt` a obsahu bez JS (R128); bez SQL skriptu |
 | 2026-10-10 | `1ad9cbd` | třicáté druhé nasazení: přehled kvality dat pro admina `/kvalita-dat` a upozornění na propad akcí nebo ověřených cen (R129), nákupní seznam s vlastními položkami, sdílením odkazem a „Smazat skončené akce“, sdílení akce z karty (R130); SQL `migrations-2026-10-10-kvalita-dat.sql` a `migrations-2026-10-10-nakupni-seznam-sdileni.sql` |
 | 2026-10-10 | `5c2fd0a` | třicáté třetí nasazení: Globus po hypermarketech — katalog akcí všech 16 hypermarketů, jiná cena v části hypermarketů jako samostatná akce, PDF budoucích letáků za cenové pásmo, výběr hypermarketů v Mých obchodech (R131); SQL `migrations-2026-10-10-globus-prodejny.sql`; první stažení z cronu uložilo 848 akcí |
+| 2026-10-10 | `6b5051e` | třicáté čtvrté nasazení: odkaz z jiné aplikace otevře spuštěnou aplikaci z plochy na své adrese (R132), množství položek nákupního seznamu (R133); SQL `migrations-2026-10-10-nakupni-seznam-mnozstvi.sql` |

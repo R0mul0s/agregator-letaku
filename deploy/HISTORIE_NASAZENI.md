@@ -496,3 +496,26 @@ akce z karty (R130) — **s druhým SQL skriptem**; zásady ochrany údajů maj�
 - **Ověřeno:** `version.txt` = `1ad9cbd`; `/health/imports` i `/health/tasks` 200; `/kvalita-dat`
   nepřihlášeného přesměruje na přihlášení; neplatný odkaz `/seznam/s/…` 404; `robots.txt` zakazuje
   `/kvalita-dat` (10. 10.).
+
+### Aktualizace z `5c2fd0a` (třicáté čtvrté nasazení — provedeno, `6b5051e`)
+
+Odkaz z jiné aplikace (Instagram, WhatsApp) otevře spuštěnou aplikaci z plochy na své adrese
+(R132) a množství položek nákupního seznamu (R133) — **s SQL skriptem**, `.env` beze změny,
+žádný soubor nezmizel; `lang/cs/app.php` se změnil — verze Inertie se změní a otevřené stránky
+se načtou znovu.
+
+0. **Záloha databáze** a v phpMyAdminu `deploy/migrations-2026-10-10-nakupni-seznam-mnozstvi.sql`
+   (před nahráním kódu).
+1. **Nahraj** z `deploy/upload/`: `public/build/` (celý), `app/` (celou složku — nové třídy
+   `Domain/Shopping/ShoppingQuantity` a `Http/Requests/ShoppingListQuantityRequest`), `vendor/composer/`
+   (autoloader), `config/letaky.php`, `routes/web.php`, `database/migrations/`, `lang/cs/app.php`
+   a `public/version.txt`.
+2. **Ověř:** `version.txt`; `/manifest.webmanifest` obsahuje `"launch_handler"` s `navigate-existing`
+   (telefon si manifest načte znovu do dne — pak odkaz na sdílený seznam z Instagramu otevře aplikace
+   z plochy přímo na seznamu); na `/seznam` „2x Kombucha“ přidá Kombuchu se štítkem „2×“, klepnutí
+   na název ukáže −/+, u akce s víc kusy cena „2 × …“ a pod ní cena za celé množství.
+3. Zapiš verzi do *Nasazené verze*, SQL skript do *Historie SQL skriptů* (datum) a tuhle sekci
+   přesuň do `HISTORIE_NASAZENI.md`.
+
+- **Ověřeno:** `version.txt` = `6b5051e`; `/health/imports` i `/health/tasks` 200; `/manifest.webmanifest`
+  obsahuje `launch_handler` s `navigate-existing` (10. 10.).
