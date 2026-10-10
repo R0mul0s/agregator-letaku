@@ -410,32 +410,6 @@ Co bylo zvláštní na jednotlivých dřívějších nasazeních (SQL skripty, n
 je v [HISTORIE_NASAZENI.md](HISTORIE_NASAZENI.md). Poznámky k nasazení, které se teprve chystá,
 patří sem pod tenhle postup; po nasazení se přesunou tam (R106).
 
-### Aktualizace z `ff76607` (připravuje se)
-
-Bez posunu rozvržení po načtení — přednačtená písma a loga obchodů s rozměry; přihlášení
-a registrace s vlastním titulkem a nadpisem i bez JavaScriptu (R123); tlačítko Seznamu v jednobarevné
-variantě jako Google a Facebook (R124, jen `public/build/`). `.env` beze změny, žádný soubor
-nezmizel; `lang/cs/app.php` se změnil — verze Inertie se změní a otevřené
-stránky se načtou znovu.
-
-Navíc „Tohle ne“ a hlášení chyb v akcích (R125) — **s SQL skriptem** — a upozornění adminům na hlášení a výpadky v centru upozornění (R126, bez SQL skriptu).
-
-0. **Záloha databáze** a v phpMyAdminu `deploy/migrations-2026-10-09-tohle-ne.sql` (před nahráním kódu).
-1. **Nahraj** z `deploy/upload/`: `public/build/` (celý, starý obsah můžeš smazat),
-   `app/` (R125 mění a přidává soubory v `Domain/Catalog`, `Domain/Matching`, `Enums`,
-   `Http/Controllers`, `Http/Requests`, `Http/Middleware`, `Models`, `Providers` — nejjednodušší celou
-   složku), `vendor/composer/` (nové třídy v autoloaderu), `config/letaky.php`, `routes/web.php`,
-   `database/migrations/`, `lang/cs/app.php`, `resources/legal/privacy.md`, `resources/views/app.blade.php`,
-   `resources/views/seo/content.blade.php` a `public/version.txt`.
-2. **Ověř:** `version.txt`; ve zdroji úvodní stránky dva `<link rel="preload" as="font">`;
-   `/registrace` má titulek „Registrace · Slevohlídka“ a v obsahu bez JS `<h1>`; loga obchodů
-   mají `width` a `height`; „Přihlásit přes Seznam“ tmavé jako ostatní tlačítka. Za pár dní DebugBear
-   nebo PageSpeed: CLS pod 0,1. R125: v Mých slevách „Tohle ne“ u akce skryje akci (toast
-   s „Vrátit“), u položky ikona oka s počtem; tři tečky na kartě ve Všech akcích → hlášení;
-   admin v menu **Hlášení** (`/hlaseni`) hlášení vidí a vyřeší; s upozorněními zapnutými v Můj účet mu nové hlášení (i vlastní) přijde do centra upozornění (zvonek) i do telefonu. R126: po nejbližším cronu upozornění je na `/health/tasks` řádek „Upozornění adminům na výpadek — OK“; při výpadku přijde adminovi záznam „Výpadek: …“.
-3. Zapiš verzi do *Nasazené verze*, SQL skript do *Historie SQL skriptů* (datum) a tuhle sekci
-   přesuň do `HISTORIE_NASAZENI.md`.
-
 ---
 
 ## Záloha databáze
@@ -469,7 +443,7 @@ a ruční opravy katalogu. Před každým SQL skriptem a jinak aspoň jednou mě
 | `migrations-2026-10-06-prihlaseni-pres-google.sql` | přihlášení přes Google a Facebook (R96): tabulka `social_accounts`, `users.password` nepovinné; opakovatelný, pustit **před** nahráním kódu | 2026-10-06 |
 | `migrations-2026-10-09-indexy.sql` | indexy pro rostoucí historii (R113): `offers.valid_from`, `created_at`, `withdrawn_at`, `scrape_runs (status, finished_at)`; opakovatelný, pustit kdykoli (stará verze kódu s ním běží) | 2026-10-09 |
 | `migrations-2026-10-09-hlidani-uloh.sql` | hlídání úloh cronu (R115): tabulka `task_heartbeats`; opakovatelný, pustit **před** nahráním kódu | 2026-10-09 |
-| `migrations-2026-10-09-tohle-ne.sql` | „Tohle ne“ a hlášení chyb (R125): tabulky `watch_item_offer_exclusions` a `offer_reports`; opakovatelný, pustit **před** nahráním kódu | — |
+| `migrations-2026-10-09-tohle-ne.sql` | „Tohle ne“ a hlášení chyb (R125): tabulky `watch_item_offer_exclusions` a `offer_reports`; opakovatelný, pustit **před** nahráním kódu | 2026-10-10 |
 
 ## Nasazené verze
 
@@ -507,3 +481,5 @@ Co běží na produkci — pro `git log <commit>..HEAD` při dalším nasazení
 | 2026-10-09 | `7e90785` | dvacáté sedmé nasazení: fotky Billy a Penny v menší variantě CDN (R108), odkaz akce Kauflandu na detail akce (R109), popis shodný s balením se neopakuje, „Do letáku“ (R110), schema.org bez `Product` — test rozšířených výsledků bez chyb (R111); nahrané ručně včetně `public/build/`, bez SQL skriptu a `vendor/`; `version.txt` zůstal `b75955a` |
 | 2026-10-09 | `1b23d0c` | dvacáté osmé nasazení: „+1 brzy“ otevře sekci Brzy, stažení stránky dolů v aplikaci z plochy (R112), audit technického dluhu (R113) a úklid (R114), hlídání úloh cronu `/health/tasks` (R115); SQL `migrations-2026-10-09-indexy.sql` a `migrations-2026-10-09-hlidani-uloh.sql`, bez `vendor/` (jen `vendor/composer/`), smazaný `ImportFreshness.php` |
 | 2026-10-09 | `ff76607` | dvacáté deváté nasazení: přilepené a plovoucí lišty na telefonu (R116, R117, R119, R120), název obchodu klepnutím na logo a výraznější Hlídat / Do seznamu (R118), podmínky a zásady `noindex` a mimo sitemap (R121), `lastmod` v sitemapě podle skutečné změny stránky (R122); `public/build/`, čtyři soubory z `app/` a `vendor/composer/`, bez SQL skriptu |
+| 2026-10-10 | `b3ad7d2` | třicáté nasazení: bez posunu rozvržení po načtení, přihlášení a registrace s nadpisem i bez JS (R123), tlačítko Seznamu jednobarevně (R124), „Tohle ne“ a hlášení chyb v akcích (R125), upozornění adminům na hlášení a výpadky v centru upozornění (R126), přečtení záznamu až po otevření a cinkající zvonek (R127); SQL `migrations-2026-10-09-tohle-ne.sql` |
+| 2026-10-10 | `3d36522` | třicáté první nasazení: veřejná stránka Nejlepší slevy týdne `/tyden/2026-41` s archivem po týdnech, v sitemapě, `llms.txt` a obsahu bez JS (R128); bez SQL skriptu |

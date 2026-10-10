@@ -424,3 +424,45 @@ soubor nezmizel.
 
 - **Ověřeno:** `version.txt` = `ff76607`; `/health/imports` i `/health/tasks` 200; `/podminky` a `/ochrana-udaju`
   `noindex, follow`, kontakt `index, follow`; sitemap 216 adres bez právních stránek, 25 různých `lastmod`.
+
+### Aktualizace z `ff76607` (třicáté nasazení — provedeno, `b3ad7d2`)
+
+Bez posunu rozvržení po načtení — přednačtená písma a loga obchodů s rozměry; přihlášení
+a registrace s vlastním titulkem a nadpisem i bez JavaScriptu (R123); tlačítko Seznamu v jednobarevné
+variantě jako Google a Facebook (R124, jen `public/build/`). `.env` beze změny, žádný soubor
+nezmizel; `lang/cs/app.php` se změnil — verze Inertie se změní a otevřené
+stránky se načtou znovu.
+
+Navíc „Tohle ne“ a hlášení chyb v akcích (R125) — **s SQL skriptem** — a upozornění adminům na hlášení a výpadky v centru upozornění (R126, bez SQL skriptu).
+
+0. **Záloha databáze** a v phpMyAdminu `deploy/migrations-2026-10-09-tohle-ne.sql` (před nahráním kódu).
+1. **Nahraj** z `deploy/upload/`: `public/build/` (celý, starý obsah můžeš smazat),
+   `app/` (R125 mění a přidává soubory v `Domain/Catalog`, `Domain/Matching`, `Enums`,
+   `Http/Controllers`, `Http/Requests`, `Http/Middleware`, `Models`, `Providers` — nejjednodušší celou
+   složku), `vendor/composer/` (nové třídy v autoloaderu), `config/letaky.php`, `routes/web.php`,
+   `database/migrations/`, `lang/cs/app.php`, `resources/legal/privacy.md`, `resources/views/app.blade.php`,
+   `resources/views/seo/content.blade.php` a `public/version.txt`.
+2. **Ověř:** `version.txt`; ve zdroji úvodní stránky dva `<link rel="preload" as="font">`;
+   `/registrace` má titulek „Registrace · Slevohlídka“ a v obsahu bez JS `<h1>`; loga obchodů
+   mají `width` a `height`; „Přihlásit přes Seznam“ tmavé jako ostatní tlačítka. Za pár dní DebugBear
+   nebo PageSpeed: CLS pod 0,1. R125: v Mých slevách „Tohle ne“ u akce skryje akci (toast
+   s „Vrátit“), u položky ikona oka s počtem; tři tečky na kartě ve Všech akcích → hlášení;
+   admin v menu **Hlášení** (`/hlaseni`) hlášení vidí a vyřeší; s upozorněními zapnutými v Můj účet mu nové hlášení (i vlastní) přijde do centra upozornění (zvonek) i do telefonu. R126: po nejbližším cronu upozornění je na `/health/tasks` řádek „Upozornění adminům na výpadek — OK“; při výpadku přijde adminovi záznam „Výpadek: …“.
+3. Zapiš verzi do *Nasazené verze*, SQL skript do *Historie SQL skriptů* (datum) a tuhle sekci
+   přesuň do `HISTORIE_NASAZENI.md`.
+
+- **Ověřeno:** `version.txt` = `b3ad7d2`; `/health/imports` i `/health/tasks` 200 (10. 10.).
+
+### Aktualizace z `b3ad7d2` (třicáté první nasazení — provedeno, `3d36522`)
+
+Veřejná stránka Nejlepší slevy týdne (R128): `/tyden` přesměruje na aktuální týden `/tyden/2026-41`,
+žebříček slev napříč obchody, nejlepší slevy po obchodech a archiv týdnů; v sitemapě, `llms.txt`,
+obsahu bez JS a v IndexNow. Mění se `app/` (nové třídy v `Domain/Offers` a `Http/Controllers`,
+proto i `vendor/composer/`), `config/letaky.php`, `routes/web.php`, `lang/cs/app.php`,
+`resources/views/crawlers/llms.blade.php`, `resources/views/seo/content.blade.php`
+a `seo/offers.blade.php`, `public/build/` — bez SQL skriptu, `.env` beze změny.
+
+- **Ověřeno:** `version.txt` = `3d36522`; `/tyden` 302 na `/tyden/2026-41`, stránka 200 (0,35 s),
+  `index, follow`, titulek „Nejlepší slevy 41. týdne 2026 · Slevohlídka“, žebříček a sekce všech
+  7 obchodů; v sitemapě 41. týden s `lastmod` poslední změny akcí týdne a 40. týden s koncem týdne
+  (`2026-10-04T22:00:00+00:00`); `llms.txt` s odkazem; `/health/imports` i `/health/tasks` 200.
