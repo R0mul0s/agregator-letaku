@@ -1045,9 +1045,15 @@ return [
             'add_own' => 'Přidat „:name“',
             'add_own_meta' => 'vlastní položka, i když není v akci',
             'add_chain' => 'Kde koupit',
-            'add_hint' => 'Našeptáme akce, které teď běží. Co ve slevě není, přidejte jako vlastní položku.',
+            'add_hint' => 'Našeptáme akce, které teď běží. Co ve slevě není, přidejte jako vlastní položku. Množství napište k názvu, třeba „2x mléko“.',
             'anywhere' => 'Kdekoli',
             'custom_item' => 'vlastní položka',
+            // Množství položky (R133): štítek před názvem a −/+ po klepnutí na název
+            'quantity_badge' => ':count×',
+            'quantity_unit' => 'ks',
+            'quantity_label' => 'Množství: :name',
+            'quantity_less' => 'Méně: :name',
+            'quantity_more' => 'Víc: :name',
             'share_line_custom' => '– :name',
             // Úklid skončených akcí (R130)
             'clear_expired' => 'Smazat skončené akce',

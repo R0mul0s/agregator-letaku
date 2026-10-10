@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Domain\Shopping\ShoppingQuantity;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
@@ -28,7 +29,17 @@ class ShoppingListRequest extends FormRequest
     {
         return [
             'offer_id' => ['required', 'integer', Rule::exists('offers', 'id')],
+            // Množství při přidání z pole „Co koupit“ („2x cola“, R133); karta akce ho neposílá
+            'quantity' => ShoppingQuantity::rules(),
         ];
+    }
+
+    /**
+     * Množství nově přidané akce (R133); bez něj 1.
+     */
+    public function quantity(): int
+    {
+        return $this->integer('quantity', ShoppingQuantity::DEFAULT);
     }
 
     /**

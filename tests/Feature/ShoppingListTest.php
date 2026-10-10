@@ -216,3 +216,41 @@ it('smaže skončené akce, platné akce a vlastní položky nechá (R130)', fun
     expect($this->user->shoppingListItems()->pluck('offer_id')->all())->toEqualCanonicalizing([$current->id, null]);
     $this->get(route('shopping-list.index'))->assertInertia(fn (Assert $page) => $page->where('hasExpired', false));
 });
+
+it('množství: přidání akce i vlastní položky s množstvím, změna v seznamu, jen v mezích a jen vlastní položky (R133)', function (): void {
+    $cola = Offer::factory()->create(['chain' => Chain::Kaufland, 'name' => 'Coca-Cola']);
+
+    $this->post(route('shopping-list.toggle'), ['offer_id' => $cola->id, 'quantity' => 2])->assertSessionHasNoErrors();
+    $this->post(route('shopping-list.custom'), ['name' => 'Kombucha', 'quantity' => 3])->assertSessionHasNoErrors();
+    // Karta akce množství neposílá — jeden kus
+    $milk = Offer::factory()->create(['chain' => Chain::Kaufland, 'name' => 'Mléko']);
+    $this->post(route('shopping-list.toggle'), ['offer_id' => $milk->id]);
+
+    $items = $this->user->shoppingListItems()->orderBy('id')->get();
+    expect($items->pluck('quantity')->all())->toBe([2, 3, 1]);
+
+    $this->get(route('shopping-list.index'))->assertInertia(fn (Assert $page) => $page
+        ->where('maxQuantity', 99)
+        ->where('groups.0.items.0.name', 'Coca-Cola')
+        ->where('groups.0.items.0.quantity', 2)
+        ->where('groups.0.items.0.quantityUrl', route('shopping-list.quantity', $items[0], absolute: false)));
+
+    $this->patch(route('shopping-list.quantity', $items[0]), ['quantity' => 5])->assertSessionHasNoErrors();
+    expect($items[0]->fresh()?->quantity)->toBe(5);
+
+    $this->patch(route('shopping-list.quantity', $items[0]), ['quantity' => 0])->assertSessionHasErrors('quantity');
+    $this->patch(route('shopping-list.quantity', $items[0]), ['quantity' => 100])->assertSessionHasErrors('quantity');
+    $this->post(route('shopping-list.custom'), ['name' => 'Chleba', 'quantity' => 100])->assertSessionHasErrors('quantity');
+
+    $foreign = User::factory()->create()->shoppingListItems()->create(['custom_name' => 'Cizí']);
+    $this->patch(route('shopping-list.quantity', $foreign), ['quantity' => 4])->assertForbidden();
+});
+
+it('sdílený odkaz ukáže množství, měnit ho nejde (R133)', function (): void {
+    $this->user->shoppingListItems()->create(['custom_name' => 'Kombucha', 'quantity' => 3]);
+    auth()->logout();
+
+    $this->get(route('shopping-list.shared', ['token' => $this->user->shoppingShareToken()]))->assertInertia(fn (Assert $page) => $page
+        ->where('groups.0.items.0.quantity', 3)
+        ->where('groups.0.items.0.quantityUrl', null));
+});

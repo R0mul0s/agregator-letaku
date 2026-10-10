@@ -53,9 +53,10 @@ final readonly class ShoppingListView
      * @param  Collection<int, ShoppingListItem>  $items
      * @param  Closure(ShoppingListItem): string  $updateUrl  Adresa odškrtnutí
      * @param  (Closure(ShoppingListItem): string)|null  $deleteUrl  Adresa smazání; null = mazat nejde (sdílený odkaz)
+     * @param  (Closure(ShoppingListItem): string)|null  $quantityUrl  Adresa změny množství (R133); null = měnit nejde
      * @return list<array{chain: string, chainName: string, items: list<array<string, mixed>>}>
      */
-    public function groups(User $owner, Collection $items, Closure $updateUrl, ?Closure $deleteUrl): array
+    public function groups(User $owner, Collection $items, Closure $updateUrl, ?Closure $deleteUrl, ?Closure $quantityUrl = null): array
     {
         $today = $this->calendar->today();
         $storeCodes = $owner->selectedStoreCodes();
@@ -80,6 +81,7 @@ final readonly class ShoppingListView
                 'items' => array_values($inGroup->map(fn (ShoppingListItem $item): array => [
                     'id' => $item->id,
                     'name' => $item->displayName(),
+                    'quantity' => $item->quantity,
                     'checked' => $item->checked_at !== null,
                     'expired' => $item->offer !== null && $item->offer->valid_to->lessThan($today),
                     'userPrice' => $item->offer === null ? null : $this->pricing->price($owner, $item->offer),
@@ -87,6 +89,7 @@ final readonly class ShoppingListView
                     'offer' => $item->offer === null ? null : $this->presenter->toPage($item->offer, $storeCodes),
                     'updateUrl' => $updateUrl($item),
                     'deleteUrl' => $deleteUrl === null ? null : $deleteUrl($item),
+                    'quantityUrl' => $quantityUrl === null ? null : $quantityUrl($item),
                 ])->all()),
             ];
         }

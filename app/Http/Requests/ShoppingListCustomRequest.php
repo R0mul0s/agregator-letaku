@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Domain\Shopping\ShoppingQuantity;
 use App\Enums\Chain;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -33,7 +34,16 @@ class ShoppingListCustomRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:'.self::NAME_MAX_LENGTH],
             'chain' => ['nullable', Rule::enum(Chain::class)],
+            'quantity' => ShoppingQuantity::rules(),
         ];
+    }
+
+    /**
+     * Množství (R133); bez něj 1.
+     */
+    public function quantity(): int
+    {
+        return $this->integer('quantity', ShoppingQuantity::DEFAULT);
     }
 
     /**

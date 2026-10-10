@@ -24,6 +24,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int|null $offer_id
  * @property string|null $custom_name
  * @property Chain|null $chain
+ * @property int $quantity Počet kusů nebo balení (R133)
  * @property CarbonImmutable|null $checked_at
  * @property CarbonImmutable $created_at
  * @property CarbonImmutable $updated_at
@@ -38,6 +39,7 @@ class ShoppingListItem extends Model
         'offer_id',
         'custom_name',
         'chain',
+        'quantity',
         'checked_at',
     ];
 
@@ -51,6 +53,7 @@ class ShoppingListItem extends Model
         'offer_id' => null,
         'custom_name' => null,
         'chain' => null,
+        'quantity' => 1,
         'checked_at' => null,
     ];
 
@@ -63,6 +66,7 @@ class ShoppingListItem extends Model
     {
         return [
             'chain' => Chain::class,
+            'quantity' => 'integer',
             'checked_at' => 'immutable_datetime',
             'created_at' => 'immutable_datetime',
             'updated_at' => 'immutable_datetime',

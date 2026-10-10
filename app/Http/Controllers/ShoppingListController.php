@@ -19,6 +19,7 @@ use App\Domain\Shopping\ShoppingListView;
 use App\Domain\Sources\SourceRegistry;
 use App\Enums\Chain;
 use App\Http\Requests\ShoppingListCustomRequest;
+use App\Http\Requests\ShoppingListQuantityRequest;
 use App\Http\Requests\ShoppingListRequest;
 use App\Http\Requests\ShoppingListSyncRequest;
 use App\Models\ShoppingListItem;
@@ -60,7 +61,9 @@ class ShoppingListController extends Controller
                 $items,
                 fn (ShoppingListItem $item): string => route('shopping-list.update', $item, absolute: false),
                 fn (ShoppingListItem $item): string => route('shopping-list.destroy', $item, absolute: false),
+                fn (ShoppingListItem $item): string => route('shopping-list.quantity', $item, absolute: false),
             ),
+            'maxQuantity' => config()->integer('letaky.shopping_list.max_quantity'),
             'clearCheckedUrl' => route('shopping-list.clear-checked', absolute: false),
             'hasChecked' => $items->contains(fn (ShoppingListItem $item): bool => $item->checked_at !== null),
             // Úklid skončených akcí (R130) — vlastní položky neskončí
@@ -96,7 +99,7 @@ class ShoppingListController extends Controller
             ->where('chain', $request->chain())
             ->exists();
         if (! $exists) {
-            $items->create(['custom_name' => $request->itemName(), 'chain' => $request->chain()]);
+            $items->create(['custom_name' => $request->itemName(), 'chain' => $request->chain(), 'quantity' => $request->quantity()]);
         }
 
         return back(fallback: route('shopping-list.index'))->with('status', self::STATUS_ADDED);
@@ -120,7 +123,7 @@ class ShoppingListController extends Controller
         $items = $this->user($request)->shoppingListItems();
         $removed = (clone $items)->where('offer_id', $request->offerId())->delete() > 0;
         if (! $removed) {
-            $items->create(['offer_id' => $request->offerId()]);
+            $items->create(['offer_id' => $request->offerId(), 'quantity' => $request->quantity()]);
         }
 
         return back(fallback: route('shopping-list.index'))->with('status', $removed ? self::STATUS_REMOVED : self::STATUS_ADDED);
@@ -148,6 +151,17 @@ class ShoppingListController extends Controller
 
         (clone $items)->whereKey($changes['checked'])->whereNull('checked_at')->update(['checked_at' => CarbonImmutable::now()]);
         (clone $items)->whereKey($changes['unchecked'])->update(['checked_at' => null]);
+
+        return back(fallback: route('shopping-list.index'));
+    }
+
+    /**
+     * Změní množství položky (R133) — počet kusů nebo balení; bez toastu, stránka zůstane.
+     */
+    public function quantity(ShoppingListQuantityRequest $request, ShoppingListItem $item): RedirectResponse
+    {
+        Gate::authorize('update', $item);
+        $item->update(['quantity' => $request->quantity()]);
 
         return back(fallback: route('shopping-list.index'));
     }

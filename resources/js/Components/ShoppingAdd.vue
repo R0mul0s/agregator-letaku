@@ -2,8 +2,9 @@
     Přidání do nákupního seznamu (R130) — pole s našeptávačem aktuálních akcí (stejné návrhy
     jako hledání, OfferSuggestionsController) a volbou „Přidat jako vlastní položku“ pro zboží,
     které ve slevě není („Almette“). Vlastní položka může mít obchod, kde ji koupit; bez něj
-    patří do skupiny „Kdekoli“. Combobox podle WAI-ARIA jako WatchAdd: šipky vybírají, Enter
-    potvrdí (bez výběru vlastní položku), Escape zavře.
+    patří do skupiny „Kdekoli“. Množství jde napsat k názvu („2x mléko“, „mléko 2x“, R133) —
+    akce se hledají podle názvu bez něj. Combobox podle WAI-ARIA jako WatchAdd: šipky vybírají,
+    Enter potvrdí (bez výběru vlastní položku), Escape zavře.
 
     @author Roman Hlaváček
     @created 2026-10-10
@@ -17,6 +18,7 @@ import { formatDiscount, formatPrice } from '@/lib/format';
 import { useTranslations } from '@/lib/i18n';
 import { ABORTED, createLatestRequest } from '@/lib/latestRequest';
 import { useListbox } from '@/lib/listbox';
+import { nameWithQuantity, parseQuantity } from '@/lib/shoppingList';
 import { router, usePage } from '@inertiajs/vue3';
 import { computed, onBeforeUnmount, ref, useId } from 'vue';
 
@@ -26,6 +28,8 @@ const DEBOUNCE_MS = 200;
 const props = defineProps({
     /** { customUrl, suggestionsUrl, suggestMinLength, nameMaxLength, chains: ['kaufland', …] } */
     add: { type: Object, required: true },
+    /** Nejvyšší množství položky (R133). */
+    maxQuantity: { type: Number, required: true },
 });
 
 const t = useTranslations();
@@ -39,8 +43,11 @@ const offers = ref([]);
 const open = ref(false);
 const request = createLatestRequest();
 
-/** Napsaný text bez mezer navíc. */
-const query = computed(() => text.value.trim());
+/** Napsaný text rozdělený na název a množství („2x mléko“, R133). */
+const parsed = computed(() => parseQuantity(text.value, props.maxQuantity));
+
+/** Název bez množství — podle něj se hledají akce. */
+const query = computed(() => parsed.value.name);
 
 /** Akce, které už v seznamu jsou (sdílená vlastnost shoppingList). */
 const listed = computed(() => new Set(page.props.shoppingList?.offerIds ?? []));
@@ -100,10 +107,10 @@ function reset() {
 function choose(option) {
     if (option.type === 'offer') {
         if (!listed.value.has(option.offer.id)) {
-            router.post(page.props.shoppingList.toggleUrl, { offer_id: option.offer.id }, { preserveScroll: true });
+            router.post(page.props.shoppingList.toggleUrl, { offer_id: option.offer.id, quantity: parsed.value.quantity }, { preserveScroll: true });
         }
     } else {
-        router.post(props.add.customUrl, { name: query.value, chain: chain.value || null }, { preserveScroll: true });
+        router.post(props.add.customUrl, { name: query.value, chain: chain.value || null, quantity: parsed.value.quantity }, { preserveScroll: true });
     }
     reset();
 }
@@ -203,7 +210,7 @@ function offerPrice(offer) {
                                 <template v-else>
                                     <span class="search-panel__badge search-panel__badge--accent" aria-hidden="true">+</span>
                                     <span class="search-panel__main">
-                                        <span class="search-panel__name">{{ t('shopping.add_own', { name: query }) }}</span>
+                                        <span class="search-panel__name">{{ t('shopping.add_own', { name: nameWithQuantity(parsed) }) }}</span>
                                         <span class="search-panel__meta">{{ t('shopping.add_own_meta') }}</span>
                                     </span>
                                 </template>

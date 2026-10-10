@@ -465,6 +465,8 @@ return [
     */
     'shopping_list' => [
         'max_items' => 200,
+        // Nejvyšší množství položky (R133) — počet kusů nebo balení
+        'max_quantity' => 99,
     ],
 
     /*

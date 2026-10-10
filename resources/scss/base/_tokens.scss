@@ -218,7 +218,8 @@
     --watch-tile-min-width: 15rem;
     // Nákupní seznam (R61): řádek a zaškrtávátko dost velké pro palec v obchodě
     --shopping-row-min-height: 3rem;
-    // Pozvánka na sdíleném nákupním seznamu (R130)
+    // Pozvánka na sdíleném nákupním seznamu (R130) a hodnota množství mezi −/+ (R133)
+    --shopping-stepper-value-width: 3rem;
     --shopping-cta-mascot-size: 5rem;
     // Text akce na více kusů místo ceny v řádku akce — šířka, ve které se zalomí
     --offer-row-text-max-width: 9rem;

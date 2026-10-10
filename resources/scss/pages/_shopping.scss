@@ -93,6 +93,8 @@
         color: var(--color-price);
         font-weight: var(--font-weight-black);
         white-space: nowrap;
+        // Cena za celé množství (R133) pod cenou kusu
+        text-align: right;
 
         // Text akce na více kusů — zalomí se jako v řádku akce (R102)
         &--text {
@@ -192,4 +194,54 @@
         margin: 0;
         color: var(--color-text-muted);
     }
+}
+
+// Množství položky (R133): štítek „2×“ před názvem, název jako tlačítko pro −/+ a cena za celé množství
+.shopping-item__quantity {
+    margin-right: var(--space-1);
+    color: var(--color-accent-strong);
+}
+
+.shopping-item__name-button {
+    padding: 0;
+    background: none;
+    border: 0;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+
+    &:focus-visible {
+        @include focus-ring;
+    }
+}
+
+.shopping-item__stepper {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-top: var(--space-1);
+}
+
+// Číslo mezi −/+ jde i napsat (uklepnutí)
+.shopping-item__stepper-value {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+}
+
+.shopping-item__stepper-input {
+    width: var(--shopping-stepper-value-width);
+    padding-inline: var(--space-1);
+    font-weight: var(--font-weight-bold);
+    text-align: center;
+}
+
+.shopping-item__total {
+    display: block;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-regular);
 }

@@ -204,6 +204,8 @@ Route::middleware('auth')->group(function (): void {
     Route::post('/seznam/sdileni', [ShoppingListController::class, 'renewShare'])->name('shopping-list.share.renew');
     Route::patch('/seznam/{item}', [ShoppingListController::class, 'update'])->whereNumber('item')->name('shopping-list.update');
     Route::delete('/seznam/{item}', [ShoppingListController::class, 'destroy'])->whereNumber('item')->name('shopping-list.destroy');
+    // Množství položky (R133)
+    Route::patch('/seznam/{item}/mnozstvi', [ShoppingListController::class, 'quantity'])->whereNumber('item')->name('shopping-list.quantity');
 
     // Centrum upozornění (R74): záznamy, detail (cíl upozornění v telefonu), přečtení po zobrazení
     Route::get('/upozorneni', [NotificationController::class, 'index'])->name('notifications.index');

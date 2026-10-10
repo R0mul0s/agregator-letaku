@@ -413,13 +413,22 @@ patří sem pod tenhle postup; po nasazení se přesunou tam (R106).
 ### Aktualizace z `5c2fd0a` (připravuje se)
 
 Odkaz z jiné aplikace (Instagram, WhatsApp) otevře spuštěnou aplikaci z plochy na své adrese
-(R132) — jen manifest, bez SQL skriptu, `.env` beze změny.
+(R132) a množství položek nákupního seznamu (R133) — **s SQL skriptem**, `.env` beze změny,
+žádný soubor nezmizel; `lang/cs/app.php` se změnil — verze Inertie se změní a otevřené stránky
+se načtou znovu.
 
-1. **Nahraj** z `deploy/upload/`: `app/Http/Controllers/ManifestController.php` a `public/version.txt`.
-2. **Ověř:** `version.txt`; `/manifest.webmanifest` obsahuje `"launch_handler"` s `navigate-existing`.
-   Telefon si manifest načte znovu do dne (cache) — pak odkaz na sdílený seznam poslaný přes
-   Instagram otevře aplikace z plochy přímo na seznamu.
-3. Zapiš verzi do *Nasazené verze* a tuhle sekci přesuň do `HISTORIE_NASAZENI.md`.
+0. **Záloha databáze** a v phpMyAdminu `deploy/migrations-2026-10-10-nakupni-seznam-mnozstvi.sql`
+   (před nahráním kódu).
+1. **Nahraj** z `deploy/upload/`: `public/build/` (celý), `app/` (celou složku — nové třídy
+   `Domain/Shopping/ShoppingQuantity` a `Http/Requests/ShoppingListQuantityRequest`), `vendor/composer/`
+   (autoloader), `config/letaky.php`, `routes/web.php`, `database/migrations/`, `lang/cs/app.php`
+   a `public/version.txt`.
+2. **Ověř:** `version.txt`; `/manifest.webmanifest` obsahuje `"launch_handler"` s `navigate-existing`
+   (telefon si manifest načte znovu do dne — pak odkaz na sdílený seznam z Instagramu otevře aplikace
+   z plochy přímo na seznamu); na `/seznam` „2x Kombucha“ přidá Kombuchu se štítkem „2×“, klepnutí
+   na název ukáže −/+, u akce s víc kusy cena „2 × …“ a pod ní cena za celé množství.
+3. Zapiš verzi do *Nasazené verze*, SQL skript do *Historie SQL skriptů* (datum) a tuhle sekci
+   přesuň do `HISTORIE_NASAZENI.md`.
 
 ---
 
@@ -457,6 +466,7 @@ a ruční opravy katalogu. Před každým SQL skriptem a jinak aspoň jednou mě
 | `migrations-2026-10-09-tohle-ne.sql` | „Tohle ne“ a hlášení chyb (R125): tabulky `watch_item_offer_exclusions` a `offer_reports`; opakovatelný, pustit **před** nahráním kódu | 2026-10-10 |
 | `migrations-2026-10-10-kvalita-dat.sql` | přehled kvality dat (R129): tabulka `leaflet_stats` se statistikou letáků za každé stažení; opakovatelný, pustit **před** nahráním kódu | 2026-10-10 |
 | `migrations-2026-10-10-nakupni-seznam-sdileni.sql` | nákupní seznam (R130): `shopping_list_items.offer_id` nepovinné, `custom_name` a `chain` vlastní položky, `users.shopping_share_token`; opakovatelný, pustit **před** nahráním kódu | 2026-10-10 |
+| `migrations-2026-10-10-nakupni-seznam-mnozstvi.sql` | množství položky nákupního seznamu (R133): `shopping_list_items.quantity`; opakovatelný, pustit **před** nahráním kódu | — |
 | `migrations-2026-10-10-globus-prodejny.sql` | hypermarkety Globusu jako prodejny (R131): 16 řádků v `stores` (jen data); opakovatelný, pustit **před** nahráním kódu | 2026-10-10 |
 
 ## Nasazené verze

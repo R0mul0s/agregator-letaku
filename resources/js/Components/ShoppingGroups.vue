@@ -1,7 +1,8 @@
 <!--
     Položky nákupního seznamu po obchodech (R61) — zaškrtávátko, název, balení a platnost akce,
-    cena a u vlastníka koš. Vlastní položka bez akce (R130) má jen název. Akce, která ještě
-    nezačala, se odškrtne až po potvrzení (R76). Sdílí ji stránka vlastníka (ShoppingList.vue)
+    cena a u vlastníka koš. Vlastní položka bez akce (R130) má jen název. Množství (R133) je
+    štítek „2×“ před názvem; vlastník klepnutím na název otevře −/+ a cena ukáže „2 × 33,90 Kč“
+    i cenu za celé množství. Akce, která ještě nezačala, se odškrtne až po potvrzení (R76). Sdílí ji stránka vlastníka (ShoppingList.vue)
     i seznam sdílený odkazem (SharedShoppingList.vue); co se po odškrtnutí stane, řeší stránka.
 
     @author Roman Hlaváček
@@ -13,21 +14,50 @@ import { confirmDialog } from '@/lib/confirm';
 import { formatDate } from '@/lib/format';
 import { useTranslations } from '@/lib/i18n';
 import { packageLabel } from '@/lib/offer';
-import { itemPrice, isPromotionText } from '@/lib/shoppingList';
+import { itemPrice, itemTotal, isPromotionText } from '@/lib/shoppingList';
 import { usePage } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 
 /** Klíč skupiny vlastních položek bez obchodu (App\Domain\Shopping\ShoppingListView::ANYWHERE). */
 const ANYWHERE = 'anywhere';
 
-defineProps({
-    /** Skupiny [{ chain, chainName, items: [{ id, name, checked, expired, userPrice, offer|null, updateUrl, deleteUrl|null }] }]. */
+const props = defineProps({
+    /**
+     * Skupiny [{ chain, chainName, items: [{ id, name, quantity, checked, expired, userPrice, offer|null,
+     * updateUrl, deleteUrl|null, quantityUrl|null }] }].
+     */
     groups: { type: Array, required: true },
-    /** Jde mazat (bez připojení ne). */
-    canRemove: { type: Boolean, default: false },
+    /** Jde mazat a měnit množství (bez připojení ne). */
+    canEdit: { type: Boolean, default: false },
+    /** Nejvyšší množství položky (R133). */
+    maxQuantity: { type: Number, default: 1 },
 });
 
-const emit = defineEmits(['check', 'remove']);
+const emit = defineEmits(['check', 'remove', 'quantity']);
+
+/** Položka, u které jsou otevřená tlačítka −/+ (R133); null = žádná. */
+const editing = ref(null);
+
+/**
+ * Napsané množství: omezí ho na 1 až maximum a pošle, jen když se změnilo; nesmysl vrátí
+ * na dosavadní hodnotu.
+ *
+ * @param {object} item
+ * @param {HTMLInputElement} input
+ */
+function setQuantity(item, input) {
+    const value = Math.round(Number(input.value));
+    if (!Number.isFinite(value) || input.value === '') {
+        input.value = item.quantity;
+
+        return;
+    }
+    const quantity = Math.min(Math.max(value, 1), props.maxQuantity);
+    input.value = quantity;
+    if (quantity !== item.quantity) {
+        emit('quantity', item, quantity);
+    }
+}
 
 const t = useTranslations();
 const page = usePage();
@@ -88,7 +118,58 @@ function remaining(group) {
                     <span class="visually-hidden">{{ t('shopping.check', { name: item.name }) }}</span>
                 </label>
                 <div class="shopping-item__body">
-                    <p class="shopping-item__name">{{ item.name }}</p>
+                    <!-- Množství (R133): klepnutí na název ukáže −/+ ; bez adresy (sdílený odkaz) jen štítek -->
+                    <p class="shopping-item__name">
+                        <span v-if="item.quantity > 1" class="shopping-item__quantity">{{ t('shopping.quantity_badge', { count: item.quantity }) }}</span>
+                        <button
+                            v-if="item.quantityUrl"
+                            type="button"
+                            class="shopping-item__name-button"
+                            :aria-expanded="editing === item.id ? 'true' : 'false'"
+                            :aria-controls="`quantity-${item.id}`"
+                            @click="editing = editing === item.id ? null : item.id"
+                        >
+                            {{ item.name }}
+                        </button>
+                        <template v-else>{{ item.name }}</template>
+                    </p>
+                    <div v-if="item.quantityUrl && editing === item.id" :id="`quantity-${item.id}`" class="shopping-item__stepper">
+                        <button
+                            type="button"
+                            class="icon-button"
+                            :disabled="!canEdit || item.quantity <= 1"
+                            :aria-label="t('shopping.quantity_less', { name: item.name })"
+                            @click="emit('quantity', item, item.quantity - 1)"
+                        >
+                            −
+                        </button>
+                        <!-- Číslo jde i napsat (uklepnutí „22“) — uloží se po potvrzení nebo opuštění pole -->
+                        <label class="shopping-item__stepper-value">
+                            <span class="visually-hidden">{{ t('shopping.quantity_label', { name: item.name }) }}</span>
+                            <input
+                                :key="item.quantity"
+                                type="number"
+                                inputmode="numeric"
+                                class="form-field__input shopping-item__stepper-input"
+                                min="1"
+                                :max="maxQuantity"
+                                :value="item.quantity"
+                                :disabled="!canEdit"
+                                @change="setQuantity(item, $event.target)"
+                                @keydown.enter.prevent="$event.target.blur()"
+                            />
+                            <span aria-hidden="true">{{ t('shopping.quantity_unit') }}</span>
+                        </label>
+                        <button
+                            type="button"
+                            class="icon-button"
+                            :disabled="!canEdit || item.quantity >= maxQuantity"
+                            :aria-label="t('shopping.quantity_more', { name: item.name })"
+                            @click="emit('quantity', item, item.quantity + 1)"
+                        >
+                            +
+                        </button>
+                    </div>
                     <p v-if="item.offer" class="shopping-item__meta">
                         <span v-if="packageLabel(item.offer, locale, t)">{{ packageLabel(item.offer, locale, t) }} · </span>
                         <span v-if="item.expired" class="shopping-item__expired">{{ t('shopping.expired') }}</span>
@@ -100,14 +181,16 @@ function remaining(group) {
                     </p>
                     <p v-else class="shopping-item__meta">{{ t('shopping.custom_item') }}</p>
                 </div>
-                <span v-if="item.offer" class="shopping-item__price" :class="{ 'shopping-item__price--text': isPromotionText(item) }">{{
-                    itemPrice(item, locale)
-                }}</span>
+                <span v-if="item.offer" class="shopping-item__price" :class="{ 'shopping-item__price--text': isPromotionText(item) }">
+                    {{ itemPrice(item, locale) }}
+                    <!-- Za celé množství (R133) -->
+                    <span v-if="itemTotal(item, locale)" class="shopping-item__total">{{ itemTotal(item, locale) }}</span>
+                </span>
                 <button
                     v-if="item.deleteUrl"
                     type="button"
                     class="icon-button icon-button--danger"
-                    :disabled="!canRemove"
+                    :disabled="!canEdit"
                     :title="t('shopping.remove', { name: item.name })"
                     @click="emit('remove', item)"
                 >

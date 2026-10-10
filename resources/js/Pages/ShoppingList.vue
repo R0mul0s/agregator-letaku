@@ -23,7 +23,7 @@ import { formatDate } from '@/lib/format';
 import { useTranslations } from '@/lib/i18n';
 import { pendingChecks, queueCheck } from '@/lib/offlineChecks';
 import { shareOrCopy } from '@/lib/share';
-import { itemPrice } from '@/lib/shoppingList';
+import { itemPrice, nameWithQuantity } from '@/lib/shoppingList';
 import { showToast } from '@/lib/toast';
 import { useWakeLock } from '@/lib/wakeLock';
 import { Head, router, usePage } from '@inertiajs/vue3';
@@ -38,6 +38,8 @@ const props = defineProps({
     /** Úklid skončených akcí (R130): adresa a jestli nějaká je. */
     clearExpiredUrl: { type: String, required: true },
     hasExpired: { type: Boolean, required: true },
+    /** Nejvyšší množství položky (R133). */
+    maxQuantity: { type: Number, required: true },
     /** Přidání (R130): { customUrl, suggestionsUrl, suggestMinLength, nameMaxLength, chains }. */
     add: { type: Object, required: true },
     /** Odkaz ke sdílení (R130): { url, renewUrl }. */
@@ -124,6 +126,16 @@ function check(item, checked) {
 }
 
 /**
+ * Změní množství položky (R133); jen s připojením (tlačítka bez něj nejdou).
+ *
+ * @param {object} item
+ * @param {number} quantity
+ */
+function changeQuantity(item, quantity) {
+    router.patch(item.quantityUrl, { quantity }, KEEP_PAGE);
+}
+
+/**
  * Smaže položku ze seznamu.
  *
  * @param {object} item
@@ -158,16 +170,16 @@ async function clearExpired() {
 
 /**
  * Řádek seznamu ke sdílení; u akce cena a u akce, která ještě nezačala, i od kdy platí (R76).
- * Vlastní položka (R130) jen názvem.
+ * Vlastní položka (R130) jen názvem; množství před názvem („2× mléko“, R133).
  *
  * @param {object} item
  * @returns {string}
  */
 function shareLine(item) {
     if (!item.offer) {
-        return t('shopping.share_line_custom', { name: item.name });
+        return t('shopping.share_line_custom', { name: nameWithQuantity(item) });
     }
-    const replace = { name: item.name, price: itemPrice(item, locale.value) };
+    const replace = { name: nameWithQuantity(item), price: itemPrice(item, locale.value, false) };
 
     return item.offer.startsInDays
         ? t('shopping.share_line_upcoming', { ...replace, date: formatDate(item.offer.validFrom, locale.value) })
@@ -227,7 +239,7 @@ async function renewShare() {
             <p class="page__subtitle">{{ t('shopping.intro') }}</p>
         </header>
 
-        <ShoppingAdd :add="add" />
+        <ShoppingAdd :add="add" :max-quantity="maxQuantity" />
 
         <EmptyState v-if="!groups.length" :text="t('shopping.empty')" />
 
@@ -255,7 +267,7 @@ async function renewShare() {
 
             <p v-if="hasPending" class="notice notice--warning" role="status">{{ t('shopping.pending') }}</p>
 
-            <ShoppingGroups :groups="displayGroups" :can-remove="online" @check="check" @remove="remove" />
+            <ShoppingGroups :groups="displayGroups" :can-edit="online" :max-quantity="maxQuantity" @check="check" @remove="remove" @quantity="changeQuantity" />
         </template>
     </AppLayout>
 </template>
