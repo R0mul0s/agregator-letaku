@@ -140,7 +140,7 @@ funkce, změřit, co lidé opravdu používají, a nepoužívané schovat nebo z
 - „Jsem v obchodě“ podle polohy — prodejny nemají souřadnice; poloha je citlivý údaj
 - kompaktní řádky „Jsem v obchodě“ (R62) i ve Všech akcích a Mých slevách (R82) hotové — dál: „Hlídat“ i v řádku
 - „Hlídat“ z karty hotové (R60) — dál: i v Mých slevách a na úvodní stránce
-- nákupní seznam hotový (R61) — dál: sdílení seznamu s rodinou, přidání vlastní položky bez akce
+- nákupní seznam s vlastními položkami a sdílením odkazem hotový (R61, R130) — dál: víc seznamů (týdenní nákup, chata), pořadí obchodů podle trasy, u vlastní položky upozornit, až bude v akci
 
 ## Filtry a přehlednost výpisů
 
@@ -166,7 +166,6 @@ funkce, změřit, co lidé opravdu používají, a nepoužívané schovat nebo z
 - **„Kam dnes na nákup?“** — z nákupního seznamu nebo hlídaných položek spočítat, ve kterém obchodě (nebo kombinaci dvou) vyjde nákup nejlevněji a kolik se ušetří; podklad je cena za jednotku a `UserPricing`. Odliší nás od agregátorů: ne „kde je co v akci“, ale „kam jít“
 - **cílová cena u hlídané položky** — „ozvi se, až bude máslo pod 180 Kč/kg“ (cena za jednotku); dnes jen minimální sleva pro celý účet (R41). Méně, ale trefnějších upozornění
 - „Tohle ne“ a hlášení chyb hotové (R125) — dál: z hlášení rovnou opravit akci (ručně přepsat cenu nebo ji skrýt všem), e-mail adminovi při novém hlášení (upozornění v telefonu je hotové), poděkovat uživateli v centru upozornění, až je hlášení vyřešené
-- **sdílení akce z karty** (Web Share API, „pošli to partnerovi“) — dnes ho má jen nákupní seznam
 - **jak často bývá zboží v akci** — „Máslo bývá v Lidlu v akci zhruba každé 3 týdny, naposledy 28. 9.“; navazuje na „Vyplatí se počkat“ (R76) a graf ceny (*Historie a porovnání cen*), smysl má až s historií za několik týdnů
 - Nejlepší slevy týdne hotové (R128) — dál: vlastní obrázek pro sdílení (OG) s číslem týdne a třemi nejvyššími slevami, příspěvek na sociální sítě v pondělí
 - přehled kvality dat hotový (R129) — dál: nesoulad se štítkem slevy jako další číslo statistiky, porovnání nového letáku s předchozími letáky stejné řady (velikost), propad u Kauflandu po prodejnách (počet seznamů akcí prodejen)

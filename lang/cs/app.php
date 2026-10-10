@@ -789,6 +789,11 @@ return [
             ],
             'source' => 'Do obchodu',
             'source_leaflet' => 'Do letáku',
+            // Sdílení akce z karty (R130, OfferShareButton)
+            'share' => 'Poslat akci',
+            'share_text' => ':name — :price v :chain, platí do :date.',
+            'share_copied' => 'Akce je zkopírovaná — vložte ji do zprávy.',
+            'share_failed' => 'Akci se nepodařilo zkopírovat.',
             'pagination' => 'Stránkování',
             'previous' => 'Předchozí',
             'next' => 'Další',
@@ -1028,8 +1033,33 @@ return [
         // Nákupní seznam (R61, ShoppingList.vue, ShoppingToggle.vue)
         'shopping' => [
             'title' => 'Nákupní seznam',
-            'intro' => 'Akce, které chcete koupit, rozdělené podle obchodu. V obchodě je jen odškrtávejte.',
-            'empty' => 'Seznam zeje prázdnotou. Akce do něj přidáte tlačítkem „Do seznamu“ v Mých slevách nebo ve Všech akcích.',
+            'intro' => 'Akce i další zboží, které chcete koupit, rozdělené podle obchodu. V obchodě je jen odškrtávejte.',
+            'empty' => 'Seznam zeje prázdnotou. Napište nahoru, co chcete koupit, nebo akce přidejte tlačítkem „Do seznamu“ v Mých slevách či ve Všech akcích.',
+            // Přidání akce nebo vlastní položky bez akce (R130, ShoppingAdd.vue)
+            'add_field' => 'Co koupit',
+            'add_placeholder' => 'Třeba Almette, mléko, pivo…',
+            'add_own' => 'Přidat „:name“',
+            'add_own_meta' => 'vlastní položka, i když není v akci',
+            'add_chain' => 'Kde koupit',
+            'add_hint' => 'Našeptáme akce, které teď běží. Co ve slevě není, přidejte jako vlastní položku.',
+            'anywhere' => 'Kdekoli',
+            'custom_item' => 'vlastní položka',
+            'share_line_custom' => '– :name',
+            // Úklid skončených akcí (R130)
+            'clear_expired' => 'Smazat skončené akce',
+            'clear_expired_confirm_title' => 'Smazat skončené akce?',
+            'clear_expired_confirm' => 'Akce, které už skončily, zmizí ze seznamu. Vlastní položky zůstanou.',
+            'clear_expired_confirm_label' => 'Smazat',
+            // Sdílení odkazem (R130): kdo odkaz má, seznam vidí a odškrtává
+            'share_link' => 'Sdílet odkaz',
+            'share_link_text' => 'Nákupní seznam ze Slevohlídky — odškrtávej, co koupíš:',
+            'share_link_copied' => 'Odkaz na seznam je zkopírovaný — pošlete ho, komu chcete.',
+            'share_link_failed' => 'Odkaz se nepodařilo zkopírovat.',
+            'share_hint' => 'Kdo má odkaz, vidí seznam a odškrtává, co koupil — i bez účtu. Přidávat a mazat můžete jen vy.',
+            'share_renew' => 'Zrušit odeslané odkazy',
+            'share_renew_confirm_title' => 'Zrušit odeslané odkazy?',
+            'share_renew_confirm' => 'Odkazy, které jste dosud poslali, přestanou fungovat. Komu chcete seznam dál sdílet, pošlete nový odkaz.',
+            'share_renew_confirm_label' => 'Zrušit odkazy',
             'add' => '+ Do seznamu',
             'added' => '✓ V seznamu',
             // Kompaktní řádek (R62): tlačítko jen s ikonou, stav nese aria-pressed
@@ -1049,15 +1079,26 @@ return [
             'clear_checked_confirm_title' => 'Smazat odškrtnuté?',
             'clear_checked_confirm' => 'Odškrtnuté položky zmizí ze seznamu.',
             'clear_checked_confirm_label' => 'Smazat',
-            'limit' => 'Do seznamu se vejde nejvýš :count akcí.',
+            'limit' => 'Do seznamu se vejde nejvýš :count položek.',
             // V obchodě (R66): odškrtnutí bez signálu, poslání seznamu, nezhasínání displeje
             'pending' => 'Odškrtnutí bez signálu jsou uložená v telefonu — odešleme je, až budete online.',
-            'share' => 'Poslat seznam',
+            'share' => 'Poslat jako text',
             'share_line' => '– :name, :price',
             'share_empty' => 'Všechno nakoupeno — v seznamu už nic nezbývá.',
             'share_copied' => 'Seznam je zkopírovaný — vložte ho do zprávy.',
             'share_failed' => 'Seznam se nepodařilo zkopírovat.',
             'wake_lock' => 'Nezhasínat displej',
+        ],
+
+        // Nákupní seznam sdílený odkazem (R130, SharedShoppingList.vue) — vidí ho i partner bez účtu
+        'shared_shopping' => [
+            'title' => 'Nákupní seznam',
+            'intro' => ':name s vámi sdílí nákupní seznam. Odškrtávejte, co koupíte — :name to uvidí taky.',
+            'empty' => 'Seznam je prázdný — teď není co nakupovat.',
+            'cta_title' => 'Chcete taky vlastní seznam ze slev?',
+            'cta_text' => 'Slevohlídka hlídá letáky sedmi obchodů a ukáže, kde je to, co kupujete, zrovna v akci.',
+            'cta_button' => 'Začít zdarma',
+            'check_failed' => 'Odškrtnutí se nepodařilo uložit — zkontrolujte připojení a zkuste to znovu.',
         ],
 
         // Zprávy od nás pro admina (R74, etapa 11d, Announcements.vue)
@@ -1573,6 +1614,9 @@ return [
                 'shopping-added' => 'Přidáno do nákupního seznamu.',
                 'shopping-removed' => 'Odebráno z nákupního seznamu.',
                 'shopping-cleared' => 'Odškrtnuté položky jsme uklidili.',
+                // Nový odkaz ke sdílení seznamu (R130)
+                'shopping-expired-cleared' => 'Skončené akce jsme ze seznamu uklidili.',
+                'shopping-share-renewed' => 'Hotovo — dřív poslané odkazy už nefungují. Komu chcete, pošlete nový.',
                 // PushSubscriptionController (R66)
                 'push-enabled' => 'Upozornění na tomto zařízení jsou zapnutá.',
                 'push-disabled' => 'Upozornění na tomto zařízení jsou vypnutá.',

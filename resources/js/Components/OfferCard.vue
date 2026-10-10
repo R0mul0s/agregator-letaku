@@ -10,6 +10,7 @@ import ChainLogo from '@/Components/ChainLogo.vue';
 import ChainWatermark from '@/Components/ChainWatermark.vue';
 import InfoIcon from '@/Components/InfoIcon.vue';
 import OfferMenuButton from '@/Components/OfferMenuButton.vue';
+import OfferShareButton from '@/Components/OfferShareButton.vue';
 import { formatDate, formatDiscount, formatPrice } from '@/lib/format';
 import { useTranslations } from '@/lib/i18n';
 import { discountPercent, MATCH_MAYBE, OFFER_TYPE, offerUnitPriceLabel, packageLabel, startsLabel } from '@/lib/offer';
@@ -175,6 +176,8 @@ const historyLabel = computed(() => {
             <span>{{ t('offers.valid', { from: formatDate(offer.validFrom, locale), to: formatDate(offer.validTo, locale) }) }}</span>
             <span class="offer-card__links">
                 <a v-if="offer.sourceUrl" :href="offer.sourceUrl" class="link" target="_blank" rel="noopener noreferrer">{{ t(offer.sourceIsLeaflet ? 'offers.source_leaflet' : 'offers.source') }}</a>
+                <!-- Poslat akci partnerovi (R130) -->
+                <OfferShareButton :offer="offer" />
                 <!-- Hlášení chyby, v Mých slevách i „Tohle ne“ (R125) -->
                 <OfferMenuButton v-if="withMenu" :offer="offer" :watch-item="watchItem" />
             </span>

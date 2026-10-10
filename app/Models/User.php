@@ -27,12 +27,14 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 
 /**
  * @property int $id
  * @property string $name
  * @property string $email
  * @property string|null $avatar_path Profilový obrázek na disku local (R40); null = iniciály
+ * @property string|null $shopping_share_token Veřejný odkaz na nákupní seznam (R130)
  * @property CarbonImmutable|null $email_verified_at
  * @property string|null $password Otisk hesla; null = účet bez hesla, přihlášení jen přes propojený účet (R96)
  * @property Collection<int, LoyaltyProgram>|null $loyalty_programs
@@ -57,6 +59,9 @@ class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
+
+    /** Délka tokenu odkazu na nákupní seznam (R130) — náhodné znaky, odkaz nejde uhodnout. */
+    private const SHOPPING_SHARE_TOKEN_LENGTH = 40;
 
     /** @var list<string> */
     protected $fillable = [
@@ -86,12 +91,14 @@ class User extends Authenticatable implements MustVerifyEmail
         'marketing_consent_at' => null,
         'marketing_consent_version' => null,
         'marketing_consent_withdrawn_at' => null,
+        'shopping_share_token' => null,
     ];
 
     /** @var list<string> */
     protected $hidden = [
         'password',
         'remember_token',
+        'shopping_share_token',
     ];
 
     /**
@@ -151,6 +158,27 @@ class User extends Authenticatable implements MustVerifyEmail
     public function shoppingListItems(): HasMany
     {
         return $this->hasMany(ShoppingListItem::class);
+    }
+
+    /**
+     * Token veřejného odkazu na nákupní seznam (R130); první použití ho založí. Kdo odkaz má,
+     * seznam vidí a odškrtává — nový token (`renewShoppingShareToken`) starý odkaz zneplatní.
+     */
+    public function shoppingShareToken(): string
+    {
+        if ($this->shopping_share_token === null) {
+            $this->renewShoppingShareToken();
+        }
+
+        return (string) $this->shopping_share_token;
+    }
+
+    /**
+     * Založí nový token odkazu na nákupní seznam — dosavadní odkazy přestanou fungovat.
+     */
+    public function renewShoppingShareToken(): void
+    {
+        $this->forceFill(['shopping_share_token' => Str::random(self::SHOPPING_SHARE_TOKEN_LENGTH)])->save();
     }
 
     /**

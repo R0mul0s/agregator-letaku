@@ -139,7 +139,8 @@ class HandleInertiaRequests extends Middleware
             // Nákupní seznam (R61): které akce v něm jsou — tlačítko na kartě akce ukáže stav;
             // název se nesmí krýt s propem stránky
             'shoppingList' => fn (): ?array => $user instanceof User ? [
-                'offerIds' => $user->shoppingListItems()->pluck('offer_id')->all(),
+                // Jen akce — vlastní položky (R130) akci nemají
+                'offerIds' => $user->shoppingListItems()->whereNotNull('offer_id')->pluck('offer_id')->all(),
                 'toggleUrl' => route('shopping-list.toggle', absolute: false),
                 // Odškrtnutí udělaná bez připojení se odešlou, až je signál — z kterékoli stránky (R66)
                 'syncUrl' => route('shopping-list.sync', absolute: false),

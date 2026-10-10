@@ -1,36 +1,47 @@
 <!--
-    Nákupní seznam (R61) — akce po obchodech, v obchodě se odškrtávají. Odškrtnuté jdou
-    v obchodě na konec a po nákupu se smažou jedním tlačítkem; skončená akce zůstává označená.
-    Akce, která ještě nezačala, je za platnými s „platí až od“ a odškrtnutí se potvrzuje (R76).
+    Nákupní seznam (R61) — akce i vlastní položky bez akce (R130) po obchodech, v obchodě se
+    odškrtávají. Nahoře pole s našeptávačem akcí, kterým jde přidat i zboží, které ve slevě
+    není („Almette“). Odškrtnuté jdou v obchodě na konec a po nákupu se smažou jedním
+    tlačítkem; skončená akce zůstává označená. Akce, která ještě nezačala, je za platnými
+    s „platí až od“ a odškrtnutí se potvrzuje (R76).
 
     V obchodě (R66): odškrtávat jde i bez signálu — odškrtnutí počká v prohlížeči a odešle se,
-    až je připojení (lib/offlineChecks.js); mazání bez připojení nejde. Seznam jde poslat
-    (sdílení systému, jinak zkopírovat) a displej při nakupování nemusí zhasínat.
+    až je připojení (lib/offlineChecks.js); mazání bez připojení nejde. Seznam jde poslat jako
+    text, nebo sdílet odkazem (R130) — kdo ho má, seznam vidí a odškrtává; po návratu na stránku
+    se seznam načte znovu, ať jsou vidět jeho odškrtnutí. Displej při nakupování nemusí zhasínat.
 
     @author Roman Hlaváček
     @created 2026-10-04
 -->
 <script setup>
-import ChainLogo from '@/Components/ChainLogo.vue';
 import EmptyState from '@/Components/EmptyState.vue';
+import ShoppingAdd from '@/Components/ShoppingAdd.vue';
+import ShoppingGroups from '@/Components/ShoppingGroups.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
-import { copyText } from '@/lib/clipboard';
 import { confirmDialog } from '@/lib/confirm';
-import { formatDate, formatPrice } from '@/lib/format';
+import { formatDate } from '@/lib/format';
 import { useTranslations } from '@/lib/i18n';
-import { OFFER_TYPE, packageLabel } from '@/lib/offer';
 import { pendingChecks, queueCheck } from '@/lib/offlineChecks';
+import { shareOrCopy } from '@/lib/share';
+import { itemPrice } from '@/lib/shoppingList';
 import { showToast } from '@/lib/toast';
 import { useWakeLock } from '@/lib/wakeLock';
 import { Head, router, usePage } from '@inertiajs/vue3';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 
 const props = defineProps({
-    /** Obchody s položkami [{ chain, chainName, items: [{ id, checked, expired, userPrice, offer, updateUrl, deleteUrl }] }]. */
+    /** Obchody s položkami [{ chain, chainName, items: [{ id, name, checked, expired, userPrice, offer|null, updateUrl, deleteUrl }] }]. */
     groups: { type: Array, required: true },
     clearCheckedUrl: { type: String, required: true },
     /** Je co mazat tlačítkem „Smazat odškrtnuté“. */
     hasChecked: { type: Boolean, required: true },
+    /** Úklid skončených akcí (R130): adresa a jestli nějaká je. */
+    clearExpiredUrl: { type: String, required: true },
+    hasExpired: { type: Boolean, required: true },
+    /** Přidání (R130): { customUrl, suggestionsUrl, suggestMinLength, nameMaxLength, chains }. */
+    add: { type: Object, required: true },
+    /** Odkaz ke sdílení (R130): { url, renewUrl }. */
+    share: { type: Object, required: true },
 });
 
 const t = useTranslations();
@@ -41,6 +52,9 @@ const wakeLock = useWakeLock();
 /** Volby požadavku, po kterých stránka zůstane, kde je. */
 const KEEP_PAGE = { preserveScroll: true, preserveState: true };
 
+/** Props, které se po návratu na stránku načtou znovu — odškrtnutí ze sdíleného odkazu. */
+const RELOAD_PROPS = ['groups', 'hasChecked', 'hasExpired'];
+
 /** Je připojení? Bez něj jde jen odškrtávat. */
 const online = ref(true);
 
@@ -49,15 +63,24 @@ function updateOnline() {
     online.value = navigator.onLine;
 }
 
+/** Návrat do okna: načíst seznam znovu, ať jsou vidět odškrtnutí ze sdíleného odkazu (R130). */
+function onVisible() {
+    if (document.visibilityState === 'visible' && navigator.onLine) {
+        router.reload({ only: RELOAD_PROPS });
+    }
+}
+
 onMounted(() => {
     updateOnline();
     window.addEventListener('online', updateOnline);
     window.addEventListener('offline', updateOnline);
+    document.addEventListener('visibilitychange', onVisible);
 });
 
 onBeforeUnmount(() => {
     window.removeEventListener('online', updateOnline);
     window.removeEventListener('offline', updateOnline);
+    document.removeEventListener('visibilitychange', onVisible);
 });
 
 /** Skupiny s odškrtnutím, které ještě čeká na odeslání (R66). */
@@ -73,27 +96,12 @@ const hasPending = computed(() => Object.keys(pendingChecks.value).length > 0);
 
 /**
  * Odškrtne položku, nebo odškrtnutí zruší. Bez připojení (nebo když požadavek nedojde)
- * se odškrtnutí zapamatuje a odešle později. Akce, která ještě nezačala (R76), se odškrtne
- * až po potvrzení — za akční cenu ji v obchodě zatím nekoupíte.
+ * se odškrtnutí zapamatuje a odešle později.
  *
  * @param {object} item
  * @param {boolean} checked
- * @param {HTMLInputElement} input Zaškrtávátko — po zrušení potvrzení se vrátí
  */
-async function check(item, checked, input) {
-    if (checked && item.offer.startsInDays) {
-        const confirmed = await confirmDialog({
-            title: t('shopping.upcoming_confirm_title'),
-            message: t('shopping.upcoming_confirm', { name: item.offer.name, date: formatDate(item.offer.validFrom, locale.value) }),
-            confirmLabel: t('shopping.upcoming_confirm_label'),
-        });
-        if (!confirmed) {
-            input.checked = false;
-
-            return;
-        }
-    }
-
+function check(item, checked) {
     if (!navigator.onLine) {
         queueCheck(item.id, checked);
 
@@ -125,59 +133,41 @@ function remove(item) {
 }
 
 /** Po potvrzení smaže všechny odškrtnuté položky. */
-async function clearChecked(url) {
+async function clearChecked() {
     const confirmed = await confirmDialog({
         title: t('shopping.clear_checked_confirm_title'),
         message: t('shopping.clear_checked_confirm'),
         confirmLabel: t('shopping.clear_checked_confirm_label'),
     });
     if (confirmed) {
-        router.delete(url, KEEP_PAGE);
+        router.delete(props.clearCheckedUrl, KEEP_PAGE);
+    }
+}
+
+/** Po potvrzení smaže akce, které skončily (R130); vlastní položky zůstanou. */
+async function clearExpired() {
+    const confirmed = await confirmDialog({
+        title: t('shopping.clear_expired_confirm_title'),
+        message: t('shopping.clear_expired_confirm'),
+        confirmLabel: t('shopping.clear_expired_confirm_label'),
+    });
+    if (confirmed) {
+        router.delete(props.clearExpiredUrl, KEEP_PAGE);
     }
 }
 
 /**
- * Je místo ceny text akce na více kusů? Zalamuje se v omezené šířce (R102).
- *
- * @param {object} item
- * @returns {boolean}
- */
-function isPromotionText(item) {
-    return item.offer.offerType === OFFER_TYPE.MULTIBUY && Boolean(item.offer.promotionText);
-}
-
-/**
- * Cena položky: u akce na více kusů text akce („3 za cenu 2“), jinak cena, kterou uživatel zaplatí.
- *
- * @param {object} item
- * @returns {string}
- */
-function priceLabel(item) {
-    if (isPromotionText(item)) {
-        return item.offer.promotionText;
-    }
-
-    return formatPrice(item.userPrice ?? item.offer.price, locale.value);
-}
-
-/**
- * Kolik položek obchodu zbývá koupit.
- *
- * @param {object} group
- * @returns {number}
- */
-function remaining(group) {
-    return group.items.filter((item) => !item.checked).length;
-}
-
-/**
- * Řádek seznamu ke sdílení; u akce, která ještě nezačala, i od kdy platí (R76).
+ * Řádek seznamu ke sdílení; u akce cena a u akce, která ještě nezačala, i od kdy platí (R76).
+ * Vlastní položka (R130) jen názvem.
  *
  * @param {object} item
  * @returns {string}
  */
 function shareLine(item) {
-    const replace = { name: item.offer.name, price: priceLabel(item) };
+    if (!item.offer) {
+        return t('shopping.share_line_custom', { name: item.name });
+    }
+    const replace = { name: item.name, price: itemPrice(item, locale.value) };
 
     return item.offer.startsInDays
         ? t('shopping.share_line_upcoming', { ...replace, date: formatDate(item.offer.validFrom, locale.value) })
@@ -185,7 +175,8 @@ function shareLine(item) {
 }
 
 /**
- * Seznam jako text ke sdílení: co zbývá koupit, po obchodech, s cenou.
+ * Seznam jako text ke sdílení: co zbývá koupit, po obchodech, s cenou; skončené akce ne
+ * (akční cena neplatí — uklidí je „Smazat skončené akce“).
  *
  * @returns {string}
  */
@@ -197,8 +188,8 @@ function shareText() {
         .join('\n\n');
 }
 
-/** Pošle seznam sdílením systému (rodině do chatu); bez něj ho zkopíruje. */
-async function share() {
+/** Pošle seznam jako text sdílením systému (rodině do chatu); bez něj ho zkopíruje. */
+async function shareAsText() {
     const text = shareText();
     if (!text) {
         showToast(t('shopping.share_empty'));
@@ -206,17 +197,24 @@ async function share() {
         return;
     }
 
-    if (navigator.share) {
-        try {
-            await navigator.share({ title: t('shopping.title'), text });
-        } catch {
-            // Uživatel sdílení zavřel
-        }
+    await shareOrCopy({ title: t('shopping.title'), text }, t('shopping.share_copied'), t('shopping.share_failed'));
+}
 
-        return;
+/** Pošle odkaz na seznam (R130) — partner ho otevře i bez účtu a odškrtává. */
+async function shareLink() {
+    await shareOrCopy({ title: t('shopping.title'), text: t('shopping.share_link_text'), url: props.share.url }, t('shopping.share_link_copied'), t('shopping.share_link_failed'));
+}
+
+/** Po potvrzení zruší dosud poslané odkazy — vznikne nový. */
+async function renewShare() {
+    const confirmed = await confirmDialog({
+        title: t('shopping.share_renew_confirm_title'),
+        message: t('shopping.share_renew_confirm'),
+        confirmLabel: t('shopping.share_renew_confirm_label'),
+    });
+    if (confirmed) {
+        router.post(props.share.renewUrl, {}, KEEP_PAGE);
     }
-
-    await copyText(text, t('shopping.share_copied'), t('shopping.share_failed'));
 }
 </script>
 
@@ -229,11 +227,14 @@ async function share() {
             <p class="page__subtitle">{{ t('shopping.intro') }}</p>
         </header>
 
+        <ShoppingAdd :add="add" />
+
         <EmptyState v-if="!groups.length" :text="t('shopping.empty')" />
 
         <template v-else>
             <div class="watch-groups__toolbar shopping-toolbar">
-                <button type="button" class="button button--ghost" @click="share">{{ t('shopping.share') }}</button>
+                <button type="button" class="button button--ghost" @click="shareLink">{{ t('shopping.share_link') }}</button>
+                <button type="button" class="button button--ghost" @click="shareAsText">{{ t('shopping.share') }}</button>
                 <button
                     v-if="wakeLock.supported"
                     type="button"
@@ -244,55 +245,17 @@ async function share() {
                 >
                     {{ t('shopping.wake_lock') }}
                 </button>
-                <button v-if="hasChecked && online" type="button" class="button button--ghost" @click="clearChecked(clearCheckedUrl)">{{ t('shopping.clear_checked') }}</button>
+                <button v-if="hasChecked && online" type="button" class="button button--ghost" @click="clearChecked">{{ t('shopping.clear_checked') }}</button>
+                <button v-if="hasExpired && online" type="button" class="button button--ghost" @click="clearExpired">{{ t('shopping.clear_expired') }}</button>
             </div>
+            <p class="shopping-share-hint">
+                {{ t('shopping.share_hint') }}
+                <button type="button" class="link-button" :disabled="!online" @click="renewShare">{{ t('shopping.share_renew') }}</button>
+            </p>
 
             <p v-if="hasPending" class="notice notice--warning" role="status">{{ t('shopping.pending') }}</p>
 
-            <section v-for="group in displayGroups" :key="group.chain" class="card shopping-group">
-                <h2 class="shopping-group__title">
-                    <ChainLogo :chain="group.chain" with-name />
-                    <span class="shopping-group__remaining">{{ t('shopping.remaining', { count: remaining(group) }) }}</span>
-                </h2>
-
-                <ul class="shopping-list">
-                    <li
-                        v-for="item in group.items"
-                        :key="item.id"
-                        class="shopping-item"
-                        :class="{ 'shopping-item--checked': item.checked, 'shopping-item--expired': item.expired }"
-                    >
-                        <label class="shopping-item__check">
-                            <input type="checkbox" class="form-checkbox__input" :checked="item.checked" @change="check(item, $event.target.checked, $event.target)" />
-                            <span class="visually-hidden">{{ t('shopping.check', { name: item.offer.name }) }}</span>
-                        </label>
-                        <div class="shopping-item__body">
-                            <p class="shopping-item__name">{{ item.offer.name }}</p>
-                            <p class="shopping-item__meta">
-                                <span v-if="packageLabel(item.offer, locale, t)">{{ packageLabel(item.offer, locale, t) }} · </span>
-                                <span v-if="item.expired" class="shopping-item__expired">{{ t('shopping.expired') }}</span>
-                                <!-- Ještě nezačala (R76) — v obchodě zatím za akční cenu není -->
-                                <span v-else-if="item.offer.startsInDays" class="shopping-item__upcoming">{{
-                                    t('shopping.starts', { date: formatDate(item.offer.validFrom, locale) })
-                                }}</span>
-                                <span v-else>{{ t('shopping.valid_to', { date: formatDate(item.offer.validTo, locale) }) }}</span>
-                            </p>
-                        </div>
-                        <span class="shopping-item__price" :class="{ 'shopping-item__price--text': isPromotionText(item) }">{{ priceLabel(item) }}</span>
-                        <button
-                            type="button"
-                            class="icon-button icon-button--danger"
-                            :disabled="!online"
-                            :title="t('shopping.remove', { name: item.offer.name })"
-                            @click="remove(item)"
-                        >
-                            <!-- Koš -->
-                            <svg class="icon-button__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6" /></svg>
-                            <span class="visually-hidden">{{ t('shopping.remove', { name: item.offer.name }) }}</span>
-                        </button>
-                    </li>
-                </ul>
-            </section>
+            <ShoppingGroups :groups="displayGroups" :can-remove="online" @check="check" @remove="remove" />
         </template>
     </AppLayout>
 </template>

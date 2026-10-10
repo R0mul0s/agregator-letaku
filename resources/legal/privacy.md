@@ -84,6 +84,14 @@ Upozornění jsou součást služby, o kterou jste požádali, právní základ 
 Chodí jen na účet s ověřenou adresou. Vypnete je v účtu nebo v nastavení prohlížeče
 či telefonu; když se na zařízení odhlásíte, odběr se zruší.
 
+### Sdílení nákupního seznamu odkazem
+
+Nákupní seznam můžete poslat odkazem (například partnerovi). Kdo odkaz má, vidí bez
+přihlášení položky seznamu, ceny a vaše křestní jméno a může položky odškrtávat — e-mail
+ani další údaje z účtu neuvidí. Komu odkaz pošlete, rozhodujete vy. Odkaz můžete kdykoli
+zrušit („Zrušit odeslané odkazy“) — dosud poslané odkazy pak přestanou fungovat. Právní
+základ je plnění smlouvy.
+
 ### Centrum upozornění
 
 Po každém stažení letáků si zapíšeme, které nové akce na hlídané zboží jsme pro vás našli

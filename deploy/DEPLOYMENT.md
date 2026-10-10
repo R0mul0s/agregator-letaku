@@ -417,11 +417,19 @@ Přehled kvality dat pro admina `/kvalita-dat` a upozornění na propad akcí ne
 upozornění adminům a denní úklid; `.env` beze změny, žádný soubor nezmizel; `lang/cs/app.php`
 se změnil — verze Inertie se změní a otevřené stránky se načtou znovu.
 
-0. **Záloha databáze** a v phpMyAdminu `deploy/migrations-2026-10-10-kvalita-dat.sql` (před nahráním kódu).
+Navíc nákupní seznam s vlastními položkami, sdílením odkazem a „Smazat skončené akce“ a sdílení
+akce z karty (R130) — **s druhým SQL skriptem**; zásady ochrany údajů mají novou část o sdílení seznamu.
+
+0. **Záloha databáze** a v phpMyAdminu `deploy/migrations-2026-10-10-kvalita-dat.sql`
+   a `deploy/migrations-2026-10-10-nakupni-seznam-sdileni.sql` (před nahráním kódu, hned za ním kód —
+   vlastní položky bez akce stará verze nezobrazí).
 1. **Nahraj** z `deploy/upload/`: `public/build/` (celý), `app/` (celou složku — nové třídy
    v `Domain/Offers`, `Domain/Sources/Pdf`, `Http/Controllers`, `Models`), `vendor/composer/` (autoloader),
-   `config/letaky.php`, `routes/web.php`, `database/migrations/`, `lang/cs/app.php` a `public/version.txt`.
-2. **Ověř:** `version.txt`; admin má v menu pod avatarem **Kvalita dat** — po dalším stažení
+   `config/letaky.php`, `routes/web.php`, `database/migrations/`, `lang/cs/app.php`, `resources/legal/privacy.md`
+   a `public/version.txt`.
+2. **Ověř:** `version.txt`; R130: na `/seznam` pole „Co koupit“ našeptává akce a „Almette“ přidá jako
+   vlastní položku, „Sdílet odkaz“ — odkaz otevřený v anonymním okně ukáže seznam a odškrtnutí je vidět
+   u vlastníka, „Zrušit odeslané odkazy“ → starý odkaz 404; karta akce má ikonu „Poslat akci“; admin má v menu pod avatarem **Kvalita dat** — po dalším stažení
    každého obchodu tabulka letáků s počtem akcí a u Penny, Lidlu, Albertu, Globusu a Billy (leták
    na příští týden) podíl ověřených cen; `/kvalita-dat` pro ne-admina 403; `/cron/prune-sessions`
    vypíše i „smazáno starých statistik letáků“; `/health/imports` a `/health/tasks` 200.
@@ -463,6 +471,7 @@ a ruční opravy katalogu. Před každým SQL skriptem a jinak aspoň jednou mě
 | `migrations-2026-10-09-hlidani-uloh.sql` | hlídání úloh cronu (R115): tabulka `task_heartbeats`; opakovatelný, pustit **před** nahráním kódu | 2026-10-09 |
 | `migrations-2026-10-09-tohle-ne.sql` | „Tohle ne“ a hlášení chyb (R125): tabulky `watch_item_offer_exclusions` a `offer_reports`; opakovatelný, pustit **před** nahráním kódu | 2026-10-10 |
 | `migrations-2026-10-10-kvalita-dat.sql` | přehled kvality dat (R129): tabulka `leaflet_stats` se statistikou letáků za každé stažení; opakovatelný, pustit **před** nahráním kódu | — |
+| `migrations-2026-10-10-nakupni-seznam-sdileni.sql` | nákupní seznam (R130): `shopping_list_items.offer_id` nepovinné, `custom_name` a `chain` vlastní položky, `users.shopping_share_token`; opakovatelný, pustit **před** nahráním kódu | — |
 
 ## Nasazené verze
 

@@ -101,9 +101,10 @@ return [
         'version' => 2,
         'max_age_days' => 180,
         // Stránky s tokenem nebo e-mailem v adrese (R69): do GA jde jen tento začátek cesty,
-        // bez zbytku a parametrů — obnova hesla, ověření e-mailu, odhlášení z e-mailů;
+        // bez zbytku a parametrů — obnova hesla, ověření e-mailu, odhlášení z e-mailů, nákupní seznam
+        // sdílený odkazem (R130);
         // Clarity se na nich vůbec nespustí (R103)
-        'redacted_paths' => ['/nove-heslo', '/overeni-emailu', '/odhlaseni'],
+        'redacted_paths' => ['/nove-heslo', '/overeni-emailu', '/odhlaseni', '/seznam/s'],
     ],
 
     /*

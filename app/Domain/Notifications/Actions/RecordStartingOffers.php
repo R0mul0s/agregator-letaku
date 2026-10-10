@@ -27,7 +27,6 @@ use App\Domain\Notifications\UserBatch;
 use App\Domain\Offers\LocalCalendar;
 use App\Enums\NotificationKind;
 use App\Models\Offer;
-use App\Models\ShoppingListItem;
 use App\Models\User;
 use App\Support\Deadline;
 use Carbon\CarbonImmutable;
@@ -123,8 +122,8 @@ final class RecordStartingOffers
             ->whereIn('offer_id', $startingOfferIds)
             ->whereNotIn('offer_id', $seen)
             ->orderBy('id')
-            ->get()
-            ->map(fn (ShoppingListItem $item): int => $item->offer_id)
+            ->pluck('offer_id')
+            ->map(fn (mixed $id): int => (int) $id)
             ->all();
         if ($listed !== []) {
             $groups[] = ['title' => __('app.notifications.starting_today.shopping_list'), 'offerIds' => array_values($listed)];

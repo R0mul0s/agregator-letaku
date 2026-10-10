@@ -77,7 +77,9 @@ final class RecordEndingOffers
                 ->whereIn('offer_id', $endingOfferIds)
                 ->with(['offer' => fn ($query) => $query->withoutRaw()])
                 ->get()
-                ->map(fn (ShoppingListItem $item): Offer => $item->offer);
+                // Vlastní položky bez akce (R130) vynechá už whereIn — filtr jen pro typ
+                ->map(fn (ShoppingListItem $item): ?Offer => $item->offer)
+                ->filter();
             $user->notify(new EndingSoonNotification($this->groupsByChain(array_values($offers->all()))));
 
             return true;

@@ -35,6 +35,7 @@ use App\Http\Controllers\OfferStoresController;
 use App\Http\Controllers\OfferSuggestionsController;
 use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\ServiceWorkerController;
+use App\Http\Controllers\SharedShoppingListController;
 use App\Http\Controllers\ShoppingListController;
 use App\Http\Controllers\ShoppingPreferencesController;
 use App\Http\Controllers\SocialLoginController;
@@ -98,6 +99,15 @@ Route::middleware('throttle:'.RateLimits::PUBLIC)->group(function (): void {
     Route::get('/tyden/{'.WeeklyDeals::WEEK_PARAMETER.'}', [WeeklyDealsController::class, 'show'])
         ->where(WeeklyDeals::WEEK_PARAMETER, IsoWeek::ROUTE_PATTERN)
         ->name(WeeklyDeals::ROUTE);
+
+    // Nákupní seznam sdílený odkazem (R130) — partner bez účtu ho vidí a odškrtává
+    Route::get('/seznam/s/{token}', [SharedShoppingListController::class, 'show'])
+        ->where('token', SharedShoppingListController::TOKEN_PATTERN)
+        ->name('shopping-list.shared');
+    Route::patch('/seznam/s/{token}/{item}', [SharedShoppingListController::class, 'update'])
+        ->where('token', SharedShoppingListController::TOKEN_PATTERN)
+        ->whereNumber('item')
+        ->name('shopping-list.shared.update');
 
     // Právní stránky (R51)
     Route::get('/podminky', [LegalController::class, 'terms'])->name('legal.terms');
@@ -188,6 +198,10 @@ Route::middleware('auth')->group(function (): void {
     // Odškrtnutí udělaná bez připojení najednou, až je zase signál (R66)
     Route::patch('/seznam', [ShoppingListController::class, 'sync'])->name('shopping-list.sync');
     Route::delete('/seznam/odskrtnute', [ShoppingListController::class, 'clearChecked'])->name('shopping-list.clear-checked');
+    // Úklid skončených akcí, vlastní položka bez akce a nový odkaz ke sdílení (R130)
+    Route::delete('/seznam/skoncene', [ShoppingListController::class, 'clearExpired'])->name('shopping-list.clear-expired');
+    Route::post('/seznam/vlastni', [ShoppingListController::class, 'storeCustom'])->name('shopping-list.custom');
+    Route::post('/seznam/sdileni', [ShoppingListController::class, 'renewShare'])->name('shopping-list.share.renew');
     Route::patch('/seznam/{item}', [ShoppingListController::class, 'update'])->whereNumber('item')->name('shopping-list.update');
     Route::delete('/seznam/{item}', [ShoppingListController::class, 'destroy'])->whereNumber('item')->name('shopping-list.destroy');
 

@@ -1,8 +1,9 @@
 <?php
 
 /**
- * Nákupní seznam (R61): akce z Mých slev a Všech akcí, seřazené podle obchodu, aby se daly
- * v obchodě odškrtávat. Skončené akce zůstávají, jen se označí.
+ * Nákupní seznam (R61): akce z Mých slev a Všech akcí a vlastní položky bez akce (R130),
+ * seřazené podle obchodu, aby se daly v obchodě odškrtávat. Skončené akce zůstávají, jen se
+ * označí. Seznam jde sdílet veřejným odkazem (R130, SharedShoppingListController).
  *
  * @author Roman Hlaváček
  *
@@ -14,9 +15,10 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Domain\Offers\LocalCalendar;
-use App\Domain\Offers\OfferPresenter;
-use App\Domain\Offers\UserPricing;
+use App\Domain\Shopping\ShoppingListView;
+use App\Domain\Sources\SourceRegistry;
 use App\Enums\Chain;
+use App\Http\Requests\ShoppingListCustomRequest;
 use App\Http\Requests\ShoppingListRequest;
 use App\Http\Requests\ShoppingListSyncRequest;
 use App\Models\ShoppingListItem;
@@ -36,47 +38,78 @@ class ShoppingListController extends Controller
 
     public const STATUS_CLEARED = 'shopping-cleared';
 
+    /** Skončené akce smazané ze seznamu (R130). */
+    public const STATUS_EXPIRED_CLEARED = 'shopping-expired-cleared';
+
+    /** Nový odkaz ke sdílení, starý přestal fungovat (R130). */
+    public const STATUS_SHARE_RENEWED = 'shopping-share-renewed';
+
     /**
-     * Seznam po obchodech v pořadí výčtu obchodů; v obchodě nejdřív, co zbývá koupit, a z toho
-     * nejdřív akce, které už platí — budoucí (R76) se zatím za akční cenu koupit nedají.
+     * Seznam po obchodech (ShoppingListView) s přidáním akce nebo vlastní položky a odkazem
+     * ke sdílení (R130).
      */
-    public function index(Request $request, OfferPresenter $presenter, UserPricing $pricing, LocalCalendar $calendar): Response
+    public function index(Request $request, ShoppingListView $view, SourceRegistry $sources, LocalCalendar $calendar): Response
     {
         $user = $this->user($request);
+        $items = $view->items($user);
         $today = $calendar->today();
-        $items = $user->shoppingListItems()->with(['offer' => fn ($query) => $query->withoutRaw(), 'offer.stores'])->get();
-        $storeCodes = $user->selectedStoreCodes();
-
-        $groups = [];
-        foreach (Chain::cases() as $chain) {
-            $inChain = $items
-                ->filter(fn (ShoppingListItem $item): bool => $item->offer->chain === $chain)
-                ->sortBy(fn (ShoppingListItem $item): array => [$item->checked_at !== null, $item->offer->isUpcoming($today), $item->offer->name])
-                ->values();
-            if ($inChain->isEmpty()) {
-                continue;
-            }
-
-            $groups[] = [
-                'chain' => $chain->value,
-                'chainName' => $chain->label(),
-                'items' => $inChain->map(fn (ShoppingListItem $item): array => [
-                    'id' => $item->id,
-                    'checked' => $item->checked_at !== null,
-                    'expired' => $item->offer->valid_to->lessThan($today),
-                    'userPrice' => $pricing->price($user, $item->offer),
-                    'offer' => $presenter->toPage($item->offer, $storeCodes),
-                    'updateUrl' => route('shopping-list.update', $item, absolute: false),
-                    'deleteUrl' => route('shopping-list.destroy', $item, absolute: false),
-                ])->all(),
-            ];
-        }
 
         return Inertia::render('ShoppingList', [
-            'groups' => $groups,
+            'groups' => $view->groups(
+                $user,
+                $items,
+                fn (ShoppingListItem $item): string => route('shopping-list.update', $item, absolute: false),
+                fn (ShoppingListItem $item): string => route('shopping-list.destroy', $item, absolute: false),
+            ),
             'clearCheckedUrl' => route('shopping-list.clear-checked', absolute: false),
             'hasChecked' => $items->contains(fn (ShoppingListItem $item): bool => $item->checked_at !== null),
+            // Úklid skončených akcí (R130) — vlastní položky neskončí
+            'clearExpiredUrl' => route('shopping-list.clear-expired', absolute: false),
+            'hasExpired' => $items->contains(fn (ShoppingListItem $item): bool => $item->offer !== null && $item->offer->valid_to->lessThan($today)),
+            // Přidání (R130): našeptávač akcí, vlastní položka a obchody, kde ji koupit
+            'add' => [
+                'customUrl' => route('shopping-list.custom', absolute: false),
+                'suggestionsUrl' => route('offers.suggestions', absolute: false),
+                'suggestMinLength' => config()->integer('letaky.offers.suggest_min_length'),
+                'nameMaxLength' => ShoppingListCustomRequest::NAME_MAX_LENGTH,
+                'chains' => array_map(fn (Chain $chain): string => $chain->value, $sources->chainsWithOffers()),
+            ],
+            // Veřejný odkaz (R130): kdo ho má, seznam vidí a odškrtává; nový odkaz zneplatní starý
+            'share' => [
+                'url' => route('shopping-list.shared', ['token' => $user->shoppingShareToken()]),
+                'renewUrl' => route('shopping-list.share.renew', absolute: false),
+            ],
         ]);
+    }
+
+    /**
+     * Vlastní položka bez akce (R130): název a nepovinně obchod. Stejná nekoupená položka
+     * se nepřidá podruhé.
+     */
+    public function storeCustom(ShoppingListCustomRequest $request): RedirectResponse
+    {
+        $items = $this->user($request)->shoppingListItems();
+        $exists = (clone $items)
+            ->whereNull('offer_id')
+            ->whereNull('checked_at')
+            ->where('custom_name', $request->itemName())
+            ->where('chain', $request->chain())
+            ->exists();
+        if (! $exists) {
+            $items->create(['custom_name' => $request->itemName(), 'chain' => $request->chain()]);
+        }
+
+        return back(fallback: route('shopping-list.index'))->with('status', self::STATUS_ADDED);
+    }
+
+    /**
+     * Nový odkaz ke sdílení (R130) — dosavadní odkazy přestanou fungovat.
+     */
+    public function renewShare(Request $request): RedirectResponse
+    {
+        $this->user($request)->renewShoppingShareToken();
+
+        return back(fallback: route('shopping-list.index'))->with('status', self::STATUS_SHARE_RENEWED);
     }
 
     /**
@@ -128,6 +161,18 @@ class ShoppingListController extends Controller
         $item->delete();
 
         return back(fallback: route('shopping-list.index'))->with('status', self::STATUS_REMOVED);
+    }
+
+    /**
+     * Smaže akce, které skončily (R130) — za akční cenu už nejsou; vlastní položky zůstanou.
+     */
+    public function clearExpired(Request $request, LocalCalendar $calendar): RedirectResponse
+    {
+        $this->user($request)->shoppingListItems()
+            ->whereHas('offer', fn ($query) => $query->where('valid_to', '<', $calendar->today()->toDateString()))
+            ->delete();
+
+        return back(fallback: route('shopping-list.index'))->with('status', self::STATUS_EXPIRED_CLEARED);
     }
 
     /**
