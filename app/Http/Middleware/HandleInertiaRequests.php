@@ -21,6 +21,7 @@ use App\Http\Controllers\WatchItemController;
 use App\Models\OfferReport;
 use App\Models\ScrapeRun;
 use App\Models\User;
+use App\Support\AnalyticsEvents;
 use App\Support\Legal\LegalDocuments;
 use App\Support\Seo\SeoMeta;
 use App\Support\SvgSize;
@@ -190,6 +191,8 @@ class HandleInertiaRequests extends Middleware
             'status' => fn (): ?string => $request->session()->get('status'),
             // „Vrátit“ v toastu po přidání hlídané položky (R71): adresa jejího smazání
             'statusUndo' => fn (): ?string => $request->session()->get(WatchItemController::UNDO_SESSION_KEY),
+            // Události pro Google Analytics po uložení (R134) — lib/consent.js je pošle jen se souhlasem
+            'analyticsEvents' => fn (): array => AnalyticsEvents::pending($request),
             'navigation' => fn (): array => array_map(
                 fn (string $routeName, string $labelKey): array => [
                     'url' => route($routeName, absolute: false),

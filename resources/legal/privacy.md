@@ -138,7 +138,9 @@ formulářů.
 Pokud v liště cookies povolíte analytické cookies, měříme návštěvnost přes **Google
 Analytics 4**: které stránky se zobrazují, odkud návštěvník přišel, typ zařízení
 a prohlížeče, přibližné místo podle IP adresy a náhodný identifikátor prohlížeče
-v cookies. Statistiky nám pomáhají Slevohlídku zlepšovat. Bez souhlasu se Google
+v cookies. Měříme i to, že jste se zaregistrovali (a jakým způsobem), přidali hlídanou
+položku nebo položku na nákupní seznam (u ní obchod) nebo něco sdíleli — bez názvů
+položek, hledaných slov a obsahu sdílení. Statistiky nám pomáhají Slevohlídku zlepšovat. Bez souhlasu se Google
 Analytics vůbec nenačte a na Google se nic neposílá. U stránek, jejichž adresa obsahuje
 váš e-mail nebo bezpečnostní kód (odkaz pro obnovu hesla, ověření e-mailu, odhlášení
 z e-mailů), posíláme jen začátek adresy bez těchto údajů.

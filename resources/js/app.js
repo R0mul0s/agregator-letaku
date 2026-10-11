@@ -32,7 +32,7 @@ createInertiaApp({
     },
     setup({ el, App, props, plugin }) {
         // Souhlas s cookies (R52) dřív než cokoli dalšího — měření se spustí jen po souhlasu
-        initConsent(props.initialPage.props.cookieConsent);
+        initConsent(props.initialPage);
         el.classList.add(ROOT_CLASS);
         // Obsah ze serveru pro roboty bez JavaScriptu (R94) — aplikace ukáže svůj, čtečka by četla dvakrát
         document.querySelector(SEO_CONTENT_SELECTOR)?.remove();

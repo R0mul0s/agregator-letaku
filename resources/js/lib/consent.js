@@ -14,6 +14,9 @@
  * přes `consentv2`. Adresu si měří sama i při přechodech, proto se na stránce s tokenem v adrese
  * vůbec nespustí — ty se otevírají jen z e-mailu, tedy načtením celé stránky. Po odvolání
  * souhlasu se stránka načte znovu, aby Clarity nenahrávala dál v režimu bez cookies.
+ * Vlastní události (R134): registraci a přidání hlídané položky nebo položky na seznam ohlásí
+ * server po uložení (sdílený prop `analyticsEvents`, App\Support\AnalyticsEvents), sdílení
+ * `lib/share.js` přes `trackEvent`; bez souhlasu se zahodí.
  *
  * @author Roman Hlaváček
  * @created 2026-10-03
@@ -238,6 +241,32 @@ function measurePageView() {
 }
 
 /**
+ * Pošle vlastní událost do Google Analytics (R134) — jen se souhlasem, jinak nic. Parametry
+ * nesmí nést obsah ani osobní údaje (název položky, hledaná slova), jen druh.
+ *
+ * @param {string} name Název události v GA4 (`share`, `sign_up`…)
+ * @param {Record<string, string>} [params]
+ */
+export function trackEvent(name, params = {}) {
+    if (!analyticsLoaded) {
+        return;
+    }
+
+    gtag('event', name, params);
+}
+
+/**
+ * Pošle události, které server odložil po uložení (sdílený prop `analyticsEvents`).
+ *
+ * @param {object} page Stránka Inertie
+ */
+function sendServerEvents(page) {
+    for (const event of page?.props?.analyticsEvents ?? []) {
+        trackEvent(event.name, event.params);
+    }
+}
+
+/**
  * Promítne volbu do Consent Mode a podle ní spustí nebo utlumí měření.
  *
  * @param {{ analytics: boolean, marketing: boolean }} choice
@@ -265,12 +294,13 @@ function applyChoice(choice) {
 }
 
 /**
- * Spustí se při startu aplikace: výchozí Consent Mode (vše zakázané) a uložená volba.
+ * Spustí se při startu aplikace: výchozí Consent Mode (vše zakázané), uložená volba
+ * a události ze serveru — z první stránky i z každé další odpovědi.
  *
- * @param {{ measurementId: string|null, clarityProjectId: string|null, version: number, maxAgeDays: number, redactedPaths: string[] } | undefined} serverConfig
+ * @param {object} initialPage První stránka Inertie (prop cookieConsent a analyticsEvents)
  */
-export function initConsent(serverConfig) {
-    config = { ...config, ...serverConfig };
+export function initConsent(initialPage) {
+    config = { ...config, ...initialPage.props.cookieConsent };
     gtag('consent', 'default', consentModeFor({ analytics: false, marketing: false }));
 
     // Přechod mezi stránkami SPA — titulek nastaví <Head> až po vykreslení nové stránky
@@ -284,11 +314,16 @@ export function initConsent(serverConfig) {
         }),
     );
 
+    // Odpověď na uložení (ne návrat v historii — ten by událost poslal znovu); až po zobrazení
+    // stránky z 'navigate', ať událost nese adresu nové stránky
+    router.on('success', (event) => window.setTimeout(() => sendServerEvents(event.detail.page)));
+
     const stored = readStoredChoice();
     if (stored) {
         consentState.decided = true;
         applyChoice(stored);
     }
+    sendServerEvents(initialPage);
 }
 
 /**

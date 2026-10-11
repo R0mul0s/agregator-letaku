@@ -14,6 +14,7 @@ import OfferCard from '@/Components/OfferCard.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { copyText } from '@/lib/clipboard';
 import { useTranslations } from '@/lib/i18n';
+import { SHARE_CONTENT, trackShare } from '@/lib/share';
 import { Head, Link, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 
@@ -50,6 +51,7 @@ async function share() {
     if (navigator.share) {
         try {
             await navigator.share({ title: props.heading, text, url: props.shareUrl });
+            trackShare(SHARE_CONTENT.WEEKLY, false);
         } catch {
             // Uživatel sdílení zavřel
         }
@@ -57,7 +59,9 @@ async function share() {
         return;
     }
 
-    await copyText(props.shareUrl, t('weekly.share_copied'), t('weekly.share_failed'));
+    if (await copyText(props.shareUrl, t('weekly.share_copied'), t('weekly.share_failed'))) {
+        trackShare(SHARE_CONTENT.WEEKLY, true);
+    }
 }
 </script>
 

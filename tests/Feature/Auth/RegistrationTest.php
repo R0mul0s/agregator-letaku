@@ -18,6 +18,7 @@ use App\Http\Responses\RegisterResponse;
 use App\Models\FollowedChain;
 use App\Models\Offer;
 use App\Models\User;
+use App\Support\AnalyticsEvents;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Support\Facades\Http;
@@ -59,7 +60,9 @@ it('zaregistruje uživatele, přihlásí ho, e-mail uloží malými písmeny a p
 
     $this->post(route('register.store'), registrationInput(['email' => 'Roman@Example.com']))
         ->assertRedirect(route('watch-items.index'))
-        ->assertSessionHas('status', RegisterResponse::STATUS_REGISTERED);
+        ->assertSessionHas('status', RegisterResponse::STATUS_REGISTERED)
+        // Událost pro Google Analytics (R134)
+        ->assertSessionHas(AnalyticsEvents::SESSION_KEY, [['name' => 'sign_up', 'params' => ['method' => 'email']]]);
 
     $user = User::query()->sole();
     expect($user)

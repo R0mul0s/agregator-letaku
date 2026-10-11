@@ -84,7 +84,7 @@ return [
         'directory' => 'legal',
         'terms_version' => 1,
         'marketing_consent_version' => 1,
-        'effective_from' => '2026-10-05',
+        'effective_from' => '2026-10-11',
     ],
 
     /*

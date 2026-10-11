@@ -11,7 +11,7 @@
 import { formatDate, formatPrice } from '@/lib/format';
 import { useTranslations } from '@/lib/i18n';
 import { OFFER_TYPE } from '@/lib/offer';
-import { shareOrCopy } from '@/lib/share';
+import { SHARE_CONTENT, shareOrCopy } from '@/lib/share';
 import { usePage } from '@inertiajs/vue3';
 
 const props = defineProps({
@@ -58,7 +58,7 @@ async function share() {
         date: formatDate(props.offer.validTo, page.props.locale),
     });
 
-    await shareOrCopy({ title: props.offer.name, text, url: shareUrl() }, t('offers.share_copied'), t('offers.share_failed'));
+    await shareOrCopy({ title: props.offer.name, text, url: shareUrl() }, t('offers.share_copied'), t('offers.share_failed'), SHARE_CONTENT.OFFER);
 }
 </script>
 

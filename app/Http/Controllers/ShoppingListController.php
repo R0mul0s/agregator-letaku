@@ -17,12 +17,14 @@ namespace App\Http\Controllers;
 use App\Domain\Offers\LocalCalendar;
 use App\Domain\Shopping\ShoppingListView;
 use App\Domain\Sources\SourceRegistry;
+use App\Enums\AnalyticsEvent;
 use App\Enums\Chain;
 use App\Http\Requests\ShoppingListCustomRequest;
 use App\Http\Requests\ShoppingListQuantityRequest;
 use App\Http\Requests\ShoppingListRequest;
 use App\Http\Requests\ShoppingListSyncRequest;
 use App\Models\ShoppingListItem;
+use App\Support\AnalyticsEvents;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -99,7 +101,7 @@ class ShoppingListController extends Controller
             ->where('chain', $request->chain())
             ->exists();
         if (! $exists) {
-            $items->create(['custom_name' => $request->itemName(), 'chain' => $request->chain(), 'quantity' => $request->quantity()]);
+            $this->trackAdded($request, $items->create(['custom_name' => $request->itemName(), 'chain' => $request->chain(), 'quantity' => $request->quantity()]));
         }
 
         return back(fallback: route('shopping-list.index'))->with('status', self::STATUS_ADDED);
@@ -123,7 +125,7 @@ class ShoppingListController extends Controller
         $items = $this->user($request)->shoppingListItems();
         $removed = (clone $items)->where('offer_id', $request->offerId())->delete() > 0;
         if (! $removed) {
-            $items->create(['offer_id' => $request->offerId(), 'quantity' => $request->quantity()]);
+            $this->trackAdded($request, $items->create(['offer_id' => $request->offerId(), 'quantity' => $request->quantity()]));
         }
 
         return back(fallback: route('shopping-list.index'))->with('status', $removed ? self::STATUS_REMOVED : self::STATUS_ADDED);
@@ -197,5 +199,17 @@ class ShoppingListController extends Controller
         $this->user($request)->shoppingListItems()->whereNotNull('checked_at')->delete();
 
         return back(fallback: route('shopping-list.index'))->with('status', self::STATUS_CLEARED);
+    }
+
+    /**
+     * Ohlásí přidání do seznamu Google Analytics (R134): akce nebo vlastní položka a obchod, bez názvu.
+     */
+    private function trackAdded(Request $request, ShoppingListItem $item): void
+    {
+        $chain = $item->storeChain();
+        AnalyticsEvents::flash($request, AnalyticsEvent::AddToShoppingList, array_filter([
+            'item_type' => $item->offer_id === null ? 'custom' : 'offer',
+            'chain' => $chain?->value,
+        ]));
     }
 }

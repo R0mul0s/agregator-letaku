@@ -19,12 +19,14 @@ use App\Domain\Matching\TextNormalizer;
 use App\Domain\Matching\WatchHistory;
 use App\Domain\Matching\WatchRule;
 use App\Domain\Offers\UserPricing;
+use App\Enums\AnalyticsEvent;
 use App\Enums\MatchStatus;
 use App\Http\Requests\WatchItemRequest;
 use App\Models\Product;
 use App\Models\User;
 use App\Models\WatchItem;
 use App\Rules\KeywordFields;
+use App\Support\AnalyticsEvents;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -128,6 +130,7 @@ class WatchItemController extends Controller
         /** @var User $user */
         $user = $request->user();
         $item = $user->watchItems()->create($request->watchItemData());
+        AnalyticsEvents::flash($request, AnalyticsEvent::AddWatchItem, ['item_type' => $item->product_id === null ? 'keywords' : 'product']);
 
         // Z karty ve Všech akcích (R60) zpátky na stejné místo, jinak na Hlídám. Toast nabídne
         // „Vrátit“ — smazání právě přidané položky (R71)

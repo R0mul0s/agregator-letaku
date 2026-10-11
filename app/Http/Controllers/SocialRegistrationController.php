@@ -79,6 +79,8 @@ class SocialRegistrationController extends Controller
         $this->login->forgetPending($request->session());
         Auth::guard('web')->login($user, $remember);
         $request->session()->regenerate();
+        // Událost sign_up v Google Analytics se způsobem registrace (R134)
+        $request->attributes->set(RegisterResponse::METHOD_ATTRIBUTE, $identity->provider->value);
 
         return app(RegisterResponse::class)->toResponse($request);
     }

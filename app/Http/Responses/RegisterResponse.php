@@ -3,7 +3,8 @@
 /**
  * Odpověď po registraci (R55): rovnou do Hlídám s uvítáním v toastu (R47) — nový účet
  * už sleduje všechny obchody, chybí jen hlídané položky. Přišel-li uživatel z karty akce
- * („Hlídat“ ve Všech akcích, R60), produkt katalogu se rovnou začne hlídat.
+ * („Hlídat“ ve Všech akcích, R60), produkt katalogu se rovnou začne hlídat. Registraci
+ * ohlásí Google Analytics událostí sign_up (R134).
  *
  * @author Roman Hlaváček
  *
@@ -14,8 +15,10 @@ declare(strict_types=1);
 
 namespace App\Http\Responses;
 
+use App\Enums\AnalyticsEvent;
 use App\Models\Product;
 use App\Models\User;
+use App\Support\AnalyticsEvents;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Laravel\Fortify\Contracts\RegisterResponse as RegisterResponseContract;
@@ -32,6 +35,12 @@ class RegisterResponse implements RegisterResponseContract
     /** Klíč v relaci, kde produkt čeká na dokončení registrace. */
     public const SESSION_KEY = 'watch_after_register';
 
+    /** Atribut požadavku se způsobem registrace pro Google Analytics (R134) — poskytovatel přihlášení. */
+    public const METHOD_ATTRIBUTE = 'sign_up_method';
+
+    /** Způsob registrace heslem (parametr `method` události sign_up). */
+    public const METHOD_PASSWORD = 'email';
+
     /**
      * Zapamatuje si produkt z adresy registrace, pokud existuje (volá zobrazení registrace).
      */
@@ -44,7 +53,8 @@ class RegisterResponse implements RegisterResponseContract
     }
 
     /**
-     * Začne hlídat zapamatovaný produkt a přesměruje do Hlídám s uvítáním.
+     * Začne hlídat zapamatovaný produkt, odloží události pro Google Analytics a přesměruje
+     * do Hlídám s uvítáním.
      *
      * @param  Request  $request
      */
@@ -53,8 +63,13 @@ class RegisterResponse implements RegisterResponseContract
         $productId = $request->session()->pull(self::SESSION_KEY);
         $user = $request->user();
         $product = is_int($productId) ? Product::query()->find($productId) : null;
+        $method = $request->attributes->get(self::METHOD_ATTRIBUTE, self::METHOD_PASSWORD);
+        AnalyticsEvents::flash($request, AnalyticsEvent::SignUp, ['method' => is_string($method) ? $method : self::METHOD_PASSWORD]);
         if ($user instanceof User && $product instanceof Product) {
-            $user->watchItems()->firstOrCreate(['product_id' => $product->id], ['name' => $product->name]);
+            $item = $user->watchItems()->firstOrCreate(['product_id' => $product->id], ['name' => $product->name]);
+            if ($item->wasRecentlyCreated) {
+                AnalyticsEvents::flash($request, AnalyticsEvent::AddWatchItem, ['item_type' => 'product']);
+            }
         }
 
         return $request->wantsJson()

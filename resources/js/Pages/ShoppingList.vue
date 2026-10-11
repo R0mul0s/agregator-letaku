@@ -22,7 +22,7 @@ import { confirmDialog } from '@/lib/confirm';
 import { formatDate } from '@/lib/format';
 import { useTranslations } from '@/lib/i18n';
 import { pendingChecks, queueCheck } from '@/lib/offlineChecks';
-import { shareOrCopy } from '@/lib/share';
+import { SHARE_CONTENT, shareOrCopy } from '@/lib/share';
 import { itemPrice, nameWithQuantity } from '@/lib/shoppingList';
 import { showToast } from '@/lib/toast';
 import { useWakeLock } from '@/lib/wakeLock';
@@ -209,12 +209,12 @@ async function shareAsText() {
         return;
     }
 
-    await shareOrCopy({ title: t('shopping.title'), text }, t('shopping.share_copied'), t('shopping.share_failed'));
+    await shareOrCopy({ title: t('shopping.title'), text }, t('shopping.share_copied'), t('shopping.share_failed'), SHARE_CONTENT.SHOPPING_LIST);
 }
 
 /** Pošle odkaz na seznam (R130) — partner ho otevře i bez účtu a odškrtává. */
 async function shareLink() {
-    await shareOrCopy({ title: t('shopping.title'), text: t('shopping.share_link_text'), url: props.share.url }, t('shopping.share_link_copied'), t('shopping.share_link_failed'));
+    await shareOrCopy({ title: t('shopping.title'), text: t('shopping.share_link_text'), url: props.share.url }, t('shopping.share_link_copied'), t('shopping.share_link_failed'), SHARE_CONTENT.SHOPPING_LIST_LINK);
 }
 
 /** Po potvrzení zruší dosud poslané odkazy — vznikne nový. */

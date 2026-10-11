@@ -20,6 +20,7 @@ use App\Http\Responses\RegisterResponse;
 use App\Models\Product;
 use App\Models\SocialAccount;
 use App\Models\User;
+use App\Support\AnalyticsEvents;
 use Database\Factories\UserFactory;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Support\Facades\Auth;
@@ -147,7 +148,9 @@ it('nového uživatele z Googlu pošle dokončit registraci a založí účet be
 
     $this->post(route('social.register.store'), ['name' => 'Roman', 'terms' => true])
         ->assertRedirect(route('watch-items.index'))
-        ->assertSessionHas('status', RegisterResponse::STATUS_REGISTERED);
+        ->assertSessionHas('status', RegisterResponse::STATUS_REGISTERED)
+        // Událost pro Google Analytics se způsobem registrace (R134)
+        ->assertSessionHas(AnalyticsEvents::SESSION_KEY, [['name' => 'sign_up', 'params' => ['method' => 'google']]]);
 
     $user = User::query()->sole();
     expect($user)
@@ -197,7 +200,11 @@ it('po registraci přes Google začne hlídat produkt z karty akce (R60)', funct
 
     $this->get(route('register', [RegisterResponse::WATCH_PARAMETER => $product->id]));
     $this->get(route('social.callback', ['provider' => 'google']));
-    $this->post(route('social.register.store'), ['name' => 'Roman', 'terms' => true]);
+    $this->post(route('social.register.store'), ['name' => 'Roman', 'terms' => true])
+        ->assertSessionHas(AnalyticsEvents::SESSION_KEY, [
+            ['name' => 'sign_up', 'params' => ['method' => 'google']],
+            ['name' => 'add_watch_item', 'params' => ['item_type' => 'product']],
+        ]);
 
     expect(User::query()->sole()->watchItems()->sole()->product_id)->toBe($product->id);
 });
