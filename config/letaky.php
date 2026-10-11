@@ -859,7 +859,8 @@ return [
     'watch' => [
         'max_items_per_user' => 50,
         'name_max_length' => 100,
-        'keywords_max_length' => 255,
+        // = délka sloupců pravidel v products a watch_items (R135, víno podle odrůd)
+        'keywords_max_length' => 500,
         // Nejdelší hledané slovo aspoň takhle dlouhé — jedno písmeno nebo číslice by pustily
         // do předvýběru skoro všechny nabídky (R54, App\Rules\SearchableKeywords); „wc“ projde
         'min_search_word_length' => 2,

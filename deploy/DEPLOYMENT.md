@@ -448,6 +448,8 @@ a ruční opravy katalogu. Před každým SQL skriptem a jinak aspoň jednou mě
 | `migrations-2026-10-10-nakupni-seznam-sdileni.sql` | nákupní seznam (R130): `shopping_list_items.offer_id` nepovinné, `custom_name` a `chain` vlastní položky, `users.shopping_share_token`; opakovatelný, pustit **před** nahráním kódu | 2026-10-10 |
 | `migrations-2026-10-10-nakupni-seznam-mnozstvi.sql` | množství položky nákupního seznamu (R133): `shopping_list_items.quantity`; opakovatelný, pustit **před** nahráním kódu | 2026-10-10 |
 | `migrations-2026-10-10-globus-prodejny.sql` | hypermarkety Globusu jako prodejny (R131): 16 řádků v `stores` (jen data); opakovatelný, pustit **před** nahráním kódu | 2026-10-10 |
+| `migrations-2026-10-11-delsi-pravidla.sql` | delší pravidla (R135): `keywords`, `variant_keywords`, `exclude_keywords` v `products` a `watch_items` na 500 znaků; opakovatelný, pustit **před** nahráním kódu a před `data-2026-10-11-katalog-rozsireni.sql` | 2026-10-11 |
+| `data-2026-10-11-katalog-rozsireni.sql` | rozšíření katalogu (R135): 48 nových produktů včetně nepotravinového zboží a nová pravidla sedmi (Zmrzlina, Bílé víno, Červené víno, Rum, Čaj, Sprchový gel, Polévka); podle názvu, opakovatelný, nezávisí na kódu, ale až **po** `migrations-2026-10-11-delsi-pravidla.sql` | 2026-10-11 |
 
 ## Nasazené verze
 
