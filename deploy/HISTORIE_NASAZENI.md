@@ -533,3 +533,16 @@ nezmizel; `lang/cs/app.php` beze změny (verze Inertie se mění jen buildem). N
   `item_type`, `chain`, `content_type`; uchování dat 14 měsíců, měření změn historie vypnuté (R69).
 - **Ověřeno:** `version.txt` = `8dc358f`; `/health/imports` i `/health/tasks` 200; zásady
   s novým odstavcem o měřených akcích a účinností 2026-10-11; testovací registrace a hlídání (11. 10.).
+
+### Aktualizace z `8dc358f` (třicáté šesté nasazení — provedeno, `469beff`)
+
+Rozšíření katalogu (R135): 48 nových produktů včetně nepotravinového zboží a nová pravidla sedmi
+(Zmrzlina, Bílé víno, Červené víno, Rum, Čaj, Sprchový gel, Polévka); sloupce pravidel 500 znaků.
+SQL v tomto pořadí: **`migrations-2026-10-11-delsi-pravidla.sql`** (`products` a `watch_items`
+na `varchar(500)`, zápis do `migrations`), pak **`data-2026-10-11-katalog-rozsireni.sql`**
+(55 produktů podle názvu). `.env` beze změny, žádný soubor nezmizel; v kódu za běhu jen
+`config/letaky.php` (`keywords_max_length` 500 — limit formuláře v `/katalog`). Přiřazení akcí
+k produktům dopočítá cron při dalším stažení každého obchodu.
+
+- **Ověřeno:** `version.txt` = `469beff`; `/health/imports` i `/health/tasks` 200; `/akce/lego`
+  a `/akce/zmrzlina` 200 (11. 10.).
