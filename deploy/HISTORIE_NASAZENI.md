@@ -519,3 +519,17 @@ se načtou znovu.
 
 - **Ověřeno:** `version.txt` = `6b5051e`; `/health/imports` i `/health/tasks` 200; `/manifest.webmanifest`
   obsahuje `launch_handler` s `navigate-existing` (10. 10.).
+
+### Aktualizace z `6b5051e` (třicáté páté nasazení — provedeno, `8dc358f`)
+
+Vlastní události v Google Analytics (R134): `sign_up`, `add_watch_item`, `add_to_shopping_list`
+ze serveru po uložení a `share` z prohlížeče — **bez SQL skriptu**, `.env` beze změny, žádný soubor
+nezmizel; `lang/cs/app.php` beze změny (verze Inertie se mění jen buildem). Nové třídy
+`Enums/AnalyticsEvent` a `Support/AnalyticsEvents` (autoloader `vendor/composer/`), zásady
+`resources/legal/privacy.md` s účinností 2026-10-11 (`config/letaky.php`).
+
+- **V Google Analytics (ručně):** klíčové události `sign_up` (jednou za událost) a `add_watch_item`
+  (jednou za relaci), obě bez výchozí hodnoty; vlastní dimenze s rozsahem Událost `method`,
+  `item_type`, `chain`, `content_type`; uchování dat 14 měsíců, měření změn historie vypnuté (R69).
+- **Ověřeno:** `version.txt` = `8dc358f`; `/health/imports` i `/health/tasks` 200; zásady
+  s novým odstavcem o měřených akcích a účinností 2026-10-11; testovací registrace a hlídání (11. 10.).
