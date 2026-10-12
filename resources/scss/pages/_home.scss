@@ -242,6 +242,18 @@
         }
     }
 
+    // Bez fotky: jemný přechod a jednobarevná silueta maskota (tokeny karty akce bez fotky)
+    &__ticket-image--none {
+        background: var(--gradient-offer-placeholder);
+    }
+
+    &__ticket-image &__ticket-placeholder {
+        width: var(--home-ticket-placeholder-width);
+        height: auto;
+        opacity: var(--home-ticket-placeholder-opacity);
+        filter: var(--offer-placeholder-filter);
+    }
+
     &__ticket-body {
         display: flex;
         flex-direction: column;

@@ -309,6 +309,10 @@ const bestDiscountItem = computed(() => props.watchItems.find((item) => item.off
 /** Akce s nejvyšší slevou — lístek u maskota v pruhu (R138), klepnutí skočí na její skupinu. */
 const bestOffer = computed(() => bestDiscountItem.value?.offers.find((offer) => discountPercent(offer) === summary.value.bestDiscount) ?? null);
 
+/** Fotka akce s nejvyšší slevou se nenačetla (CDN obchodu) — místo ní silueta maskota. */
+const bestImageBroken = ref(false);
+watch(bestOffer, () => (bestImageBroken.value = false));
+
 /** Cena akce s nejvyšší slevou, kterou uživatel zaplatí. */
 const bestOfferPrice = computed(() => (bestOffer.value ? formatPrice(bestOffer.value.userPrice ?? bestOffer.value.price, page.props.locale) : ''));
 
@@ -506,8 +510,10 @@ onMounted(async () => {
                         :aria-label="t('home.best_ticket_label', { name: bestOffer.name, price: bestOfferPrice })"
                         @click="revealItem(bestDiscountItem.id)"
                     >
-                        <span class="home-hero__ticket-image">
-                            <img v-if="bestOffer.imageUrl" :src="bestOffer.imageUrl" alt="" referrerpolicy="no-referrer" />
+                        <!-- Bez fotky (nebo když se nenačte) silueta maskota jako na kartě akce (R138) -->
+                        <span class="home-hero__ticket-image" :class="{ 'home-hero__ticket-image--none': !bestOffer.imageUrl || bestImageBroken }">
+                            <img v-if="bestOffer.imageUrl && !bestImageBroken" :src="bestOffer.imageUrl" alt="" referrerpolicy="no-referrer" @error="bestImageBroken = true" />
+                            <img v-else src="/images/brand/mascot-192.webp" width="192" height="192" alt="" class="home-hero__ticket-placeholder" />
                         </span>
                         <span class="home-hero__ticket-body">
                             <span class="home-hero__ticket-label">{{ t('home.best_ticket') }}</span>

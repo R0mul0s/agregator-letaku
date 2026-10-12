@@ -392,11 +392,16 @@
     --offer-placeholder-filter: brightness(0);
     --offer-placeholder-opacity: 0.08;
     --offer-placeholder-mascot-width: 45%;
+    // Lístek nejvyšší slevy v pruhu Mých slev bez fotky — malé pole, silueta výraznější než na kartě
+    --home-ticket-placeholder-width: 80%;
+    --home-ticket-placeholder-opacity: 0.18;
     // Všechny akce (R141): spodní okraj pruhu pod kartu s odděleními, maskot, hledání, dlaždice oddělení
     --offers-hero-bottom: 6rem;
     --offers-art-size: 12rem;
     --offers-search-max-width: 40rem;
     --offers-department-width: 5.75rem;
+    // Na počítači všech 12 oddělení v jednom řádku šířky obsahu
+    --offers-department-min-width: 5rem;
     --offers-department-icon: 2.75rem;
     // Živá ukázka hlídání a hra „Co je levnější?“ (R90)
     --watch-demo-chain-off-opacity: 0.45;

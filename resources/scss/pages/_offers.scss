@@ -198,14 +198,15 @@
         }
     }
 
-    // Maskot ve světlém kruhu s lístkem Nejlepší slevy týdne — od středního displeje
+    // Maskot ve světlém kruhu s lístkem Nejlepší slevy týdne — od širokého displeje (na tabletu by
+    // lístek zakryl konec pole hledání)
     &__art {
         position: relative;
         display: none;
         width: var(--offers-art-size);
         aspect-ratio: 1;
 
-        @include from-md {
+        @include from-lg {
             display: block;
         }
     }
@@ -333,6 +334,16 @@
         padding-inline: var(--space-4);
     }
 
+    // Na počítači všechna oddělení naráz v jednom řádku — posouvání do strany myší bez posuvníku
+    // nejde (na telefonu a tabletu prstem ano); prázdné sloupce auto-fit zruší
+    @include from-lg {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(var(--offers-department-min-width), 1fr));
+        margin-inline: 0;
+        padding-inline: 0;
+        overflow: visible;
+    }
+
     &__item {
         display: flex;
         flex: none;
@@ -340,6 +351,10 @@
         align-items: center;
         gap: var(--space-1);
         width: var(--offers-department-width);
+
+        @include from-lg {
+            width: auto;
+        }
         padding: var(--space-2) var(--space-1);
         background: none;
         border: 1px solid transparent;
