@@ -27,8 +27,9 @@ final readonly class OfferData
      * @param  CarbonImmutable  $validTo  Místní datum včetně (R7)
      * @param  array<string, mixed>  $raw  Původní položka od obchodu
      * @param  list<string>|null  $storeCodes  Prodejny, ve kterých akce platí (R49); null = všechny
-     * @param  string|null  $supersedes  Předběžné ID stejné akce uložené dřív z jiného zdroje (Globus: PDF letáku
-     *                                   před začátkem platnosti, R88) — import ten řádek převezme
+     * @param  string|null  $supersedes  Předběžné ID stejné akce uložené dřív z jiného zdroje (Globus a Billa: PDF
+     *                                   letáku před začátkem platnosti, R88; Lidl: dlaždice PDF letáku, R136)
+     *                                   — import ten řádek převezme
      */
     public function __construct(
         public string $externalId,
@@ -114,6 +115,14 @@ final readonly class OfferData
     public function withValidTo(CarbonImmutable $validTo): self
     {
         return new self(...[...get_object_vars($this), 'validTo' => $validTo]);
+    }
+
+    /**
+     * Kopie s ID stejné akce uložené dřív z jiného zdroje — akce z webu Lidlu převezme řádek dlaždice letáku (R136).
+     */
+    public function withSupersedes(string $supersedes): self
+    {
+        return new self(...[...get_object_vars($this), 'supersedes' => $supersedes]);
     }
 
     /**

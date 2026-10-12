@@ -29,7 +29,7 @@ final readonly class OfferContinuity
     /**
      * Řádek uložený pod předběžným ID (`OfferData::$supersedes`) převezme ID a platnost akce
      * ze zdroje (R88): Globus ukládá akce budoucího letáku z PDF, a když začnou platit, vrátí
-     * je API pod vlastním ID. Upsert pak řádek jen aktualizuje — zůstane jeho `created_at`
+     * je API pod vlastním ID; Lidl zveřejní PDF letáku dřív než stejné akce na webu (R136). Upsert pak řádek jen aktualizuje — zůstane jeho `created_at`
      * (souhrn ani centrum upozornění akci neohlásí podruhé jako novou, R74, R76), přiřazení
      * k produktům katalogu i ID v uložených upozorněních. Převezme se jen řádek s překrývající
      * se platností a jen když akce se stejným klíčem ještě uložená není.

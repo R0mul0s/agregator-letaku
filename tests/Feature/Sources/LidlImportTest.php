@@ -17,8 +17,10 @@ use App\Enums\OfferType;
 use App\Enums\PackageUnit;
 use App\Enums\ScrapeStatus;
 use App\Models\Leaflet;
+use App\Models\LeafletStat;
 use App\Models\Offer;
 use App\Models\ScrapeRun;
+use Illuminate\Http\Client\Factory as HttpFactory;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Process;
@@ -177,6 +179,35 @@ it('akci z letáku, kterou nese web, nezdvojí', function (): void {
     expect(Offer::query()->where('name', 'Máslo')->pluck('external_id')->all())->toBe(['10055941'])
         ->and(Offer::query()->where('name', 'BOHEMIA SEKT')->pluck('external_id')->all())->toBe(['10034404'])
         ->and(Offer::query()->where('name', 'ALESTO SELECTION Vlašské ořechy')->sole()->external_id)->toStartWith('letak-');
+});
+
+it('akce z webu převezme řádek uložený dřív z letáku — stejný řádek, žádná nová akce (R136)', function (): void {
+    // 2. 10.: leták od 8. 10. už je venku, web máslo ani sekt ještě nenese
+    fakeLidl();
+    $this->artisan('letaky:import-offers', ['chain' => ['lidl']])->assertSuccessful();
+    $fromLeaflet = Offer::query()->where('name', 'Máslo')->sole();
+    expect($fromLeaflet->external_id)->toStartWith('letak-');
+
+    // 6. 10.: čtvrteční kampaň nese máslo a sekt se stejnou cenou jako leták — nové podvržené odpovědi (první vyhrává)
+    $this->travelTo('2026-10-06 10:00:00');
+    Http::swap(new HttpFactory);
+    fakeLidl(thursdayCampaign: 'lidl/ctvrtecni-nabidka-2026-10-06.html');
+    $this->artisan('letaky:import-offers', ['chain' => ['lidl']])->assertSuccessful();
+
+    $butter = Offer::query()->where('name', 'Máslo')->sole();
+    expect($butter)
+        ->id->toBe($fromLeaflet->id)
+        ->external_id->toBe('10055941')
+        ->withdrawn_at->toBeNull()
+        // Zveřejněná 2. 10. — souhrn ani centrum upozornění ji neohlásí znovu jako novou (R74)
+        ->and($butter->created_at?->toDateString())->toBe('2026-10-02')
+        ->and($butter->leaflet->kind)->toBe(LeafletKind::Web)
+        ->and(Offer::query()->where('name', 'BOHEMIA SEKT')->sole()->created_at?->toDateString())->toBe('2026-10-02');
+
+    // Přehled kvality dat: leták akce předal webu, nepřišel o ně (R129)
+    $stat = LeafletStat::query()->whereHas('leaflet', fn ($leaflet) => $leaflet->where('kind', LeafletKind::Leaflet))->latest('id')->first();
+    expect($stat?->covered_offers)->toBe(2)
+        ->and($stat?->totalOffers())->toBe(LeafletStat::query()->where('leaflet_id', $stat?->leaflet_id)->oldest('id')->first()?->offers_count);
 });
 
 it('stejná dlaždice dá při dalším stažení stejnou nabídku (R16)', function (): void {

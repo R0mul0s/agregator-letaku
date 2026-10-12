@@ -119,6 +119,8 @@ final class DataQuality
 
     /**
      * Málo akcí: méně než nejvíc z předchozích stažení téhož letáku zmenšené o povolený propad.
+     * Počítají se i akce, které z letáku převzal web (R136) — jinak by Lidl hlásil propad pokaždé,
+     * když akce letáku zveřejní i na webu.
      */
     private function offersIssue(LeafletStat $stat): ?QualityIssue
     {
@@ -127,13 +129,15 @@ final class DataQuality
             ->where('id', '<', $stat->id)
             ->orderByDesc('id')
             ->limit(config()->integer('letaky.data_quality.offers_baseline_runs'))
-            ->pluck('offers_count')
+            ->get(['offers_count', 'covered_offers'])
+            ->map(fn (LeafletStat $previous): int => $previous->totalOffers())
             ->max();
 
+        $current = $stat->totalOffers();
         $limit = $baseline * (1 - config()->float('letaky.data_quality.offers_drop_share'));
 
-        return $baseline >= config()->integer('letaky.data_quality.min_offers') && $stat->offers_count < $limit
-            ? new QualityIssue(QualityIssue::OFFERS, $stat->offers_count, $baseline)
+        return $baseline >= config()->integer('letaky.data_quality.min_offers') && $current < $limit
+            ? new QualityIssue(QualityIssue::OFFERS, $current, $baseline)
             : null;
     }
 

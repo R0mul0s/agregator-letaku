@@ -46,7 +46,7 @@ function qualityLeaflet(string $externalId = '08_10_2026', Chain $chain = Chain:
 /**
  * Úspěšné stažení obchodu se statistikou letáku.
  */
-function qualityStat(Leaflet $leaflet, int $offers, ?int $candidates = null, ?int $verified = null): LeafletStat
+function qualityStat(Leaflet $leaflet, int $offers, ?int $candidates = null, ?int $verified = null, int $covered = 0): LeafletStat
 {
     $run = ScrapeRun::query()->create([
         'chain' => $leaflet->chain,
@@ -63,6 +63,7 @@ function qualityStat(Leaflet $leaflet, int $offers, ?int $candidates = null, ?in
         'offers_count' => $offers,
         'tile_candidates' => $candidates,
         'tiles_verified' => $verified,
+        'covered_offers' => $covered,
         'created_at' => CarbonImmutable::now(),
     ]);
 }
@@ -77,21 +78,21 @@ it('zapíše za každý leták stažení uložené akce a ověřené ceny, víc 
     // Akce jiného stažení se nepočítá
     Offer::factory()->create(['chain' => Chain::Penny, 'leaflet_id' => $pdf->id]);
 
-    $batch = fn (Leaflet $leaflet, ?TileStats $tiles): SourceBatch => new SourceBatch(new LeafletData(kind: $leaflet->kind, externalId: $leaflet->external_id), [], tiles: $tiles);
+    $batch = fn (Leaflet $leaflet, ?TileStats $tiles, int $covered = 0): SourceBatch => new SourceBatch(new LeafletData(kind: $leaflet->kind, externalId: $leaflet->external_id), [], tiles: $tiles, coveredOffers: $covered);
     app(RecordLeafletStats::class)->record(Chain::Penny, $run, [
         $batch($web, null),
         $batch($pdf, new TileStats(40, 30)),
-        $batch($pdf, new TileStats(10, 5)),
+        $batch($pdf, new TileStats(10, 5), 4),
         $batch($empty, new TileStats(25, 0)),
     ]);
 
     $rows = LeafletStat::query()->orderBy('leaflet_id')->get()->map(fn (LeafletStat $stat): array => [
-        $stat->leaflet_id, $stat->offers_count, $stat->tile_candidates, $stat->tiles_verified,
+        $stat->leaflet_id, $stat->offers_count, $stat->covered_offers, $stat->tile_candidates, $stat->tiles_verified,
     ])->all();
     expect($rows)->toBe([
-        [$pdf->id, 3, 50, 35],
-        [$empty->id, 0, 25, 0],
-        [$web->id, 2, null, null],
+        [$pdf->id, 3, 4, 50, 35],
+        [$empty->id, 0, 0, 25, 0],
+        [$web->id, 2, 0, null, null],
     ]);
 });
 
@@ -110,6 +111,18 @@ it('propad akcí: méně akcí než nejvíc z předchozích stažení téhož le
     $small = qualityLeaflet('maly');
     qualityStat($small, 8);
     expect($quality->issues(qualityStat($small, 2)))->toBe([]);
+});
+
+it('akce, které z letáku převzal web, nejsou propad (R136)', function (): void {
+    // Lidl 12. 10.: leták měl 165 akcí, pak 53 z nich zveřejnil i web
+    $leaflet = qualityLeaflet('od-ctvrtka', Chain::Lidl);
+    qualityStat($leaflet, 165);
+    $covered = qualityStat($leaflet, 112, covered: 53);
+
+    $quality = app(DataQuality::class);
+    expect($quality->issues($covered))->toBe([])
+        // Skutečný propad pod převzatými akcemi se pořád pozná
+        ->and($quality->issues(qualityStat($leaflet, 40, covered: 53)))->toEqual([new QualityIssue(QualityIssue::OFFERS, 93, 165)]);
 });
 
 it('propad ověřených cen: proti mediánu ostatních letáků obchodu, bez nich proti předchozím stažením letáku', function (): void {

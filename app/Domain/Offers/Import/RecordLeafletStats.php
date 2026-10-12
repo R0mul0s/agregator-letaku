@@ -2,8 +2,8 @@
 
 /**
  * Zapíše statistiku letáků stažení (R129): za každý leták z dávek počet akcí, které stažení
- * uložilo (akce s `scrape_run_id` tohoto stažení), a u letáků z PDF nebo SVG nalezené a ověřené
- * ceny z parseru. Leták bez akce dostane řádek s nulou — rozbitý parser je vidět.
+ * uložilo (akce s `scrape_run_id` tohoto stažení), akce převzaté jiným zdrojem obchodu (Lidl: web,
+ * R136) a u letáků z PDF nebo SVG nalezené a ověřené ceny z parseru. Leták bez akce dostane řádek s nulou — rozbitý parser je vidět.
  *
  * Běží v transakci importu po uložení dávek, jen u stažení, které nespadlo.
  *
@@ -36,6 +36,8 @@ final class RecordLeafletStats
     {
         /** @var array<int, TileStats|null> $tiles ID letáku => ceny z parseru (null = leták z API) */
         $tiles = [];
+        /** @var array<int, int> $covered ID letáku => akce převzaté jiným zdrojem obchodu (R136) */
+        $covered = [];
         foreach ($batches as $batch) {
             $leafletId = Leaflet::query()
                 ->where('chain', $chain)
@@ -48,6 +50,7 @@ final class RecordLeafletStats
             // Víc dávek jednoho letáku se sečte
             $previous = $tiles[$leafletId] ?? null;
             $tiles[$leafletId] = $batch->tiles === null ? $previous : ($previous ?? new TileStats)->plus($batch->tiles);
+            $covered[$leafletId] = ($covered[$leafletId] ?? 0) + $batch->coveredOffers;
         }
 
         $counts = Offer::query()
@@ -65,6 +68,7 @@ final class RecordLeafletStats
                 'leaflet_id' => $leafletId,
                 'chain' => $chain->value,
                 'offers_count' => (int) ($counts[$leafletId] ?? 0),
+                'covered_offers' => $covered[$leafletId] ?? 0,
                 'tile_candidates' => $stats?->candidates,
                 'tiles_verified' => $stats?->verified,
                 'created_at' => $now,

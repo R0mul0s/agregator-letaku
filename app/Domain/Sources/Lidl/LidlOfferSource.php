@@ -7,7 +7,8 @@
  * nabídek (leaflets, druh web). Pokrývá zhruba třetinu letáku — zbytek je jen v PDF (R23).
  * Kampaně bez potravin (móda, dílna) se stáhnou, ale nic z nich neuloží.
  * K tomu potravinové letáky s textem stránek pro zmínky bez ceny (R27) a s akcemi z PDF letáku,
- * které ověří cena za jednotku (R86); akce, kterou už nese web, se z letáku nezdvojí.
+ * které ověří cena za jednotku (R86); akce, kterou už nese web, se z letáku nezdvojí a akce z webu
+ * převezme její řádek uložený dřív z letáku (R136).
  * Chyba stažení nebo převodu PDF ukončí celé stažení — tichý výpadek by akce z letáku označil
  * jako stažené obchodem (R16).
  *
@@ -73,16 +74,18 @@ final class LidlOfferSource implements OfferSource
         }
 
         $webOffers = array_merge(...array_map(fn (SourceBatch $batch): array => $batch->offers, $batches));
+        [$leaflets, $superseded] = $this->leaflets($baseUrl, $webOffers);
 
-        return [...$batches, ...$this->leaflets($baseUrl, $webOffers)];
+        return [...$this->withSuperseded($batches, $superseded), ...$leaflets];
     }
 
     /**
      * Potravinové letáky: text stránek pro zmínky bez ceny (R27) a ověřené akce z PDF (R86)
-     * kromě těch, které už nese web.
+     * kromě těch, které už nese web. Ke každé akci z webu, která dlaždici letáku nahradila,
+     * vrátí ID té dlaždice (R136).
      *
      * @param  list<OfferData>  $webOffers
-     * @return list<SourceBatch>
+     * @return array{list<SourceBatch>, array<string, string>} Dávky letáků a klíč akce z webu => ID dlaždice letáku
      *
      * @throws PdfTextFailed
      */
@@ -95,6 +98,7 @@ final class LidlOfferSource implements OfferSource
         $pageUrlPattern = $baseUrl.config()->string('letaky.sources.lidl.flyer_page_path');
 
         $batches = [];
+        $superseded = [];
         foreach ($slugs as $slug) {
             $response = $this->http->request(config()->integer('letaky.sources.lidl.request_delay_ms'))
                 ->get(config()->string('letaky.sources.lidl.flyer_api_url'), ['flyer_identifier' => $slug, 'region_id' => 0, 'region_code' => 0])
@@ -103,16 +107,44 @@ final class LidlOfferSource implements OfferSource
             $flyer = $this->parser->flyer($response, $slug, $pageUrlPattern);
 
             $pages = $this->pdfReader->readUrl($this->http, $this->parser->pdfUrl($response, $slug), config()->integer('letaky.sources.lidl.request_delay_ms'));
-            $offers = array_values(array_filter(
-                $this->leafletParser->offers($pages, $flyer->leaflet, $slug, $pageUrlPattern),
-                fn (OfferData $offer): bool => ! array_any($webOffers, fn (OfferData $webOffer): bool => $this->isSameOffer($offer, $webOffer)),
-            ));
+            $offers = [];
+            $covered = 0;
+            foreach ($this->leafletParser->offers($pages, $flyer->leaflet, $slug, $pageUrlPattern) as $offer) {
+                $webOffer = array_find($webOffers, fn (OfferData $webOffer): bool => $this->isSameOffer($offer, $webOffer));
+                if ($webOffer === null) {
+                    $offers[] = $offer;
 
-            // Nalezené a ověřené ceny letáku pro přehled kvality dat (R129)
-            $batches[] = new SourceBatch($flyer->leaflet, $offers, $flyer->pages, $this->leafletParser->lastStats());
+                    continue;
+                }
+                // Lidl zveřejní PDF letáku dřív než akce na webu — akce z webu převezme řádek
+                // uložený z letáku, jinak by se ohlásila podruhé jako nová (R136)
+                $superseded[$webOffer->key()] ??= $offer->externalId;
+                $covered++;
+            }
+
+            // Nalezené a ověřené ceny letáku a akce převzaté webem pro přehled kvality dat (R129, R136)
+            $batches[] = new SourceBatch($flyer->leaflet, $offers, $flyer->pages, $this->leafletParser->lastStats(), $covered);
         }
 
-        return $batches;
+        return [$batches, $superseded];
+    }
+
+    /**
+     * Akce z webu s ID dlaždice letáku, kterou nahradily (`OfferData::$supersedes`, R136).
+     *
+     * @param  list<SourceBatch>  $batches
+     * @param  array<string, string>  $superseded  Klíč akce z webu => ID dlaždice letáku
+     * @return list<SourceBatch>
+     */
+    private function withSuperseded(array $batches, array $superseded): array
+    {
+        return array_map(fn (SourceBatch $batch): SourceBatch => new SourceBatch(
+            $batch->leaflet,
+            array_map(fn (OfferData $offer): OfferData => isset($superseded[$offer->key()]) ? $offer->withSupersedes($superseded[$offer->key()]) : $offer, $batch->offers),
+            $batch->pages,
+            $batch->tiles,
+            $batch->coveredOffers,
+        ), $batches);
     }
 
     /**

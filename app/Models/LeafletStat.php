@@ -24,6 +24,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $leaflet_id
  * @property Chain $chain
  * @property int $offers_count
+ * @property int $covered_offers
  * @property int|null $tile_candidates
  * @property int|null $tiles_verified
  * @property CarbonImmutable $created_at
@@ -43,6 +44,7 @@ class LeafletStat extends Model
         'leaflet_id',
         'chain',
         'offers_count',
+        'covered_offers',
         'tile_candidates',
         'tiles_verified',
         'created_at',
@@ -58,6 +60,7 @@ class LeafletStat extends Model
         return [
             'chain' => Chain::class,
             'offers_count' => 'integer',
+            'covered_offers' => 'integer',
             'tile_candidates' => 'integer',
             'tiles_verified' => 'integer',
             'created_at' => 'immutable_datetime',
@@ -72,6 +75,15 @@ class LeafletStat extends Model
     public function leaflet(): BelongsTo
     {
         return $this->belongsTo(Leaflet::class);
+    }
+
+    /**
+     * Akce letáku včetně těch, které převzal jiný zdroj obchodu (Lidl: web, R136) — podle tohoto
+     * čísla se posuzuje propad; akce, které leták předá webu, nejsou ztracené.
+     */
+    public function totalOffers(): int
+    {
+        return $this->offers_count + $this->covered_offers;
     }
 
     /**

@@ -111,7 +111,12 @@ function issueOf(leaflet, kind) {
                                     {{ t(`data_quality.issues.${issue.kind}`, { current: issue.current, baseline: issue.baseline }) }}
                                 </span>
                             </td>
-                            <td class="data-table__number">{{ formatNumber(leaflet.offers, page.props.locale) }}</td>
+                            <td class="data-table__number">
+                                {{ formatNumber(leaflet.offers, page.props.locale) }}
+                                <span v-if="leaflet.covered" class="data-table__muted quality-row__counts">{{
+                                    t('data_quality.covered', { count: formatNumber(leaflet.covered, page.props.locale) })
+                                }}</span>
+                            </td>
                             <td>
                                 <Sparkline
                                     v-if="leaflet.offersHistory.length > 1"

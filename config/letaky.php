@@ -600,6 +600,7 @@ return [
     | Propad (upozornění adminům jako výpadek, R126):
     | - akcí: stažení letáku uložilo o víc než offers_drop_share méně akcí než nejvíc z předchozích
     |   offers_baseline_runs stažení téhož letáku (jen letáky, které měly aspoň min_offers akcí);
+    |   akce letáku, které převzal web obchodu (Lidl, R136), se počítají k letáku;
     | - ověřených cen (PDF/SVG): podíl ověřených je o víc než verified_drop_share nižší než medián
     |   ostatních letáků obchodu za verified_baseline_days (nový leták s jiným rozvržením nemá
     |   vlastní historii), bez nich nejvyšší podíl předchozích stažení téhož letáku; jen leták

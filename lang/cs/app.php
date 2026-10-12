@@ -1422,6 +1422,8 @@ return [
             'source_api' => 'API / web',
             'verified_value' => ':percent %',
             'verified_counts' => ':verified z :candidates',
+            // Akce letáku, které nese i web obchodu a uložily se odtud (Lidl, R136)
+            'covered' => 'z toho :count na webu',
             'not_applicable' => '—',
             'issues' => [
                 'offers' => 'Propad akcí: :current (předtím až :baseline)',

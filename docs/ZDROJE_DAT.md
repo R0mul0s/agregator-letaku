@@ -249,6 +249,10 @@ Pasti:
 - **Duplicity s webem** (CLAUDE.md bod 7): dlaždice se vynechá, když akce z webu má stejnou cenu (bez aplikace nebo
   s ní), překrývající se platnost a všechna výrazná slova (≥ 4 znaky, ne čísla) kratšího názvu jsou v delším. Jedno
   společné slovo nestačí — „PIKOK Kladenská pečeně“ a „PIKOK PURE Dušená šunka“ za 19,90 by splynuly.
+- **Web vychází po letáku** (R136): PDF letáku od čtvrtka je venku už v pondělí, stejné akce se v kampaních webu
+  objeví až později (12. 10. 2026 54 akcí letáku od 15. 10.). Akce z webu proto nese `supersedes` = ID dlaždice, kterou
+  nahradila, a import převezme řádek uložený z letáku (jinak by se ohlásila podruhé jako nová). Počet takových
+  dlaždic jde do statistiky letáku (`covered_offers`) — leták o ně nepřišel.
 - Chyba stažení nebo převodu PDF (`PdfTextFailed`) ukončí stažení celého Lidlu — jinak by akce z letáku byly „stažené“ (R16).
 
 **Výsledek 6. 10. 2026** (měřeno na celých letácích proti kampaním webu staženým týž den, 104 potravinových akcí):

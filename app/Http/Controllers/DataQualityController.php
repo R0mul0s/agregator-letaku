@@ -92,13 +92,15 @@ class DataQualityController extends Controller
             'label' => $this->quality->label($stat->leaflet),
             'url' => $stat->leaflet->source_url,
             'fromPdf' => $stat->tile_candidates !== null,
-            'offers' => $stat->offers_count,
+            // Akce letáku včetně těch, které převzal web (R136) — stejné číslo posuzuje propad
+            'offers' => $stat->totalOffers(),
+            'covered' => $stat->covered_offers,
             'verified' => $stat->tile_candidates === null ? null : [
                 'percent' => $stat->verifiedPercent(),
                 'verified' => $stat->tiles_verified,
                 'candidates' => $stat->tile_candidates,
             ],
-            'offersHistory' => array_map(fn (LeafletStat $item): int => $item->offers_count, $history),
+            'offersHistory' => array_map(fn (LeafletStat $item): int => $item->totalOffers(), $history),
             'verifiedHistory' => array_map(fn (LeafletStat $item): ?int => $item->verifiedPercent(), $history),
             'issues' => array_map(fn (QualityIssue $issue): array => [
                 'kind' => $issue->kind,
