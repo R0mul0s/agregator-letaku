@@ -20,7 +20,7 @@ import { computed, onMounted, ref } from 'vue';
 const PAGES = ['Home', 'WatchItems', 'ShoppingList', 'Preferences', 'Offers', 'Weekly'];
 
 /** Stránky, které si výzvu vkládají samy (oddíly přes celou šířku) — AppLayout ji tam nedává. */
-const INLINE_PAGES = ['Home', 'Offers'];
+const INLINE_PAGES = ['Home', 'Offers', 'Weekly'];
 
 /** Výhody na kartě (lang: ui.pwa.install_benefits) a jejich ikony. */
 const BENEFITS = ['tap', 'offline', 'notify'];

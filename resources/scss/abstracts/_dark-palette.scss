@@ -80,6 +80,9 @@
     --color-info-border: #2d5a86;
     --gradient-offer-placeholder: linear-gradient(160deg, #23262d, #1f2228);
     --offer-placeholder-filter: brightness(0) invert(1);
+    // Pořadí v žebříčku týdne (R143): světlé kolečko s tmavým číslem
+    --color-weekly-rank-bg: #eceef2;
+    --color-weekly-rank-text: #121418;
 
     // Výzva k přidání na plochu (R139): o stupeň světlejší antracit s červenou září, žluté ikony
     --gradient-install-prompt: radial-gradient(circle at 88% 25%, rgb(214 51 60 / 30%), transparent 45%), linear-gradient(150deg, #2c2f37 0%, #24272e 100%);

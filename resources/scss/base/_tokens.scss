@@ -405,6 +405,26 @@
     // Na počítači všech 12 oddělení v jednom řádku šířky obsahu
     --offers-department-min-width: 5rem;
     --offers-department-icon: 2.75rem;
+    // Nejlepší slevy týdne (R143): stupně vítězů v pruhu (první uprostřed a výš), pořadí v kolečku
+    // v rohu karty, přepínač týdnů, řady menších dlaždic obchodů, dlaždice archivu
+    --weekly-podium-width: 27rem;
+    --weekly-podium-ticket-width: 8.25rem;
+    --weekly-podium-ticket-width-first: 9.5rem;
+    --weekly-podium-lift: 1.5rem;
+    --weekly-podium-image-size: 4.5rem;
+    --weekly-podium-image-size-first: 5.5rem;
+    --weekly-rank-size: 2.1rem;
+    --weekly-rank-ring: 3px;
+    --weekly-rank-overhang: 0.6rem;
+    --color-weekly-rank-bg: #1f222a;
+    --color-weekly-rank-text: #ffffff;
+    --weekly-switch-item-height: 2.25rem;
+    --weekly-switch-disabled-opacity: 0.45;
+    --weekly-share-border: 1.5px;
+    --weekly-mini-min-width: 9.5rem;
+    --weekly-mini-image-height: 6rem;
+    --weekly-archive-tile-min-width: 11rem;
+    --font-size-weekly-chain-title: 1.15rem;
     // Živá ukázka hlídání a hra „Co je levnější?“ (R90)
     --watch-demo-chain-off-opacity: 0.45;
     --watch-demo-dot-size: 0.5rem;

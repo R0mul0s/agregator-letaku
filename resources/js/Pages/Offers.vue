@@ -25,6 +25,7 @@ import EmptyState from '@/Components/EmptyState.vue';
 import FilterBar from '@/Components/FilterBar.vue';
 import FilterChip from '@/Components/FilterChip.vue';
 import FloatingFilterBar from '@/Components/FloatingFilterBar.vue';
+import GuestOffersCard from '@/Components/GuestOffersCard.vue';
 import InstallPrompt from '@/Components/InstallPrompt.vue';
 import OfferCard from '@/Components/OfferCard.vue';
 import OfferRow from '@/Components/OfferRow.vue';
@@ -237,11 +238,6 @@ const updated = computed(() => updatedLabel(page.props.siteFooter?.lastImportAt,
 
 /** Jediný vybraný obchod (stránka /akce/lidl) — logo v nadpisu a věta o obchodě, jinak null. */
 const singleChain = computed(() => (filters.chain.length === 1 ? (props.chains.find((chain) => chain.value === filters.chain[0]) ?? null) : null));
-
-/** Body karty pro nepřihlášené (pole v překladech, :chains = počet obchodů). */
-const guestPoints = computed(() =>
-    (page.props.translations?.offers_guest?.points ?? []).map((point) => point.replace(':chains', String(props.chains.length))),
-);
 
 /** Všechny obchody — zruší výběr obchodů (pilulka „Všechny obchody“ v pruhu). */
 function chooseAllChains() {
@@ -611,20 +607,7 @@ onBeforeUnmount(() => liveSearch.cancel());
                         <ShoppingToggle :offer-id="offer.id" />
                     </OfferCard>
                     <!-- Nepřihlášený (R44): výzva po prvním řádku akcí přes celou šířku -->
-                    <aside v-if="!page.props.auth.user && index === GUEST_CARD_AFTER - 1" class="offers-guest">
-                        <img src="/images/brand/mascot-192.webp" width="192" height="192" alt="" class="offers-guest__mascot" loading="lazy" />
-                        <div class="offers-guest__body">
-                            <p class="offers-guest__eyebrow">{{ t('offers_guest.eyebrow') }}</p>
-                            <h2 class="offers-guest__title">{{ t('offers_guest.text') }}</h2>
-                            <ul class="offers-guest__points">
-                                <li v-for="(point, pointIndex) in guestPoints" :key="pointIndex">{{ point }}</li>
-                            </ul>
-                        </div>
-                        <div class="offers-guest__actions">
-                            <Link :href="page.props.auth.registerUrl" class="button button--highlight">{{ t('offers_guest.register') }}</Link>
-                            <small class="offers-guest__note">{{ t('offers_guest.note') }}</small>
-                        </div>
-                    </aside>
+                    <GuestOffersCard v-if="index === GUEST_CARD_AFTER - 1" />
                 </template>
             </div>
 

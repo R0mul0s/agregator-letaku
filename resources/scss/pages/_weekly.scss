@@ -1,142 +1,575 @@
 // _weekly.scss
-// Nejlepší slevy týdne (Weekly.vue, R128): hlavní pruh s číslem týdne a sdílením, přechod
-// na sousední týdny, oddíly se žebříčkem a slevami obchodů, archiv týdnů jako dlaždice.
+// Nejlepší slevy týdne (Weekly.vue, R128, vzhled R143 jako Všechny akce): červený pruh
+// (.offers-hero) s číslem týdne, přepínáním týdnů, sdílením a stupni vítězů; karta přes oblý
+// konec se zkratkami na obchody; žebříček s pořadím v rohu karty; obchody jako řady menších
+// dlaždic na růžovém pruhu (.landing-band); archiv týdnů jako dlaždice.
 //
 // @author Roman Hlaváček
 // @created 2026-10-10
 
 @use '../abstracts/mixins' as *;
 
-// Hlavní pruh jako u Kontaktu: číslo týdne, nadpis s dny, věta a akce
+// ---------- Červený pruh ----------
 .weekly-hero {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
-    margin-bottom: var(--space-4);
-    padding: var(--space-4);
-    background: var(--gradient-hero);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-card);
-
-    @include from-md {
-        padding: var(--space-5);
-    }
-
+    // Týden a rok jako štítek nad nadpisem (jako čerstvost dat ve Všech akcích, bez tečky)
     &__eyebrow {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: var(--space-2);
         margin: 0;
-        color: var(--color-text-muted);
+        padding: var(--space-1) var(--space-3);
+        background: var(--color-landing-hero-chip);
+        border: 1px solid var(--color-landing-hero-chip-border);
+        border-radius: var(--radius-pill);
         font-size: var(--font-size-sm);
-        font-weight: var(--font-weight-semibold);
+        font-weight: var(--font-weight-bold);
     }
 
-    &__title {
-        margin: 0;
-    }
-
-    &__lead {
-        max-width: var(--weekly-lead-max-width);
-        margin: 0;
-        color: var(--color-text-muted);
+    // Dny týdne žlutě podtržené jako zvýrazňovač (jako nadpis úvodní stránky)
+    &__range {
+        background: linear-gradient(transparent var(--landing-highlight-from), var(--color-landing-highlight) var(--landing-highlight-from), var(--color-landing-highlight) var(--landing-highlight-to), transparent var(--landing-highlight-to));
+        white-space: nowrap;
     }
 
     &__actions {
         display: flex;
         flex-wrap: wrap;
+        align-items: center;
         gap: var(--space-2);
-        margin-top: var(--space-2);
+    }
+
+    // Sdílení jako bílý obrys na červeném pruhu
+    &__share {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+        min-height: var(--control-size);
+        padding: 0 var(--space-3);
+        background: transparent;
+        border: 0;
+        border-radius: var(--radius-pill);
+        box-shadow: inset 0 0 0 var(--weekly-share-border) var(--color-landing-hero-link-line);
+        color: var(--color-landing-on-hero);
+        font: inherit;
+        font-size: var(--font-size-sm);
+        font-weight: var(--font-weight-extrabold);
+        cursor: pointer;
+        transition: background-color var(--duration-fast);
+
+        &:hover {
+            background: var(--color-landing-hero-chip);
+        }
+
+        svg {
+            width: var(--icon-size);
+            height: var(--icon-size);
+            fill: none;
+            stroke: currentcolor;
+            stroke-width: var(--svg-stroke-check);
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
     }
 }
 
-// Předchozí týden vlevo, další vpravo (i když předchozí chybí)
-.weekly-pager {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
+// Přepínač týdnů: průsvitná pilulka, zobrazený týden bílý
+.weekly-switch {
+    display: inline-flex;
+    align-items: center;
+    padding: var(--space-1);
+    background: var(--color-landing-hero-chip);
+    border: 1px solid var(--color-landing-hero-chip-border);
+    border-radius: var(--radius-pill);
+
+    &__item {
+        display: inline-flex;
+        align-items: center;
+        min-height: var(--weekly-switch-item-height);
+        padding: 0 var(--space-3);
+        border-radius: var(--radius-pill);
+        color: var(--color-landing-on-hero);
+        font-size: var(--font-size-sm);
+        font-weight: var(--font-weight-extrabold);
+        text-decoration: none;
+        white-space: nowrap;
+
+        &:hover {
+            background: var(--color-landing-hero-chip-hover);
+        }
+
+        // Text tmavě červený v obou režimech jako vybraný obchod ve Všech akcích
+        &--current,
+        &--current:hover {
+            background: var(--color-logo-bg);
+            color: var(--color-panel-button-text);
+        }
+
+        &--disabled,
+        &--disabled:hover {
+            background: none;
+            opacity: var(--weekly-switch-disabled-opacity);
+        }
+    }
+}
+
+// Stupně vítězů: první tři slevy jako lístky, první uprostřed a výš — jen na širokém displeji
+// (na menším by stlačily nadpis; pořadí je hned pod pruhem v žebříčku)
+.weekly-podium {
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
     gap: var(--space-2);
-    margin-bottom: var(--space-4);
+    width: var(--weekly-podium-width);
+    padding-top: var(--weekly-podium-lift);
 
-    &__link--newer {
-        margin-left: auto;
+    @include from-lg {
+        display: flex;
+    }
+
+    &__ticket {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: var(--space-1);
+        width: var(--weekly-podium-ticket-width);
+        padding: var(--space-3) var(--space-2) var(--space-2);
+        background: var(--color-surface);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-landing-lift);
+        color: var(--color-text);
+        text-align: center;
+        text-decoration: none;
+        transition: transform var(--duration-fast);
+
+        &--1 {
+            width: var(--weekly-podium-ticket-width-first);
+            transform: translateY(calc(-1 * var(--weekly-podium-lift)));
+
+            &:hover {
+                transform: translateY(calc(var(--hover-lift) - var(--weekly-podium-lift)));
+            }
+        }
+
+        &--2 {
+            transform: rotate(var(--landing-ticket-tilt));
+
+            &:hover {
+                transform: rotate(var(--landing-ticket-tilt)) translateY(var(--hover-lift));
+            }
+        }
+
+        &--3 {
+            transform: rotate(var(--landing-ticket-sticker-tilt));
+
+            &:hover {
+                transform: rotate(var(--landing-ticket-sticker-tilt)) translateY(var(--hover-lift));
+            }
+        }
+    }
+
+    // Pořadí v kolečku nad lístkem; první žlutě
+    &__rank {
+        position: absolute;
+        top: calc(var(--weekly-rank-size) / -2);
+        left: 50%;
+        display: grid;
+        place-items: center;
+        width: var(--weekly-rank-size);
+        height: var(--weekly-rank-size);
+        background: var(--color-weekly-rank-bg);
+        border: var(--weekly-rank-ring) solid var(--color-surface);
+        border-radius: 50%;
+        color: var(--color-weekly-rank-text);
+        font-size: var(--font-size-sm);
+        font-weight: var(--font-weight-black);
+        transform: translateX(-50%);
+    }
+
+    &__ticket--1 &__rank {
+        background: var(--color-landing-highlight);
+        color: var(--color-on-landing-highlight);
+    }
+
+    &__image {
+        display: grid;
+        place-items: center;
+        width: var(--weekly-podium-image-size);
+        height: var(--weekly-podium-image-size);
+        overflow: hidden;
+        background: var(--color-logo-bg);
+        border-radius: var(--radius-sm);
+
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        &--none {
+            background: var(--gradient-offer-placeholder);
+        }
+    }
+
+    &__ticket--1 &__image {
+        width: var(--weekly-podium-image-size-first);
+        height: var(--weekly-podium-image-size-first);
+    }
+
+    // Silueta maskota místo fotky — v malém poli výraznější než na kartě (jako lístek Mých slev)
+    &__image &__placeholder {
+        width: var(--home-ticket-placeholder-width);
+        height: auto;
+        opacity: var(--home-ticket-placeholder-opacity);
+        filter: var(--offer-placeholder-filter);
+    }
+
+    &__name {
+        display: -webkit-box;
+        overflow: hidden;
+        font-size: var(--font-size-xs);
+        font-weight: var(--font-weight-bold);
+        line-height: var(--line-height-heading);
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+    }
+
+    &__price {
+        color: var(--color-price);
+        font-weight: var(--font-weight-black);
+    }
+
+    &__sticker {
+        position: absolute;
+        top: var(--space-2);
+        right: calc(-1 * var(--space-2));
+        padding: 0 var(--space-2);
+        background: var(--gradient-brand);
+        border-radius: var(--radius-sm);
+        color: var(--color-on-brand);
+        font-size: var(--font-size-sm);
+        font-weight: var(--font-weight-black);
+        transform: rotate(var(--landing-ticket-sticker-tilt));
     }
 }
 
-.weekly-section {
-    margin-bottom: var(--space-5);
+// ---------- Karta přes oblý konec: zkratky na obchody ----------
+.weekly-jump {
+    &__label {
+        color: var(--color-text-muted);
+        font-size: var(--font-size-xs);
+        font-weight: var(--font-weight-extrabold);
+    }
+
+    &__row {
+        display: flex;
+        gap: var(--space-2);
+        overflow-x: auto;
+        scrollbar-width: none;
+
+        &::-webkit-scrollbar {
+            display: none;
+        }
+    }
+
+    &__item {
+        display: inline-flex;
+        flex: none;
+        align-items: center;
+        gap: var(--space-2);
+        min-height: var(--control-size);
+        padding: var(--space-1) var(--space-3) var(--space-1) var(--space-1);
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-pill);
+        color: var(--color-text);
+        font-size: var(--font-size-sm);
+        font-weight: var(--font-weight-extrabold);
+        text-decoration: none;
+        transition: border-color var(--duration-fast);
+
+        &:hover {
+            border-color: var(--color-accent);
+        }
+
+        .chain-logo__image {
+            border: 0;
+            border-radius: var(--radius-pill);
+        }
+
+        .chain-logo__name {
+            font-weight: inherit;
+        }
+    }
+
+    &__discount {
+        color: var(--color-accent-strong);
+        font-size: inherit;
+        font-weight: var(--font-weight-black);
+    }
+}
+
+.weekly-empty {
+    padding-block: var(--space-4);
+}
+
+// ---------- Žebříček ----------
+.weekly-section--archive {
+    padding-top: 0;
+}
+
+// Pořadí v rohu karty; první tři žlutě a se žlutým okrajem karty
+.weekly-ranking {
+    &__item {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        scroll-margin-top: calc(var(--app-header-height, 0px) + var(--space-4));
+
+        > .offer-card {
+            flex: 1;
+        }
+    }
+
+    &__rank {
+        position: absolute;
+        z-index: 2;
+        top: calc(-1 * var(--weekly-rank-overhang));
+        left: calc(-1 * var(--weekly-rank-overhang));
+        display: grid;
+        place-items: center;
+        min-width: var(--weekly-rank-size);
+        height: var(--weekly-rank-size);
+        padding: 0 var(--space-1);
+        background: var(--color-weekly-rank-bg);
+        border: var(--weekly-rank-ring) solid var(--color-bg);
+        border-radius: var(--radius-pill);
+        color: var(--color-weekly-rank-text);
+        font-size: var(--font-size-sm);
+        font-weight: var(--font-weight-black);
+    }
+
+    &__item--podium &__rank {
+        background: var(--color-landing-highlight);
+        color: var(--color-on-landing-highlight);
+    }
+
+    &__item--podium > .offer-card {
+        border-color: var(--color-landing-highlight-edge);
+        box-shadow: 0 0 0 1px var(--color-landing-highlight-edge), var(--shadow-card);
+    }
+}
+
+// ---------- Obchody na růžovém pruhu ----------
+.weekly-chains {
+    // Řada dlaždic přesahuje do odsazení karty — vyblednutí a šipky u okraje karty (ScrollRow)
+    --scroll-row-bleed: var(--space-3);
+
+    @include from-md {
+        --scroll-row-bleed: var(--space-4);
+    }
+}
+
+.weekly-chain {
+    margin-bottom: var(--space-4);
+    padding: var(--space-3);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+    scroll-margin-top: calc(var(--app-header-height, 0px) + var(--space-4));
+
+    @include from-md {
+        padding: var(--space-3) var(--space-4) var(--space-4);
+    }
+
+    &:last-child {
+        margin-bottom: 0;
+    }
 
     &__header {
         display: flex;
         flex-wrap: wrap;
-        align-items: baseline;
+        align-items: center;
         justify-content: space-between;
-        gap: var(--space-2);
+        gap: var(--space-2) var(--space-3);
         margin-bottom: var(--space-3);
-
-        .weekly-section__title {
-            margin-bottom: 0;
-        }
+        font-weight: var(--font-weight-extrabold);
     }
 
-    // Nadpis oddílu s „rychlostními čárkami“ z loga jako na úvodní stránce
     &__title {
         display: flex;
         align-items: center;
-        gap: var(--space-2);
-        margin-bottom: var(--space-3);
-        font-size: var(--font-size-card-title);
+        gap: var(--space-3);
+        font-size: var(--font-size-md);
+        font-weight: var(--font-weight-black);
 
-        &::before {
-            @include speed-lines;
+        @include from-md {
+            font-size: var(--font-size-weekly-chain-title);
         }
     }
 
     &__logo {
         display: inline-flex;
     }
+
+    // Dlaždice v řadě: na počítači všechny vedle sebe, užší displej posouvá do strany
+    &__row {
+        display: grid;
+        grid-auto-columns: minmax(var(--weekly-mini-min-width), 1fr);
+        grid-auto-flow: column;
+        gap: var(--space-3);
+        margin-inline: calc(-1 * var(--scroll-row-bleed));
+        padding: 0 var(--scroll-row-bleed) var(--space-1);
+        overflow-x: auto;
+        scroll-padding-inline: var(--scroll-row-bleed);
+        scroll-snap-type: x mandatory;
+        scrollbar-width: none;
+
+        &::-webkit-scrollbar {
+            display: none;
+        }
+
+        > * {
+            scroll-snap-align: start;
+        }
+    }
 }
 
-// Archiv: týdny jako dlaždice, aktuálně zobrazený zvýrazněný
+// Menší dlaždice akce: fotka, štítek slevy, název a cena
+.weekly-mini {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    padding: var(--space-2);
+    background: var(--color-bg);
+    border-radius: var(--radius-md);
+    color: var(--color-text);
+    text-decoration: none;
+    transition: transform var(--duration-fast);
+
+    &:is(a):hover {
+        transform: translateY(var(--hover-lift));
+    }
+
+    &__image {
+        display: grid;
+        place-items: center;
+        height: var(--weekly-mini-image-height);
+        padding: var(--space-1);
+        overflow: hidden;
+        background: var(--color-logo-bg);
+        border-radius: var(--radius-sm);
+
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        &--none {
+            background: var(--gradient-offer-placeholder);
+        }
+    }
+
+    &__image &__placeholder {
+        width: var(--offer-placeholder-mascot-width);
+        height: auto;
+        opacity: var(--offer-placeholder-opacity);
+        filter: var(--offer-placeholder-filter);
+    }
+
+    &__sticker {
+        position: absolute;
+        top: var(--space-2);
+        right: var(--space-1);
+        padding: 0 var(--space-2);
+        background: var(--gradient-brand);
+        border-radius: var(--radius-sm);
+        color: var(--color-on-brand);
+        font-size: var(--font-size-sm);
+        font-weight: var(--font-weight-black);
+        transform: rotate(var(--sticker-rotation));
+    }
+
+    &__name {
+        display: -webkit-box;
+        overflow: hidden;
+        font-size: var(--font-size-sm);
+        font-weight: var(--font-weight-extrabold);
+        line-height: var(--line-height-heading);
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+    }
+
+    &__price {
+        margin-top: auto;
+        color: var(--color-price);
+        font-weight: var(--font-weight-black);
+
+        s {
+            color: var(--color-text-muted);
+            font-size: var(--font-size-xs);
+            font-weight: var(--font-weight-semibold);
+        }
+    }
+}
+
+// ---------- Archiv týdnů ----------
 .weekly-archive {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--weekly-archive-min-width)), 1fr));
-    gap: var(--space-2);
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--weekly-archive-tile-min-width)), 1fr));
+    gap: var(--space-3);
     margin: 0;
     padding: 0;
     list-style: none;
 
-    &__link {
+    &__tile {
         display: flex;
         flex-direction: column;
         gap: var(--space-1);
-        padding: var(--space-2) var(--space-3);
+        height: 100%;
+        padding: var(--space-3);
         background: var(--color-surface);
         border: 1px solid var(--color-border);
         border-radius: var(--radius-md);
+        box-shadow: var(--shadow-card);
         color: var(--color-text);
-        font-weight: var(--font-weight-semibold);
         text-decoration: none;
+        transition: border-color var(--duration-fast);
 
         &:hover {
             border-color: var(--color-accent);
         }
 
-        &:focus-visible {
-            @include focus-ring;
-        }
-
         &--active {
             border-color: var(--color-accent);
-            background: var(--color-accent-soft);
+            box-shadow: 0 0 0 1px var(--color-accent), var(--shadow-card);
         }
+    }
+
+    &__week {
+        font-size: var(--font-size-md);
+        font-weight: var(--font-weight-black);
     }
 
     &__range {
         color: var(--color-text-muted);
         font-size: var(--font-size-sm);
-        font-weight: var(--font-weight-regular);
+    }
+
+    &__open {
+        color: var(--color-accent-strong);
+        font-size: var(--font-size-sm);
+        font-weight: var(--font-weight-extrabold);
+    }
+
+    &__badge {
+        align-self: flex-start;
+        margin-top: var(--space-1);
+        padding: 0 var(--space-2);
+        background: var(--color-accent-soft);
+        border-radius: var(--radius-pill);
+        color: var(--color-accent-strong);
+        font-size: var(--font-size-xs);
+        font-weight: var(--font-weight-extrabold);
     }
 }
