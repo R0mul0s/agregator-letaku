@@ -15,7 +15,7 @@ export function prefersReducedMotion() {
 }
 
 /** Způsob posunu: plynule, při omezeném pohybu skokem. */
-function scrollBehavior() {
+export function scrollBehavior() {
     return prefersReducedMotion() ? 'auto' : 'smooth';
 }
 

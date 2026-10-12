@@ -335,6 +335,11 @@ return [
         ],
         'skip_to_content' => 'Přeskočit na obsah',
         'back_to_top' => 'Nahoru na začátek stránky',
+        // Šipky posuvného řádku (ScrollRow.vue, R141)
+        'scroll_row' => [
+            'back' => 'Posunout zpět',
+            'forward' => 'Posunout dál',
+        ],
 
         'nav' => [
             'label' => 'Hlavní navigace',

@@ -282,6 +282,9 @@
     }
 
     &__card {
+        // Oddělení přesahují do odsazení karty — vyblednutí a šipky u okraje karty (ScrollRow)
+        --scroll-row-bleed: var(--space-3);
+
         display: grid;
         grid-template-columns: minmax(0, 1fr);
         gap: var(--space-3);
@@ -292,7 +295,13 @@
         box-shadow: var(--shadow-card-hover);
 
         @include from-md {
+            --scroll-row-bleed: var(--space-4);
+
             padding: var(--space-3) var(--space-4);
+        }
+
+        @include from-lg {
+            --scroll-row-bleed: 0px;
         }
 
         .filter-bar {

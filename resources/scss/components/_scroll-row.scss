@@ -1,0 +1,88 @@
+// _scroll-row.scss
+// Řádek posuvný do strany (ScrollRow.vue, R141): vyblednutí na okraji, kde řádek pokračuje,
+// a kulaté šipky jen na zařízení s myší. Řádek, který přesahuje do odsazení rodiče (záporný
+// okraj), nastaví --scroll-row-bleed, aby vyblednutí i šipky byly u jeho skutečného okraje.
+//
+// @author Roman Hlaváček
+// @created 2026-10-12
+
+.scroll-row {
+    --scroll-row-edge: calc(-1 * var(--scroll-row-bleed, 0px));
+
+    position: relative;
+
+    // Vyblednutí do barvy podkladu (karta) — jen na straně, kde je další obsah
+    &::before,
+    &::after {
+        content: '';
+        position: absolute;
+        z-index: 1;
+        top: 0;
+        bottom: 0;
+        width: var(--scroll-row-fade-width);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity var(--duration-fast);
+    }
+
+    &::before {
+        left: var(--scroll-row-edge);
+        background: linear-gradient(to right, var(--scroll-row-fade-color, var(--color-surface)), transparent);
+    }
+
+    &::after {
+        right: var(--scroll-row-edge);
+        background: linear-gradient(to left, var(--scroll-row-fade-color, var(--color-surface)), transparent);
+    }
+
+    &--back::before,
+    &--forward::after {
+        opacity: 1;
+    }
+
+    // Šipky — jen myš (prstem se posouvá přímo)
+    &__arrow {
+        position: absolute;
+        z-index: 2;
+        top: 50%;
+        display: none;
+        place-items: center;
+        width: var(--icon-button-size);
+        height: var(--icon-button-size);
+        padding: 0;
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: 50%;
+        box-shadow: var(--shadow-card-hover);
+        color: var(--color-text);
+        cursor: pointer;
+        transform: translateY(-50%);
+
+        @media (hover: hover) and (pointer: fine) {
+            display: grid;
+        }
+
+        &:hover {
+            border-color: var(--color-accent);
+            color: var(--color-accent-strong);
+        }
+
+        &--back {
+            left: calc(var(--scroll-row-edge) + var(--space-1));
+        }
+
+        &--forward {
+            right: calc(var(--scroll-row-edge) + var(--space-1));
+        }
+
+        svg {
+            width: var(--icon-size);
+            height: var(--icon-size);
+            fill: none;
+            stroke: currentcolor;
+            stroke-width: var(--svg-stroke-check);
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+    }
+}

@@ -29,6 +29,7 @@ import InstallPrompt from '@/Components/InstallPrompt.vue';
 import OfferCard from '@/Components/OfferCard.vue';
 import OfferRow from '@/Components/OfferRow.vue';
 import Pagination from '@/Components/Pagination.vue';
+import ScrollRow from '@/Components/ScrollRow.vue';
 import SearchSuggest from '@/Components/SearchSuggest.vue';
 import ShoppingToggle from '@/Components/ShoppingToggle.vue';
 import SortSelect from '@/Components/SortSelect.vue';
@@ -453,7 +454,7 @@ onBeforeUnmount(() => liveSearch.cancel());
         <div class="page__wrap offers-toolbar">
             <div class="offers-toolbar__card">
                 <!-- Oddělení katalogu (R102) s počtem akcí ve vybraných obchodech (R141) -->
-                <div v-if="filterOptions.departments.length" class="offers-departments" role="group" :aria-label="t('offers.departments_label')">
+                <ScrollRow v-if="filterOptions.departments.length" class="offers-departments" role="group" :aria-label="t('offers.departments_label')">
                     <button
                         v-for="department in filterOptions.departments"
                         :key="department.slug"
@@ -466,7 +467,7 @@ onBeforeUnmount(() => liveSearch.cancel());
                         <span class="offers-departments__name">{{ department.name }}</span>
                         <span class="offers-departments__count">{{ formatNumber(department.count, page.props.locale) }}</span>
                     </button>
-                </div>
+                </ScrollRow>
 
                 <!-- Telefon (R102): Seřadit a Filtry v oknech zespodu -->
                 <FilterBar ref="filterBar" :sort-label="sortLabel" :filter-count="activeFilterChips.length" @sort="sortOpen = true" @filters="filtersOpen = true">

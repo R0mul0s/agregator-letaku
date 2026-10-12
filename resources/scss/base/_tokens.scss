@@ -400,6 +400,8 @@
     --offers-art-size: 12rem;
     --offers-search-max-width: 40rem;
     --offers-department-width: 5.75rem;
+    // Vyblednutí okraje posuvného řádku, kde pokračuje (ScrollRow)
+    --scroll-row-fade-width: 3rem;
     // Na počítači všech 12 oddělení v jednom řádku šířky obsahu
     --offers-department-min-width: 5rem;
     --offers-department-icon: 2.75rem;
