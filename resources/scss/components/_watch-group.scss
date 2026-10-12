@@ -252,6 +252,50 @@
         letter-spacing: normal;
     }
 
+    // „+3 brzy“ vede do sekce Brzy (R140) — podtržení při najetí napoví, že je klikací
+    &__upcoming--link {
+        cursor: pointer;
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+
+    // Odkaz pod akcemi skupiny do sekce Brzy (R140)
+    &__upcoming-link {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--space-1) var(--space-2);
+        margin-top: var(--space-3);
+        padding: var(--space-2) var(--space-3);
+        background: var(--color-info-soft);
+        border: 1px dashed var(--color-info-border);
+        border-radius: var(--radius-md);
+        color: var(--color-info-text);
+        font-size: var(--font-size-sm);
+        text-decoration: none;
+
+        &:hover .watch-group__upcoming-action {
+            text-decoration: underline;
+        }
+
+        svg {
+            flex: none;
+            width: var(--icon-size);
+            height: var(--icon-size);
+            fill: none;
+            stroke: currentcolor;
+            stroke-width: var(--svg-stroke-icon);
+            stroke-linecap: round;
+        }
+    }
+
+    &__upcoming-action {
+        margin-left: auto;
+        font-weight: var(--font-weight-extrabold);
+    }
+
     // „Vyplatí se počkat“ (R76) — v hlavičce štítek, po rozbalení rada s lístkem (.wait-tip)
     &__wait {
         @include badge-text;

@@ -27,7 +27,7 @@ Hotové etapy a funkce jsou v PLAN.md (tabulka *Co platí a co ne*, kap. 6 Etapy
 
 | Stránka | Adresa | Hlavní rozhodnutí |
 |---|---|---|
-| Úvodní stránka pro nepřihlášené / Moje slevy | `/` | R44, R90, R137 / R18, R43, R55, R76, R100–R102, R117, R118, R120, R125, R138 |
+| Úvodní stránka pro nepřihlášené / Moje slevy | `/` | R44, R90, R137 / R18, R43, R55, R76, R100–R102, R117, R118, R120, R125, R138, R140 |
 | Všechny akce (veřejné), obchod a produkt čistou adresou | `/akce`, `/akce/lidl`, `/akce/pivo` | R44, R71, R82, R94, R100–R102, R118, R119 |
 | Nejlepší slevy týdne (veřejné) s archivem | `/tyden` → `/tyden/2026-41` | R128 |
 | Hlídám, katalog (admin), nákupní seznam (i sdílený odkazem) | `/hlidam`, `/katalog`, `/seznam`, `/seznam/s/{token}` | R39, R47 / R24, R28–R31 / R61, R130 |

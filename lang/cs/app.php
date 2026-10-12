@@ -1323,7 +1323,10 @@ return [
             'upcoming_heading' => ':count akce začne v příštích dnech|:count akce začnou v příštích dnech|:count akcí začne v příštích dnech',
             'upcoming_first' => 'První začíná :date',
             'upcoming_show' => 'Ukázat :count akci|Ukázat :count akce|Ukázat :count akcí',
-            'upcoming_hide' => 'Skrýt akce',
+            'upcoming_hide' => 'Sbalit Brzy',
+            // Odkaz pod akcemi skupiny do sekce Brzy (R140)
+            'upcoming_link' => ':count další akce začne od :date|:count další akce začnou od :date|:count dalších akcí začne od :date',
+            'upcoming_link_action' => 'Ukázat v sekci Brzy',
         ],
 
         // Menu pod avatarem vpravo nahoře (UserMenu.vue, R40)
