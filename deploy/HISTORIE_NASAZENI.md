@@ -546,3 +546,14 @@ k produktům dopočítá cron při dalším stažení každého obchodu.
 
 - **Ověřeno:** `version.txt` = `469beff`; `/health/imports` i `/health/tasks` 200; `/akce/lego`
   a `/akce/zmrzlina` 200 (11. 10.).
+
+### Aktualizace z `469beff` (třicáté sedmé nasazení — provedeno, `bce4cdd`)
+
+Oprava po upozornění „Lidl – Akční leták OD ČTVRTKA 15. 10.: 112 akcí (předtím až 165)“ (R136):
+Lidl zveřejnil 54 akcí letáku i na webu, ty se ohlásily podruhé jako nové a řádky z letáku
+skončily jako stažené obchodem. Teď akce z webu převezme řádek z letáku (`supersedes`)
+a statistika letáku počítá akce převzaté webem (`leaflet_stats.covered_offers`). SQL
+**`migrations-2026-10-12-kvalita-dat-web.sql`** před nahráním kódu. `.env` beze změny.
+
+- **Ověřeno:** crony spuštěné hned po nasazení; `/kvalita-dat` u Lidlu: leták od čtvrtka 165
+  (z toho 53 na webu), od pondělí 119 (z toho 21 na webu), staženo obchodem 0 (12. 10.).
