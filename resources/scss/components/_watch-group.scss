@@ -1,5 +1,8 @@
 // _watch-group.scss
 // Skupina hlídané položky v Mých slevách (WatchGroup.vue) — vyčleněno z pages/_watch.scss (R113).
+// Vzhled R138: skupina je karta s ikonou oddělení, otevřená má červený okraj a tónované tělo
+// s akcemi; rada „Vyplatí se počkat“ je bílá karta se zeleným rámečkem a lístkem budoucí akce.
+// Nadpis a nápověda oddílu (__title, __hint) používá i katalog a Hlášení.
 //
 // @author Roman Hlaváček
 // @created 2026-10-09
@@ -8,12 +11,20 @@
 
 .watch-group {
     margin-bottom: var(--space-2);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-card);
+    // Ořízne tónované tělo do zaoblení — clip (ne hidden), jinak by se přilepená lišta nelepila
+    overflow: clip;
 
     &--expanded {
-        margin-bottom: var(--space-4);
+        margin-bottom: var(--space-3);
+        border-color: var(--color-accent);
+        box-shadow: 0 0 0 1px var(--color-accent), var(--shadow-card-hover);
     }
 
-    // Nadpis skupiny s linkou až k okraji — odděluje hlídané položky jako oddíly letáku
+    // Nadpis oddílu s linkou až k okraji (katalog, Hlášení)
     &__title {
         display: flex;
         flex-wrap: wrap;
@@ -43,20 +54,39 @@
         letter-spacing: normal;
     }
 
-    // Moje slevy (R43): sbalitelná skupina — hlavička jako karta, obsah pod ní
+    // Hlavička uvnitř karty: ikona oddělení, přepínač s názvem a souhrnem, akce položky
     &__header {
         display: flex;
         align-items: center;
-        gap: var(--space-2);
+        gap: var(--space-2) var(--space-3);
         padding: var(--space-2) var(--space-2) var(--space-2) var(--space-3);
-        background: var(--color-surface);
-        border: 1px solid var(--color-border);
-        border-radius: var(--radius-md);
-        box-shadow: var(--shadow-card);
     }
 
-    &--expanded &__header {
-        border-color: var(--color-accent);
+    // Ikona oddělení katalogu (R138) — na telefonu není, ať se vejde název a souhrn
+    &__icon {
+        display: none;
+        flex: none;
+        align-items: center;
+        justify-content: center;
+        width: var(--empty-inline-icon-box-size);
+        height: var(--empty-inline-icon-box-size);
+        background: var(--color-accent-soft);
+        border-radius: var(--radius-md);
+        color: var(--color-accent-strong);
+
+        @include from-md {
+            display: inline-flex;
+        }
+
+        .department-icon {
+            width: var(--icon-size);
+            height: var(--icon-size);
+            fill: none;
+            stroke: currentcolor;
+            stroke-width: var(--svg-stroke-icon);
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
     }
 
     // Přilepená hlavička na jeden řádek (WatchGroupBar, R117): na telefonu a tabletu se drží pod
@@ -93,10 +123,9 @@
         height: 100%;
         padding: 0 var(--space-3);
         background: var(--color-surface);
-        border: 1px solid var(--color-accent);
-        border-top: 0;
-        border-radius: 0 0 var(--radius-md) var(--radius-md);
-        box-shadow: var(--shadow-card);
+        border: 0;
+        border-bottom: 1px solid var(--color-border);
+        box-shadow: var(--shadow-card-hover);
         color: var(--color-text);
         font: inherit;
         font-size: var(--font-size-md);
@@ -110,10 +139,6 @@
         }
     }
 
-    &--upcoming &__bar-button {
-        border-color: var(--color-info-text);
-    }
-
     // Název se zkrátí třemi tečkami, štítky zůstanou celé
     &__bar-name {
         flex: 0 1 auto;
@@ -122,45 +147,11 @@
         text-overflow: ellipsis;
     }
 
-    // Kotvy uvnitř rozbalené skupiny („+1 brzy“, #polozka-… v Zatím bez akce) pod přilepenou
-    // hlavičkou, ne za ní
+    // Kotvy uvnitř rozbalené skupiny pod přilepenou hlavičkou, ne za ní
     @include below-lg {
-        &--expanded &__subtitle,
-        &--expanded .waiting-items__item {
+        &--expanded &__subtitle {
             scroll-margin-top: var(--group-bar-height);
         }
-    }
-
-    // Sekce Brzy (R76): odsazená od hlídaných položek, rozbalená s linkou v barvě „brzy“
-    &--upcoming {
-        margin-top: var(--space-4);
-    }
-
-    &--upcoming#{&}--expanded &__header {
-        border-color: var(--color-info-text);
-    }
-
-    // Sekce Zatím bez akce (R100): pod ostatními, odsazená jako Brzy; hlavička bez stínu, ať
-    // nesoutěží se skupinami s akcemi
-    &--waiting {
-        margin-top: var(--space-4);
-    }
-
-    &--waiting &__header {
-        box-shadow: none;
-    }
-
-    // Názvy položek ve sbalené hlavičce — jeden řádek, zbytek tři tečky
-    &__names {
-        flex: 1 1 0;
-        min-width: 0;
-        overflow: hidden;
-        color: var(--color-text-muted);
-        font-size: var(--font-size-sm);
-        font-weight: var(--font-weight-regular);
-        letter-spacing: normal;
-        text-overflow: ellipsis;
-        white-space: nowrap;
     }
 
     // Logo obchodu s nejnižší cenou za cenou v hlavičce (R100)
@@ -175,10 +166,10 @@
     }
 
     &__toggle {
-        display: flex;
-        flex-wrap: wrap;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
         align-items: center;
-        gap: var(--space-1) var(--space-2);
+        gap: var(--space-2);
         width: 100%;
         padding: var(--space-1) 0;
         background: none;
@@ -189,20 +180,46 @@
         cursor: pointer;
     }
 
+    // Název, počet a souhrn — na telefonu se zalomí do víc řádků
+    &__main {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--space-1) var(--space-2);
+        min-width: 0;
+    }
+
+    // Nejvyšší sleva a šipka vpravo
+    &__end {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+    }
+
     &__chevron {
-        color: var(--color-accent);
+        flex: none;
+        width: var(--icon-size);
+        height: var(--icon-size);
+        fill: none;
+        stroke: var(--color-text-muted);
+        stroke-width: var(--svg-stroke-check);
+        stroke-linecap: round;
+        stroke-linejoin: round;
         transition: transform var(--duration-fast);
     }
 
     &--expanded &__chevron {
-        transform: rotate(90deg);
+        transform: rotate(180deg);
     }
 
     &__name {
+        font-weight: var(--font-weight-black);
         overflow-wrap: anywhere;
     }
 
     &__summary {
+        display: inline-flex;
+        align-items: center;
         color: var(--color-price);
         font-size: var(--font-size-sm);
         font-weight: var(--font-weight-bold);
@@ -210,7 +227,7 @@
     }
 
     // Malé písmo — přechod panelu začíná tmavší červenou, na --gradient-brand by bílý text
-    // neměl kontrast 4,5 : 1 (R99)
+    // neměl kontrast 4,5 : 1 (R99); natočená jako cenovka
     &__discount {
         @include badge-text;
 
@@ -220,6 +237,7 @@
         font-size: var(--font-size-sm);
         font-weight: var(--font-weight-extrabold);
         letter-spacing: normal;
+        transform: rotate(var(--landing-ticket-tilt));
     }
 
     // Počet akcí, které ještě nezačaly (R76) — samotné akce jsou v sekci Brzy
@@ -234,7 +252,7 @@
         letter-spacing: normal;
     }
 
-    // „Vyplatí se počkat“ (R76) — v hlavičce štítek, po rozbalení věta s cenou (notice--success)
+    // „Vyplatí se počkat“ (R76) — v hlavičce štítek, po rozbalení rada s lístkem (.wait-tip)
     &__wait {
         @include badge-text;
 
@@ -251,50 +269,14 @@
         flex: none;
     }
 
+    // Tónované tělo s akcemi — je jasné, které akce ke skupině patří
     &__body:not([hidden]) {
-        padding-top: var(--space-3);
-    }
-
-    // Položka bez akcí i zmínek: ikona oka a věta, že se hlídá dál
-    &__empty {
-        display: flex;
-        align-items: center;
-        gap: var(--space-3);
         padding: var(--space-3);
-        background: var(--color-surface);
-        border: 2px dashed var(--color-border);
-        border-radius: var(--radius-md);
+        background: var(--color-home-group-body);
+        border-top: 1px solid var(--color-border);
     }
 
-    &__empty-icon {
-        display: inline-flex;
-        flex: none;
-        align-items: center;
-        justify-content: center;
-        width: var(--empty-inline-icon-box-size);
-        height: var(--empty-inline-icon-box-size);
-        background: var(--color-accent-soft);
-        border-radius: var(--radius-pill);
-        color: var(--color-accent-strong);
-
-        svg {
-            width: var(--icon-size);
-            height: var(--icon-size);
-            fill: none;
-            stroke: currentcolor;
-            stroke-width: var(--svg-stroke-icon);
-            stroke-linecap: round;
-            stroke-linejoin: round;
-        }
-    }
-
-    &__empty-hint {
-        display: block;
-        color: var(--color-text-muted);
-        font-size: var(--font-size-sm);
-    }
-
-    // Zmínky v letácích bez ceny pod akcemi (R27)
+    // Zmínky v letácích bez ceny pod akcemi (R27), v sekci Brzy názvy položek
     &__subtitle {
         margin: var(--space-4) 0 var(--space-1);
         font-size: var(--font-size-md);
@@ -309,5 +291,91 @@
         margin-bottom: var(--space-3);
         color: var(--color-text-muted);
         font-size: var(--font-size-sm);
+    }
+}
+
+// Rada „Vyplatí se počkat“ (R76, vzhled R138): bílá karta se zeleným rámečkem, přesýpací hodiny,
+// krátká věta a vpravo lístek budoucí akce, který vede do sekce Brzy
+.wait-tip {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+    margin-bottom: var(--space-3);
+    padding: var(--space-2) var(--space-3);
+    background: var(--color-surface);
+    border: 2px solid var(--color-success);
+    border-radius: var(--radius-md);
+
+    &__icon {
+        display: inline-flex;
+        flex: none;
+        align-items: center;
+        justify-content: center;
+        width: var(--empty-inline-icon-box-size);
+        height: var(--empty-inline-icon-box-size);
+        background: var(--color-success-soft);
+        border-radius: 50%;
+        color: var(--color-success-text);
+
+        svg {
+            width: var(--icon-size);
+            height: var(--icon-size);
+            fill: none;
+            stroke: currentcolor;
+            stroke-width: var(--svg-stroke-icon);
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+    }
+
+    &__text {
+        flex: 1 1 var(--search-text-min-width);
+        min-width: 0;
+        margin: 0;
+    }
+
+    &__title {
+        display: block;
+        color: var(--color-success-text);
+        font-weight: var(--font-weight-black);
+    }
+
+    // Lístek budoucí akce: logo, od kdy, cena, cena za jednotku, o kolik levněji
+    &__offer {
+        display: inline-flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--space-1) var(--space-2);
+        padding: var(--space-1) var(--space-2) var(--space-1) var(--space-1);
+        background: var(--color-bg);
+        border-radius: var(--radius-sm);
+        color: var(--color-text);
+        font-size: var(--font-size-sm);
+        text-decoration: none;
+
+        &:hover {
+            box-shadow: inset 0 0 0 1px var(--color-success);
+        }
+    }
+
+    &__price {
+        color: var(--color-price);
+        font-size: var(--font-size-md);
+        font-weight: var(--font-weight-black);
+    }
+
+    &__unit {
+        color: var(--color-text-muted);
+    }
+
+    &__save {
+        @include badge-text;
+
+        background: var(--color-success-soft);
+        border-radius: var(--radius-pill);
+        color: var(--color-success-text);
+        font-size: var(--font-size-xs);
+        font-weight: var(--font-weight-black);
     }
 }

@@ -49,7 +49,7 @@ return [
     | Barva lišty prohlížeče na mobilu podle režimu (= --color-bg v base/_tokens.scss).
     */
     'theme_colors' => [
-        'light' => '#f4f6f8',
+        'light' => '#f6f5f3',
         'dark' => '#121418',
     ],
 
@@ -484,8 +484,9 @@ return [
         // Nová verze po nasazení (R78): SPA se sama nenačítá znovu, takže se prohlížeč na nový
         // service worker zeptá při návratu do aplikace a pak po tolika minutách v popředí
         'update_check_minutes' => 15,
-        // Výzva k přidání na plochu: kolik dní po zavření se znovu neukáže
-        'install_prompt_snooze_days' => 30,
+        // Výzva k přidání na plochu (R139): po kolika dnech se po „Teď ne“ vrátí — po prvním zavření
+        // za 3 dny, pak za 7, 14 a dál vždy za 30 (kdo ji opakovaně zavírá, toho přestane otravovat)
+        'install_prompt_snooze_days' => [3, 7, 14, 30],
         // Úvodní obrazovka iPhonu při spuštění z plochy — iOS ji nebere z manifestu, chce obrázek
         // přesně na rozlišení displeje: [šířka, výška v CSS px, hustota]. Obrázky
         // public/images/brand/splash-{šířka}x{výška}x{hustota}.png kreslí resources/brand/splash.html
@@ -687,7 +688,8 @@ return [
 
     /*
     | Úvodní stránka pro nepřihlášené (R44): kolik akcí s nejvyšší slevou ukázat a z kolikrát
-    | většího výběru je brát (ať se v ukázce vystřídají obchody).
+    | většího výběru je brát (ať se v ukázce vystřídají obchody). Od R137 jedna řada po čtyřech;
+    | první dvě z různých obchodů visí i u maskota v hlavním pruhu.
     |
     | Živá ukázka hlídání (R90): nabídne demo_products produktů katalogu s nejvíc akcemi
     | (prvních demo_preselected je předvybraných), vybrat jde nejvýš demo_max_products a ukáže
@@ -702,7 +704,7 @@ return [
     */
     'landing' => [
         'cache_minutes' => 15,
-        'top_offers' => 6,
+        'top_offers' => 4,
         'top_offers_candidates_factor' => 5,
         'demo_products' => 8,
         'demo_preselected' => 2,

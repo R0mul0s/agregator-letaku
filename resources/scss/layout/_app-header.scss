@@ -229,8 +229,17 @@
         stroke-linecap: round;
     }
 
-    // Úvodní stránka na telefonu: logo „jede“ jako košík v hlavním pruhu, který je na mobilu
-    // skrytý (keyframes landing-* v pages/_landing.scss). Na desktopu a při omezení pohybu stojí.
+    // Úvodní stránka a Moje slevy: hned pod hlavičkou je červený pruh, linka by ho zdvojila (R137, R138)
+    &--flush {
+        border-bottom-color: transparent;
+
+        &::after {
+            display: none;
+        }
+    }
+
+    // Úvodní stránka na telefonu: logo „jede“ jako košík (keyframes landing-* v pages/_landing.scss).
+    // Na desktopu a při omezení pohybu stojí.
     &--animated-logo &__brand {
         --landing-drive-distance: var(--header-logo-drive-distance);
         --landing-bump-height: var(--header-logo-bump-height);

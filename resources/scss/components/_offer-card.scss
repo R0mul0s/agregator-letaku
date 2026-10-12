@@ -75,12 +75,23 @@
         font-size: var(--font-size-sticker);
         font-weight: var(--font-weight-black);
         transform: rotate(var(--sticker-rotation));
+    }
 
-        // Karta bez obrázku: cenovka v toku na konci řádku štítků
-        &--inline {
-            position: static;
-            margin-left: auto;
-        }
+    // Bez fotky (R138): stejně vysoké pole s jemným přechodem a siluetou maskota uprostřed
+    &__media--none {
+        display: grid;
+        place-items: center;
+        height: calc(var(--offer-image-height) + 2 * var(--space-2));
+        background: var(--gradient-offer-placeholder);
+    }
+
+    &__placeholder {
+        width: var(--offer-placeholder-mascot-width);
+        max-height: 100%;
+        height: auto;
+        object-fit: contain;
+        opacity: var(--offer-placeholder-opacity);
+        filter: var(--offer-placeholder-filter);
     }
 
     &__name {

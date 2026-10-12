@@ -8,8 +8,11 @@
     Položky bez akcí jsou ve sbalené sekci Zatím bez akce na konci a řazení jde změnit přímo
     nad skupinami, uloží se do účtu (R100). Štítky Nové, Končí brzy a Jen jisté shody ukážou jen
     odpovídající akce rozbalené jako v obchodě; „Jen moje prodejny“ jde dočasně vypnout (R101).
-    Pohled Podle obchodů (kam jet nakoupit), menší úvodní pruh při další návštěvě s čísly jako
-    zkratkami a na telefonu Seřadit / Filtry v oknech zespodu (R102).
+    Pohled Podle obchodů (kam jet nakoupit), čísla jako zkratky a na telefonu Seřadit / Filtry
+    v oknech zespodu (R102). Vzhled R138: kompaktní červený pruh s pozdravem, počty, „Upravit
+    hlídané“, odkazem na nákupní seznam a maskotem s nejvyšší slevou dne; filtry v bílé liště
+    přes jeho oblý konec, „Rozbalit vše“ u nadpisu seznamu, Brzy v modrém pruhu, Zatím bez akce
+    jako dlaždice (menší pruh při další návštěvě z R102 už není — pruh je malý vždy).
 
     @author Roman Hlaváček
     @created 2026-10-02
@@ -24,6 +27,7 @@ import EmptyState from '@/Components/EmptyState.vue';
 import FilterBar from '@/Components/FilterBar.vue';
 import FilterChip from '@/Components/FilterChip.vue';
 import FloatingFilterBar from '@/Components/FloatingFilterBar.vue';
+import InstallPrompt from '@/Components/InstallPrompt.vue';
 import OfferFilterChips from '@/Components/OfferFilterChips.vue';
 import SortSelect from '@/Components/SortSelect.vue';
 import SortSheet from '@/Components/SortSheet.vue';
@@ -34,7 +38,8 @@ import WatchGroup from '@/Components/WatchGroup.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { appHeaderHeight } from '@/lib/appHeader';
 import { useExpandedGroups } from '@/lib/expandedGroups';
-import { formatDiscount } from '@/lib/format';
+import { MEDIA_FROM_MD } from '@/lib/breakpoints';
+import { formatDiscount, formatNumber, formatPrice } from '@/lib/format';
 import { useTranslations } from '@/lib/i18n';
 import { discountPercent, MATCH_MAYBE, upcomingAnchor } from '@/lib/offer';
 import { scrollIntoViewGently } from '@/lib/scroll';
@@ -49,14 +54,8 @@ const EXPANDED_STORAGE_KEY = 'slevohlidka.home.expanded';
 /** Sekce Brzy mezi rozbalenými (R76) — vedle ID položek ve stejném klíči localStorage. */
 const UPCOMING_ID = 'brzy';
 
-/** Sekce Zatím bez akce mezi rozbalenými (R100) — ve stejném klíči localStorage. */
-const WAITING_ID = 'bez-akce';
-
 /** Klíč v localStorage: pohled Podle položek, nebo Podle obchodů (R102). */
 const VIEW_STORAGE_KEY = 'slevohlidka.home.view';
-
-/** Klíč v localStorage: úvodní pruh už jednou viděl — dál menší (R102). */
-const HERO_SEEN_KEY = 'slevohlidka.home.hero_seen';
 
 /** Kotva panelu nad skupinami — čísla v úvodním pruhu k němu posunou stránku. */
 const TOOLBAR_ID = 'moje-slevy-akce';
@@ -68,7 +67,10 @@ const props = defineProps({
     hasFollowedChains: { type: Boolean, required: true },
     /** Křestní jméno v 5. pádě do pozdravu („Romane“, R47). */
     greetingName: { type: String, required: true },
+    /** Adresy předvoleb, Hlídám, účtu a nákupního seznamu. */
     urls: { type: Object, required: true },
+    /** Počet položek nákupního seznamu — odkaz v pruhu (R138). */
+    shoppingCount: { type: Number, default: 0 },
     /** Předvolby uživatele { sort, sortOptions, minDiscountPercent, updateUrl } (R41, řazení na stránce R100). */
     offersPreferences: { type: Object, required: true },
     /** Jak často chodí e-mailový souhrn („denně“), null = vypnutý (R42). */
@@ -234,7 +236,7 @@ function toggleAllStores() {
  */
 const groups = useExpandedGroups({
     storageKey: EXPANDED_STORAGE_KEY,
-    sectionIds: [UPCOMING_ID, WAITING_ID],
+    sectionIds: [UPCOMING_ID],
     focused,
     visibleIds: computed(() => visibleItems.value.map((item) => item.id)),
 });
@@ -272,9 +274,6 @@ const compact = computed({
 /** Rozbalená sekce Brzy (R76). */
 const upcomingExpanded = groups.section(UPCOMING_ID);
 
-/** Rozbalená sekce Zatím bez akce (R100). */
-const waitingExpanded = groups.section(WAITING_ID);
-
 /** Řazení akcí ve skupinách (R41) — změna na stránce se hned uloží do účtu (R100). */
 const sort = ref(props.offersPreferences.sort);
 watch(
@@ -304,14 +303,14 @@ watch(groupView, (value) => writeStored(VIEW_STORAGE_KEY, value));
 /** Pohled Podle obchodů — ne v obchodě (výběr obchodu) a jen když je co srovnávat. */
 const showChains = computed(() => groupView.value === VIEW_CHAINS && !chainFilter.value && props.byChain.length > 0);
 
-/**
- * Menší úvodní pruh při další návštěvě (R102): bez maskota a úvodní věty, akce jsou výš.
- * Poprvé celý — vysvětlí, co stránka ukazuje.
- */
-const heroCompact = readStored(HERO_SEEN_KEY, false) === true;
-
 /** Položka s nejvyšší slevou — číslo v úvodním pruhu na ni skočí. */
 const bestDiscountItem = computed(() => props.watchItems.find((item) => item.offers.some((offer) => discountPercent(offer) === summary.value.bestDiscount)) ?? null);
+
+/** Akce s nejvyšší slevou — lístek u maskota v pruhu (R138), klepnutí skočí na její skupinu. */
+const bestOffer = computed(() => bestDiscountItem.value?.offers.find((offer) => discountPercent(offer) === summary.value.bestDiscount) ?? null);
+
+/** Cena akce s nejvyšší slevou, kterou uživatel zaplatí. */
+const bestOfferPrice = computed(() => (bestOffer.value ? formatPrice(bestOffer.value.userPrice ?? bestOffer.value.price, page.props.locale) : ''));
 
 /**
  * Posune stránku ke skupině a rozbalí ji (číslo v úvodním pruhu).
@@ -419,17 +418,14 @@ function clearOfferFilters() {
 }
 
 onMounted(async () => {
-    writeStored(HERO_SEEN_KEY, true);
     groups.restore();
 
     // Odkaz z Hlídám vede na konkrétní skupinu — rozbalit ji a posunout se k ní
     const match = window.location.hash.match(GROUP_HASH_PATTERN);
     if (match) {
         groupView.value = VIEW_ITEMS;
-        // Položka bez akcí je v sekci Zatím bez akce — rozbalit tu (R100)
-        if (waitingItems.value.some((item) => item.id === Number(match[1]))) {
-            waitingExpanded.value = true;
-        } else {
+        // Položka bez akcí je v sekci Zatím bez akce — ta se nesbaluje (R138)
+        if (!waitingItems.value.some((item) => item.id === Number(match[1]))) {
             setExpanded(Number(match[1]), true);
         }
         await nextTick();
@@ -438,183 +434,244 @@ onMounted(async () => {
 });
 </script>
 
+
 <template>
     <AppLayout>
         <Head :title="t('home.title')" />
 
-        <!-- Úvodní pruh: maskot, pozdrav a co Slevohlídka právě ulovila; při další návštěvě menší (R102) -->
-        <section class="home-hero" :class="{ 'home-hero--compact': heroCompact }">
-            <!-- Košík jede jako na úvodní stránce (R44): popojíždí, poskakuje, za ním čárky rychlosti -->
-            <div v-if="!heroCompact" class="home-hero__art" aria-hidden="true">
-                <span class="home-hero__streak"></span>
-                <span class="home-hero__streak"></span>
-                <span class="home-hero__streak"></span>
-                <div class="home-hero__drive">
-                    <img src="/images/brand/mascot-192.webp" width="192" height="192" alt="" class="home-hero__mascot" />
+        <!-- Kompaktní červený pruh (R138): pozdrav, počty jako zkratky (R102), Upravit hlídané,
+             nákupní seznam; na širším displeji maskot s nejvyšší slevou dne -->
+        <section class="home-hero">
+            <div class="page__wrap home-hero__grid">
+                <div class="home-hero__body">
+                    <h1 class="home-hero__title">{{ greetingName ? t('home.hello', { name: greetingName }) : t('home.title') }}</h1>
+                    <p v-if="watchItems.length" class="home-hero__lead">
+                        {{ t('home.hero_lead', { count: summary.offers, number: formatNumber(summary.offers, page.props.locale) }) }}
+                        <template v-if="offerFilterCounts.fresh">{{ t('home.hero_lead_fresh', { fresh: offerFilterCounts.fresh }) }}</template>
+                    </p>
+                    <!-- Hranice slevy, která akce schovává (R41) — řazení je v liště pod pruhem (R100) -->
+                    <p v-if="watchItems.length && offersPreferences.minDiscountPercent" class="home-hero__preferences">
+                        {{ t('home.min_discount_filter', { percent: offersPreferences.minDiscountPercent }) }}
+                        · <Link :href="urls.offersPreferences" class="home-hero__link">{{ t('home.change_preferences') }}</Link>
+                    </p>
+                    <!-- Souhrn — čísla jsou zkratky: všechny akce, nové, skok na nejvyšší slevu (R102) -->
+                    <ul v-if="watchItems.length" class="home-hero__stats">
+                        <li class="home-hero__stat">
+                            <strong class="home-hero__stat-value">{{ watchItems.length }}</strong>
+                            {{ t('home.stat_items', { count: watchItems.length }) }}
+                        </li>
+                        <li>
+                            <button type="button" class="home-hero__stat home-hero__stat--button" @click="showAllOffers">
+                                <strong class="home-hero__stat-value">{{ summary.offers }}</strong>
+                                {{ t('home.stat_offers', { count: summary.offers }) }}
+                            </button>
+                        </li>
+                        <li v-if="offerFilterCounts.fresh">
+                            <button type="button" class="home-hero__stat home-hero__stat--button home-hero__stat--fresh" @click="showFresh">
+                                <strong class="home-hero__stat-value">{{ offerFilterCounts.fresh }}</strong>
+                                {{ t('home.stat_fresh', { count: offerFilterCounts.fresh }) }}
+                            </button>
+                        </li>
+                        <li v-if="summary.bestDiscount && bestDiscountItem">
+                            <button type="button" class="home-hero__stat home-hero__stat--button" @click="revealItem(bestDiscountItem.id)">
+                                <strong class="home-hero__stat-value">{{ formatDiscount(summary.bestDiscount) }}</strong>
+                                {{ t('home.stat_best_item', { name: bestDiscountItem.name }) }}
+                            </button>
+                        </li>
+                    </ul>
+                    <div v-if="watchItems.length" class="home-hero__actions">
+                        <Link :href="urls.watchItems" class="button button--highlight">{{ t('home.edit_watch_items') }}</Link>
+                        <Link :href="urls.shoppingList" class="home-hero__link">
+                            {{ shoppingCount ? t('home.shopping_link', { count: shoppingCount }) : t('home.shopping_link_empty') }}
+                        </Link>
+                    </div>
+                </div>
+
+                <!-- Maskot s nejvyšší slevou dne — klepnutí na lístek skočí na skupinu -->
+                <div v-if="bestOffer" class="home-hero__art">
+                    <div class="home-hero__circle" aria-hidden="true">
+                        <img
+                            src="/images/brand/mascot-288.webp"
+                            srcset="/images/brand/mascot-192.webp 192w, /images/brand/mascot-288.webp 288w"
+                            :sizes="`${MEDIA_FROM_MD} 160px, 0px`"
+                            width="288"
+                            height="288"
+                            alt=""
+                            class="home-hero__mascot"
+                        />
+                    </div>
+                    <button
+                        type="button"
+                        class="home-hero__ticket"
+                        :aria-label="t('home.best_ticket_label', { name: bestOffer.name, price: bestOfferPrice })"
+                        @click="revealItem(bestDiscountItem.id)"
+                    >
+                        <span class="home-hero__ticket-image">
+                            <img v-if="bestOffer.imageUrl" :src="bestOffer.imageUrl" alt="" referrerpolicy="no-referrer" />
+                        </span>
+                        <span class="home-hero__ticket-body">
+                            <span class="home-hero__ticket-label">{{ t('home.best_ticket') }}</span>
+                            <span class="home-hero__ticket-price">{{ bestOfferPrice }}</span>
+                        </span>
+                        <span class="home-hero__ticket-sticker">{{ formatDiscount(summary.bestDiscount) }}</span>
+                    </button>
                 </div>
             </div>
-            <div class="home-hero__body">
-                <h1 class="home-hero__title">{{ greetingName ? t('home.hello', { name: greetingName }) : t('home.title') }}</h1>
-                <p v-if="!heroCompact" class="home-hero__text">{{ t('home.hero_text') }}</p>
-                <!-- Řazení je v panelu nad skupinami (R100); tady jen hranice slevy, která akce schovává -->
-                <p v-if="watchItems.length && offersPreferences.minDiscountPercent" class="home-hero__preferences">
-                    {{ t('home.min_discount_filter', { percent: offersPreferences.minDiscountPercent }) }}
-                    · <Link :href="urls.offersPreferences" class="link">{{ t('home.change_preferences') }}</Link>
-                </p>
-                <!-- Souhrn — čísla jsou zkratky: všechny akce, nové, skok na nejvyšší slevu (R102) -->
-                <ul v-if="watchItems.length" class="home-hero__stats">
-                    <li class="home-hero__stat">
-                        <strong class="home-hero__stat-value">{{ watchItems.length }}</strong>
-                        {{ t('home.stat_items', { count: watchItems.length }) }}
-                    </li>
-                    <li>
-                        <button type="button" class="home-hero__stat home-hero__stat--button" @click="showAllOffers">
-                            <strong class="home-hero__stat-value">{{ summary.offers }}</strong>
-                            {{ t('home.stat_offers', { count: summary.offers }) }}
-                        </button>
-                    </li>
-                    <li v-if="offerFilterCounts.fresh">
-                        <button type="button" class="home-hero__stat home-hero__stat--button" @click="showFresh">
-                            <strong class="home-hero__stat-value">{{ offerFilterCounts.fresh }}</strong>
-                            {{ t('home.stat_fresh', { count: offerFilterCounts.fresh }) }}
-                        </button>
-                    </li>
-                    <li v-if="summary.bestDiscount && bestDiscountItem">
-                        <button type="button" class="home-hero__stat home-hero__stat--accent home-hero__stat--button" @click="revealItem(bestDiscountItem.id)">
-                            <strong class="home-hero__stat-value">{{ formatDiscount(summary.bestDiscount) }}</strong>
-                            {{ t('home.stat_best_item', { name: bestDiscountItem.name }) }}
-                        </button>
-                    </li>
-                </ul>
-            </div>
-            <Link v-if="watchItems.length" :href="urls.watchItems" class="button button--primary home-hero__action">{{ t('home.edit_watch_items') }}</Link>
         </section>
 
-        <EmptyState v-if="!hasFollowedChains" :text="t('home.no_chains')">
-            <Link :href="urls.preferences" class="button button--primary">{{ t('home.no_chains_link') }}</Link>
-        </EmptyState>
-        <EmptyState v-else-if="!watchItems.length" :text="t('home.no_watch_items')">
-            <Link :href="urls.watchItems" class="button button--primary">{{ t('home.no_watch_items_link') }}</Link>
-        </EmptyState>
+        <div v-if="!hasFollowedChains || !watchItems.length" class="page__wrap home-empty">
+            <EmptyState v-if="!hasFollowedChains" :text="t('home.no_chains')">
+                <Link :href="urls.preferences" class="button button--primary">{{ t('home.no_chains_link') }}</Link>
+            </EmptyState>
+            <EmptyState v-else :text="t('home.no_watch_items')">
+                <Link :href="urls.watchItems" class="button button--primary">{{ t('home.no_watch_items_link') }}</Link>
+            </EmptyState>
+        </div>
 
         <template v-else>
-            <div :id="TOOLBAR_ID" class="watch-groups__toolbar">
-                <!-- Jen když je z čeho vybírat — u jednoho obchodu by výběr nic neměnil -->
-                <ChainSelect
-                    v-if="filterChains.length > 1"
-                    id="home-chain"
-                    v-model="chainFilter"
-                    class="watch-groups__chain"
-                    :label="t('home.chain_filter')"
-                    :chains="filterChains"
-                    :all-label="t('offers.all_chains')"
-                    @change="groups.resetFocus"
-                />
-                <!-- Podle položek, nebo Podle obchodů — kam jet nakoupit (R102); v obchodě jen položky -->
-                <div v-if="!chainFilter && byChain.length" class="view-toggle watch-groups__view" role="group" :aria-label="t('home.view_label')">
-                    <button type="button" class="view-toggle__button" :aria-pressed="groupView === VIEW_ITEMS ? 'true' : 'false'" @click="groupView = VIEW_ITEMS">
-                        {{ t('home.view_items') }}
-                    </button>
-                    <button type="button" class="view-toggle__button" :aria-pressed="groupView === VIEW_CHAINS ? 'true' : 'false'" @click="groupView = VIEW_CHAINS">
-                        {{ t('home.view_chains') }}
-                    </button>
+            <!-- Lišta filtrů v bílé kartě přes oblý konec pruhu (R138) -->
+            <div class="page__wrap home-toolbar">
+                <div :id="TOOLBAR_ID" class="home-toolbar__card">
+                    <div class="watch-groups__toolbar">
+                        <!-- Jen když je z čeho vybírat — u jednoho obchodu by výběr nic neměnil -->
+                        <ChainSelect
+                            v-if="filterChains.length > 1"
+                            id="home-chain"
+                            v-model="chainFilter"
+                            class="watch-groups__chain"
+                            :label="t('home.chain_filter')"
+                            :chains="filterChains"
+                            :all-label="t('offers.all_chains')"
+                            @change="groups.resetFocus"
+                        />
+                        <!-- Podle položek, nebo Podle obchodů — kam jet nakoupit (R102); v obchodě jen položky -->
+                        <div v-if="!chainFilter && byChain.length" class="view-toggle watch-groups__view" role="group" :aria-label="t('home.view_label')">
+                            <button type="button" class="view-toggle__button" :aria-pressed="groupView === VIEW_ITEMS ? 'true' : 'false'" @click="groupView = VIEW_ITEMS">
+                                {{ t('home.view_items') }}
+                            </button>
+                            <button type="button" class="view-toggle__button" :aria-pressed="groupView === VIEW_CHAINS ? 'true' : 'false'" @click="groupView = VIEW_CHAINS">
+                                {{ t('home.view_chains') }}
+                            </button>
+                        </div>
+                        <template v-if="!showChains">
+                            <!-- Řazení akcí ve skupinách — uloží se hned do účtu (R41, R100); na telefonu v okně -->
+                            <SortSelect id="home-sort" v-model="sort" class="sort-select--desktop" :label="t('home.sort')" :options="offersPreferences.sortOptions" @change="saveSort" />
+                            <!-- Karty s obrázkem, nebo řádky (R62, R82); na telefonu v liště -->
+                            <ViewToggle v-model="compact" class="view-toggle--desktop" />
+                        </template>
+                    </div>
+                    <template v-if="!showChains">
+                        <!-- Telefon (R102): Seřadit a Filtry v oknech zespodu -->
+                        <FilterBar ref="filterBar" :sort-label="sortLabel" :filter-count="activeFilterChips.length" @sort="sortOpen = true" @filters="filtersOpen = true">
+                            <ViewToggle v-model="compact" />
+                        </FilterBar>
+                        <!-- Štítky filtrů akcí (R101) — široký displej; jen ty, které by něco ukázaly -->
+                        <div v-if="offerFilterChips.length || stores" class="search-chips search-chips--desktop watch-groups__chips">
+                            <div class="search-chips__filters" role="group" :aria-label="t('search.filters')">
+                                <OfferFilterChips :chips="offerFilterChips" :active="offerFilters" :counts="offerFilterCounts" @toggle="toggleOfferFilter" />
+                                <FilterChip v-if="stores" :on="!stores.all" @click="toggleAllStores">{{ t('home.my_stores', { count: stores.count }) }}</FilterChip>
+                            </div>
+                        </div>
+                    </template>
                 </div>
-                <template v-if="!showChains">
-                    <!-- Řazení akcí ve skupinách — uloží se hned do účtu (R41, R100); na telefonu v okně -->
-                    <SortSelect id="home-sort" v-model="sort" class="sort-select--desktop" :label="t('home.sort')" :options="offersPreferences.sortOptions" @change="saveSort" />
-                    <!-- Karty s obrázkem, nebo řádky (R62, R82); na telefonu v liště -->
-                    <ViewToggle v-model="compact" class="view-toggle--desktop" />
-                    <button v-if="visibleItems.length" type="button" class="button button--ghost" @click="toggleAllGroups">
-                        {{ allExpanded ? t('home.collapse_all') : t('home.expand_all') }}
-                    </button>
+                <!-- Zapnuté filtry pod lištou na telefonu — klepnutí filtr vypne -->
+                <ActiveFilters v-if="!showChains" :chips="activeFilterChips" />
+                <!-- Výzva k přidání na plochu pod lištou filtrů, ne nad červeným pruhem (R139) -->
+                <InstallPrompt inline class="home-toolbar__install" />
+            </div>
+
+            <div class="page__wrap home-groups">
+                <template v-if="showChains">
+                    <ChainOverview :by-chain="byChain" :watch-items="watchItems" />
+                </template>
+                <template v-else>
+                    <!-- Po odjetí lišty pod hlavičku plovoucí ikony (R120); Položky / Obchody zůstává nahoře -->
+                    <FloatingFilterBar :anchor="filterBar" :sort-label="sortLabel" :filter-count="activeFilterChips.length" @sort="sortOpen = true" @filters="filtersOpen = true">
+                        <template #start>
+                            <button v-if="filterChains.length > 1" type="button" class="floating-filter-bar__button" :title="t('home.chain_filter')" @click="chainSheetOpen = true">
+                                <!-- Vybraný obchod je vidět jeho logem — režim „v obchodě“ je zapnutý -->
+                                <ChainLogo v-if="chainFilter" :chain="chainFilter" class="floating-filter-bar__logo" aria-hidden="true" />
+                                <!-- Obchod s markýzou -->
+                                <svg v-else class="filter-bar__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 4h15L21 9H3zM3 9c0 1.7 1.3 3 3 3s3-1.3 3-3c0 1.7 1.3 3 3 3s3-1.3 3-3c0 1.7 1.3 3 3 3s3-1.3 3-3M5 12v8h14v-8M10 20v-5h4v5" /></svg>
+                                <span class="visually-hidden">{{ t('home.chain_filter') }}: {{ chainFilterLabel }}</span>
+                            </button>
+                        </template>
+                        <ViewToggle v-model="compact" />
+                        <button v-if="visibleItems.length" type="button" class="floating-filter-bar__button" :title="allExpanded ? t('home.collapse_all') : t('home.expand_all')" @click="toggleAllGroups">
+                            <!-- Šipky k sobě (sbalit), nebo od sebe (rozbalit) -->
+                            <svg v-if="allExpanded" class="filter-bar__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m7 4 5 5 5-5M7 20l5-5 5 5" /></svg>
+                            <svg v-else class="filter-bar__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m7 9 5-5 5 5M7 15l5 5 5-5" /></svg>
+                            <span class="visually-hidden">{{ allExpanded ? t('home.collapse_all') : t('home.expand_all') }}</span>
+                        </button>
+                    </FloatingFilterBar>
+                    <SortSheet v-model:open="chainSheetOpen" :title="t('home.chain_filter')" :options="chainOptions" :value="chainFilter" @change="chooseChain">
+                        <template #option="{ option }">
+                            <ChainLogo v-if="option.value" :chain="option.value" with-name />
+                            <template v-else>{{ option.label }}</template>
+                        </template>
+                    </SortSheet>
+                    <SortSheet v-model:open="sortOpen" :options="offersPreferences.sortOptions" :value="sort" @change="(value) => ((sort = value), saveSort(value))" />
+                    <BottomSheet v-model:open="filtersOpen" :title="t('sheet.filters')">
+                        <div class="filter-sheet">
+                            <section class="filter-sheet__section">
+                                <h3 class="filter-sheet__heading">{{ t('home.filter_offers') }}</h3>
+                                <div class="filter-sheet__options">
+                                    <OfferFilterChips :chips="offerFilterChips" :active="offerFilters" :counts="offerFilterCounts" @toggle="toggleOfferFilter" />
+                                </div>
+                                <p v-if="!offerFilterChips.length" class="filter-sheet__hint">{{ t('home.filter_none') }}</p>
+                            </section>
+                            <section v-if="stores" class="filter-sheet__section">
+                                <h3 class="filter-sheet__heading">{{ t('home.filter_stores') }}</h3>
+                                <div class="filter-sheet__options">
+                                    <FilterChip :on="!stores.all" @click="toggleAllStores">{{ t('home.my_stores', { count: stores.count }) }}</FilterChip>
+                                </div>
+                                <p class="filter-sheet__hint">{{ t('home.my_stores_hint') }}</p>
+                            </section>
+                        </div>
+                        <template #footer>
+                            <button type="button" class="button button--ghost" :disabled="!offerFilterActive" @click="clearOfferFilters">{{ t('search.clear_filters') }}</button>
+                            <button type="button" class="button button--primary" @click="filtersOpen = false">{{ t('sheet.show', { count: visibleOffersCount }) }}</button>
+                        </template>
+                    </BottomSheet>
+
+                    <!-- Nadpis seznamu s „Rozbalit vše“ (dřív v liště filtrů, R138) -->
+                    <div v-if="visibleItems.length" class="home-groups__head">
+                        <h2 class="home-groups__title">
+                            {{ t('home.items_title') }}
+                            <span class="watch-group__count">{{ visibleItems.length }}</span>
+                        </h2>
+                        <button type="button" class="home-groups__expand" @click="toggleAllGroups">
+                            <svg v-if="allExpanded" viewBox="0 0 24 24" aria-hidden="true"><path d="m7 4 5 5 5-5M7 20l5-5 5 5" /></svg>
+                            <svg v-else viewBox="0 0 24 24" aria-hidden="true"><path d="m7 9 5-5 5 5M7 15l5 5 5-5" /></svg>
+                            {{ allExpanded ? t('home.collapse_all') : t('home.expand_all') }}
+                        </button>
+                    </div>
+                    <WatchGroup
+                        v-for="item in visibleItems"
+                        :key="item.id"
+                        :item="item"
+                        :expanded="isExpanded(item.id)"
+                        :compact="compact"
+                        :with-chain="!chainFilter"
+                        @update:expanded="(value) => setExpanded(item.id, value)"
+                        @show-upcoming="showUpcoming"
+                    />
                 </template>
             </div>
 
-            <template v-if="showChains">
-                <ChainOverview :by-chain="byChain" :watch-items="watchItems" />
-            </template>
-            <template v-else>
-                <!-- Telefon (R102): Seřadit a Filtry v oknech zespodu, pod nimi zapnuté filtry -->
-                <FilterBar ref="filterBar" :sort-label="sortLabel" :filter-count="activeFilterChips.length" @sort="sortOpen = true" @filters="filtersOpen = true">
-                    <ViewToggle v-model="compact" />
-                </FilterBar>
-                <!-- Po odjetí lišty pod hlavičku plovoucí ikony (R120); Položky / Obchody zůstává nahoře -->
-                <FloatingFilterBar :anchor="filterBar" :sort-label="sortLabel" :filter-count="activeFilterChips.length" @sort="sortOpen = true" @filters="filtersOpen = true">
-                    <template #start>
-                        <button v-if="filterChains.length > 1" type="button" class="floating-filter-bar__button" :title="t('home.chain_filter')" @click="chainSheetOpen = true">
-                            <!-- Vybraný obchod je vidět jeho logem — režim „v obchodě“ je zapnutý -->
-                            <ChainLogo v-if="chainFilter" :chain="chainFilter" class="floating-filter-bar__logo" aria-hidden="true" />
-                            <!-- Obchod s markýzou -->
-                            <svg v-else class="filter-bar__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 4h15L21 9H3zM3 9c0 1.7 1.3 3 3 3s3-1.3 3-3c0 1.7 1.3 3 3 3s3-1.3 3-3c0 1.7 1.3 3 3 3s3-1.3 3-3M5 12v8h14v-8M10 20v-5h4v5" /></svg>
-                            <span class="visually-hidden">{{ t('home.chain_filter') }}: {{ chainFilterLabel }}</span>
-                        </button>
-                    </template>
-                    <ViewToggle v-model="compact" />
-                    <button v-if="visibleItems.length" type="button" class="floating-filter-bar__button" :title="allExpanded ? t('home.collapse_all') : t('home.expand_all')" @click="toggleAllGroups">
-                        <!-- Šipky k sobě (sbalit), nebo od sebe (rozbalit) -->
-                        <svg v-if="allExpanded" class="filter-bar__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m7 4 5 5 5-5M7 20l5-5 5 5" /></svg>
-                        <svg v-else class="filter-bar__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m7 9 5-5 5 5M7 15l5 5 5-5" /></svg>
-                        <span class="visually-hidden">{{ allExpanded ? t('home.collapse_all') : t('home.expand_all') }}</span>
-                    </button>
-                </FloatingFilterBar>
-                <SortSheet v-model:open="chainSheetOpen" :title="t('home.chain_filter')" :options="chainOptions" :value="chainFilter" @change="chooseChain">
-                    <template #option="{ option }">
-                        <ChainLogo v-if="option.value" :chain="option.value" with-name />
-                        <template v-else>{{ option.label }}</template>
-                    </template>
-                </SortSheet>
-                <ActiveFilters :chips="activeFilterChips" />
-                <SortSheet v-model:open="sortOpen" :options="offersPreferences.sortOptions" :value="sort" @change="(value) => ((sort = value), saveSort(value))" />
-                <BottomSheet v-model:open="filtersOpen" :title="t('sheet.filters')">
-                    <div class="filter-sheet">
-                        <section class="filter-sheet__section">
-                            <h3 class="filter-sheet__heading">{{ t('home.filter_offers') }}</h3>
-                            <div class="filter-sheet__options">
-                                <OfferFilterChips :chips="offerFilterChips" :active="offerFilters" :counts="offerFilterCounts" @toggle="toggleOfferFilter" />
-                            </div>
-                            <p v-if="!offerFilterChips.length" class="filter-sheet__hint">{{ t('home.filter_none') }}</p>
-                        </section>
-                        <section v-if="stores" class="filter-sheet__section">
-                            <h3 class="filter-sheet__heading">{{ t('home.filter_stores') }}</h3>
-                            <div class="filter-sheet__options">
-                                <FilterChip :on="!stores.all" @click="toggleAllStores">{{ t('home.my_stores', { count: stores.count }) }}</FilterChip>
-                            </div>
-                            <p class="filter-sheet__hint">{{ t('home.my_stores_hint') }}</p>
-                        </section>
-                    </div>
-                    <template #footer>
-                        <button type="button" class="button button--ghost" :disabled="!offerFilterActive" @click="clearOfferFilters">{{ t('search.clear_filters') }}</button>
-                        <button type="button" class="button button--primary" @click="filtersOpen = false">{{ t('sheet.show', { count: visibleOffersCount }) }}</button>
-                    </template>
-                </BottomSheet>
-                <!-- Štítky filtrů akcí (R101) — široký displej; jen ty, které by něco ukázaly -->
-                <div v-if="offerFilterChips.length || stores" class="search-chips search-chips--desktop watch-groups__chips">
-                    <div class="search-chips__filters" role="group" :aria-label="t('search.filters')">
-                        <OfferFilterChips :chips="offerFilterChips" :active="offerFilters" :counts="offerFilterCounts" @toggle="toggleOfferFilter" />
-                        <FilterChip v-if="stores" :on="!stores.all" @click="toggleAllStores">{{ t('home.my_stores', { count: stores.count }) }}</FilterChip>
-                    </div>
-                </div>
-                <WatchGroup
-                    v-for="item in visibleItems"
-                    :key="item.id"
-                    :item="item"
-                    :expanded="isExpanded(item.id)"
-                    :compact="compact"
-                    :with-chain="!chainFilter"
-                    @update:expanded="(value) => setExpanded(item.id, value)"
-                />
+            <template v-if="!showChains">
                 <!-- Akce, které ještě nezačaly (R76) — v obchodě (výběr obchodu) se neukazují -->
                 <UpcomingSection v-if="!focused && upcomingItems.length" v-model:expanded="upcomingExpanded" :items="upcomingItems" />
                 <!-- Položky, které teď v akci nejsou (R100) — v obchodě se neukazují -->
-                <WaitingSection
-                    v-if="waitingItems.length"
-                    v-model:expanded="waitingExpanded"
-                    :items="waitingItems"
-                    :digest-frequency="digestFrequency"
-                    :digest-url="urls.digest"
-                    :upcoming-shown="!focused && upcomingItems.length > 0"
-                    @show-upcoming="showUpcoming"
-                />
+                <div v-if="waitingItems.length" class="page__wrap">
+                    <WaitingSection
+                        :items="waitingItems"
+                        :digest-frequency="digestFrequency"
+                        :digest-url="urls.digest"
+                        :upcoming-shown="!focused && upcomingItems.length > 0"
+                        @show-upcoming="showUpcoming"
+                    />
+                </div>
             </template>
         </template>
     </AppLayout>

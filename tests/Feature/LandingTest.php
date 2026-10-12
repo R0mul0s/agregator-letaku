@@ -125,6 +125,21 @@ it('ukázka hlídání nabídne produkty s nejvíc akcemi a předvybrané spoč�
         ->has('demo.initial.offers', 1));
 });
 
+it('pošle čas posledního stažení a počet akcí produktů pro ukázku hlídání (R137)', function (): void {
+    $beer = Product::factory()->create(['name' => 'Pivo']);
+    foreach (Offer::factory()->count(2)->create() as $offer) {
+        OfferProduct::query()->create(['offer_id' => $offer->id, 'product_id' => $beer->id, 'status' => MatchStatus::Match, 'is_manual' => false]);
+    }
+
+    // Neúspěšné stažení se nepočítá, čas je konec posledního úspěšného (UTC)
+    ScrapeRun::factory()->create(['status' => ScrapeStatus::Succeeded, 'finished_at' => '2026-10-02 10:30:00']);
+    ScrapeRun::factory()->create(['status' => ScrapeStatus::Failed, 'finished_at' => '2026-10-02 10:45:00']);
+
+    $this->get('/')->assertInertia(fn (Assert $page) => $page
+        ->where('stats.updatedAt', '2026-10-02T10:30:00Z')
+        ->where('demo.products.0.offersCount', 2));
+});
+
 it('data úvodní stránky drží v cache a po novém stažení akcí je spočítá znovu (R95)', function (): void {
     Offer::factory()->create();
     $offers = fn (): int => $this->get('/')->viewData('page')['props']['stats']['offers'];

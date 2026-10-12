@@ -29,9 +29,10 @@ final class WatchDemo
     ) {}
 
     /**
-     * Produkty k výběru — ty s nejvíc aktuálními akcemi (id, název, ikona oddělení).
+     * Produkty k výběru — ty s nejvíc aktuálními akcemi (id, název, ikona oddělení, počet akcí
+     * pro ukázku hlídání u výhod, R137).
      *
-     * @return list<array{id: int, name: string, icon: string}>
+     * @return list<array{id: int, name: string, icon: string, offersCount: int}>
      */
     public function products(): array
     {
@@ -41,6 +42,7 @@ final class WatchDemo
             'id' => (int) $product['id'],
             'name' => (string) $product['name'],
             'icon' => (string) $product['icon'],
+            'offersCount' => (int) $product['offersCount'],
         ], $products);
     }
 

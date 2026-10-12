@@ -5,14 +5,16 @@
 // @author Roman Hlaváček
 // @created 2026-10-02
 
+@use '../abstracts/dark-palette' as *;
 @use '../abstracts/mixins' as *;
 
 :root {
     // Nativní prvky (formulářová pole, scrollbary) ve stejném režimu jako stránka
     color-scheme: light;
 
-    // --color-bg musí sedět s config/letaky.php (theme_colors) — barva lišty prohlížeče
-    --color-bg: #f4f6f8;
+    // --color-bg musí sedět s config/letaky.php (theme_colors) — barva lišty prohlížeče;
+    // teplá šedá k červené z loga (R137), dřív studená #f4f6f8
+    --color-bg: #f6f5f3;
     --color-surface: #ffffff;
     --color-text: #1f222a;
     --color-text-muted: #5c6370;
@@ -245,27 +247,151 @@
     --avatar-ring-width: 2px;
     --user-menu-width: 16rem;
     --account-avatar-body-min-width: 12rem;
-    // Úvodní stránka (R44)
-    --font-size-landing-title: 2.75rem;
-    --font-size-landing-title-mobile: 2rem;
+    // Úvodní stránka (R44, nový vzhled R137): červený pruh s oblým koncem, lišta obchodů přes něj,
+    // růžový pruh kroků s vodoznakem maskota, tmavý kvíz; žlutá jen hlavní tlačítko a podtržení
+    --font-size-landing-title: 3.25rem;
+    --font-size-landing-title-mobile: 1.95rem;
     --font-size-landing-lead: 1.125rem;
-    --landing-mascot-size: 16rem;
-    --landing-mascot-size-mobile: 8rem;
-    --landing-stat-min-width: 10rem;
-    --landing-feature-min-width: 20rem;
-    --landing-extra-min-width: 17rem;
-    --landing-extra-visual-height: 8.5rem;
-    --landing-extra-chart-width: 9rem;
-    --landing-extra-push-icon-size: 2.25rem;
-    --landing-extra-check-size: 1.125rem;
-    --landing-extra-leaflet-width: 11rem;
-    --landing-extra-banner-rotation: -4deg;
-    --landing-extra-strike-thickness: 3px;
-    --landing-extra-hover-scale: 1.04;
+    --font-size-landing-section-title: 2.25rem;
+    --font-size-landing-section-title-mobile: 1.75rem;
+    --gradient-landing-hero:
+        radial-gradient(circle at 78% 40%, rgb(255 120 110 / 45%) 0, transparent 38%),
+        linear-gradient(155deg, #dc2029 0%, #b5141d 60%, #9e1018 100%);
+    // Text a prvky na červeném pruhu (bílý text na tmavším konci přechodu, kontrast ≥ 4,5 : 1)
+    --color-landing-on-hero: #ffffff;
+    --color-landing-on-hero-soft: rgb(255 255 255 / 92%);
+    --color-landing-hero-chip: rgb(255 255 255 / 14%);
+    --color-landing-hero-chip-hover: rgb(255 255 255 / 24%);
+    --color-landing-hero-chip-border: rgb(255 255 255 / 25%);
+    --color-landing-hero-ring: rgb(255 255 255 / 10%);
+    --color-landing-hero-ring-outer: rgb(255 255 255 / 5%);
+    --color-landing-hero-link-line: rgb(255 255 255 / 45%);
+    --color-landing-live: #69db7c;
+    --color-landing-live-ring: rgb(105 219 124 / 25%);
+    // Letáková žlutá: hlavní tlačítko a podtržení v nadpisu, vždy s tmavým textem (kontrast 12 : 1)
+    --color-landing-highlight: #ffd43b;
+    --color-landing-highlight-edge: #e0a800;
+    --color-on-landing-highlight: #1f222a;
+    --color-landing-band-from: #fdf1ee;
+    --color-landing-band-to: #fbe6e2;
+    --color-landing-band-dot: rgb(217 31 41 / 8%);
+    --gradient-landing-demo: linear-gradient(160deg, #fff4f2, #fdecea);
+    --color-landing-steps-line: #e7b9b6;
+    --color-landing-mascot-bg: #ffffff;
+    --landing-mascot-halo: none;
+    --landing-watermark-filter: brightness(0);
+    --color-landing-search-bg: var(--color-surface);
+    --color-landing-search-border: transparent;
+    --color-landing-search-button: #1f222a;
+    --color-landing-search-button-text: #ffffff;
+    --shadow-landing-search: 0 12px 30px rgb(70 0 0 / 30%);
+    --shadow-landing-lift: 0 6px 14px rgb(60 0 0 / 14%), 0 24px 50px rgb(60 0 0 / 22%);
+    --shadow-landing-highlight: 0 8px 20px rgb(80 0 0 / 25%);
     --landing-icon-box-size: 3rem;
     --landing-icon-size: 1.5rem;
-    --landing-step-size: 2.75rem;
+    --landing-step-size: 2.5rem;
+    --landing-step-ring: 6px;
+    // Čárkovaná linka mezi čísly kroků začíná a končí u prvního a posledního čísla
+    --landing-steps-line-inset: 16%;
     --landing-search-max-width: 34rem;
+    --landing-lead-max-width: 33rem;
+    --landing-section-lead-max-width: 38rem;
+    // Maskot v kruhu se dvěma lístky akcí; kruh obtáčí dva světlé prstence
+    --landing-art-size: 24rem;
+    --landing-art-size-mobile: 13.5rem;
+    --landing-art-inset: 10%;
+    --landing-art-mascot-width: 74%;
+    --landing-art-ring: 16px;
+    --landing-art-ring-outer: 34px;
+    --landing-art-ring-mobile: 10px;
+    --landing-art-ring-outer-mobile: 22px;
+    --landing-ticket-max-width: 15rem;
+    --landing-ticket-max-width-mobile: 10.5rem;
+    --landing-ticket-image-size: 3rem;
+    --landing-ticket-image-size-mobile: 2rem;
+    --landing-ticket-offset: -8%;
+    --landing-ticket-offset-mobile: -22%;
+    --landing-ticket-tilt: -4deg;
+    --landing-ticket-tilt-second: 3deg;
+    --landing-ticket-float: -6px;
+    --landing-ticket-float-duration: 4s;
+    --landing-ticket-float-iterations: 3;
+    // Oblý konec pruhu a o kolik ho překryje lišta obchodů
+    --landing-hero-curve-height: 7rem;
+    --landing-band-curve-height: 5rem;
+    --landing-trust-overlap: 4.5rem;
+    --landing-trust-overlap-mobile: 3.5rem;
+    --landing-band-dot-size: 18px;
+    --landing-feature-demo-min-height: 9.5rem;
+    // Vodoznak maskota v pruhu kroků — tmavá (v tmavém režimu světlá) silueta, uříznutá okrajem
+    --landing-watermark-size: 30rem;
+    --landing-watermark-opacity: 0.045;
+    --landing-watermark-rotation: -12deg;
+    // Maskot vykukující z okraje u výhod (R137): po klepnutí prosviští přes stránku
+    --landing-peek-size: 8.5rem;
+    --landing-peek-size-mobile: 6rem;
+    --landing-peek-tuck: -2.75rem;
+    --landing-peek-tuck-mobile: -2rem;
+    --landing-peek-tilt: -14deg;
+    --landing-peek-tilt-hover: -20deg;
+    --landing-peek-bubble-max-width: 14rem;
+    --landing-peek-bubble-max-width-mobile: 10rem;
+    --landing-peek-head-space-mobile: 9.5rem;
+    --landing-hunt-duration: 1.6s;
+    --landing-hunt-streak-length: 3rem;
+    --landing-hunt-streak-gap: 0.9rem;
+    --landing-hunt-streak-gap-far: 1.8rem;
+    --landing-hunt-streak-top: 45%;
+    --landing-hunt-streak-opacity: 0.9;
+    // Odkud a kam maskot vyjede: za levý okraj displeje, zpět zprava
+    --landing-hunt-exit: -110vw;
+    --landing-hunt-enter: 40vw;
+    --landing-section-padding: 4rem;
+    --landing-cta-padding-inline: 3rem;
+    --landing-curve-overhang: -10%;
+    --landing-highlight-from: 82%;
+    --landing-highlight-to: 96%;
+    --landing-band-dot-radius: 1.2px;
+    --landing-band-dot-fade: 1.7px;
+    --landing-watermark-offset-x: -6rem;
+    --landing-watermark-offset-y: -4rem;
+    --landing-watermark-max-width: 80vw;
+    --landing-ticket-edge: 4%;
+    --landing-ticket-edge-second: 6%;
+    --landing-ticket-sticker-tilt: 6deg;
+    --landing-offers-scroll-width: 80%;
+    // Moje slevy (R138): kompaktní červený pruh jako úvodní stránka, lišta filtrů přes jeho oblý
+    // konec, skupiny jako karty s tónovaným tělem, „Brzy“ v modrém pruhu, „Zatím bez akce“ dlaždice
+    --color-home-group-body: #fbf3f1;
+    --color-home-upcoming-from: #eef5fc;
+    --color-home-upcoming-to: #e5eff9;
+    --color-home-upcoming-dot: rgb(27 94 158 / 8%);
+    // Čárkovaný okraj budoucí akce a tlačítko pruhu „Brzy“ (R76) — modrá jako štítek „Od čt 15. 10.“
+    --color-info-border: #9cc3ea;
+    --color-home-radar: rgb(47 158 68 / 45%);
+    --color-home-radar-end: rgb(47 158 68 / 0%);
+    --home-art-size: 15rem;
+    --home-art-circle: 64%;
+    // Kruh s maskotem u pravého horního rohu, lístek u levého dolního
+    --home-art-circle-top: 4%;
+    --home-art-circle-right: 6%;
+    --home-art-ring: 12px;
+    --home-art-ring-outer: 26px;
+    --home-ticket-tilt: -4deg;
+    --home-hero-curve-height: 5rem;
+    --home-toolbar-overlap: 3.5rem;
+    --home-toolbar-overlap-mobile: 3rem;
+    --home-band-curve-height: 4rem;
+    --home-waiting-min-width: 16rem;
+    // Zelená tečka „Hlídáme dál“ pulzuje jako radar — pár opakování, dekorativní animace ~10 s (R99)
+    --home-radar-duration: 2s;
+    --home-radar-iterations: 5;
+    --home-radar-spread: 8px;
+    // Karta akce bez fotky (R138): jemný přechod a silueta maskota místo prázdného pole
+    --gradient-offer-placeholder: linear-gradient(160deg, #fff6f4, #fbe9e6);
+    --offer-placeholder-filter: brightness(0);
+    --offer-placeholder-opacity: 0.08;
+    --offer-placeholder-mascot-width: 45%;
     // Živá ukázka hlídání a hra „Co je levnější?“ (R90)
     --watch-demo-chain-off-opacity: 0.45;
     --watch-demo-dot-size: 0.5rem;
@@ -275,9 +401,8 @@
     --price-quiz-image-height: 7rem;
     --price-quiz-option-min-width: 14rem;
     --price-quiz-dot-size: 0.625rem;
-    --duration-sticker-swap: 220ms;
-    --sticker-swap-scale: 0.6;
-    // Animace košíku v hlavním pruhu (R44): jízda, hrboly, čárky rychlosti
+    // Animace košíku (R44): jízda, hrboly, čárky rychlosti — hlavička úvodní stránky na telefonu,
+    // úvodní pruh Mých slev a maskot v hlavním pruhu
     --landing-drive-duration: 3.2s;
     --landing-drive-distance: 0.6rem;
     --landing-bump-duration: 0.45s;
@@ -290,11 +415,6 @@
     --landing-drive-iterations: 3;
     --landing-bump-iterations: 22;
     --landing-streak-iterations: 11;
-    --landing-streak-left: 8%;
-    --landing-streak-thickness: 0.4rem;
-    --landing-streak-long: 3.5rem;
-    --landing-streak-medium: 2.5rem;
-    --landing-streak-short: 1.75rem;
     --icon-size: 1.125rem;
     --icon-size-sm: 0.875rem;
     // Křížek u vybrané prodejny (StoreSelect, R49)
@@ -325,8 +445,35 @@
     // O kolik zvednout prvky přilepené ke spodnímu okraji (toast, Nahoru, cookies) — bez lišty 0,
     // s lištou na telefonu její výška (layout/_tab-bar.scss)
     --tab-bar-offset: 0px;
-    // Výzva k přidání na plochu (R66)
+    // Výzva k přidání na plochu (R66, vzhled R139): bílá karta s červeným proužkem nahoře,
+    // ikony výhod v červených čtverečcích, vpravo telefon s plochou a upozorněním
     --install-icon-size: 3rem;
+    --install-accent-width: 5px;
+    --gradient-install-prompt: var(--color-surface);
+    --color-install-eyebrow: #b8141e;
+    --install-icon-bg: linear-gradient(135deg, #f42630 0%, #c00010 100%);
+    --color-install-icon: #ffffff;
+    --color-install-phone: #2b2f38;
+    --color-install-app: rgb(31 34 42 / 12%);
+    --color-install-notify-text: #1f222a;
+    --gradient-install-screen: linear-gradient(170deg, #ffd6d2, #fff4f2 45%, #f6f5f3);
+    --gradient-install-glow: radial-gradient(circle, #ffe3e0 0, transparent 65%);
+    --install-art-width: 14rem;
+    --install-glow-inset: 0 -20% -30% -20%;
+    --install-phone-width: 10.5rem;
+    --install-phone-ratio: 9 / 18;
+    --install-phone-radius: 1.6rem;
+    --install-phone-tilt: 6deg;
+    --install-phone-overflow: 6rem;
+    --install-notch-width: 2.6rem;
+    --install-screen-top: 2.6rem;
+    --install-notify-top: 1.6rem;
+    --install-notify-icon: 1.1rem;
+    --font-size-install-notify: 0.5rem;
+    --install-step-size: 1.6rem;
+    --install-pop-duration: 1.6s;
+    --install-pop-iterations: 4;
+    --install-pop-scale: 1.12;
     // Stažení stránky dolů v aplikaci z plochy (R112): ukazatel vyjíždí zpod hlavičky (její výška
     // na telefonu), velikost kruhu a o kolik stupňů se šipka otočí na 1 px tahu
     --pull-refresh-top: 3.5rem;
@@ -349,7 +496,6 @@
     --data-table-min-width: 44rem;
     --mention-image-width: 4.5rem;
     --hero-mascot-size: 6.5rem;
-    --hero-mascot-size-mobile: 4rem;
     --empty-mascot-size: 6rem;
     --empty-text-max-width: 32rem;
     --search-text-min-width: 16rem;
@@ -368,6 +514,8 @@
     --search-input-padding-left: 2.5rem;
     --search-spin-duration: 0.8s;
     --search-shortcut-size: 1.5rem;
+    // Tlačítko hledání v poli (úvodní stránka, R137)
+    --search-submit-width: 7.5rem;
     // Celá obrazovka hledání na telefonu — nad hlavičkou a spodní lištou, pod toastem
     --z-search-sheet: 48;
     // Výsledky během živého hledání — ztlumené, dokud nepřijdou nové
@@ -410,14 +558,6 @@
     --scrollbar-thumb-inset: 3px;
     // Štítky v hlavičce skupiny Mých slev: odsazení textu oříznutého na výšku verzálek
     --badge-padding-y: 0.375em;
-    // Jedoucí košík v úvodním pruhu Mých slev — menší než na úvodní stránce
-    --home-hero-drive-distance: 0.4rem;
-    --home-hero-bump-height: 0.15rem;
-    --home-hero-streak-travel: 1.25rem;
-    --home-hero-streak-thickness: 0.25rem;
-    --home-hero-streak-long: 1.75rem;
-    --home-hero-streak-medium: 1.25rem;
-    --home-hero-streak-short: 0.875rem;
     // Potvrzovací okno (R47)
     --confirm-dialog-max-width: 28rem;
     // Okno se seznamem prodejen akce (R49)
@@ -439,46 +579,6 @@
     --empty-inline-icon-box-size: 2.5rem;
 
     @include dark {
-        color-scheme: dark;
-        // Neutrální tmavý režim (R83): podklad studený antracit, červená jen na tlačítkách
-        // a cenovkách slev — ceny bílé, odkazy, aktivní položky a štítky šedé. Světlá
-        // lososová a růžová na tmavém pozadí „střílela“ (zpětná vazba uživatelů).
-        --color-bg: #121418;
-        --color-surface: #1c1f25;
-        --color-text: #e9ebef;
-        --color-text-muted: #9ca3ae;
-        --color-brand: #ff4a52;
-        --color-brand-dark: #eceef2;
-        --color-price: #ffffff;
-        --color-logo-mark-bg: #eceef2;
-        --color-footer-bg: #0f1115;
-        --watermark-opacity: 0.1;
-        // Tlačítka v tmavé červené z loga s bílým textem (kontrast 4,8 : 1, WCAG AA)
-        --color-accent: #d6333c;
-        // Text „v akcentu“ (odkazy, aktivní navigace, počty ve štítcích) neutrální
-        --color-accent-strong: #e4e7ec;
-        --color-accent-soft: #2a2e36;
-        --color-button-edge: #8f1820;
-        --color-on-accent: #ffffff;
-        --color-border: #2c3038;
-        --color-input-border: #6b7280;
-        --color-scrollbar-thumb: #3a3f48;
-        --color-toast-bg: #eceef2;
-        --color-toast-text: #121418;
-        --color-focus: #4dabf7;
-        --color-success: #51cf66;
-        --color-success-soft: #13301b;
-        --color-success-text: #8ce99a;
-        --color-danger: #ff6b6b;
-        --color-danger-soft: #3a1717;
-        --color-warning-soft: #3a2a0c;
-        --color-warning-text: #fab005;
-        --color-info-soft: #12273d;
-        --color-info-text: #8cc4f5;
-        --shadow-card: none;
-        --shadow-card-hover: 0 12px 28px rgb(0 0 0 / 45%);
-        --gradient-brand: linear-gradient(135deg, #e5343d 0%, #b81b24 100%);
-        --gradient-hero: linear-gradient(120deg, #23262d 0%, #1c1f25 70%);
-        --focus-ring: 0 0 0 3px rgb(77 171 247 / 45%);
+        @include dark-palette;
     }
 }

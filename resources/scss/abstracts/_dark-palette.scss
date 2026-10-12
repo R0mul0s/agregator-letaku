@@ -1,0 +1,93 @@
+// _dark-palette.scss
+// Tmavé hodnoty tokenů (R83) jako mixin — tmavý režim celé aplikace (base/_tokens.scss) a tmavé
+// oddíly, které jsou tmavé i ve světlém režimu (kvíz na úvodní stránce, R137). Tokeny, které
+// tmavý režim nemění, tu nejsou.
+//
+// @author Roman Hlaváček
+// @created 2026-10-12
+
+/// Tmavá paleta tokenů. Patří do selektoru, pod kterým mají platit (:root v tmavém režimu,
+/// tmavý oddíl stránky).
+@mixin dark-palette {
+    color-scheme: dark;
+    // Neutrální tmavý režim (R83): podklad studený antracit, červená jen na tlačítkách
+    // a cenovkách slev — ceny bílé, odkazy, aktivní položky a štítky šedé. Světlá
+    // lososová a růžová na tmavém pozadí „střílela“ (zpětná vazba uživatelů).
+    --color-bg: #121418;
+    --color-surface: #1c1f25;
+    --color-text: #e9ebef;
+    --color-text-muted: #9ca3ae;
+    --color-brand: #ff4a52;
+    --color-brand-dark: #eceef2;
+    --color-price: #ffffff;
+    --color-logo-mark-bg: #eceef2;
+    --color-footer-bg: #0f1115;
+    --watermark-opacity: 0.1;
+    // Tlačítka v tmavé červené z loga s bílým textem (kontrast 4,8 : 1, WCAG AA)
+    --color-accent: #d6333c;
+    // Text „v akcentu“ (odkazy, aktivní navigace, počty ve štítcích) neutrální
+    --color-accent-strong: #e4e7ec;
+    --color-accent-soft: #2a2e36;
+    --color-button-edge: #8f1820;
+    --color-on-accent: #ffffff;
+    --color-border: #2c3038;
+    --color-input-border: #6b7280;
+    --color-scrollbar-thumb: #3a3f48;
+    --color-toast-bg: #eceef2;
+    --color-toast-text: #121418;
+    --color-focus: #4dabf7;
+    --color-success: #51cf66;
+    --color-success-soft: #13301b;
+    --color-success-text: #8ce99a;
+    --color-danger: #ff6b6b;
+    --color-danger-soft: #3a1717;
+    --color-warning-soft: #3a2a0c;
+    --color-warning-text: #fab005;
+    --color-info-soft: #12273d;
+    --color-info-text: #8cc4f5;
+    --shadow-card: none;
+    --shadow-card-hover: 0 12px 28px rgb(0 0 0 / 45%);
+    --gradient-brand: linear-gradient(135deg, #e5343d 0%, #b81b24 100%);
+    --gradient-hero: linear-gradient(120deg, #23262d 0%, #1c1f25 70%);
+    --focus-ring: 0 0 0 3px rgb(77 171 247 / 45%);
+
+    // Úvodní stránka (R137): červený pruh ztlumený do vínové, světlé části do antracitu;
+    // maskot a loga dál na světlém podkladu
+    --gradient-landing-hero:
+        radial-gradient(circle at 78% 40%, rgb(255 90 90 / 22%) 0, transparent 40%),
+        linear-gradient(155deg, #8f1820 0%, #6f121a 60%, #580d14 100%);
+    --gradient-landing-demo: linear-gradient(160deg, #23262d, #1f2228);
+    --color-landing-band-from: #181b20;
+    --color-landing-band-to: #1a1d23;
+    --color-landing-band-dot: rgb(255 255 255 / 4%);
+    --color-landing-steps-line: #3a3f48;
+    --color-landing-quiz-bg: #1a1d22;
+    --color-landing-quiz-border: #2c3038;
+    --color-landing-mascot-bg: #eceef2;
+    --landing-mascot-halo: radial-gradient(circle, #eceef2 0 58%, transparent 59%);
+    --landing-watermark-filter: brightness(0) invert(1);
+    --color-landing-search-bg: #262a31;
+    --color-landing-search-border: #4b515c;
+    --color-landing-search-button: #eceef2;
+    --color-landing-search-button-text: #121418;
+    --shadow-landing-lift: 0 12px 30px rgb(0 0 0 / 50%);
+
+    // Moje slevy (R138): tělo skupiny, pruh „Brzy“ a karta bez fotky v antracitu
+    --color-home-group-body: #181b20;
+    --color-home-upcoming-from: #151b23;
+    --color-home-upcoming-to: #161d26;
+    --color-home-upcoming-dot: rgb(255 255 255 / 4%);
+    --color-info-border: #2d5a86;
+    --gradient-offer-placeholder: linear-gradient(160deg, #23262d, #1f2228);
+    --offer-placeholder-filter: brightness(0) invert(1);
+
+    // Výzva k přidání na plochu (R139): o stupeň světlejší antracit s červenou září, žluté ikony
+    --gradient-install-prompt: radial-gradient(circle at 88% 25%, rgb(214 51 60 / 30%), transparent 45%), linear-gradient(150deg, #2c2f37 0%, #24272e 100%);
+    --color-install-eyebrow: #ffd43b;
+    --install-icon-bg: #353a44;
+    --color-install-icon: #ffd43b;
+    --color-install-phone: #0f1115;
+    --color-install-app: rgb(255 255 255 / 10%);
+    --gradient-install-screen: linear-gradient(170deg, #6f121a, #2b1418 45%, #23262d);
+    --gradient-install-glow: none;
+}

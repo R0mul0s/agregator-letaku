@@ -36,6 +36,9 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 /** id navigace pro aria-controls tlačítka menu. */
 const NAV_ID = 'app-navigation';
 
+/** Stránky s červeným pruhem pod hlavičkou a oddíly přes celou šířku (R137, R138). */
+const BLEED_PAGES = ['Landing', 'Home'];
+
 const t = useTranslations();
 const page = usePage();
 
@@ -44,6 +47,9 @@ const hasMenuButton = computed(() => page.props.navigation.some((item) => !item.
 
 /** Spodní lišta záložek na telefonu (R66) — v hlavičce je pak místo na celé logo s názvem. */
 const hasTabBar = computed(() => page.props.navigation.some((item) => item.tab));
+
+/** Stránka s oddíly přes celou šířku — obsah si odsadí sama (.page__wrap). */
+const bleedPage = computed(() => BLEED_PAGES.includes(page.component));
 
 /** Navigace rozbalená na telefonu. */
 const navOpen = ref(false);
@@ -93,6 +99,8 @@ onBeforeUnmount(() => {
         :class="{
             'app-header--guest': !page.props.auth.user,
             'app-header--animated-logo': page.component === 'Landing',
+            // Pod hlavičkou hned červený pruh, linka by ho zdvojila (R137, R138)
+            'app-header--flush': bleedPage,
             'app-header--with-menu': hasMenuButton,
             'app-header--with-tabs': hasTabBar,
             'app-header--menu-open': navOpen,
@@ -165,7 +173,7 @@ onBeforeUnmount(() => {
     <PullToRefresh />
 
     <!-- tabindex -1: po odkazu „Přeskočit na obsah" dostane fokus i hlavní obsah -->
-    <main id="main" class="page" tabindex="-1">
+    <main id="main" class="page" :class="{ 'page--bleed': bleedPage }" tabindex="-1">
         <InstallPrompt />
         <slot />
     </main>

@@ -361,6 +361,20 @@ return [
         // Aplikace v telefonu (R66): přidání na plochu, offline režim (InstallPrompt, OfflineBar, PhoneAppSettings)
         'pwa' => [
             'install_title' => 'Slevohlídka jako aplikace',
+            // Karta výzvy (R139, InstallPrompt.vue): štítek, nadpis, tři výhody, kroky na iPhonu
+            'install_eyebrow' => 'Aplikace do telefonu',
+            'install_heading' => 'Mějte slevy vždycky po ruce',
+            'install_benefits' => [
+                'tap' => ['title' => 'Jedním klepnutím', 'text' => 'Ikona na ploše jako každá aplikace'],
+                'offline' => ['title' => 'Seznam i bez signálu', 'text' => 'V obchodě odškrtáte nákup offline'],
+                'notify' => ['title' => 'Ozve se sama', 'text' => 'Upozornění na nové akce, co hlídáte'],
+            ],
+            'install_ios_share' => 'Dole v Safari klepněte na Sdílet',
+            'install_ios_add' => 'Zvolte Přidat na plochu',
+            'install_close' => 'Zavřít — připomeneme později',
+            // Ukázka upozornění v ilustraci telefonu
+            'install_demo_app' => 'Slevohlídka · teď',
+            'install_demo_text' => 'Pivo, které hlídáte, je ve slevě ve 3 obchodech.',
             'install_text' => 'Mějte Slevohlídku po ruce na ploše telefonu — otevře se jedním klepnutím, nákupní seznam funguje i v obchodě bez signálu a o nových akcích vám dá vědět sama.',
             'install' => 'Přidat na plochu',
             'install_later' => 'Teď ne',
@@ -560,7 +574,9 @@ return [
             'upcoming_count' => '+ :count brzy',
             // „Vyplatí se počkat“ (R76, WaitAdvice)
             'wait_tip' => 'Vyplatí se počkat',
-            'wait_tip_text' => ':chain od :date za :price (:unit_price) — o :percent % levněji než nejlevnější akce dnes.',
+            // Rada v Mých slevách (R138): krátká věta a lístek budoucí akce vedle ní; text lístku pro čtečky
+            'wait_tip_short' => 'Brzy bude o :percent % levněji než nejlevnější akce dnes.',
+            'wait_tip_offer' => ':chain od :date za :price (:unit_price), ukázat v sekci Brzy',
             'no_offers' => 'Teď v akci není',
             'mentions_count' => ':count zmínka v letáku|:count zmínky v letáku|:count zmínek v letáku',
             'show_offers' => 'Zobrazit v Mých slevách',
@@ -944,44 +960,38 @@ return [
             ],
         ],
 
-        // Úvodní stránka pro nepřihlášené (R44, R90, Landing.vue, WatchDemo.vue, PriceQuiz.vue)
+        // Úvodní stránka pro nepřihlášené (R44, R90, nový vzhled R137; Landing.vue, WatchDemo.vue,
+        // PriceQuiz.vue, MascotHunt.vue)
         'landing' => [
-            'eyebrow' => 'Rychlý lovec slev',
-            'headline' => 'Slevy z letáků na to, co opravdu kupujete',
-            'lead' => 'Každý den za vás prolistujeme letáky a e-shopy velkých obchodů. Vy nám řeknete, co kupujete — my ukážeme, kde je to zrovna ve slevě a kde nejlevněji za kilo nebo litr.',
+            // :number je počet s mezerou po tisících, :count jen pro tvar slova
+            'live' => ':number akce právě teď ze :chains obchodů|:number akce právě teď ze :chains obchodů|:number akcí právě teď ze :chains obchodů',
+            // Nadpis hlavního pruhu — druhá část je podtržená žlutě
+            'headline_start' => 'Slevy z letáků na to, co',
+            'headline_highlight' => 'opravdu kupujete',
+            'lead' => 'Řekněte nám, co kupujete. Každý den projdeme letáky a ukážeme, kde je to ve slevě a kde nejlevněji za kilo nebo litr.',
             'search_label' => 'Co kupujete?',
+            'search_submit' => 'Najít slevy',
+            'popular' => 'Často hledané:',
             'register' => 'Začít zdarma',
             'browse' => 'Prohlédnout akce',
-            'login_hint' => 'Už máte účet?',
-            'login' => 'Přihlaste se',
+            // „nebo projít všechny akce“ — na telefonu jen „všechny akce“
+            'browse_prefix' => 'nebo projít',
+            'browse_all' => 'všechny akce',
             'stats' => [
                 'offers' => 'akce právě teď|akce právě teď|akcí právě teď',
-                'chains' => 'obchod|obchody|obchodů',
-                'products' => 'produkt v katalogu|produkty v katalogu|produktů v katalogu',
-                'top_discount' => 'nejvyšší sleva právě teď',
             ],
-            'features_title' => 'Co Slevohlídka umí',
-            'features' => [
-                'watch' => ['title' => 'Hlídá, co kupujete', 'text' => 'Vyberte z katalogu máslo, pivo nebo Coca-Colu Zero, nebo napište vlastní slova. Ostatní akce vás rušit nebudou — slibujeme.'],
-                'unit_price' => ['title' => 'Cena za kilo a litr', 'text' => 'Řadíme podle ceny za jednotku, takže vás obří balení s velkým nápisem AKCE neoblafne.'],
-                'cards' => ['title' => 'Běžná cena i cena s kartou', 'text' => 'Clubcard, Lidl Plus, Kaufland Card, PENNY karta… U akce vidíte obě ceny vedle sebe. Řekněte nám, které karty máte, a akce jen pro držitele jiných karet vám nebudou překážet.'],
-                'upcoming' => ['title' => 'Akce dřív, než začnou', 'text' => 'Leták na příští týden přečteme hned, jak vyjde. Uvidíte, jestli se vyplatí s nákupem pár dní počkat.'],
-                'history' => ['title' => 'Je to opravdu sleva?', 'text' => 'Cenu porovnáme s dřívějšími akcemi, takže poznáte, kdy je opravdu nejnižší.'],
-                'shopping' => ['title' => 'Nákupní seznam do obchodu', 'text' => 'Akce si odložíte do seznamu rozděleného podle obchodů a v obchodě je jen odškrtáváte — i bez signálu.'],
-                'notify' => ['title' => 'Upozornění e-mailem i v telefonu', 'text' => 'Nové akce na to, co hlídáte, ohlásíme hned, denně nebo jednou týdně — jen když je co hlásit.'],
-                'mentions' => ['title' => 'I to, co je v letáku bez ceny', 'text' => 'Když leták zmíní, co hlídáte, ale cenu z něj přečíst nejde, dostanete odkaz přímo na stránku letáku.'],
-                'free' => ['title' => 'Zdarma a bez reklam', 'text' => 'Žádné blikající bannery, měření návštěvnosti jen s vaším souhlasem.'],
+            'chains_label' => 'Čteme letáky',
+            'updated' => [
+                'today' => 'Aktualizováno dnes v :time',
+                'yesterday' => 'Aktualizováno včera v :time',
+                'date' => 'Aktualizováno :date v :time',
             ],
-            'features_more_title' => 'A k tomu navíc',
-            // Miniatury funkcí na dlaždicích „A k tomu navíc“ (R90, LandingExtras.vue) — ilustrace, ne skutečné akce
-            'extras' => [
-                'upcoming' => ['item' => 'Máslo 250 g', 'tag' => 'Od čtvrtka', 'tip' => 'Vyplatí se počkat'],
-                'shopping' => ['items' => ['Máslo', 'Pivo', 'Banány'], 'hint' => 'Zkuste odškrtnout'],
-                'notify' => ['app' => 'Slevohlídka', 'time' => 'teď', 'text' => 'Pivo, které hlídáte, je ve slevě ve 3 obchodech.'],
-                'mentions' => ['before' => 'Grilujeme! Klobásy, steaky a k tomu', 'word' => 'pivo', 'after' => 'na každou zahradu.', 'link' => 'Strana 7 letáku →'],
-                'free' => ['banner' => 'Reklama', 'price' => '0 Kč'],
-            ],
-            'steps_title' => 'Jak to funguje',
+            'top_eyebrow' => 'Právě teď',
+            'top_title' => 'Nejvyšší slevy z dnešních letáků',
+            'top_more' => 'Všechny akce',
+            'top_weekly' => 'Nejlepší slevy týdne',
+            'steps_eyebrow' => 'Jak to funguje',
+            'steps_title' => 'Tři kroky a slevy hlídáme za vás',
             'steps_lead' => 'Vyzkoušejte si to hned — bez registrace a bez e-mailu.',
             'steps' => [
                 'chains' => ['title' => 'Vyberte obchody', 'text' => 'Klepněte na obchody, kde nakupujete.'],
@@ -1002,7 +1012,35 @@ return [
                 'nothing' => 'Na tohle teď ve vybraných obchodech akce není. Slevohlídka ale hlídá dál a ozve se, až bude.',
                 'cta' => 'Hlídat to za mě',
             ],
+            'features_eyebrow' => 'Co Slevohlídka umí',
+            'features_title' => 'Méně listování, víc ušetřeno',
+            'features' => [
+                'watch' => ['title' => 'Hlídá, co kupujete', 'text' => 'Vyberte z katalogu máslo, pivo nebo Coca-Colu Zero, nebo napište vlastní slova. Ostatní akce vás rušit nebudou — slibujeme.'],
+                'unit_price' => ['title' => 'Cena za kilo a litr', 'text' => 'Řadíme podle ceny za jednotku, takže vás obří balení s velkým nápisem AKCE neoblafne.'],
+                'cards' => ['title' => 'Běžná cena i cena s kartou', 'text' => 'Clubcard, Lidl Plus, Kaufland Card, PENNY karta… U akce vidíte obě ceny vedle sebe. Řekněte nám, které karty máte, a akce jen pro držitele jiných karet vám nebudou překážet.'],
+                'upcoming' => ['title' => 'Akce dřív, než začnou', 'text' => 'Leták na příští týden přečteme hned, jak vyjde. Uvidíte, jestli se vyplatí s nákupem pár dní počkat.'],
+                'history' => ['title' => 'Je to opravdu sleva?', 'text' => 'Cenu porovnáme s dřívějšími akcemi, takže poznáte, kdy je opravdu nejnižší.'],
+                'shopping' => ['title' => 'Nákupní seznam do obchodu', 'text' => 'Akce si odložíte do seznamu rozděleného podle obchodů a v obchodě je jen odškrtáváte — i bez signálu.'],
+                'notify' => ['title' => 'Upozornění e-mailem i v telefonu', 'text' => 'Nové akce na to, co hlídáte, ohlásíme hned, denně nebo jednou týdně — jen když je co hlásit.'],
+                'mentions' => ['title' => 'I to, co je v letáku bez ceny', 'text' => 'Když leták zmíní, co hlídáte, ale cenu z něj přečíst nejde, dostanete odkaz přímo na stránku letáku.'],
+                'free' => ['title' => 'Zdarma a bez reklam', 'text' => 'Žádné blikající bannery, měření návštěvnosti jen s vaším souhlasem.'],
+            ],
+            // Ukázky nad hlavními výhodami (R137): hlídané produkty jsou skutečné, ceny jsou ilustrace
+            'preview' => [
+                'watch_count' => ':count akce|:count akce|:count akcí',
+                'unit_price' => [
+                    'promo' => ['name' => 'Akční balení 3 × 400 g', 'price' => '159,90 Kč', 'unit' => '133,25 Kč/kg'],
+                    'regular' => ['name' => 'Běžné balení 1 kg', 'price' => '119,90 Kč', 'unit' => '119,90 Kč/kg'],
+                ],
+                'cards' => [
+                    'regular_label' => 'Běžná cena',
+                    'regular_price' => '39,90 Kč',
+                    'card_label' => 'S kartou',
+                    'card_price' => '29,90 Kč',
+                ],
+            ],
             'quiz' => [
+                'eyebrow' => 'Hra',
                 'title' => 'Co je levnější?',
                 'lead' => 'Velký nápis AKCE umí oblafnout. Tipněte si, co vyjde levněji za kilo nebo litr — jsou to skutečné akce z dnešních letáků.',
                 'round' => 'Kolo :current z :total',
@@ -1021,9 +1059,13 @@ return [
                 'again' => 'Hrát znovu',
                 'cta' => 'Ať to počítá Slevohlídka',
             ],
-            'top_title' => 'Právě teď nejvyšší slevy',
-            'top_more' => 'Všechny akce',
-            'top_weekly' => 'Nejlepší slevy týdne',
+            // Maskot vykukující u výhod (R137) — po klepnutí „uloví“ akci z ukázky; text bez rodu
+            'hunt' => [
+                'hint' => 'Psst! Klepněte na mě a skočím vám ulovit slevu.',
+                'found' => 'Mám to! :name za :price (:discount), :chain. Ještě jednou?',
+                'found_plain' => 'Mám to! :name za :price, :chain. Ještě jednou?',
+                'button' => 'Poslat Slevohlídku na lov slev',
+            ],
             'cta_title' => 'Ať slevy loví Slevohlídka, ne vy',
             'cta_text' => 'Registrace zabere minutu a nestojí ani korunu.',
         ],
@@ -1217,7 +1259,15 @@ return [
         'home' => [
             'title' => 'Moje slevy',
             'hello' => 'Ahoj, :name!',
-            'hero_text' => 'Tohle jsme pro vás ulovili v letácích a e-shopech obchodů, které sledujete.',
+            // Věta pod pozdravem v červeném pruhu (R138) — :number s mezerou po tisících, :count pro tvar
+            'hero_lead' => 'Dnes pro vás hlídáme :number akci.|Dnes pro vás hlídáme :number akce.|Dnes pro vás hlídáme :number akcí.',
+            'hero_lead_fresh' => 'Nových je :fresh.',
+            'shopping_link' => 'Nákupní seznam (:count)',
+            'shopping_link_empty' => 'Nákupní seznam',
+            // Maskot s nejvyšší slevou dne v pruhu (R138) — klepnutí skočí na skupinu
+            'best_ticket' => 'Nejvyšší sleva dnes',
+            'best_ticket_label' => 'Nejvyšší sleva dnes: :name, :price',
+            'items_title' => 'Hlídané položky',
             'stat_items' => 'hlídaná položka|hlídané položky|hlídaných položek',
             'stat_offers' => 'akce|akce|akcí',
             // Čísla v úvodním pruhu jsou zkratky (R102): nové akce, skok na nejvyšší slevu
@@ -1256,8 +1306,10 @@ return [
             'my_stores' => 'Jen moje prodejny (:count)',
             // Položky, které teď v akci nejsou — sbalená sekce pod ostatními (R100)
             'waiting_title' => 'Zatím bez akce',
-            'waiting_count' => ':count položka|:count položky|:count položek',
             'waiting_hint' => 'Tyhle položky teď v akci nejsou. Hlídáme dál — jakmile se některá objeví, přesune se nahoru.',
+            // Nadpis sekce a stav dlaždice (R138)
+            'waiting_heading' => ':count položka čeká na slevu|:count položky čekají na slevu|:count položek čeká na slevu',
+            'waiting_status' => 'Hlídáme dál',
             'mentions_title' => 'V letáku, ale bez ceny',
             'mentions_hint' => 'Leták o tom píše, ale cenu z něj přečíst neumíme — mrkněte přímo na stránku letáku.',
             'mention_maybe_hint' => 'Stránka hledanou variantu neuvádí — ověřte v letáku.',
@@ -1267,6 +1319,11 @@ return [
             'upcoming_title' => 'Brzy',
             'upcoming_summary' => ':count akce, první od :date|:count akce, první od :date|:count akcí, první od :date',
             'upcoming_hint' => 'Obchody už tyhle akce zveřejnily, ale začnou až v příštích dnech — v obchodě zatím neplatí. Ráno v den začátku vám připomeneme.',
+            // Modrý pruh „Brzy“ (R138): nadpis, nejbližší začátek a tlačítko sbalení
+            'upcoming_heading' => ':count akce začne v příštích dnech|:count akce začnou v příštích dnech|:count akcí začne v příštích dnech',
+            'upcoming_first' => 'První začíná :date',
+            'upcoming_show' => 'Ukázat :count akci|Ukázat :count akce|Ukázat :count akcí',
+            'upcoming_hide' => 'Skrýt akce',
         ],
 
         // Menu pod avatarem vpravo nahoře (UserMenu.vue, R40)

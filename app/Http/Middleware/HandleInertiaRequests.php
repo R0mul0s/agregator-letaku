@@ -159,7 +159,8 @@ class HandleInertiaRequests extends Middleware
                 'serviceWorkerUrl' => Vite::isRunningHot() ? null : route('service-worker', absolute: false),
                 'refreshAfterMinutes' => config()->integer('letaky.pwa.refresh_after_minutes'),
                 'updateCheckMinutes' => config()->integer('letaky.pwa.update_check_minutes'),
-                'installSnoozeDays' => config()->integer('letaky.pwa.install_prompt_snooze_days'),
+                // Odklad výzvy k přidání na plochu po 1., 2., 3. … zavření (R139)
+                'installSnoozeDays' => array_map(intval(...), array_values(config()->array('letaky.pwa.install_prompt_snooze_days'))),
             ],
             // Patička (R51, R92): právní stránky, obchody s odkazy na jejich akce a čas posledního
             // stažení — název se nesmí krýt s propem stránky. Údaje provozovatele jsou na /kontakt

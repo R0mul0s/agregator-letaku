@@ -89,7 +89,7 @@ img {
     -premailer-cellpadding: 0;
     -premailer-cellspacing: 0;
     -premailer-width: 100%;
-    background-color: #f4f6f8;
+    background-color: #f6f5f3;
     margin: 0;
     padding: 0;
     width: 100%;
@@ -134,9 +134,9 @@ img {
     -premailer-cellpadding: 0;
     -premailer-cellspacing: 0;
     -premailer-width: 100%;
-    background-color: #f4f6f8;
-    border-bottom: 1px solid #f4f6f8;
-    border-top: 1px solid #f4f6f8;
+    background-color: #f6f5f3;
+    border-bottom: 1px solid #f6f5f3;
+    border-top: 1px solid #f6f5f3;
     margin: 0;
     padding: 0;
     width: 100%;
@@ -282,7 +282,7 @@ img {
 }
 
 .panel-content {
-    background-color: #f4f6f8;
+    background-color: #f6f5f3;
     color: #1f222a;
     padding: 16px;
 }

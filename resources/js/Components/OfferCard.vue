@@ -130,8 +130,6 @@ const historyLabel = computed(() => {
                 <InfoIcon />
             </button>
             <span class="tag" :class="{ 'tag--accent': offer.offerType === OFFER_TYPE.DISCOUNT }">{{ t(`offer_types.${offer.offerType}`) }}</span>
-            <!-- Bez obrázku cenovka vpravo v řádku štítků — přes prázdné pole by překryla název -->
-            <span v-if="discount && !hasImage" class="offer-card__sticker offer-card__sticker--inline" aria-hidden="true">{{ formatDiscount(discount) }}</span>
         </div>
         <p v-if="offer.matchStatus === MATCH_MAYBE" :id="maybeHintId" class="offer-card__hint" :hidden="!maybeHintOpen">{{ t('offers.maybe_hint') }}</p>
 
@@ -140,6 +138,12 @@ const historyLabel = computed(() => {
         <div v-if="hasImage" class="offer-card__media">
             <img :src="offer.imageUrl" alt="" class="offer-card__image" loading="lazy" referrerpolicy="no-referrer" @error="imageBroken = true" />
             <span v-if="discount" class="offer-card__sticker" aria-hidden="true">{{ formatDiscount(discount) }}</span>
+        </div>
+        <!-- Bez fotky (Penny, Albert, letáky Lidlu a Globusu) jemný přechod se siluetou maskota —
+             karty mají stejně vysoké pole a prázdná plocha nevypadá jako chyba (R138) -->
+        <div v-else class="offer-card__media offer-card__media--none" aria-hidden="true">
+            <img src="/images/brand/mascot-192.webp" width="192" height="192" alt="" class="offer-card__placeholder" loading="lazy" />
+            <span v-if="discount" class="offer-card__sticker">{{ formatDiscount(discount) }}</span>
         </div>
         <component :is="`h${headingLevel}`" class="offer-card__name">{{ offer.name }}</component>
         <p v-if="offer.description" class="offer-card__description">{{ offer.description }}</p>

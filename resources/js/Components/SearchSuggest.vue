@@ -6,7 +6,8 @@
     Šipky vybírají, Enter potvrdí (bez výběru hledá text), Escape zavře, „/“ skočí do pole.
     Delete smaže vybrané poslední hledání, Shift + Delete všechna (R99) — tlačítka v panelu jsou
     jen pro myš a dotyk, fokus zůstává v poli (combobox). Počet návrhů oznamuje skrytý stav.
-    Na telefonu se hledání otevře přes celou obrazovku.
+    Na telefonu se hledání otevře přes celou obrazovku. Na úvodní stránce má pole tlačítko
+    hledání a popisek jen pro čtečky (R137).
 
     @author Roman Hlaváček
     @created 2026-10-02
@@ -43,6 +44,10 @@ const props = defineProps({
     loading: { type: Boolean, default: false },
     /** Adresy pro tlačítko Hlídat u produktu (WatchOfferButton), null = bez tlačítka. */
     watchUrls: { type: Object, default: null },
+    /** Text tlačítka hledání v poli (úvodní stránka, R137), null = hledá se jen Enterem. */
+    submitLabel: { type: String, default: null },
+    /** Popisek jen pro čtečky — pole s tlačítkem v hlavním pruhu nemá viditelný popisek. */
+    hideLabel: { type: Boolean, default: false },
 });
 
 const emit = defineEmits(['search', 'product']);
@@ -179,6 +184,12 @@ function choose(option) {
     finish();
 }
 
+/** Tlačítko hledání v poli: hledá napsaný text jako Enter bez vybrané volby. */
+function submit() {
+    emit('search', model.value);
+    finish();
+}
+
 /**
  * Zapomene jedno poslední hledání, nebo všechna.
  *
@@ -271,9 +282,9 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <div class="form-field search-suggest" :class="{ 'search-suggest--focused': focused }">
+    <div class="form-field search-suggest" :class="{ 'search-suggest--focused': focused, 'search-suggest--with-submit': submitLabel }">
         <div class="search-suggest__head">
-            <label :for="id" class="form-field__label search-suggest__label">{{ label }}</label>
+            <label :for="id" class="form-field__label search-suggest__label" :class="{ 'visually-hidden': hideLabel }">{{ label }}</label>
             <!-- Na telefonu přes celou obrazovku: zpět na výsledky -->
             <button type="button" class="link-button search-suggest__back" @mousedown.prevent @click="finish">{{ t('search.back') }}</button>
         </div>
@@ -306,7 +317,8 @@ onBeforeUnmount(() => {
                     close();
                 "
             />
-            <kbd class="search-suggest__shortcut" aria-hidden="true">/</kbd>
+            <button v-if="submitLabel" type="button" class="button search-suggest__submit" @mousedown.prevent @click="submit">{{ submitLabel }}</button>
+            <kbd v-else class="search-suggest__shortcut" aria-hidden="true">/</kbd>
         </div>
         <!-- Pro čtečky (R99): počet návrhů se oznámí, jak se změní; nápověda k mazání historie -->
         <p class="visually-hidden" role="status">{{ statusText }}</p>

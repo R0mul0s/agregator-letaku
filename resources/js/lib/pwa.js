@@ -26,7 +26,7 @@ const PAGES_CACHE = 'slevohlidka-pages';
 const MINUTE_MS = 60 * 1000;
 
 /** Nastavení ze sdílené vlastnosti pwa (HandleInertiaRequests). */
-let settings = { serviceWorkerUrl: null, refreshAfterMinutes: 0, updateCheckMinutes: 0, installSnoozeDays: 0 };
+let settings = { serviceWorkerUrl: null, refreshAfterMinutes: 0, updateCheckMinutes: 0, installSnoozeDays: [] };
 
 /** Kdy stránka naposledy dostala data ze serveru. */
 let lastLoadedAt = Date.now();

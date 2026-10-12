@@ -147,6 +147,18 @@ export function formatDateTime(isoDateTime, locale, timeZone) {
     );
 }
 
+/**
+ * Okamžik (ISO 8601 v UTC) jako místní čas: „6:30“ (úvodní stránka, R137).
+ *
+ * @param {string} isoDateTime
+ * @param {string} locale
+ * @param {string} timeZone Zóna zobrazení (sdílená vlastnost `timezone`)
+ * @returns {string}
+ */
+export function formatTime(isoDateTime, locale, timeZone) {
+    return cachedFormatter(Intl.DateTimeFormat, locale, { hour: 'numeric', minute: '2-digit', timeZone }).format(new Date(isoDateTime));
+}
+
 /** Hranice relativního času: do hodiny v minutách, do dne v hodinách, do týdne ve dnech. */
 const RELATIVE_UNITS = [
     { unit: 'minute', seconds: 60, below: 60 * 60 },

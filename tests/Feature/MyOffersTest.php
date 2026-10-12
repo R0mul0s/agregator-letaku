@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 use App\Domain\Catalog\Actions\AssignProducts;
 use App\Domain\Catalog\Actions\CorrectAssignment;
+use App\Domain\Catalog\CatalogBrowseTree;
 use App\Enums\Chain;
 use App\Enums\DigestFrequency;
 use App\Enums\LeafletKind;
@@ -26,6 +27,7 @@ use App\Models\LeafletPage;
 use App\Models\Offer;
 use App\Models\OfferStore;
 use App\Models\Product;
+use App\Models\ShoppingListItem;
 use App\Models\User;
 use App\Models\WatchItem;
 use Carbon\CarbonImmutable;
@@ -319,6 +321,21 @@ it('pozdraví křestním jménem v 5. pádě (R47)', function (): void {
     $this->user->forceFill(['name' => 'Roman Hlaváček'])->save();
 
     $this->get(route('home'))->assertInertia(fn (Assert $page) => $page->where('greetingName', 'Romane'));
+});
+
+it('pošle ikonu oddělení skupiny a počet položek nákupního seznamu pro pruh (R138)', function (): void {
+    follow(Chain::Kaufland);
+    watch('Vejce');
+    $offer = Offer::factory()->create(['name' => 'Čerstvá vejce']);
+    ShoppingListItem::query()->create(['user_id' => $this->user->id, 'offer_id' => $offer->id]);
+    ShoppingListItem::query()->create(['user_id' => $this->user->id, 'custom_name' => 'Mléko']);
+
+    $this->get(route('home'))->assertInertia(fn (Assert $page) => $page
+        // Vlastní slova bez produktu katalogu mají obecnou ikonu
+        ->where('watchItems.0.icon', CatalogBrowseTree::FALLBACK_ICON)
+        // Akce i vlastní položky (R130)
+        ->where('shoppingCount', 2)
+        ->where('urls.shoppingList', '/seznam'));
 });
 
 it('najde akci i podle slova se spojovníkem nebo tečkou (předvýběr v databázi hledá část slova)', function (): void {

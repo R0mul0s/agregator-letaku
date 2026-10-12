@@ -34,6 +34,24 @@
         padding: var(--space-5) var(--space-4);
     }
 
+    // Úvodní stránka a Moje slevy (R137, R138): oddíly přes celou šířku, obsah v .page__wrap
+    &--bleed {
+        max-width: none;
+        padding: 0;
+    }
+
+    // Obsah oddílu do šířky stránky se stejným odsazením jako .page
+    &__wrap {
+        width: 100%;
+        max-width: var(--content-max-width);
+        margin-inline: auto;
+        padding-inline: max(var(--space-3), env(safe-area-inset-left)) max(var(--space-3), env(safe-area-inset-right));
+
+        @include from-md {
+            padding-inline: var(--space-4);
+        }
+    }
+
     &__header {
         display: flex;
         flex-wrap: wrap;

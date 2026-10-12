@@ -1,21 +1,21 @@
 <!--
     Sekce „Zatím bez akce“ v Mých slevách (R100) — hlídané položky, které teď v akci nejsou ani
-    v letáku bez ceny. Jsou pod ostatními, aby skupiny s akcemi byly na první obrazovce; sbalitelná
-    jako skupiny (výchozí stav a zapamatování řídí stránka). Hlavička ukáže počet a názvy, po
-    rozbalení řádky s akcemi upravit / přestat hlídat a jestli o akcích dáme vědět e-mailem.
-    Položka s akcemi, které ještě nezačaly, vede klepnutím do sekce Brzy.
+    v letáku bez ceny. Jsou pod ostatními, aby skupiny s akcemi byly na první obrazovce. Položka
+    s akcemi, které ještě nezačaly, vede klepnutím do sekce Brzy. Vzhled R138: klidná sekce na
+    konci stránky — štítek s okem, nadpis s počtem, vysvětlení a jestli o akcích dáme vědět
+    e-mailem; položky jako dlaždice s ikonou oddělení, „Hlídáme dál“ a akcemi upravit / přestat
+    hlídat. Dlaždice jsou malé, sekce se proto nesbaluje.
 
     @author Roman Hlaváček
     @created 2026-10-07
 -->
 <script setup>
-import WatchGroupBar from '@/Components/WatchGroupBar.vue';
+import DepartmentIcon from '@/Components/DepartmentIcon.vue';
 import WatchItemActions from '@/Components/WatchItemActions.vue';
 import { useTranslations } from '@/lib/i18n';
 import { Link } from '@inertiajs/vue3';
-import { computed, useId } from 'vue';
 
-const props = defineProps({
+defineProps({
     /** Hlídané položky bez akcí a zmínek (HomeController); `upcoming` = akce, které ještě nezačaly. */
     items: { type: Array, required: true },
     /** Jak často chodí e-mailový souhrn („denně“), null = vypnutý (R42). */
@@ -29,65 +29,41 @@ const props = defineProps({
 /** „+1 brzy“ u položky: stránka rozbalí sekci Brzy a posune se na položku (ID hlídané položky). */
 const emit = defineEmits(['show-upcoming']);
 
-/** Rozbalená sekce (řídí stránka — pamatuje si stav). */
-const expanded = defineModel('expanded', { type: Boolean, default: false });
-
 const t = useTranslations();
-const bodyId = useId();
-
-/** Názvy položek do hlavičky — co tu je, je vidět i ve sbalené sekci. */
-const names = computed(() => props.items.map((item) => item.name).join(', '));
-
-/** Počet položek — v hlavičce i v přilepené liště (R117). */
-const countText = computed(() => t('home.waiting_count', { count: props.items.length }));
 </script>
 
 <template>
-    <section class="watch-group watch-group--waiting" :class="{ 'watch-group--expanded': expanded }">
-        <!-- Na telefonu přilepená hlavička na jeden řádek, dokud je sekce vidět (R117) -->
-        <WatchGroupBar v-if="expanded" :title="t('home.waiting_title')" :count="countText" @collapse="expanded = false" />
-        <div class="watch-group__header">
-            <h2 class="watch-group__heading">
-                <button type="button" class="watch-group__toggle" :aria-expanded="expanded ? 'true' : 'false'" :aria-controls="bodyId" @click="expanded = !expanded">
-                    <span class="watch-group__chevron" aria-hidden="true">▸</span>
-                    <span class="watch-group__name">{{ t('home.waiting_title') }}</span>
-                    <span class="watch-group__count">{{ countText }}</span>
-                    <span class="watch-group__names">{{ names }}</span>
-                </button>
-            </h2>
-        </div>
-
-        <div :id="bodyId" class="watch-group__body" :hidden="!expanded">
-            <div class="watch-group__empty">
-                <span class="watch-group__empty-icon" aria-hidden="true">
-                    <!-- Oko — Slevohlídka hlídá dál -->
-                    <svg viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" /><circle cx="12" cy="12" r="3" /></svg>
-                </span>
-                <p>
-                    <span class="watch-group__empty-hint">{{ t('home.waiting_hint') }}</span>
-                    <span v-if="digestFrequency" class="watch-group__empty-hint">{{ t('home.no_offers_digest_on', { frequency: digestFrequency }) }}</span>
-                    <span v-else class="watch-group__empty-hint">
-                        {{ t('home.no_offers_digest_off') }}
-                        <Link :href="digestUrl" class="link">{{ t('home.no_offers_digest_link') }}</Link>
-                    </span>
-                </p>
-            </div>
-            <ul class="waiting-items">
-                <!-- Kotva jako u skupiny — odkaz z Hlídám (#polozka-{id}) vede i sem -->
-                <li v-for="item in items" :id="`polozka-${item.id}`" :key="item.id" class="waiting-items__item">
-                    <!-- Akce, které ještě nezačaly (R76) jsou v sekci Brzy — klepnutí na název
-                         nebo počet ji rozbalí a posune stránku na akce položky -->
-                    <button v-if="item.upcoming.length && upcomingShown" type="button" class="waiting-items__name waiting-items__name--link" @click="emit('show-upcoming', item.id)">
-                        <span class="waiting-items__label">{{ item.name }}</span>
-                        <span class="watch-group__upcoming">{{ t('watch.upcoming_count', { count: item.upcoming.length }) }}</span>
+    <section class="home-waiting">
+        <p class="home-waiting__eyebrow">
+            <!-- Oko — Slevohlídka hlídá dál -->
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" /><circle cx="12" cy="12" r="3" /></svg>
+            {{ t('home.waiting_title') }}
+        </p>
+        <h2 class="home-waiting__title">{{ t('home.waiting_heading', { count: items.length }) }}</h2>
+        <p class="home-waiting__lead">
+            {{ t('home.waiting_hint') }}
+            <template v-if="digestFrequency">{{ t('home.no_offers_digest_on', { frequency: digestFrequency }) }}</template>
+            <template v-else>
+                {{ t('home.no_offers_digest_off') }}
+                <Link :href="digestUrl" class="link">{{ t('home.no_offers_digest_link') }}</Link>
+            </template>
+        </p>
+        <ul class="waiting-items">
+            <!-- Kotva jako u skupiny — odkaz z Hlídám (#polozka-{id}) vede i sem -->
+            <li v-for="item in items" :id="`polozka-${item.id}`" :key="item.id" class="waiting-items__item">
+                <span v-if="item.icon" class="waiting-items__icon" aria-hidden="true"><DepartmentIcon :name="item.icon" /></span>
+                <span class="waiting-items__body">
+                    <span class="waiting-items__name">{{ item.name }}</span>
+                    <!-- Akce, které ještě nezačaly (R76) jsou v sekci Brzy — klepnutí ji rozbalí
+                         a posune stránku na akce položky -->
+                    <button v-if="item.upcoming.length && upcomingShown" type="button" class="waiting-items__upcoming" @click="emit('show-upcoming', item.id)">
+                        {{ t('watch.upcoming_count', { count: item.upcoming.length }) }}
                     </button>
-                    <template v-else>
-                        <span class="waiting-items__name">{{ item.name }}</span>
-                        <span v-if="item.upcoming.length" class="watch-group__upcoming">{{ t('watch.upcoming_count', { count: item.upcoming.length }) }}</span>
-                    </template>
-                    <WatchItemActions :item="item" />
-                </li>
-            </ul>
-        </div>
+                    <span v-else-if="item.upcoming.length" class="watch-group__upcoming">{{ t('watch.upcoming_count', { count: item.upcoming.length }) }}</span>
+                    <span v-else class="waiting-items__status">{{ t('home.waiting_status') }}</span>
+                </span>
+                <WatchItemActions :item="item" />
+            </li>
+        </ul>
     </section>
 </template>

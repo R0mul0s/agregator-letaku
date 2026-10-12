@@ -2,7 +2,8 @@
     Živá ukázka hlídání na úvodní stránce (R90) místo tří kroků „Jak to funguje“ — návštěvník
     bez registrace zapíná obchody a produkty katalogu a hned vidí, kolik akcí by mu Slevohlídka
     hlídala a které jsou nejlevnější za jednotku (WatchDemoController). Po každé změně výběru
-    dotaz s krátkou pauzou, předchozí se zruší.
+    dotaz s krátkou pauzou, předchozí se zruší. Tři karty vedle sebe s čísly propojenými
+    čárkovanou linkou, štítek „Živá ukázka“ nad nimi a výzva pod nimi (R137).
 
     @author Roman Hlaváček
     @created 2026-10-06
@@ -93,8 +94,8 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <!-- Pískoviště s přerušovaným rámečkem a štítkem — kroky nesmí vypadat jako nastavení účtu,
-         které se neuložilo -->
+    <!-- Štítek „Živá ukázka“ a věta nad kroky — kroky nesmí vypadat jako nastavení účtu,
+         které se neuložilo (R90) -->
     <div class="watch-demo-sandbox">
         <p class="watch-demo-sandbox__head">
             <span class="watch-demo-sandbox__badge"><span class="watch-demo-sandbox__dot" aria-hidden="true"></span>{{ t('landing.demo.badge') }}</span>
@@ -157,12 +158,12 @@ onBeforeUnmount(() => {
                         </template>
                         <p v-else-if="!loading" class="watch-demo__hint">{{ t('landing.demo.nothing') }}</p>
                     </template>
-                    <div class="watch-demo__cta-row">
-                        <Link :href="registerUrl" class="button button--primary">{{ t('landing.demo.cta') }}</Link>
-                        <p class="watch-demo__cta-note">{{ t('landing.demo.cta_note') }}</p>
-                    </div>
                 </div>
             </li>
         </ol>
+        <div class="watch-demo__cta-row">
+            <Link :href="registerUrl" class="button button--primary">{{ t('landing.demo.cta') }}</Link>
+            <p class="watch-demo__cta-note">{{ t('landing.demo.cta_note') }}</p>
+        </div>
     </div>
 </template>

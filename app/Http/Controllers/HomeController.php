@@ -4,7 +4,7 @@
  * Úvodní stránka přihlášeného uživatele — slevy k jeho hlídaným položkám (R18, R19).
  * Nepřihlášený má na stejné adrese úvodní stránku Slevohlídky (LandingController, R44).
  * Řazení, štítky filtrů a dočasné přepnutí na všechny prodejny (R100, R101), pohled Podle
- * obchodů (R102).
+ * obchodů (R102). Vzhled R138: ikona oddělení u skupiny, odkaz na nákupní seznam v pruhu.
  *
  * @author Roman Hlaváček
  *
@@ -15,6 +15,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Domain\Catalog\CatalogBrowseTree;
+use App\Domain\Catalog\CategoryPaths;
 use App\Domain\Matching\ChainOverview;
 use App\Domain\Matching\ExclusionSuggestions;
 use App\Domain\Matching\MyOffers;
@@ -49,7 +51,7 @@ class HomeController extends Controller
      * v letácích bez ceny (R27); akce, které ještě nezačaly, zvlášť (R76). U akcí příznaky pro
      * štítky Nové a Končí brzy, `?prodejny=vse` dočasně ukáže akce všech prodejen (R101).
      */
-    public function __invoke(Request $request, MyOffers $myOffers, UserPricing $pricing, OfferPresenter $presenter, MentionPresenter $mentionPresenter, LandingController $landing, CzechVocative $vocative, PriceHistory $priceHistory, WaitAdvice $waitAdvice, LocalCalendar $calendar, OfferSearch $search, ChainOverview $chainOverview, ExclusionSuggestions $suggestions): Response
+    public function __invoke(Request $request, MyOffers $myOffers, UserPricing $pricing, OfferPresenter $presenter, MentionPresenter $mentionPresenter, LandingController $landing, CzechVocative $vocative, PriceHistory $priceHistory, WaitAdvice $waitAdvice, LocalCalendar $calendar, OfferSearch $search, ChainOverview $chainOverview, ExclusionSuggestions $suggestions, CategoryPaths $categories): Response
     {
         // Nepřihlášený má na stejné adrese úvodní stránku (R44)
         $user = $request->user();
@@ -92,7 +94,10 @@ class HomeController extends Controller
                 'watchItems' => route('watch-items.index', absolute: false),
                 'offersPreferences' => route('account', absolute: false).'#moje-slevy',
                 'digest' => route('account', absolute: false).'#souhrn',
+                'shoppingList' => route('shopping-list.index', absolute: false),
             ],
+            // Odkaz „Nákupní seznam (3)“ v pruhu (R138) — akce i vlastní položky (R130)
+            'shoppingCount' => $user->shoppingListItems()->count(),
             // E-mailový souhrn (R42) — prázdná skupina na něj upozorní; null = vypnutý
             'digestFrequency' => $user->digest_frequency === DigestFrequency::Off ? null : mb_strtolower($user->digest_frequency->label()),
             // Předvolby řazení a minimální slevy (R41) — řazení jde změnit přímo na stránce (R100),
@@ -125,6 +130,8 @@ class HomeController extends Controller
                 'id' => $group['watchItem']->id,
                 'name' => $group['watchItem']->name,
                 'fromCatalog' => $group['watchItem']->product_id !== null,
+                // Ikona oddělení katalogu u skupiny (R138); vlastní slova bez produktu mají obecnou
+                'icon' => CatalogBrowseTree::icon($group['watchItem']->product === null ? null : $categories->department($group['watchItem']->product->category_id)),
                 'editUrl' => route('watch-items.index', [WatchItemController::EDIT_PARAMETER => $group['watchItem']->id], absolute: false),
                 'deleteUrl' => route('watch-items.destroy', $group['watchItem'], absolute: false),
                 'offers' => array_map(fn (array $match): array => $offerToPage($match, $group['rule']), $group['offers']),

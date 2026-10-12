@@ -40,6 +40,26 @@
         }
     }
 
+    // Hlavní výzva na červeném pruhu úvodní stránky (R137): letáková žlutá s tmavým textem
+    // a spodní hranou jako primární tlačítko — červené by na červeném zaniklo
+    &--highlight {
+        padding-inline: var(--space-4);
+        background: var(--color-landing-highlight);
+        box-shadow: 0 var(--button-edge) 0 var(--color-landing-highlight-edge), var(--shadow-landing-highlight);
+        color: var(--color-on-landing-highlight);
+        font-weight: var(--font-weight-extrabold);
+
+        &:hover:not(:disabled) {
+            transform: translateY(var(--hover-lift));
+            box-shadow: 0 calc(var(--button-edge) - var(--hover-lift)) 0 var(--color-landing-highlight-edge), var(--shadow-landing-highlight);
+        }
+
+        &:active:not(:disabled) {
+            transform: translateY(var(--button-edge));
+            box-shadow: none;
+        }
+    }
+
     // Nevratná akce (zrušení účtu)
     &--danger {
         background: var(--color-danger-button);

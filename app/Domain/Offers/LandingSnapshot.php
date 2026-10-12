@@ -27,8 +27,12 @@ use Illuminate\Support\Facades\Cache;
 
 final class LandingSnapshot
 {
-    /** Začátek klíče v cache; za ním datum a čas posledního stažení. */
-    private const CACHE_KEY = 'landing.snapshot';
+    /**
+     * Začátek klíče v cache; za ním datum a čas posledního stažení. Číslo verze = tvar dat —
+     * po přidání pole (R137: počet akcí produktu, čas aktualizace) nová verze, jinak by nasazený
+     * kód do konce platnosti cache dostával data bez něj.
+     */
+    private const CACHE_KEY = 'landing.snapshot.v2';
 
     public function __construct(
         private readonly OfferHighlights $highlights,
@@ -42,7 +46,7 @@ final class LandingSnapshot
     /**
      * Data úvodní stránky z cache, nebo nově spočítaná.
      *
-     * @return array{stats: array{offers: int, chains: int, products: int, topDiscount: int|null}, chains: list<string>, chainUrls: array<string, string>, topOffers: list<array<string, mixed>>, demo: array{products: list<array{id: int, name: string, icon: string}>, preselected: list<int>, initial: array{count: int, offers: list<array<string, mixed>>}}, quiz: list<array{product: string, offers: list<array<string, mixed>>, cheaperId: int}>}
+     * @return array{stats: array{offers: int, chains: int, products: int, topDiscount: int|null, updatedAt: string|null}, chains: list<string>, chainUrls: array<string, string>, topOffers: list<array<string, mixed>>, demo: array{products: list<array{id: int, name: string, icon: string, offersCount: int}>, preselected: list<int>, initial: array{count: int, offers: list<array<string, mixed>>}}, quiz: list<array{product: string, offers: list<array<string, mixed>>, cheaperId: int}>}
      */
     public function get(): array
     {
@@ -64,7 +68,7 @@ final class LandingSnapshot
     /**
      * Spočítá data úvodní stránky.
      *
-     * @return array{stats: array{offers: int, chains: int, products: int, topDiscount: int|null}, chains: list<string>, chainUrls: array<string, string>, topOffers: list<array<string, mixed>>, demo: array{products: list<array{id: int, name: string, icon: string}>, preselected: list<int>, initial: array{count: int, offers: list<array<string, mixed>>}}, quiz: list<array{product: string, offers: list<array<string, mixed>>, cheaperId: int}>}
+     * @return array{stats: array{offers: int, chains: int, products: int, topDiscount: int|null, updatedAt: string|null}, chains: list<string>, chainUrls: array<string, string>, topOffers: list<array<string, mixed>>, demo: array{products: list<array{id: int, name: string, icon: string, offersCount: int}>, preselected: list<int>, initial: array{count: int, offers: list<array<string, mixed>>}}, quiz: list<array{product: string, offers: list<array<string, mixed>>, cheaperId: int}>}
      */
     private function build(): array
     {
@@ -85,6 +89,8 @@ final class LandingSnapshot
                 'products' => Product::query()->count(),
                 // Nejvyšší sleva z ukázky akcí — ta je od nejvyšší slevy
                 'topDiscount' => $topOffers === [] ? null : $topOffers[0]->effectiveDiscountPercent(),
+                // Konec posledního úspěšného stažení — „Aktualizováno dnes v 6:30“ v liště obchodů (R137)
+                'updatedAt' => ScrapeRun::lastFinishedAt()?->toIso8601ZuluString(),
             ],
             'chains' => array_map(fn (Chain $chain): string => $chain->value, $chains),
             'chainUrls' => $chainUrls,

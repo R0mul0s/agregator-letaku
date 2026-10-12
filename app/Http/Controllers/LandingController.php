@@ -3,8 +3,8 @@
 /**
  * Úvodní stránka pro nepřihlášené (R44) — co Slevohlídka je a umí, co přinese registrace,
  * a ukázka skutečných akcí s nejvyšší slevou. Přihlášený má na stejné adrese Moje slevy.
- * Hledání v hlavním pruhu, živá ukázka hlídání a hra „Co je levnější?“ (R90). Data
- * z akcí jsou v cache do dalšího stažení (LandingSnapshot, R95).
+ * Hledání v hlavním pruhu, živá ukázka hlídání a hra „Co je levnější?“ (R90), vzhled R137.
+ * Data z akcí jsou v cache do dalšího stažení (LandingSnapshot, R95).
  *
  * @author Roman Hlaváček
  *
@@ -50,7 +50,6 @@ class LandingController extends Controller
                 'url' => route('watch-demo', absolute: false),
                 ...$data['demo'],
             ],
-            'historyWeeks' => config()->integer('letaky.price_history.weeks'),
             'quiz' => $data['quiz'],
         ]);
     }

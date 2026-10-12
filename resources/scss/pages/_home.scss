@@ -1,237 +1,563 @@
 // _home.scss
-// Moje slevy — úvodní pruh s maskotem, pozdravem a souhrnem úlovků.
+// Moje slevy (vzhled R138): kompaktní červený pruh jako úvodní stránka (pozdrav, počty jako
+// zkratky, Upravit hlídané, nákupní seznam, maskot s nejvyšší slevou dne), lišta filtrů v bílé
+// kartě přes jeho oblý konec, nadpis seznamu s „Rozbalit vše“, modrý pruh „Brzy“ a dlaždice
+// „Zatím bez akce“. Skupiny jsou v components/_watch-group.scss.
 //
 // @author Roman Hlaváček
 // @created 2026-10-02
 
 @use '../abstracts/mixins' as *;
 
+// ---------- Červený pruh ----------
 .home-hero {
-    display: grid;
-    grid-template-columns: auto 1fr;
-    align-items: center;
-    gap: var(--space-3);
-    margin-bottom: var(--space-5);
-    padding: var(--space-4);
-    background: var(--gradient-hero);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-card);
+    position: relative;
+    overflow: hidden;
+    padding-block: var(--space-4) calc(var(--home-toolbar-overlap-mobile) + var(--space-3));
+    background: var(--gradient-landing-hero);
+    color: var(--color-landing-on-hero);
 
-    // Na širokém displeji tlačítko vpravo, na mobilu pod textem přes celou šířku
     @include from-md {
-        grid-template-columns: auto 1fr auto;
-        gap: var(--space-4);
+        padding-block: var(--space-5) var(--home-hero-curve-height);
     }
 
-    // Při další návštěvě (R102): bez maskota a úvodní věty, menší okraje — akce jsou výš
-    // Pozdrav s tlačítkem v jednom řádku, čísla pod nimi v jednom řádku k posunutí do strany
-    &--compact {
-        grid-template-columns: minmax(0, 1fr) auto;
-        gap: var(--space-2) var(--space-3);
-        margin-bottom: var(--space-4);
-        padding: var(--space-3);
+    // Oblý konec pruhu v barvě podkladu — přes něj vede lišta filtrů
+    &::after {
+        content: '';
+        position: absolute;
+        right: var(--landing-curve-overhang);
+        bottom: calc(var(--home-hero-curve-height) / -2);
+        left: var(--landing-curve-overhang);
+        height: var(--home-hero-curve-height);
+        background: var(--color-bg);
+        border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+    }
+
+    &__grid {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        align-items: center;
+        gap: var(--space-4);
 
         @include from-md {
             grid-template-columns: minmax(0, 1fr) auto;
-            padding: var(--space-3) var(--space-4);
         }
     }
 
-    &--compact &__title {
-        font-size: var(--font-size-md);
+    &__body {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--space-3);
+        min-width: 0;
+    }
+
+    &__title {
+        color: inherit;
+        font-size: var(--font-size-lg);
+        font-weight: var(--font-weight-black);
 
         @include from-md {
-            font-size: var(--font-size-lg);
+            font-size: var(--font-size-landing-section-title);
         }
     }
 
-    &--compact &__action {
-        grid-row: 1;
-        grid-column: 2;
-        min-height: var(--control-size);
-        padding-inline: var(--space-3);
+    // Věta se dvěma hlavními čísly — na telefonu stačí počty pod ní
+    &__lead {
+        display: none;
+        margin: 0;
+        color: var(--color-landing-on-hero-soft);
+
+        @include from-md {
+            display: block;
+            margin-top: calc(-1 * var(--space-2));
+        }
+    }
+
+    // Hranice slevy (R41) s odkazem na změnu
+    &__preferences {
+        margin: 0;
+        color: var(--color-landing-on-hero-soft);
         font-size: var(--font-size-sm);
     }
 
-    &--compact &__stats {
-        flex-wrap: nowrap;
-        margin-top: 0;
+    // Bílý podtržený odkaz na červeném pruhu (Změnit, Nákupní seznam)
+    &__link {
+        color: var(--color-landing-on-hero);
+        font-weight: var(--font-weight-extrabold);
+        text-decoration-color: var(--color-landing-hero-link-line);
+        text-underline-offset: var(--space-1);
+
+        &:hover {
+            text-decoration-color: currentcolor;
+        }
+    }
+
+    // Počty jako průsvitné „pilulky“ v jednom řádku, na telefonu posuvném do strany
+    &__stats {
+        display: flex;
+        align-self: stretch;
+        gap: var(--space-2);
+        margin: 0;
+        padding: 0;
         overflow-x: auto;
+        list-style: none;
         scrollbar-width: none;
+
+        &::-webkit-scrollbar {
+            display: none;
+        }
 
         > * {
             flex: none;
         }
     }
 
-    // Na mobilu u nadpisu, na širokém displeji uprostřed výšky pruhu
-    // Jedoucí košík — animace z úvodní stránky (_landing.scss) s menším rozsahem
-    &__art {
-        --landing-drive-distance: var(--home-hero-drive-distance);
-        --landing-bump-height: var(--home-hero-bump-height);
-        --landing-streak-travel: var(--home-hero-streak-travel);
-
-        position: relative;
-        align-self: start;
-        width: var(--hero-mascot-size-mobile);
-
-        @include from-md {
-            align-self: center;
-            width: var(--hero-mascot-size);
-        }
-    }
-
-    &__drive {
-        position: relative;
-        animation: landing-drive var(--landing-drive-duration) ease-in-out var(--landing-drive-iterations);
-    }
-
-    &__mascot {
-        display: block;
-        width: 100%;
-        height: auto;
-        animation: landing-bump var(--landing-bump-duration) ease-in-out var(--landing-bump-iterations);
-        transform-origin: 50% 85%;
-    }
-
-    // Čárky rychlosti za košíkem (vlevo od něj, zprava doleva)
-    &__streak {
-        position: absolute;
-        right: 70%;
-        height: var(--home-hero-streak-thickness);
-        background: var(--color-brand);
-        border-radius: var(--radius-pill);
-        opacity: 0;
-        animation: landing-streak var(--landing-streak-duration) linear var(--landing-streak-iterations);
-
-        &:nth-child(1) {
-            top: 40%;
-            width: var(--home-hero-streak-long);
-        }
-
-        &:nth-child(2) {
-            top: 52%;
-            width: var(--home-hero-streak-medium);
-            animation-delay: calc(var(--landing-streak-duration) / -3);
-        }
-
-        &:nth-child(3) {
-            top: 64%;
-            width: var(--home-hero-streak-short);
-            animation-delay: calc(var(--landing-streak-duration) / -1.5);
-        }
-    }
-
-    // Kdo si v systému vypnul animace, uvidí košík stát
-    @media (prefers-reduced-motion: reduce) {
-        &__drive,
-        &__mascot {
-            animation: none;
-        }
-
-        &__streak {
-            display: none;
-        }
-    }
-
-    // Na telefonu se obsah rozpadne do mřížky pruhu (R55): vedle košíku jen pozdrav, předvolby
-    // a souhrn pod ním přes celou šířku — akce jsou pak vidět už na první obrazovce
-    &__body {
-        display: contents;
-
-        @include from-md {
-            display: flex;
-            flex-direction: column;
-            gap: var(--space-1);
-        }
-    }
-
-    &__title {
-        font-size: var(--font-size-lg);
-    }
-
-    // Úvodní věta je jen ozdoba — na telefonu by odsunula akce pod okraj obrazovky
-    &__text {
-        display: none;
-        color: var(--color-text-muted);
-
-        @include from-md {
-            display: block;
-        }
-    }
-
-    // Řazení a minimální sleva (R41) s odkazem na změnu
-    &__preferences {
-        grid-column: 1 / -1;
-        color: var(--color-text-muted);
-        font-size: var(--font-size-sm);
-
-        @include from-md {
-            margin-top: var(--space-1);
-        }
-    }
-
-    &__stats {
-        display: flex;
-        flex-wrap: wrap;
-        grid-column: 1 / -1;
-        gap: var(--space-2);
-        margin: 0;
-        padding: 0;
-        list-style: none;
-
-        @include from-md {
-            margin-top: var(--space-2);
-        }
-    }
-
-    // Souhrn jako „cenovky“ — číslo tučně, popisek vedle
     &__stat {
         display: inline-flex;
         align-items: baseline;
         gap: var(--space-1);
         padding: var(--space-1) var(--space-3);
-        background: var(--color-surface);
-        border: 1px solid var(--color-border);
+        background: var(--color-landing-hero-chip);
+        border: 1px solid var(--color-landing-hero-chip-border);
         border-radius: var(--radius-pill);
-        color: var(--color-text-muted);
+        color: var(--color-landing-on-hero);
         font-size: var(--font-size-sm);
-
-        &--accent {
-            border-color: transparent;
-            background: var(--color-accent-soft);
-            color: var(--color-accent-strong);
-        }
+        font-weight: var(--font-weight-semibold);
+        white-space: nowrap;
     }
 
     // Číslo jako zkratka (R102): všechny akce, nové, skok na nejvyšší slevu
     &__stat--button {
         font: inherit;
         font-size: var(--font-size-sm);
+        font-weight: var(--font-weight-semibold);
         cursor: pointer;
-        transition: border-color var(--duration-fast);
+        transition: background-color var(--duration-fast);
 
         &:hover {
-            border-color: var(--color-accent);
+            background: var(--color-landing-hero-chip-hover);
         }
     }
 
+    // Nové akce se zelenou tečkou jako živý počet na úvodní stránce
+    &__stat--fresh::before {
+        content: '';
+        flex: none;
+        align-self: center;
+        width: var(--watch-demo-dot-size);
+        height: var(--watch-demo-dot-size);
+        background: var(--color-landing-live);
+        border-radius: 50%;
+        box-shadow: 0 0 0 var(--space-1) var(--color-landing-live-ring);
+    }
+
     &__stat-value {
-        color: var(--color-text);
         font-size: var(--font-size-md);
         font-weight: var(--font-weight-black);
     }
 
-    &__stat--accent &__stat-value {
-        color: var(--color-accent-strong);
+    &__actions {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--space-2) var(--space-4);
     }
 
-    &__action {
-        grid-column: 1 / -1;
+    // Maskot ve světlém kruhu s lístkem nejvyšší slevy dne — jen od středního displeje
+    &__art {
+        position: relative;
+        display: none;
+        width: var(--home-art-size);
+        aspect-ratio: 1.15;
 
         @include from-md {
-            grid-column: auto;
+            display: block;
         }
+    }
+
+    &__circle {
+        position: absolute;
+        top: var(--home-art-circle-top);
+        right: var(--home-art-circle-right);
+        display: grid;
+        place-items: center;
+        width: var(--home-art-circle);
+        aspect-ratio: 1;
+        background: var(--color-landing-mascot-bg);
+        border-radius: 50%;
+        box-shadow:
+            0 0 0 var(--home-art-ring) var(--color-landing-hero-ring),
+            0 0 0 var(--home-art-ring-outer) var(--color-landing-hero-ring-outer),
+            var(--shadow-landing-lift);
+    }
+
+    &__mascot {
+        width: var(--landing-art-mascot-width);
+        height: auto;
+        animation: landing-bump var(--landing-bump-duration) ease-in-out var(--landing-bump-iterations);
+        transform-origin: 50% 85%;
+    }
+
+    &__ticket {
+        position: absolute;
+        bottom: var(--home-art-circle-top);
+        left: 0;
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        padding: var(--space-2) var(--space-3) var(--space-2) var(--space-2);
+        background: var(--color-surface);
+        border: 0;
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-landing-lift);
+        color: var(--color-text);
+        font: inherit;
+        text-align: left;
+        cursor: pointer;
+        transform: rotate(var(--home-ticket-tilt));
+        transition: transform var(--duration-fast);
+
+        &:hover {
+            transform: rotate(var(--home-ticket-tilt)) translateY(var(--hover-lift));
+        }
+    }
+
+    // Fotky obchodů počítají s bílým podkladem i v tmavém režimu
+    &__ticket-image {
+        display: grid;
+        flex: none;
+        place-items: center;
+        width: var(--landing-ticket-image-size);
+        height: var(--landing-ticket-image-size);
+        overflow: hidden;
+        background: var(--color-logo-bg);
+        border-radius: var(--radius-sm);
+
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+    }
+
+    &__ticket-body {
+        display: flex;
+        flex-direction: column;
+    }
+
+    &__ticket-label {
+        color: var(--color-text-muted);
+        font-size: var(--font-size-xs);
+        font-weight: var(--font-weight-extrabold);
+        letter-spacing: var(--letter-spacing-caps);
+        text-transform: uppercase;
+    }
+
+    &__ticket-price {
+        color: var(--color-price);
+        font-size: var(--font-size-md);
+        font-weight: var(--font-weight-black);
+        white-space: nowrap;
+    }
+
+    &__ticket-sticker {
+        position: absolute;
+        top: calc(-1 * var(--space-2));
+        right: calc(-1 * var(--space-2));
+        @include badge-text;
+
+        background: var(--gradient-brand);
+        border-radius: var(--radius-sm);
+        color: var(--color-on-brand);
+        font-size: var(--font-size-sm);
+        font-weight: var(--font-weight-black);
+        transform: rotate(var(--landing-ticket-sticker-tilt));
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        &__mascot {
+            animation: none;
+        }
+    }
+}
+
+// Bez obchodů nebo hlídaných položek prázdný stav pod pruhem
+.home-empty {
+    position: relative;
+    z-index: 2;
+    margin-top: calc(-1 * var(--home-toolbar-overlap-mobile));
+    padding-bottom: var(--space-5);
+
+    @include from-md {
+        margin-top: calc(-1 * var(--home-toolbar-overlap));
+    }
+}
+
+// ---------- Lišta filtrů přes oblý konec pruhu ----------
+.home-toolbar {
+    position: relative;
+    z-index: 2;
+    margin-top: calc(-1 * var(--home-toolbar-overlap-mobile));
+
+    @include from-md {
+        margin-top: calc(-1 * var(--home-toolbar-overlap));
+    }
+
+    &__card {
+        display: grid;
+        // Sloupec se nesmí roztáhnout podle nejširšího prvku (lišta Seřadit / Filtry na telefonu)
+        grid-template-columns: minmax(0, 1fr);
+        gap: var(--space-3);
+        padding: var(--space-3);
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-card-hover);
+
+        @include from-md {
+            padding: var(--space-3) var(--space-4);
+        }
+
+        // Prvky lišty bez vlastních okrajů — mezery dává mřížka karty
+        .watch-groups__toolbar,
+        .filter-bar {
+            margin-bottom: 0;
+        }
+
+        // Rychlé filtry oddělené od výběrů linkou přes celou šířku karty — dva řádky na sebe
+        // nenalepené
+        .watch-groups__chips {
+            margin: 0 calc(-1 * var(--space-4));
+            padding: var(--space-3) var(--space-4) 0;
+            border-top: 1px solid var(--color-border);
+        }
+    }
+
+    .active-filters {
+        margin-top: var(--space-2);
+    }
+
+    // Výzva k přidání na plochu (R139) pod lištou filtrů
+    &__install {
+        margin: var(--space-4) 0 0;
+    }
+}
+
+// ---------- Seznam skupin ----------
+.home-groups {
+    padding-block: var(--space-4) var(--space-5);
+
+    // Nadpis seznamu s počtem a „Rozbalit vše“ vpravo (R138)
+    &__head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-3);
+        margin-bottom: var(--space-3);
+    }
+
+    &__title {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        font-size: var(--font-size-card-title);
+        font-weight: var(--font-weight-black);
+    }
+
+    &__expand {
+        display: inline-flex;
+        flex: none;
+        align-items: center;
+        gap: var(--space-1);
+        min-height: var(--icon-button-size);
+        padding: 0 var(--space-3);
+        background: none;
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-pill);
+        color: var(--color-accent-strong);
+        font: inherit;
+        font-size: var(--font-size-sm);
+        font-weight: var(--font-weight-extrabold);
+        cursor: pointer;
+
+        &:hover {
+            border-color: var(--color-accent);
+        }
+
+        svg {
+            width: var(--icon-size-sm);
+            height: var(--icon-size-sm);
+            fill: none;
+            stroke: currentcolor;
+            stroke-width: var(--svg-stroke-icon);
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+    }
+}
+
+// ---------- „Brzy“ v modrém pruhu přes celou šířku (R76, R138) ----------
+.home-upcoming {
+    position: relative;
+    overflow: hidden;
+    margin-bottom: var(--space-4);
+    padding-block: calc(var(--home-band-curve-height) + var(--space-3));
+    background:
+        radial-gradient(var(--color-home-upcoming-dot) var(--landing-band-dot-radius), transparent var(--landing-band-dot-fade)) 0 0 / var(--landing-band-dot-size) var(--landing-band-dot-size),
+        linear-gradient(170deg, var(--color-home-upcoming-from), var(--color-home-upcoming-to));
+
+    // Oblé okraje pruhu v barvě podkladu
+    &::before,
+    &::after {
+        content: '';
+        position: absolute;
+        right: var(--landing-curve-overhang);
+        left: var(--landing-curve-overhang);
+        height: var(--home-band-curve-height);
+        background: var(--color-bg);
+    }
+
+    &::before {
+        top: calc(var(--home-band-curve-height) / -2);
+        border-radius: 0 0 50% 50% / 0 0 100% 100%;
+    }
+
+    &::after {
+        bottom: calc(var(--home-band-curve-height) / -2);
+        border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+    }
+
+    > .page__wrap {
+        position: relative;
+        z-index: 1;
+    }
+
+    // Přilepená lišta na telefonu (R117) v barvě „brzy“
+    .watch-group__bar-button {
+        border-color: var(--color-info-text);
+    }
+
+    &__head {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--space-2);
+    }
+
+    &__eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+        margin: 0;
+        color: var(--color-info-text);
+        font-size: var(--font-size-xs);
+        font-weight: var(--font-weight-black);
+        letter-spacing: var(--letter-spacing-caps);
+        text-transform: uppercase;
+
+        svg {
+            width: var(--icon-size);
+            height: var(--icon-size);
+            fill: none;
+            stroke: currentcolor;
+            stroke-width: var(--svg-stroke-icon);
+            stroke-linecap: round;
+        }
+    }
+
+    &__title {
+        font-size: var(--font-size-card-title);
+        font-weight: var(--font-weight-black);
+
+        @include from-md {
+            font-size: var(--font-size-lg);
+        }
+    }
+
+    &__lead {
+        max-width: var(--landing-section-lead-max-width);
+        margin: 0;
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+    }
+
+    &__toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-1);
+        min-height: var(--icon-button-size);
+        margin-top: var(--space-1);
+        padding: 0 var(--space-3);
+        background: var(--color-surface);
+        border: 1px solid var(--color-info-border);
+        border-radius: var(--radius-pill);
+        color: var(--color-info-text);
+        font: inherit;
+        font-size: var(--font-size-sm);
+        font-weight: var(--font-weight-extrabold);
+        cursor: pointer;
+
+        svg {
+            width: var(--icon-size-sm);
+            height: var(--icon-size-sm);
+            fill: none;
+            stroke: currentcolor;
+            stroke-width: var(--svg-stroke-icon);
+            stroke-linecap: round;
+            transition: transform var(--duration-fast);
+        }
+    }
+
+    &--expanded &__toggle svg {
+        transform: rotate(180deg);
+    }
+
+    &__body:not([hidden]) {
+        padding-top: var(--space-2);
+    }
+}
+
+// ---------- „Zatím bez akce“ (R100, R138) ----------
+.home-waiting {
+    padding-block: var(--space-3) var(--space-5);
+
+    &__eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+        margin: 0 0 var(--space-1);
+        color: var(--color-text-muted);
+        font-size: var(--font-size-xs);
+        font-weight: var(--font-weight-black);
+        letter-spacing: var(--letter-spacing-caps);
+        text-transform: uppercase;
+
+        svg {
+            width: var(--icon-size);
+            height: var(--icon-size);
+            fill: none;
+            stroke: currentcolor;
+            stroke-width: var(--svg-stroke-icon);
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+    }
+
+    &__title {
+        font-size: var(--font-size-card-title);
+        font-weight: var(--font-weight-black);
+
+        @include from-md {
+            font-size: var(--font-size-lg);
+        }
+    }
+
+    &__lead {
+        max-width: var(--landing-section-lead-max-width);
+        margin: var(--space-2) 0 var(--space-4);
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
     }
 }

@@ -102,6 +102,19 @@
         display: none;
     }
 
+    // Tlačítko hledání vpravo v poli (úvodní stránka, R137) — pole mu nechá místo
+    &--with-submit &__input {
+        padding-right: calc(var(--search-submit-width) + var(--space-2));
+    }
+
+    &__submit {
+        position: absolute;
+        top: 50%;
+        right: var(--space-1);
+        min-width: var(--search-submit-width);
+        transform: translateY(-50%);
+    }
+
     // Telefon: hledání přes celou obrazovku (jen Všechny akce — pole s tlačítkem Zpět)
     @include below-nav {
         &--focused:has(.search-suggest__back) {

@@ -1,6 +1,7 @@
 // _watch-demo.scss
-// Živá ukázka hlídání na úvodní stránce (R90): tři kroky jako karty — obchody a produkty vedle
-// sebe, výsledek přes celou šířku pod nimi.
+// Živá ukázka hlídání na úvodní stránce (R90): tři kroky jako karty — na tabletu obchody
+// a produkty vedle sebe a výsledek pod nimi, na počítači všechny tři vedle sebe s čísly
+// propojenými čárkovanou linkou (R137). Výzva k registraci pod kroky.
 //
 // @author Roman Hlaváček
 // @created 2026-10-06
@@ -8,6 +9,7 @@
 @use '../abstracts/mixins' as *;
 
 .watch-demo {
+    position: relative;
     display: grid;
     gap: var(--space-3);
     margin: 0;
@@ -18,14 +20,35 @@
         grid-template-columns: 1fr 1fr;
     }
 
+    @include from-lg {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: var(--space-4);
+
+        // Čárkovaná linka mezi čísly kroků — pod kartami, prosvítá mezerami mezi nimi
+        &::before {
+            content: '';
+            position: absolute;
+            top: calc(var(--space-3) + var(--landing-step-size) / 2);
+            right: var(--landing-steps-line-inset);
+            left: var(--landing-steps-line-inset);
+            border-top: 2px dashed var(--color-landing-steps-line);
+        }
+    }
+
     &__step {
+        position: relative;
         display: flex;
         flex-direction: column;
         gap: var(--space-3);
+        min-width: 0;
 
         &--hunt {
             @include from-md {
                 grid-column: 1 / -1;
+            }
+
+            @include from-lg {
+                grid-column: auto;
             }
         }
     }
@@ -45,6 +68,8 @@
         height: var(--landing-step-size);
         background: var(--gradient-brand);
         border-radius: 50%;
+        // Prstenec v barvě karty přeruší čárkovanou linku kolem čísla
+        box-shadow: 0 0 0 var(--landing-step-ring) var(--color-surface);
         color: var(--color-on-brand);
         font-size: var(--font-size-card-title);
         font-weight: var(--font-weight-black);
@@ -146,7 +171,7 @@
         flex-wrap: wrap;
         align-items: center;
         gap: var(--space-2) var(--space-3);
-        margin-top: var(--space-2);
+        margin-top: var(--space-4);
     }
 
     &__cta-note {
@@ -157,18 +182,9 @@
     }
 }
 
-// Pískoviště kolem ukázky (R90): přerušovaný rámeček a štítek „Živá ukázka“ s blikající
-// tečkou — kroky nesmí vypadat jako nastavení účtu, které se neuložilo
+// Štítek „Živá ukázka“ s blikající tečkou nad kroky (R90) — kroky nesmí vypadat jako nastavení
+// účtu, které se neuložilo. Rámeček pískoviště nahradil růžový pruh oddílu (R137).
 .watch-demo-sandbox {
-    padding: var(--space-3);
-    background: var(--gradient-hero);
-    border: 2px dashed var(--color-accent);
-    border-radius: var(--radius-lg);
-
-    @include from-md {
-        padding: var(--space-4);
-    }
-
     &__head {
         display: flex;
         flex-wrap: wrap;
