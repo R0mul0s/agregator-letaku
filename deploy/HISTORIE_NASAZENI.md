@@ -557,3 +557,14 @@ a statistika letáku počítá akce převzaté webem (`leaflet_stats.covered_off
 
 - **Ověřeno:** crony spuštěné hned po nasazení; `/kvalita-dat` u Lidlu: leták od čtvrtka 165
   (z toho 53 na webu), od pondělí 119 (z toho 21 na webu), staženo obchodem 0 (12. 10.).
+
+### Aktualizace z `bce4cdd` (třicáté osmé nasazení — provedeno, `4e97a6e`)
+
+Nový vzhled veřejných stránek a stránek přihlášeného (R137–R141, R143) nahrávaný během dne
+průběžně, naposledy s Nejlepšími slevami týdne (R143) a opravou stromu přístupnosti: počet
+nabídek ve Všech akcích měl `role="status"` přímo na `h2` a PageSpeed (přístupnost pro AI agenty)
+hlásil nevhodnou roli. K tomu Albert: cena mezi dvěma dlaždicemi letáku (R142). Bez migrace
+a SQL skriptu, `.env` beze změny.
+
+- **Ověřeno:** `version.txt` = `4e97a6e`; `/health/imports` i `/health/tasks` 200, `/akce` 200,
+  `/tyden` přesměruje na aktuální týden (12. 10.).
