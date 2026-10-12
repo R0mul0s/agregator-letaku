@@ -13,6 +13,7 @@
 import ChainLogo from '@/Components/ChainLogo.vue';
 import ChainSelect from '@/Components/ChainSelect.vue';
 import HighlightText from '@/Components/HighlightText.vue';
+import SearchField from '@/Components/SearchField.vue';
 import { debounce } from '@/lib/debounce';
 import { formatDiscount, formatPrice } from '@/lib/format';
 import { useTranslations } from '@/lib/i18n';
@@ -115,6 +116,19 @@ function choose(option) {
     reset();
 }
 
+/** Pole (SearchField) — tlačítko „Přidat“ bez textu do něj vrátí fokus. */
+const field = ref(null);
+
+/** Enter nebo tlačítko „Přidat“ (R147): vybraný návrh, jinak napsaný text jako vlastní položka. */
+function submit() {
+    if (!query.value) {
+        field.value?.focus();
+
+        return;
+    }
+    choose(activeOption.value ?? { type: 'own' });
+}
+
 /**
  * Ovládání klávesnicí. Enter bez vybrané volby přidá napsaný text jako vlastní položku.
  *
@@ -125,7 +139,7 @@ function onKeydown(event) {
         open.value = true;
     } else if (event.key === 'Enter' && query.value) {
         event.preventDefault();
-        choose(activeOption.value ?? { type: 'own' });
+        submit();
     } else if (event.key === 'Escape') {
         // Prohlížeč by pole typu search Escapem vymazal — Escape jen zavírá
         event.preventDefault();
@@ -150,30 +164,28 @@ function offerPrice(offer) {
             <div class="shopping-add__search">
                 <label :for="id" class="form-field__label">{{ t('shopping.add_field') }}</label>
                 <div class="search-suggest">
-                    <div class="search-suggest__control">
-                        <span class="search-suggest__icon" aria-hidden="true">
-                            <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></svg>
-                        </span>
-                        <input
-                            :id="id"
-                            v-model="text"
-                            type="search"
-                            enterkeyhint="done"
-                            class="form-field__input search-suggest__input"
-                            :placeholder="t('shopping.add_placeholder')"
-                            :maxlength="add.nameMaxLength"
-                            role="combobox"
-                            autocomplete="off"
-                            aria-autocomplete="list"
-                            :aria-expanded="open ? 'true' : 'false'"
-                            :aria-controls="listId"
-                            :aria-activedescendant="activeId"
-                            :aria-describedby="`${id}-hint`"
-                            @input="onInput"
-                            @keydown="onKeydown"
-                            @blur="close"
-                        />
-                    </div>
+                    <!-- Sdílené pole ve tvaru pilulky (R147) — stejné jako ve Všech akcích -->
+                    <SearchField
+                        :id="id"
+                        ref="field"
+                        v-model="text"
+                        icon="add"
+                        :submit-label="t('shopping.add_submit')"
+                        enterkeyhint="done"
+                        :placeholder="t('shopping.add_placeholder')"
+                        :maxlength="add.nameMaxLength"
+                        role="combobox"
+                        autocomplete="off"
+                        aria-autocomplete="list"
+                        :aria-expanded="open ? 'true' : 'false'"
+                        :aria-controls="listId"
+                        :aria-activedescendant="activeId"
+                        :aria-describedby="`${id}-hint`"
+                        @input="onInput"
+                        @keydown="onKeydown"
+                        @blur="close"
+                        @submit="submit"
+                    />
                     <!-- Počet návrhů pro čtečky (R99) -->
                     <p class="visually-hidden" role="status">{{ open ? t('search.status', { count: options.length }) : '' }}</p>
                     <div v-show="open && options.length" class="search-panel">

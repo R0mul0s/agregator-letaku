@@ -51,7 +51,7 @@ onMounted(() => {
 
         <Link :href="indexUrl" class="link notification-detail__back">← {{ t('notifications.back') }}</Link>
 
-        <header class="page__header">
+        <header class="page__header page-hero">
             <h1 class="page__title">{{ notification.title }}</h1>
             <p class="page__subtitle">
                 <time :datetime="notification.createdAt">{{ createdAt }}</time>

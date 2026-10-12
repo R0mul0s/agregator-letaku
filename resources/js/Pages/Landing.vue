@@ -145,6 +145,7 @@ function showProduct(product) {
                         :min-length="suggestMinLength"
                         :submit-label="t('landing.search_submit')"
                         hide-label
+                        on-hero
                         @search="search"
                         @product="showProduct"
                     />

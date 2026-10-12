@@ -34,7 +34,7 @@ function unsubscribe() {
     <AppLayout>
         <Head :title="t('unsubscribe.title')" />
 
-        <header class="page__header">
+        <header class="page__header page-hero">
             <h1 class="page__title">{{ t('unsubscribe.title') }}</h1>
         </header>
 

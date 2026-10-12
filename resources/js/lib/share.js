@@ -1,6 +1,6 @@
 /**
- * Sdílení přes systémové okno (Web Share API — chat, e-mail, sociální sítě), bez něj
- * zkopírování do schránky. Nákupní seznam jako text i odkazem (R130) a akce z karty.
+ * Sdílení přes systémové okno (Web Share API — chat, e-mail, sociální sítě) na dotykovém
+ * zařízení, jinak zkopírování do schránky (R146 — okno sdílení Windows text zkopírovat neumí). Nákupní seznam jako text i odkazem (R130) a akce z karty.
  * Povedené sdílení měří Google Analytics událostí `share` (R134, jen se souhlasem).
  *
  * @author Roman Hlaváček
@@ -23,6 +23,19 @@ const SHARE_METHOD = Object.freeze({
     CLIPBOARD: 'clipboard',
 });
 
+/** Ovládání prstem (telefon, tablet) — jen tam má systémové okno sdílení smysl. */
+const COARSE_POINTER_QUERY = '(pointer: coarse)';
+
+/**
+ * Sdílet systémovým oknem? Jen na dotykovém zařízení, které ho umí. Na počítači (Chrome a Edge
+ * ve Windows sdílení mají) okno nabízí jen aplikace a text zkopírovat nejde — tam schránka.
+ *
+ * @returns {boolean}
+ */
+export function canSystemShare() {
+    return typeof navigator.share === 'function' && window.matchMedia(COARSE_POINTER_QUERY).matches;
+}
+
 /**
  * Změří povedené sdílení (R134).
  *
@@ -34,7 +47,8 @@ export function trackShare(contentType, copied) {
 }
 
 /**
- * Pošle obsah sdílením systému; bez něj zkopíruje text s adresou (každé na svém řádku).
+ * Pošle obsah sdílením systému (dotykové zařízení); jinak zkopíruje text s adresou (každé na
+ * svém řádku).
  * Zavření okna sdílení není chyba (a nezměří se).
  *
  * @param {{ title?: string, text?: string, url?: string }} content
@@ -44,7 +58,7 @@ export function trackShare(contentType, copied) {
  * @returns {Promise<void>}
  */
 export async function shareOrCopy(content, copiedMessage, failedMessage, contentType) {
-    if (navigator.share) {
+    if (canSystemShare()) {
         try {
             await navigator.share(content);
             trackShare(contentType, false);

@@ -53,6 +53,22 @@
         min-width: 0;
     }
 
+    // Otevřené hledání: mřížka pruhu má vlastní vrstvu (nad oblým koncem), panel návrhů by v ní zůstal
+    // pod kartou přes oblý konec a hledání přes celou obrazovku na telefonu pod hlavičkou — po dobu
+    // hledání vrstva nad kartou (pod hlavičkou) a pruh panel neořízne, na telefonu nad vším
+    &:has(.search-suggest--focused) {
+        overflow-x: clip;
+        overflow-y: visible;
+    }
+
+    &:has(.search-suggest--focused) &__grid {
+        z-index: var(--z-dropdown);
+
+        @include below-nav {
+            z-index: var(--z-search-sheet);
+        }
+    }
+
     // Čerstvost dat se zelenou tečkou jako živý počet na úvodní stránce
     &__fresh {
         display: inline-flex;
@@ -115,7 +131,7 @@
         }
     }
 
-    // Hledání jako bílá „pilulka“ s tlačítkem v poli (jako úvodní stránka)
+    // Hledání — bílá „pilulka“ s tlačítkem (SearchField on-hero, R147)
     &__search {
         align-self: stretch;
         max-width: var(--offers-search-max-width);
@@ -123,19 +139,6 @@
 
         .search-suggest {
             margin-bottom: 0;
-        }
-
-        .search-suggest__input {
-            min-height: calc(var(--control-size) + var(--space-3));
-            background: var(--color-landing-search-bg);
-            border-color: var(--color-landing-search-border);
-            border-radius: var(--radius-pill);
-            box-shadow: var(--shadow-landing-search);
-        }
-
-        .search-suggest__submit {
-            background: var(--color-landing-search-button);
-            color: var(--color-landing-search-button-text);
         }
     }
 
@@ -314,10 +317,6 @@
         margin: 0 calc(-1 * var(--space-4));
         padding: var(--space-3) var(--space-4) 0;
         border-top: 1px solid var(--color-border);
-    }
-
-    .active-filters {
-        margin-top: var(--space-2);
     }
 
     &__install {

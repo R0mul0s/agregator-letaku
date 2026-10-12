@@ -10,10 +10,10 @@
 <script setup>
 import EmptyState from '@/Components/EmptyState.vue';
 import ShoppingGroups from '@/Components/ShoppingGroups.vue';
+import WakeLockSwitch from '@/Components/WakeLockSwitch.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { useTranslations } from '@/lib/i18n';
 import { showToast } from '@/lib/toast';
-import { useWakeLock } from '@/lib/wakeLock';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { onBeforeUnmount, onMounted } from 'vue';
 
@@ -27,7 +27,6 @@ defineProps({
 
 const t = useTranslations();
 const page = usePage();
-const wakeLock = useWakeLock();
 
 /** Volby požadavku, po kterých stránka zůstane, kde je. */
 const KEEP_PAGE = { preserveScroll: true, preserveState: true };
@@ -70,7 +69,7 @@ function check(item, checked) {
     <AppLayout>
         <Head :title="t('shared_shopping.title')" />
 
-        <header class="page__header">
+        <header class="page__header page-hero">
             <h1 class="page__title">{{ t('shared_shopping.title') }}</h1>
             <p class="page__subtitle">{{ t('shared_shopping.intro', { name: ownerName }) }}</p>
         </header>
@@ -78,17 +77,8 @@ function check(item, checked) {
         <EmptyState v-if="!groups.length" :text="t('shared_shopping.empty')" />
 
         <template v-else>
-            <div v-if="wakeLock.supported" class="watch-groups__toolbar shopping-toolbar">
-                <button
-                    type="button"
-                    class="button button--ghost shopping-toolbar__wake"
-                    :class="{ 'shopping-toolbar__wake--on': wakeLock.enabled.value }"
-                    :aria-pressed="wakeLock.enabled.value ? 'true' : 'false'"
-                    @click="wakeLock.toggle"
-                >
-                    {{ t('shopping.wake_lock') }}
-                </button>
-            </div>
+            <!-- Nezhasínání displeje jako přepínač v kartě (R146) -->
+            <WakeLockSwitch class="card shopping-wake" />
             <ShoppingGroups :groups="groups" @check="check" />
         </template>
 

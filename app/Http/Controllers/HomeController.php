@@ -118,6 +118,8 @@ class HomeController extends Controller
                 'fresh' => config()->integer('letaky.offers.fresh_days'),
                 'endingSoon' => config()->integer('letaky.offers.ending_soon_days'),
             ],
+            // Štítky „Sleva od“ na stránce (R145) — stejné volby jako hranice slevy v Mém účtu (R41)
+            'minDiscountOptions' => config()->array('letaky.account.min_discount_options'),
             // Vybrané prodejny (R49) a dočasné přepnutí na všechny (R101); bez vybraných null
             'stores' => $storeCodes === [] ? null : [
                 'count' => count($storeCodes),

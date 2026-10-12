@@ -18,6 +18,9 @@ export const OFFER_TYPE = Object.freeze({
 /** Shoda „možná“ u „různých druhů“ — hodnota App\Enums\MatchStatus::Maybe (R9). */
 export const MATCH_MAYBE = 'maybe';
 
+/** Stav porovnání ceny akce s historií (App\Domain\Offers\PriceHistory::LOWEST, R59): nejlevněji za poslední týdny. */
+export const PRICE_LOWEST = 'lowest';
+
 /**
  * Cena za jednotku jako „29,90 Kč / kg“.
  *

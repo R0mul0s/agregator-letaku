@@ -7,6 +7,7 @@
 -->
 <script setup>
 import EmptyState from '@/Components/EmptyState.vue';
+import InstallPrompt from '@/Components/InstallPrompt.vue';
 import WatchAdd from '@/Components/WatchAdd.vue';
 import WatchBrowse from '@/Components/WatchBrowse.vue';
 import WatchItemForm from '@/Components/WatchItemForm.vue';
@@ -40,6 +41,9 @@ const ownForm = ref(null);
 /** Při každém otevření nový formulář — výchozí hodnoty se berou jen při vytvoření. */
 const ownFormKey = ref(0);
 const ownFormElement = ref(null);
+
+/** Kolik hlídaných položek má právě akci (štítek v červeném pruhu, R144). */
+const withOffersCount = computed(() => props.watchItems.filter((item) => item.offersCount > 0).length);
 
 /** Chyba při přidání produktu (už hlídaný, limit položek). */
 const addError = computed(() => (ownForm.value ? null : (page.props.errors?.product_id ?? page.props.errors?.name ?? null)));
@@ -90,9 +94,13 @@ onMounted(() => {
     <AppLayout>
         <Head :title="t('watch.title')" />
 
-        <header class="page__header">
+        <header class="page__header page-hero">
             <h1 class="page__title">{{ t('watch.title') }}</h1>
             <p class="page__subtitle">{{ t('watch.intro') }}</p>
+            <ul v-if="watchItems.length" class="page-hero__pills">
+                <li class="page-hero__pill">{{ t('watch.hero_items', { count: watchItems.length }) }}</li>
+                <li v-if="withOffersCount" class="page-hero__pill">{{ t('watch.hero_with_offers', { count: withOffersCount }) }}</li>
+            </ul>
         </header>
 
         <section class="card watch-new">
@@ -114,6 +122,9 @@ onMounted(() => {
                 />
             </div>
         </section>
+
+        <!-- Výzva k přidání na plochu pod kartou přes červený pruh (R139, R144) -->
+        <InstallPrompt inline />
 
         <section class="watch-list" :aria-labelledby="watchItems.length ? 'watch-list-title' : undefined">
             <EmptyState v-if="!watchItems.length" :text="t('watch.empty')" />

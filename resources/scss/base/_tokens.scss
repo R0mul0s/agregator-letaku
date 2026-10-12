@@ -405,6 +405,16 @@
     // Na počítači všech 12 oddělení v jednom řádku šířky obsahu
     --offers-department-min-width: 5rem;
     --offers-department-icon: 2.75rem;
+    // Červený pruh s nadpisem ostatních stránek (R144): maskot v kruhu vpravo od středního displeje
+    --page-hero-mascot-size: 7.5rem;
+    // Karta „Sdílet seznam“ (R146): dvě tlačítka vedle sebe, na úzkém telefonu pod sebou
+    --shopping-share-button-min-width: 9.5rem;
+    // Zapnuté filtry na telefonu (R144): malé štítky, křížek v kolečku, loga obchodů přes sebe
+    --active-filter-height: 2rem;
+    --active-filter-remove-size: 1.125rem;
+    --active-filter-logo-size: 1.5rem;
+    --active-filter-logo-overlap: -0.35rem;
+    --color-active-filter-remove: rgb(0 0 0 / 7%);
     // Nejlepší slevy týdne (R143): stupně vítězů v pruhu (první uprostřed a výš), pořadí v kolečku
     // v rohu karty, přepínač týdnů, řady menších dlaždic obchodů, dlaždice archivu
     --weekly-podium-width: 27rem;

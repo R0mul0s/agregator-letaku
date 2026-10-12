@@ -258,7 +258,7 @@ async function deleteAccount() {
     <AppLayout>
         <Head :title="t('account.title')" />
 
-        <header class="page__header">
+        <header class="page__header page-hero">
             <h1 class="page__title">{{ t('account.title') }}</h1>
         </header>
 

@@ -59,7 +59,7 @@ function issueOf(leaflet, kind) {
     <AppLayout>
         <Head :title="t('data_quality.title')" />
 
-        <header class="page__header">
+        <header class="page__header page-hero">
             <h1 class="page__title">{{ t('data_quality.title') }}</h1>
             <p class="page__subtitle">{{ t('data_quality.intro') }}</p>
         </header>

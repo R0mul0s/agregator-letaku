@@ -121,7 +121,7 @@ const days = computed(() => {
     <AppLayout>
         <Head :title="t('notifications.title')" />
 
-        <header class="page__header">
+        <header class="page__header page-hero">
             <h1 class="page__title">{{ t('notifications.title') }}</h1>
             <p class="page__subtitle">{{ t('notifications.intro', { days: retentionDays }) }}</p>
         </header>

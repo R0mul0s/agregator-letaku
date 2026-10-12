@@ -277,8 +277,9 @@ function chooseFilter(key, value) {
 const activeFilterChips = computed(() => {
     const chips = [];
     if (filters.chain.length) {
-        const names = filters.chain.map((value) => props.chains.find((chain) => chain.value === value)?.name ?? value);
-        chips.push({ key: 'chain', label: names.join(', '), action: () => (filtersOpen.value = true), removable: false });
+        // Jeden obchod názvem, víc obchodů logy a počtem (R144)
+        const label = filters.chain.length === 1 ? (props.chains.find((chain) => chain.value === filters.chain[0])?.name ?? filters.chain[0]) : t('search.chains_selected', { count: filters.chain.length });
+        chips.push({ key: 'chain', label, chains: filters.chain, action: () => (filtersOpen.value = true), removable: false });
     }
     for (const chip of periodChips.value.filter((periodChip) => filters[periodChip.key])) {
         chips.push({ key: chip.key, label: chip.label, action: () => toggleFilter(chip.key), removable: true });
@@ -400,6 +401,7 @@ onBeforeUnmount(() => liveSearch.cancel());
                             :watch-urls="watchUrls"
                             :submit-label="t('offers.search_submit')"
                             hide-label
+                            on-hero
                             @search="submitSearch"
                             @product="showProduct"
                         />
@@ -469,6 +471,8 @@ onBeforeUnmount(() => liveSearch.cancel());
                 <FilterBar ref="filterBar" :sort-label="sortLabel" :filter-count="activeFilterChips.length" @sort="sortOpen = true" @filters="filtersOpen = true">
                     <ViewToggle v-model="compact" />
                 </FilterBar>
+                <!-- Zapnuté filtry na telefonu v kartě pod linkou (R144) -->
+                <ActiveFilters :chips="activeFilterChips" :can-clear="hasActiveFilters" @clear="clearFilters" />
 
                 <!-- Štítky filtrů (R71, R101) — široký displej -->
                 <div class="search-chips search-chips--desktop offers-toolbar__chips">
@@ -500,8 +504,6 @@ onBeforeUnmount(() => liveSearch.cancel());
                     </div>
                 </div>
             </div>
-            <!-- Zapnuté filtry pod lištou na telefonu -->
-            <ActiveFilters :chips="activeFilterChips" />
             <!-- Výzva k přidání na plochu (R139) pod lištou, ne nad červeným pruhem -->
             <InstallPrompt inline class="offers-toolbar__install" />
         </div>

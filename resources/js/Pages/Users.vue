@@ -160,7 +160,7 @@ onBeforeUnmount(() => {
     <AppLayout>
         <Head :title="t('users.title')" />
 
-        <header class="page__header">
+        <header class="page__header page-hero">
             <h1 class="page__title">{{ t('users.title') }}</h1>
             <p class="page__subtitle">{{ t('users.intro', { minutes: onlineMinutes }) }}</p>
         </header>

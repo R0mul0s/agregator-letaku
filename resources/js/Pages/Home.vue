@@ -41,7 +41,7 @@ import { useExpandedGroups } from '@/lib/expandedGroups';
 import { MEDIA_FROM_MD } from '@/lib/breakpoints';
 import { formatDiscount, formatNumber, formatPrice } from '@/lib/format';
 import { useTranslations } from '@/lib/i18n';
-import { discountPercent, MATCH_MAYBE, upcomingAnchor } from '@/lib/offer';
+import { discountPercent, MATCH_MAYBE, PRICE_LOWEST, upcomingAnchor } from '@/lib/offer';
 import { scrollIntoViewGently } from '@/lib/scroll';
 import { readStored, writeStored } from '@/lib/storage';
 import { useCompactView } from '@/lib/viewMode';
@@ -81,6 +81,8 @@ const props = defineProps({
     byChain: { type: Array, required: true },
     /** Dny do popisků štítků { fresh, endingSoon } — stejné jako ve Všech akcích (R101). */
     offerFilterDays: { type: Object, required: true },
+    /** Volby štítků „Sleva od“ v procentech (R145) — jako hranice slevy v Mém účtu. */
+    minDiscountOptions: { type: Array, required: true },
     /** Hlídané položky s nabídkami od nejnižší ceny za jednotku a zmínkami v letácích (App\Domain\Matching\MyOffers). */
     watchItems: { type: Array, required: true },
 });
@@ -125,18 +127,34 @@ const hasFinds = (item) => item.offers.length > 0 || item.mentions.length > 0;
 /** Položky bez akcí a zmínek — sbalená sekce pod ostatními (R100); v obchodě se neukazují. */
 const waitingItems = computed(() => (focused.value ? [] : props.watchItems.filter((item) => !hasFinds(item))));
 
-/**
- * Štítky filtrů akcí (R101): nové, brzy končící, jen jisté shody (bez „možná“, R9). Nepamatují
- * se — po návratu na stránku je zase vše.
- */
-const offerFilters = reactive({ fresh: false, endingSoon: false, sure: false });
+/** Klíč filtru „Sleva od“ (R145) — hodnota je počet procent, ne zapnuto / vypnuto. */
+const MIN_DISCOUNT = 'minDiscount';
 
-/** Podmínka akce pro každý štítek (příznaky z HomeController). */
+/**
+ * Štítky filtrů akcí (R101): nové, brzy končící, jen jisté shody (bez „možná“, R9); nejnižší
+ * cena za poslední týdny, bez e-shopu a sleva od (R145). Nepamatují se — po návratu na stránku
+ * je zase vše.
+ */
+const offerFilters = reactive({ fresh: false, endingSoon: false, sure: false, lowest: false, withoutEshop: false, [MIN_DISCOUNT]: null });
+
+/** Podmínka akce pro každý štítek zapnuto / vypnuto (příznaky z HomeController a OfferPresenter). */
 const OFFER_FILTER_TESTS = {
     fresh: (offer) => offer.isNew,
     endingSoon: (offer) => offer.endsSoon,
     sure: (offer) => offer.matchStatus !== MATCH_MAYBE,
+    // Štítek „Nejlevněji za N týdnů“ na kartě (R59)
+    lowest: (offer) => offer.priceHistory?.status === PRICE_LOWEST,
+    withoutEshop: (offer) => !offer.onlineOnly,
 };
+
+/**
+ * Splní akce sleva od N procent (skutečná sleva, R113)?
+ *
+ * @param {object} offer
+ * @param {number} percent
+ * @returns {boolean}
+ */
+const hasDiscountOf = (offer, percent) => (discountPercent(offer) ?? 0) >= percent;
 
 /** Je zapnutý některý štítek filtru? */
 const offerFilterActive = computed(() => Object.values(offerFilters).some(Boolean));
@@ -156,18 +174,37 @@ const focused = computed(() => Boolean(chainFilter.value) || offerFilterActive.v
  */
 const chipOffers = (item) => (chainFilter.value ? item.offers.filter((offer) => offer.chain === chainFilter.value) : [...item.offers, ...item.upcoming]);
 
-/** Kolik akcí by který štítek ukázal — štítek bez akcí se nenabízí. */
-const offerFilterCounts = computed(() =>
-    Object.fromEntries(Object.entries(OFFER_FILTER_TESTS).map(([key, test]) => [key, props.watchItems.flatMap(chipOffers).filter(test).length])),
-);
+/** Akce, ze kterých štítky počítají. */
+const allChipOffers = computed(() => props.watchItems.flatMap(chipOffers));
 
-/** Štítky k zobrazení — bez akcí se nenabízí, zapnutý zůstane, aby šel vypnout. */
-const offerFilterChips = computed(() =>
-    [
+/** Kolik akcí by který štítek ukázal — štítek bez akcí se nenabízí. */
+const offerFilterCounts = computed(() => Object.fromEntries(Object.entries(OFFER_FILTER_TESTS).map(([key, test]) => [key, allChipOffers.value.filter(test).length])));
+
+/**
+ * Štítky k zobrazení — bez akcí se nenabízí, zapnutý zůstane, aby šel vypnout. „Bez e-shopu“
+ * jen když jsou mezi akcemi nějaké z e-shopu (jinak by nic neschoval).
+ */
+const offerFilterChips = computed(() => {
+    const hasEshopOffers = offerFilterCounts.value.withoutEshop < allChipOffers.value.length;
+
+    return [
         { key: 'fresh', label: t('search.fresh', { count: props.offerFilterDays.fresh }) },
         { key: 'endingSoon', label: t('search.ending_soon', { count: props.offerFilterDays.endingSoon }) },
+        { key: 'lowest', label: t('home.filter_lowest') },
         { key: 'sure', label: t('home.filter_sure') },
-    ].filter((chip) => offerFilters[chip.key] || offerFilterCounts.value[chip.key] > 0),
+        { key: 'withoutEshop', label: t('search.without_eshop'), available: hasEshopOffers },
+    ].filter((chip) => offerFilters[chip.key] || (chip.available !== false && offerFilterCounts.value[chip.key] > 0));
+});
+
+/**
+ * Volby „Sleva od“ (R145): jen nad hranicí slevy z Mého účtu (pod ní se akce na stránku
+ * nedostanou) a jen ty, které by nějakou akci ukázaly; zvolená zůstane, aby šla vypnout.
+ */
+const minDiscountChips = computed(() =>
+    props.minDiscountOptions
+        .filter((percent) => percent > (props.offersPreferences.minDiscountPercent ?? 0))
+        .map((percent) => ({ percent, count: allChipOffers.value.filter((offer) => hasDiscountOf(offer, percent)).length }))
+        .filter((chip) => offerFilters[MIN_DISCOUNT] === chip.percent || chip.count > 0),
 );
 
 /**
@@ -186,12 +223,32 @@ async function returnToList() {
 /**
  * Přepne štítek filtru a rozbalí skupiny jako nový výběr.
  *
- * @param {string} key fresh | endingSoon | sure
+ * @param {string} key fresh | endingSoon | sure | lowest | withoutEshop
  */
 function toggleOfferFilter(key) {
     offerFilters[key] = !offerFilters[key];
     groups.resetFocus();
     returnToList();
+}
+
+/**
+ * Nastaví slevu od N procent a rozbalí skupiny jako nový výběr.
+ *
+ * @param {number|string|null} percent prázdná hodnota výběru = vypnout
+ */
+function selectMinDiscount(percent) {
+    offerFilters[MIN_DISCOUNT] = percent ? Number(percent) : null;
+    groups.resetFocus();
+    returnToList();
+}
+
+/**
+ * Štítek „Sleva od“ v okně Filtry: stejná volba znovu filtr vypne (null = vypnout).
+ *
+ * @param {number|null} percent
+ */
+function chooseMinDiscount(percent) {
+    selectMinDiscount(offerFilters[MIN_DISCOUNT] === percent ? null : percent);
 }
 
 /**
@@ -204,7 +261,8 @@ const visibleItems = computed(() => {
         return props.watchItems.filter(hasFinds);
     }
 
-    const passes = (offer) => Object.entries(OFFER_FILTER_TESTS).every(([key, test]) => !offerFilters[key] || test(offer));
+    const passes = (offer) =>
+        Object.entries(OFFER_FILTER_TESTS).every(([key, test]) => !offerFilters[key] || test(offer)) && (!offerFilters[MIN_DISCOUNT] || hasDiscountOf(offer, offerFilters[MIN_DISCOUNT]));
     const inChain = (entry) => !chainFilter.value || entry.chain === chainFilter.value;
 
     return props.watchItems
@@ -407,8 +465,12 @@ function toggleAllGroups() {
 /** Zapnuté filtry pod lištou na telefonu — klepnutí filtr vypne; vypnuté prodejny se zapnou. */
 const activeFilterChips = computed(() => [
     ...offerFilterChips.value.filter((chip) => offerFilters[chip.key]).map((chip) => ({ key: chip.key, label: chip.label, action: () => toggleOfferFilter(chip.key) })),
+    ...(offerFilters[MIN_DISCOUNT] ? [{ key: MIN_DISCOUNT, label: t('search.min_discount', { percent: offerFilters[MIN_DISCOUNT] }), action: () => chooseMinDiscount(null) }] : []),
     ...(props.stores?.all ? [{ key: 'stores', label: t('home.all_stores'), action: toggleAllStores }] : []),
 ]);
+
+/** Je zapnutý některý štítek filtru („Zrušit vše“ vypne štítky, prodejny nechá). */
+const hasOfferFilters = computed(() => Object.values(offerFilters).some(Boolean));
 
 /** Kolik akcí je se zvolenými filtry vidět — tlačítko „Zobrazit N akcí“ v okně. */
 const visibleOffersCount = computed(() => visibleItems.value.reduce((sum, item) => sum + item.offers.length, 0));
@@ -416,7 +478,7 @@ const visibleOffersCount = computed(() => visibleItems.value.reduce((sum, item) 
 /** Vypne štítky filtrů (okno Filtry); prodejny nechá, jak jsou. */
 function clearOfferFilters() {
     for (const key of Object.keys(offerFilters)) {
-        offerFilters[key] = false;
+        offerFilters[key] = key === MIN_DISCOUNT ? null : false;
     }
     returnToList();
 }
@@ -571,17 +633,25 @@ onMounted(async () => {
                         <FilterBar ref="filterBar" :sort-label="sortLabel" :filter-count="activeFilterChips.length" @sort="sortOpen = true" @filters="filtersOpen = true">
                             <ViewToggle v-model="compact" />
                         </FilterBar>
+                        <!-- Zapnuté filtry na telefonu v kartě pod linkou (R144) — klepnutí filtr vypne -->
+                        <ActiveFilters :chips="activeFilterChips" :can-clear="hasOfferFilters" @clear="clearOfferFilters" />
                         <!-- Štítky filtrů akcí (R101) — široký displej; jen ty, které by něco ukázaly -->
-                        <div v-if="offerFilterChips.length || stores" class="search-chips search-chips--desktop watch-groups__chips">
+                        <div v-if="offerFilterChips.length || minDiscountChips.length || stores" class="search-chips search-chips--desktop watch-groups__chips">
                             <div class="search-chips__filters" role="group" :aria-label="t('search.filters')">
                                 <OfferFilterChips :chips="offerFilterChips" :active="offerFilters" :counts="offerFilterCounts" @toggle="toggleOfferFilter" />
+                                <!-- Jen skutečné slevy od procent (R145) — výběr ve tvaru štítku jako ve Všech akcích -->
+                                <label v-if="minDiscountChips.length" class="search-chip search-chip--select" :class="{ 'search-chip--on': offerFilters[MIN_DISCOUNT] }">
+                                    <span class="visually-hidden">{{ t('search.min_discount_label') }}</span>
+                                    <select :value="offerFilters[MIN_DISCOUNT] ?? ''" class="search-chip__select" @change="selectMinDiscount($event.target.value)">
+                                        <option value="">{{ t('search.min_discount_any') }}</option>
+                                        <option v-for="chip in minDiscountChips" :key="chip.percent" :value="chip.percent">{{ t('search.min_discount', { percent: chip.percent }) }}</option>
+                                    </select>
+                                </label>
                                 <FilterChip v-if="stores" :on="!stores.all" @click="toggleAllStores">{{ t('home.my_stores', { count: stores.count }) }}</FilterChip>
                             </div>
                         </div>
                     </template>
                 </div>
-                <!-- Zapnuté filtry pod lištou na telefonu — klepnutí filtr vypne -->
-                <ActiveFilters v-if="!showChains" :chips="activeFilterChips" />
                 <!-- Výzva k přidání na plochu pod lištou filtrů, ne nad červeným pruhem (R139) -->
                 <InstallPrompt inline class="home-toolbar__install" />
             </div>
@@ -625,6 +695,14 @@ onMounted(async () => {
                                     <OfferFilterChips :chips="offerFilterChips" :active="offerFilters" :counts="offerFilterCounts" @toggle="toggleOfferFilter" />
                                 </div>
                                 <p v-if="!offerFilterChips.length" class="filter-sheet__hint">{{ t('home.filter_none') }}</p>
+                            </section>
+                            <section v-if="minDiscountChips.length" class="filter-sheet__section">
+                                <h3 class="filter-sheet__heading">{{ t('home.filter_discount') }}</h3>
+                                <div class="filter-sheet__options">
+                                    <FilterChip v-for="chip in minDiscountChips" :key="chip.percent" :on="offerFilters[MIN_DISCOUNT] === chip.percent" :count="chip.count" @click="chooseMinDiscount(chip.percent)">
+                                        {{ t('search.min_discount', { percent: chip.percent }) }}
+                                    </FilterChip>
+                                </div>
                             </section>
                             <section v-if="stores" class="filter-sheet__section">
                                 <h3 class="filter-sheet__heading">{{ t('home.filter_stores') }}</h3>

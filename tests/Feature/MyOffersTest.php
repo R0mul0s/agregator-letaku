@@ -402,6 +402,9 @@ it('u akcí pošle příznaky pro štítky Nové a Končí brzy (R101)', functio
         expect($offers['Máslo nové'])->toMatchArray(['isNew' => true, 'endsSoon' => false])
             ->and($offers['Máslo končí'])->toMatchArray(['isNew' => false, 'endsSoon' => true]);
         $page->where('offerFilterDays', ['fresh' => 2, 'endingSoon' => 2]);
+        // Štítky „Sleva od“ (R145) mají stejné volby jako hranice slevy v Mém účtu
+        $page->where('minDiscountOptions', config()->array('letaky.account.min_discount_options'));
+        expect($offers['Máslo nové'])->toHaveKeys(['onlineOnly', 'priceHistory', 'discountPercent']);
     });
 });
 

@@ -98,7 +98,7 @@ function pigeonLanded() {
     <AppLayout>
         <Head :title="page.props.seoTitle" />
 
-        <section class="contact-hero">
+        <section class="contact-hero page-hero">
             <div class="contact-hero__body">
                 <h1 class="page__title contact-hero__title">{{ t('contact.title') }}</h1>
                 <p class="contact-hero__lead">

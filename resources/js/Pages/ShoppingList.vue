@@ -15,17 +15,18 @@
 -->
 <script setup>
 import EmptyState from '@/Components/EmptyState.vue';
+import InstallPrompt from '@/Components/InstallPrompt.vue';
 import ShoppingAdd from '@/Components/ShoppingAdd.vue';
 import ShoppingGroups from '@/Components/ShoppingGroups.vue';
+import WakeLockSwitch from '@/Components/WakeLockSwitch.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { confirmDialog } from '@/lib/confirm';
 import { formatDate } from '@/lib/format';
 import { useTranslations } from '@/lib/i18n';
 import { pendingChecks, queueCheck } from '@/lib/offlineChecks';
-import { SHARE_CONTENT, shareOrCopy } from '@/lib/share';
+import { canSystemShare, SHARE_CONTENT, shareOrCopy } from '@/lib/share';
 import { itemPrice, nameWithQuantity } from '@/lib/shoppingList';
 import { showToast } from '@/lib/toast';
-import { useWakeLock } from '@/lib/wakeLock';
 import { Head, router, usePage } from '@inertiajs/vue3';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 
@@ -49,7 +50,8 @@ const props = defineProps({
 const t = useTranslations();
 const page = usePage();
 const locale = computed(() => page.props.locale);
-const wakeLock = useWakeLock();
+/** Text seznamu se na dotykovém zařízení posílá sdílením systému, na počítači kopíruje (R146). */
+const textShareLabel = computed(() => (canSystemShare() ? t('shopping.share') : t('shopping.share_copy')));
 
 /** Volby požadavku, po kterých stránka zůstane, kde je. */
 const KEEP_PAGE = { preserveScroll: true, preserveState: true };
@@ -92,6 +94,9 @@ const displayGroups = computed(() =>
         items: group.items.map((item) => (item.id in pendingChecks.value ? { ...item, checked: pendingChecks.value[item.id] } : item)),
     })),
 );
+
+/** Kolik položek zbývá koupit (štítek v červeném pruhu, R144) — bez odškrtnutých a skončených. */
+const toBuyCount = computed(() => displayGroups.value.reduce((sum, group) => sum + group.items.filter((item) => !item.checked && !item.expired).length, 0));
 
 /** Čekají odškrtnutí na připojení? */
 const hasPending = computed(() => Object.keys(pendingChecks.value).length > 0);
@@ -234,36 +239,50 @@ async function renewShare() {
     <AppLayout>
         <Head :title="t('shopping.title')" />
 
-        <header class="page__header">
+        <header class="page__header page-hero">
             <h1 class="page__title">{{ t('shopping.title') }}</h1>
             <p class="page__subtitle">{{ t('shopping.intro') }}</p>
+            <ul v-if="toBuyCount" class="page-hero__pills">
+                <li class="page-hero__pill">{{ t('shopping.hero_to_buy', { count: toBuyCount }) }}</li>
+            </ul>
         </header>
 
-        <ShoppingAdd :add="add" :max-quantity="maxQuantity" />
+        <!-- Přidání jako karta přes oblý konec červeného pruhu (R144) -->
+        <ShoppingAdd class="card" :add="add" :max-quantity="maxQuantity" />
+        <!-- Výzva k přidání na plochu pod kartou přes červený pruh (R139, R144) -->
+        <InstallPrompt inline />
 
         <EmptyState v-if="!groups.length" :text="t('shopping.empty')" />
 
         <template v-else>
-            <div class="watch-groups__toolbar shopping-toolbar">
-                <button type="button" class="button button--ghost" @click="shareLink">{{ t('shopping.share_link') }}</button>
-                <button type="button" class="button button--ghost" @click="shareAsText">{{ t('shopping.share') }}</button>
-                <button
-                    v-if="wakeLock.supported"
-                    type="button"
-                    class="button button--ghost shopping-toolbar__wake"
-                    :class="{ 'shopping-toolbar__wake--on': wakeLock.enabled.value }"
-                    :aria-pressed="wakeLock.enabled.value ? 'true' : 'false'"
-                    @click="wakeLock.toggle"
-                >
-                    {{ t('shopping.wake_lock') }}
-                </button>
-                <button v-if="hasChecked && online" type="button" class="button button--ghost" @click="clearChecked">{{ t('shopping.clear_checked') }}</button>
-                <button v-if="hasExpired && online" type="button" class="button button--ghost" @click="clearExpired">{{ t('shopping.clear_expired') }}</button>
+            <!-- Sdílení a nezhasínání displeje v kartě (R146) — dřív šedé obrysové pilulky -->
+            <section class="card shopping-share" aria-labelledby="shopping-share-title">
+                <h2 id="shopping-share-title" class="shopping-share__title">{{ t('shopping.share_title') }}</h2>
+                <div class="shopping-share__buttons">
+                    <button type="button" class="button button--primary" @click="shareLink">
+                        <svg class="button__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1" /><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" /></svg>
+                        {{ t('shopping.share_link') }}
+                    </button>
+                    <button type="button" class="button button--soft" @click="shareAsText">
+                        <svg class="button__icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2" /><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" /></svg>
+                        {{ textShareLabel }}
+                    </button>
+                </div>
+                <p class="shopping-share__hint">
+                    {{ t('shopping.share_hint') }}
+                    <button type="button" class="link-button" :disabled="!online" @click="renewShare">{{ t('shopping.share_renew') }}</button>
+                </p>
+                <WakeLockSwitch class="shopping-share__wake" />
+            </section>
+
+            <!-- Nadpis seznamu s úklidem — jemně červená tlačítka, mažou (R146) -->
+            <div class="shopping-list-head">
+                <h2 class="shopping-list-head__title">{{ t('shopping.list_title') }}</h2>
+                <div v-if="online && (hasChecked || hasExpired)" class="shopping-list-head__actions">
+                    <button v-if="hasChecked" type="button" class="button button--danger-soft" @click="clearChecked">{{ t('shopping.clear_checked') }}</button>
+                    <button v-if="hasExpired" type="button" class="button button--danger-soft" @click="clearExpired">{{ t('shopping.clear_expired') }}</button>
+                </div>
             </div>
-            <p class="shopping-share-hint">
-                {{ t('shopping.share_hint') }}
-                <button type="button" class="link-button" :disabled="!online" @click="renewShare">{{ t('shopping.share_renew') }}</button>
-            </p>
 
             <p v-if="hasPending" class="notice notice--warning" role="status">{{ t('shopping.pending') }}</p>
 

@@ -22,6 +22,19 @@
         cursor: not-allowed;
     }
 
+    // Ikona před textem (sdílení nákupního seznamu, R146)
+    &__icon {
+        flex: none;
+        width: var(--icon-size);
+        height: var(--icon-size);
+        margin-right: var(--space-2);
+        fill: none;
+        stroke: currentcolor;
+        stroke-width: var(--svg-stroke-icon);
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+
     // Hlavní akce — „tlačítko k zmáčknutí“ se spodní hranou, při najetí se nadzvedne
     &--primary {
         padding-inline: var(--space-4);
@@ -67,6 +80,17 @@
 
         &:hover:not(:disabled) {
             box-shadow: var(--focus-ring);
+        }
+    }
+
+    // Mazání, které jde vrátit jen novým přidáním (úklid nákupního seznamu, R146): jemně červené
+    &--danger-soft {
+        background: var(--color-danger-soft);
+        border-color: var(--color-danger-soft);
+        color: var(--color-danger);
+
+        &:hover:not(:disabled) {
+            border-color: var(--color-danger);
         }
     }
 

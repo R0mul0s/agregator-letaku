@@ -16,6 +16,7 @@
 import ChainLogo from '@/Components/ChainLogo.vue';
 import DepartmentIcon from '@/Components/DepartmentIcon.vue';
 import HighlightText from '@/Components/HighlightText.vue';
+import SearchField from '@/Components/SearchField.vue';
 import WatchOfferButton from '@/Components/WatchOfferButton.vue';
 import { debounce } from '@/lib/debounce';
 import { formatDiscount, formatPrice } from '@/lib/format';
@@ -48,6 +49,8 @@ const props = defineProps({
     submitLabel: { type: String, default: null },
     /** Popisek jen pro čtečky — pole s tlačítkem v hlavním pruhu nemá viditelný popisek. */
     hideLabel: { type: Boolean, default: false },
+    /** Pole na červeném pruhu (úvodní stránka, Všechny akce) — bílé bez okraje se stínem (R147). */
+    onHero: { type: Boolean, default: false },
 });
 
 const emit = defineEmits(['search', 'product']);
@@ -288,38 +291,35 @@ onBeforeUnmount(() => {
             <!-- Na telefonu přes celou obrazovku: zpět na výsledky -->
             <button type="button" class="link-button search-suggest__back" @mousedown.prevent @click="finish">{{ t('search.back') }}</button>
         </div>
-        <div class="search-suggest__control">
-            <span class="search-suggest__icon" :class="{ 'search-suggest__icon--busy': loading || fetching }" aria-hidden="true">
-                <svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5" /><path d="M15.5 15.5L21 21" /></svg>
-            </span>
-            <input
-                :id="id"
-                ref="input"
-                v-model="model"
-                :name="id"
-                type="search"
-                enterkeyhint="search"
-                class="form-field__input search-suggest__input"
-                :placeholder="placeholder"
-                role="combobox"
-                autocomplete="off"
-                aria-autocomplete="list"
-                :aria-expanded="panelVisible ? 'true' : 'false'"
-                :aria-controls="listId"
-                :aria-activedescendant="activeId"
-                :aria-busy="loading || fetching ? 'true' : 'false'"
-                :aria-describedby="hasRecent ? hintId : undefined"
-                @input="onInput"
-                @focus="onFocus"
-                @keydown="onKeydown"
-                @blur="
-                    focused = false;
-                    close();
-                "
-            />
-            <button v-if="submitLabel" type="button" class="button search-suggest__submit" @mousedown.prevent @click="submit">{{ submitLabel }}</button>
-            <kbd v-else class="search-suggest__shortcut" aria-hidden="true">/</kbd>
-        </div>
+        <!-- Sdílené pole ve tvaru pilulky (R147) — stejné jako v Hlídám a v nákupním seznamu -->
+        <SearchField
+            :id="id"
+            ref="input"
+            v-model="model"
+            :busy="loading || fetching"
+            :submit-label="submitLabel"
+            :shortcut="!submitLabel"
+            :on-hero="onHero"
+            :name="id"
+            enterkeyhint="search"
+            :placeholder="placeholder"
+            role="combobox"
+            autocomplete="off"
+            aria-autocomplete="list"
+            :aria-expanded="panelVisible ? 'true' : 'false'"
+            :aria-controls="listId"
+            :aria-activedescendant="activeId"
+            :aria-busy="loading || fetching ? 'true' : 'false'"
+            :aria-describedby="hasRecent ? hintId : undefined"
+            @input="onInput"
+            @focus="onFocus"
+            @keydown="onKeydown"
+            @blur="
+                focused = false;
+                close();
+            "
+            @submit="submit"
+        />
         <!-- Pro čtečky (R99): počet návrhů se oznámí, jak se změní; nápověda k mazání historie -->
         <p class="visually-hidden" role="status">{{ statusText }}</p>
         <p :id="hintId" class="visually-hidden">{{ t('search.forget_hint') }}</p>

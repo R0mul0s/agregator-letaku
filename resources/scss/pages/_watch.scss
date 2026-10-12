@@ -81,14 +81,39 @@
 .watch-groups__chain {
     flex: 0 1 var(--chain-select-min-width);
     margin-bottom: 0;
-
-    // Na telefonu „Jsem v obchodě“ v celé šířce, pod ním přepínač pohledu (R102)
-    @include below-md {
-        flex-basis: 100%;
-    }
 }
 
 // Přepínač Položky / Obchody (R102) vedle výběru obchodu, řazení a zobrazení vpravo (R138)
 .watch-groups__view {
     margin-right: auto;
+}
+
+// Telefon: přepínač Položky / Obchody v řádku s popiskem „Jsem v obchodě“, pod nimi výběr obchodu
+// přes celou šířku — bez vlastního řádku pro přepínač. Výběr se rozpadne do mřížky lišty
+// (display: contents), jeho seznam se proto zarovná k liště — ta na telefonu končí tlačítkem výběru.
+@include below-md {
+    .watch-groups__toolbar {
+        position: relative;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+        gap: var(--space-2) var(--space-3);
+    }
+
+    .watch-groups__chain {
+        display: contents;
+
+        .form-field__label {
+            grid-area: 1 / 1;
+        }
+
+        .chain-select__button {
+            grid-area: 2 / 1 / 3 / -1;
+        }
+    }
+
+    .watch-groups__view {
+        grid-area: 1 / 2;
+        margin-right: 0;
+    }
 }

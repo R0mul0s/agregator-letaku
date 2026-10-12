@@ -13,18 +13,9 @@
     z-index: var(--z-header);
     top: 0;
     background: var(--color-surface);
+    // Červená linka pod hlavičkou zrušená (R144) — skoro každá stránka začíná červeným pruhem
+    // (.page-hero, Moje slevy, Všechny akce), ostatní mají jen šedou čáru
     border-bottom: 1px solid var(--color-border);
-
-    // Červená linka pod hlavičkou v barvách loga
-    &::after {
-        content: '';
-        position: absolute;
-        right: 0;
-        bottom: -1px;
-        left: 0;
-        height: var(--header-accent-height);
-        background: var(--gradient-brand);
-    }
 
     // Na mobilu dva řádky: logo a akce nahoře, navigace pod nimi přes celou šířku
     &__inner {
@@ -66,7 +57,7 @@
         }
     }
 
-    // Na mobilu jen logo — název by se vedle přepínače vzhledu a odhlášení nevešel
+    // Na mobilu jen logo — výjimky níž (přihlášený s lištou záložek, nepřihlášený na dost širokém telefonu)
     &__name {
         @include visually-hidden;
 
@@ -85,6 +76,20 @@
 
     &--with-tabs &__tagline {
         @include below-nav {
+            display: block;
+        }
+    }
+
+    // Nepřihlášený (R44): vedle loga jen Registrace a hamburger — název s mottem se vejde od
+    // $breakpoint-guest-name (na užším telefonu jen logo)
+    &--guest &__name {
+        @media (min-width: $breakpoint-guest-name) and (max-width: $breakpoint-nav - 1px) {
+            @include visually-shown;
+        }
+    }
+
+    &--guest &__tagline {
+        @media (min-width: $breakpoint-guest-name) and (max-width: $breakpoint-nav - 1px) {
             display: block;
         }
     }
@@ -229,13 +234,10 @@
         stroke-linecap: round;
     }
 
-    // Úvodní stránka a Moje slevy: hned pod hlavičkou je červený pruh, linka by ho zdvojila (R137, R138)
+    // Stránky s oddíly přes celou šířku: hned pod hlavičkou je červený pruh, čára by ho oddělovala
+    // (R137, R138); stránky s .page-hero to řeší layout/_page-hero.scss
     &--flush {
         border-bottom-color: transparent;
-
-        &::after {
-            display: none;
-        }
     }
 
     // Úvodní stránka na telefonu: logo „jede“ jako košík (keyframes landing-* v pages/_landing.scss).

@@ -14,6 +14,7 @@
 <script setup>
 import DepartmentIcon from '@/Components/DepartmentIcon.vue';
 import HighlightText from '@/Components/HighlightText.vue';
+import SearchField from '@/Components/SearchField.vue';
 import { formatPrice } from '@/lib/format';
 import { useTranslations } from '@/lib/i18n';
 import { useListbox } from '@/lib/listbox';
@@ -171,6 +172,23 @@ function choose(option) {
     close();
 }
 
+/** Pole hledání (SearchField) — tlačítko „Hlídat“ bez textu do něj vrátí fokus. */
+const field = ref(null);
+
+/**
+ * Enter nebo tlačítko „Hlídat“ (R147): vybraná volba, jinak první produkt, který ještě není
+ * hlídaný, jinak vlastní slova; bez textu jen zaměří pole.
+ */
+function submit() {
+    const firstAvailable = options.value.find((option) => option.type === 'own' || !option.product.watched);
+    if (!activeOption.value && !firstAvailable) {
+        field.value?.focus();
+
+        return;
+    }
+    choose(activeOption.value ?? firstAvailable);
+}
+
 /**
  * Ovládání klávesnicí. Enter bez vybrané volby vezme první produkt, jinak vlastní slova.
  *
@@ -181,8 +199,7 @@ function onKeydown(event) {
         open.value = true;
     } else if (event.key === 'Enter' && options.value.length) {
         event.preventDefault();
-        const firstAvailable = options.value.find((option) => option.type === 'own' || !option.product.watched);
-        choose(activeOption.value ?? firstAvailable);
+        submit();
     } else if (event.key === 'Escape') {
         // Prohlížeč by pole typu search Escapem vymazal — Escape jen zavírá
         event.preventDefault();
@@ -210,36 +227,33 @@ function offersSummary(product) {
     <div class="watch-add">
         <label :for="id" class="watch-add__label">{{ t('watch.add_label') }}</label>
         <div class="search-suggest" :class="{ 'search-suggest--focused': focused }">
-            <div class="search-suggest__control">
-                <span class="search-suggest__icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5" /><path d="M15.5 15.5L21 21" /></svg>
-                </span>
-                <input
-                    :id="id"
-                    v-model="text"
-                    type="search"
-                    enterkeyhint="go"
-                    class="form-field__input search-suggest__input watch-add__input"
-                    :placeholder="placeholder"
-                    role="combobox"
-                    autocomplete="off"
-                    aria-autocomplete="list"
-                    :aria-expanded="open ? 'true' : 'false'"
-                    :aria-controls="listId"
-                    :aria-activedescendant="activeId"
-                    :aria-describedby="`${id}-hint`"
-                    @input="onInput"
-                    @focus="
-                        focused = true;
-                        onInput();
-                    "
-                    @keydown="onKeydown"
-                    @blur="
-                        focused = false;
-                        close();
-                    "
-                />
-            </div>
+            <!-- Sdílené pole ve tvaru pilulky (R147) — stejné jako ve Všech akcích -->
+            <SearchField
+                :id="id"
+                ref="field"
+                v-model="text"
+                :submit-label="t('watch.add_submit')"
+                enterkeyhint="go"
+                :placeholder="placeholder"
+                role="combobox"
+                autocomplete="off"
+                aria-autocomplete="list"
+                :aria-expanded="open ? 'true' : 'false'"
+                :aria-controls="listId"
+                :aria-activedescendant="activeId"
+                :aria-describedby="`${id}-hint`"
+                @input="onInput"
+                @focus="
+                    focused = true;
+                    onInput();
+                "
+                @keydown="onKeydown"
+                @blur="
+                    focused = false;
+                    close();
+                "
+                @submit="submit"
+            />
             <!-- Počet návrhů pro čtečky (R99) -->
             <p class="visually-hidden" role="status">{{ open ? t('search.status', { count: options.length }) : '' }}</p>
             <div v-show="open" class="search-panel">

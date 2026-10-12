@@ -4,8 +4,9 @@
     jen ruční postup přes Sdílet. Vzhled a chování R139: bílá karta se třemi výhodami, žlutým
     tlačítkem (na iPhonu dva kroky) a ilustrací telefonu s upozorněním; na hlavních stránkách
     přihlášeného (PAGES) a po „Teď ne“ se vrací za čím dál delší dobu
-    (letaky.pwa.install_prompt_snooze_days). Stránky s oddíly přes celou šířku (Moje slevy) si ji
-    vkládají samy na své místo (prop `inline`), jinak ji dává AppLayout nad obsah.
+    (letaky.pwa.install_prompt_snooze_days). Stránky s oddíly přes celou šířku nebo s červeným pruhem
+    (Moje slevy, Hlídám, R144) si ji vkládají samy pod pruh (prop `inline`), jinak ji dává AppLayout
+    nad obsah.
 
     @author Roman Hlaváček
     @created 2026-10-04
@@ -19,8 +20,8 @@ import { computed, onMounted, ref } from 'vue';
 /** Stránky přihlášeného, na kterých se výzva ukazuje (účet, upozornění a admin ne). */
 const PAGES = ['Home', 'WatchItems', 'ShoppingList', 'Preferences', 'Offers', 'Weekly'];
 
-/** Stránky, které si výzvu vkládají samy (oddíly přes celou šířku) — AppLayout ji tam nedává. */
-const INLINE_PAGES = ['Home', 'Offers', 'Weekly'];
+/** Stránky, které si výzvu vkládají samy pod červený pruh (R139, R144) — AppLayout ji tam nedává. */
+const INLINE_PAGES = ['Home', 'WatchItems', 'ShoppingList', 'Preferences', 'Offers', 'Weekly'];
 
 /** Výhody na kartě (lang: ui.pwa.install_benefits) a jejich ikony. */
 const BENEFITS = ['tap', 'offline', 'notify'];

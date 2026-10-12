@@ -40,7 +40,7 @@ function resolve(url) {
     <AppLayout>
         <Head :title="t('reports.title')" />
 
-        <header class="page__header">
+        <header class="page__header page-hero">
             <h1 class="page__title">{{ t('reports.title') }}</h1>
             <p class="page__subtitle">{{ t('reports.intro') }}</p>
         </header>

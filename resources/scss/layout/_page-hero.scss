@@ -1,0 +1,163 @@
+// _page-hero.scss
+// Kompaktní červený pruh s nadpisem stránky (R144) — stejný vzhled jako úvodní stránka, Moje slevy
+// a Všechny akce (oblý konec, bílý text) na ostatních stránkách: Hlídám, Nákupní seznam, Moje
+// obchody, Kontakt, právní texty, účet, upozornění i stránky admina. Pruh je první prvek obsahu
+// (`.page-hero` na hlavičce stránky); stránka s ním se roztáhne přes celou šířku a ostatní prvky
+// drží šířku obsahu okraji, takže stránky není potřeba přestavovat. Hlavička aplikace nad pruhem
+// nemá linku. Karta hned za pruhem (`.card`) vede přes jeho oblý konec.
+//
+// @author Roman Hlaváček
+// @created 2026-10-12
+
+@use '../abstracts/mixins' as *;
+
+// Stránka s pruhem: přes celou šířku, prvky kromě pruhu v šířce obsahu (okraj = odsazení stránky,
+// na širokém displeji dopočet do šířky obsahu)
+.page:has(> .page-hero) {
+    --page-hero-gutter-left: max(var(--space-3), env(safe-area-inset-left));
+    --page-hero-gutter-right: max(var(--space-3), env(safe-area-inset-right));
+
+    max-width: none;
+    padding-top: 0;
+    padding-inline: 0;
+
+    @include from-md {
+        --page-hero-gutter-left: var(--space-4);
+        --page-hero-gutter-right: var(--space-4);
+    }
+
+    > :not(.page-hero) {
+        margin-right: max(var(--page-hero-gutter-right), calc((100% - var(--content-max-width)) / 2 + var(--page-hero-gutter-right)));
+        margin-left: max(var(--page-hero-gutter-left), calc((100% - var(--content-max-width)) / 2 + var(--page-hero-gutter-left)));
+    }
+}
+
+// Pruh navazuje přímo na hlavičku aplikace — linka pod ní by ho zdvojila
+.app-root:has(.page-hero) .app-header {
+    border-bottom-color: transparent;
+}
+
+.page-hero {
+    // Text a prvky v pruhu světlé — tokeny přepsané jen uvnitř pruhu (nadpis s rychlostními
+    // čárkami, věta pod ním, odkazy)
+    --color-text: var(--color-landing-on-hero);
+    --color-text-muted: var(--color-landing-on-hero-soft);
+    --color-brand: var(--color-landing-on-hero);
+    --color-accent-strong: var(--color-landing-on-hero);
+
+    position: relative;
+    overflow: hidden;
+    margin-bottom: var(--space-4);
+    padding-top: var(--space-4);
+    padding-right: max(var(--page-hero-gutter-right), calc((100% - var(--content-max-width)) / 2 + var(--page-hero-gutter-right)));
+    padding-bottom: calc(var(--home-band-curve-height) / 2 + var(--space-4));
+    padding-left: max(var(--page-hero-gutter-left), calc((100% - var(--content-max-width)) / 2 + var(--page-hero-gutter-left)));
+    background: var(--gradient-landing-hero);
+    color: var(--color-text);
+
+    @include from-md {
+        padding-top: var(--space-5);
+    }
+
+    // Oblý konec v barvě podkladu jako u ostatních pruhů
+    &::after {
+        content: '';
+        position: absolute;
+        right: var(--landing-curve-overhang);
+        bottom: calc(var(--home-band-curve-height) / -2);
+        left: var(--landing-curve-overhang);
+        height: var(--home-band-curve-height);
+        background: var(--color-bg);
+        border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+    }
+
+    // Nadpis bez rychlostních čárek jako v ostatních pruzích (Moje slevy, Všechny akce)
+    .page__title {
+        font-size: var(--font-size-lg);
+        font-weight: var(--font-weight-black);
+
+        &::before {
+            display: none;
+        }
+
+        @include from-md {
+            font-size: var(--font-size-landing-section-title);
+        }
+    }
+
+    .page__subtitle {
+        max-width: var(--landing-lead-max-width);
+    }
+
+    // Za pruhem karta (formulář přidání): pruh pod ni nechá místo a ona vede přes oblý konec
+    &:has(+ .card) {
+        padding-bottom: calc(var(--home-toolbar-overlap-mobile) + var(--space-4));
+
+        @include from-md {
+            padding-bottom: calc(var(--home-toolbar-overlap) + var(--space-4));
+        }
+    }
+
+    + .card {
+        position: relative;
+        z-index: 2;
+        margin-top: calc(-1 * var(--home-toolbar-overlap-mobile) - var(--space-4));
+        box-shadow: var(--shadow-card-hover);
+
+        @include from-md {
+            margin-top: calc(-1 * var(--home-toolbar-overlap) - var(--space-4));
+        }
+    }
+
+    // Štítky s počty pod větou (hlídané položky, nákup, účinnost podmínek)
+    &__pills {
+        display: flex;
+        flex-basis: 100%;
+        flex-wrap: wrap;
+        gap: var(--space-2);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    &__pill {
+        padding: var(--space-1) var(--space-3);
+        background: var(--color-landing-hero-chip);
+        border: 1px solid var(--color-landing-hero-chip-border);
+        border-radius: var(--radius-pill);
+        font-size: var(--font-size-sm);
+        font-weight: var(--font-weight-bold);
+    }
+}
+
+// Hlavička stránky v pruhu: nadpis, věta a štítky pod sebou (bez pruhu je věta vedle nadpisu)
+.page__header.page-hero {
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: var(--space-2);
+}
+
+// Maskot v kruhu vpravo — od středního displeje, jen u hlavičky bez vlastních tlačítek (katalog
+// má vpravo „Nový produkt“). Kontakt má vlastního maskota s cenovkou.
+.page__header.page-hero:not(:has(.button)) {
+    @include from-md {
+        padding-right: calc(max(var(--page-hero-gutter-right), calc((100% - var(--content-max-width)) / 2 + var(--page-hero-gutter-right))) + var(--page-hero-mascot-size) + var(--space-5));
+
+        &::before {
+            content: '';
+            position: absolute;
+            top: calc(50% - var(--home-band-curve-height) / 4);
+            right: calc(max(var(--page-hero-gutter-right), calc((100% - var(--content-max-width)) / 2 + var(--page-hero-gutter-right))) + var(--home-art-ring-outer));
+            width: var(--page-hero-mascot-size);
+            height: var(--page-hero-mascot-size);
+            background: var(--color-landing-mascot-bg) url('/images/brand/mascot-192.webp') center / var(--landing-art-mascot-width) no-repeat;
+            border-radius: 50%;
+            box-shadow:
+                0 0 0 var(--home-art-ring) var(--color-landing-hero-ring),
+                0 0 0 var(--home-art-ring-outer) var(--color-landing-hero-ring-outer),
+                var(--shadow-landing-lift);
+            transform: translateY(-50%);
+        }
+    }
+}

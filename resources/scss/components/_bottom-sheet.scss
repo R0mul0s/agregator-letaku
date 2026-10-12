@@ -238,14 +238,110 @@
     }
 }
 
-// Zapnuté filtry pod lištou na telefonu — klepnutím se vypnou
+// Zapnuté filtry na telefonu (R144) — v kartě filtrů pod linkou přes celou šířku karty: „Zapnuto (N)“
+// se „Zrušit vše“ a malé plné štítky v jednom posuvném řádku (ScrollRow, vyblednutí u okraje karty)
 .active-filters {
-    display: flex;
-    flex-wrap: wrap;
+    // Karta filtrů má na telefonu odsazení --space-3 — linka a řádek jdou až k jejímu okraji
+    --scroll-row-bleed: var(--space-3);
+
+    display: grid;
+    // Sloupec se nesmí roztáhnout podle posuvného řádku štítků — vytekl by z karty i ze stránky
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--space-2);
-    margin: calc(var(--space-1) * -1) 0 var(--space-3);
+    margin: 0 calc(-1 * var(--scroll-row-bleed));
+    padding: var(--space-3) var(--scroll-row-bleed) 0;
+    border-top: 1px solid var(--color-border);
 
     @include from-md {
         display: none;
+    }
+
+    &__head {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: var(--space-2);
+        font-size: var(--font-size-sm);
+    }
+
+    &__title {
+        color: var(--color-text-muted);
+        font-weight: var(--font-weight-extrabold);
+    }
+
+    &__clear {
+        font-weight: var(--font-weight-bold);
+    }
+
+    &__row {
+        display: flex;
+        gap: var(--space-2);
+        margin-inline: calc(-1 * var(--scroll-row-bleed));
+        padding-inline: var(--scroll-row-bleed);
+        overflow-x: auto;
+        scrollbar-width: none;
+
+        &::-webkit-scrollbar {
+            display: none;
+        }
+    }
+
+    &__chip {
+        display: inline-flex;
+        flex: none;
+        align-items: center;
+        gap: var(--space-1);
+        min-height: var(--active-filter-height);
+        padding: 0 var(--space-2) 0 var(--space-3);
+        background: var(--color-accent-soft);
+        border: 0;
+        border-radius: var(--radius-pill);
+        color: var(--color-accent-strong);
+        font: inherit;
+        font-size: var(--font-size-sm);
+        font-weight: var(--font-weight-extrabold);
+        white-space: nowrap;
+        cursor: pointer;
+
+        // Bez křížku (obchody otevřou okno Filtry) — odsazení vpravo jako vlevo
+        &:not(:has(.active-filters__remove)) {
+            padding-right: var(--space-3);
+        }
+
+        &--logos {
+            padding-left: var(--space-1);
+        }
+    }
+
+    // Křížek v kolečku
+    &__remove {
+        flex: none;
+        width: var(--active-filter-remove-size);
+        height: var(--active-filter-remove-size);
+        padding: var(--space-1);
+        background: var(--color-active-filter-remove);
+        border-radius: 50%;
+        fill: none;
+        stroke: currentcolor;
+        stroke-width: var(--svg-stroke-check);
+        stroke-linecap: round;
+    }
+
+    // Loga vybraných obchodů v kolečkách přes sebe
+    &__logos {
+        display: inline-flex;
+
+        .chain-logo + .chain-logo {
+            margin-left: var(--active-filter-logo-overlap);
+        }
+
+        .chain-logo__image {
+            width: var(--active-filter-logo-size);
+            height: var(--active-filter-logo-size);
+            padding: var(--space-1);
+            border: 2px solid var(--color-accent-soft);
+            border-radius: 50%;
+            object-fit: contain;
+        }
     }
 }

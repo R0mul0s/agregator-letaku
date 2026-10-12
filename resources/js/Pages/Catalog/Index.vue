@@ -102,9 +102,9 @@ onBeforeUnmount(() => onSearchInput.cancel());
     <AppLayout>
         <Head :title="t('catalog.title')" />
 
-        <header class="page__header">
+        <header class="page__header page-hero">
             <h1 class="page__title">{{ t('catalog.title') }}</h1>
-            <button type="button" class="button button--primary" :aria-expanded="showForm ? 'true' : 'false'" @click="showForm = !showForm">
+            <button type="button" class="button button--highlight" :aria-expanded="showForm ? 'true' : 'false'" @click="showForm = !showForm">
                 {{ showForm ? t('catalog.close_form') : t('catalog.add_title') }}
             </button>
             <p class="page__subtitle">{{ t('catalog.intro') }}</p>

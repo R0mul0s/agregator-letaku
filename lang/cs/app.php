@@ -549,7 +549,12 @@ return [
         'watch' => [
             'title' => 'Hlídám',
             'intro' => 'Co tady zadáte, to pro vás hlídáme. Úlovky pak najdete v Mých slevách.',
+            // Štítky v červeném pruhu (R144)
+            'hero_items' => ':count hlídaná položka|:count hlídané položky|:count hlídaných položek',
+            'hero_with_offers' => ':count právě v akci|:count právě v akci|:count právě v akci',
             'add_label' => 'Co chcete hlídat?',
+            // Tlačítko v poli (R147): vybraný produkt, jinak vlastní slova
+            'add_submit' => 'Hlídat',
             // Příklady, které se střídají v prázdném poli (R71, lib/placeholder.js)
             'examples' => ['máslo', 'pivo', 'Coca-Cola Zero', 'káva', 'banány', 'jogurt'],
             'add_hint' => 'Vyberte produkt z katalogu. Co v katalogu chybí, pohlídáme podle vašich slov.',
@@ -750,6 +755,10 @@ return [
             'min_discount_any' => 'Sleva od…',
             'min_discount' => 'Sleva od :percent %',
             'clear_filters' => 'Zrušit filtry',
+            // Zapnuté filtry na telefonu (ActiveFilters.vue, R144): nadpis, zrušení a vybrané obchody
+            'active_filters' => 'Zapnuto (:count)',
+            'clear_all' => 'Zrušit vše',
+            'chains_selected' => ':count obchod|:count obchody|:count obchodů',
             // Oddělení katalogu (R102) — akce přiřazené k produktům katalogu
             'department_label' => 'Kategorie',
             'department_any' => 'Kategorie…',
@@ -1099,9 +1108,13 @@ return [
         'shopping' => [
             'title' => 'Nákupní seznam',
             'intro' => 'Akce i další zboží, které chcete koupit, rozdělené podle obchodu. V obchodě je jen odškrtávejte.',
+            // Štítek v červeném pruhu (R144): co zbývá koupit
+            'hero_to_buy' => ':count položka ke koupi|:count položky ke koupi|:count položek ke koupi',
             'empty' => 'Seznam zeje prázdnotou. Napište nahoru, co chcete koupit, nebo akce přidejte tlačítkem „Do seznamu“ v Mých slevách či ve Všech akcích.',
             // Přidání akce nebo vlastní položky bez akce (R130, ShoppingAdd.vue)
             'add_field' => 'Co koupit',
+            // Tlačítko v poli (R147): vybraný návrh, jinak vlastní položka
+            'add_submit' => 'Přidat',
             'add_placeholder' => 'Třeba Almette, mléko, pivo…',
             'add_own' => 'Přidat „:name“',
             'add_own_meta' => 'vlastní položka, i když není v akci',
@@ -1159,6 +1172,11 @@ return [
             'share_copied' => 'Seznam je zkopírovaný — vložte ho do zprávy.',
             'share_failed' => 'Seznam se nepodařilo zkopírovat.',
             'wake_lock' => 'Nezhasínat displej',
+            // Karta sdílení a nadpis seznamu (R146)
+            'wake_lock_hint' => 'V obchodě zůstane displej rozsvícený, dokud máte seznam otevřený.',
+            'share_title' => 'Sdílet seznam',
+            'share_copy' => 'Zkopírovat text',
+            'list_title' => 'Na seznamu',
         ],
 
         // Nákupní seznam sdílený odkazem (R130, SharedShoppingList.vue) — vidí ho i partner bez účtu
@@ -1322,6 +1340,9 @@ return [
             'change_preferences' => 'Změnit',
             // Štítky filtrů (R101): bez shod „možná“ a jen vybrané prodejny (vypnutím dočasně všechny)
             'filter_sure' => 'Jen jisté shody',
+            // Další štítky filtrů (R145): nejnižší cena za poslední týdny, akce bez e-shopu, sleva od
+            'filter_lowest' => 'Nejlevněji za poslední týdny',
+            'filter_discount' => 'Sleva',
             'my_stores' => 'Jen moje prodejny (:count)',
             // Položky, které teď v akci nejsou — sbalená sekce pod ostatními (R100)
             'waiting_title' => 'Zatím bez akce',

@@ -80,6 +80,8 @@
     --color-info-border: #2d5a86;
     --gradient-offer-placeholder: linear-gradient(160deg, #23262d, #1f2228);
     --offer-placeholder-filter: brightness(0) invert(1);
+    // Křížek zapnutého filtru (R144) na tmavém štítku
+    --color-active-filter-remove: rgb(255 255 255 / 10%);
     // Pořadí v žebříčku týdne (R143): světlé kolečko s tmavým číslem
     --color-weekly-rank-bg: #eceef2;
     --color-weekly-rank-text: #121418;

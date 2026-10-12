@@ -9,6 +9,7 @@
 -->
 <script setup>
 import ChainLogo from '@/Components/ChainLogo.vue';
+import InstallPrompt from '@/Components/InstallPrompt.vue';
 import StoreSelect from '@/Components/StoreSelect.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { useTranslations } from '@/lib/i18n';
@@ -82,10 +83,13 @@ function submit() {
     <AppLayout>
         <Head :title="t('preferences.title')" />
 
-        <header class="page__header">
+        <header class="page__header page-hero">
             <h1 class="page__title">{{ t('preferences.title') }}</h1>
             <p class="page__subtitle">{{ t('preferences.intro') }}</p>
         </header>
+
+        <!-- Výzva k přidání na plochu pod červeným pruhem (R139, R144) -->
+        <InstallPrompt inline />
 
         <form class="preferences" novalidate @submit.prevent="submit">
             <p class="preferences__count">

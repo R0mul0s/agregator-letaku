@@ -8,21 +8,14 @@
 
 @use '../abstracts/mixins' as *;
 
-// Hlavní pruh jako na úvodní stránce: text vlevo, maskot s cenovkou „Do 2 dnů“ vpravo
+// Hlavní pruh (červený pruh stránky .page-hero, R144): text vlevo, maskot s cenovkou „Do 2 dnů“ vpravo
 .contact-hero {
     display: grid;
     align-items: center;
     gap: var(--space-4);
-    margin-bottom: var(--space-4);
-    padding: var(--space-4);
-    background: var(--gradient-hero);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-card);
 
     @include from-md {
         grid-template-columns: 1fr auto;
-        padding: var(--space-5);
     }
 
     &__body {

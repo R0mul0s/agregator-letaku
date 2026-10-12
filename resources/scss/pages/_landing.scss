@@ -57,6 +57,22 @@
         min-width: 0;
     }
 
+    // Otevřené hledání: mřížka pruhu má vlastní vrstvu (nad oblým koncem), panel návrhů by v ní zůstal
+    // pod kartou přes oblý konec a hledání přes celou obrazovku na telefonu pod hlavičkou — po dobu
+    // hledání vrstva nad kartou (pod hlavičkou) a pruh panel neořízne, na telefonu nad vším
+    &:has(.search-suggest--focused) {
+        overflow-x: clip;
+        overflow-y: visible;
+    }
+
+    &:has(.search-suggest--focused) &__grid {
+        z-index: var(--z-dropdown);
+
+        @include below-nav {
+            z-index: var(--z-search-sheet);
+        }
+    }
+
     // Živý počet akcí se zelenou tečkou místo obecného štítku
     &__live {
         display: inline-flex;
@@ -110,25 +126,12 @@
         }
     }
 
-    // Hledání jako bílá „pilulka“ s tlačítkem v poli (SearchSuggest submit-label)
+    // Hledání — bílá „pilulka“ s tlačítkem (SearchField on-hero, R147)
     &__search {
         align-self: stretch;
         max-width: var(--landing-search-max-width);
         margin-bottom: 0;
         color: var(--color-text);
-
-        .search-suggest__input {
-            min-height: calc(var(--control-size) + var(--space-3));
-            background: var(--color-landing-search-bg);
-            border-color: var(--color-landing-search-border);
-            border-radius: var(--radius-pill);
-            box-shadow: var(--shadow-landing-search);
-        }
-
-        .search-suggest__submit {
-            background: var(--color-landing-search-button);
-            color: var(--color-landing-search-button-text);
-        }
     }
 
     // Oblíbené hledání v jednom řádku — na telefonu posuvném až k okraji displeje

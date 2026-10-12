@@ -12,3 +12,7 @@ $breakpoint-lg: 1024px;
 // v hlavičce jen logo, zvonek (R74) a avatar. Výš než md: na tabletu na výšku se navigace s pěti
 // položkami vedle loga, zvonku a avataru nevejde (se zvonkem až od 830 px).
 $breakpoint-nav: 830px;
+
+// Nepřihlášený na telefonu: od této šířky se vedle loga, Registrace a hamburgeru vejde i název
+// s mottem (užší telefon má jen logo)
+$breakpoint-guest-name: 360px;

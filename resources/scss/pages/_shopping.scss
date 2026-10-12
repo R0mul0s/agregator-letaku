@@ -7,15 +7,119 @@
 @use '../abstracts/mixins' as *;
 
 // Nástroje seznamu (R66): poslat seznam, nezhasínat displej, smazat odškrtnuté
-.shopping-toolbar {
-    justify-content: flex-start;
-    gap: var(--space-2);
+// Karta „Sdílet seznam“ (R146): odkaz a text jako výrazná tlačítka, vysvětlivka, pod linkou
+// nezhasínání displeje
+.shopping-share {
+    display: grid;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
 
-    // Zapnuté nezhasínání displeje — stav jako u přepínače
-    &__wake--on {
+    &__title {
+        font-size: var(--font-size-md);
+        font-weight: var(--font-weight-black);
+    }
+
+    // Dvě tlačítka vedle sebe, na úzkém displeji pod sebou
+    &__buttons {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(var(--shopping-share-button-min-width), 1fr));
+        gap: var(--space-2);
+
+        @include from-md {
+            display: flex;
+            flex-wrap: wrap;
+        }
+    }
+
+    &__hint {
+        margin: 0;
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+    }
+
+    // Nezhasínání pod linkou přes celou šířku karty
+    &__wake {
+        margin: 0 calc(-1 * var(--space-4));
+        padding: var(--space-3) var(--space-4) 0;
+        border-top: 1px solid var(--color-border);
+    }
+}
+
+// Seznam sdílený odkazem: nezhasínání jako samostatná karta
+.shopping-wake {
+    margin-bottom: var(--space-4);
+}
+
+// Řádek s ikonou, popisem a přepínačem (WakeLockSwitch.vue)
+.wake-switch {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    cursor: pointer;
+
+    &__icon {
+        display: grid;
+        flex: none;
+        place-items: center;
+        width: var(--control-size);
+        height: var(--control-size);
         background: var(--color-accent-soft);
-        border-color: var(--color-accent);
+        border-radius: 50%;
         color: var(--color-accent-strong);
+
+        svg {
+            width: var(--icon-size);
+            height: var(--icon-size);
+            fill: none;
+            stroke: currentcolor;
+            stroke-width: var(--svg-stroke-icon);
+            stroke-linecap: round;
+        }
+    }
+
+    &__text {
+        flex: 1;
+        min-width: 0;
+    }
+
+    &__title {
+        display: block;
+        font-weight: var(--font-weight-extrabold);
+    }
+
+    &__hint {
+        display: block;
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+        line-height: var(--line-height-heading);
+    }
+}
+
+// Nadpis seznamu s úklidem vpravo (R146)
+.shopping-list-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2) var(--space-3);
+    margin-bottom: var(--space-3);
+
+    // Velikost jako „Hlídané položky“ v Mých slevách
+    &__title {
+        font-size: var(--font-size-card-title);
+        font-weight: var(--font-weight-black);
+    }
+
+    &__actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-2);
+    }
+
+    .button {
+        min-height: var(--header-compact-control-size);
+        padding-block: var(--space-1);
+        font-size: var(--font-size-sm);
     }
 }
 
@@ -149,21 +253,27 @@
         }
     }
 
+    // Popisek nad polem se stejnou mezerou jako u výběru obchodu (form-field) — popisky v jedné výšce
+    &__search > .form-field__label {
+        display: block;
+        margin-bottom: var(--space-1);
+    }
+
+    // Výběr obchodu stejně vysoký a kulatý jako pole „Co koupit“ vedle (SearchField, R147)
     &__chain {
         margin: 0;
+
+        .chain-select__button {
+            min-height: calc(var(--control-size) + var(--space-3));
+            padding-inline: var(--space-4);
+            border-radius: var(--radius-pill);
+        }
     }
 }
 
 // Skupina vlastních položek bez obchodu („Kdekoli“) — místo loga název
 .shopping-group__anywhere {
     font-weight: var(--font-weight-bold);
-}
-
-// Pod nástroji: co sdílený odkaz umí a zrušení dosud poslaných odkazů (R130)
-.shopping-share-hint {
-    margin: calc(-1 * var(--space-2)) 0 var(--space-3);
-    color: var(--color-text-muted);
-    font-size: var(--font-size-sm);
 }
 
 // Pozvánka pro partnera bez účtu na sdíleném seznamu (R130)

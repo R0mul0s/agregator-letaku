@@ -79,8 +79,11 @@ onMounted(() => {
     <AppLayout>
         <Head :title="title" />
 
-        <header class="page__header">
+        <header class="page__header page-hero">
             <h1 class="page__title">{{ title }}</h1>
+            <ul v-if="effectiveFrom" class="page-hero__pills">
+                <li class="page-hero__pill">{{ t('legal.effective_from', { date: formatDate(effectiveFrom, page.props.locale) }) }}</li>
+            </ul>
         </header>
 
         <div class="legal" :class="{ 'legal--no-toc': !sections.length }">
@@ -103,7 +106,6 @@ onMounted(() => {
             </nav>
 
             <article class="legal__content">
-                <p v-if="effectiveFrom" class="legal__effective">{{ t('legal.effective_from', { date: formatDate(effectiveFrom, page.props.locale) }) }}</p>
                 <!-- v-html: vlastní text z resources/legal převedený na serveru, ne obsah od obchodu -->
                 <!-- eslint-disable-next-line vue/no-v-html -->
                 <div class="legal__body" v-html="html" />

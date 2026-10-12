@@ -22,7 +22,7 @@ import { copyText } from '@/lib/clipboard';
 import { formatDiscount, formatPrice } from '@/lib/format';
 import { useTranslations } from '@/lib/i18n';
 import { discountPercent } from '@/lib/offer';
-import { SHARE_CONTENT, trackShare } from '@/lib/share';
+import { canSystemShare, SHARE_CONTENT, trackShare } from '@/lib/share';
 import { Head, Link, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 
@@ -108,10 +108,10 @@ const isEmpty = computed(() => !props.top.length && !props.chainSections.length)
 /** Aktuální týden je v archivu první. */
 const currentWeekUrl = computed(() => props.archive[0]?.url ?? null);
 
-/** Pošle odkaz na týden sdílením systému (chat, sociální sítě); bez něj ho zkopíruje. */
+/** Pošle odkaz na týden sdílením systému (chat, sociální sítě); na počítači ho zkopíruje. */
 async function share() {
     const text = t('weekly.share_text', { range: props.week.range });
-    if (navigator.share) {
+    if (canSystemShare()) {
         try {
             await navigator.share({ title: props.heading, text, url: props.shareUrl });
             trackShare(SHARE_CONTENT.WEEKLY, false);
