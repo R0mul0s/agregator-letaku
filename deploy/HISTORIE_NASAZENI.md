@@ -568,3 +568,13 @@ a SQL skriptu, `.env` beze změny.
 
 - **Ověřeno:** `version.txt` = `4e97a6e`; `/health/imports` i `/health/tasks` 200, `/akce` 200,
   `/tyden` přesměruje na aktuální týden (12. 10.).
+
+### Aktualizace z `4e97a6e` (třicáté deváté nasazení — provedeno, `db4f369`)
+
+Opravy a doladění nového vzhledu (R144–R147): červený pruh `page-hero` na ostatních stránkách,
+hlavička bez červené linky, zapnuté filtry v kartě, hledání nad kartou a hlavičkou, spodní lišta
+reaguje na puštění prstu, další štítky filtrů v Mých slevách, karta sdílení v nákupním seznamu
+a jedno pole hledání. Bez migrace a SQL skriptu, `.env` beze změny.
+
+- **Ověřeno:** `version.txt` = `db4f369`; `/health/imports` i `/health/tasks` 200, `/akce` 200,
+  `/hlidam` a `/seznam` bez přihlášení přesměrují na přihlášení (12. 10.).
