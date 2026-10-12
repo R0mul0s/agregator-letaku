@@ -68,6 +68,14 @@ describe('geometrie stránky', function (): void {
         expect(PdfLayout::mutualNearest([100, 200, 300], [110, 180, 222], $distance, 0.7))->toBe([0 => 0]);
     });
 
+    it('po spárování jednoznačných dvojic páruje zbytek znovu (R142)', function (): void {
+        $distance = fn (int $price, int $tile): ?float => abs($price - $tile) <= 50 ? (float) abs($price - $tile) : null;
+
+        // 200 leží mezi 180 a 222 (20 vs 22); 222 si ale jednoznačně vezme 230 — pak zbývá 200 ↔ 180
+        expect(PdfLayout::mutualNearest([200, 230], [180, 222], $distance, 0.7))->toBe([1 => 1])
+            ->and(PdfLayout::mutualNearestRepeated([200, 230], [180, 222], $distance, 0.7))->toBe([1 => 1, 0 => 0]);
+    });
+
     it('slova složí do řádků podle horního okraje a mezery', function (): void {
         $words = [
             new PdfWord('Máslo', 10, 100, 40, 110),

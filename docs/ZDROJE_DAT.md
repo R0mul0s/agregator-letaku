@@ -414,6 +414,11 @@ text s polohou dá `PdfTextReader` (pdftotext) a akce přidá do dávky letáku 
   dlaždicí vedle sebe a jinou dlaždicí (oddíl PÁ–NE: „Ředkvičky … 7,90“ hned u „Citrony volné“). Leták 41/2026:
   +27 akcí (ovoce, zelenina, maso, mléko, džus 1 l), všechny zkontrolované proti obrázku strany; sporné ceny
   (kachna s cenou nad názvem, králík, hovězí mezi dvěma dlaždicemi) zůstanou zmínkou.
+- **Cena v řádku mezi dvěma dlaždicemi (R142)** — Albert dává cenovku vpravo od názvu, takže hned za ní začíná
+  sousední dlaždice („Hovězí zadní bez kosti – kýta … 249,- … Losos čerstvý … 28,90“, titulní strana HM 42/2026).
+  Párování druhého kola se opakuje: dlaždice, která už má jednoznačně vlastní cenu (losos s 28,90), o sousední
+  cenu nesoutěží a nepočítá se ani jako soused v řádku. Dlaždice ověřené v prvním kole sousedem zůstávají
+  (ředkvičky jsou od své ceny 126 b., cenu 7,90 před citrony hlídá ověřená dlaždice vlevo dole).
 - **Neověřitelné (zůstanou zmínkou):** balení 1 kg / 1 l / 1 ks bez sedící přeškrtnuté ceny se slevou nebo se spornou polohou,
   „cena za 100 g“ (uzeniny, lahůdky), zboží bez ceny za jednotku (elektro, květiny), konzervy s cenou za jednotku
   z hmotnosti po odkapání (sardinky, tuňák — nesedí na balení), akce „CENA ZA 1 bal. PŘI KOUPI 2 bal.“.

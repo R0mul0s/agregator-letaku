@@ -130,6 +130,33 @@ final class PdfLayout
     }
 
     /**
+     * Jednoznačné dvojice (mutualNearest) opakovaně: spárovaná cena i dlaždice ze soutěže
+     * vypadnou a zbytek se páruje znovu, dokud přibývají dvojice. Cena mezi dvěma dlaždicemi
+     * („kýta … 249,- … Losos … 28,90“, R142) tak připadne té, jejíž soused už má vlastní cenu.
+     *
+     * @template TPrice
+     * @template TTile
+     *
+     * @param  array<int, TPrice>  $prices
+     * @param  array<int, TTile>  $tiles
+     * @param  callable(TPrice, TTile): ?float  $distance  Null = dlaždice k ceně podle polohy nepatří
+     * @param  float  $ambiguityRatio  Nejbližší soused musí být blíž než tento podíl vzdálenosti druhého
+     * @return array<int, int> Index ceny => index dlaždice
+     */
+    public static function mutualNearestRepeated(array $prices, array $tiles, callable $distance, float $ambiguityRatio): array
+    {
+        $pairs = [];
+        do {
+            $found = self::mutualNearest($prices, $tiles, $distance, $ambiguityRatio);
+            $pairs += $found;
+            $prices = array_diff_key($prices, $found);
+            $tiles = array_diff_key($tiles, array_flip($found));
+        } while ($found !== []);
+
+        return $pairs;
+    }
+
+    /**
      * Klíč nejbližšího souseda, když je výrazně blíž než druhý; jinak null.
      *
      * @param  non-empty-array<int, float>  $distances

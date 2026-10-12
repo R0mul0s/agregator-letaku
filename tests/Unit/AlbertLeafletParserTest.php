@@ -4,7 +4,8 @@
  * Dlaždice PDF letáku Albertu (R86) — strany 7 a 8 letáku hypermarketů 40/2026 a strana 14
  * (Mlynářské pečivo s aplikací): cena ověřená cenou za jednotku, sleva v procentech, cena
  * s aplikací, cena nad názvem, platnost z dlaždice a z oddílu „PLATÍ POUZE PÁ–NE“. Dlaždice
- * 1 kg / 1 ks bez ceny za jednotku (R107) na stranách 8, 14 a 19 letáku HM 41/2026 a 17 letáku SM.
+ * 1 kg / 1 ks bez ceny za jednotku (R107) na stranách 8, 14 a 19 letáku HM 41/2026 a 17 letáku SM,
+ * cena mezi dlaždicí a sousedem s vlastní cenou (R142) na titulní straně letáku HM 42/2026.
  *
  * @author Roman Hlaváček
  *
@@ -211,4 +212,22 @@ it('cenu skoro stejně daleko od dvou dlaždic nebo v řádku mezi nimi vynechá
 
     // „Ředkvičky … 7,90“ — cena na konci buňky stojí hned u názvu „Citrony volné“ v sousední buňce
     expect(albertLeafletOffers(responseFixture('albert/pdf-41hm-2026-10-09-strana-8.html')))->not->toHaveKey('Citrony volné');
+});
+
+it('cenu v řádku mezi dvěma dlaždicemi přiřadí, když sousední dlaždice má vlastní cenu (R142)', function (): void {
+    $offers = albertLeafletOffers(responseFixture('albert/pdf-42hm-2026-10-12-strana-1.html'));
+
+    // „Hovězí zadní bez kosti – kýta … 389,-/ - 35 % 249,-“ a hned za cenou „Losos čerstvý“ (25,6 b.,
+    // kýta 28,2 b.) — losos má vlastních 28,90 vpravo, o 249,- tedy nesoutěží
+    expect($offers['Hovězí zadní bez kosti – kýta'])
+        ->offerType->toBe(OfferType::Discount)
+        ->price->toBe(24900)
+        ->originalPrice->toBe(38900)
+        ->discountPercent->toBe(35)
+        ->packageText->toBe('1 kg');
+
+    // Losos („cena za 100 g“) se ověřit nedá; 69,90 vepřové pečeně stojí v řádku před dlaždicí
+    // Božkova, který má cenu ověřenou cenou za jednotku — dlaždice prvního kola sousedem zůstávají
+    expect($offers)->not->toHaveKey('Losos čerstvý – filet s kůží')
+        ->not->toHaveKey('Vepřová pečeně bez kosti – v celku');
 });

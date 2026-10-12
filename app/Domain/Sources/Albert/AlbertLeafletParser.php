@@ -23,7 +23,8 @@
  * Výjimka (R107): dlaždice s balením jedné jednotky („Banány • 1 kg“, „1 ks“) cenu za jednotku
  * neuvádí — cena je jí sama. Přijme se ve druhém kole, když má cena přeškrtnutou cenu i slevu
  * v procentech, které spolu sedí, a cena i dlaždice jsou si jednoznačně nejbližší z volných
- * (dlaždice začíná nad cenou).
+ * (dlaždice začíná nad cenou). Dlaždice, která už jednoznačně má vlastní cenu, o další nesoutěží
+ * (R142: kýta s 249,- vedle lososa s jeho 28,90).
  *
  * Platnost: „platí do …“ v dlaždici, hvězdička u názvu s poznámkou „*Tato nabídka platí od …“,
  * oddíl „PLATÍ POUZE PÁ–NE“ s daty velkým písmem, „Nabídka na této straně platí od … do …“,
@@ -285,9 +286,10 @@ final class AlbertLeafletParser
     /**
      * Druhé kolo (R107): dlaždice s balením jedné jednotky (1 kg, 1 ks, 1 l) a bez ceny za
      * jednotku k volné ceně, když jsou si jednoznačně nejbližší ze všech volných cen a dlaždic
-     * a přeškrtnutá cena se slevou v procentech k ceně sedí. Cena s aplikací (menší cena bez
-     * aplikace pod ní) se vynechá — bez ceny za jednotku nejde poznat, která je která — a cena
-     * v řádku mezi dvěma dlaždicemi taky (isBetweenTiles).
+     * (opakovaně — spárované vypadnou ze soutěže, R142) a přeškrtnutá cena se slevou v procentech
+     * k ceně sedí. Cena s aplikací (menší cena bez aplikace pod ní) se vynechá — bez ceny za
+     * jednotku nejde poznat, která je která — a cena v řádku mezi dvěma dlaždicemi taky
+     * (isBetweenTiles).
      *
      * @param  list<PdfBox>  $big  Akční ceny
      * @param  list<PdfTile>  $tiles
@@ -310,15 +312,23 @@ final class AlbertLeafletParser
             return $tile->box->yMin < $price->yMin && $value <= self::SINGLE_UNIT_MAX_DISTANCE ? $value : null;
         };
 
+        // Dvojice se hledají mezi všemi volnými dlaždicemi, i těmi, které se neuloží (losos „cena
+        // za 100 g“ u svých 28,90) — dlaždice s vlastní cenou o sousední cenu nesoutěží (R142)
+        $pairs = PdfLayout::mutualNearestRepeated($freePrices, $freeTiles, $distance, self::SINGLE_UNIT_AMBIGUITY_RATIO);
+
         $result = [];
-        foreach (PdfLayout::mutualNearest($freePrices, $freeTiles, $distance, self::SINGLE_UNIT_AMBIGUITY_RATIO) as $priceIndex => $tileIndex) {
+        foreach ($pairs as $priceIndex => $tileIndex) {
             $price = $big[$priceIndex];
             $original = $crossed[$priceIndex] ?? null;
             $percent = $percents[$priceIndex] ?? null;
+            // Sousedem v řádku není dlaždice, která si v tomto kole vzala jinou cenu; dlaždice
+            // prvního kola zůstávají — cena „Ředkvičky … 7,90“ je od ředkviček moc daleko a před
+            // citrony ji chrání jen ověřená dlaždice vlevo dole
+            $neighbours = array_diff_key($tiles, array_flip(array_diff_key($pairs, [$priceIndex => true])));
             if ($original !== null && $percent !== null && $original->value > $price->value
                 && DiscountCheck::truncatedOrRounded($original->value, $price->value, $percent->value)
                 && $this->regularPrices($price, $prices) === [] && $this->isSingleUnit($this->tileFacts($freeTiles[$tileIndex]))
-                && ! $this->isBetweenTiles($price, $freeTiles[$tileIndex], $tiles)) {
+                && ! $this->isBetweenTiles($price, $freeTiles[$tileIndex], $neighbours)) {
                 $result[] = [$priceIndex, $freeTiles[$tileIndex], ['price' => $price->value, 'loyalty' => null]];
             }
         }
@@ -331,7 +341,7 @@ final class AlbertLeafletParser
      * konci buňky („Ředkvičky … 7,90“) pak stojí hned u názvu sousední buňky („Citrony volné“)
      * a bez ceny za jednotku nejde poznat, ke které patří. Dlaždice nad cenou se neposuzuje.
      *
-     * @param  list<PdfTile>  $tiles  Všechny dlaždice stránky
+     * @param  array<int, PdfTile>  $tiles  Dlaždice stránky bez těch, které mají ve druhém kole jinou cenu (R142)
      */
     private function isBetweenTiles(PdfBox $price, PdfTile $tile, array $tiles): bool
     {
