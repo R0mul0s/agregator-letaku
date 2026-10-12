@@ -18,7 +18,9 @@ namespace App\Domain\Offers;
 
 use App\Domain\Catalog\CatalogBrowseTree;
 use App\Domain\Catalog\CategoryPaths;
+use App\Enums\Chain;
 use App\Models\OfferProduct;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
 
 final class OfferDepartments
@@ -45,25 +47,38 @@ final class OfferDepartments
     }
 
     /**
-     * Oddělení, ve kterých jsou teď nějaké akce, v pořadí stromu — do výběru (prázdné se nenabízí).
+     * Oddělení, ve kterých jsou teď nějaké akce, v pořadí stromu — do výběru (prázdné se nenabízí)
+     * s počtem akcí (dlaždice ve Všech akcích, R141). Počet je ve vybraných obchodech, jiné
+     * filtry nebere; akce přiřazená ke dvěma produktům v různých kategoriích oddělení se počítá
+     * dvakrát (výjimečné, jen orientační číslo).
      *
-     * @return list<array{slug: string, name: string, icon: string}>
+     * @param  list<Chain>  $chains  Prázdné = všechny obchody
+     * @return list<array{slug: string, name: string, icon: string, count: int}>
      */
-    public function withOffers(): array
+    public function withOffers(array $chains = []): array
     {
-        $categoryIds = OfferProduct::query()
+        $rows = OfferProduct::query()
             ->joinCurrentOffers($this->calendar->today())
             ->join('products', 'products.id', '=', 'offer_product.product_id')
             ->whereNotNull('products.category_id')
-            ->distinct()
-            ->pluck('products.category_id')
-            ->all();
-        $present = array_flip(array_filter(array_map(fn (mixed $id): ?string => $this->paths->department(is_numeric($id) ? (int) $id : null), $categoryIds)));
+            ->when($chains !== [], fn (Builder $query) => $query->whereIn('offers.chain', $chains))
+            ->groupBy('products.category_id')
+            ->selectRaw('products.category_id, COUNT(DISTINCT offer_product.offer_id) AS offers_count')
+            ->toBase()
+            ->get();
+
+        $counts = [];
+        foreach ($rows as $row) {
+            $department = $this->paths->department(is_numeric($row->category_id) ? (int) $row->category_id : null);
+            if ($department !== null) {
+                $counts[$department] = ($counts[$department] ?? 0) + (int) $row->offers_count;
+            }
+        }
 
         $result = [];
         foreach ($this->all() as $slug => $name) {
-            if (isset($present[$name])) {
-                $result[] = ['slug' => $slug, 'name' => $name, 'icon' => CatalogBrowseTree::icon($name)];
+            if (isset($counts[$name])) {
+                $result[] = ['slug' => $slug, 'name' => $name, 'icon' => CatalogBrowseTree::icon($name), 'count' => $counts[$name]];
             }
         }
 

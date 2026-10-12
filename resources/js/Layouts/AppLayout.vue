@@ -37,7 +37,7 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 const NAV_ID = 'app-navigation';
 
 /** Stránky s červeným pruhem pod hlavičkou a oddíly přes celou šířku (R137, R138). */
-const BLEED_PAGES = ['Landing', 'Home'];
+const BLEED_PAGES = ['Landing', 'Home', 'Offers'];
 
 const t = useTranslations();
 const page = usePage();

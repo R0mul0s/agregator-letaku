@@ -19,10 +19,11 @@ import SearchSuggest from '@/Components/SearchSuggest.vue';
 import WatchDemo from '@/Components/WatchDemo.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { MEDIA_FROM_MD } from '@/lib/breakpoints';
-import { formatDiscount, formatNumber, formatPrice, formatShortDate, formatTime, localDateOf } from '@/lib/format';
+import { formatDiscount, formatNumber, formatPrice } from '@/lib/format';
 import { useTranslations } from '@/lib/i18n';
 import { discountPercent } from '@/lib/offer';
 import { rememberSearch } from '@/lib/search';
+import { updatedLabel } from '@/lib/updated';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 
@@ -40,9 +41,6 @@ const POPULAR_SEARCHES = 4;
 
 /** Kolik hlídaných produktů ukázat nad výhodou „Hlídá, co kupujete“. */
 const WATCH_PREVIEW_ITEMS = 3;
-
-/** Den v milisekundách — „včera“ u času aktualizace. */
-const DAY_MS = 24 * 60 * 60 * 1000;
 
 const props = defineProps({
     /** Adresy registrace, přihlášení, Všech akcí, Nejlepších slev týdne a našeptávače. */
@@ -88,23 +86,7 @@ const heroOffers = computed(() => {
 const popular = computed(() => props.demo.products.slice(0, POPULAR_SEARCHES));
 
 /** „Aktualizováno dnes v 6:30“ podle konce posledního stažení, bez stažení nic. */
-const updatedLabel = computed(() => {
-    const updatedAt = props.stats.updatedAt;
-    if (!updatedAt) {
-        return null;
-    }
-    const timeZone = page.props.timezone;
-    const day = localDateOf(updatedAt, timeZone);
-    const time = formatTime(updatedAt, locale.value, timeZone);
-    if (day === localDateOf(new Date().toISOString(), timeZone)) {
-        return t('landing.updated.today', { time });
-    }
-    if (day === localDateOf(new Date(Date.now() - DAY_MS).toISOString(), timeZone)) {
-        return t('landing.updated.yesterday', { time });
-    }
-
-    return t('landing.updated.date', { date: formatShortDate(day, locale.value), time });
-});
+const updated = computed(() => updatedLabel(props.stats.updatedAt, locale.value, page.props.timezone, t));
 
 /**
  * Cena akce, kterou zaplatí každý (u akce jen s kartou cena s kartou).
@@ -226,7 +208,7 @@ function showProduct(product) {
                             </li>
                         </ul>
                     </div>
-                    <p v-if="updatedLabel" class="landing-trust__fresh">{{ updatedLabel }}</p>
+                    <p v-if="updated" class="landing-trust__fresh">{{ updated }}</p>
                 </div>
             </div>
         </div>

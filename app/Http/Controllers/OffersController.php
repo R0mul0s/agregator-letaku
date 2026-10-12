@@ -151,8 +151,9 @@ class OffersController extends Controller
                 'endingSoonDays' => config()->integer('letaky.offers.ending_soon_days'),
                 'freshDays' => config()->integer('letaky.offers.fresh_days'),
                 'minDiscounts' => config()->array('letaky.account.min_discount_options'),
-                // Oddělení, ve kterých jsou teď akce [{ slug, name, icon }] (R102)
-                'departments' => $departments->withOffers(),
+                // Oddělení, ve kterých jsou teď akce [{ slug, name, icon, count }] (R102), počet ve
+                // vybraných obchodech pro dlaždice (R141)
+                'departments' => $departments->withOffers($offerFilters->chains),
             ],
             // Řazení, podle kterého výpis opravdu řadí, a na výběr (relevance jen s textem, R100)
             'sort' => $sort->value,

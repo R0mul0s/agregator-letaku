@@ -765,6 +765,14 @@ return [
             'search_placeholder' => 'např. vejce, mléko, Coca-Cola',
             'chain' => 'Obchod',
             'all_chains' => 'Všechny obchody',
+            // Červený pruh Všech akcí (R141): věta pod nadpisem, tlačítko hledání, obchody, slevy týdne
+            'hero_lead' => 'Akce ze :chains obchodů na jednom místě. Hledejte, vyberte obchod nebo oddělení a řaďte podle ceny za kilo.',
+            'hero_lead_chain' => 'Akce z letáku a webu obchodu :chain. Hledejte, vyberte oddělení a řaďte podle ceny za kilo.',
+            'search_submit' => 'Najít',
+            'chains_label' => 'Obchody',
+            'weekly_ticket' => 'Nejlepší slevy týdne',
+            'weekly_ticket_more' => 'Výběr týdne →',
+            'departments_label' => 'Oddělení',
             // Víc vybraných obchodů (R82): loga, která se do tlačítka nevešla
             'more_chains' => '+:count',
             'submit' => 'Hledat',
@@ -981,11 +989,6 @@ return [
                 'offers' => 'akce právě teď|akce právě teď|akcí právě teď',
             ],
             'chains_label' => 'Čteme letáky',
-            'updated' => [
-                'today' => 'Aktualizováno dnes v :time',
-                'yesterday' => 'Aktualizováno včera v :time',
-                'date' => 'Aktualizováno :date v :time',
-            ],
             'top_eyebrow' => 'Právě teď',
             'top_title' => 'Nejvyšší slevy z dnešních letáků',
             'top_more' => 'Všechny akce',
@@ -1071,9 +1074,20 @@ return [
         ],
 
         // Výzva k registraci nad Všemi akcemi pro nepřihlášené (R44)
+        // Karta pro nepřihlášené uprostřed výpisu Všech akcí (R44, vzhled R141)
         'offers_guest' => [
-            'text' => 'Chcete vidět jen akce na to, co kupujete, seřazené podle ceny za kilo?',
-            'register' => 'Zaregistrujte se zdarma',
+            'eyebrow' => 'Zdarma a bez reklam',
+            'text' => 'Chcete vidět jen akce na to, co kupujete?',
+            'points' => ['Hlídáme za vás :chains obchodů', 'Řazení podle ceny za kilo', 'Upozornění, jen když je co hlásit'],
+            'register' => 'Začít zdarma',
+            'note' => 'Registrace zabere minutu',
+        ],
+
+        // Čerstvost dat podle posledního stažení (úvodní stránka, Všechny akce; lib/updated.js)
+        'updated' => [
+            'today' => 'Aktualizováno dnes v :time',
+            'yesterday' => 'Aktualizováno včera v :time',
+            'date' => 'Aktualizováno :date v :time',
         ],
 
         // Nákupní seznam (R61, ShoppingList.vue, ShoppingToggle.vue)

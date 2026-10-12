@@ -497,8 +497,19 @@ it('filtruje podle oddělení katalogu přes přiřazený produkt a nabídne jen
         ->where('filters.kategorie', 'napoje')
         // Drogerie akce nemá — nenabízí se
         ->where('filterOptions.departments', [
-            ['slug' => 'maso-a-lahudky', 'name' => 'Maso a lahůdky', 'icon' => 'meat'],
-            ['slug' => 'napoje', 'name' => 'Nápoje', 'icon' => 'drinks'],
+            ['slug' => 'maso-a-lahudky', 'name' => 'Maso a lahůdky', 'icon' => 'meat', 'count' => 1],
+            ['slug' => 'napoje', 'name' => 'Nápoje', 'icon' => 'drinks', 'count' => 1],
         ]));
     $this->get(route('offers', ['kategorie' => 'neexistuje']))->assertSessionHasErrors('kategorie');
+});
+
+it('počítá akce oddělení jen ve vybraných obchodech (dlaždice, R141)', function (): void {
+    $drinks = Category::factory()->create(['name' => 'Nápoje']);
+    $beer = Product::factory()->create(['name' => 'Pivo', 'category_id' => $drinks->id]);
+    foreach ([Chain::Kaufland, Chain::Kaufland, Chain::Lidl] as $chain) {
+        Offer::factory()->create(['name' => 'Pivo', 'chain' => $chain])->productAssignments()->create(['product_id' => $beer->id, 'status' => MatchStatus::Match, 'is_manual' => false]);
+    }
+
+    $this->get(route('offers'))->assertInertia(fn (Assert $page) => $page->where('filterOptions.departments.0.count', 3));
+    $this->get('/akce/lidl')->assertInertia(fn (Assert $page) => $page->where('filterOptions.departments.0.count', 1));
 });
