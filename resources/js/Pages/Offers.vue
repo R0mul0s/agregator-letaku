@@ -574,9 +574,10 @@ onBeforeUnmount(() => liveSearch.cancel());
         </BottomSheet>
 
         <section class="page__wrap offers-results">
-            <!-- Počet se při živém hledání a filtrech mění — čtečka ho oznámí (R99) -->
+            <!-- Počet se při živém hledání a filtrech mění — čtečka ho oznámí (R99); role status je na vnitřním
+                 prvku, na h2 by přepsala roli nadpisu (strom přístupnosti) -->
             <div class="offers-results__head">
-                <h2 class="offers-results__count" role="status">{{ t('offers.count', { count: offers.total }) }}</h2>
+                <h2 class="offers-results__count"><span role="status">{{ t('offers.count', { count: offers.total }) }}</span></h2>
                 <!-- Kolik akcí nastavení Mých obchodů skrylo — s nabídkou ukázat všechny (R100) -->
                 <p v-if="shoppingPreferences && filters['moje-obchody'] && shoppingPreferences.hidden > 0" class="search-preferences">
                     {{ t('search.shopping_preferences_hidden', { count: shoppingPreferences.hidden }) }}
