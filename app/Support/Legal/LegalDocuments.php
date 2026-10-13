@@ -86,6 +86,9 @@ final class LegalDocuments
             '{site_url}' => SeoMeta::homeUrl(),
             // Doba uchování záznamů centra upozornění (R74) — text zásad sedí s úklidem
             '{notifications_retention_days}' => (string) config()->integer('letaky.notifications.retention_days'),
+            // Návrhy, co hlídat (R148)
+            '{watch_suggestions_window_days}' => (string) config()->integer('letaky.watch_suggestions.window_days'),
+            '{watch_suggestions_dismiss_days}' => (string) config()->integer('letaky.watch_suggestions.dismiss_days'),
         ];
     }
 }

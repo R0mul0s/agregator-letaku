@@ -33,6 +33,7 @@ class PruneSessionsCommand extends Command
         $this->info(__('app.maintenance.sessions_pruned', ['count' => $result['sessions']]));
         $this->info(__('app.maintenance.offer_raw_pruned', ['count' => $result['offer_raw']]));
         $this->info(__('app.maintenance.leaflet_stats_pruned', ['count' => $result['leaflet_stats']]));
+        $this->info(__('app.maintenance.watch_suggestions_pruned', ['count' => $result['watch_suggestions']]));
 
         return self::SUCCESS;
     }

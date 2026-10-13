@@ -136,6 +136,7 @@ class CronController extends Controller
             __('app.maintenance.sessions_pruned', ['count' => $result['sessions']]),
             __('app.maintenance.offer_raw_pruned', ['count' => $result['offer_raw']]),
             __('app.maintenance.leaflet_stats_pruned', ['count' => $result['leaflet_stats']]),
+            __('app.maintenance.watch_suggestions_pruned', ['count' => $result['watch_suggestions']]),
         ]));
     }
 

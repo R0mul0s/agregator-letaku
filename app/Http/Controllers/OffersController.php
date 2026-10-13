@@ -21,6 +21,7 @@ namespace App\Http\Controllers;
 
 use App\Domain\Catalog\WatchTargets;
 use App\Domain\Offers\OfferDepartments;
+use App\Domain\Offers\OfferFeed;
 use App\Domain\Offers\OfferFilters;
 use App\Domain\Offers\OfferPages;
 use App\Domain\Offers\OfferPresenter;
@@ -169,6 +170,12 @@ class OffersController extends Controller
             ] : null,
             // Filtr produktu z našeptávače jako štítek nad výsledky (R71)
             'product' => $productId === null ? null : Product::query()->whereKey($productId)->value('name'),
+            // Odběr přes RSS (R149) — jen výpis jednoho obchodu nebo produktu
+            'feedUrl' => OfferFeed::url(
+                $productId === null && count($chosenFilters->chains) === 1 ? $chosenFilters->chains[0] : null,
+                $productId,
+                $pages,
+            ),
             'correction' => $correction,
             'chains' => array_map(fn (Chain $chain): array => [
                 'value' => $chain->value,

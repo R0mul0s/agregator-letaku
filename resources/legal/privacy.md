@@ -33,6 +33,7 @@ nevyžaduje. Se vším, co se týká vašich údajů, se obracejte na uvedený e
 | identifikátor účtu u Googlu, Seznamu nebo Facebooku (jen když se přes něj přihlašujete) | přihlášení přes Google, Seznam nebo Facebook, potvrzení, že jste to vy, před změnou e-mailu nebo zrušením účtu | plnění smlouvy |
 | profilový obrázek (nepovinný) | zobrazení ve vašem účtu | plnění smlouvy |
 | hlídané položky (i akce a slova, které jste u nich skryli), nákupní seznam, vybrané obchody a prodejny, věrnostní programy, které máte (jen název programu, ne číslo karty), předvolby zobrazení | zobrazení slev, které vás zajímají | plnění smlouvy |
+| co si opakovaně dáváte do nákupního seznamu (název položky nebo produkt z našeho katalogu, kolikrát a kdy naposledy) a které návrhy jste odmítli | návrh, abyste si to nechali hlídat | plnění smlouvy |
 | hlášení chyby v akci (která akce, co nesedí a váš popis) | oprava údajů o akcích; slova a akce skryté u produktů z našeho katalogu nám bez vašeho jména pomáhají katalog zpřesnit | oprávněný zájem |
 | čas přijetí podmínek a jejich verze | doložení, s jakými podmínkami jste souhlasili | oprávněný zájem (čl. 6 odst. 1 písm. f GDPR) |
 
@@ -169,6 +170,7 @@ a cílení reklamy (Google signály). Reklamu zatím nezobrazujeme.
 |---|---|
 | účet a vše, co k němu patří (hlídané položky, nákupní seznam, obchody, předvolby, obrázek, souhlasy, čas poslední aktivity, propojení s Googlem nebo Facebookem, hlášení chyb v akcích) | do zrušení účtu; propojení s Googlem nebo Facebookem do jeho zrušení |
 | záznamy v centru upozornění | {notifications_retention_days} dní, potom se smažou nejpozději do 24 hodin |
+| co si opakovaně dáváte do nákupního seznamu (pro návrhy, co hlídat) | {watch_suggestions_window_days} dní od posledního přidání, odmítnutý návrh {watch_suggestions_dismiss_days} dní; potom se smaže nejpozději do 24 hodin, se zrušením účtu hned |
 | odběr upozornění v telefonu | do vypnutí upozornění, odhlášení na zařízení nebo zrušení účtu; odběr, který push služba přestane přijímat, se smaže při dalším upozornění |
 | relace (IP adresa, prohlížeč) | 2 hodiny od poslední aktivity, potom se smaže nejpozději do 24 hodin |
 | přihlášení „Zapamatovat si mě“ | nejdéle 400 dní nebo do odhlášení |
@@ -241,6 +243,7 @@ snadno jako přijmout.
 | `slevohlidka.view.compact` | localStorage | ve Všech akcích a Mých slevách akce jako karty, nebo kompaktní řádky | do smazání v prohlížeči |
 | `slevohlidka.home.view` | localStorage | v Mých slevách akce podle hlídaných položek, nebo podle obchodů | do smazání v prohlížeči |
 | `slevohlidka.search.recent` | localStorage | posledních 5 hledání ve Všech akcích, abyste je měli po ruce | do smazání v hledání nebo odhlášení |
+| `slevohlidka.search.counts` | localStorage | kolikrát jste co hledali (nejvýš 30 hledání) a které návrhy jste odmítli — co hledáte často, vám v Hlídám nabídneme k hlídání; na náš server se neposílá | do odhlášení |
 | `slevohlidka.install.dismissed_at` | localStorage | kdy a kolikrát jste zavřeli výzvu k přidání Slevohlídky na plochu (pak se několik dní neukáže, při každém dalším zavření déle — nejvýš 30 dní) | do smazání v prohlížeči |
 | `slevohlidka.shopping.wake_lock` | localStorage | v nákupním seznamu nezhasínat displej | do smazání v prohlížeči |
 | `slevohlidka.shopping.pending` | localStorage | odškrtnutí v nákupním seznamu udělaná bez signálu, než se odešlou | do odeslání nebo odhlášení |

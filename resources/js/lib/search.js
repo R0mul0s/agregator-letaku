@@ -1,6 +1,7 @@
 /**
  * Hledání v textu na straně prohlížeče — bez diakritiky a velkých písmen, shoda od začátku
- * slova, zvýraznění shody, podobnost slov (překlepy) a poslední hledání (R71).
+ * slova, zvýraznění shody, podobnost slov (překlepy), poslední hledání (R71) a opakovaná
+ * hledání pro návrhy, co hlídat (R148).
  *
  * @author Roman Hlaváček
  * @created 2026-10-02
@@ -139,19 +140,105 @@ export function rememberSearch(query) {
     }
     const others = recentSearches().filter((item) => normalizeSearch(item) !== normalizeSearch(text));
     writeStored(RECENT_KEY, [text, ...others].slice(0, RECENT_LIMIT));
+    countSearch(text);
 }
 
 /**
- * Zapomene jedno hledání, nebo bez argumentu všechna (i po odhlášení — lib/pwa.js).
+ * Zapomene jedno hledání, nebo bez argumentu všechna i s počty hledání (i po odhlášení — lib/pwa.js).
  *
  * @param {string} [query]
  */
 export function forgetSearch(query) {
     if (query === undefined) {
         writeStored(RECENT_KEY, null);
+        writeStored(COUNTS_KEY, null);
 
         return;
     }
     const remaining = recentSearches().filter((item) => item !== query);
     writeStored(RECENT_KEY, remaining.length ? remaining : null);
+}
+
+/** Klíč v localStorage: kolikrát uživatel co hledal — návrhy, co hlídat (R148, zásady kap. 5). */
+const COUNTS_KEY = 'slevohlidka.search.counts';
+
+/** Kolik různých hledání počítat — nejdéle nepoužitá vypadnou. */
+const COUNTS_LIMIT = 30;
+
+/** Opakované hledání se počítá nejvýš jednou za tolik hodin (= letaky.watch_suggestions.hit_interval_hours). */
+const COUNT_INTERVAL_HOURS = 12;
+
+const MS_PER_HOUR = 3_600_000;
+
+const MS_PER_DAY = 86_400_000;
+
+/**
+ * Počty hledání { normalizovaný text: { text, count, last, dismissed } }.
+ *
+ * @returns {Record<string, { text: string, count: number, last: number, dismissed?: boolean }>}
+ */
+function searchCounts() {
+    const stored = readStored(COUNTS_KEY, {});
+
+    return stored && typeof stored === 'object' && !Array.isArray(stored) ? stored : {};
+}
+
+/**
+ * Uloží počty hledání, nejvýš COUNTS_LIMIT naposledy použitých.
+ *
+ * @param {Record<string, { text: string, count: number, last: number, dismissed?: boolean }>} counts
+ */
+function storeCounts(counts) {
+    const kept = Object.entries(counts)
+        .sort(([, a], [, b]) => b.last - a.last)
+        .slice(0, COUNTS_LIMIT);
+    writeStored(COUNTS_KEY, kept.length ? Object.fromEntries(kept) : null);
+}
+
+/**
+ * Započítá hledání pro návrhy, co hlídat (R148) — nejvýš jednou za COUNT_INTERVAL_HOURS.
+ *
+ * @param {string} text
+ */
+function countSearch(text) {
+    const counts = searchCounts();
+    const key = normalizeSearch(text);
+    const entry = counts[key];
+    const now = Date.now();
+    if (entry && now - entry.last < COUNT_INTERVAL_HOURS * MS_PER_HOUR) {
+        return;
+    }
+    counts[key] = { ...entry, text, count: (entry?.count ?? 0) + 1, last: now };
+    storeCounts(counts);
+}
+
+/**
+ * Hledání opakovaná aspoň `minHits`× za posledních `windowDays` dní, která uživatel nezavřel —
+ * návrhy, co hlídat (R148); nejčastější první.
+ *
+ * @param {number} minHits
+ * @param {number} windowDays
+ * @returns {{ text: string, count: number }[]}
+ */
+export function frequentSearches(minHits, windowDays) {
+    const since = Date.now() - windowDays * MS_PER_DAY;
+
+    return Object.values(searchCounts())
+        .filter((entry) => !entry.dismissed && entry.count >= minHits && entry.last >= since && typeof entry.text === 'string')
+        .sort((a, b) => b.count - a.count || b.last - a.last)
+        .map(({ text, count }) => ({ text, count }));
+}
+
+/**
+ * „Ne, díky“ u návrhu z hledání — už se nenabídne (R148).
+ *
+ * @param {string} text
+ */
+export function dismissFrequentSearch(text) {
+    const counts = searchCounts();
+    const key = normalizeSearch(text);
+    if (counts[key]) {
+        counts[key] = { ...counts[key], dismissed: true };
+        storeCounts(counts);
+    }
 }

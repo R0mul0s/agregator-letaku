@@ -437,6 +437,25 @@
         font-size: var(--font-size-card-title);
         font-weight: var(--font-weight-black);
     }
+
+    // Odběr přes RSS (R149) — jen na výpisu obchodu nebo produktu
+    &__feed {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-1);
+        font-size: var(--font-size-sm);
+
+        svg {
+            flex: none;
+            width: var(--icon-size-sm);
+            height: var(--icon-size-sm);
+            fill: none;
+            stroke: currentcolor;
+            stroke-width: var(--svg-stroke-icon);
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+    }
 }
 
 // Karta pro nepřihlášené přes celou šířku po prvním řádku akcí (R44, R141)

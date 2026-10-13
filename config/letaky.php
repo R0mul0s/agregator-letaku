@@ -84,7 +84,7 @@ return [
         'directory' => 'legal',
         'terms_version' => 1,
         'marketing_consent_version' => 1,
-        'effective_from' => '2026-10-11',
+        'effective_from' => '2026-10-13',
     ],
 
     /*
@@ -872,6 +872,32 @@ return [
         'exclusion_suggestions' => 6,
         'exclusion_min_length' => 3,
         'exclusion_word_max_length' => 40,
+    ],
+
+    /*
+    | Návrhy, co hlídat (R148, App\Domain\Shopping\WatchSuggestions): co si uživatel opakovaně
+    | dává do nákupního seznamu. Zásah se počítá nejvýš jednou za hit_interval_hours, po
+    | window_days bez zásahu se počítá znovu (úklid takový návrh smaže); návrh se ukáže od
+    | min_hits zásahů, nejvýš max_shown najednou. Zavřený návrh úklid smaže po dismiss_days
+    | (pak se může vrátit). Stejné min_hits a window_days platí i pro opakované hledání,
+    | které se počítá jen v prohlížeči (resources/js/lib/search.js). Doby jsou v zásadách (kap. 3).
+    */
+    /*
+    | Odběr akcí přes RSS (R149, App\Domain\Offers\OfferFeed): kolik nejnovějších akcí kanál
+    | obchodu nebo produktu nese a jak dlouho smí čtečka a cache odpověď držet (stažení
+    | akcí běží několikrát denně, častější dotazy by nic nového nepřinesly).
+    */
+    'feed' => [
+        'items' => 50,
+        'cache_seconds' => 3600,
+    ],
+
+    'watch_suggestions' => [
+        'min_hits' => 2,
+        'hit_interval_hours' => 12,
+        'window_days' => 60,
+        'dismiss_days' => 180,
+        'max_shown' => 3,
     ],
 
     // Hlášení chyb v akcích od uživatelů (R125)

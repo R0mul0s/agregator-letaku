@@ -19,6 +19,7 @@ import InstallPrompt from '@/Components/InstallPrompt.vue';
 import ShoppingAdd from '@/Components/ShoppingAdd.vue';
 import ShoppingGroups from '@/Components/ShoppingGroups.vue';
 import WakeLockSwitch from '@/Components/WakeLockSwitch.vue';
+import WatchSuggestions from '@/Components/WatchSuggestions.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { confirmDialog } from '@/lib/confirm';
 import { formatDate } from '@/lib/format';
@@ -45,6 +46,8 @@ const props = defineProps({
     add: { type: Object, required: true },
     /** Odkaz ke sdílení (R130): { url, renewUrl }. */
     share: { type: Object, required: true },
+    /** Co si sem dává opakovaně a nehlídá (R148): { items, urls }. */
+    watchSuggestions: { type: Object, required: true },
 });
 
 const t = useTranslations();
@@ -251,6 +254,8 @@ async function renewShare() {
         <ShoppingAdd class="card" :add="add" :max-quantity="maxQuantity" />
         <!-- Výzva k přidání na plochu pod kartou přes červený pruh (R139, R144) -->
         <InstallPrompt inline />
+        <!-- Kupuje to opakovaně? Nabídnout hlídání (R148) -->
+        <WatchSuggestions :suggestions="watchSuggestions" />
 
         <EmptyState v-if="!groups.length" :text="t('shopping.empty')" />
 

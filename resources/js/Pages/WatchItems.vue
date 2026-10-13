@@ -12,6 +12,7 @@ import WatchAdd from '@/Components/WatchAdd.vue';
 import WatchBrowse from '@/Components/WatchBrowse.vue';
 import WatchItemForm from '@/Components/WatchItemForm.vue';
 import WatchItemTile from '@/Components/WatchItemTile.vue';
+import WatchSuggestions from '@/Components/WatchSuggestions.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { useTranslations } from '@/lib/i18n';
 import { scrollIntoViewGently } from '@/lib/scroll';
@@ -31,6 +32,8 @@ const props = defineProps({
     editId: { type: Number, default: null },
     /** Text z karty akce „Hlídat“ (R60) — otevře formulář vlastních slov, nebo null. */
     prefill: { type: String, default: null },
+    /** Návrhy, co hlídat (R148): { items, urls, searchMinHits, searchWindowDays, maxShown }. */
+    watchSuggestions: { type: Object, required: true },
 });
 
 const t = useTranslations();
@@ -125,6 +128,9 @@ onMounted(() => {
 
         <!-- Výzva k přidání na plochu pod kartou přes červený pruh (R139, R144) -->
         <InstallPrompt inline />
+
+        <!-- Co kupuje nebo hledá opakovaně a nehlídá (R148) -->
+        <WatchSuggestions :suggestions="watchSuggestions" :products="products" :watch-items="watchItems" own-in-page @own="openOwnForm" />
 
         <section class="watch-list" :aria-labelledby="watchItems.length ? 'watch-list-title' : undefined">
             <EmptyState v-if="!watchItems.length" :text="t('watch.empty')" />

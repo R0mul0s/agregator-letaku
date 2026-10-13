@@ -32,6 +32,7 @@ v [PLAN.md](PLAN.md). Větší celky se z toho stávají etapou.
 - víc šablon podle toho, co se v praxi hlídá (káva, pivo, toaletní papír…); vyloučená slova odvozovat ze skutečných nabídek
 - náhled „co by položka teď našla“ přímo ve formuláři Hlídám, aby šlo ladit vyloučená slova bez přepínání stránek
 - u „Možná“ ukázat, které slovo chybí
+- návrhy, co hlídat (R148) — dál: podle toho, co hlídají ostatní („kdo hlídá máslo, hlídá i smetanu“; souhrnné počty s minimálním prahem, aby návrh neprozradil konkrétního člověka), až bude víc uživatelů
 
 ## Historie a porovnání cen
 
@@ -75,7 +76,7 @@ v [PLAN.md](PLAN.md). Větší celky se z toho stávají etapou.
 
 **Odkud:** revize kódu, provozu a frontendu 7. 10. 2026. Hotové body jsou v R106.
 
-- **zálohy:** seznam tabulek v DEPLOYMENT.md (*Záloha databáze*) chybí `social_accounts` (účty bez hesla se po obnově nepřihlásí), `shopping_list_items`, `push_subscriptions`, `notifications`, `announcements`, `watch_item_offer_exclusions` a `offer_reports` (R125) a ruční řádky `offer_product` — zálohovat celou databázi kromě `offers`, `offer_stores`, `leaflet_pages`, `sessions`, `cache`; obnovu jednou vyzkoušet v Dockeru
+- **zálohy:** denní zálohu celé databáze za 14 dní dělá hosting, ruční export před SQL skriptem je celá databáze (DEPLOYMENT.md, *Záloha databáze*); zbývá jednou vyzkoušet obnovu — z administrace Websupportu (celá databáze, nebo i jednotlivé tabulky?) a ruční export v Dockeru
 - **vypínač obchodu v `.env`**, který skryje i už uložené akce — výzvě obchodu (O6) vyhovět bez nasazení kódu
 - **test shody SQL skriptů s migracemi:** pustit `deploy/migrations-*.sql` na prázdnou databázi a porovnat `SHOW CREATE TABLE` s výsledkem `migrate`
 - UptimeRobot i na `/up` (`/health/tasks` pro prodejny, upozornění, úklid a kategorie hotové, R115)

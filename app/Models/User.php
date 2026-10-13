@@ -161,6 +161,16 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Návrhy, co hlídat — co si opakovaně dává do nákupního seznamu (R148).
+     *
+     * @return HasMany<WatchSuggestion, $this>
+     */
+    public function watchSuggestions(): HasMany
+    {
+        return $this->hasMany(WatchSuggestion::class);
+    }
+
+    /**
      * Token veřejného odkazu na nákupní seznam (R130); první použití ho založí. Kdo odkaz má,
      * seznam vidí a odškrtává — nový token (`renewShoppingShareToken`) starý odkaz zneplatní.
      */

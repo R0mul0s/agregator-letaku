@@ -66,18 +66,36 @@ final class OfferPages
     public function url(OfferFilters $filters, array $extra = [], bool $absolute = false): string
     {
         $parameters = [...$filters->urlParameters(), ...array_filter($extra, fn (int|string|null $value): bool => $value !== null && $value !== '')];
-        $slug = $filters->productId !== null ? $this->productSlug($filters->productId) : null;
+        $slug = $this->slug($filters);
 
         if ($slug !== null) {
-            unset($parameters[OfferFilters::PRODUCT_PARAMETER]);
-        } elseif (count($filters->chains) === 1) {
-            $slug = $filters->chains[0]->value;
-            unset($parameters[OfferFilters::CHAIN_PARAMETER]);
+            unset($parameters[$this->isProductSlug($filters) ? OfferFilters::PRODUCT_PARAMETER : OfferFilters::CHAIN_PARAMETER]);
         }
 
         return $slug === null
             ? route('offers', $parameters, $absolute)
             : route(self::PAGE_ROUTE, ['slug' => $slug, ...$parameters], $absolute);
+    }
+
+    /**
+     * Část adresy čisté stránky: produkt (`pivo`), jinak jeden obchod (`lidl`); null = výpis
+     * bez čisté adresy (víc obchodů, žádný, nebo neexistující produkt).
+     */
+    public function slug(OfferFilters $filters): ?string
+    {
+        if ($this->isProductSlug($filters)) {
+            return $this->productSlug((int) $filters->productId);
+        }
+
+        return count($filters->chains) === 1 ? $filters->chains[0]->value : null;
+    }
+
+    /**
+     * Patří čistá adresa produktu (existující produkt), ne obchodu?
+     */
+    private function isProductSlug(OfferFilters $filters): bool
+    {
+        return $filters->productId !== null && $this->productSlug($filters->productId) !== null;
     }
 
     /**

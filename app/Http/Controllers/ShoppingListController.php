@@ -16,6 +16,7 @@ namespace App\Http\Controllers;
 
 use App\Domain\Offers\LocalCalendar;
 use App\Domain\Shopping\ShoppingListView;
+use App\Domain\Shopping\WatchSuggestions;
 use App\Domain\Sources\SourceRegistry;
 use App\Enums\AnalyticsEvent;
 use App\Enums\Chain;
@@ -51,7 +52,7 @@ class ShoppingListController extends Controller
      * Seznam po obchodech (ShoppingListView) s přidáním akce nebo vlastní položky a odkazem
      * ke sdílení (R130).
      */
-    public function index(Request $request, ShoppingListView $view, SourceRegistry $sources, LocalCalendar $calendar): Response
+    public function index(Request $request, ShoppingListView $view, SourceRegistry $sources, LocalCalendar $calendar, WatchSuggestions $suggestions): Response
     {
         $user = $this->user($request);
         $items = $view->items($user);
@@ -84,6 +85,11 @@ class ShoppingListController extends Controller
                 'url' => route('shopping-list.shared', ['token' => $user->shoppingShareToken()]),
                 'renewUrl' => route('shopping-list.share.renew', absolute: false),
             ],
+            // Co si sem dává opakovaně a nehlídá (R148) — hlídat jedním klepnutím
+            'watchSuggestions' => [
+                'items' => $suggestions->forUser($user),
+                'urls' => WatchSuggestionController::pageUrls(),
+            ],
         ]);
     }
 
@@ -91,9 +97,10 @@ class ShoppingListController extends Controller
      * Vlastní položka bez akce (R130): název a nepovinně obchod. Stejná nekoupená položka
      * se nepřidá podruhé.
      */
-    public function storeCustom(ShoppingListCustomRequest $request): RedirectResponse
+    public function storeCustom(ShoppingListCustomRequest $request, WatchSuggestions $suggestions): RedirectResponse
     {
-        $items = $this->user($request)->shoppingListItems();
+        $user = $this->user($request);
+        $items = $user->shoppingListItems();
         $exists = (clone $items)
             ->whereNull('offer_id')
             ->whereNull('checked_at')
@@ -102,6 +109,8 @@ class ShoppingListController extends Controller
             ->exists();
         if (! $exists) {
             $this->trackAdded($request, $items->create(['custom_name' => $request->itemName(), 'chain' => $request->chain(), 'quantity' => $request->quantity()]));
+            // Kupuje to opakovaně? Nabídnout hlídání (R148)
+            $suggestions->recordCustomItem($user, $request->itemName());
         }
 
         return back(fallback: route('shopping-list.index'))->with('status', self::STATUS_ADDED);
@@ -120,12 +129,19 @@ class ShoppingListController extends Controller
     /**
      * Tlačítko na kartě akce: akci v seznamu odebere, jinak ji přidá; vrátí se, odkud uživatel přišel.
      */
-    public function toggle(ShoppingListRequest $request): RedirectResponse
+    public function toggle(ShoppingListRequest $request, WatchSuggestions $suggestions): RedirectResponse
     {
-        $items = $this->user($request)->shoppingListItems();
+        $user = $this->user($request);
+        $items = $user->shoppingListItems();
         $removed = (clone $items)->where('offer_id', $request->offerId())->delete() > 0;
         if (! $removed) {
-            $this->trackAdded($request, $items->create(['offer_id' => $request->offerId(), 'quantity' => $request->quantity()]));
+            $item = $items->create(['offer_id' => $request->offerId(), 'quantity' => $request->quantity()]);
+            $item->load(['offer' => fn ($query) => $query->withoutRaw()]);
+            $this->trackAdded($request, $item);
+            // Dává si do seznamu opakovaně akce stejného produktu? Nabídnout hlídání (R148)
+            if ($item->offer !== null) {
+                $suggestions->recordOffer($user, $item->offer);
+            }
         }
 
         return back(fallback: route('shopping-list.index'))->with('status', $removed ? self::STATUS_REMOVED : self::STATUS_ADDED);

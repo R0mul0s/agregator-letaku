@@ -19,6 +19,7 @@ use App\Domain\Matching\TextNormalizer;
 use App\Domain\Matching\WatchHistory;
 use App\Domain\Matching\WatchRule;
 use App\Domain\Offers\UserPricing;
+use App\Domain\Shopping\WatchSuggestions;
 use App\Enums\AnalyticsEvent;
 use App\Enums\MatchStatus;
 use App\Http\Requests\WatchItemRequest;
@@ -60,7 +61,7 @@ class WatchItemController extends Controller
      * Hlídané položky s tím, co k nim teď je v akci (počet akcí, nejnižší cena, zmínky
      * v letácích — stejně jako v Mých slevách), a produkty katalogu k přidání.
      */
-    public function index(Request $request, CategoryPaths $categories, CatalogBrowseTree $browseTree, MyOffers $myOffers, UserPricing $pricing): Response
+    public function index(Request $request, CategoryPaths $categories, CatalogBrowseTree $browseTree, MyOffers $myOffers, UserPricing $pricing, WatchSuggestions $suggestions): Response
     {
         /** @var User $user */
         $user = $request->user();
@@ -99,6 +100,15 @@ class WatchItemController extends Controller
             ]),
             // Procházení katalogu po odděleních jako v e-shopu (R47)
             'catalogTree' => $browseTree->build($products),
+            // Návrhy, co hlídat (R148): z nákupního seznamu ze serveru, z opakovaného hledání
+            // v prohlížeči (lib/search.js) se stejnými hranicemi
+            'watchSuggestions' => [
+                'items' => $suggestions->forUser($user),
+                'urls' => WatchSuggestionController::pageUrls(),
+                'searchMinHits' => config()->integer('letaky.watch_suggestions.min_hits'),
+                'searchWindowDays' => config()->integer('letaky.watch_suggestions.window_days'),
+                'maxShown' => config()->integer('letaky.watch_suggestions.max_shown'),
+            ],
         ]);
     }
 
@@ -125,11 +135,13 @@ class WatchItemController extends Controller
     /**
      * Založí položku.
      */
-    public function store(WatchItemRequest $request): RedirectResponse
+    public function store(WatchItemRequest $request, WatchSuggestions $suggestions): RedirectResponse
     {
         /** @var User $user */
         $user = $request->user();
         $item = $user->watchItems()->create($request->watchItemData());
+        // Návrh stejné položky z nákupního seznamu je vyřízený (R148)
+        $suggestions->closeFor($user, $item);
         AnalyticsEvents::flash($request, AnalyticsEvent::AddWatchItem, ['item_type' => $item->product_id === null ? 'keywords' : 'product']);
 
         // Z karty ve Všech akcích (R60) zpátky na stejné místo, jinak na Hlídám. Toast nabídne

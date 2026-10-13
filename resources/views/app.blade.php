@@ -20,6 +20,10 @@
         <meta name="description" content="{{ $seo['description'] }}">
         <meta name="robots" content="{{ $seo['robots'] }}">
         <link rel="canonical" href="{{ $seo['canonical'] }}">
+        {{-- Odběr akcí obchodu nebo produktu přes RSS (R149) — čtečka kanál na stránce najde sama --}}
+        @if ($seo['feed'] !== null)
+            <link rel="alternate" type="application/rss+xml" title="{{ $seo['feed']['title'] }}" href="{{ $seo['feed']['url'] }}">
+        @endif
         {{-- Ověření webu v Seznam Webmasteru (letaky.site_verification) --}}
         @if (filled(config('letaky.site_verification.seznam')))
             <meta name="seznam-wmt" content="{{ config('letaky.site_verification.seznam') }}">

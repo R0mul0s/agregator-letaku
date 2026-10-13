@@ -106,6 +106,8 @@ const props = defineProps({
     product: { type: String, default: null },
     /** Opravený překlep { original, corrected }, nebo null. */
     correction: { type: Object, default: null },
+    /** Kanál RSS výpisu jednoho obchodu nebo produktu (R149), jinak null. */
+    feedUrl: { type: String, default: null },
 });
 
 const t = useTranslations();
@@ -587,6 +589,11 @@ onBeforeUnmount(() => liveSearch.cancel());
                     ·
                     <Link :href="shoppingPreferences.url" class="link">{{ t('search.shopping_preferences_edit') }}</Link>
                 </p>
+                <!-- Odběr přes RSS (R149) — XML, ne stránka Inertie, proto obyčejný odkaz -->
+                <a v-if="feedUrl" :href="feedUrl" class="link offers-results__feed" type="application/rss+xml">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16" /><circle cx="5" cy="19" r="1" /></svg>
+                    {{ t('offers.feed') }}
+                </a>
             </div>
 
             <p v-if="correction" class="search-correction" role="status">{{ t('search.correction', { original: correction.original, corrected: correction.corrected }) }}</p>

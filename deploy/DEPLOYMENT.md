@@ -246,7 +246,7 @@ Volby v prohlížeči (vzhled, poslední hledání) se nepřenesou.
    přesunu stahovaly a posílaly e-maily do staré databáze a po přesunu by běžely dvakrát —
    dvojí stažení a dvojité souhrny.
 6. **Export celé databáze** ze starého hostingu: phpMyAdmin → *Exportovat* → *Vlastní*, **všechny
-   tabulky** (včetně `migrations`; ne jen výběr z *Záloha databáze*), SQL, gzip, *Přidat příkaz
+   tabulky** (včetně `migrations`), SQL, gzip, *Přidat příkaz
    DROP TABLE*. Přes FTP stáhni i profilové obrázky `storage/app/private/avatars/`.
 7. **Nový hosting:**
    1. smaž obsah stránky „Brzy“ (i skrytý `.htaccess`) a nahraj `deploy/upload/` (krok 3) a `.env`
@@ -387,7 +387,7 @@ zvětšit dávku nejvýš do limitu 300 e-mailů za hodinu.
 
 ## Aktualizace už nasazené verze
 
-1. **Záloha databáze**, pokud jdou na produkci SQL skripty — viz *Záloha databáze*
+1. **Ruční export celé databáze**, pokud jdou na produkci SQL skripty — viz *Záloha databáze*
 2. Spusť nové skripty `deploy/migrations-*.sql` z tabulky níž (v pořadí, **před** nahráním kódu)
 3. `build-upload.ps1` a nahraj obsah `deploy/upload/` přes FTP (`.env` na hostingu nepřepisuj —
    v balíčku není). Když se nezměnil `composer.lock`, `vendor/` nahrávat nemusíš —
@@ -414,17 +414,20 @@ patří sem pod tenhle postup; po nasazení se přesunou tam (R106).
 
 ## Záloha databáze
 
-Akce jdou kdykoli stáhnout znovu, nenahraditelné jsou **účty, nastavení a hlídané položky**
-a ruční opravy katalogu. Před každým SQL skriptem a jinak aspoň jednou měsíčně:
+**Hlavní záloha je hosting:** Websupport zálohuje celou databázi denně a drží zálohy 14 dní
+(v souladu se zásadami, kap. 3 — nejdéle 6 měsíců). Obnova jde z administrace hostingu;
+zatím nevyzkoušená (TODO).
 
-1. phpMyAdmin → databáze → *Exportovat* → metoda *Vlastní*, formát SQL,
-   komprese **gzip**, zaškrtnout *Přidat příkaz DROP TABLE*
-2. Tabulky stačí `users`, `followed_chains`, `watch_items`, `watch_item_offer_exclusions`,
-   `offer_reports`, `products`, `categories`, `offer_product_exclusions`, `migrations` — akce
-   a jejich přiřazení stáhne a dopočítá cron
-3. Soubor ulož mimo hosting jako `slevohlidka-RRRR-MM-DD.sql.gz` — na vlastní disk, ne do cloudového
+**Ruční export jen před SQL skriptem** — denní záloha je z noci, obnova z ní by po pokažené
+migraci ztratila změny od té doby (registrace, hlídané položky, nákupní seznamy):
+
+1. phpMyAdmin → databáze → *Exportovat* → metoda *Vlastní*, **všechny tabulky** (i `migrations`),
+   formát SQL, komprese **gzip**, zaškrtnout *Přidat příkaz DROP TABLE*. Výběr tabulek ne —
+   účty, propojení s Googlem a Seznamem, seznamy, upozornění i ruční opravy katalogu jsou
+   v různých tabulkách a každá nová tabulka by v seznamu chyběla
+2. Soubor ulož mimo hosting jako `slevohlidka-RRRR-MM-DD.sql.gz` — na vlastní disk, ne do cloudového
    úložiště (to by byl další příjemce údajů, zásady kap. 4)
-4. **Zálohy starší než 6 měsíců smaž** — zásady (kap. 3) slibují nejdéle 6 měsíců (R69)
+3. **Zálohy starší než 6 měsíců smaž** — zásady (kap. 3) slibují nejdéle 6 měsíců (R69)
 
 ## Historie SQL skriptů
 
@@ -451,6 +454,7 @@ a ruční opravy katalogu. Před každým SQL skriptem a jinak aspoň jednou mě
 | `migrations-2026-10-11-delsi-pravidla.sql` | delší pravidla (R135): `keywords`, `variant_keywords`, `exclude_keywords` v `products` a `watch_items` na 500 znaků; opakovatelný, pustit **před** nahráním kódu a před `data-2026-10-11-katalog-rozsireni.sql` | 2026-10-11 |
 | `data-2026-10-11-katalog-rozsireni.sql` | rozšíření katalogu (R135): 48 nových produktů včetně nepotravinového zboží a nová pravidla sedmi (Zmrzlina, Bílé víno, Červené víno, Rum, Čaj, Sprchový gel, Polévka); podle názvu, opakovatelný, nezávisí na kódu, ale až **po** `migrations-2026-10-11-delsi-pravidla.sql` | 2026-10-11 |
 | `migrations-2026-10-12-kvalita-dat-web.sql` | akce letáku převzaté webem (R136): `leaflet_stats.covered_offers`; opakovatelný, pustit **před** nahráním kódu | 2026-10-12 |
+| `migrations-2026-10-13-navrhy-hlidani.sql` | návrhy, co hlídat (R148): tabulka `watch_suggestions`; opakovatelný, pustit **před** nahráním kódu | — |
 
 ## Nasazené verze
 

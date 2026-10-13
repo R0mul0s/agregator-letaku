@@ -203,10 +203,25 @@ return [
     ],
 
     // Úklid osobních údajů po vypršení (R53, PruneExpiredSessions)
+    // Odběr akcí přes RSS (R149, App\Domain\Offers\OfferFeed)
+    'feed' => [
+        'chain_title' => 'Akce z letáku :chain · Slevohlídka',
+        'chain_description' => 'Nově zveřejněné akce :chain — s cenou, slevou a platností. Odebírá Slevohlídka.',
+        'product_title' => ':product v akci · Slevohlídka',
+        'product_description' => ':product: nové akce ve všech obchodech, které sledujeme — s cenou, slevou a platností.',
+        'item_title' => ':name — :price',
+        'item_title_chain' => ':name — :price (:chain)',
+        'item_discount' => 'sleva :percent % z :original',
+        'item_loyalty' => 's kartou :program :price',
+        'item_validity' => 'platí :from – :to',
+        'item_chain' => ':chain',
+    ],
+
     'maintenance' => [
         'sessions_pruned' => 'Úklid — smazáno vypršelých relací: :count',
         'offer_raw_pruned' => 'Úklid — vyprázdněno surových odpovědí starých akcí: :count',
         'leaflet_stats_pruned' => 'Úklid — smazáno starých statistik letáků: :count',
+        'watch_suggestions_pruned' => 'Úklid — smazáno starých návrhů, co hlídat: :count',
     ],
 
     // E-mailový souhrn nových akcí (R42, App\Mail\DigestMail)
@@ -621,6 +636,17 @@ return [
             'delete_confirm' => '„:name“ zmizí z Hlídám i z Mých slev a slevy na to vám už hlásit nebudeme.',
             'empty' => 'Zatím nic nehlídáte. Napište nahoře, na co máte chuť, nebo se projděte katalogem.',
             'limit' => 'Hlídat jde nejvýš :count položek.',
+            // Návrhy, co hlídat (R148, WatchSuggestions.vue): z nákupního seznamu a z opakovaného hledání
+            'suggestions' => [
+                'title' => 'Nechcete tohle hlídat?',
+                'hint' => 'Často to kupujete nebo hledáte. Pohlídáme to za vás a ozveme se, až to bude ve slevě.',
+                'reason_shopping' => 'V nákupním seznamu už :count×',
+                'reason_search' => 'Hledali jste to :count×',
+                'watch' => 'Hlídat',
+                'watch_label' => 'Hlídat „:name“',
+                'dismiss' => 'Ne, díky',
+                'dismiss_label' => 'Nenavrhovat „:name“',
+            ],
         ],
 
         'preferences' => [
@@ -783,6 +809,8 @@ return [
             'hero_lead' => 'Akce ze :chains obchodů na jednom místě. Hledejte, vyberte obchod nebo oddělení a řaďte podle ceny za kilo.',
             'hero_lead_chain' => 'Akce z letáku a webu obchodu :chain. Hledejte, vyberte oddělení a řaďte podle ceny za kilo.',
             'search_submit' => 'Najít',
+            // Odběr akcí obchodu nebo produktu ve čtečce RSS (R149)
+            'feed' => 'Odebírat přes RSS',
             'chains_label' => 'Obchody',
             'weekly_ticket' => 'Nejlepší slevy týdne',
             'weekly_ticket_more' => 'Výběr týdne →',

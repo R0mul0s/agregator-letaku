@@ -11,6 +11,7 @@
 declare(strict_types=1);
 
 use App\Domain\Offers\IsoWeek;
+use App\Domain\Offers\OfferFeed;
 use App\Domain\Offers\OfferPages;
 use App\Domain\Offers\WeeklyDeals;
 use App\Enums\SocialProvider;
@@ -29,6 +30,7 @@ use App\Http\Controllers\LegacyAuthRedirectController;
 use App\Http\Controllers\LegalController;
 use App\Http\Controllers\ManifestController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\OfferFeedController;
 use App\Http\Controllers\OfferReportController;
 use App\Http\Controllers\OffersController;
 use App\Http\Controllers\OfferStoresController;
@@ -45,6 +47,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\WatchDemoController;
 use App\Http\Controllers\WatchItemController;
 use App\Http\Controllers\WatchItemExclusionController;
+use App\Http\Controllers\WatchSuggestionController;
 use App\Http\Controllers\WeeklyDealsController;
 use App\Http\Middleware\ReadOnlySession;
 use App\Support\RateLimits;
@@ -93,6 +96,12 @@ Route::middleware('throttle:'.RateLimits::PUBLIC)->group(function (): void {
     Route::get('/akce/{slug}', OffersController::class)
         ->where('slug', '(?!naseptavac$)[a-z0-9]+(?:-[a-z0-9]+)*')
         ->name(OfferPages::PAGE_ROUTE);
+    // Odběr akcí obchodu nebo produktu přes RSS (R149) — čtečky se ptají často a bez cookies,
+    // relace by každým dotazem založila řádek v sessions
+    Route::get('/akce/{slug}/'.OfferFeed::PATH_SUFFIX, OfferFeedController::class)
+        ->where('slug', '[a-z0-9]+(?:-[a-z0-9]+)*')
+        ->middleware(ReadOnlySession::class)
+        ->name(OfferFeed::ROUTE);
 
     // Nejlepší slevy týdne s archivem po týdnech (R128): /tyden přesměruje na aktuální týden
     Route::get('/tyden', [WeeklyDealsController::class, 'current'])->name(WeeklyDeals::INDEX_ROUTE);
@@ -179,6 +188,8 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/hlidam/nahled', [WatchItemController::class, 'preview'])
         ->middleware(['throttle:'.RateLimits::SUGGESTIONS, ReadOnlySession::class])
         ->name('watch-items.preview');
+    // Návrh, co hlídat, z nákupního seznamu (R148) — „Ne, díky“; registrovaný před /hlidam/{watchItem}
+    Route::delete('/hlidam/navrhy/{suggestion}', [WatchSuggestionController::class, 'destroy'])->whereNumber('suggestion')->name('watch-suggestions.destroy');
     Route::put('/hlidam/{watchItem}', [WatchItemController::class, 'update'])->name('watch-items.update');
     Route::delete('/hlidam/{watchItem}', [WatchItemController::class, 'destroy'])->name('watch-items.destroy');
     // „Tohle ne“ (R125): skrýt akci u položky, vyloučit slovo z názvu akce, a obojí vrátit

@@ -1,0 +1,79 @@
+// _watch-suggestions.scss
+// Návrhy, co hlídat (WatchSuggestions.vue, R148): karta v Hlídám a v nákupním seznamu
+// s položkami, které uživatel opakovaně kupuje nebo hledá — název, důvod, Hlídat a Ne, díky.
+//
+// @author Roman Hlaváček
+// @created 2026-10-13
+
+.watch-suggestions {
+    margin-bottom: var(--space-4);
+
+    &__title {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        margin-bottom: var(--space-1);
+        font-size: var(--font-size-card-title);
+    }
+
+    &__icon {
+        flex: none;
+        width: var(--icon-size);
+        height: var(--icon-size);
+        fill: none;
+        stroke: var(--color-accent-strong);
+        stroke-width: var(--svg-stroke-icon);
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+
+    &__hint {
+        margin-bottom: var(--space-3);
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+    }
+
+    &__list {
+        display: flex;
+        flex-direction: column;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    &__item {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-2) var(--space-3);
+        padding-block: var(--space-2);
+
+        & + & {
+            border-top: 1px solid var(--color-border);
+        }
+    }
+
+    &__body {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+    }
+
+    &__name {
+        font-weight: var(--font-weight-bold);
+        overflow-wrap: anywhere;
+    }
+
+    &__reason {
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+    }
+
+    &__actions {
+        display: flex;
+        flex: none;
+        align-items: center;
+        gap: var(--space-3);
+    }
+}

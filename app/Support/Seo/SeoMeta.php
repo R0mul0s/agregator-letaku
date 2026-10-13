@@ -19,6 +19,7 @@ declare(strict_types=1);
 namespace App\Support\Seo;
 
 use App\Domain\Offers\IsoWeek;
+use App\Domain\Offers\OfferFeed;
 use App\Domain\Offers\OfferFilters;
 use App\Domain\Offers\OfferPages;
 use App\Domain\Offers\OfferSearch;
@@ -37,6 +38,7 @@ final class SeoMeta
         private readonly OfferPages $pages,
         private readonly OfferSearch $search,
         private readonly StructuredData $structuredData,
+        private readonly OfferFeed $feed,
     ) {}
 
     private const INDEX = 'index, follow';
@@ -63,8 +65,10 @@ final class SeoMeta
      * pro roboty bez JavaScriptu (resources/views/seo/content.blade.php, R94). `$inertiaPage`
      * je stránka Inertie z kořenové šablony — z jejích props jsou akce ve schema.org (R99).
      *
+     * `feed` je kanál RSS akcí obchodu nebo produktu (R149), jinde null.
+     *
      * @param  array<string, mixed>  $inertiaPage
-     * @return array{title: string, heading: string, description: string, canonical: string, robots: string, image: array{url: string, width: int, height: int, alt: string}, jsonLd: array<string, mixed>|null}
+     * @return array{title: string, heading: string, description: string, canonical: string, robots: string, feed: array{url: string, title: string}|null, image: array{url: string, width: int, height: int, alt: string}, jsonLd: array<string, mixed>|null}
      */
     public function forRequest(Request $request, array $inertiaPage = []): array
     {
@@ -85,6 +89,7 @@ final class SeoMeta
             'description' => $description,
             'canonical' => $canonical,
             'robots' => $robots,
+            'feed' => $this->feedLink($page, $chain, $productId),
             'image' => [
                 'url' => asset(self::OG_IMAGE_PATH),
                 'width' => self::OG_IMAGE_WIDTH,
@@ -191,6 +196,25 @@ final class SeoMeta
             'number' => (string) $week?->number,
             'year' => (string) $week?->year,
             'range' => $week?->range() ?? '',
+        ];
+    }
+
+    /**
+     * Kanál RSS stránky obchodu nebo produktu (R149) pro odkaz v hlavičce — čtečka ho na
+     * stránce najde sama; jinde null.
+     *
+     * @return array{url: string, title: string}|null
+     */
+    private function feedLink(string $page, ?Chain $chain, ?int $productId): ?array
+    {
+        if (! in_array($page, ['offers_chain', 'offers_product'], true)) {
+            return null;
+        }
+        $url = OfferFeed::url($productId === null ? $chain : null, $productId, $this->pages, absolute: true);
+
+        return $url === null ? null : [
+            'url' => $url,
+            'title' => $this->feed->title($productId === null ? $chain : null, $productId),
         ];
     }
 
