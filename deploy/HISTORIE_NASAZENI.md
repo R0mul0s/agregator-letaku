@@ -578,3 +578,14 @@ a jedno pole hledání. Bez migrace a SQL skriptu, `.env` beze změny.
 
 - **Ověřeno:** `version.txt` = `db4f369`; `/health/imports` i `/health/tasks` 200, `/akce` 200,
   `/hlidam` a `/seznam` bez přihlášení přesměrují na přihlášení (12. 10.).
+
+### Aktualizace z `db4f369` (čtyřicáté nasazení — provedeno, `529fe55`)
+
+Návrhy, co hlídat (R148) — z opakovaných položek nákupního seznamu a opakovaného hledání —
+a odběr akcí obchodu nebo produktu přes RSS (R149). SQL skript
+`migrations-2026-10-13-navrhy-hlidani.sql` (tabulka `watch_suggestions`) před nahráním kódu,
+`composer.lock` ani `.env` beze změny; zásady s datem účinnosti 2026-10-13.
+
+- **Ověřeno:** `version.txt` = `529fe55`; `/health/imports` i `/health/tasks` 200, `/akce` 200,
+  `/akce/lidl/rss` 200 (`application/rss+xml`, 50 akcí), `/akce/lidl` má v hlavičce odkaz na kanál,
+  `/hlidam` bez přihlášení přesměruje na přihlášení (13. 10.).

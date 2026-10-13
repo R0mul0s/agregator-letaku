@@ -454,7 +454,7 @@ migraci ztratila změny od té doby (registrace, hlídané položky, nákupní s
 | `migrations-2026-10-11-delsi-pravidla.sql` | delší pravidla (R135): `keywords`, `variant_keywords`, `exclude_keywords` v `products` a `watch_items` na 500 znaků; opakovatelný, pustit **před** nahráním kódu a před `data-2026-10-11-katalog-rozsireni.sql` | 2026-10-11 |
 | `data-2026-10-11-katalog-rozsireni.sql` | rozšíření katalogu (R135): 48 nových produktů včetně nepotravinového zboží a nová pravidla sedmi (Zmrzlina, Bílé víno, Červené víno, Rum, Čaj, Sprchový gel, Polévka); podle názvu, opakovatelný, nezávisí na kódu, ale až **po** `migrations-2026-10-11-delsi-pravidla.sql` | 2026-10-11 |
 | `migrations-2026-10-12-kvalita-dat-web.sql` | akce letáku převzaté webem (R136): `leaflet_stats.covered_offers`; opakovatelný, pustit **před** nahráním kódu | 2026-10-12 |
-| `migrations-2026-10-13-navrhy-hlidani.sql` | návrhy, co hlídat (R148): tabulka `watch_suggestions`; opakovatelný, pustit **před** nahráním kódu | — |
+| `migrations-2026-10-13-navrhy-hlidani.sql` | návrhy, co hlídat (R148): tabulka `watch_suggestions`; opakovatelný, pustit **před** nahráním kódu | 2026-10-13 |
 
 ## Nasazené verze
 
@@ -502,3 +502,4 @@ Co běží na produkci — pro `git log <commit>..HEAD` při dalším nasazení
 | 2026-10-12 | `bce4cdd` | třicáté sedmé nasazení: akce Lidlu z webu převezme řádek uložený dřív z PDF letáku (bez druhého ohlášení jako nové), akce převzaté webem se v kvalitě dat počítají k letáku (R136); SQL `migrations-2026-10-12-kvalita-dat-web.sql` |
 | 2026-10-12 | `4e97a6e` | třicáté osmé nasazení (po průběžných nahráních R137–R141 během dne): nová úvodní stránka s červeným pruhem (R137), Moje slevy ve stejném vzhledu (R138), výzva k přidání na plochu jako bílá karta s odkladem 3 → 7 → 14 → 30 dní (R139), sbalitelná sekce Brzy (R140), Všechny akce s logy obchodů, odděleními jako dlaždicemi a posuvným řádkem se šipkami (R141), Albert: cena mezi dvěma dlaždicemi (R142), Nejlepší slevy týdne ve vzhledu Všech akcí (R143), počet nabídek jako nadpis i ve stromu přístupnosti; bez SQL skriptu |
 | 2026-10-12 | `db4f369` | třicáté deváté nasazení: červený pruh s nadpisem na všech stránkách a hlavička bez linky, zapnuté filtry v kartě, opravy hledání a spodní lišty (R144), další filtry Mých slev (R145), nákupní seznam s kartou sdílení a přepínačem Nezhasínat, na počítači kopírování místo sdílení (R146), jedno pole hledání SearchField (R147); bez SQL skriptu |
+| 2026-10-13 | `529fe55` | čtyřicáté nasazení: návrhy, co hlídat, z nákupního seznamu a opakovaného hledání (R148, SQL `migrations-2026-10-13-navrhy-hlidani.sql`), odběr akcí obchodu nebo produktu přes RSS `/akce/lidl/rss`, `/akce/pivo/rss` (R149); zásady s účinností 2026-10-13 |
