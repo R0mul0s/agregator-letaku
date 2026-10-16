@@ -62,6 +62,8 @@ function registrationInput(array $overrides = []): array
         'email' => 'roman@example.com',
         'password' => NEW_PASSWORD,
         'terms' => true,
+        // Registrační formulář si přihlášení vždy zapamatuje (R151)
+        'remember' => true,
         RegistrationGuard::TOKEN_FIELD => app(RegistrationGuard::class)->token(CarbonImmutable::now()->subSeconds(FILL_SECONDS)),
         RegistrationGuard::TRAP_FIELD => '',
         ...$overrides,

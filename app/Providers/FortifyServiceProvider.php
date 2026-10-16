@@ -19,6 +19,7 @@ use App\Actions\Fortify\UpdateUserProfileInformation;
 use App\Domain\Account\AuthShowcase;
 use App\Domain\Account\RegistrationGuard;
 use App\Enums\SocialProvider;
+use App\Http\Controllers\AuthenticatedSessionController;
 use App\Http\Controllers\SocialLoginController;
 use App\Http\Responses\RegisterResponse;
 use App\Http\Responses\VerifyEmailResponse;
@@ -33,6 +34,7 @@ use Inertia\Response;
 use Laravel\Fortify\Contracts\RegisterResponse as RegisterResponseContract;
 use Laravel\Fortify\Contracts\VerifyEmailResponse as VerifyEmailResponseContract;
 use Laravel\Fortify\Fortify;
+use Laravel\Fortify\Http\Controllers\AuthenticatedSessionController as FortifyAuthenticatedSessionController;
 
 class FortifyServiceProvider extends ServiceProvider
 {
@@ -44,6 +46,8 @@ class FortifyServiceProvider extends ServiceProvider
     {
         $this->app->singleton(VerifyEmailResponseContract::class, VerifyEmailResponse::class);
         $this->app->singleton(RegisterResponseContract::class, RegisterResponse::class);
+        // Odhlášení jen tohoto zařízení — Fortify by zrušil „Zapamatovat si mě“ všem zařízením (R151)
+        $this->app->bind(FortifyAuthenticatedSessionController::class, AuthenticatedSessionController::class);
     }
 
     /**
@@ -112,6 +116,8 @@ class FortifyServiceProvider extends ServiceProvider
                 'showcase' => fn (): array => app(AuthShowcase::class)->toArray(),
                 // Registrace přes Google a Facebook (R96) — souhlasy potvrdí dokončení registrace
                 'social' => $this->socialProviders(),
+                // Registrace vždy zapamatuje přihlášení, i přes poskytovatele (R151)
+                'rememberParameter' => SocialLoginController::REMEMBER_PARAMETER,
             ]);
         });
 

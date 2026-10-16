@@ -14,6 +14,7 @@ declare(strict_types=1);
 use App\Domain\Account\RegistrationGuard;
 use App\Domain\Chains\ChainCatalog;
 use App\Enums\Chain;
+use App\Http\Controllers\SocialLoginController;
 use App\Http\Responses\RegisterResponse;
 use App\Models\FollowedChain;
 use App\Models\Offer;
@@ -21,6 +22,7 @@ use App\Models\User;
 use App\Support\AnalyticsEvents;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Notifications\VerifyEmail;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Notification;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -35,7 +37,15 @@ it('zobrazí registrační stránku s ochranou proti botům', function (): void 
             ->where('urls.privacy', '/ochrana-udaju')
             ->where('guard.tokenField', RegistrationGuard::TOKEN_FIELD)
             ->where('guard.trapField', RegistrationGuard::TRAP_FIELD)
-            ->where('guard.token', fn (string $token): bool => $token !== ''));
+            ->where('guard.token', fn (string $token): bool => $token !== '')
+            ->where('rememberParameter', SocialLoginController::REMEMBER_PARAMETER));
+});
+
+it('nový účet si přihlášení zapamatuje — po vypršení relace uživatele neodhlásí (R151)', function (): void {
+    $this->post(route('register.store'), registrationInput())
+        ->assertCookie(Auth::guard('web')->getRecallerName());
+
+    expect(User::query()->sole()->remember_token)->not->toBeNull();
 });
 
 it('vedle registrace i přihlášení ukáže počet akcí, obchody a akce s nejvyšší slevou (R56)', function (string $route, string $component): void {

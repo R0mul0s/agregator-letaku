@@ -173,7 +173,7 @@ a cílení reklamy (Google signály). Reklamu zatím nezobrazujeme.
 | co si opakovaně dáváte do nákupního seznamu (pro návrhy, co hlídat) | {watch_suggestions_window_days} dní od posledního přidání, odmítnutý návrh {watch_suggestions_dismiss_days} dní; potom se smaže nejpozději do 24 hodin, se zrušením účtu hned |
 | odběr upozornění v telefonu | do vypnutí upozornění, odhlášení na zařízení nebo zrušení účtu; odběr, který push služba přestane přijímat, se smaže při dalším upozornění |
 | relace (IP adresa, prohlížeč) | 2 hodiny od poslední aktivity, potom se smaže nejpozději do 24 hodin |
-| přihlášení „Zapamatovat si mě“ | nejdéle 400 dní nebo do odhlášení |
+| přihlášení „Zapamatovat si mě“ | nejdéle 400 dní nebo do odhlášení na daném zařízení, změny hesla či odhlášení ostatních zařízení |
 | odkaz pro obnovu hesla | platí 60 minut, záznam se smaže nejpozději do 24 hodin po vypršení |
 | omezení počtu požadavků | nejvýš hodinu, potom se smaže nejpozději do 24 hodin |
 | záznamy o chybách | 14 dní |
@@ -235,7 +235,7 @@ snadno jako přijmout.
 |---|---|---|---|
 | `slevohlidka-session` | cookie | udržení přihlášení a relace | 2 hodiny |
 | `XSRF-TOKEN` | cookie | ochrana formulářů proti podvržení | 2 hodiny |
-| `remember_web_…` | cookie | „Zapamatovat si mě“, jen když ho zaškrtnete | 400 dní |
+| `remember_web_…` | cookie | „Zapamatovat si mě“ — po registraci a při přihlášení, pokud ho neodškrtnete | 400 dní |
 | `slevohlidka-consent` | cookie | vaše volba cookies | 6 měsíců |
 | `letaky-theme` | localStorage | zvolený světlý nebo tmavý vzhled | do smazání v prohlížeči |
 | `slevohlidka.home.expanded` | localStorage | které skupiny v Mých slevách máte rozbalené | do smazání v prohlížeči |

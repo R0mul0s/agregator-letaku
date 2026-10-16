@@ -27,6 +27,8 @@ const props = defineProps({
     showcase: { type: Object, required: true },
     /** Registrace přes Google a Facebook [{ provider, url, logo }] (R96). */
     social: { type: Array, default: () => [] },
+    /** Parametr adresy pro „Zapamatovat si mě“ u registrace přes poskytovatele (R151). */
+    rememberParameter: { type: String, default: null },
 });
 
 const t = useTranslations();
@@ -43,6 +45,8 @@ const form = useForm({
     password: '',
     terms: false,
     marketing: false,
+    // Nový účet si přihlášení vždy zapamatuje (R151) — jinak by uživatele po dvou hodinách odhlásilo
+    remember: true,
     // Podepsaný čas načtení formuláře a skryté pole pro roboty (R53)
     [props.guard.tokenField]: props.guard.token,
     [props.guard.trapField]: '',
@@ -76,7 +80,7 @@ function submit() {
                 </ol>
                 <h1 class="auth-card__title auth-card__title--tight">{{ t('auth.register.heading') }}</h1>
                 <p class="auth-card__intro">{{ t('auth.register.intro') }}</p>
-                <SocialButtons :providers="social" />
+                <SocialButtons :providers="social" :remember="true" :remember-parameter="rememberParameter" />
 
                 <form class="form" novalidate @submit.prevent="submit">
                     <TextField id="name" v-model="form.name" :label="t('auth.name')" autocomplete="name" required autofocus :error="form.errors.name" />

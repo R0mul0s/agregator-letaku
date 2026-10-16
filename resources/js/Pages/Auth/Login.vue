@@ -12,7 +12,6 @@ import SocialButtons from '@/Components/SocialButtons.vue';
 import TextField from '@/Components/TextField.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { useTranslations } from '@/lib/i18n';
-import { isStandalone } from '@/lib/pwaInstall';
 import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
 
 const props = defineProps({
@@ -31,9 +30,9 @@ const page = usePage();
 const form = useForm({
     email: '',
     password: '',
-    // Aplikace z plochy (R66) je osobní telefon a na iPhonu nesdílí přihlášení se Safari —
-    // bez zapamatování by se po dvou hodinách přihlašoval znovu
-    remember: isStandalone(),
+    // Předvyplněné všude (R151) — bez zapamatování odhlásí po dvou hodinách nečinnosti
+    // (session.lifetime); na cizím počítači ho uživatel odškrtne
+    remember: true,
 });
 
 /** Odešle přihlášení; heslo se po odeslání vždy vymaže. */

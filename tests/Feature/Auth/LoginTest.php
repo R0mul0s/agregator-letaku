@@ -69,6 +69,16 @@ it('odhlásí uživatele', function (): void {
     $this->assertGuest();
 });
 
+it('odhlášení na jednom zařízení nechá zapamatované přihlášení ostatních zařízení (R151)', function (): void {
+    $user = User::factory()->create(['remember_token' => 'token-telefonu']);
+
+    $this->actingAs($user)->post(route('logout'))->assertRedirect('/');
+
+    // Fortify by token vyměnil a telefon by po vypršení relace přihlášení ztratil
+    expect($user->fresh()?->remember_token)->toBe('token-telefonu');
+    $this->assertGuest();
+});
+
 it('pošle přihlášeného z přihlašovací stránky na seznam slev', function (): void {
     $this->actingAs(User::factory()->create())
         ->get(route('login'))

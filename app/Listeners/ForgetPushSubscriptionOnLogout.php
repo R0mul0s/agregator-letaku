@@ -17,6 +17,7 @@ namespace App\Listeners;
 
 use App\Domain\Push\PushSubscriptions;
 use App\Models\User;
+use Illuminate\Auth\Events\CurrentDeviceLogout;
 use Illuminate\Auth\Events\Logout;
 use Illuminate\Http\Request;
 
@@ -31,9 +32,10 @@ final readonly class ForgetPushSubscriptionOnLogout
     ) {}
 
     /**
-     * Smaže odběr s adresou z požadavku — jen odběr odhlašovaného uživatele.
+     * Smaže odběr s adresou z požadavku — jen odběr odhlašovaného uživatele. Odhlášení tohoto
+     * zařízení (R151) je `CurrentDeviceLogout`, zrušení účtu a obnova hesla `Logout`.
      */
-    public function handle(Logout $event): void
+    public function handle(Logout|CurrentDeviceLogout $event): void
     {
         $endpoint = $this->request->input(self::ENDPOINT_FIELD);
         if (! $event->user instanceof User || ! is_string($endpoint) || $endpoint === '') {
