@@ -600,5 +600,6 @@ nabídek bez historie, staré řádky `leaflets` bez data zůstávají s akcemi 
 
 - **Ověřeno:** `version.txt` = `605be8c`; `/health/imports` i `/health/tasks` 200, `/akce` 200,
   `/prihlaseni` 200 s `rememberParameter`, `/hlidam` bez přihlášení přesměruje na přihlášení (16. 10.).
-- **Opomenuto:** R151 změnilo text zásad, ale datum účinnosti (`letaky.legal.effective_from`, R69)
-  zůstalo 2026-10-13 — opraveno v dalším commitu, nasadí se s ním.
+- **Dodatek (16. 10.):** R151 změnilo text zásad, ale datum účinnosti (`letaky.legal.effective_from`, R69)
+  zůstalo 2026-10-13 — opraveno v `c372815` a nahrán jen `config/letaky.php` (`version.txt` zůstává
+  `605be8c`). Ověřeno: `/ochrana-udaju` ukazuje 2026-10-16.
