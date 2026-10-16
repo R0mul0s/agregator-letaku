@@ -14,6 +14,7 @@ declare(strict_types=1);
 use App\Domain\Account\Actions\RunMaintenance;
 use App\Domain\Notifications\Actions\RecordHealthAlerts;
 use App\Domain\Offers\Data\LeafletData;
+use App\Domain\Offers\Data\OfferData;
 use App\Domain\Offers\Data\SourceBatch;
 use App\Domain\Offers\Data\TileStats;
 use App\Domain\Offers\Import\RecordLeafletStats;
@@ -22,10 +23,10 @@ use App\Domain\Offers\Quality\QualityIssue;
 use App\Enums\Chain;
 use App\Enums\LeafletKind;
 use App\Enums\NotificationKind;
+use App\Enums\OfferType;
 use App\Enums\ScrapeStatus;
 use App\Models\Leaflet;
 use App\Models\LeafletStat;
-use App\Models\Offer;
 use App\Models\ScrapeRun;
 use App\Models\User;
 use Carbon\CarbonImmutable;
@@ -68,22 +69,38 @@ function qualityStat(Leaflet $leaflet, int $offers, ?int $candidates = null, ?in
     ]);
 }
 
-it('zapíše za každý leták stažení uložené akce a ověřené ceny, víc dávek letáku sečte a leták bez akce má nulu', function (): void {
+/**
+ * Akce ze zdroje s ID položky (platnost pro všechny stejná).
+ *
+ * @return list<OfferData>
+ */
+function qualityOffers(string ...$ids): array
+{
+    return array_map(fn (string $id): OfferData => new OfferData(
+        externalId: $id,
+        name: "Akce {$id}",
+        offerType: OfferType::PromoPrice,
+        validFrom: CarbonImmutable::parse('2026-10-08'),
+        validTo: CarbonImmutable::parse('2026-10-14'),
+        raw: [],
+        price: 2990,
+    ), $ids);
+}
+
+it('zapíše za každý leták stažení akce z dávek a ověřené ceny, víc dávek letáku sečte a leták bez akce má nulu', function (): void {
     $run = ScrapeRun::start(Chain::Penny);
     $pdf = qualityLeaflet();
     $empty = qualityLeaflet('15_10_2026');
     $web = Leaflet::factory()->create(['chain' => Chain::Penny, 'kind' => LeafletKind::Web, 'external_id' => 'web-2026-10-07']);
-    Offer::factory()->count(3)->create(['chain' => Chain::Penny, 'leaflet_id' => $pdf->id, 'scrape_run_id' => $run->id]);
-    Offer::factory()->count(2)->create(['chain' => Chain::Penny, 'leaflet_id' => $web->id, 'scrape_run_id' => $run->id]);
-    // Akce jiného stažení se nepočítá
-    Offer::factory()->create(['chain' => Chain::Penny, 'leaflet_id' => $pdf->id]);
 
-    $batch = fn (Leaflet $leaflet, ?TileStats $tiles, int $covered = 0): SourceBatch => new SourceBatch(new LeafletData(kind: $leaflet->kind, externalId: $leaflet->external_id), [], tiles: $tiles, coveredOffers: $covered);
+    $batch = fn (Leaflet $leaflet, array $offers, ?TileStats $tiles, int $covered = 0): SourceBatch => new SourceBatch(new LeafletData(kind: $leaflet->kind, externalId: $leaflet->external_id), $offers, tiles: $tiles, coveredOffers: $covered);
     app(RecordLeafletStats::class)->record(Chain::Penny, $run, [
-        $batch($web, null),
-        $batch($pdf, new TileStats(40, 30)),
-        $batch($pdf, new TileStats(10, 5), 4),
-        $batch($empty, new TileStats(25, 0)),
+        $batch($web, qualityOffers('w1', 'spolecna'), null),
+        // Akce, kterou nese i web, patří i letáku — uloží ji jen první dávka, ale leták o ni nepřišel (R150);
+        // stejná akce ve dvou dávkách jednoho letáku se počítá jednou
+        $batch($pdf, qualityOffers('p1', 'spolecna'), new TileStats(40, 30)),
+        $batch($pdf, qualityOffers('p1', 'p2'), new TileStats(10, 5), 4),
+        $batch($empty, [], new TileStats(25, 0)),
     ]);
 
     $rows = LeafletStat::query()->orderBy('leaflet_id')->get()->map(fn (LeafletStat $stat): array => [

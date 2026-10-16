@@ -182,7 +182,9 @@ final class LidlOfferSource implements OfferSource
     }
 
     /**
-     * Kampaň jako zdroj nabídek s platností od první do poslední akce.
+     * Kampaň jako zdroj nabídek s platností od první do poslední akce. ID s datem začátku
+     * („a10080058-2026-10-15“, R150): stálé kampaně („Ovoce a zelenina“) mají každý týden stejné
+     * ID a jiné akce — bez data by přehled kvality dat porovnával počet akcí s minulým týdnem.
      *
      * @param  non-empty-list<OfferData>  $offers
      */
@@ -197,7 +199,7 @@ final class LidlOfferSource implements OfferSource
 
         return new LeafletData(
             kind: LeafletKind::Web,
-            externalId: $campaignId,
+            externalId: $campaignId.'-'.$from->toDateString(),
             validFrom: $from,
             validTo: $to,
             sourceUrl: $url,

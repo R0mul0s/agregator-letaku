@@ -216,6 +216,8 @@ Implementace: `LidlLeafletParser` nad `PdfTextReader` (`pdftotext -bbox-layout`)
   „-66%“ a vedle malé „209.90**“ (doporučená cena výrobce), „Ušetřete *“ + „33%“, „4+2“ + „zdarma“, „Novinka“;
 - Lidl Plus: malé „S Lidl Plus“ (~9 b.) a pod ním „-25%“ nebo „-10 Kč“;
 - velká cena ~35–110 b. („25.90“); u Lidl Plus je to cena s aplikací.
+- **Od letáku 19. 10. 2026 (R150)** bývá na části stran balení samostatně nad cenou (~25 b., „3 x 330 g“, „1,5 kg“) a popis
+  má jen cenu za jednotku („1 kg = 131,21 Kč“) nebo druh („s uzeným masem“). Obě rozvržení bývají na jedné straně.
 
 Pasti:
 - **Velké ceny sousedních dlaždic bývají v jednom řádku** („179.90 119.90 99.90“), štítek a vedle něj název jiné
@@ -236,7 +238,8 @@ Pasti:
 **Pravidla** (`LidlLeafletParser`):
 - Cena se přijme, jen když ji ověří balení × cena za jednotku s tolerancí jako u Penny (2 haléře nebo 1,5 %, R26).
   Balení o jedné jednotce bez ceny za jednotku (1 kg, 1 l, kus, 100 g, „cena za 1 kg“, „cena za 100 g“) se přijme
-  jen přímo nad štítkem. Neověřitelná dlaždice (bez názvu ve sloupci, „98 g / 100 g“, „⌀ 12 cm“, „balení“) zůstane zmínkou.
+  jen přímo nad štítkem. Balení nad cenou (~25 b., R150) jde na začátek popisu, pokud popis balením nezačíná;
+  balení s variantami („230 g / 250 g“) se nepřečte a dlaždice zůstane neověřená. Neověřitelná dlaždice (bez názvu ve sloupci, „98 g / 100 g“, „⌀ 12 cm“, „balení“) zůstane zmínkou.
 - „-NN% původní“ = sleva, procento musí sedět na ±1; jinak se dlaždice vynechá. „-50 Kč“ s původní cenou vedle musí
   sedět přesně. „Super cena“, „Ušetřete* NN%“ a cena bez štítku = akční cena, ne sleva (R8).
 - Lidl Plus = `loyalty_price` vedle běžné ceny; s běžnou cenou nad štítkem typ podle ní (sleva / akční cena), se
@@ -275,6 +278,7 @@ Pasti:
 ### Pole a pasti
 Implementace: `app/Domain/Sources/Lidl/` — kampaně z úvodní stránky, jen kategorie `Food` (R23).
 
+- **Stálé kampaně mají každý týden stejné ID** („Ovoce a zelenina“ `a10080058`, „Čerstvé maso“ `a10080059`, také `a10080060`, `a10080062`), týdenní kampaně nové (`a10104663` čtvrteční nabídka). Zdroj nabídek kampaně má proto ID s datem začátku (`a10080058-2026-10-15`, R150). Stejná akce bývá ve více kampaních (okurka v „Ovoci a zelenině“ i ve „Čtvrteční nabídce“) — uloží se jednou s první kampaní.
 - **Kampaně nejdou podle adresy rozlišit** na potravinové a nepotravinové (móda, dílna). Stahují se všechny odkazy `/c/…/a{id}` z úvodní stránky (2. 10. 2026: ~40 stránek, s pauzou 0,5 s ~30 s) a ukládají se jen potraviny. „Ceny v klidu“ úvodní stránka neodkazuje, vyloučení v konfiguraci je pojistka.
 - **Lidl Plus:** cena s aplikací je `lidlPlus[0].price.price`; cenu bez aplikace uvádí jen `prefix` („29,90 Kč bez Lidl Plus“) a jen někdy. Bez ní je běžná cena `oldPrice` a akce platí jen s aplikací.
 - `discountText`: „-25%“ sleva, „1+1 zdarma“ / „3+1 zdarma“ akce na více kusů (`price` je cena za kus při koupi více kusů, `oldPrice` za jeden), „Super cena“ a „Ušetřete* xx %“ nejsou slevy.

@@ -88,7 +88,8 @@ it('stáhne kampaně z úvodní stránky a uloží jen potraviny', function (): 
     $webOffers = Offer::query()->whereHas('leaflet', fn ($leaflet) => $leaflet->where('kind', LeafletKind::Web));
     expect($webOffers->count())->toBe(12)
         ->and(ScrapeRun::query()->sole()->status)->toBe(ScrapeStatus::Succeeded)
-        ->and(Leaflet::query()->where('kind', LeafletKind::Web)->pluck('external_id')->sort()->values()->all())->toBe(['a10103788', 'a10103790', 'a10103791']);
+        // ID kampaně s datem začátku — stálé kampaně mají každý týden stejné ID (R150)
+        ->and(Leaflet::query()->where('kind', LeafletKind::Web)->pluck('external_id')->sort()->values()->all())->toBe(['a10103788-2026-10-01', 'a10103790-2026-10-01', 'a10103791-2026-10-02']);
 
     // úvodní stránka + 4 kampaně (čtvrteční je na úvodní stránce dvakrát, stáhne se jednou)
     // + stránka letáků + 1 potravinový leták + jeho PDF

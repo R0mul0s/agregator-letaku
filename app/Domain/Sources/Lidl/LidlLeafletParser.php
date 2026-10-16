@@ -5,7 +5,8 @@
  * (`pdftotext -bbox-layout`, ZDROJE_DAT.md, Lidl → PDF letáku).
  *
  * Dlaždice je sloupec zarovnaný vlevo: název (~15 b., značka a produkt), popis (~12 b., balení
- * a cena za jednotku), štítek (~25–37 b.) a velká cena (~35–110 b.). Velké ceny sousedních dlaždic
+ * a cena za jednotku), štítek (~25–37 b.) a velká cena (~35–110 b.). Od letáku 19. 10. 2026 bývá
+ * balení místo v popisu samostatně nad cenou (~25 b., „3 x 330 g“). Velké ceny sousedních dlaždic
  * bývají v jednom řádku („339.90 299.90 119.90“), proto se řádky dělí na úseky slov.
  * Pravidla:
  * - cena se přijme, jen když ji ověří balení × cena za jednotku (jako leták Penny, R26); balení
@@ -51,7 +52,7 @@ use Carbon\CarbonImmutable;
 
 /**
  * @phpstan-type Badges array{lidlPlus: bool, percent: ?array{int, ?int}, loyaltyPercent: ?int, loyaltyAmount: ?int, amount: ?int, multibuy: ?string, save: ?int, super: bool, sidePrices: list<int>, loyaltySidePrices: list<int>}
- * @phpstan-type Tile array{names: list<PdfLine>, descriptions: list<PdfLine>, badges: Badges, upperPrice: ?PdfLine}
+ * @phpstan-type Tile array{names: list<PdfLine>, descriptions: list<PdfLine>, badges: Badges, upperPrice: ?PdfLine, packageLabel: ?PdfLine}
  */
 final class LidlLeafletParser
 {
@@ -87,6 +88,9 @@ final class LidlLeafletParser
     private const NAME_MIN_HEIGHT = 14.0;
 
     private const NAME_MAX_HEIGHT = 17.0;
+
+    /** Výška písma balení nad cenou (b.), ~25 b. — od letáku 19. 10. 2026 („3 x 330 g“, „1,5 kg“). */
+    private const PACKAGE_LABEL_MIN_HEIGHT = 20.0;
 
     /** Malá cena vedle velké ceny nebo štítku: největší vodorovná mezera (b.). */
     private const SIDE_PRICE_MAX_GAP = 45.0;
@@ -301,6 +305,7 @@ final class LidlLeafletParser
         $descriptions = [];
         $names = [];
         $upperPrice = null;
+        $packageLabel = null;
         $lidlPlusIndex = null;
         $zone = 'badge';
 
@@ -326,6 +331,11 @@ final class LidlLeafletParser
 
                     continue;
                 }
+                if ($packageLabel === null && $this->isPackageLabel($segment)) {
+                    $packageLabel = $segment;
+
+                    continue;
+                }
                 $zone = 'description';
             }
 
@@ -344,7 +354,7 @@ final class LidlLeafletParser
             $names[] = $segment;
         }
 
-        if ($names === [] || $descriptions === []) {
+        if ($names === [] || ($descriptions === [] && $packageLabel === null)) {
             return null;
         }
 
@@ -353,7 +363,19 @@ final class LidlLeafletParser
             'descriptions' => array_reverse($descriptions),
             'badges' => $this->badges($anchor, $badgeSegments, $lidlPlusIndex, $smallPrices),
             'upperPrice' => $upperPrice,
+            'packageLabel' => $packageLabel,
         ];
+    }
+
+    /**
+     * Je úsek balení nad cenou (~25 b., „3 x 330 g“)? Balení s více variantami („230 g / 250 g“)
+     * nejde přečíst jako jedno balení — dlaždice zůstane neověřená jako se stejným popisem dřív.
+     */
+    private function isPackageLabel(PdfLine $segment): bool
+    {
+        return $segment->height() >= self::PACKAGE_LABEL_MIN_HEIGHT
+            && $segment->height() < self::PRICE_MIN_HEIGHT
+            && $this->packages->parse($segment->text()) !== null;
     }
 
     /**
@@ -475,6 +497,11 @@ final class LidlLeafletParser
     {
         $name = $this->joinLines($tile['names']);
         $description = $this->joinLines($tile['descriptions']);
+        // Balení nad cenou patří na začátek popisu jako ve starším rozvržení („3 x 330 g, 1 kg = 131,21 Kč“),
+        // pokud ho popis už nemá sám („200 g, uzené/neuzené“)
+        if ($tile['packageLabel'] !== null && ($description === null || $this->packageText($description) === null)) {
+            $description = implode(', ', array_filter([$tile['packageLabel']->text(), $description]));
+        }
         if ($name === null || $description === null) {
             return null;
         }

@@ -1,9 +1,13 @@
 <?php
 
 /**
- * Zapíše statistiku letáků stažení (R129): za každý leták z dávek počet akcí, které stažení
- * uložilo (akce s `scrape_run_id` tohoto stažení), akce převzaté jiným zdrojem obchodu (Lidl: web,
- * R136) a u letáků z PDF nebo SVG nalezené a ověřené ceny z parseru. Leták bez akce dostane řádek s nulou — rozbitý parser je vidět.
+ * Zapíše statistiku letáků stažení (R129): za každý leták z dávek počet akcí, které v něm zdroj
+ * stáhl, akce převzaté jiným zdrojem obchodu (Lidl: web, R136) a u letáků z PDF nebo SVG nalezené
+ * a ověřené ceny z parseru. Leták bez akce dostane řádek s nulou — rozbitý parser je vidět.
+ *
+ * Počet akcí je z dávek, ne z uložených řádků (R150): akci, kterou nese víc kampaní (Lidl: okurka
+ * v „Ovoci a zelenině“ i ve „Čtvrteční nabídce“), uloží jen první dávka — podle `leaflet_id` by
+ * ostatním kampaním chyběla a počet by skákal s pořadím kampaní na úvodní stránce.
  *
  * Běží v transakci importu po uložení dávek, jen u stažení, které nespadlo.
  *
@@ -21,7 +25,6 @@ use App\Domain\Offers\Data\TileStats;
 use App\Enums\Chain;
 use App\Models\Leaflet;
 use App\Models\LeafletStat;
-use App\Models\Offer;
 use App\Models\ScrapeRun;
 use Carbon\CarbonImmutable;
 
@@ -38,6 +41,8 @@ final class RecordLeafletStats
         $tiles = [];
         /** @var array<int, int> $covered ID letáku => akce převzaté jiným zdrojem obchodu (R136) */
         $covered = [];
+        /** @var array<int, array<string, true>> $offers ID letáku => klíče jeho akcí (víc dávek jednoho letáku bez zdvojení) */
+        $offers = [];
         foreach ($batches as $batch) {
             $leafletId = Leaflet::query()
                 ->where('chain', $chain)
@@ -51,23 +56,21 @@ final class RecordLeafletStats
             $previous = $tiles[$leafletId] ?? null;
             $tiles[$leafletId] = $batch->tiles === null ? $previous : ($previous ?? new TileStats)->plus($batch->tiles);
             $covered[$leafletId] = ($covered[$leafletId] ?? 0) + $batch->coveredOffers;
+            $offers[$leafletId] ??= [];
+            foreach ($batch->offers as $offer) {
+                $offers[$leafletId][$offer->key()] = true;
+            }
         }
-
-        $counts = Offer::query()
-            ->where('scrape_run_id', $run->id)
-            ->groupBy('leaflet_id')
-            ->selectRaw('leaflet_id, COUNT(*) AS offers_count')
-            ->pluck('offers_count', 'leaflet_id');
 
         $now = CarbonImmutable::now();
         $rows = [];
-        foreach (array_unique([...array_keys($tiles), ...$counts->keys()->map(intval(...))->all()]) as $leafletId) {
+        foreach (array_keys($offers) as $leafletId) {
             $stats = $tiles[$leafletId] ?? null;
             $rows[] = [
                 'scrape_run_id' => $run->id,
                 'leaflet_id' => $leafletId,
                 'chain' => $chain->value,
-                'offers_count' => (int) ($counts[$leafletId] ?? 0),
+                'offers_count' => count($offers[$leafletId]),
                 'covered_offers' => $covered[$leafletId] ?? 0,
                 'tile_candidates' => $stats?->candidates,
                 'tiles_verified' => $stats?->verified,
