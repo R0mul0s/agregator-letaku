@@ -589,3 +589,16 @@ a odběr akcí obchodu nebo produktu přes RSS (R149). SQL skript
 - **Ověřeno:** `version.txt` = `529fe55`; `/health/imports` i `/health/tasks` 200, `/akce` 200,
   `/akce/lidl/rss` 200 (`application/rss+xml`, 50 akcí), `/akce/lidl` má v hlavičce odkaz na kanál,
   `/hlidam` bez přihlášení přesměruje na přihlášení (13. 10.).
+
+### Aktualizace z `529fe55` (čtyřicáté první nasazení — provedeno, `605be8c`)
+
+Oprava dvou propadů z kvality dat Lidlu (R150): parser PDF letáku bere balení ze štítku nad cenou
+(nové rozvržení od letáku 19. 10.), kampaně webu mají ID s datem začátku a počet akcí letáku se
+počítá z dávek zdroje. Odhlášení jen tohoto zařízení a „Zapamatovat si mě“ předvyplněné (R151).
+Bez SQL skriptu, `composer.lock` ani `.env` beze změny. Kampaně Lidlu začnou jako nové zdroje
+nabídek bez historie, staré řádky `leaflets` bez data zůstávají s akcemi minulých týdnů.
+
+- **Ověřeno:** `version.txt` = `605be8c`; `/health/imports` i `/health/tasks` 200, `/akce` 200,
+  `/prihlaseni` 200 s `rememberParameter`, `/hlidam` bez přihlášení přesměruje na přihlášení (16. 10.).
+- **Opomenuto:** R151 změnilo text zásad, ale datum účinnosti (`letaky.legal.effective_from`, R69)
+  zůstalo 2026-10-13 — opraveno v dalším commitu, nasadí se s ním.
