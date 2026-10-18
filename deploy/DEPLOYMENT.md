@@ -455,7 +455,7 @@ migraci ztratila změny od té doby (registrace, hlídané položky, nákupní s
 | `data-2026-10-11-katalog-rozsireni.sql` | rozšíření katalogu (R135): 48 nových produktů včetně nepotravinového zboží a nová pravidla sedmi (Zmrzlina, Bílé víno, Červené víno, Rum, Čaj, Sprchový gel, Polévka); podle názvu, opakovatelný, nezávisí na kódu, ale až **po** `migrations-2026-10-11-delsi-pravidla.sql` | 2026-10-11 |
 | `migrations-2026-10-12-kvalita-dat-web.sql` | akce letáku převzaté webem (R136): `leaflet_stats.covered_offers`; opakovatelný, pustit **před** nahráním kódu | 2026-10-12 |
 | `migrations-2026-10-13-navrhy-hlidani.sql` | návrhy, co hlídat (R148): tabulka `watch_suggestions`; opakovatelný, pustit **před** nahráním kódu | 2026-10-13 |
-| `migrations-2026-10-18-pruvodce.sql` | průvodce prvním nastavením (R153): `users.onboarded_at`, dosavadním účtům čas registrace (jen při prvním spuštění); opakovatelný, pustit **před** nahráním kódu | — |
+| `migrations-2026-10-18-pruvodce.sql` | průvodce prvním nastavením (R153): `users.onboarded_at`, dosavadním účtům čas registrace (jen při prvním spuštění); opakovatelný, pustit **před** nahráním kódu | 2026-10-18 |
 
 ## Nasazené verze
 
@@ -506,3 +506,4 @@ Co běží na produkci — pro `git log <commit>..HEAD` při dalším nasazení
 | 2026-10-13 | `529fe55` | čtyřicáté nasazení: návrhy, co hlídat, z nákupního seznamu a opakovaného hledání (R148, SQL `migrations-2026-10-13-navrhy-hlidani.sql`), odběr akcí obchodu nebo produktu přes RSS `/akce/lidl/rss`, `/akce/pivo/rss` (R149); zásady s účinností 2026-10-13 |
 | 2026-10-16 | `605be8c` | čtyřicáté první nasazení: Lidl — balení nad cenou v PDF letáku od 19. 10., ID kampaní webu s datem začátku a počet akcí letáku z dávek zdroje (R150); odhlášení jen tohoto zařízení, „Zapamatovat si mě“ po registraci vždy a při přihlášení předvyplněné (R151); bez SQL skriptu |
 | 2026-10-16 | `c372815` | dodatek ke 41. nasazení: jen `config/letaky.php` — datum účinnosti zásad 2026-10-16 po změně textu v R151 (`version.txt` zůstává `605be8c`); bez SQL skriptu |
+| 2026-10-18 | `704bbb6` | čtyřicáté druhé nasazení: u položky bez akce v Hlídám kdy byla naposledy v akci (R152); průvodce prvním nastavením nového účtu `/vitejte` a karta „Dokončete nastavení“ na Mých slevách, výběr z ukázky na úvodní stránce předaný do registrace (R153, SQL `migrations-2026-10-18-pruvodce.sql`); bez nových proměnných v `.env`, `vendor/` beze změny |

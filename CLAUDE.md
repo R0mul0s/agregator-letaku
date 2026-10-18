@@ -36,7 +36,7 @@ Hotové etapy a funkce jsou v PLAN.md (tabulka *Co platí a co ne*, kap. 6 Etapy
 | Průvodce prvním nastavením nového účtu | `/vitejte?krok=1` | R153 |
 | Přihlášení, registrace, kontakt, právní texty | `/prihlaseni`, `/registrace`, `/kontakt`, `/podminky`, `/ochrana-udaju` | R51, R72, R73, R116, R121, R123 |
 
-Produkce běží na `https://slevohlidka.cz` (nasazeno 2026-10-02, přestěhováno ze `slevohlidka.rhsoft.cz` R93, naposledy `605be8c` 2026-10-16);
+Produkce běží na `https://slevohlidka.cz` (nasazeno 2026-10-02, přestěhováno ze `slevohlidka.rhsoft.cz` R93, naposledy `704bbb6` 2026-10-18);
 postup aktualizace a nasazené verze jsou v `deploy/DEPLOYMENT.md`, poznámky k dřívějším nasazením
 v `deploy/HISTORIE_NASAZENI.md`. Sleduje se 7 obchodů; Makro zatím nejde (ochrana proti robotům).
 Etapa 6 (LLM) jen když bude potřeba.
