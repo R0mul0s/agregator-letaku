@@ -29,6 +29,7 @@ import FilterChip from '@/Components/FilterChip.vue';
 import FloatingFilterBar from '@/Components/FloatingFilterBar.vue';
 import InstallPrompt from '@/Components/InstallPrompt.vue';
 import OfferFilterChips from '@/Components/OfferFilterChips.vue';
+import SetupChecklist from '@/Components/SetupChecklist.vue';
 import SortSelect from '@/Components/SortSelect.vue';
 import SortSheet from '@/Components/SortSheet.vue';
 import UpcomingSection from '@/Components/UpcomingSection.vue';
@@ -67,6 +68,8 @@ const props = defineProps({
     hasFollowedChains: { type: Boolean, required: true },
     /** Křestní jméno v 5. pádě do pozdravu („Romane“, R47). */
     greetingName: { type: String, required: true },
+    /** Karta „Dokončete nastavení“ { steps, dismissUrl } (R153); null = průvodce je za uživatelem. */
+    setup: { type: Object, default: null },
     /** Adresy předvoleb, Hlídám, účtu a nákupního seznamu. */
     urls: { type: Object, required: true },
     /** Počet položek nákupního seznamu — odkaz v pruhu (R138). */
@@ -515,6 +518,7 @@ onMounted(async () => {
                         {{ t('home.hero_lead', { count: summary.offers, number: formatNumber(summary.offers, page.props.locale) }) }}
                         <template v-if="offerFilterCounts.fresh">{{ t('home.hero_lead_fresh', { fresh: offerFilterCounts.fresh }) }}</template>
                     </p>
+                    <p v-else-if="setup" class="home-hero__lead">{{ t('home.setup_lead') }}</p>
                     <!-- Hranice slevy, která akce schovává (R41) — řazení je v liště pod pruhem (R100) -->
                     <p v-if="watchItems.length && offersPreferences.minDiscountPercent" class="home-hero__preferences">
                         {{ t('home.min_discount_filter', { percent: offersPreferences.minDiscountPercent }) }}
@@ -588,11 +592,15 @@ onMounted(async () => {
         </section>
 
         <div v-if="!hasFollowedChains || !watchItems.length" class="page__wrap home-empty">
+            <!-- Dokončete nastavení (R153) přes oblý konec pruhu místo lišty filtrů -->
+            <SetupChecklist v-if="setup" :setup="setup" />
             <EmptyState v-if="!hasFollowedChains" :text="t('home.no_chains')">
                 <Link :href="urls.preferences" class="button button--primary">{{ t('home.no_chains_link') }}</Link>
             </EmptyState>
             <EmptyState v-else :text="t('home.no_watch_items')">
                 <Link :href="urls.watchItems" class="button button--primary">{{ t('home.no_watch_items_link') }}</Link>
+                <!-- Karta Dokončete nastavení už zavřená — průvodce jde otevřít znovu (R153) -->
+                <Link v-if="!setup" :href="urls.onboarding" class="button button--soft">{{ t('watch.empty_onboarding') }}</Link>
             </EmptyState>
         </div>
 
@@ -652,6 +660,8 @@ onMounted(async () => {
                         </div>
                     </template>
                 </div>
+                <!-- Dokončete nastavení (R153) pod lištou filtrů, dokud průvodce není za uživatelem -->
+                <SetupChecklist v-if="setup" :setup="setup" class="home-toolbar__setup" />
                 <!-- Výzva k přidání na plochu pod lištou filtrů, ne nad červeným pruhem (R139) -->
                 <InstallPrompt inline class="home-toolbar__install" />
             </div>

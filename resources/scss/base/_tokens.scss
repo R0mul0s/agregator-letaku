@@ -517,6 +517,20 @@
     --install-pop-duration: 1.6s;
     --install-pop-iterations: 4;
     --install-pop-scale: 1.12;
+    // Průvodce prvním nastavením (R153): přilepená lišta s počítadlem, kroky v pruhu, dlaždice
+    // produktů, přepínače obchodů a karet; karta „Dokončete nastavení“ na Mých slevách
+    --onboarding-footbar-height: 4.5rem;
+    --onboarding-step-size: 1.5rem;
+    --onboarding-done-mascot-size: 6rem;
+    --onboarding-icon-box-size: 2.75rem;
+    --pick-tile-min-width: 11rem;
+    --pick-tile-min-height: 4.25rem;
+    --pick-tile-check-size: 1.25rem;
+    --choice-card-min-width: 18rem;
+    --choice-card-logo-width: 4.5rem;
+    --setup-mascot-size: 3.25rem;
+    --setup-meter-height: 0.5rem;
+    --setup-check-size: 1.6rem;
     // Stažení stránky dolů v aplikaci z plochy (R112): ukazatel vyjíždí zpod hlavičky (její výška
     // na telefonu), velikost kruhu a o kolik stupňů se šipka otočí na 1 px tahu
     --pull-refresh-top: 3.5rem;

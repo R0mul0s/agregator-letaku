@@ -14,7 +14,10 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Domain\Push\PushSubscriptions;
+use App\Domain\Push\Vapid;
 use App\Http\Requests\PushSubscriptionRequest;
+use App\Models\PushSubscription;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -31,6 +34,34 @@ class PushSubscriptionController extends Controller
 
     /** Adresa odběru u vypnutí a zkoušky — jen k vyhledání vlastního zařízení. */
     private const ENDPOINT_RULES = ['required', 'string', 'max:'.PushSubscriptionRequest::ENDPOINT_MAX_LENGTH];
+
+    /**
+     * Nastavení upozornění pro stránku (Můj účet, průvodce prvním nastavením R153) — bez klíčů
+     * VAPID vypnutá (null); zařízení podle adresy odběru, ať stránka pozná, jestli je mezi nimi
+     * to, na kterém je otevřená.
+     *
+     * @return array{publicKey: string|null, urls: array{store: string, destroy: string, test: string}, devices: list<array{endpoint: string, device: string}>}|null
+     */
+    public static function pageSettings(User $user, Vapid $vapid): ?array
+    {
+        if (! $vapid->isConfigured()) {
+            return null;
+        }
+
+        return [
+            'publicKey' => $vapid->publicKey(),
+            'urls' => [
+                'store' => route('account.push.store', absolute: false),
+                'destroy' => route('account.push.destroy', absolute: false),
+                'test' => route('account.push.test', absolute: false),
+            ],
+            'devices' => array_values($user->pushSubscriptions()->latest('updated_at')->get()
+                ->map(fn (PushSubscription $subscription): array => [
+                    'endpoint' => $subscription->endpoint,
+                    'device' => $subscription->device,
+                ])->all()),
+        ];
+    }
 
     /**
      * Zapne upozornění na zařízení, ze kterého přišel požadavek.

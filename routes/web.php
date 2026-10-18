@@ -35,6 +35,7 @@ use App\Http\Controllers\OfferReportController;
 use App\Http\Controllers\OffersController;
 use App\Http\Controllers\OfferStoresController;
 use App\Http\Controllers\OfferSuggestionsController;
+use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\ServiceWorkerController;
 use App\Http\Controllers\SharedShoppingListController;
@@ -222,6 +223,14 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/upozorneni', [NotificationController::class, 'index'])->name('notifications.index');
     Route::post('/upozorneni/precteno', [NotificationController::class, 'markRead'])->name('notifications.read');
     Route::get('/upozorneni/{notification}', [NotificationController::class, 'show'])->whereUuid('notification')->name('notifications.show');
+
+    // Průvodce prvním nastavením (R153): krok v adrese, volby se ukládají hned po klepnutí
+    Route::get('/vitejte', [OnboardingController::class, 'show'])->name('onboarding');
+    Route::post('/vitejte/polozky', [OnboardingController::class, 'storeItem'])->name('onboarding.items.store');
+    Route::delete('/vitejte/polozky/{watchItem}', [OnboardingController::class, 'destroyItem'])->name('onboarding.items.destroy');
+    Route::put('/vitejte/obchody', [OnboardingController::class, 'updateChains'])->name('onboarding.chains');
+    Route::put('/vitejte/karty', [OnboardingController::class, 'updateCards'])->name('onboarding.cards');
+    Route::post('/vitejte/hotovo', [OnboardingController::class, 'finish'])->name('onboarding.finish');
 
     Route::get('/obchody', [ShoppingPreferencesController::class, 'show'])->name('preferences');
     Route::put('/obchody', [ShoppingPreferencesController::class, 'update'])->name('preferences.update');

@@ -69,7 +69,7 @@ it('zaregistruje uživatele, přihlásí ho, e-mail uloží malými písmeny a p
     $this->travelTo('2026-10-03 10:00:00');
 
     $this->post(route('register.store'), registrationInput(['email' => 'Roman@Example.com']))
-        ->assertRedirect(route('watch-items.index'))
+        ->assertRedirect(route('onboarding'))
         ->assertSessionHas('status', RegisterResponse::STATUS_REGISTERED)
         // Událost pro Google Analytics (R134)
         ->assertSessionHas(AnalyticsEvents::SESSION_KEY, [['name' => 'sign_up', 'params' => ['method' => 'email']]]);

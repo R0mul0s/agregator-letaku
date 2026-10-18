@@ -16,11 +16,11 @@ import WatchSuggestions from '@/Components/WatchSuggestions.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { useTranslations } from '@/lib/i18n';
 import { scrollIntoViewGently } from '@/lib/scroll';
-import { Head, router, usePage } from '@inertiajs/vue3';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { computed, nextTick, onMounted, ref, watch } from 'vue';
 
 const props = defineProps({
-    /** Adresy { store, home, preview }. */
+    /** Adresy { store, home, preview, onboarding }. */
     urls: { type: Object, required: true },
     /** Hlídané položky s počtem akcí, nejnižší cenou a zmínkami (WatchItemController::index). */
     watchItems: { type: Array, required: true },
@@ -133,7 +133,10 @@ onMounted(() => {
         <WatchSuggestions :suggestions="watchSuggestions" :products="products" :watch-items="watchItems" own-in-page @own="openOwnForm" />
 
         <section class="watch-list" :aria-labelledby="watchItems.length ? 'watch-list-title' : undefined">
-            <EmptyState v-if="!watchItems.length" :text="t('watch.empty')" />
+            <!-- I po přeskočení průvodce se do něj jde vrátit (R153) -->
+            <EmptyState v-if="!watchItems.length" :text="t('watch.empty')">
+                <Link :href="urls.onboarding" class="button button--soft">{{ t('watch.empty_onboarding') }}</Link>
+            </EmptyState>
             <template v-else>
                 <h2 id="watch-list-title" class="watch-list__title">
                     {{ t('watch.list_title') }}

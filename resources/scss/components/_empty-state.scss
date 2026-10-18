@@ -26,4 +26,12 @@
         font-size: var(--font-size-card-title);
         font-weight: var(--font-weight-bold);
     }
+
+    // Víc akcí vedle sebe (Hlídám: průvodce nastavením, R153), na úzkém displeji pod sebou
+    &__action {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: var(--space-2);
+    }
 }

@@ -147,7 +147,7 @@ it('nového uživatele z Googlu pošle dokončit registraci a založí účet be
         ->where('identity.emailVerified', true));
 
     $this->post(route('social.register.store'), ['name' => 'Roman', 'terms' => true])
-        ->assertRedirect(route('watch-items.index'))
+        ->assertRedirect(route('onboarding'))
         ->assertSessionHas('status', RegisterResponse::STATUS_REGISTERED)
         // Událost pro Google Analytics se způsobem registrace (R134)
         ->assertSessionHas(AnalyticsEvents::SESSION_KEY, [['name' => 'sign_up', 'params' => ['method' => 'google']]]);

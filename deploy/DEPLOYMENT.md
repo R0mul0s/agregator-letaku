@@ -455,6 +455,7 @@ migraci ztratila změny od té doby (registrace, hlídané položky, nákupní s
 | `data-2026-10-11-katalog-rozsireni.sql` | rozšíření katalogu (R135): 48 nových produktů včetně nepotravinového zboží a nová pravidla sedmi (Zmrzlina, Bílé víno, Červené víno, Rum, Čaj, Sprchový gel, Polévka); podle názvu, opakovatelný, nezávisí na kódu, ale až **po** `migrations-2026-10-11-delsi-pravidla.sql` | 2026-10-11 |
 | `migrations-2026-10-12-kvalita-dat-web.sql` | akce letáku převzaté webem (R136): `leaflet_stats.covered_offers`; opakovatelný, pustit **před** nahráním kódu | 2026-10-12 |
 | `migrations-2026-10-13-navrhy-hlidani.sql` | návrhy, co hlídat (R148): tabulka `watch_suggestions`; opakovatelný, pustit **před** nahráním kódu | 2026-10-13 |
+| `migrations-2026-10-18-pruvodce.sql` | průvodce prvním nastavením (R153): `users.onboarded_at`, dosavadním účtům čas registrace (jen při prvním spuštění); opakovatelný, pustit **před** nahráním kódu | — |
 
 ## Nasazené verze
 

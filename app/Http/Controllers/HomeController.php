@@ -15,6 +15,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Domain\Account\Onboarding;
 use App\Domain\Catalog\CatalogBrowseTree;
 use App\Domain\Catalog\CategoryPaths;
 use App\Domain\Matching\ChainOverview;
@@ -51,7 +52,7 @@ class HomeController extends Controller
      * v letácích bez ceny (R27); akce, které ještě nezačaly, zvlášť (R76). U akcí příznaky pro
      * štítky Nové a Končí brzy, `?prodejny=vse` dočasně ukáže akce všech prodejen (R101).
      */
-    public function __invoke(Request $request, MyOffers $myOffers, UserPricing $pricing, OfferPresenter $presenter, MentionPresenter $mentionPresenter, LandingController $landing, CzechVocative $vocative, PriceHistory $priceHistory, WaitAdvice $waitAdvice, LocalCalendar $calendar, OfferSearch $search, ChainOverview $chainOverview, ExclusionSuggestions $suggestions, CategoryPaths $categories): Response
+    public function __invoke(Request $request, MyOffers $myOffers, UserPricing $pricing, OfferPresenter $presenter, MentionPresenter $mentionPresenter, LandingController $landing, CzechVocative $vocative, PriceHistory $priceHistory, WaitAdvice $waitAdvice, LocalCalendar $calendar, OfferSearch $search, ChainOverview $chainOverview, ExclusionSuggestions $suggestions, CategoryPaths $categories, Onboarding $onboarding): Response
     {
         // Nepřihlášený má na stejné adrese úvodní stránku (R44)
         $user = $request->user();
@@ -89,9 +90,13 @@ class HomeController extends Controller
             'hasFollowedChains' => $user->followedChains()->exists(),
             // Pozdrav „Ahoj, Romane!“ — křestní jméno v 5. pádě (R47)
             'greetingName' => $vocative->firstName($user->name),
+            // Karta „Dokončete nastavení“ (R153), dokud průvodce nedokončí nebo kartu nezavře
+            'setup' => $this->setup($user, $onboarding),
             'urls' => [
                 'preferences' => route('preferences', absolute: false),
                 'watchItems' => route('watch-items.index', absolute: false),
+                // Průvodce prvním nastavením z prázdného stavu (R153)
+                'onboarding' => route('onboarding', absolute: false),
                 'offersPreferences' => route('account', absolute: false).'#moje-slevy',
                 'digest' => route('account', absolute: false).'#souhrn',
                 'shoppingList' => route('shopping-list.index', absolute: false),
@@ -151,6 +156,28 @@ class HomeController extends Controller
                 ),
             ], $groups),
         ]);
+    }
+
+    /**
+     * Karta „Dokončete nastavení“ (R153): body s adresou kroku průvodce, zavření; null = průvodce
+     * má uživatel za sebou.
+     *
+     * @return array{steps: list<array{key: string, done: bool, count: int, url: string}>, dismissUrl: string}|null
+     */
+    private function setup(User $user, Onboarding $onboarding): ?array
+    {
+        $checklist = $onboarding->checklist($user);
+        if ($checklist === null) {
+            return null;
+        }
+
+        return [
+            'steps' => array_map(fn (array $step, int $index): array => [
+                ...$step,
+                'url' => route('onboarding', [OnboardingController::STEP_PARAMETER => OnboardingController::STEPS[$index]], absolute: false),
+            ], $checklist, array_keys($checklist)),
+            'dismissUrl' => route('onboarding.finish', absolute: false),
+        ];
     }
 
     /**

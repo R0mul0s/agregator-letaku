@@ -27,7 +27,6 @@ use App\Enums\SocialProvider;
 use App\Http\Requests\DigestRequest;
 use App\Http\Requests\MarketingRequest;
 use App\Http\Requests\OffersPreferencesRequest;
-use App\Models\PushSubscription;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -110,21 +109,8 @@ class AccountController extends Controller
                 ),
             ],
             'marketingConsent' => $this->user($request)->hasMarketingConsent(),
-            // Upozornění v telefonu (R66) — bez klíčů VAPID vypnutá; zařízení podle adresy odběru,
-            // ať stránka pozná, jestli je mezi nimi to, na kterém je otevřená
-            'push' => $vapid->isConfigured() ? [
-                'publicKey' => $vapid->publicKey(),
-                'urls' => [
-                    'store' => route('account.push.store', absolute: false),
-                    'destroy' => route('account.push.destroy', absolute: false),
-                    'test' => route('account.push.test', absolute: false),
-                ],
-                'devices' => $this->user($request)->pushSubscriptions()->latest('updated_at')->get()
-                    ->map(fn (PushSubscription $subscription): array => [
-                        'endpoint' => $subscription->endpoint,
-                        'device' => $subscription->device,
-                    ])->all(),
-            ] : null,
+            // Upozornění v telefonu (R66)
+            'push' => PushSubscriptionController::pageSettings($this->user($request), $vapid),
             // Verze aplikace u kontroly aktualizací (R78)
             'appVersion' => $this->appVersion(),
             'social' => $this->social($this->user($request), $request, $confirmation),

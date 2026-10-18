@@ -29,7 +29,7 @@ class UserFactory extends Factory
     protected static ?string $passwordHash = null;
 
     /**
-     * Výchozí uživatel s heslem PASSWORD.
+     * Výchozí uživatel s heslem PASSWORD, průvodce prvním nastavením má za sebou (R153).
      *
      * @return array<string, mixed>
      */
@@ -41,6 +41,15 @@ class UserFactory extends Factory
             'email_verified_at' => now(),
             'password' => static::$passwordHash ??= Hash::make(self::PASSWORD),
             'remember_token' => Str::random(10),
+            'onboarded_at' => now(),
         ];
+    }
+
+    /**
+     * Nový účet, který průvodce prvním nastavením ještě nedokončil (R153).
+     */
+    public function notOnboarded(): static
+    {
+        return $this->state(['onboarded_at' => null]);
     }
 }

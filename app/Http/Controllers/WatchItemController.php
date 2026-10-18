@@ -13,7 +13,8 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Domain\Catalog\CatalogBrowseTree;
-use App\Domain\Catalog\CategoryPaths;
+use App\Domain\Catalog\WatchableProducts;
+use App\Domain\Matching\Actions\AddWatchItem;
 use App\Domain\Matching\MyOffers;
 use App\Domain\Matching\TextNormalizer;
 use App\Domain\Matching\WatchHistory;
@@ -24,7 +25,6 @@ use App\Enums\AnalyticsEvent;
 use App\Enums\MatchStatus;
 use App\Http\Requests\WatchItemRequest;
 use App\Models\Offer;
-use App\Models\Product;
 use App\Models\User;
 use App\Models\WatchItem;
 use App\Rules\KeywordFields;
@@ -63,20 +63,19 @@ class WatchItemController extends Controller
      * v letácích — stejně jako v Mých slevách), u položky bez akce kdy naposledy v akci byla
      * (R152), a produkty katalogu k přidání.
      */
-    public function index(Request $request, CategoryPaths $categories, CatalogBrowseTree $browseTree, MyOffers $myOffers, UserPricing $pricing, WatchSuggestions $suggestions, WatchHistory $history): Response
+    public function index(Request $request, WatchableProducts $watchable, CatalogBrowseTree $browseTree, MyOffers $myOffers, UserPricing $pricing, WatchSuggestions $suggestions, WatchHistory $history): Response
     {
         /** @var User $user */
         $user = $request->user();
-        $watchedProductIds = $user->watchItems()->whereNotNull('product_id')->pluck('product_id')->all();
-        $products = Product::query()->orderBy('name')->get();
-        // Našeptávač ukáže, jestli se hlídání vyplatí — kolik akcí by produkt teď našel (R71)
-        $stats = $myOffers->productStats($user);
+        $products = $watchable->all();
 
         return Inertia::render('WatchItems', [
             'urls' => [
                 'store' => route('watch-items.store', absolute: false),
                 'home' => route('home', absolute: false),
                 'preview' => route('watch-items.preview', absolute: false),
+                // Bez hlídaných položek nabídne prázdný stav průvodce prvním nastavením (R153)
+                'onboarding' => route('onboarding', absolute: false),
             ],
             'watchItems' => array_map(fn (array $group): array => [
                 ...$this->itemToPage($group['watchItem']),
@@ -90,18 +89,9 @@ class WatchItemController extends Controller
             'editId' => $request->integer(self::EDIT_PARAMETER) ?: null,
             // „Hlídat“ u akce bez produktu katalogu (R60) — text jako název i hledaná slova
             'prefill' => Str::limit(trim($request->string(self::PREFILL_PARAMETER)->toString()), config()->integer('letaky.watch.name_max_length'), '') ?: null,
-            // Katalog nahradil šablony (R31) — produkt jde hlídat jedním klepnutím, nejvýš jednou
-            'products' => $products->map(fn (Product $product): array => [
-                'id' => $product->id,
-                'name' => $product->name,
-                'categoryLabel' => $categories->label($product->category_id),
-                'categoryName' => $categories->name($product->category_id),
-                'department' => $categories->department($product->category_id),
-                'icon' => CatalogBrowseTree::icon($categories->department($product->category_id)),
-                'watched' => in_array($product->id, $watchedProductIds, true),
-                'offersCount' => $stats[$product->id]['count'] ?? 0,
-                'lowestPrice' => $stats[$product->id]['lowestPrice'] ?? null,
-            ]),
+            // Katalog nahradil šablony (R31) — produkt jde hlídat jedním klepnutím, nejvýš jednou;
+            // našeptávač ukáže, jestli se hlídání vyplatí — kolik akcí by produkt teď našel (R71)
+            'products' => $watchable->toPage($user, $products),
             // Procházení katalogu po odděleních jako v e-shopu (R47)
             'catalogTree' => $browseTree->build($products),
             // Návrhy, co hlídat (R148): z nákupního seznamu ze serveru, z opakovaného hledání
@@ -139,13 +129,11 @@ class WatchItemController extends Controller
     /**
      * Založí položku.
      */
-    public function store(WatchItemRequest $request, WatchSuggestions $suggestions): RedirectResponse
+    public function store(WatchItemRequest $request, AddWatchItem $add): RedirectResponse
     {
         /** @var User $user */
         $user = $request->user();
-        $item = $user->watchItems()->create($request->watchItemData());
-        // Návrh stejné položky z nákupního seznamu je vyřízený (R148)
-        $suggestions->closeFor($user, $item);
+        $item = $add($user, $request->watchItemData());
         AnalyticsEvents::flash($request, AnalyticsEvent::AddWatchItem, ['item_type' => $item->product_id === null ? 'keywords' : 'product']);
 
         // Z karty ve Všech akcích (R60) zpátky na stejné místo, jinak na Hlídám. Toast nabídne

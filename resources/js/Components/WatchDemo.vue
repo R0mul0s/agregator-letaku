@@ -3,7 +3,8 @@
     bez registrace zapíná obchody a produkty katalogu a hned vidí, kolik akcí by mu Slevohlídka
     hlídala a které jsou nejlevnější za jednotku (WatchDemoController). Po každé změně výběru
     dotaz s krátkou pauzou, předchozí se zruší. Tři karty vedle sebe s čísly propojenými
-    čárkovanou linkou, štítek „Živá ukázka“ nad nimi a výzva pod nimi (R137).
+    čárkovanou linkou, štítek „Živá ukázka“ nad nimi a výzva pod nimi (R137). Výzva předá vybrané
+    produkty do registrace, průvodce prvním nastavením je pak má vybrané (R153).
 
     @author Roman Hlaváček
     @created 2026-10-06
@@ -29,7 +30,7 @@ const STEPS = ['chains', 'watch', 'hunt'];
 const props = defineProps({
     /** Obchody se zdrojem dat (hodnoty App\Enums\Chain), na začátku zapnuté všechny. */
     chains: { type: Array, required: true },
-    /** { url, products: [{ id, name, icon }], preselected: [id], initial: { count, offers } } */
+    /** { url, watchParameter, watchSeparator, products: [{ id, name, icon }], preselected: [id], initial: { count, offers } } */
     demo: { type: Object, required: true },
     /** Adresa registrace (výzva pod výsledkem). */
     registerUrl: { type: String, required: true },
@@ -47,6 +48,13 @@ const request = createLatestRequest();
 /** Je co hledat? Bez obchodu nebo produktu se dotaz neposílá. */
 const ready = computed(() => selectedChains.value.length > 0 && selectedProducts.value.length > 0);
 const shownCount = useTweenedNumber(() => (ready.value ? result.value.count : 0));
+
+/** Registrace s vybranými produkty — průvodce prvním nastavením je má hned vybrané (R153). */
+const registerHref = computed(() =>
+    selectedProducts.value.length
+        ? `${props.registerUrl}?${new URLSearchParams({ [props.demo.watchParameter]: selectedProducts.value.join(props.demo.watchSeparator) })}`
+        : props.registerUrl,
+);
 
 /**
  * Zapne, nebo vypne hodnotu v seznamu výběru.
@@ -162,7 +170,7 @@ onBeforeUnmount(() => {
             </li>
         </ol>
         <div class="watch-demo__cta-row">
-            <Link :href="registerUrl" class="button button--primary">{{ t('landing.demo.cta') }}</Link>
+            <Link :href="registerHref" class="button button--primary">{{ t('landing.demo.cta') }}</Link>
             <p class="watch-demo__cta-note">{{ t('landing.demo.cta_note') }}</p>
         </div>
     </div>

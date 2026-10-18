@@ -78,6 +78,19 @@ it('nepřihlášený přes registraci — produkt začne hlídat hned po ní', f
         ->name->toBe('Máslo');
 });
 
+it('výběr z ukázky na úvodní stránce — víc produktů začne hlídat po registraci, nejvýš max_prefill (R153)', function (): void {
+    config(['letaky.onboarding.max_prefill' => 2]);
+    $beer = Product::factory()->create(['name' => 'Pivo', 'keywords' => 'pivo']);
+    $coffee = Product::factory()->create(['name' => 'Káva', 'keywords' => 'káva']);
+    $ids = implode(RegisterResponse::WATCH_SEPARATOR, [$this->butter->id, 999999, $beer->id, $coffee->id]);
+    $this->get(route('register', [RegisterResponse::WATCH_PARAMETER => $ids]))->assertOk();
+
+    $this->post(route('register.store'), registrationInput())->assertRedirect(route('onboarding'));
+
+    // Neexistující se nepočítá do limitu, třetí existující už se nevejde
+    expect(WatchItem::query()->orderBy('id')->pluck('product_id')->all())->toBe([$this->butter->id, $beer->id]);
+});
+
 it('neexistující produkt v adrese registrace ignoruje', function (): void {
     $this->get(route('register', [RegisterResponse::WATCH_PARAMETER => 999999]))->assertOk();
 

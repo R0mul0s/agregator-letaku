@@ -39,6 +39,8 @@
 @use 'components/cookie-consent';
 @use 'components/stores-dialog';
 @use 'components/install-prompt';
+@use 'components/choice-card';
+@use 'components/setup-checklist';
 @use 'components/offline-bar';
 @use 'components/update-bar';
 @use 'components/pull-refresh';
@@ -73,3 +75,4 @@
 @use 'pages/users';
 @use 'pages/reports';
 @use 'pages/data-quality';
+@use 'pages/onboarding';

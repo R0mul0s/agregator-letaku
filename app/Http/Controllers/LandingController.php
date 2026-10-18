@@ -17,6 +17,7 @@ namespace App\Http\Controllers;
 
 use App\Domain\Offers\LandingSnapshot;
 use App\Domain\Offers\WeeklyDeals;
+use App\Http\Responses\RegisterResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -48,6 +49,9 @@ class LandingController extends Controller
             'topOffers' => $data['topOffers'],
             'demo' => [
                 'url' => route('watch-demo', absolute: false),
+                // Výběr z ukázky jde do registrace a průvodce ho má hned vybraný (R153)
+                'watchParameter' => RegisterResponse::WATCH_PARAMETER,
+                'watchSeparator' => RegisterResponse::WATCH_SEPARATOR,
                 ...$data['demo'],
             ],
             'quiz' => $data['quiz'],

@@ -46,6 +46,7 @@ use Illuminate\Support\Str;
  * @property CarbonImmutable|null $push_sent_at Poslední zpracované upozornění v telefonu (UTC), i když nebylo co poslat (R66)
  * @property CarbonImmutable|null $notified_at Do kdy jsou nové akce zapsané v centru upozornění (UTC, R74); null = ještě nezačalo
  * @property CarbonImmutable|null $last_seen_at Poslední požadavek přihlášeného (UTC, R84); zapisuje TrackLastSeen nejvýš jednou za minutu, null = od zavedení nepřišel
+ * @property CarbonImmutable|null $onboarded_at Dokončení průvodce prvním nastavením nebo zavření karty „Dokončete nastavení“ (UTC, R153); null = karta se na Mých slevách ukazuje
  * @property CarbonImmutable|null $terms_accepted_at Přijetí podmínek užití (R51)
  * @property int|null $terms_version Verze přijatých podmínek (letaky.legal.terms_version)
  * @property CarbonImmutable|null $marketing_consent_at Poslední udělení souhlasu s obchodními sděleními (R51); platí, jen když je novější než odvolání (R69)
@@ -120,6 +121,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'push_sent_at' => 'immutable_datetime',
             'notified_at' => 'immutable_datetime',
             'last_seen_at' => 'immutable_datetime',
+            'onboarded_at' => 'immutable_datetime',
             'terms_accepted_at' => 'immutable_datetime',
             'terms_version' => 'integer',
             'marketing_consent_at' => 'immutable_datetime',

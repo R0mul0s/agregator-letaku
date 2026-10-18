@@ -900,6 +900,28 @@ return [
         'max_shown' => 3,
     ],
 
+    /*
+    | Průvodce prvním nastavením nového účtu (R153, App\Domain\Account\Onboarding): produkty
+    | katalogu na výběr v prvním kroku (podle názvu, seskupené po odděleních) — běžný nákup,
+    | ne nejvíc akcí (podle počtu akcí by nahoře byly LEGO a spotřebiče). Od min_items vybraných
+    | položek už průvodce nepobízí, ať vybere víc. Odkaz z ukázky na úvodní stránce předá do
+    | registrace nejvýš max_prefill produktů (?hlidat=1,2,3).
+    */
+    'onboarding' => [
+        'min_items' => 3,
+        'max_prefill' => 8,
+        'products' => [
+            'Polotučné mléko', 'Máslo', 'Jogurt', 'Tvaroh', 'Eidam', 'Mozzarella', 'Vejce',
+            'Kuřecí prsa', 'Vepřové maso', 'Hovězí maso', 'Šunka',
+            'Rohlíky', 'Chléb',
+            'Banány', 'Jablka', 'Rajčata', 'Brambory',
+            'Pivo', 'Minerální voda', 'Coca-Cola', 'Mletá káva', 'Zrnková káva',
+            'Těstoviny', 'Rýže', 'Čokoláda', 'Chipsy',
+            'Prací prostředek', 'Toaletní papír', 'Zubní pasta', 'Šampon',
+            'Krmivo pro kočky', 'Krmivo pro psy',
+        ],
+    ],
+
     // Hlášení chyb v akcích od uživatelů (R125)
     'offer_reports' => [
         'note_max_length' => 500,

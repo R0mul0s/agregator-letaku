@@ -22,4 +22,7 @@ enum AnalyticsEvent: string
     case AddWatchItem = 'add_watch_item';
     // Parametr `item_type` (offer = akce, custom = vlastní položka) a `chain` (obchod, je-li)
     case AddToShoppingList = 'add_to_shopping_list';
+    // Průvodce prvním nastavením (R153), parametr `result` (finished = dokončený, dismissed = karta
+    // „Dokončete nastavení“ zavřená)
+    case CompleteOnboarding = 'onboarding_complete';
 }

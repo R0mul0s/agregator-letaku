@@ -7,6 +7,7 @@
     Aplikace v telefonu (R66): přihlášený má na telefonu hlavní stránky ve spodní liště záložek
     (hamburger jen pro položky mimo lištu — dnes žádné, katalog admina je v menu pod avatarem, R75),
     lišta „Jste offline“ a výzva k přidání na plochu; lišta „Máme novou verzi“ po nasazení (R78).
+    Soustředěná stránka (prop focus, průvodce R153) nemá navigaci, zvonek, menu ani spodní lištu.
 
     @author Roman Hlaváček
     @created 2026-10-02
@@ -33,6 +34,14 @@ import { useTranslations } from '@/lib/i18n';
 import { Link, router, usePage } from '@inertiajs/vue3';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 
+const props = defineProps({
+    /**
+     * Soustředěná stránka (průvodce prvním nastavením, R153): hlavička jen s logem a vlastními
+     * akcemi ze slotu `header-actions`, bez navigace a spodní lišty záložek.
+     */
+    focus: { type: Boolean, default: false },
+});
+
 /** id navigace pro aria-controls tlačítka menu. */
 const NAV_ID = 'app-navigation';
 
@@ -42,11 +51,14 @@ const BLEED_PAGES = ['Landing', 'Home', 'Offers', 'Weekly'];
 const t = useTranslations();
 const page = usePage();
 
+/** Navigace v hlavičce — soustředěná stránka ji nemá. */
+const navigation = computed(() => (props.focus ? [] : page.props.navigation));
+
 /** Hamburger na telefonu — jen pro položky, které nejsou ve spodní liště záložek (R66). */
-const hasMenuButton = computed(() => page.props.navigation.some((item) => !item.tab));
+const hasMenuButton = computed(() => navigation.value.some((item) => !item.tab));
 
 /** Spodní lišta záložek na telefonu (R66) — v hlavičce je pak místo na celé logo s názvem. */
-const hasTabBar = computed(() => page.props.navigation.some((item) => item.tab));
+const hasTabBar = computed(() => navigation.value.some((item) => item.tab));
 
 /** Stránka s oddíly přes celou šířku — obsah si odsadí sama (.page__wrap). */
 const bleedPage = computed(() => BLEED_PAGES.includes(page.component));
@@ -103,6 +115,7 @@ onBeforeUnmount(() => {
             'app-header--flush': bleedPage,
             'app-header--with-menu': hasMenuButton,
             'app-header--with-tabs': hasTabBar,
+            'app-header--focus': focus,
             'app-header--menu-open': navOpen,
         }"
     >
@@ -117,9 +130,9 @@ onBeforeUnmount(() => {
                     <span class="app-header__tagline">{{ t('brand.tagline') }}</span>
                 </span>
             </Link>
-            <nav v-if="page.props.navigation.length" :id="NAV_ID" class="app-header__nav" :aria-label="t('nav.label')">
+            <nav v-if="navigation.length" :id="NAV_ID" class="app-header__nav" :aria-label="t('nav.label')">
                 <Link
-                    v-for="item in page.props.navigation"
+                    v-for="item in navigation"
                     :key="item.url"
                     :href="item.url"
                     class="app-header__link"
@@ -135,9 +148,13 @@ onBeforeUnmount(() => {
                 </div>
             </nav>
             <div class="app-header__actions">
+                <!-- Soustředěná stránka (R153): jen vlastní akce (Přeskočit) -->
+                <slot v-if="focus" name="header-actions" />
                 <!-- Zvonek s nepřečtenými upozorněními (R74); vzhled i odhlášení v menu pod avatarem (R40) -->
-                <NotificationBell v-if="page.props.auth.user" />
-                <UserMenu v-if="page.props.auth.user" />
+                <template v-else-if="page.props.auth.user">
+                    <NotificationBell />
+                    <UserMenu />
+                </template>
                 <template v-else>
                     <!-- Na mobilu by se vedle přihlášení nevešel — vzhled se tam řídí systémem -->
                     <ThemeSwitch class="app-header__guest-theme" />
@@ -179,7 +196,7 @@ onBeforeUnmount(() => {
     </main>
 
     <AppFooter />
-    <TabBar />
+    <TabBar v-if="!focus" />
 
     <BackToTop />
     <Toaster />
