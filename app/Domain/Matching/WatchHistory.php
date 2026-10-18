@@ -9,6 +9,9 @@
  * (OfferPrefilter) a přesné vyhodnocení WatchItemMatcher. Nabídky jdou od nejpozději
  * končících po dávkách, stačí první shoda.
  *
+ * Uložená položka bez akce ukáže v Hlídám totéž (R152) — bez akcí, které u ní uživatel skryl
+ * („Tohle ne“, R125), a u položky z katalogu bez akcí vyřazených z produktu (R30).
+ *
  * @author Roman Hlaváček
  *
  * @created 2026-10-07
@@ -20,6 +23,9 @@ namespace App\Domain\Matching;
 
 use App\Domain\Offers\LocalCalendar;
 use App\Models\Offer;
+use App\Models\OfferProductExclusion;
+use App\Models\WatchItem;
+use App\Models\WatchItemOfferExclusion;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Cache;
@@ -39,8 +45,10 @@ final class WatchHistory
 
     /**
      * Poslední akce, kterou by pravidlo našlo mezi už neplatnými, nebo null.
+     *
+     * @param  list<int>  $excludedOfferIds  Nabídky, které se nepočítají (skryté nebo vyřazené)
      */
-    public function lastSeen(WatchRule $rule): ?Offer
+    public function lastSeen(WatchRule $rule, array $excludedOfferIds = []): ?Offer
     {
         if ($rule->keywords === []) {
             return null;
@@ -55,6 +63,7 @@ final class WatchHistory
                 ->whereNotNull('withdrawn_at')
                 ->orWhere('valid_to', '<', $this->calendar->today()->toDateString()))
             ->tap(fn (Builder $query) => OfferPrefilter::containingAny($query, $rule->prefilterTerm()))
+            ->when($excludedOfferIds !== [], fn (Builder $query) => $query->whereNotIn('id', $excludedOfferIds))
             ->orderByDesc('valid_to')
             ->orderByDesc('id')
             ->lazy(self::CHUNK_SIZE);
@@ -66,6 +75,21 @@ final class WatchHistory
         }
 
         return null;
+    }
+
+    /**
+     * Poslední už neplatná akce uložené položky (R152) — její pravidla (u položky z katalogu
+     * pravidla produktu s vlastními vyloučenými slovy) bez akcí skrytých u položky a vyřazených
+     * z jejího produktu.
+     */
+    public function lastSeenForItem(WatchItem $item, WatchRule $rule): ?Offer
+    {
+        $excluded = WatchItemOfferExclusion::query()->where('watch_item_id', $item->id)->pluck('offer_id')->all();
+        if ($item->product_id !== null) {
+            $excluded = [...$excluded, ...OfferProductExclusion::query()->where('product_id', $item->product_id)->pluck('offer_id')->all()];
+        }
+
+        return $this->lastSeen($rule, array_values(array_unique($excluded)));
     }
 
     /**

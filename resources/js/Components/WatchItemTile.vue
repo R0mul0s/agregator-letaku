@@ -1,6 +1,7 @@
 <!--
     Dlaždice hlídané položky v Hlídám — název, odkud jsou pravidla (katalog / vlastní slova),
-    co je teď v akci (počet, nejnižší cena, zmínky v letácích) a akce upravit / přestat hlídat.
+    co je teď v akci (počet, nejnižší cena, zmínky v letácích), bez akce kdy v ní byla naposledy
+    (R152) a akce upravit / přestat hlídat.
     Úprava vlastních slov otevře formulář přímo v dlaždici.
 
     @author Roman Hlaváček
@@ -8,11 +9,11 @@
 -->
 <script setup>
 import WatchItemForm from '@/Components/WatchItemForm.vue';
-import { formatPrice } from '@/lib/format';
+import { formatPrice, formatShortDate } from '@/lib/format';
 import { confirmDialog } from '@/lib/confirm';
 import { useTranslations } from '@/lib/i18n';
 import { Link, router, usePage } from '@inertiajs/vue3';
-import { onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 
 const props = defineProps({
     /** Položka z WatchItemController::index (pravidla, počty akcí, adresy). */
@@ -37,6 +38,23 @@ onMounted(() => {
     if (props.initiallyEditing) {
         root.value?.scrollIntoView({ block: 'center' });
     }
+});
+
+/** Položka teď bez akce (R152): kdy, kde a za kolik v akci naposledy byla; bez historie nic. */
+const lastSeenText = computed(() => {
+    const lastSeen = props.item.lastSeen;
+    if (props.item.offersCount || !lastSeen) {
+        return null;
+    }
+
+    const replace = {
+        date: formatShortDate(lastSeen.endedOn, page.props.locale),
+        chain: page.props.chainInfo[lastSeen.chain]?.name ?? lastSeen.chain,
+    };
+
+    return lastSeen.price === null
+        ? t('watch.last_seen_no_price', replace)
+        : t('watch.last_seen', { ...replace, price: formatPrice(lastSeen.price, page.props.locale) });
 });
 
 /** Po potvrzení položku smaže. */
@@ -91,6 +109,7 @@ async function remove() {
                 <span v-if="item.lowestPrice !== null">{{ t('watch.lowest_price', { price: formatPrice(item.lowestPrice, page.props.locale) }) }}</span>
             </Link>
             <p v-else class="watch-tile__status">{{ t('watch.no_offers') }}</p>
+            <p v-if="lastSeenText" class="watch-tile__last-seen">{{ lastSeenText }}</p>
             <p v-if="item.mentionsCount" class="watch-tile__mentions">{{ t('watch.mentions_count', { count: item.mentionsCount }) }}</p>
         </template>
     </article>

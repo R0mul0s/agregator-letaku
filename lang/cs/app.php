@@ -603,6 +603,9 @@ return [
             'wait_tip_short' => 'Brzy bude o :percent % levněji než nejlevnější akce dnes.',
             'wait_tip_offer' => ':chain od :date za :price (:unit_price), ukázat v sekci Brzy',
             'no_offers' => 'Teď v akci není',
+            // Dlaždice bez akce (R152) — poslední akce z kteréhokoli obchodu za okno historie
+            'last_seen' => 'Naposledy v akci do :date — :chain za :price',
+            'last_seen_no_price' => 'Naposledy v akci do :date — :chain',
             'mentions_count' => ':count zmínka v letáku|:count zmínky v letáku|:count zmínek v letáku',
             'show_offers' => 'Zobrazit v Mých slevách',
             'browse_title' => 'Procházet katalog',

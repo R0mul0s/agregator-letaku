@@ -23,6 +23,7 @@ use App\Domain\Shopping\WatchSuggestions;
 use App\Enums\AnalyticsEvent;
 use App\Enums\MatchStatus;
 use App\Http\Requests\WatchItemRequest;
+use App\Models\Offer;
 use App\Models\Product;
 use App\Models\User;
 use App\Models\WatchItem;
@@ -59,9 +60,10 @@ class WatchItemController extends Controller
 
     /**
      * Hlídané položky s tím, co k nim teď je v akci (počet akcí, nejnižší cena, zmínky
-     * v letácích — stejně jako v Mých slevách), a produkty katalogu k přidání.
+     * v letácích — stejně jako v Mých slevách), u položky bez akce kdy naposledy v akci byla
+     * (R152), a produkty katalogu k přidání.
      */
-    public function index(Request $request, CategoryPaths $categories, CatalogBrowseTree $browseTree, MyOffers $myOffers, UserPricing $pricing, WatchSuggestions $suggestions): Response
+    public function index(Request $request, CategoryPaths $categories, CatalogBrowseTree $browseTree, MyOffers $myOffers, UserPricing $pricing, WatchSuggestions $suggestions, WatchHistory $history): Response
     {
         /** @var User $user */
         $user = $request->user();
@@ -81,6 +83,8 @@ class WatchItemController extends Controller
                 'offersCount' => count($group['offers']),
                 'mentionsCount' => count($group['mentions']),
                 'lowestPrice' => $pricing->lowest($user, array_column($group['offers'], 'offer')),
+                // Teď bez akce (R152): kdy naposledy v akci byla, z kteréhokoli obchodu jako náhled (R104)
+                'lastSeen' => $group['offers'] === [] ? $this->lastSeenToPage($user, $pricing, $history, $history->lastSeenForItem($group['watchItem'], $group['rule'])) : null,
             ], $myOffers->forUser($user)),
             // Odkaz „Upravit“ z Mých slev (?upravit=id) otevře úpravu položky rovnou v dlaždici
             'editId' => $request->integer(self::EDIT_PARAMETER) ?: null,
@@ -174,14 +178,25 @@ class WatchItemController extends Controller
                 'price' => $pricing->price($user, $match['offer']),
                 'maybe' => $match['status'] === MatchStatus::Maybe,
             ], array_slice($matches, 0, config()->integer('letaky.search.preview_examples'))),
-            'lastSeen' => $lastSeen === null ? null : [
-                'name' => $lastSeen->name,
-                'chain' => $lastSeen->chain->value,
-                'price' => $pricing->price($user, $lastSeen),
-                'endedOn' => $history->endedOn($lastSeen)->toDateString(),
-            ],
+            'lastSeen' => $this->lastSeenToPage($user, $pricing, $history, $lastSeen),
             'trackingSince' => $matches === [] && $lastSeen === null ? $history->trackingSince()?->toDateString() : null,
         ]);
+    }
+
+    /**
+     * Poslední akce z historie (R104, R152) pro náhled a dlaždici: název, obchod, cena, kterou
+     * by uživatel zaplatil, a poslední den platnosti.
+     *
+     * @return array{name: string, chain: string, price: int|null, endedOn: string}|null
+     */
+    private function lastSeenToPage(User $user, UserPricing $pricing, WatchHistory $history, ?Offer $offer): ?array
+    {
+        return $offer === null ? null : [
+            'name' => $offer->name,
+            'chain' => $offer->chain->value,
+            'price' => $pricing->price($user, $offer),
+            'endedOn' => $history->endedOn($offer)->toDateString(),
+        ];
     }
 
     /**

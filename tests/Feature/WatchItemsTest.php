@@ -19,9 +19,11 @@ use App\Models\Category;
 use App\Models\FollowedChain;
 use App\Models\Offer;
 use App\Models\OfferProduct;
+use App\Models\OfferProductExclusion;
 use App\Models\Product;
 use App\Models\User;
 use App\Models\WatchItem;
+use App\Models\WatchItemOfferExclusion;
 use Inertia\Testing\AssertableInertia as Assert;
 
 beforeEach(function (): void {
@@ -63,6 +65,40 @@ it('u položky ukáže počet aktuálních akcí a nejnižší cenu, kterou uži
             ->where('watchItems.0.lowestPrice', 1490)
             ->where('watchItems.1.offersCount', 0)
             ->where('watchItems.1.lowestPrice', null));
+});
+
+it('u položky bez akce ukáže, kdy naposledy v akci byla, bez akcí skrytých a vyřazených z produktu (R152)', function (): void {
+    $this->travelTo('2026-10-02 10:00:00');
+    FollowedChain::query()->create(['user_id' => $this->user->id, 'chain' => Chain::Lidl, 'include_online_only' => true]);
+    $almette = WatchItem::factory()->for($this->user)->create(['name' => 'Almette', 'keywords' => 'almette']);
+    WatchItem::factory()->for($this->user)->create(['name' => 'Gouda', 'keywords' => 'gouda']);
+    $product = Product::factory()->create(['name' => 'Máslo', 'keywords' => 'máslo']);
+    WatchItem::factory()->for($this->user)->create(['name' => 'Máslo', 'keywords' => null, 'product_id' => $product->id]);
+    WatchItem::factory()->for($this->user)->create(['name' => 'Mléko', 'keywords' => 'mléko']);
+    Offer::factory()->create(['name' => 'Almette bylinky', 'chain' => Chain::Tesco, 'price' => 3990, 'valid_from' => '2026-09-20', 'valid_to' => '2026-09-26']);
+    $hidden = Offer::factory()->create(['name' => 'Almette česnek', 'chain' => Chain::Lidl, 'valid_from' => '2026-09-25', 'valid_to' => '2026-09-30']);
+    WatchItemOfferExclusion::query()->create(['watch_item_id' => $almette->id, 'offer_id' => $hidden->id]);
+    Offer::factory()->create(['name' => 'Máslo tradiční', 'chain' => Chain::Lidl, 'price' => 4990, 'valid_from' => '2026-09-10', 'valid_to' => '2026-09-16']);
+    $excluded = Offer::factory()->create(['name' => 'Máslová sušenka', 'chain' => Chain::Lidl, 'valid_from' => '2026-09-25', 'valid_to' => '2026-09-30']);
+    OfferProductExclusion::query()->create(['product_id' => $product->id, 'offer_id' => $excluded->id]);
+    Offer::factory()->create(['name' => 'Mléko polotučné', 'chain' => Chain::Lidl, 'valid_from' => '2026-09-20', 'valid_to' => '2026-09-26']);
+    Offer::factory()->create(['name' => 'Mléko trvanlivé', 'chain' => Chain::Lidl]);
+
+    $this->get(route('watch-items.index'))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('watchItems.0.name', 'Almette')
+            ->where('watchItems.0.lastSeen.name', 'Almette bylinky')
+            ->where('watchItems.0.lastSeen.chain', 'tesco')
+            ->where('watchItems.0.lastSeen.price', 3990)
+            ->where('watchItems.0.lastSeen.endedOn', '2026-09-26')
+            ->where('watchItems.1.name', 'Gouda')
+            ->where('watchItems.1.lastSeen', null)
+            ->where('watchItems.2.name', 'Máslo')
+            ->where('watchItems.2.lastSeen.name', 'Máslo tradiční')
+            // Položka s akcí historii nehledá
+            ->where('watchItems.3.name', 'Mléko')
+            ->where('watchItems.3.offersCount', 1)
+            ->where('watchItems.3.lastSeen', null));
 });
 
 it('přidá položku z katalogu bez vlastních slov', function (): void {
