@@ -19,6 +19,7 @@ use App\Domain\Offers\Data\LeafletData;
 use App\Domain\Offers\Data\LeafletPageData;
 use App\Domain\Offers\Data\OfferData;
 use App\Domain\Offers\Data\SourceBatch;
+use App\Domain\Offers\Parsing\Text;
 use App\Domain\Offers\Parsing\WebUrl;
 use App\Enums\Chain;
 use App\Models\Leaflet;
@@ -43,6 +44,23 @@ final readonly class BatchWriter
         'loyalty_program', 'discount_percent', 'offer_type', 'promotion_text', 'online_only',
         'source_category', 'image_url', 'source_url', 'raw', 'updated_at',
     ];
+
+    /**
+     * Délka textových sloupců offers ve znacích. Delší text od obchodu se zkrátí — jinak
+     * jediná akce shodí celé stažení obchodu („Data too long“, Kaufland 20. 10. 2026:
+     * balení Persilu se všemi variantami mělo 129 znaků).
+     */
+    private const TEXT_LENGTHS = [
+        'name' => 255,
+        'brand' => 100,
+        'variant_note' => 100,
+        'package_text' => 100,
+        'promotion_text' => 255,
+        'source_category' => 150,
+    ];
+
+    /** Délka sloupců s adresou; delší adresa se neuloží (zkrácená by nikam nevedla). */
+    private const URL_LENGTH = 500;
 
     public function __construct(private OfferContinuity $continuity) {}
 
@@ -166,7 +184,7 @@ final readonly class BatchWriter
     {
         $now = CarbonImmutable::now();
 
-        return [
+        $row = [
             'chain' => $chain->value,
             'leaflet_id' => $leaflet->id,
             'scrape_run_id' => $run->id,
@@ -191,11 +209,27 @@ final readonly class BatchWriter
             'valid_from' => $offer->validFrom->toDateString(),
             'valid_to' => $offer->validTo->toDateString(),
             'source_category' => $offer->sourceCategory,
-            'image_url' => WebUrl::orNull($offer->imageUrl),
-            'source_url' => WebUrl::orNull($offer->sourceUrl),
+            'image_url' => self::url($offer->imageUrl),
+            'source_url' => self::url($offer->sourceUrl),
             'raw' => json_encode($offer->raw, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE),
             'created_at' => $now,
             'updated_at' => $now,
         ];
+
+        foreach (self::TEXT_LENGTHS as $column => $length) {
+            $row[$column] = Text::limit($row[$column], $length);
+        }
+
+        return $row;
+    }
+
+    /**
+     * Webová adresa od obchodu, když se vejde do sloupce, jinak null.
+     */
+    private static function url(?string $url): ?string
+    {
+        $url = WebUrl::orNull($url);
+
+        return $url !== null && mb_strlen($url) <= self::URL_LENGTH ? $url : null;
     }
 }

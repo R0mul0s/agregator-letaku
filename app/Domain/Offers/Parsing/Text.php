@@ -14,6 +14,9 @@ namespace App\Domain\Offers\Parsing;
 
 final class Text
 {
+    /** Konec zkráceného textu. */
+    private const ELLIPSIS = '…';
+
     /**
      * Sloučí bílé znaky do jedné mezery; prázdný text je null.
      */
@@ -22,6 +25,18 @@ final class Text
         $cleaned = trim(preg_replace('/\s+/u', ' ', (string) $text) ?? '');
 
         return $cleaned === '' ? null : $cleaned;
+    }
+
+    /**
+     * Zkrátí text na nejvýš $length znaků; zkrácený končí výpustkou.
+     */
+    public static function limit(?string $text, int $length): ?string
+    {
+        if ($text === null || mb_strlen($text) <= $length) {
+            return $text;
+        }
+
+        return rtrim(mb_substr($text, 0, $length - mb_strlen(self::ELLIPSIS))).self::ELLIPSIS;
     }
 
     /**

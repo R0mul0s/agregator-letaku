@@ -177,6 +177,19 @@ it('stránku s oběma týdny rozdělí po týdnech a příští týden zvlášť
         ->and($next->source_url)->toContain('kloffer-week=next&kloffer-category=03_');
 });
 
+it('balení delší než sloupec zkrátí a stažení neshodí (20. 10. 2026)', function (): void {
+    // Skutečné balení Persilu z 20. 10. 2026 — všechny varianty v jednom textu, 129 znaků
+    $unit = '3,96 l=88 pracích dávek/ 3,6 l=80 pracích dávek/ 4,4 kg=80 pracích dávekJVP/ 60 ks=60 pracích dávekJVP/ 3,905 kg=71 pracích dávek';
+    $page = str_replace('"unit":"300 g balení"', '"unit":"'.$unit.'"', responseFixture('kaufland/prehled-2026-10-02.html'));
+    Http::fake([KAUFLAND_OFFERS_URL => Http::response($page)]);
+
+    $this->artisan('letaky:import-offers', ['chain' => ['kaufland']])->assertSuccessful();
+
+    $packageText = kauflandOffer('00135885')->package_text;
+    expect(mb_strlen((string) $packageText))->toBe(100)
+        ->and($packageText)->toStartWith('3,96 l=88 pracích dávek/')->toEndWith('…');
+});
+
 it('opakovaný import nabídky nezdvojí, jen aktualizuje', function (): void {
     Http::fake([KAUFLAND_OFFERS_URL => Http::response(responseFixture('kaufland/prehled-2026-10-02.html'))]);
 
@@ -278,4 +291,15 @@ it('stažení, které zůstalo „běží“ déle než zámek, označí jako ne
         ->error->toContain('nedoběhlo')
         ->finished_at->not->toBeNull()
         ->and($other->fresh()?->status)->toBe(ScrapeStatus::Running);
+});
+
+it('dlouhou chybu (zpráva databáze s celým dotazem) uloží zkrácenou a stažení ukončí', function (): void {
+    $run = ScrapeRun::start(Chain::Kaufland);
+
+    $run->fail(new RuntimeException(str_repeat('insert into `offers` values (…), ', 5000)));
+
+    expect($run->fresh())
+        ->status->toBe(ScrapeStatus::Failed)
+        ->error->toStartWith('RuntimeException: insert into')
+        ->and(mb_strlen((string) $run->fresh()?->error))->toBeLessThanOrEqual(2003);
 });
