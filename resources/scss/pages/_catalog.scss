@@ -6,11 +6,6 @@
 
 @use '../abstracts/mixins' as *;
 
-.catalog-back {
-    display: inline-block;
-    margin-bottom: var(--space-2);
-}
-
 // Další oddíl detailu produktu pod mřížkou akcí
 .catalog-section {
     margin-top: var(--space-5);

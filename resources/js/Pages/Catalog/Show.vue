@@ -62,8 +62,8 @@ async function remove() {
     <AppLayout>
         <Head :title="product.name" />
 
-        <Link :href="urls.index" class="link catalog-back">{{ t('catalog.back') }}</Link>
         <header class="page__header page-hero">
+            <Link :href="urls.index" class="page-hero__back">{{ t('catalog.back') }}</Link>
             <h1 class="page__title">{{ product.name }}</h1>
             <p v-if="product.categoryLabel" class="page__subtitle">{{ product.categoryLabel }}</p>
         </header>

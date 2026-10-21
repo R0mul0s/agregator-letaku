@@ -109,6 +109,20 @@
         }
     }
 
+    // Zpětný odkaz nad nadpisem (detail upozornění, produkt katalogu) — drobný, světlý, bez
+    // podtržení; podtržení až po najetí jako signál, že jde o odkaz
+    &__back {
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+        font-weight: var(--font-weight-bold);
+        text-decoration: none;
+
+        &:hover {
+            color: var(--color-text);
+            text-decoration: underline;
+        }
+    }
+
     // Štítky s počty pod větou (hlídané položky, nákup, účinnost podmínek)
     &__pills {
         display: flex;
