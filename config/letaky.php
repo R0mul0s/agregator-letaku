@@ -561,6 +561,9 @@ return [
         // Kolik sekund zámku musí po stažení zbývat na zápis (R170) — jinak se nic neuloží; čekání
         // na síť se do limitu PHP nepočítá a zámek by mohl vypršet uprostřed zápisu
         'write_reserve_seconds' => 120,
+        // Kolikrát zkusit zápis stažení při deadlocku se souběžným stažením jiného obchodu (R173,
+        // 25. 10. 2026 Billa a Penny spuštěné ručně za sebou)
+        'transaction_attempts' => 3,
     ],
 
     /*

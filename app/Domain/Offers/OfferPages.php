@@ -203,6 +203,14 @@ final class OfferPages
     }
 
     /**
+     * Odpovídají filtry stránce prodejny (jeden obchod, jedna jeho prodejna se stránkou, R172)?
+     */
+    public function hasStorePage(OfferFilters $filters): bool
+    {
+        return $this->storeOf($filters) !== null;
+    }
+
+    /**
      * Prodejna, jejíž stránka odpovídá filtrům: jeden obchod se stránkami prodejen, jedna jeho
      * prodejna, bez produktu a typu prodejny; jinak null.
      *

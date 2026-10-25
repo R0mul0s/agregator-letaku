@@ -336,33 +336,28 @@ class OffersController extends Controller
      * Čistá adresa pro starou adresu jednoho obchodu nebo produktu (`/akce?chain=lidl` →
      * `/akce/lidl`, `/akce?produkt=12&q=x` → `/akce/pivo?q=x`); null = adresa už je čistá.
      * Jen pro celé načtení stránky (odkaz, vyhledávač) — filtry ve Vue posílají parametry
-     * na `/akce` a přesměrování by každou změnu zdvojilo.
+     * na `/akce` a přesměrování by každou změnu zdvojilo. Výjimka je jedna prodejna se stránkou
+     * (R172): na stránku prodejny vede i výběr ve Filtrech.
      */
     private function cleanUrl(OffersRequest $request, OfferPages $pages): ?string
     {
-        $routeName = $request->route()?->getName();
-        // Obchod s jednou prodejnou v parametru (`/akce/kaufland?prodejny=CZ4400`) → stránka prodejny (R172)
-        $storeParameter = $routeName === OfferPages::PAGE_ROUTE && $request->filled(OffersRequest::STORES);
-        if (($routeName !== 'offers' && ! $storeParameter) || $request->hasHeader(Header::INERTIA)) {
-            return null;
+        $filters = $request->chosenFilters();
+        // Hledání a stránky zůstanou jako parametry, filtry složí OfferPages
+        $extra = array_map(fn (mixed $value): string => is_scalar($value) ? (string) $value : '', $request->only(['q', OffersRequest::PAGE, OffersRequest::FROM_PAGE]));
+
+        // Jedna prodejna se stránkou v parametru (`?prodejny=CZ4400`) → stránka prodejny (R172) — i výběr
+        // v okně Filtry (požadavek Inertie), ať adresa jde sdílet; ne částečné načtení („Načíst další“)
+        if ($request->filled(OffersRequest::STORES) && $pages->hasStorePage($filters) && ! $request->hasHeader(Header::PARTIAL_COMPONENT)) {
+            return $pages->url($filters, $extra);
         }
 
-        $filters = $request->chosenFilters();
+        if ($request->route()?->getName() !== 'offers' || $request->hasHeader(Header::INERTIA)) {
+            return null;
+        }
         if ($filters->productId === null && count($filters->chains) !== 1) {
             return null;
         }
 
-        // Hledání a stránky zůstanou jako parametry, filtry složí OfferPages
-        $extra = array_map(fn (mixed $value): string => is_scalar($value) ? (string) $value : '', $request->only(['q', OffersRequest::PAGE, OffersRequest::FROM_PAGE]));
-
-        $url = $pages->url($filters, $extra);
-        if ($storeParameter && $request->route('slug') !== null) {
-            // Jiná kombinace prodejen než jedna se stránkou zůstane na stránce obchodu s parametrem
-            $chainPath = (string) parse_url($pages->chainUrl($filters->chains[0] ?? Chain::from((string) $request->route('slug'))), PHP_URL_PATH);
-
-            return str_starts_with((string) parse_url($url, PHP_URL_PATH), $chainPath.'/') ? $url : null;
-        }
-
-        return $url;
+        return $pages->url($filters, $extra);
     }
 }

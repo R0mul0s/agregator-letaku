@@ -933,6 +933,8 @@ return [
             'chains_selected' => ':count obchod|:count obchody|:count obchodů',
             // Vybrané prodejny nepřihlášeného (R164)
             'stores_selected' => ':count prodejna|:count prodejny|:count prodejen',
+            // Štítek prodejny na širokém displeji (R172)
+            'store_chip_one' => 'Prodejna: :name',
             // Oddělení katalogu (R102) — akce přiřazené k produktům katalogu
             'department_label' => 'Kategorie',
             'department_any' => 'Kategorie…',
@@ -960,6 +962,7 @@ return [
             'store_hero' => [
                 'lead' => 'Jen akce, které v téhle prodejně platí — :count z nich není ve všech prodejnách.|Jen akce, které v téhle prodejně platí — :count z nich nejsou ve všech prodejnách.|Jen akce, které v téhle prodejně platí — :count z nich není ve všech prodejnách.',
                 'lead_all' => 'Akce, které v téhle prodejně tento týden platí.',
+                'change' => 'Změnit prodejnu',
                 'all_stores' => 'Akce všech prodejen',
             ],
             // Prodejny pod výpisem obchodu (R172)

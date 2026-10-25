@@ -112,6 +112,8 @@ final class ImportChainOffers
             $batches = $this->sources->offers($chain)->fetch();
             $this->assertTimeForWriting($chain, $run);
 
+            // Souběžné stažení jiného obchodu může skončit deadlockem (označení stažených akcí zamyká
+            // řádky přes index) — Laravel celou transakci zopakuje (R173)
             [$offersCount, $withdrawn] = DB::transaction(function () use ($chain, $batches, $run): array {
                 $stored = [];
                 foreach ($batches as $batch) {
@@ -130,7 +132,7 @@ final class ImportChainOffers
                 $this->assignProducts->forChain($chain);
 
                 return [count($stored), $withdrawn];
-            });
+            }, max(1, config()->integer('letaky.import.transaction_attempts')));
 
             if ($withdrawn instanceof SuspiciousWithdrawal) {
                 $run->succeedPartially($offersCount, $withdrawn);

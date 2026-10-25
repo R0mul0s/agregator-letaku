@@ -14,6 +14,7 @@
 declare(strict_types=1);
 
 use App\Enums\Chain;
+use App\Http\Middleware\HandleInertiaRequests;
 use App\Models\Offer;
 use App\Models\OfferStore;
 use App\Models\Store;
@@ -114,4 +115,16 @@ it('stránkování na stránce prodejny zůstane na její adrese', function (): 
 
     $this->get('/akce/kaufland/trutnov')->assertInertia(fn (Assert $page) => $page
         ->where('pagination.nextUrl', '/akce/kaufland/trutnov?strana=2'));
+});
+
+it('výběr jedné prodejny v okně Filtry vede na stránku prodejny, „Načíst další“ ne', function (): void {
+    $inertia = ['X-Inertia' => 'true', 'X-Inertia-Version' => (string) app(HandleInertiaRequests::class)->version(request())];
+
+    $this->withHeaders($inertia)->get('/akce?chain=kaufland&prodejny=CZ1550&nove=1')->assertRedirect('/akce/kaufland/vrchlabi?nove=1');
+    // Jiná prodejna na stránce prodejny
+    $this->withHeaders($inertia)->get('/akce/kaufland/trutnov?prodejny=CZ1550')->assertRedirect('/akce/kaufland/vrchlabi');
+    // Částečné načtení zůstane, kde je
+    $this->withHeaders([...$inertia, 'X-Inertia-Partial-Component' => 'Offers', 'X-Inertia-Partial-Data' => 'offers'])
+        ->get('/akce?chain=kaufland&prodejny=CZ1550')
+        ->assertOk();
 });

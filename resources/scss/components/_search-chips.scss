@@ -46,6 +46,19 @@
         color: var(--color-accent-strong);
     }
 
+    // Text štítku jako tlačítko vedle křížku (štítek prodejny, R172)
+    &__open {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-1);
+        padding: 0;
+        background: none;
+        border: 0;
+        color: inherit;
+        font: inherit;
+        cursor: pointer;
+    }
+
     &__remove {
         display: inline-grid;
         place-items: center;

@@ -50,7 +50,7 @@ import { readStored, writeStored } from '@/lib/storage';
 import { updatedLabel } from '@/lib/updated';
 import { useCompactView } from '@/lib/viewMode';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
-import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 
 /** Pauza v psaní, po které se přepočítají výsledky (ms) — delší než u návrhů, výsledky jsou dražší. */
 const LIVE_SEARCH_DEBOUNCE_MS = 450;
@@ -397,6 +397,36 @@ watch(filtersOpen, (open) => {
     }
 });
 
+/** Oddíl Prodejna v okně Filtry — štítek a „Změnit prodejnu“ na něj okno posunou. */
+const storeSection = ref(null);
+
+/**
+ * Otevře okno Filtry na oddílu Prodejna (R172) — na širokém displeji jediná cesta k výběru
+ * prodejny, lišta Filtry je jen na telefonu.
+ */
+async function openStoreFilter() {
+    filtersOpen.value = true;
+    await nextTick();
+    window.requestAnimationFrame(() => storeSection.value?.scrollIntoView({ block: 'start' }));
+}
+
+/** Štítek prodejny na širokém displeji: vybraná prodejna názvem, víc počtem, typ prodejny, jinak „Prodejna“. */
+const storeChipLabel = computed(() => {
+    const codes = filters[STORES];
+    if (codes.length === 1) {
+        const name = props.storePage?.name ?? Object.values(storeOptions.value ?? {}).flat().find((store) => store.code === codes[0])?.name;
+        if (name) {
+            return t('search.store_chip_one', { name });
+        }
+    }
+    if (codes.length) {
+        return t('search.stores_selected', { count: codes.length });
+    }
+    const format = storeFilter.value?.formats.find((option) => option.value === filters[STORE_FORMAT]);
+
+    return format?.name ?? (filters[STORE_FORMAT] === ALL_STORE_FORMATS ? t('sheet.all_store_formats') : t('sheet.store'));
+});
+
 /** Lišta Seřadit / Filtry — po odjetí pod hlavičku ji nahradí plovoucí lišta (R119). */
 const filterBar = ref(null);
 
@@ -494,7 +524,7 @@ const activeFilterChips = computed(() => {
         chips.push({ key: STORE_FORMAT, label, action: () => chooseFilter(STORE_FORMAT, ''), removable: true });
     }
     if (filters[STORES].length) {
-        chips.push({ key: STORES, label: t('search.stores_selected', { count: filters[STORES].length }), action: () => (filtersOpen.value = true), removable: false });
+        chips.push({ key: STORES, label: storeChipLabel.value, action: openStoreFilter, removable: false });
     }
 
     return chips;
@@ -530,11 +560,17 @@ const CLEARABLE_FILTERS = [FRESH, ENDING_SOON, UPCOMING, WITHOUT_ESHOP, MIN_DISC
 const isActive = (key) => (Array.isArray(filters[key]) ? filters[key].length > 0 : Boolean(filters[key]));
 
 /** Je zapnutý některý filtr, který jde zrušit? */
-const hasActiveFilters = computed(() => CLEARABLE_FILTERS.some(isActive));
+/**
+ * Filtry, které „Zrušit filtry“ ruší — na stránce prodejny (R172) bez prodejny: ta je obsah
+ * stránky, zruší ji její štítek nebo „Akce všech prodejen“.
+ */
+const clearableFilters = computed(() => (props.storePage ? CLEARABLE_FILTERS.filter((key) => key !== STORES) : CLEARABLE_FILTERS));
+
+const hasActiveFilters = computed(() => clearableFilters.value.some(isActive));
 
 /** Zruší všechny filtry štítků (R101). */
 function clearFilters() {
-    for (const key of CLEARABLE_FILTERS) {
+    for (const key of clearableFilters.value) {
         filters[key] = Array.isArray(filters[key]) ? [] : typeof filters[key] === 'boolean' ? false : '';
     }
     search();
@@ -608,6 +644,8 @@ onBeforeUnmount(() => liveSearch.cancel());
                     <!-- Stránka prodejny (R172): kolik akcí tu platí jen v části prodejen a odkaz na celý obchod -->
                     <p v-else-if="storePage" class="offers-hero__lead">
                         {{ storePage.restrictedCount ? t('offers.store_hero.lead', { count: storePage.restrictedCount }) : t('offers.store_hero.lead_all') }}
+                        <button type="button" class="link-button offers-hero__store-link" @click="openStoreFilter">{{ t('offers.store_hero.change') }}</button>
+                        ·
                         <Link :href="storePage.chainUrl" class="offers-hero__store-link">{{ t('offers.store_hero.all_stores') }}</Link>
                     </p>
                     <p v-else class="offers-hero__lead">
@@ -712,6 +750,17 @@ onBeforeUnmount(() => liveSearch.cancel());
                                 <option v-for="percent in filterOptions.minDiscounts" :key="percent" :value="percent">{{ t('search.min_discount', { percent }) }}</option>
                             </select>
                         </label>
+                        <!-- Prodejna (R164, R172) — okno Filtry na oddílu Prodejna; na širokém displeji jinak nedostupné -->
+                        <span v-if="storeFilter" class="search-chip" :class="{ 'search-chip--on': hasStoreChoice }">
+                            <button type="button" class="search-chip__open" aria-haspopup="dialog" @click="openStoreFilter">
+                                {{ storeChipLabel }}
+                                <span aria-hidden="true">▾</span>
+                            </button>
+                            <button v-if="hasStoreChoice" type="button" class="search-chip__remove" :title="t('search.remove_filter')" @click="resetStoreChoice">
+                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
+                                <span class="visually-hidden">{{ t('search.remove_filter') }}</span>
+                            </button>
+                        </span>
                         <span v-if="product" class="search-chip search-chip--on">
                             {{ t('search.product_filter', { name: product }) }}
                             <button type="button" class="search-chip__remove" :title="t('search.remove_filter')" @click="clearProduct">
@@ -791,7 +840,7 @@ onBeforeUnmount(() => liveSearch.cancel());
                     <p v-if="shoppingPreferences" class="filter-sheet__hint">{{ t('sheet.shopping_preferences_hint') }}</p>
                 </section>
                 <!-- Prodejna (R164): typ a vybrané prodejny; přihlášený předvyplněné z Mých obchodů, změna jen pro výpis -->
-                <section v-if="storeFilter" class="filter-sheet__section">
+                <section v-if="storeFilter" ref="storeSection" class="filter-sheet__section">
                     <h3 class="filter-sheet__heading">{{ t('sheet.store') }}</h3>
                     <div class="filter-sheet__options">
                         <FilterChip
