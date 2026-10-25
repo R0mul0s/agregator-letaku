@@ -83,6 +83,9 @@
     max-height: var(--bottom-sheet-max-height);
     margin: auto 0 0;
     padding: 0;
+    // Posouvá se jen obsah (__body) — <dialog> má z prohlížeče overflow: auto a s ním by šlo
+    // posouvat i celé okno (dva posuvníky na telefonu)
+    overflow: hidden;
     background: var(--color-surface);
     border: 0;
     border-radius: var(--radius-lg) var(--radius-lg) 0 0;
@@ -120,6 +123,9 @@
     }
 
     &__body {
+        // Umístěný předek pro skrytý text pro čtečky (visually-hidden je absolute) — jinak by
+        // se vztahoval k oknu a prodloužil ho (seznam pod grafem cen v detailu akce, R163)
+        position: relative;
         flex: 1 1 auto;
         overflow-y: auto;
         padding: var(--space-3) var(--space-4);
