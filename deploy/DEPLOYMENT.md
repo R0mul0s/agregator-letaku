@@ -428,11 +428,6 @@ Co bylo zvláštní na jednotlivých dřívějších nasazeních (SQL skripty, n
 je v [HISTORIE_NASAZENI.md](HISTORIE_NASAZENI.md). Poznámky k nasazení, které se teprve chystá,
 patří sem pod tenhle postup; po nasazení se přesunou tam (R106).
 
-**Chystané nasazení (R174, katalog 286 produktů):** po nahrání kódu pusť
-`data-2026-10-25-katalog-rozsireni.sql` (kategorie produktů založí sám) a zavolej jednou
-`/cron/import-categories?token=…` — doplní zbytek oddělení „Domov a zábava“ (jinak až 1. v měsíci).
-Akce se k novým produktům přiřadí při dalším stažení každého obchodu. Bez migrace a nových proměnných.
-
 ---
 
 ## Záloha databáze
@@ -541,3 +536,4 @@ Co běží na produkci — pro `git log <commit>..HEAD` při dalším nasazení
 | 2026-10-25 | `f33a6b8` | čtyřicáté šesté nasazení: nové obchody z PDF letáků — Hruška (R165), Norma (R166) a COOP pro Čechy (R167) po skutečných prodejnách podle letáků na jejich stránce (R169); výběr prodejen jako pole se seznamem pro všechny obchody, prodejny ve Filtrech Všech akcí až po otevření z `/akce/prodejny` (R168, R169); SQL `migrations-2026-10-25-delsi-kod-prodejny.sql`, crony Hruška, Norma, COOP a COOP prodejny; bez nových povinných proměnných v `.env`, `composer.lock` beze změny. Po nasazení `/health/tasks` OK, prodejny COOP se stahují po dávkách (všech 1 450 v seznamu) |
 | 2026-10-25 | `de064c2` | čtyřicáté sedmé nasazení: revize projektu (R170, `862e888`) — převzetí účtu přes předem založený účet, obnova hesla neprozradí účet, Clarity zakrývá texty, stahování jen z https, rezerva intervalu upozornění, pojistky seznamů prodejen a `/health/tasks` podle podílu čerstvých seznamů, historie cen akcí z letáků, nákupní seznam s chtěným stavem a asynchronními požadavky, okna akce a CSS stránek načtené líně; hledání bez výsledků v katalogu (R171) a stránky prodejen Kauflandu a Globusu pro vyhledávače (R172); SQL `migrations-2026-10-25-indexy-upozorneni.sql` a `migrations-2026-10-25-hledani-bez-vysledku.sql`, celý `vendor/` (Symfony 7.4.21 kvůli CVE-2026-108082, Laravel 13.38, Fortify 1.41); zásady s datem účinnosti 2026-10-25; bez nových povinných proměnných v `.env` |
 | 2026-10-25 | `6675f4c` | dodatek ke 47. nasazení: výběr prodejny na širokém displeji — štítek „Prodejna ▾“ a v pruhu stránky prodejny „Změnit prodejnu“, výběr jedné prodejny ve Filtrech vede na její stránku (R172); zápis stažení se při deadlocku zopakuje (R173); jen `app/`, `config/letaky.php`, `lang/cs/app.php` a `public/build/`, bez SQL skriptu, `composer.lock` beze změny |
+| 2026-10-25 | `22e4cf2` | čtyřicáté osmé nasazení: katalog 286 produktů a nepotravinové zboží v oddělení „Domov a zábava“ (R174) — SQL `data-2026-10-25-katalog-rozsireni.sql` po nahrání kódu a ručně `/cron/import-categories`; odkazy v textu zprávy od nás s náhledem (R175); bez migrace a nových proměnných v `.env`, `composer.lock` beze změny. Ověřeno: `version.txt` = `22e4cf2`, `/health/tasks` OK (kategorie 25. 10. 20:32) |
