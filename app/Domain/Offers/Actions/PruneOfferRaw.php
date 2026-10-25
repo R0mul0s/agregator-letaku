@@ -30,13 +30,17 @@ final readonly class PruneOfferRaw
      */
     public function __invoke(): int
     {
-        $endedBefore = $this->calendar->today()->subDays(config()->integer('letaky.offers.raw_retention_days'))->toDateString();
+        $endedBefore = $this->calendar->today()->subDays(config()->integer('letaky.offers.raw_retention_days'));
+        // Jen akce skončené v posledních dnech před hranicí (R170) — starší už úklid vyprázdnil;
+        // bez spodní meze by každý den znovu četl celou historii (index valid_to)
+        $endedAfter = $endedBefore->subDays(config()->integer('letaky.offers.raw_prune_window_days'));
         $batch = config()->integer('letaky.offers.raw_prune_batch');
 
         $pruned = 0;
         do {
             $updated = Offer::query()
-                ->where('valid_to', '<', $endedBefore)
+                ->where('valid_to', '<', $endedBefore->toDateString())
+                ->where('valid_to', '>=', $endedAfter->toDateString())
                 ->where('raw', '!=', self::EMPTY_RAW)
                 ->limit($batch)
                 ->toBase()

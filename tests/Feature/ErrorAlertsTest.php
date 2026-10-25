@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 use App\Enums\NotificationKind;
 use App\Models\User;
+use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\Route;
 
 beforeEach(function (): void {
     $this->travelTo('2026-10-25 10:00:00');
@@ -97,4 +99,25 @@ it('dlouhou zprávu zkrátí', function (): void {
     report(sameError(str_repeat('x', 100)));
 
     expect(strtok(errorAlerts($this->admin)[0]['body'], "\n"))->toBe(str_repeat('x', 20).'...');
+});
+
+it('u požadavku uvede vzor routy, ne tokeny z cesty (R170)', function (): void {
+    Route::get('/test-chyba/{token}', fn () => throw new RuntimeException('chyba v požadavku'));
+
+    $this->get('/test-chyba/tajny-token-123')->assertServerError();
+
+    $body = errorAlerts($this->admin)[0]['body'];
+    expect($body)->toContain('Požadavek: GET /test-chyba/{token}')
+        ->and($body)->not->toContain('tajny-token-123');
+});
+
+it('u chyby databáze pošle jen kód, ne SQL s hodnotami (R170)', function (): void {
+    $pdo = new PDOException("SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'roman@example.com'");
+    $pdo->errorInfo = ['23000', 1062, "Duplicate entry 'roman@example.com' for key 'users_email_unique'"];
+
+    report(new QueryException('mariadb', 'insert into users (email) values (?)', ['roman@example.com'], $pdo));
+
+    $body = errorAlerts($this->admin)[0]['body'];
+    expect(strtok($body, "\n"))->toBe('Chyba databáze SQLSTATE 23000 (kód 1062)')
+        ->and($body)->not->toContain('roman@example.com');
 });

@@ -15,7 +15,12 @@ import { ref } from 'vue';
 const t = useTranslations();
 const cancelButton = ref(null);
 // Klik na ztmavené pozadí je zrušení; fokus na Zrušit — nevratná akce se omylem nepotvrdí
-const { dialog, onClick } = useModalDialog(() => confirmState.open, { onBackdrop: () => answerConfirm(false), focusOnOpen: cancelButton });
+const { dialog, onClick } = useModalDialog(() => confirmState.open, {
+    onBackdrop: () => answerConfirm(false),
+    // Odchod ze stránky s otevřeným potvrzením (Zpět) = zrušeno
+    onDismiss: () => answerConfirm(false),
+    focusOnOpen: cancelButton,
+});
 </script>
 
 <template>

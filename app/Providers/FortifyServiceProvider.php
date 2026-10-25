@@ -21,6 +21,7 @@ use App\Domain\Account\RegistrationGuard;
 use App\Enums\SocialProvider;
 use App\Http\Controllers\AuthenticatedSessionController;
 use App\Http\Controllers\SocialLoginController;
+use App\Http\Responses\FailedPasswordResetLinkResponse;
 use App\Http\Responses\RegisterResponse;
 use App\Http\Responses\VerifyEmailResponse;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -31,6 +32,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
+use Laravel\Fortify\Contracts\FailedPasswordResetLinkRequestResponse;
 use Laravel\Fortify\Contracts\RegisterResponse as RegisterResponseContract;
 use Laravel\Fortify\Contracts\VerifyEmailResponse as VerifyEmailResponseContract;
 use Laravel\Fortify\Fortify;
@@ -40,12 +42,13 @@ class FortifyServiceProvider extends ServiceProvider
 {
     /**
      * Vlastní odpovědi: po ověření e-mailu toast místo parametru ?verified=1 (R51),
-     * po registraci rovnou do Hlídám (R55).
+     * po registraci rovnou do Hlídám (R55), neúspěšná žádost o obnovu hesla jako úspěšná (R170).
      */
     public function register(): void
     {
         $this->app->singleton(VerifyEmailResponseContract::class, VerifyEmailResponse::class);
         $this->app->singleton(RegisterResponseContract::class, RegisterResponse::class);
+        $this->app->bind(FailedPasswordResetLinkRequestResponse::class, FailedPasswordResetLinkResponse::class);
         // Odhlášení jen tohoto zařízení — Fortify by zrušil „Zapamatovat si mě“ všem zařízením (R151)
         $this->app->bind(FortifyAuthenticatedSessionController::class, AuthenticatedSessionController::class);
     }
@@ -123,6 +126,10 @@ class FortifyServiceProvider extends ServiceProvider
 
         // Výzvu k ověření e-mailu (R51) ukazuje lišta v rozvržení, samostatná stránka není potřeba
         Fortify::verifyEmailView(fn (): RedirectResponse => to_route('home'));
+
+        // Potvrzení hesla Fortify aplikace nepoužívá (citlivé změny ověřují heslo ve formuláři,
+        // R54, R96) — bez stránky by adresa spadla a ohlásila se adminům jako chyba (R170)
+        Fortify::confirmPasswordView(fn (): RedirectResponse => to_route('account'));
 
         Fortify::requestPasswordResetLinkView(fn (): Response => Inertia::render('Auth/ForgotPassword', [
             'urls' => [

@@ -219,6 +219,15 @@ it('omezí registraci a obnovu hesla na pár pokusů za minutu z jedné IP', fun
     $this->get('/akce')->assertOk();
 });
 
+it('omezí čtení stránek přihlášeného podle účtu, nepřihlášenému nechá limit veřejných stránek (R170)', function (): void {
+    config(['letaky.rate_limits.reads_per_minute' => 2]);
+    $user = User::factory()->create();
+
+    $this->actingAs($user)->get(route('watch-items.index'))->assertOk();
+    $this->actingAs($user)->get(route('watch-items.index'))->assertOk();
+    $this->actingAs($user)->get(route('watch-items.index'))->assertStatus(429);
+});
+
 it('omezí opakované posílání ověřovacího e-mailu i za hodinu (R67)', function (): void {
     config(['letaky.rate_limits.emails_per_hour' => 2]);
     $user = User::factory()->create(['email_verified_at' => null]);

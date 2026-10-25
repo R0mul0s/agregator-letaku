@@ -15,19 +15,27 @@ declare(strict_types=1);
 
 namespace App\Domain\Sources;
 
+use App\Domain\Sources\Exceptions\SourceUrlRejected;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\Pool;
+use Illuminate\Http\Client\Request;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\Client\Response as ClientResponse;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Sleep;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\UriInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
 final class SourceHttp
 {
+    /** Jediné povolené schéma adres ke stažení (R170). */
+    private const SCHEME = 'https';
+
     private ?CarbonImmutable $lastRequestAt = null;
 
     /**
@@ -41,8 +49,8 @@ final class SourceHttp
     {
         $this->waitForTurn($delayMs ?? config()->integer('letaky.http.request_delay_ms'));
 
-        $request = Http::withUserAgent(config()->string('letaky.http.user_agent'))
-            ->timeout(config()->integer('letaky.http.timeout_seconds'));
+        $request = $this->guarded(Http::withUserAgent(config()->string('letaky.http.user_agent'))
+            ->timeout(config()->integer('letaky.http.timeout_seconds')));
 
         if (! $allowNotFound) {
             return $request
@@ -74,7 +82,7 @@ final class SourceHttp
         // Pool si požadavky pamatuje sám (`as`) — návratová hodnota callbacku se nepoužívá
         $results = Http::pool(function (Pool $pool) use ($requests): void {
             foreach ($requests as $key => [$url, $query]) {
-                $pool->as((string) $key)
+                $this->guarded($pool->as((string) $key))
                     ->withUserAgent(config()->string('letaky.http.user_agent'))
                     ->timeout(config()->integer('letaky.http.timeout_seconds'))
                     ->retry(config()->integer('letaky.http.retries'), config()->integer('letaky.http.retry_delay_ms'), $this->shouldRetry(...))
@@ -108,11 +116,45 @@ final class SourceHttp
     }
 
     /**
+     * Stahovat jen z veřejných adres přes https (R170): před odesláním i při každém přesměrování
+     * odmítne jiné schéma, IP adresu místo domény a localhost. Adresy letáků přicházejí i z dat
+     * obchodu — podvržená by jinak vedla na vnitřní síť hostingu (SSRF).
+     */
+    private function guarded(PendingRequest $request): PendingRequest
+    {
+        return $request
+            ->beforeSending(fn (Request $sent) => self::assertPublicUrl($sent->url()))
+            // Ostatní volby přesměrování (počet) doplní Guzzle z RedirectMiddleware::DEFAULT_SETTINGS
+            ->withOptions(['allow_redirects' => [
+                'protocols' => [self::SCHEME],
+                'on_redirect' => fn (RequestInterface $from, ResponseInterface $response, UriInterface $to) => self::assertPublicUrl((string) $to),
+            ]]);
+    }
+
+    /**
+     * Vyhodí výjimku, když adresa není https s doménovým jménem.
+     *
+     * @throws SourceUrlRejected
+     */
+    private static function assertPublicUrl(string $url): void
+    {
+        $scheme = parse_url($url, PHP_URL_SCHEME);
+        $host = parse_url($url, PHP_URL_HOST);
+        $host = is_string($host) ? strtolower(trim($host, '[]')) : '';
+        if ($scheme !== self::SCHEME || $host === '' || $host === 'localhost' || filter_var($host, FILTER_VALIDATE_IP) !== false) {
+            throw SourceUrlRejected::for($url);
+        }
+    }
+
+    /**
      * Opakovat jen výpadek spojení, chybu serveru (5xx) a 429 — odmítnutý požadavek (400, 401,
      * 403, 404) dopadne stejně i napodruhé a opakování by jen čekalo (R113).
      */
     private function shouldRetry(Throwable $error): bool
     {
+        if ($error instanceof SourceUrlRejected) {
+            return false;
+        }
         if (! $error instanceof RequestException) {
             return true;
         }

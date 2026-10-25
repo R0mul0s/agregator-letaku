@@ -279,6 +279,22 @@ it('souběžné stažení stejného obchodu nespustí (R57)', function (): void 
     $this->artisan('letaky:import-offers', ['chain' => ['kaufland']])->assertSuccessful();
 });
 
+it('stahování tak dlouhé, že by zápis nestihl doběhnout před vypršením zámku, nic neuloží (R170)', function (): void {
+    Http::fake([KAUFLAND_OFFERS_URL => function () {
+        // Čekání na síť se do časového limitu PHP nepočítá — stránka přijde až po 9 minutách
+        $this->travel(9)->minutes();
+
+        return Http::response(responseFixture('kaufland/prehled-2026-10-02.html'));
+    }]);
+
+    $this->artisan('letaky:import-offers', ['chain' => ['kaufland']])->assertFailed();
+
+    expect(ScrapeRun::query()->sole())
+        ->status->toBe(ScrapeStatus::Failed)
+        ->error->toContain('zápis by nestihl doběhnout')
+        ->and(Offer::query()->count())->toBe(0);
+});
+
 it('stažení, které zůstalo „běží“ déle než zámek, označí jako neúspěšné (R57)', function (): void {
     Http::fake([KAUFLAND_OFFERS_URL => Http::response(responseFixture('kaufland/prehled-2026-10-02.html'))]);
     $stuck = ScrapeRun::query()->create(['chain' => Chain::Kaufland, 'status' => ScrapeStatus::Running, 'started_at' => now()->subHour()]);

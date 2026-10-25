@@ -20,11 +20,8 @@ import CookieConsent from '@/Components/CookieConsent.vue';
 import EmailVerificationBar from '@/Components/EmailVerificationBar.vue';
 import InstallPrompt from '@/Components/InstallPrompt.vue';
 import NotificationBell from '@/Components/NotificationBell.vue';
-import OfferActionsSheet from '@/Components/OfferActionsSheet.vue';
-import OfferDetailSheet from '@/Components/OfferDetailSheet.vue';
 import OfflineBar from '@/Components/OfflineBar.vue';
 import PullToRefresh from '@/Components/PullToRefresh.vue';
-import StoresDialog from '@/Components/StoresDialog.vue';
 import TabBar from '@/Components/TabBar.vue';
 import Toaster from '@/Components/Toaster.vue';
 import ThemeSwitch from '@/Components/ThemeSwitch.vue';
@@ -32,8 +29,20 @@ import UpdateBar from '@/Components/UpdateBar.vue';
 import UserMenu from '@/Components/UserMenu.vue';
 import { useAppHeaderHeight } from '@/lib/appHeader';
 import { useTranslations } from '@/lib/i18n';
+import { offerActionsState } from '@/lib/offerActions';
+import { offerDetailState } from '@/lib/offerDetail';
+import { storesDialogState } from '@/lib/storesDialog';
 import { Link, router, usePage } from '@inertiajs/vue3';
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, defineAsyncComponent, onBeforeUnmount, onMounted, reactive, ref, watchEffect } from 'vue';
+
+/*
+ * Okna akce se načtou až při prvním otevření (R170) — detail s grafem cen, „Tohle ne“ a seznam
+ * prodejen by jinak byly v kódu každé stránky. Soubory buildu má service worker uložené předem,
+ * takže se otevřou i bez signálu.
+ */
+const OfferDetailSheet = defineAsyncComponent(() => import('@/Components/OfferDetailSheet.vue'));
+const StoresDialog = defineAsyncComponent(() => import('@/Components/StoresDialog.vue'));
+const OfferActionsSheet = defineAsyncComponent(() => import('@/Components/OfferActionsSheet.vue'));
 
 const props = defineProps({
     /**
@@ -63,6 +72,14 @@ const hasTabBar = computed(() => navigation.value.some((item) => item.tab));
 
 /** Stránka s oddíly přes celou šířku — obsah si odsadí sama (.page__wrap). */
 const bleedPage = computed(() => BLEED_PAGES.includes(page.component));
+
+/** Okna, která už se otevřela — zůstanou připojená, ať zavření doběhne s animací. */
+const mountedSheets = reactive({ detail: false, stores: false, actions: false });
+watchEffect(() => {
+    mountedSheets.detail ||= offerDetailState.open;
+    mountedSheets.stores ||= storesDialogState.open;
+    mountedSheets.actions ||= offerActionsState.open;
+});
 
 /** Navigace rozbalená na telefonu. */
 const navOpen = ref(false);
@@ -204,8 +221,8 @@ onBeforeUnmount(() => {
     <ConfirmDialog />
     <CookieConsent />
     <!-- Detail akce po klepnutí na fotku nebo název (R159) — i nepřihlášený -->
-    <OfferDetailSheet />
-    <StoresDialog />
+    <OfferDetailSheet v-if="mountedSheets.detail" />
+    <StoresDialog v-if="mountedSheets.stores" />
     <!-- „Tohle ne“ a hlášení chyby v akci (R125) — jen přihlášený -->
-    <OfferActionsSheet v-if="page.props.offerReports" />
+    <OfferActionsSheet v-if="page.props.offerReports && mountedSheets.actions" />
 </template>

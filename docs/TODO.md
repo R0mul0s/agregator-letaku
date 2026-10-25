@@ -23,7 +23,7 @@ v [PLAN.md](PLAN.md). Větší celky se z toho stávají etapou.
 - odběr, který prohlížeč sám vymění (`pushsubscriptionchange`), se dnes obnoví až zapnutím v Můj účet — obnovovat ho při startu aplikace
 - volba, jestli upozornění v telefonu chodí i v době, kdy jde e-mail (dnes nezávisle — kdo má obojí „hned“, dostane obojí)
 - zmínky v letácích bez ceny (R27) v souhrnu — dnes jen akce s cenou
-- tabulka `watch_matches` (co už uživatel viděl / dostal), pokud nebude stačit čas posledního souhrnu a `offers.created_at`
+- tabulka `watch_matches` (co už uživatel viděl / dostal), pokud nebude stačit čas posledního souhrnu a `offers.created_at` — **strop propustnosti (revize 25. 10. 2026, R170):** `RecordNewOffers` dostane ~25 s ze 150 s rozpočtu cronu, při ~0,2 s na uživatele (`MyOffers::forUser`) zvládne ~125 uživatelů za hodinové volání a každé dokončené stažení vybere znovu všechny; nad 1–2 tisíci uživatelů s hlídáním se zpoždění nových akcí bude prodlužovat. Řešení: shody počítat jednou na stažení z pohledu nové akce proti pravidlům hlídaných položek (předvýběr `OfferPrefilter` obráceně) a ukládat do `watch_matches` — **před širším zveřejněním**
 
 ## Hlídání — rozšíření
 
@@ -175,3 +175,21 @@ funkce, změřit, co lidé opravdu používají, a nepoužívané schovat nebo z
 - **jak často bývá zboží v akci** — „Máslo bývá v Lidlu v akci zhruba každé 3 týdny, naposledy 28. 9.“; navazuje na „Vyplatí se počkat“ (R76) a graf ceny (*Historie a porovnání cen*), smysl má až s historií za několik týdnů
 - Nejlepší slevy týdne hotové (R128) — dál: vlastní obrázek pro sdílení (OG) s číslem týdne a třemi nejvyššími slevami, příspěvek na sociální sítě v pondělí
 - přehled kvality dat hotový (R129) — dál: nesoulad se štítkem slevy jako další číslo statistiky, porovnání nového letáku s předchozími letáky stejné řady (velikost), propad u Kauflandu po prodejnách (počet seznamů akcí prodejen)
+
+## Nápady 25. 10. 2026
+
+**Odkud:** revize celého projektu 25. 10. 2026 (R170) — nové funkce, které v TODO dosud nebyly.
+
+- **počítadlo úspor** — „Tento měsíc jste ušetřili 640 Kč“ z odškrtnutých položek nákupního seznamu (původní nebo běžná cena − cena, kterou uživatel zaplatil, `UserPricing`); data už jsou. Motivuje k návratu, jde sdílet a hodí se do týdenního souhrnu. Rozhodnout, co s akcí bez přeškrtnuté ceny (Tesco skoro nikdy, viz *Historie a porovnání cen*)
+- **„Nakupuji v sobotu“** — zvolit den nákupu a v Mých slevách i nákupním seznamu vidět jen akce, které ten den platí (Lidl a Penny mají akce jen na část týdne); den předem upozornění s nákupním seznamem. Den nákupu jako předvolba účtu, filtr `valid_from <= den <= valid_to`
+- **hledání bez výsledků** — anonymně počítat dotazy ve Všech akcích a v Hlídám, které nic nenašly (normalizovaný text, počet, bez uživatele; práh jako u návrhů R148), a ukázat je adminovi v katalogu — přímý podklad pro nové produkty katalogu a výběr dalších obchodů; doplnit do zásad
+- **stránky prodejen pro vyhledávače** (`/akce/kaufland/trutnov`, Globus, COOP) — lidé hledají „leták Kaufland Trutnov“ a seznamy prodejen už máme; riziko tenkého obsahu (akce prodejny se od obchodu liší málo) — přidat něco navíc (akce jen v této prodejně, otevírací doba?), registr `PublicPages`, sitemap
+- **hlídání pro domácnost** — sdílený seznam už je (R130), hlídané položky jsou jen jednoho účtu; druhý člen domácnosti by sledoval stejné položky (pozvánka odkazem, společná sada hlídání)
+
+**Z revize — architektura (zatím ne):**
+
+- **klíč totožnosti položky** — `offers.item_key` bez ceny (u akcí z letáku otisk názvu a balení) místo hledání podle názvu v `PriceHistory` (R170); zjednodušil by i převzetí řádku (R88, R136). Vyžaduje doplnit hodnotu starým řádkům (na hostingu bez artisanu — přes cron)
+- **jedna sdílená pojistka „podezřele málo“** pro všechno, co maže nebo nahrazuje (akce R54, prodejny a seznamy R170, stránky letáků) — dnes má každá oblast vlastní práh
+- **čas cronu jako „slot“** — jeden `startedAt` požadavku cronu pro všechny kanály upozornění místo `now()` každého kanálu a rezervy intervalu (R170)
+- **CSS úvodní stránky a průvodce** do CSS stránky jako kontakt a slevy týdne (R170) — `_landing.scss` má i keyframes hlavičky a úvodního pruhu Mých slev (přesunout do sdíleného souboru), `_onboarding.scss` mění `.app-root` a `.page`
+- **Poppler 22.02 v kontejneru** jako na hostingu (PASTI.md bod 67) — Alpine ho nemá; samostatná služba na `ubuntu:22.04` jen s `pdftotext`, nebo fixtures z hostingu

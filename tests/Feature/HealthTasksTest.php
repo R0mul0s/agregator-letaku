@@ -119,9 +119,19 @@ it('chyba stažení kategorií se zapíše, souběžné spuštění nic nezapí�
 });
 
 it('seznamy akcí prodejen starší než limit jsou výpadek', function (): void {
-    storeWithListFetchedHoursAgo(config()->integer('letaky.health.max_store_lists_age_hours') + 1);
+    storeWithListFetchedHoursAgo(config()->integer('letaky.sources.kaufland.store_lists_health_hours') + 1);
 
     $this->get(route('health.tasks'))
         ->assertServiceUnavailable()
         ->assertSeeText('Prodejny Kaufland — VÝPADEK: poslední úspěšné stažení 8. 10. 17:00');
+});
+
+it('výpadek je i čerstvý seznam jen u části prodejen — měří se podíl, ne nejnovější (R170)', function (): void {
+    storeWithListFetchedHoursAgo(1);
+    // Druhá prodejna Kauflandu se trvale nestahuje — čerstvá je jen polovina seznamů
+    Store::query()->create(['chain' => Chain::Kaufland, 'code' => '1200', 'name' => 'Kaufland Brno', 'city' => 'Brno', 'offer_keys_fetched_at' => CarbonImmutable::now()->subDays(3)]);
+
+    $this->get(route('health.tasks'))
+        ->assertServiceUnavailable()
+        ->assertSeeText('Prodejny Kaufland — VÝPADEK');
 });

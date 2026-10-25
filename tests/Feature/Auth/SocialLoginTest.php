@@ -244,6 +244,35 @@ it('účet s neověřeným e-mailem převezme majitel adresy z Googlu a heslo za
         ->and($user->hasVerifiedEmail())->toBeTrue();
 });
 
+it('při převzetí neověřeného účtu zmizí propojení, které si k němu udělal zakladatel (R170)', function (): void {
+    // Útočník založil účet na cizí adresu a připojil k němu svůj Facebook
+    $user = User::factory()->create(['email' => 'roman@gmail.com', 'email_verified_at' => null]);
+    $user->socialAccounts()->create(['provider' => SocialProvider::Facebook, 'provider_user_id' => 'utocnik']);
+    fakeSocialUser(SocialProvider::Google);
+
+    $this->get(route('social.callback', ['provider' => 'google']));
+
+    expect($user->socialAccounts()->pluck('provider')->all())->toBe([SocialProvider::Google]);
+
+    // Facebook útočníka už do účtu nepustí — vede k registraci nového účtu
+    auth()->logout();
+    fakeSocialUser(SocialProvider::Facebook, ['id' => 'utocnik', 'email' => 'utocnik@example.com']);
+    $this->get(route('social.callback', ['provider' => 'facebook']))->assertRedirect(route('social.register'));
+    $this->assertGuest();
+});
+
+it('s neověřeným e-mailem účet u poskytovatele propojit nedovolí (R170)', function (): void {
+    $user = User::factory()->create(['email_verified_at' => null]);
+    fakeSocialUser(SocialProvider::Facebook);
+    $this->actingAs($user);
+
+    $this->get(route('social.link', ['provider' => 'facebook']));
+    $this->get(route('social.callback', ['provider' => 'facebook']))
+        ->assertSessionHas('status', __('app.ui.auth.social.refused.'.SocialLoginRefused::EMAIL_UNVERIFIED));
+
+    expect($user->socialAccounts()->exists())->toBeFalse();
+});
+
 it('neověřený e-mail z Facebooku k existujícímu účtu nepřipojí', function (): void {
     $user = User::factory()->create(['email' => 'roman@gmail.com']);
     fakeSocialUser(SocialProvider::Facebook);

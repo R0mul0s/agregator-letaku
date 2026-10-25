@@ -56,6 +56,8 @@ $version = (git rev-parse --short HEAD).Trim()
 if ($dirty) { $version = "$version-dirty" }
 
 Write-Host "==> 1/4  Build frontend assetů (verze $version)…" -ForegroundColor Cyan
+# Balíčky přesně podle package-lock.json — po git pull bez npm install by build vzal jiné verze (R170)
+Invoke-Native -What 'npm ci' -Command { docker compose exec -T app npm ci }
 Invoke-Native -What 'npm run build' -Command { docker compose exec -T app npm run build }
 
 Write-Host '==> 2/4  Kopíruji aplikaci do deploy\upload\…' -ForegroundColor Cyan

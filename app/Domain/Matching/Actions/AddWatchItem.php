@@ -30,7 +30,11 @@ final class AddWatchItem
      */
     public function __invoke(User $user, array $data): WatchItem
     {
-        $item = $user->watchItems()->create($data);
+        // Produkt katalogu hlídá uživatel nejvýš jednou (unikátní klíč) — dvojklik na „Hlídat“
+        // projde validací dvakrát, druhý požadavek dostane už založenou položku (R170)
+        $item = $data['product_id'] === null
+            ? $user->watchItems()->create($data)
+            : $user->watchItems()->createOrFirst(['product_id' => $data['product_id']], $data);
         $this->suggestions->closeFor($user, $item);
 
         return $item;

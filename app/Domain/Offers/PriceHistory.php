@@ -5,6 +5,9 @@
  * u stejného obchodu (obchod + ID položky) za posledních `letaky.price_history.weeks` týdnů.
  * Nabídky se nemažou (R10), historie je tedy v tabulce offers.
  *
+ * Akce z PDF letáku mají v ID otisk včetně ceny (`LeafletOfferId`, Albert, Penny) — stejná položka
+ * za jinou cenu má jiné ID. U nich je položka obchod + normalizovaný název a balení (R170).
+ *
  * Porovnává se cena bez karty, u akce jen s kartou cena s kartou. Akce na více kusů má jen
  * běžnou cenu kusu, s ní porovnání nedává smysl. Bez dřívější akce se nic neukáže.
  *
@@ -17,6 +20,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Offers;
 
+use App\Domain\Matching\TextNormalizer;
+use App\Domain\Sources\Pdf\LeafletOfferId;
 use App\Enums\OfferType;
 use App\Models\Offer;
 use Illuminate\Database\Eloquent\Builder;
@@ -33,6 +38,8 @@ final class PriceHistory
     public const CHEAPER_BEFORE = 'cheaper_before';
 
     private const DAYS_IN_WEEK = 7;
+
+    public function __construct(private readonly TextNormalizer $normalizer) {}
 
     /**
      * Porovnání pro každou akci, která má v období dřívější akci; klíč je ID akce.
@@ -57,7 +64,7 @@ final class PriceHistory
 
         $result = [];
         foreach ($comparable as $offer) {
-            $comparison = $this->compare($offer, $earlier[$offer->chain->value.'|'.$offer->external_id] ?? [], $weeks);
+            $comparison = $this->compare($offer, $earlier[$this->itemKey($offer)] ?? [], $weeks);
             if ($comparison !== null) {
                 $result[$offer->id] = $comparison;
             }
@@ -67,36 +74,65 @@ final class PriceHistory
     }
 
     /**
-     * Dřívější akce položek jedním dotazem (index chain + external_id), seskupené podle položky.
+     * Dřívější akce položek jedním dotazem (index chain + external_id), seskupené podle položky
+     * (itemKey). Akce z letáku hledá podle názvu — jiná cena je jiné ID.
      *
      * @param  list<Offer>  $offers
      * @return array<string, list<Offer>>
      */
     private function earlierOffers(array $offers, int $weeks): array
     {
-        $byChain = [];
+        $ids = [];
+        $names = [];
         $oldest = null;
         foreach ($offers as $offer) {
-            $byChain[$offer->chain->value][] = $offer->external_id;
+            if (self::isLeafletId($offer->external_id)) {
+                $names[$offer->chain->value][] = $offer->name;
+            } else {
+                $ids[$offer->chain->value][] = $offer->external_id;
+            }
             $from = $offer->valid_from->subDays($weeks * self::DAYS_IN_WEEK);
             $oldest = $oldest === null || $from->lessThan($oldest) ? $from : $oldest;
         }
 
         $rows = Offer::query()
-            ->where(function (Builder $query) use ($byChain): void {
-                foreach ($byChain as $chain => $externalIds) {
+            ->where(function (Builder $query) use ($ids, $names): void {
+                foreach ($ids as $chain => $externalIds) {
                     $query->orWhere(fn (Builder $query) => $query->where('chain', $chain)->whereIn('external_id', array_values(array_unique($externalIds))));
+                }
+                foreach ($names as $chain => $chainNames) {
+                    $query->orWhere(fn (Builder $query) => $query->where('chain', $chain)
+                        ->where('external_id', 'like', LeafletOfferId::PREFIX.'%')
+                        ->whereIn('name', array_values(array_unique($chainNames))));
                 }
             })
             ->where('valid_to', '>=', $oldest?->toDateString())
-            ->get(['id', 'chain', 'external_id', 'valid_from', 'valid_to', 'price', 'loyalty_price', 'offer_type']);
+            ->get(['id', 'chain', 'external_id', 'name', 'package_text', 'valid_from', 'valid_to', 'price', 'loyalty_price', 'offer_type']);
 
         $grouped = [];
         foreach ($rows as $row) {
-            $grouped[$row->chain->value.'|'.$row->external_id][] = $row;
+            $grouped[$this->itemKey($row)][] = $row;
         }
 
         return $grouped;
+    }
+
+    /**
+     * Totožnost položky obchodu: obchod + ID, u akce z letáku obchod + normalizovaný název a balení.
+     */
+    private function itemKey(Offer $offer): string
+    {
+        return self::isLeafletId($offer->external_id)
+            ? $offer->chain->value.'|n:'.$this->normalizer->normalize($offer->name, $offer->package_text)
+            : $offer->chain->value.'|'.$offer->external_id;
+    }
+
+    /**
+     * Je ID otisk dlaždice letáku (s cenou)?
+     */
+    private static function isLeafletId(string $externalId): bool
+    {
+        return str_starts_with($externalId, LeafletOfferId::PREFIX);
     }
 
     /**
@@ -148,17 +184,26 @@ final class PriceHistory
     public function timeline(Offer $offer): array
     {
         $since = $offer->valid_from->subDays(config()->integer('letaky.price_history.weeks') * self::DAYS_IN_WEEK);
+        $key = $this->itemKey($offer);
         $rows = Offer::query()
             ->where('chain', $offer->chain)
-            ->where('external_id', $offer->external_id)
+            ->when(
+                self::isLeafletId($offer->external_id),
+                fn (Builder $query) => $query->where('external_id', 'like', LeafletOfferId::PREFIX.'%')->where('name', $offer->name),
+                fn (Builder $query) => $query->where('external_id', $offer->external_id),
+            )
             ->where('valid_to', '>=', $since->toDateString())
             ->where('valid_from', '<=', $offer->valid_to->toDateString())
             ->orderBy('valid_from')
             ->orderBy('id')
-            ->get(['id', 'valid_from', 'valid_to', 'price', 'original_price', 'loyalty_price', 'offer_type']);
+            ->get(['id', 'chain', 'external_id', 'name', 'package_text', 'valid_from', 'valid_to', 'price', 'original_price', 'loyalty_price', 'offer_type']);
 
         $points = [];
         foreach ($rows as $row) {
+            // Stejný název s jiným balením je jiná položka
+            if ($this->itemKey($row) !== $key) {
+                continue;
+            }
             $price = self::comparablePrice($row);
             if ($price === null) {
                 continue;

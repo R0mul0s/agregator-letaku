@@ -18,7 +18,7 @@ import PriceQuiz from '@/Components/PriceQuiz.vue';
 import SearchSuggest from '@/Components/SearchSuggest.vue';
 import WatchDemo from '@/Components/WatchDemo.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
-import { MEDIA_FROM_MD } from '@/lib/breakpoints';
+import { LANDING_MASCOT_SIZES } from '@/lib/breakpoints';
 import { formatDiscount, formatNumber, formatPrice } from '@/lib/format';
 import { useTranslations } from '@/lib/i18n';
 import { discountPercent } from '@/lib/offer';
@@ -170,7 +170,7 @@ function showProduct(product) {
                         <img
                             src="/images/brand/mascot-416.webp"
                             srcset="/images/brand/mascot-192.webp 192w, /images/brand/mascot-288.webp 288w, /images/brand/mascot-416.webp 416w"
-                            :sizes="`${MEDIA_FROM_MD} 284px, 160px`"
+                            :sizes="LANDING_MASCOT_SIZES"
                             width="416"
                             height="416"
                             alt=""

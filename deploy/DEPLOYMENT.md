@@ -63,12 +63,13 @@ Skript balí jen **commitnutý** stav — s necommitnutými změnami skončí ch
 
 ## 2) Připrav databázi (jen první nasazení)
 
-Ve WebAdminu založ databázi **MariaDB 11.4** a v phpMyAdminu spusť v tomto pořadí:
-
-1. `deploy/migrations-2026-10-02-init.sql` — založí všechny tabulky a zapíše migrace
-   do tabulky `migrations`
-2. `deploy/data-2026-10-02-katalog.sql` — strom kategorií e-shopu Tesco (1 728) a 164 produktů
-   katalogu; `REPLACE`, opakovatelný
+Ve WebAdminu založ databázi **MariaDB 11.4** a v phpMyAdminu spusť **všechny skripty
+z tabulky [Historie SQL skriptů](#historie-sql-skriptů) v pořadí, v jakém jsou v tabulce** —
+`init` založí tabulky k 2. 10. 2026, další skripty k nim přidávají sloupce, tabulky a data.
+Pořadí podle názvu souboru nestačí: `…-nakupni-seznam-mnozstvi.sql` přidává sloupec za `chain`,
+který založí až `…-nakupni-seznam-sdileni.sql` (abecedně za ním) — ověřeno na prázdné databázi
+25. 10. 2026 (R170). `data-2026-10-02-katalog.sql` patří jen na prázdnou databázi (`REPLACE` podle
+`id` by na produkci přepsal produkty upravené adminem).
 
 Akce zatím v databázi nejsou — stáhne je cron (krok 6). Přiřazení akcí k produktům
 katalogu se dopočítá při každém stažení samo.
@@ -364,7 +365,8 @@ v UptimeRobotu (interval 1 hodina). Výpadek, když poslední úspěšný běh j
 
 | Řádek | Úloha | Limit |
 |---|---|---|
-| Prodejny Kaufland | `import-stores` (nejnovější stažený seznam akcí prodejny) | 18 h |
+| Prodejny Kaufland | `import-stores?chain=kaufland` — čerstvý seznam akcí aspoň u `store_lists_min_share` (90 %) prodejen (R170) | 18 h |
+| Prodejny COOP | `import-stores?chain=coop` — čerstvý seznam letáků aspoň u 90 % prodejen (obnova po dávkách 120, celá ~1,5 dne, R169, R170) | 60 h |
 | Centrum upozornění — nové / končící / dnes začínající akce, E-mailové souhrny, Upozornění v telefonu | `send-digests`, každý kanál zvlášť | 9 h (přes noc pauza 8 h) |
 | Denní úklid | `prune-sessions` | 26 h |
 | Kategorie katalogu | `import-categories` | 32 dní |
@@ -450,7 +452,7 @@ migraci ztratila změny od té doby (registrace, hlídané položky, nákupní s
 | Skript | Obsah | Nasazeno |
 |---|---|---|
 | `migrations-2026-10-02-init.sql` | výchozí schéma — všechny tabulky k 2026-10-02 a záznamy v `migrations` | 2026-10-02 |
-| `data-2026-10-02-katalog.sql` | strom kategorií e-shopu Tesco (1 728) a 164 produktů katalogu (R28, R37), `REPLACE` — opakovatelný; až po init | 2026-10-02 |
+| `data-2026-10-02-katalog.sql` | strom kategorií e-shopu Tesco (1 728) a 164 produktů katalogu (R28, R37), `REPLACE` podle `id` — **jen na prázdnou databázi**, opakování přepíše produkty upravené adminem a pravidla z R135 (R170); až po init | 2026-10-02 |
 | `migrations-2026-10-03-prodejny.sql` | prodejny Kauflandu (R49): tabulky `stores` a `offer_stores`, `followed_chains.store_codes`; opakovatelný, pustit **před** nahráním kódu | 2026-10-03 |
 | `migrations-2026-10-02-ucet.sql` | nastavení účtu: `users.avatar_path` (R40), `users.offers_sort` a `min_discount_percent` (R41), `users.digest_frequency` a `digest_sent_at` (R42); opakovatelný, pustit **před** nahráním kódu | 2026-10-02 |
 | `migrations-2026-10-03-souhlasy.sql` | souhlasy (R51): `users.terms_accepted_at`, `terms_version`, `marketing_consent_at`, `marketing_consent_version`, `marketing_consent_withdrawn_at`; dosavadní účty označí jako ověřené (`email_verified_at`); opakovatelný, pustit **před** nahráním kódu | 2026-10-03 |
@@ -473,6 +475,7 @@ migraci ztratila změny od té doby (registrace, hlídané položky, nákupní s
 | `migrations-2026-10-13-navrhy-hlidani.sql` | návrhy, co hlídat (R148): tabulka `watch_suggestions`; opakovatelný, pustit **před** nahráním kódu | 2026-10-13 |
 | `migrations-2026-10-18-pruvodce.sql` | průvodce prvním nastavením (R153): `users.onboarded_at`, dosavadním účtům čas registrace (jen při prvním spuštění); opakovatelný, pustit **před** nahráním kódu | 2026-10-18 |
 | `migrations-2026-10-25-delsi-kod-prodejny.sql` | delší kód prodejny (R169): `stores.code` a `offer_stores.store_code` na 80 znaků kvůli prodejnám COOP; opakovatelný, pustit **před** nahráním kódu | 2026-10-25 |
+| `migrations-2026-10-25-indexy-upozorneni.sql` | indexy pro cron upozornění a úklid (R170): `users.push_sent_at`, `digest_sent_at`, `notified_at`, `notifications.created_at`; opakovatelný, pustit kdykoli (stará verze kódu s ním běží) | — |
 
 ## Nasazené verze
 

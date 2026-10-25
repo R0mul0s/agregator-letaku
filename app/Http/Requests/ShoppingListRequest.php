@@ -31,7 +31,17 @@ class ShoppingListRequest extends FormRequest
             'offer_id' => ['required', 'integer', Rule::exists('offers', 'id')],
             // Množství při přidání z pole „Co koupit“ („2x cola“, R133); karta akce ho neposílá
             'quantity' => ShoppingQuantity::rules(),
+            // Chtěný stav — přidat (true), odebrat (false); bez něj přepnout (R170)
+            'in_list' => ['sometimes', 'boolean'],
         ];
+    }
+
+    /**
+     * Má akce po požadavku v seznamu být? Null = přepnout dosavadní stav.
+     */
+    public function wantedInList(): ?bool
+    {
+        return $this->has('in_list') ? $this->boolean('in_list') : null;
     }
 
     /**
@@ -61,7 +71,7 @@ class ShoppingListRequest extends FormRequest
             function (Validator $validator): void {
                 $items = $this->user()?->shoppingListItems();
                 $limit = config()->integer('letaky.shopping_list.max_items');
-                if ($items !== null && ! (clone $items)->where('offer_id', $this->offerId())->exists() && $items->count() >= $limit) {
+                if ($items !== null && $this->wantedInList() !== false && ! (clone $items)->where('offer_id', $this->offerId())->exists() && $items->count() >= $limit) {
                     $validator->errors()->add('offer_id', __('app.ui.shopping.limit', ['count' => $limit]));
                 }
             },

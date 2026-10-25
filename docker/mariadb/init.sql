@@ -13,3 +13,9 @@ CREATE DATABASE IF NOT EXISTS agregator_test
 
 GRANT ALL PRIVILEGES ON agregator_test.* TO 'agregator'@'%';
 FLUSH PRIVILEGES;
+
+-- Paralelní testy (`pest --parallel`, R170) zakládají vlastní databázi pro každý proces
+-- (agregator_test_test_1, _2…) — uživatel je musí smět vytvořit. Na existujícím volume pustit
+-- jednou ručně: docker compose exec db mariadb -uroot -proot < docker/mariadb/init.sql
+GRANT ALL PRIVILEGES ON `agregator\_test\_%`.* TO 'agregator'@'%';
+FLUSH PRIVILEGES;

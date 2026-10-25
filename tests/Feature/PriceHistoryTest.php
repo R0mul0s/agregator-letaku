@@ -105,3 +105,14 @@ it('historie pro graf v okně detailu: akce položky za období od nejstarší i
             ],
         ]);
 });
+
+it('akci z letáku (cena v ID) porovná s dřívější akcí stejného názvu a balení za jinou cenu (R170)', function (): void {
+    earlierOffer(3, ['chain' => Chain::Norma, 'external_id' => 'letak-aaa', 'name' => 'Máslo', 'package_text' => '250 g', 'price' => 4490]);
+    // Stejný název, jiné balení — jiná položka
+    earlierOffer(2, ['chain' => Chain::Norma, 'external_id' => 'letak-bbb', 'name' => 'Máslo', 'package_text' => '125 g', 'price' => 2290]);
+    $current = Offer::factory()->create(['chain' => Chain::Norma, 'external_id' => 'letak-ccc', 'name' => 'Máslo', 'package_text' => '250 g', 'price' => 3990]);
+
+    expect(app(PriceHistory::class)->forOffers([$current])[$current->id])
+        ->toMatchArray(['status' => PriceHistory::LOWEST, 'price' => 4490, 'weeksAgo' => 3])
+        ->and(array_column(app(PriceHistory::class)->timeline($current), 'price'))->toBe([4490, 3990]);
+});

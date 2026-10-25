@@ -24,6 +24,9 @@ final class SocialLoginRefused extends RuntimeException
     /** Účet s e-mailem existuje a poskytovatel e-mail neověřil — připojit ho sám nesmí. */
     public const EMAIL_TAKEN = 'email_taken';
 
+    /** Propojit účet u poskytovatele jde až po ověření e-mailu (R170). */
+    public const EMAIL_UNVERIFIED = 'email_unverified';
+
     /** Účet u poskytovatele už je propojený s jiným uživatelem. */
     public const ALREADY_LINKED_ELSEWHERE = 'already_linked_elsewhere';
 

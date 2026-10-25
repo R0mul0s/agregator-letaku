@@ -43,7 +43,7 @@ final readonly class HealthChecks
     }
 
     /**
-     * Seznamy akcí prodejen (R49, podle `stores.offer_keys_fetched_at`) a úlohy cronu podle
+     * Seznamy akcí prodejen (R49, podle podílu čerstvých `stores.offer_keys_fetched_at`, R170) a úlohy cronu podle
      * `task_heartbeats`: úspěšný běh novější než limit úlohy.
      */
     public function tasks(): HealthReport
@@ -53,7 +53,7 @@ final readonly class HealthChecks
             $report->check(
                 __('app.health.store_lists', ['chain' => $chain->label()]),
                 Store::lastListFetchedAt($chain),
-                config()->integer('letaky.health.max_store_lists_age_hours'),
+                config()->integer("letaky.sources.{$chain->value}.store_lists_health_hours"),
                 'app.health.outage',
             );
         }

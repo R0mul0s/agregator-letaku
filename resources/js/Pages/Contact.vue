@@ -11,9 +11,11 @@
     @created 2026-10-05
 -->
 <script setup>
+// Styly jen této stránky — Vite je dá do CSS stránky, ne do společného app.css (R170)
+import '../../scss/pages/_contact.scss';
 import ContactIcon from '@/Components/ContactIcon.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
-import { MEDIA_FROM_MD } from '@/lib/breakpoints';
+import { CONTACT_MASCOT_SIZES } from '@/lib/breakpoints';
 import { copyText } from '@/lib/clipboard';
 import { useTranslations } from '@/lib/i18n';
 import { prefersReducedMotion } from '@/lib/scroll';
@@ -114,7 +116,7 @@ function pigeonLanded() {
                     <img
                         src="/images/brand/mascot-416.webp"
                         srcset="/images/brand/mascot-192.webp 192w, /images/brand/mascot-288.webp 288w, /images/brand/mascot-416.webp 416w"
-                        :sizes="`${MEDIA_FROM_MD} 112px, 73px`"
+                        :sizes="CONTACT_MASCOT_SIZES"
                         width="416"
                         height="416"
                         alt=""

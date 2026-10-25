@@ -38,7 +38,8 @@
     }
 
     &:hover &__mascot {
-        animation: back-to-top-bump var(--landing-bump-duration) ease-in-out infinite;
+        // Konečný počet opakování jako ostatní poskakování maskota (PASTI.md bod 47, R170)
+        animation: back-to-top-bump var(--landing-bump-duration) ease-in-out var(--landing-bump-iterations);
     }
 
     @media (prefers-reduced-motion: reduce) {

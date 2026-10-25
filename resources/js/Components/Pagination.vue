@@ -10,6 +10,7 @@
 import { formatNumber as formatLocaleNumber } from '@/lib/format';
 import { useTranslations } from '@/lib/i18n';
 import { Link, usePage } from '@inertiajs/vue3';
+import { nextTick, ref } from 'vue';
 
 defineProps({
     /** { from, to, lastPage, pages: [{ number, url, current } | { gap }], previousUrl, nextUrl, loadMoreUrl, loadMoreCount, shownFrom, shownTo, append?: { only, headers } }. */
@@ -22,6 +23,20 @@ defineProps({
 
 const t = useTranslations();
 const page = usePage();
+
+/** Text „Zobrazeno X–Y z Z“ — po načtení poslední stránky na něj přejde fokus. */
+const shown = ref(null);
+
+/**
+ * Po „Načíst další“: zmizelo-li tlačítko s fokusem (poslední stránka), fokus přejde na text
+ * s rozsahem pod výpisem, ne na začátek dokumentu (R170).
+ */
+async function keepFocus() {
+    await nextTick();
+    if (!document.activeElement || document.activeElement === document.body) {
+        shown.value?.focus({ preventScroll: true });
+    }
+}
 
 /**
  * Číslo s oddělením tisíců („6 245“).
@@ -46,11 +61,13 @@ function formatNumber(value) {
             class="button button--primary"
             preserve-scroll
             preserve-state
+            @success="keepFocus"
         >
             {{ t(loadMoreKey, { count: pagination.loadMoreCount }) }}
         </Link>
 
-        <p class="pagination__shown">
+        <!-- role=status: čtečka ohlásí nový rozsah po načtení další stránky (R170) -->
+        <p ref="shown" class="pagination__shown" role="status" tabindex="-1">
             {{ t('offers.shown', { from: formatNumber(pagination.shownFrom), to: formatNumber(pagination.shownTo), total: formatNumber(total) }) }}
         </p>
 

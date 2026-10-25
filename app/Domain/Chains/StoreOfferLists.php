@@ -36,4 +36,18 @@ final class StoreOfferLists
 
         return $lists;
     }
+
+    /**
+     * Je čerstvých seznamů dost na určení prodejen akcí — aspoň `store_lists_min_share` prodejen
+     * obchodu (R169, R170)? Jinak (hned po nasazení, stažení jen pár seznamů) by akce zmizely
+     * v prodejnách, jejichž seznam chybí; pak platí všude.
+     *
+     * @param  array<string, mixed>  $lists  Čerstvé seznamy podle prodejny (fresh())
+     */
+    public function complete(Chain $chain, array $lists): bool
+    {
+        $total = Store::query()->where('chain', $chain)->count();
+
+        return $total > 0 && count($lists) >= $total * config()->float("letaky.sources.{$chain->value}.store_lists_min_share");
+    }
 }

@@ -10,6 +10,7 @@
 
 declare(strict_types=1);
 
+use App\Enums\SocialProvider;
 use App\Models\User;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Support\Facades\DB;
@@ -109,4 +110,41 @@ it('odkaz pro obnovu hesla vede na adresu z APP_URL, ne z hlaviček požadavku (
 
         return str_starts_with($url, rtrim(config()->string('app.url'), '/').'/nove-heslo/');
     });
+});
+
+it('neexistující účet ani opakovaná žádost nejdou poznat podle odpovědi (R170)', function (): void {
+    Notification::fake();
+    $user = User::factory()->create();
+
+    $this->post(route('password.email'), ['email' => 'nikdo@example.com'])
+        ->assertSessionHasNoErrors()
+        ->assertSessionHas('status', __('passwords.sent'));
+
+    $this->post(route('password.email'), ['email' => $user->email]);
+    // Druhá žádost hned po první: broker ji odmítne (throttled), odpověď je stejná
+    $this->post(route('password.email'), ['email' => $user->email])
+        ->assertSessionHasNoErrors()
+        ->assertSessionHas('status', __('passwords.sent'));
+});
+
+it('obnova hesla neověřeného účtu ověří e-mail a zruší propojení cizích účtů (R170)', function (): void {
+    Notification::fake();
+    $user = User::factory()->create(['email_verified_at' => null]);
+    $user->socialAccounts()->create(['provider' => SocialProvider::Facebook, 'provider_user_id' => 'utocnik']);
+    $this->post(route('password.email'), ['email' => $user->email]);
+
+    Notification::assertSentTo($user, ResetPassword::class, function (ResetPassword $notification) use ($user): bool {
+        $this->post(route('password.update'), [
+            'token' => $notification->token,
+            'email' => $user->email,
+            'password' => 'Nove-heslo-2026',
+            'password_confirmation' => 'Nove-heslo-2026',
+        ])->assertRedirect(route('login'));
+
+        return true;
+    });
+
+    $user->refresh();
+    expect($user->hasVerifiedEmail())->toBeTrue()
+        ->and($user->socialAccounts()->exists())->toBeFalse();
 });

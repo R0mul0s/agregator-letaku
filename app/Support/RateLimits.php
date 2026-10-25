@@ -7,7 +7,8 @@
  * - PUBLIC: veřejné stránky a soubory pro roboty, podle IP.
  * - SUGGESTIONS: našeptávač (dotaz při psaní), podle IP.
  * - CRON: cron URL — zkoušení tokenu, podle IP.
- * - WRITES: všechny měnící požadavky (POST/PUT/DELETE) skupiny web, podle uživatele nebo IP;
+ * - WRITES: všechny měnící požadavky (POST/PUT/DELETE) skupiny web, podle uživatele nebo IP,
+ *   a volnější limit čtení přihlášeného podle účtu (R170);
  *   formuláře, které ověřují heslo nebo posílají e-mail, přísněji podle IP; formuláře s e-mailem
  *   navíc hodinovým limitem podle uživatele nebo IP (R67). Přihlášení má
  *   vlastní limit Fortify (login, FortifyServiceProvider).
@@ -81,12 +82,16 @@ final class RateLimits
         RateLimiter::for(self::CRON, fn (Request $request): Limit => Limit::perMinute(self::limit('cron_per_minute'))->by((string) $request->ip()));
 
         RateLimiter::for(self::WRITES, function (Request $request): Limit|array {
-            if ($request->isMethodSafe()) {
-                return Limit::none();
-            }
-
             $user = $request->user();
             $client = $user === null ? 'ip|'.$request->ip() : 'user|'.$user->getAuthIdentifier();
+
+            if ($request->isMethodSafe()) {
+                // Čtení nepřihlášeného omezuje PUBLIC podle IP; stránky přihlášeného (Moje slevy
+                // počítají párování) jen volnějším limitem podle účtu (R170)
+                return $user === null
+                    ? Limit::none()
+                    : Limit::perMinute(self::limit('reads_per_minute'))->by('read|'.$client);
+            }
 
             if ($request->routeIs(...self::SENSITIVE_ROUTES)) {
                 $limits = [Limit::perMinute(self::limit('sensitive_writes_per_minute'))->by('sensitive|'.$request->ip())];

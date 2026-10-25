@@ -69,8 +69,15 @@ Značení: **[R]** = rozhodne nebo zařídí Roman, **[K]** = kód.
 
 - [ ] **[R] O8 — změřit limit délky požadavku** na hostingu, zapsat do PLAN.md.
 - [ ] **[R] Monitoring:** UptimeRobot i na `/up`. Import prodejen a ostatní úlohy cronu hlídá
-  `/health/tasks` (R115) — přidat monitor v UptimeRobotu. Chyby aplikace chodí adminům do
-  centra upozornění a telefonu (R154).
+  `/health/tasks` (R115) — **ověřit v UptimeRobotu, že monitor `/health/imports` i `/health/tasks`
+  opravdu existuje** (HISTORIE_NASAZENI.md ho vede jako krok nasazení, tady neodškrtnutý). Na nich
+  záleží: upozornění adminům na výpadek (`RecordHealthAlerts`) běží uvnitř cronu `send-digests` —
+  když se zastaví celý cron WebAdminu nebo se změní token, ozve se jen UptimeRobot. Chyby aplikace
+  chodí adminům do centra upozornění a telefonu (R154).
+- [ ] **[R] Proxy Websupportu (R170):** `trustProxies(at: '*')` věří `X-Forwarded-For` od kohokoli,
+  kdo se k Apache připojí přímo. Ověřit u Websupportu, že Apache není dostupný mimo jejich proxy,
+  nebo zjistit rozsah IP proxy a uvést ho v `bootstrap/app.php` — jinak si útočník podvrhne IP
+  a obejde limity požadavků (přihlášení, cron, e-maily).
 - [ ] **[R] Zálohy:** doplnit `offer_product`, `shopping_list_items` a avatary
   (`storage/app/private/avatars` přes FTP), ověřit, jak dlouho drží automatické zálohy
   Websupportu (zásady slibují nejdéle 6 měsíců); jednou vyzkoušet obnovu.

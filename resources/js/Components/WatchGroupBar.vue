@@ -13,7 +13,8 @@
 -->
 <script setup>
 import { MEDIA_BELOW_LG } from '@/lib/breakpoints';
-import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
+import { useFrameScroll } from '@/lib/frameScroll';
+import { nextTick, ref } from 'vue';
 
 defineProps({
     title: { type: String, required: true },
@@ -31,35 +32,37 @@ const GROUP_HEADER_SELECTOR = '.watch-group__header';
 const root = ref(null);
 const stuck = ref(false);
 
-/** @type {MediaQueryList|null} */
-let media = null;
-/** Čeká na snímek, aby se při posouvání nepočítalo víckrát než jednou za vykreslení. */
-let frame = null;
-
 /**
  * Přilepená, když spodní okraj skutečné hlavičky skupiny přejel spodní okraj lišty a skupina
- * ještě pod hlavičkou webu pokračuje.
+ * ještě pod hlavičkou webu pokračuje. Skupina mimo obrazovku se přeskočí bez čtení stylů — po
+ * „Rozbalit vše“ jich jsou desítky a každá by v každém snímku četla rozvržení (R170).
+ *
+ * @param {boolean} matches Telefon nebo tablet
  */
-function update() {
-    frame = null;
+function update(matches) {
     const bar = root.value;
     const section = bar?.parentElement;
     const header = section?.querySelector(GROUP_HEADER_SELECTOR);
-    if (!bar || !section || !header || !media?.matches) {
+    if (!bar || !section || !header || !matches) {
         stuck.value = false;
 
         return;
     }
 
-    // Kam se lišta lepí — pod hlavičku webu, na telefonu i pod plovoucí lištu filtrů (--sticky-top, R120)
+    const sectionBox = section.getBoundingClientRect();
+    if (sectionBox.bottom <= 0 || sectionBox.top >= window.innerHeight) {
+        stuck.value = false;
+
+        return;
+    }
+
+    // Kam se lišta lepí — pod hlavičku webu, na telefonu i pod plovoucí lištu filtrů (--sticky-top,
+    // R120); hlavička mění výšku i bez změny okna (menu), proto se čte pokaždé
     const line = parseFloat(getComputedStyle(bar).top) || 0;
-    stuck.value = header.getBoundingClientRect().bottom <= line + bar.offsetHeight && section.getBoundingClientRect().bottom > line;
+    stuck.value = header.getBoundingClientRect().bottom <= line + bar.offsetHeight && sectionBox.bottom > line;
 }
 
-/** Posouvání a změna velikosti — přepočet nejvýš jednou za snímek. */
-function onScroll() {
-    frame ??= window.requestAnimationFrame(update);
-}
+useFrameScroll(update, MEDIA_BELOW_LG);
 
 /**
  * Sbalí skupinu a posune stránku na její začátek — obsah pod lištou zmizí a bez posunu by
@@ -71,22 +74,6 @@ function collapse() {
     nextTick(() => section?.scrollIntoView({ block: 'start', behavior: 'instant' }));
 }
 
-onMounted(() => {
-    media = window.matchMedia(MEDIA_BELOW_LG);
-    media.addEventListener('change', onScroll);
-    window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', onScroll, { passive: true });
-    update();
-});
-
-onBeforeUnmount(() => {
-    media?.removeEventListener('change', onScroll);
-    window.removeEventListener('scroll', onScroll);
-    window.removeEventListener('resize', onScroll);
-    if (frame !== null) {
-        window.cancelAnimationFrame(frame);
-    }
-});
 </script>
 
 <template>

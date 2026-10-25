@@ -30,6 +30,7 @@ use App\Models\Product;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\DB;
 
 final class AssignProducts
 {
@@ -80,6 +81,20 @@ final class AssignProducts
      */
     private function assign(Builder $candidates, Collection $products, ?Builder $scope = null): void
     {
+        // Smazání a nové vložení najednou — pád mezi nimi by nechal produkt bez akcí až do dalšího
+        // stažení; uvnitř transakce importu je to jen bod návratu (R170)
+        DB::transaction(fn () => $this->reassign($candidates, $products, $scope));
+    }
+
+    /**
+     * Tělo assign() v transakci.
+     *
+     * @param  Builder<Offer>  $candidates
+     * @param  Collection<int, Product>  $products
+     * @param  Builder<Offer>|null  $scope
+     */
+    private function reassign(Builder $candidates, Collection $products, ?Builder $scope): void
+    {
         $productIds = array_map(intval(...), array_values($products->modelKeys()));
 
         OfferProduct::query()
@@ -112,8 +127,10 @@ final class AssignProducts
             }
         }
 
+        // Souběžné přiřazení stejné dvojice (uložení produktu adminem během importu) nesmí
+        // shodit uložení na primárním klíči — dvojice už je přiřazená (R170)
         foreach (array_chunk($rows, self::INSERT_CHUNK) as $chunk) {
-            OfferProduct::query()->insert($chunk);
+            OfferProduct::query()->insertOrIgnore($chunk);
         }
     }
 

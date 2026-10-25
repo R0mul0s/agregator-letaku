@@ -23,7 +23,7 @@ const ANYWHERE = 'anywhere';
 
 const props = defineProps({
     /**
-     * Skupiny [{ chain, chainName, items: [{ id, name, quantity, checked, expired, userPrice, offer|null,
+     * Skupiny [{ chain, chainName, items: [{ id, name, quantity, checked, expired, withdrawn, userPrice, offer|null,
      * updateUrl, deleteUrl|null, quantityUrl|null }] }].
      */
     groups: { type: Array, required: true },
@@ -172,7 +172,7 @@ function remaining(group) {
                     </div>
                     <p v-if="item.offer" class="shopping-item__meta">
                         <span v-if="packageLabel(item.offer, locale, t)">{{ packageLabel(item.offer, locale, t) }} · </span>
-                        <span v-if="item.expired" class="shopping-item__expired">{{ t('shopping.expired') }}</span>
+                        <span v-if="item.expired" class="shopping-item__expired">{{ item.withdrawn ? t('shopping.withdrawn') : t('shopping.expired') }}</span>
                         <!-- Ještě nezačala (R76) — v obchodě zatím za akční cenu není -->
                         <span v-else-if="item.offer.startsInDays" class="shopping-item__upcoming">{{
                             t('shopping.starts', { date: formatDate(item.offer.validFrom, locale) })

@@ -5,7 +5,8 @@
 -- Přiřazení akcí k produktům (offer_product) dopočítá aplikace při prvním
 -- stažení akcí každého obchodu (cron URL).
 --
--- Skript je OPAKOVATELNÝ (REPLACE). Pusť ho až po migrations-2026-10-02-init.sql.
+-- Jen na PRÁZDNOU databázi, pusť ho až po migrations-2026-10-02-init.sql. REPLACE podle id
+-- by na produkci přepsal produkty upravené adminem a rozšířená pravidla (R135) — NEOPAKOVAT (R170).
 -- Kategorie lze na produkci obnovit i cron URL /cron/import-categories.
 --
 -- Vygenerováno z vývojové databáze (letaky:import-categories + CatalogSeeder).

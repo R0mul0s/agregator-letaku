@@ -28,6 +28,11 @@ final class LinkSocialAccount
      */
     public function handle(User $user, SocialIdentity $identity): void
     {
+        // Neověřený účet mohl založit kdokoli, kdo adresu znal; propojení by mu zůstalo
+        // i po převzetí účtu skutečným majitelem adresy (R170)
+        if (! $user->hasVerifiedEmail()) {
+            throw new SocialLoginRefused(SocialLoginRefused::EMAIL_UNVERIFIED);
+        }
         $owner = SocialAccount::query()
             ->where('provider', $identity->provider)
             ->where('provider_user_id', $identity->id)

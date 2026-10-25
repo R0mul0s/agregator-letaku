@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Prodejna obchodu (zatím jen Kaufland, R49) se seznamem akcí, které v ní platí.
+ * Prodejna obchodu (Kaufland R49, COOP R169) se seznamem akcí, které v ní platí.
  * Seznam stahuje ImportStores; import nabídek z něj zjistí, v kterých prodejnách akce platí.
  *
  * @author Roman Hlaváček
@@ -57,14 +57,21 @@ class Store extends Model
     }
 
     /**
-     * Kdy se naposledy stáhl seznam akcí některé prodejny obchodu (UTC) — konec posledního
-     * úspěšného stažení prodejen pro /health/tasks (R115); null = nikdy.
+     * Od kdy je čerstvý seznam akcí aspoň u `store_lists_min_share` prodejen obchodu (UTC) — pro
+     * /health/tasks (R115). Nejnovější seznam by výpadek neukázal: COOP obnovuje prodejny po dávkách
+     * a prodejny, které se trvale nestahují, by tiše vypadly (R170). Null = tolik seznamů není.
      */
     public static function lastListFetchedAt(Chain $chain): ?CarbonImmutable
     {
-        $fetchedAt = self::query()->where('chain', $chain)->max('offer_keys_fetched_at');
+        $needed = (int) ceil(self::query()->where('chain', $chain)->count() * config()->float("letaky.sources.{$chain->value}.store_lists_min_share"));
+        $fetchedAt = self::query()
+            ->where('chain', $chain)
+            ->whereNotNull('offer_keys_fetched_at')
+            ->orderByDesc('offer_keys_fetched_at')
+            ->offset(max(0, $needed - 1))
+            ->value('offer_keys_fetched_at');
 
-        // Databáze ukládá čas v UTC (config/app.php)
-        return is_string($fetchedAt) ? CarbonImmutable::parse($fetchedAt, 'UTC') : null;
+        // value() modelu vrací přetypovaný sloupec
+        return $fetchedAt instanceof CarbonImmutable ? $fetchedAt : null;
     }
 }

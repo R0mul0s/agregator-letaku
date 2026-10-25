@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS `offer_reports` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `offer_id` bigint(20) unsigned NOT NULL,
   `user_id` bigint(20) unsigned NOT NULL,
-  `reason` varchar(32) NOT NULL COMMENT 'App\Enums\OfferReportReason',
+  `reason` varchar(32) NOT NULL COMMENT 'App\\Enums\\OfferReportReason',
   `note` text DEFAULT NULL COMMENT 'nepovinný popis od uživatele',
   `resolved_at` timestamp NULL DEFAULT NULL COMMENT 'UTC, kdy admin hlášení vyřešil; null = otevřené',
   `created_at` timestamp NULL DEFAULT NULL,

@@ -108,7 +108,7 @@ function reset() {
 function choose(option) {
     if (option.type === 'offer') {
         if (!listed.value.has(option.offer.id)) {
-            router.post(page.props.shoppingList.toggleUrl, { offer_id: option.offer.id, quantity: parsed.value.quantity }, { preserveScroll: true });
+            router.post(page.props.shoppingList.toggleUrl, { offer_id: option.offer.id, quantity: parsed.value.quantity, in_list: true }, { preserveScroll: true });
         }
     } else {
         router.post(props.add.customUrl, { name: query.value, chain: chain.value || null, quantity: parsed.value.quantity }, { preserveScroll: true });

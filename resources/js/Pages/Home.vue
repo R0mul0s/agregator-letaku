@@ -39,7 +39,7 @@ import WatchGroup from '@/Components/WatchGroup.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { appHeaderHeight } from '@/lib/appHeader';
 import { useExpandedGroups } from '@/lib/expandedGroups';
-import { MEDIA_FROM_MD } from '@/lib/breakpoints';
+import { HOME_MASCOT_SIZES } from '@/lib/breakpoints';
 import { formatDiscount, formatNumber, formatPrice } from '@/lib/format';
 import { useTranslations } from '@/lib/i18n';
 import { discountPercent, MATCH_MAYBE, PRICE_LOWEST, upcomingAnchor } from '@/lib/offer';
@@ -566,7 +566,7 @@ onMounted(async () => {
                         <img
                             src="/images/brand/mascot-288.webp"
                             srcset="/images/brand/mascot-192.webp 192w, /images/brand/mascot-288.webp 288w"
-                            :sizes="`${MEDIA_FROM_MD} 160px, 0px`"
+                            :sizes="HOME_MASCOT_SIZES"
                             width="288"
                             height="288"
                             alt=""

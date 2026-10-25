@@ -11,6 +11,8 @@
     @created 2026-10-10
 -->
 <script setup>
+// Styly jen této stránky — Vite je dá do CSS stránky, ne do společného app.css (R170)
+import '../../scss/pages/_weekly.scss';
 import ChainLogo from '@/Components/ChainLogo.vue';
 import EmptyState from '@/Components/EmptyState.vue';
 import GuestOffersCard from '@/Components/GuestOffersCard.vue';

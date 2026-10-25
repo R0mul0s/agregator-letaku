@@ -9,6 +9,8 @@
     @created 2026-10-03
 -->
 <script setup>
+// Styly jen této stránky — Vite je dá do CSS stránky, ne do společného app.css (R170)
+import '../../scss/pages/_legal.scss';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { formatDate } from '@/lib/format';
 import { useTranslations } from '@/lib/i18n';

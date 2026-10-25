@@ -3,7 +3,8 @@
 /**
  * Stáhne prodejny obchodu a u každé seznam akcí, které v ní platí (R49). Import nabídek
  * z těchto seznamů pozná, v kterých prodejnách akce platí, a stáhne detail akcí, které ve
- * výchozí nabídce chybí. Prodejna, která ze seznamu zmizela, se smaže.
+ * výchozí nabídce chybí. Prodejna, která ze seznamu zmizela, se smaže — ale jen když jich
+ * nezmizelo podezřele mnoho (`letaky.stores.max_closed_share`, R170).
  *
  * U COOP je „seznam akcí“ prodejny seznam letáků, které v ní platí, a stránek prodejen je tolik,
  * že se jedno stažení postará jen o část (`store_lists_per_run`, R169).
@@ -20,6 +21,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Chains\Actions;
 
+use App\Domain\Sources\Exceptions\SourceResponseChanged;
 use App\Domain\Sources\SourceRegistry;
 use App\Enums\Chain;
 use App\Models\FollowedChain;
@@ -73,10 +75,7 @@ final class ImportStores
             ['chain', 'code'],
             ['name', 'city', 'updated_at'],
         );
-        $closed = Store::query()->where('chain', $chain)->whereNotIn('code', array_keys($stores))->delete();
-        if ($closed > 0) {
-            $this->forgetClosedStores($chain, array_keys($stores));
-        }
+        $suspicious = $this->closeStores($chain, array_keys($stores));
 
         $lists = 0;
         $lastError = null;
@@ -101,8 +100,38 @@ final class ImportStores
         if ($lists === 0 && $lastError !== null) {
             throw $lastError;
         }
+        // Seznamy se obnovily, ale chybějící prodejny jsou podezřelé — chyba pro /health/tasks a adminy
+        if ($suspicious !== null) {
+            throw $suspicious;
+        }
 
         return ['stores' => count($stores), 'lists' => $lists];
+    }
+
+    /**
+     * Smaže prodejny, které ze seznamu zmizely, a odebere je z výběru uživatelů. Zmizí-li jich
+     * víc než `max_closed_share` (R170), nesmaže nic — nejspíš se změnil formát stránky a část
+     * prodejen se nepřečetla; vrátí výjimku, kterou stažení po obnově seznamů akcí vyhodí.
+     *
+     * @param  list<string>  $openCodes
+     */
+    private function closeStores(Chain $chain, array $openCodes): ?SourceResponseChanged
+    {
+        $closing = Store::query()->where('chain', $chain)->whereNotIn('code', $openCodes);
+        $closed = (clone $closing)->count();
+        if ($closed === 0) {
+            return null;
+        }
+
+        $total = Store::query()->where('chain', $chain)->count();
+        if ($closed > $total * config()->float('letaky.stores.max_closed_share')) {
+            return SourceResponseChanged::because($chain, "ze seznamu prodejen zmizelo {$closed} z {$total} — nic se nesmazalo");
+        }
+
+        $closing->delete();
+        $this->forgetClosedStores($chain, $openCodes);
+
+        return null;
     }
 
     /**

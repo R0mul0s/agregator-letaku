@@ -234,6 +234,14 @@ it('okamžité upozornění přijde po stažení s novou akcí, nejvýš jednou 
     Mail::assertSent(DigestMail::class, fn (DigestMail $mail): bool => array_column($mail->groups[0]['offers'], 'name') === ['Máslo dopoledne']);
 });
 
+it('okamžité upozornění o pár vteřin dřív než za hodinu nepřeskočí (rezerva intervalu, R170)', function (): void {
+    $this->user->forceFill(['digest_frequency' => DigestFrequency::Instant, 'digest_sent_at' => '2026-10-02 06:30:40'])->save();
+    $this->travelTo('2026-10-02 07:30:20');
+    importedOffer(['name' => 'Máslo dopoledne']);
+
+    expect(app(SendDigests::class)())->toBe(1);
+});
+
 it('bez stažení od posledního souhrnu uživatele vůbec nezpracuje (R58)', function (): void {
     $this->user->forceFill(['digest_frequency' => DigestFrequency::Instant])->save();
     importedOffer(['name' => 'Máslo ráno']);

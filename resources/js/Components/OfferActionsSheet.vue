@@ -71,6 +71,8 @@ watch(
             form.offer_id = offerActionsState.offer?.id ?? null;
         }
     },
+    // Okno se načte až při prvním otevření (AppLayout, R170) — stav je pak už otevřený
+    { immediate: true },
 );
 
 /**

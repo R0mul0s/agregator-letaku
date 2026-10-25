@@ -38,7 +38,24 @@ export function clearPendingChecks() {
 }
 
 /**
- * Odešle neodeslaná odškrtnutí, když je připojení. Po úspěchu se zapomenou; při chybě
+ * Zapomene jen odeslaná odškrtnutí — co přibylo nebo se změnilo během odesílání, zůstane
+ * na další pokus (R170).
+ *
+ * @param {Array<[string, boolean]>} sent Odeslané dvojice [id, odškrtnuto]
+ */
+function forgetSent(sent) {
+    const rest = { ...pendingChecks.value };
+    for (const [id, checked] of sent) {
+        if (rest[id] === checked) {
+            delete rest[id];
+        }
+    }
+    pendingChecks.value = rest;
+    writeStored(STORAGE_KEY, Object.keys(rest).length ? rest : null);
+}
+
+/**
+ * Odešle neodeslaná odškrtnutí, když je připojení. Po úspěchu se zapomenou odeslaná; při chybě
  * zůstanou na další pokus.
  *
  * @param {string|undefined} url Adresa synchronizace ze sdílené vlastnosti shoppingList
@@ -59,7 +76,7 @@ export function syncPendingChecks(url) {
             // Nezruší přechod, který uživatel právě dělá
             async: true,
             showProgress: false,
-            onSuccess: clearPendingChecks,
+            onSuccess: () => forgetSent(entries),
             onFinish: () => (syncing = false),
         },
     );

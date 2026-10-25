@@ -72,12 +72,14 @@ final class ResolveSocialLogin
 
     /**
      * Účet s neověřeným e-mailem mohl založit kdokoli, kdo adresu znal (předem obsazený účet).
-     * Majitel adresy ji teď prokázal u Googlu — heslo zakladatele se zahodí a jeho přihlášení
-     * se zruší; kdo heslo chce, nastaví si ho obnovou hesla nebo v Mém účtu.
+     * Majitel adresy ji teď prokázal u Googlu — heslo zakladatele se zahodí, jeho přihlášení
+     * se zruší a zmizí i účty u poskytovatelů, které si k účtu propojil (jinak by se jimi
+     * přihlašoval dál, R170); kdo heslo chce, nastaví si ho obnovou hesla nebo v Mém účtu.
      */
     private function takeOverUnverified(User $user): void
     {
         $this->sessions->deleteAll($user);
+        $user->socialAccounts()->delete();
         $user->forceFill([
             'password' => null,
             'email_verified_at' => $user->freshTimestamp(),

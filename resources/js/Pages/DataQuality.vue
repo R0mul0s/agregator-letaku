@@ -8,6 +8,8 @@
     @created 2026-10-10
 -->
 <script setup>
+// Styly jen této stránky — Vite je dá do CSS stránky, ne do společného app.css (R170)
+import '../../scss/pages/_data-quality.scss';
 import ChainLogo from '@/Components/ChainLogo.vue';
 import Sparkline from '@/Components/Sparkline.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';

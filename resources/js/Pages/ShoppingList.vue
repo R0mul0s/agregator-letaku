@@ -22,6 +22,7 @@ import WakeLockSwitch from '@/Components/WakeLockSwitch.vue';
 import WatchSuggestions from '@/Components/WatchSuggestions.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { confirmDialog } from '@/lib/confirm';
+import { debounce } from '@/lib/debounce';
 import { formatDate } from '@/lib/format';
 import { useTranslations } from '@/lib/i18n';
 import { pendingChecks, queueCheck } from '@/lib/offlineChecks';
@@ -59,6 +60,15 @@ const textShareLabel = computed(() => (canSystemShare() ? t('shopping.share') : 
 /** Volby požadavku, po kterých stránka zůstane, kde je. */
 const KEEP_PAGE = { preserveScroll: true, preserveState: true };
 
+/**
+ * Odškrtnutí a množství jdou asynchronně — synchronní návštěvy Inertie se navzájem ruší a rychle
+ * po sobě odškrtnutá položka by se ztratila (R170).
+ */
+const KEEP_PAGE_ASYNC = { ...KEEP_PAGE, async: true };
+
+/** Pauza po posledním klepnutí na −/+, než se množství pošle — rychlá klepnutí jedním požadavkem. */
+const QUANTITY_SEND_DELAY_MS = 400;
+
 /** Props, které se po návratu na stránku načtou znovu — odškrtnutí ze sdíleného odkazu. */
 const RELOAD_PROPS = ['groups', 'hasChecked', 'hasExpired'];
 
@@ -73,7 +83,8 @@ function updateOnline() {
 /** Návrat do okna: načíst seznam znovu, ať jsou vidět odškrtnutí ze sdíleného odkazu (R130). */
 function onVisible() {
     if (document.visibilityState === 'visible' && navigator.onLine) {
-        router.reload({ only: RELOAD_PROPS });
+        // Asynchronně — nepřeruší obnovení celé stránky po delší pauze (lib/pwa.js, R170)
+        router.reload({ only: RELOAD_PROPS, async: true });
     }
 }
 
@@ -85,16 +96,25 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
+    // Odchod ze stránky během pauzy — poslední množství se pošle hned, ať se neztratí
+    quantitySenders.forEach((send) => send.flush());
     window.removeEventListener('online', updateOnline);
     window.removeEventListener('offline', updateOnline);
     document.removeEventListener('visibilitychange', onVisible);
 });
 
-/** Skupiny s odškrtnutím, které ještě čeká na odeslání (R66). */
+/** Množství změněné klepnutím, které ještě nepotvrdil server: ID položky → množství (R170). */
+const pendingQuantities = ref({});
+
+/** Skupiny s odškrtnutím, které ještě čeká na odeslání (R66), a s množstvím z klepnutí. */
 const displayGroups = computed(() =>
     props.groups.map((group) => ({
         ...group,
-        items: group.items.map((item) => (item.id in pendingChecks.value ? { ...item, checked: pendingChecks.value[item.id] } : item)),
+        items: group.items.map((item) => ({
+            ...item,
+            ...(item.id in pendingChecks.value ? { checked: pendingChecks.value[item.id] } : {}),
+            ...(item.id in pendingQuantities.value ? { quantity: pendingQuantities.value[item.id] } : {}),
+        })),
     })),
 );
 
@@ -122,7 +142,7 @@ function check(item, checked) {
         item.updateUrl,
         { checked },
         {
-            ...KEEP_PAGE,
+            ...KEEP_PAGE_ASYNC,
             onNetworkError: () => {
                 queueCheck(item.id, checked);
 
@@ -133,14 +153,37 @@ function check(item, checked) {
     );
 }
 
+/** Odeslání množství po položkách (každá má vlastní pauzu). */
+const quantitySenders = new Map();
+
 /**
- * Změní množství položky (R133); jen s připojením (tlačítka bez něj nejdou).
+ * Změní množství položky (R133); jen s připojením (tlačítka bez něj nejdou). Hned ho ukáže
+ * a pošle až po pauze — dvě rychlá „+“ dají o dva kusy víc, ne dvakrát stejné číslo (R170).
  *
  * @param {object} item
  * @param {number} quantity
  */
 function changeQuantity(item, quantity) {
-    router.patch(item.quantityUrl, { quantity }, KEEP_PAGE);
+    pendingQuantities.value = { ...pendingQuantities.value, [item.id]: quantity };
+    if (!quantitySenders.has(item.id)) {
+        quantitySenders.set(
+            item.id,
+            debounce((url, value) => {
+                router.patch(url, { quantity: value }, {
+                    ...KEEP_PAGE_ASYNC,
+                    // Po odpovědi platí množství ze serveru — jen když mezitím nepřišlo další klepnutí
+                    onFinish: () => {
+                        if (pendingQuantities.value[item.id] === value) {
+                            const rest = { ...pendingQuantities.value };
+                            delete rest[item.id];
+                            pendingQuantities.value = rest;
+                        }
+                    },
+                });
+            }, QUANTITY_SEND_DELAY_MS),
+        );
+    }
+    quantitySenders.get(item.id)(item.quantityUrl, quantity);
 }
 
 /**

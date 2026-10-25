@@ -147,7 +147,8 @@ final readonly class WatchSuggestions
         $suggestion = $user->watchSuggestions()->where('term', $term)->first();
 
         if ($suggestion === null) {
-            $user->watchSuggestions()->create(['term' => $term, 'name' => $name, 'product_id' => $productId, 'last_hit_at' => $now]);
+            // Dva souběžné požadavky (dvojklik) by jinak narazily na unikátní klíč (R170)
+            $user->watchSuggestions()->createOrFirst(['term' => $term], ['name' => $name, 'product_id' => $productId, 'last_hit_at' => $now]);
 
             return;
         }

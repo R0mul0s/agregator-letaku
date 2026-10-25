@@ -15,8 +15,9 @@
 <script setup>
 import { appHeaderHeight } from '@/lib/appHeader';
 import { MEDIA_BELOW_MD } from '@/lib/breakpoints';
+import { useFrameScroll } from '@/lib/frameScroll';
 import { useTranslations } from '@/lib/i18n';
-import { onBeforeUnmount, onMounted, ref } from 'vue';
+import { ref } from 'vue';
 
 const props = defineProps({
     /** Lišta Seřadit / Filtry ve stránce — plovoucí se ukáže, až ta odjede pod hlavičku. */
@@ -32,11 +33,6 @@ const emit = defineEmits(['sort', 'filters']);
 const t = useTranslations();
 const visible = ref(false);
 
-/** @type {MediaQueryList|null} */
-let media = null;
-/** Čeká na snímek, aby se při posouvání nepočítalo víckrát než jednou za vykreslení. */
-let frame = null;
-
 /** Lišta ve stránce (komponenta nebo prvek). */
 function anchorElement() {
     const anchor = props.anchor;
@@ -44,34 +40,17 @@ function anchorElement() {
     return anchor?.$el ?? anchor ?? null;
 }
 
-/** Vidět, když lišta ve stránce celá zajela pod hlavičku webu. */
-function update() {
-    frame = null;
+/**
+ * Vidět, když lišta ve stránce celá zajela pod hlavičku webu.
+ *
+ * @param {boolean} matches Telefon
+ */
+function update(matches) {
     const anchor = anchorElement();
-    visible.value = Boolean(media?.matches && anchor instanceof HTMLElement && anchor.getBoundingClientRect().bottom <= appHeaderHeight());
+    visible.value = Boolean(matches && anchor instanceof HTMLElement && anchor.getBoundingClientRect().bottom <= appHeaderHeight());
 }
 
-/** Posouvání a změna velikosti — přepočet nejvýš jednou za snímek. */
-function onScroll() {
-    frame ??= window.requestAnimationFrame(update);
-}
-
-onMounted(() => {
-    media = window.matchMedia(MEDIA_BELOW_MD);
-    media.addEventListener('change', onScroll);
-    window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', onScroll, { passive: true });
-    update();
-});
-
-onBeforeUnmount(() => {
-    media?.removeEventListener('change', onScroll);
-    window.removeEventListener('scroll', onScroll);
-    window.removeEventListener('resize', onScroll);
-    if (frame !== null) {
-        window.cancelAnimationFrame(frame);
-    }
-});
+useFrameScroll(update, MEDIA_BELOW_MD);
 </script>
 
 <template>

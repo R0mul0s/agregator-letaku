@@ -30,13 +30,18 @@ const pending = ref(null);
 
 const inList = computed(() => pending.value ?? list.value?.offerIds.includes(props.offerId) ?? false);
 
-/** Přidá, nebo odebere; stránka zůstane, jak je (rozbalené skupiny, vybraný obchod). */
+/**
+ * Přidá, nebo odebere; stránka zůstane, jak je (rozbalené skupiny, vybraný obchod). Posílá chtěný
+ * stav, ne „přepni“ — opakovaný požadavek nic nezvrátí. Asynchronně, ať klepnutí na jinou kartu
+ * nepřeruší tenhle požadavek (synchronní návštěvy Inertie se navzájem ruší, R170).
+ */
 function toggle() {
     pending.value = !inList.value;
     router.post(
         list.value.toggleUrl,
-        { offer_id: props.offerId },
+        { offer_id: props.offerId, in_list: pending.value },
         {
+            async: true,
             preserveScroll: true,
             preserveState: true,
             onStart: () => (processing.value = true),

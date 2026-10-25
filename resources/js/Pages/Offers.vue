@@ -39,7 +39,7 @@ import StoreSelect from '@/Components/StoreSelect.vue';
 import ViewToggle from '@/Components/ViewToggle.vue';
 import WatchOfferButton from '@/Components/WatchOfferButton.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
-import { MEDIA_FROM_MD } from '@/lib/breakpoints';
+import { OFFERS_MASCOT_SIZES } from '@/lib/breakpoints';
 import { debounce } from '@/lib/debounce';
 import { formatNumber, formatPrice } from '@/lib/format';
 import { useTranslations } from '@/lib/i18n';
@@ -645,7 +645,7 @@ onBeforeUnmount(() => liveSearch.cancel());
                         <img
                             src="/images/brand/mascot-288.webp"
                             srcset="/images/brand/mascot-192.webp 192w, /images/brand/mascot-288.webp 288w"
-                            :sizes="`${MEDIA_FROM_MD} 150px, 0px`"
+                            :sizes="OFFERS_MASCOT_SIZES"
                             width="288"
                             height="288"
                             alt=""
@@ -653,7 +653,7 @@ onBeforeUnmount(() => liveSearch.cancel());
                         />
                     </div>
                     <Link :href="page.props.siteFooter.weeklyUrl" class="offers-hero__weekly">
-                        <span class="offers-hero__weekly-badge" aria-hidden="true">TOP</span>
+                        <span class="offers-hero__weekly-badge" aria-hidden="true">{{ t('offers.weekly_ticket_badge') }}</span>
                         <span>
                             {{ t('offers.weekly_ticket') }}
                             <strong class="offers-hero__weekly-more">{{ t('offers.weekly_ticket_more') }}</strong>

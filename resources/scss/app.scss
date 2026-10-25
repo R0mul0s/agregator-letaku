@@ -1,5 +1,6 @@
 // app.scss
-// Vstupní bod stylů — jen @use jednotlivých částí.
+// Vstupní bod stylů — jen @use jednotlivých částí. Styly stránek, které nesdílí nic jiného
+// (kontakt, slevy týdne, právní texty, admin), importuje jejich stránka — CSS stránky (R170).
 //
 // @author Roman Hlaváček
 // @created 2026-10-02
@@ -68,12 +69,6 @@
 @use 'pages/catalog';
 @use 'pages/home';
 @use 'pages/landing';
-@use 'pages/legal';
-@use 'pages/contact';
-@use 'pages/weekly';
 @use 'pages/offers';
 @use 'pages/notifications';
-@use 'pages/users';
-@use 'pages/reports';
-@use 'pages/data-quality';
 @use 'pages/onboarding';

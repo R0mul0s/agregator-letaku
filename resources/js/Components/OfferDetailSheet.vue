@@ -79,6 +79,8 @@ watch(
             history.value = result;
         }
     },
+    // Okno se načte až při prvním otevření (AppLayout, R170) — stav je pak už otevřený
+    { immediate: true },
 );
 
 /** Graf jen s aspoň jednou dřívější akcí — samotná tato akce by nic neřekla. */

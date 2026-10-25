@@ -66,7 +66,8 @@ function kauflandOfferStores(string $klNr): array
 
 beforeEach(function (): void {
     $this->travelTo('2026-10-03 10:00:00');
-    config(['letaky.cron.token' => KAUFLAND_STORE_CRON_TOKEN]);
+    // Fixture má jen 3 prodejny — jedna zavřená je víc než podíl pojistky (R170, má vlastní test)
+    config(['letaky.cron.token' => KAUFLAND_STORE_CRON_TOKEN, 'letaky.stores.max_closed_share' => 1.0]);
 });
 
 it('uloží prodejny bez názvu obchodu a seznam jejich akcí; prodejnu, která zmizela, smaže', function (): void {
@@ -92,6 +93,32 @@ it('zavřenou prodejnu odebere z výběru uživatelů, bez zbylé prodejny výb�
 
     expect($both->fresh()?->store_codes)->toBe(['CZ4400'])
         ->and($closedOnly->fresh()?->store_codes)->toBeNull();
+});
+
+it('když zmizí podezřele mnoho prodejen, nic nesmaže, výběr uživatelů nechá a skončí chybou (R170)', function (): void {
+    config(['letaky.stores.max_closed_share' => 0.1]);
+    Store::query()->create(['chain' => Chain::Kaufland, 'code' => 'CZ9999', 'name' => 'Nepřečtená', 'city' => 'Nikde']);
+    $followed = FollowedChain::query()->create(['user_id' => User::factory()->create()->id, 'chain' => Chain::Kaufland, 'store_codes' => ['CZ9999']]);
+    fakeKauflandStores();
+
+    $this->artisan('letaky:import-stores', ['chain' => ['kaufland']])->assertFailed();
+
+    expect(Store::query()->where('code', 'CZ9999')->exists())->toBeTrue()
+        ->and($followed->fresh()?->store_codes)->toBe(['CZ9999'])
+        // Seznamy akcí ostatních prodejen se obnovily
+        ->and(Store::query()->whereNotNull('offer_keys_fetched_at')->count())->toBe(3);
+});
+
+it('s čerstvými seznamy jen u části prodejen akcím prodejny neurčí (R170)', function (): void {
+    fakeKauflandStores();
+    $this->artisan('letaky:import-stores', ['chain' => ['kaufland']]);
+    // Seznam Vrchlabí je starý — čerstvé jsou 2 ze 3, pod podílem pojistky
+    Store::query()->where('code', 'CZ1550')->update(['offer_keys_fetched_at' => now()->subDays(3)]);
+
+    $this->artisan('letaky:import-offers', ['chain' => ['kaufland']])->assertSuccessful();
+
+    expect(kauflandOfferStores(KAUFLAND_SALMON))->toBe([])
+        ->and(kauflandOfferStores(KAUFLAND_NECK))->toBe([]);
 });
 
 it('cron URL prodejen stáhne prodejny; obchod bez prodejen odmítne', function (): void {

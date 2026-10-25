@@ -90,14 +90,16 @@ Výsledek každého stažení je v tabulce `scrape_runs`.
 
 **Pusť ručně a musí projít všechno**, než se něco commitne:
 ```bash
-docker compose exec app ./vendor/bin/pest
+docker compose exec app ./vendor/bin/pest --parallel   # ~1,5 min; bez --parallel ~2,5 min
 docker compose exec app ./vendor/bin/pint
 docker compose exec app ./vendor/bin/phpstan analyse --memory-limit=1G
 docker compose exec app npm run build   # při změně JS, Vue nebo SCSS
 docker compose exec app npm run lint    # ESLint (R113), při změně JS nebo Vue
 ```
 
-Testy běží proti MariaDB `agregator_test`, ne SQLite, a **nikdy nesahají na síť** (R11).
+Testy běží proti MariaDB `agregator_test`, ne SQLite, a **nikdy nesahají na síť** (R11). Paralelní běh
+zakládá `agregator_test_test_N` — oprávnění je v `docker/mariadb/init.sql` (na starém volume ho jednou
+pusť: `docker compose exec -T db mariadb -uroot -proot < docker/mariadb/init.sql`).
 
 ## Produkce
 
@@ -133,7 +135,7 @@ MariaDB 11.4 · Pest 4 · Larastan · Pint. Text s polohou z PDF letáků: `pdft
 
 ## Pasti
 
-Podrobně po oblastech v **[docs/PASTI.md](docs/PASTI.md)** (57 bodů se stálými čísly) — **před prací
+Podrobně po oblastech v **[docs/PASTI.md](docs/PASTI.md)** (67 bodů se stálými čísly) — **před prací
 na oblasti si přečti její kapitolu**: ceny a platnost, stahování a zdroje, jednotlivé obchody
 (Tesco, Penny, Globus, Billa, Kaufland, PDF letáky), hlídání a katalog, výpisy a hledání,
 upozornění a e-maily, účty a právo, SEO, vzhled a přístupnost, aplikace v telefonu, nákupní

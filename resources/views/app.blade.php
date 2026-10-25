@@ -89,7 +89,9 @@
         @vite(['resources/scss/app.scss', 'resources/js/app.js', "resources/js/Pages/{$page['component']}.vue"])
         @inertiaHead
     </head>
-    <body>
+    {{-- Clarity zakryje všechny texty stránky (jméno, e-mail, vlastní položky) bez ohledu na nastavení
+         projektu v Clarity — zásady to slibují (R170) --}}
+    <body data-clarity-mask="true">
         {{-- Obsah pro roboty bez JavaScriptu (R94) — app.js ho po spuštění aplikace odstraní --}}
         @include('seo.content')
         @inertia

@@ -18,6 +18,7 @@ use App\Domain\Account\DeviceName;
 use App\Models\PushSubscription;
 use App\Models\User;
 use Carbon\CarbonImmutable;
+use Illuminate\Auth\Access\AuthorizationException;
 
 final class PushSubscriptions
 {
@@ -29,9 +30,19 @@ final class PushSubscriptions
     /**
      * Uloží odběr zařízení. První zařízení uživatele začne počítat nové akce od teď —
      * jinak by první upozornění vyjmenovalo všechno, co je v akci.
+     *
+     * Odběr jiného uživatele převezme jen se stejným tajemstvím prohlížeče (sdílené zařízení po
+     * přihlášení jiného účtu) — kdo zná jen cizí adresu, odběr nepřesune (R170).
+     *
+     * @throws AuthorizationException
      */
     public function subscribe(User $user, string $endpoint, string $publicKey, string $authToken, ?string $userAgent): PushSubscription
     {
+        $existing = PushSubscription::query()->where('endpoint', $endpoint)->first();
+        if ($existing !== null && $existing->user_id !== $user->id && ! hash_equals($existing->auth_token, $authToken)) {
+            throw new AuthorizationException;
+        }
+
         if (! $user->pushSubscriptions()->exists()) {
             $user->forceFill(['push_sent_at' => CarbonImmutable::now()])->save();
         }

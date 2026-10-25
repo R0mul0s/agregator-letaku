@@ -24,6 +24,7 @@ namespace App\Domain\Offers\Actions;
 use App\Domain\Catalog\Actions\AssignProducts;
 use App\Domain\Offers\ChangedOfferPages;
 use App\Domain\Offers\Exceptions\ImportAlreadyRunning;
+use App\Domain\Offers\Exceptions\ImportTookTooLong;
 use App\Domain\Offers\Exceptions\SourceReturnedNoOffers;
 use App\Domain\Offers\Exceptions\SuspiciousWithdrawal;
 use App\Domain\Offers\Import\BatchWriter;
@@ -109,6 +110,7 @@ final class ImportChainOffers
 
         try {
             $batches = $this->sources->offers($chain)->fetch();
+            $this->assertTimeForWriting($chain, $run);
 
             [$offersCount, $withdrawn] = DB::transaction(function () use ($chain, $batches, $run): array {
                 $stored = [];
@@ -143,6 +145,20 @@ final class ImportChainOffers
         }
 
         return $run;
+    }
+
+    /**
+     * Zbývá do vypršení zámku dost času na zápis (`import.write_reserve_seconds`, R170)? Jinak
+     * vyhodí výjimku a nic se neuloží.
+     *
+     * @throws ImportTookTooLong
+     */
+    private function assertTimeForWriting(Chain $chain, ScrapeRun $run): void
+    {
+        $elapsed = (int) $run->started_at->diffInSeconds(CarbonImmutable::now(), absolute: true);
+        if ($elapsed > config()->integer('letaky.import.lock_seconds') - config()->integer('letaky.import.write_reserve_seconds')) {
+            throw ImportTookTooLong::for($chain, $elapsed);
+        }
     }
 
     /**

@@ -28,13 +28,17 @@ defineProps({
 const t = useTranslations();
 const page = usePage();
 
-/** Volby požadavku, po kterých stránka zůstane, kde je. */
-const KEEP_PAGE = { preserveScroll: true, preserveState: true };
+/**
+ * Volby požadavku, po kterých stránka zůstane, kde je. Asynchronně — rychlé odškrtnutí další
+ * položky by synchronní požadavek předchozí přerušilo (R170).
+ */
+const KEEP_PAGE = { preserveScroll: true, preserveState: true, async: true };
 
 /** Návrat do okna: načíst seznam znovu — vlastník mezitím mohl něco přidat. */
 function onVisible() {
     if (document.visibilityState === 'visible' && navigator.onLine) {
-        router.reload({ only: ['groups'] });
+        // Asynchronně — nepřeruší obnovení celé stránky po delší pauze (lib/pwa.js, R170)
+        router.reload({ only: ['groups'], async: true });
     }
 }
 

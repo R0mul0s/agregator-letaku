@@ -20,6 +20,8 @@ namespace App\Domain\Notifications;
 
 use App\Enums\NotificationKind;
 use Illuminate\Container\Attributes\Singleton;
+use Illuminate\Database\QueryException;
+use Illuminate\Routing\Route;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Throwable;
@@ -81,20 +83,42 @@ final class ErrorAlerts
 
     /**
      * Text záznamu: zpráva výjimky (zkrácená), místo v kódu a kde nastala — u požadavku
-     * metoda a cesta bez parametrů (cron URL nese token), jinak příkaz konzole.
+     * metoda a vzor routy bez parametrů (cron URL nese token v dotazu, obnova hesla a sdílený
+     * seznam v cestě, R170), jinak příkaz konzole.
      */
     private function body(Throwable $exception): string
     {
-        $message = trim($exception->getMessage());
+        $message = $this->message($exception);
         $location = Str::after($exception->getFile(), base_path().DIRECTORY_SEPARATOR).':'.$exception->getLine();
-        $context = app()->runningInConsole()
-            ? __('app.notifications.error_alert.console', ['command' => implode(' ', array_slice($_SERVER['argv'] ?? [], 1, 2))])
-            : __('app.notifications.error_alert.request', ['method' => request()->method(), 'path' => '/'.ltrim(request()->path(), '/')]);
+        $route = request()->route();
+        $context = match (true) {
+            $route instanceof Route => __('app.notifications.error_alert.request', ['method' => request()->method(), 'path' => '/'.ltrim($route->uri(), '/')]),
+            app()->runningInConsole() => __('app.notifications.error_alert.console', ['command' => implode(' ', array_slice($_SERVER['argv'] ?? [], 1, 2))]),
+            // Chyba před výběrem routy — cesta bez dotazu
+            default => __('app.notifications.error_alert.request', ['method' => request()->method(), 'path' => '/'.ltrim(request()->path(), '/')]),
+        };
 
         return implode("\n", [
             Str::limit($message === '' ? $exception::class : $message, config()->integer('letaky.error_alerts.message_length')),
             __('app.notifications.error_alert.location', ['location' => $location]),
             $context,
         ]);
+    }
+
+    /**
+     * Zpráva výjimky. U chyby databáze jen kód — její text nese SQL s dosazenými hodnotami
+     * a hlášení databáze cituje zapisovanou hodnotu („Duplicate entry 'roman@…'“), záznam
+     * přitom jde i na zamčenou obrazovku telefonu (R170).
+     */
+    private function message(Throwable $exception): string
+    {
+        if ($exception instanceof QueryException) {
+            return __('app.notifications.error_alert.query', [
+                'sqlstate' => (string) ($exception->errorInfo[0] ?? $exception->getCode()),
+                'code' => (string) ($exception->errorInfo[1] ?? '?'),
+            ]);
+        }
+
+        return trim($exception->getMessage());
     }
 }

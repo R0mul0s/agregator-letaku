@@ -33,7 +33,9 @@ return [
         'local' => [
             'driver' => 'local',
             'root' => storage_path('app/private'),
-            'serve' => true,
+            // Bez rout /storage/{path} — avatary servíruje AvatarController a podepsané adresy
+            // disku nic nepoužívá; zbytečně otevřené cesty (R170)
+            'serve' => false,
             'throw' => false,
             'report' => false,
         ],

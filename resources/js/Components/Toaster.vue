@@ -14,8 +14,9 @@ const t = useTranslations();
 </script>
 
 <template>
-    <!-- Oblast je v DOM pořád, ať čtečka obrazovky novou zprávu ohlásí -->
-    <div class="toaster" role="status" aria-live="polite">
+    <!-- Čtečce zprávu oznamuje showToast přes trvalou oblast lib/a11y.js — tahle se s rozvržením
+         stránky po přesměrování vytvoří znovu i s textem a čtečka by ji nepřečetla (R170) -->
+    <div class="toaster">
         <TransitionGroup name="toast">
             <div
                 v-for="toast in toasts"

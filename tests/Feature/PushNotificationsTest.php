@@ -163,11 +163,22 @@ it('přijme push služby Apple, Mozilla a Microsoft', function (string $endpoint
 
 it('stejný prohlížeč po přihlášení jiného účtu upozorňuje nový účet', function (): void {
     $other = User::factory()->create();
-    PushSubscription::query()->create(['user_id' => $other->id, 'endpoint' => PUSH_ENDPOINT, 'public_key' => 'old', 'auth_token' => 'old', 'device' => 'Chrome']);
+    $keys = browserPushKeys();
+    PushSubscription::query()->create(['user_id' => $other->id, 'endpoint' => PUSH_ENDPOINT, 'public_key' => $keys['p256dh'], 'auth_token' => $keys['auth'], 'device' => 'Chrome']);
 
-    $this->actingAs($this->user)->post(route('account.push.store'), ['endpoint' => PUSH_ENDPOINT, 'keys' => browserPushKeys()]);
+    $this->actingAs($this->user)->post(route('account.push.store'), ['endpoint' => PUSH_ENDPOINT, 'keys' => $keys]);
 
     expect(PushSubscription::query()->sole()->user_id)->toBe($this->user->id);
+});
+
+it('cizí odběr bez tajemství prohlížeče nepřevezme (R170)', function (): void {
+    $other = User::factory()->create();
+    PushSubscription::query()->create(['user_id' => $other->id, 'endpoint' => PUSH_ENDPOINT, 'public_key' => 'k', 'auth_token' => 'puvodni', 'device' => 'Chrome']);
+
+    $this->actingAs($this->user)->post(route('account.push.store'), ['endpoint' => PUSH_ENDPOINT, 'keys' => browserPushKeys()])
+        ->assertForbidden();
+
+    expect(PushSubscription::query()->sole())->user_id->toBe($other->id)->auth_token->toBe('puvodni');
 });
 
 it('vypne upozornění jen na vlastním zařízení', function (): void {
@@ -289,6 +300,36 @@ describe('upozornění na nové akce', function (): void {
         expect(recordAndPush())->toBe(1)
             ->and($sender->sent)->toHaveCount(2)
             ->and($sender->sent[1]['message']->body)->toStartWith('Máslo nové');
+    });
+
+    it('cron o pár vteřin dřív než za hodinu uživatele nepřeskočí (rezerva intervalu, R170)', function (): void {
+        $sender = fakePushSender();
+        $this->travelTo('2026-10-02 06:30:40');
+        pushImportedOffer(['name' => 'Máslo staré']);
+        recordAndPush();
+
+        // Další cron o hodinu později, kanál telefonu ale začal o 20 s dřív než minule
+        $this->travelTo('2026-10-02 07:30:20');
+        pushImportedOffer(['name' => 'Máslo nové']);
+
+        expect(recordAndPush())->toBe(1)
+            ->and($sender->sent)->toHaveCount(2);
+    });
+
+    it('záznam zapsaný až po začátku kanálu pošle jen jednou (R170)', function (): void {
+        $sender = fakePushSender();
+        pushImportedOffer(['name' => 'Máslo 250 g']);
+        app(RecordNewOffers::class)();
+        // Záznam s časem po začátku kanálu (vznikl během dávky)
+        $this->user->notifications()->latest()->first()?->forceFill(['created_at' => now()->addSecond()])->save();
+
+        expect(app(SendPushNotifications::class)())->toBe(0)
+            ->and($sender->sent)->toHaveCount(0);
+
+        // Další kanál ho pošle (je novější než push_sent_at) — a jen jednou
+        $this->travelTo('2026-10-02 07:31:00');
+        expect(app(SendPushNotifications::class)())->toBe(1)
+            ->and($sender->sent)->toHaveCount(1);
     });
 
     it('akce ze seznamu, které zítra končí, pošle zvlášť vedle nových akcí (R74)', function (): void {

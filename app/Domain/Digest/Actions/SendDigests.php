@@ -95,12 +95,15 @@ final class SendDigests
 
     /**
      * Uživatelé se zapnutým souhrnem, kterým od posledního uplynul interval zvolené četnosti.
-     * První souhrn je hned.
+     * První souhrn je hned. Interval je o rezervu kratší (R170): cron běží jednou za hodinu
+     * jako „hned“ a čas souhrnu se o sekundy liší podle délky předchozích kroků — bez rezervy
+     * by uživatel každou druhou hodinu vypadl.
      *
      * @param  Builder<User>  $query
      */
     private function whereDue(Builder $query, CarbonImmutable $now): void
     {
+        $now = $now->addMinutes(config()->integer('letaky.digest.interval_tolerance_minutes'));
         foreach (DigestFrequency::cases() as $frequency) {
             $hours = $frequency->intervalHours();
             if ($hours === null) {

@@ -230,6 +230,12 @@ return [
             'store_page_delay_ms' => (int) env('LETAKY_KAUFLAND_STORE_PAGE_DELAY_MS', 1000),
             // Seznam akcí prodejny starší než tohle se při určení prodejen akce nebere v úvahu
             'store_offers_max_age_hours' => 36,
+            // Akce dostanou prodejny, jen když je čerstvý seznam aspoň u takového podílu prodejen
+            // (R170, jako COOP) — stažení jen pár seznamů by akce ve zbylých prodejnách schovalo
+            'store_lists_min_share' => 0.9,
+            // /health/tasks: podíl store_lists_min_share čerstvých seznamů starší = výpadek (R115, R170).
+            // Seznamy se stahují ve 4:45 a 12:45 — ozve se dřív, než po store_offers_max_age_hours přestanou platit
+            'store_lists_health_hours' => 18,
         ],
         'lidl' => [
             'offers_source' => LidlOfferSource::class,
@@ -453,6 +459,8 @@ return [
             // Akce dostanou prodejny, jen když je čerstvý seznam letáků aspoň u takového podílu prodejen
             // (jinak, např. hned po nasazení, platí všude) — chybějící prodejna by akce neviděla
             'store_lists_min_share' => 0.9,
+            // /health/tasks (R170): obnova všech prodejen trvá ~1,5 dne, seznam platí 96 h
+            'store_lists_health_hours' => 60,
             // Prodejna bez sledovaného letáku (Terno, TIP, TUTY, Morava) má ve výběru poznámku
             'store_note_without_lists' => true,
             // Leták má 45–75 ověřených akcí (měření R167); méně = změněné rozvržení nebo rozbitý parser.
@@ -528,6 +536,9 @@ return [
             'daily' => 20,
             'weekly' => 164,
         ],
+        // O kolik dřív než po intervalu smí přijít další souhrn (R170) — cron „hned“ běží každou
+        // hodinu a čas souhrnu kolísá o délku předchozích kroků; bez rezervy vypadne každá druhá hodina
+        'interval_tolerance_minutes' => 10,
         // Kolik akcí jedné hlídané položky e-mail vypíše (zbytek odkaz na Moje slevy)
         'max_offers_per_item' => 5,
     ],
@@ -543,6 +554,9 @@ return [
         // Zámek jednoho stažení obchodu (R57): delší než limit běhu cronu (cron.time_limit_seconds),
         // aby nevypršel během stažení; stažení „běží“ déle než tohle = nedoběhlo, označí se jako chyba
         'lock_seconds' => 600,
+        // Kolik sekund zámku musí po stažení zbývat na zápis (R170) — jinak se nic neuloží; čekání
+        // na síť se do limitu PHP nepočítá a zámek by mohl vypršet uprostřed zápisu
+        'write_reserve_seconds' => 120,
     ],
 
     /*
@@ -615,6 +629,8 @@ return [
         'timeout_seconds' => 10,
         'users_per_run' => 200,
         'interval_hours' => 1,
+        // Rezerva intervalu jako u souhrnu (digest.interval_tolerance_minutes, R170)
+        'interval_tolerance_minutes' => 10,
         // Kolik akcí upozornění vypíše (zbytek „a další…“) — text v telefonu má pár řádků
         'max_offers' => 3,
         'max_subscriptions_per_user' => 10,
@@ -732,9 +748,7 @@ return [
     */
     'health' => [
         'max_import_age_hours' => 26,
-        // Seznamy akcí prodejen (R49) se stahují ve 4:45 a 12:45 — ozve se dřív, než seznamy po
-        // `store_offers_max_age_hours` (36) přestanou platit a akce omezené na prodejny zmizí (R115)
-        'max_store_lists_age_hours' => 18,
+        // Seznamy akcí prodejen mají limit u obchodu (sources.<obchod>.store_lists_health_hours, R170)
         // Ostatní úlohy cronu (/health/tasks, R115): poslední úspěšný běh starší = výpadek.
         // Klíče = App\Enums\CronTask
         'max_task_age_hours' => [
@@ -765,6 +779,9 @@ return [
     */
     'stores' => [
         'max_selected' => 10,
+        // Zmizí-li ze seznamu prodejen obchodu víc než tento podíl, nic se nesmaže a stažení skončí
+        // chybou (R170) — změněný formát stránky by jinak smazal prodejny i výběr uživatelů natrvalo
+        'max_closed_share' => 0.1,
     ],
 
     /*
@@ -876,6 +893,8 @@ return [
         'suggestions_per_minute' => 60,
         'cron_per_minute' => 20,
         'writes_per_minute' => 60,
+        // Čtení stránek přihlášeného (GET, R170) — klepání po stránkách se k limitu nepřiblíží
+        'reads_per_minute' => 240,
         'sensitive_writes_per_minute' => 5,
         // Formuláře, které posílají e-mail (registrace, obnova hesla, ověření, změna e-mailu), za hodinu (R67)
         'emails_per_hour' => 10,
@@ -925,6 +944,9 @@ return [
         // Surová odpověď obchodu (`raw`) slouží k ladění a přepočtu aktuálních akcí; u akcí
         // skončených před tolika dny ji denní úklid vyprázdní (R113) — tvořila víc než polovinu tabulky
         'raw_retention_days' => 60,
+        // Úklid prochází jen akce skončené tolik dní před hranicí (R170) — rezerva na vynechané
+        // běhy denního cronu; starší akce už vyprázdnil dřívější úklid
+        'raw_prune_window_days' => 30,
         // Vyprázdnění `raw` po dávkách, ať úklid nedrží zámek tabulky dlouho
         'raw_prune_batch' => 2000,
     ],

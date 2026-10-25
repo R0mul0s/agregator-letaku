@@ -68,20 +68,29 @@ function focusFirstInvalid() {
     }
 }
 
+/** Texty k oznámení v tomtéž snímku (titulek stránky a toast po přesměrování). */
+let pendingAnnouncements = [];
+
 /**
- * Oznámí text čtečce (zdvořile, až domluví).
+ * Oznámí text čtečce (zdvořile, až domluví). Oblast je mimo aplikaci, takže ji nevymění ani
+ * přechod na jinou stránku — toast po přesměrování by v nové oblasti toastů čtečka nepřečetla
+ * (R170). Texty z jednoho snímku přečte za sebou.
  *
  * @param {string} text
  */
-function announce(text) {
+export function announce(text) {
     if (!announcer) {
         return;
     }
-    // Stejný text dvakrát po sobě by čtečka nepřečetla — nejdřív vyprázdnit
-    announcer.textContent = '';
-    afterRender(() => {
-        announcer.textContent = text;
-    });
+    if (pendingAnnouncements.length === 0) {
+        // Stejný text dvakrát po sobě by čtečka nepřečetla — nejdřív vyprázdnit
+        announcer.textContent = '';
+        afterRender(() => {
+            announcer.textContent = pendingAnnouncements.join(' ');
+            pendingAnnouncements = [];
+        });
+    }
+    pendingAnnouncements.push(text);
 }
 
 /**

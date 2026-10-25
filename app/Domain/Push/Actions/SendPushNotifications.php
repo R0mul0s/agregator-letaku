@@ -82,7 +82,8 @@ final class SendPushNotifications
             ->whereHas('unreadNotifications', fn (Builder $query) => $this->whereNotPushed($query))
             ->where(fn (Builder $query) => $query
                 ->whereNull('push_sent_at')
-                ->orWhere('push_sent_at', '<=', $now->subHours(config()->integer('letaky.push.interval_hours'))))
+                // Rezerva: cron běží jednou za interval a čas kanálu kolísá o délku předchozích kroků (R170)
+                ->orWhere('push_sent_at', '<=', $now->subHours(config()->integer('letaky.push.interval_hours'))->addMinutes(config()->integer('letaky.push.interval_tolerance_minutes'))))
             ->with('pushSubscriptions')
             ->orderBy('push_sent_at')
             ->orderBy('id')
@@ -91,8 +92,8 @@ final class SendPushNotifications
 
         $markSent = fn (User $user) => $user->forceFill(['push_sent_at' => $now])->save();
 
-        return $this->batch->run(self::CHANNEL, $users, $deadline ?? Deadline::none(), function (User $user) use ($markSent): bool {
-            $sent = $this->notify($user);
+        return $this->batch->run(self::CHANNEL, $users, $deadline ?? Deadline::none(), function (User $user) use ($markSent, $now): bool {
+            $sent = $this->notify($user, $now);
             $markSent($user);
 
             return $sent;
@@ -134,8 +135,10 @@ final class SendPushNotifications
     /**
      * Pošle uživateli na všechna jeho zařízení jedno upozornění za každý druh nových záznamů
      * (nové akce, končící akce ze seznamu, zpráva od nás) — každý druh má v liště telefonu své místo.
+     * Jen záznamy do `$until` (času, který se uloží jako `push_sent_at`) — záznam zapsaný během
+     * dávky by jinak odešel teď a za hodinu znovu (R170).
      */
-    private function notify(User $user): bool
+    private function notify(User $user, CarbonImmutable $until): bool
     {
         /** @var MorphMany<DatabaseNotification, User> $unread */
         $unread = $user->unreadNotifications();
@@ -144,6 +147,7 @@ final class SendPushNotifications
         $records = (clone $unread)
             ->tap(fn (Builder $query) => $this->wherePushable($query))
             ->when($user->push_sent_at, fn (Builder $query, CarbonImmutable $at) => $query->where('created_at', '>', $at))
+            ->where('created_at', '<=', $until)
             ->get();
 
         $delivered = false;

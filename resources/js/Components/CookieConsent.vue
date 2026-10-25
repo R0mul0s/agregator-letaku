@@ -23,6 +23,7 @@ const choice = reactive({ analytics: false, marketing: false });
 // Klik na ztmavené pozadí okno zavře (bez uložení)
 const { dialog, onClick: onDialogClick } = useModalDialog(() => consentState.settingsOpen, {
     onBackdrop: closeConsentSettings,
+    onDismiss: closeConsentSettings,
     beforeOpen: () => {
         Object.assign(choice, { analytics: consentState.analytics, marketing: consentState.marketing });
 

@@ -294,6 +294,7 @@ return [
             'location' => 'Místo: :location',
             'request' => 'Požadavek: :method :path',
             'console' => 'Příkaz: :command',
+            'query' => 'Chyba databáze SQLSTATE :sqlstate (kód :code)',
         ],
         'done' => 'Centrum upozornění — zapsáno: :count',
         'failed' => 'Centrum upozornění — chyba: :error',
@@ -944,6 +945,8 @@ return [
             'feed' => 'Odebírat přes RSS',
             'chains_label' => 'Obchody',
             'weekly_ticket' => 'Nejlepší slevy týdne',
+            // Štítek u odkazu na Nejlepší slevy týdne (jen ozdoba, čtečka ho přeskočí)
+            'weekly_ticket_badge' => 'TOP',
             'weekly_ticket_more' => 'Výběr týdne →',
             'departments_label' => 'Oddělení',
             // Víc vybraných obchodů (R82): loga, která se do tlačítka nevešla
@@ -1147,6 +1150,7 @@ return [
                 'refused' => [
                     'email_missing' => 'Účet u poskytovatele nám neposlal e-mail — a bez něj vám nemůžeme posílat upozornění. Zaregistrujte se prosím e-mailem.',
                     'email_taken' => 'Účet s tímto e-mailem už u nás máte. Přihlaste se e-mailem a heslem a propojení zapněte v Mém účtu v sekci Zabezpečení.',
+                    'email_unverified' => 'Propojit účet půjde, až ověříte svůj e-mail — odkaz najdete v e-mailu, který jsme vám poslali po registraci.',
                     'already_linked_elsewhere' => 'Tenhle účet už je propojený s jiným účtem Slevohlídky.',
                     'other_account_linked' => 'U tohoto poskytovatele už máte propojený jiný účet. Nejdřív ho odpojte v Mém účtu.',
                     'last_login_method' => 'Tohle je jediný způsob, jak se přihlásit. Nejdřív si nastavte heslo, pak půjde odpojit.',
@@ -1326,6 +1330,8 @@ return [
             'remove' => 'Odebrat :name ze seznamu',
             'check' => 'Koupeno: :name',
             'expired' => 'akce skončila',
+            // Akci obchod stáhl dřív, než skončila (R16, R170)
+            'withdrawn' => 'obchod akci stáhl',
             'valid_to' => 'do :date',
             // Akce, která ještě nezačala (R76): odškrtnutí se potvrzuje
             'starts' => 'platí až od :date',

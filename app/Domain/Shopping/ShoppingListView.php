@@ -38,13 +38,18 @@ final readonly class ShoppingListView
     ) {}
 
     /**
-     * Položky seznamu.
+     * Položky seznamu bez akcí vypnutých obchodů (R155, R170) — ty se nikde neukazují; položky
+     * v databázi zůstanou a po zapnutí obchodu se vrátí.
      *
      * @return Collection<int, ShoppingListItem>
      */
     public function items(User $owner): Collection
     {
-        return $owner->shoppingListItems()->with(['offer' => fn ($query) => $query->withoutRaw(), 'offer.stores'])->get();
+        return $owner->shoppingListItems()
+            ->with(['offer' => fn ($query) => $query->withoutRaw(), 'offer.stores'])
+            ->get()
+            ->reject(fn (ShoppingListItem $item): bool => $item->offer?->chain->isDisabled() ?? false)
+            ->values();
     }
 
     /**
@@ -83,7 +88,9 @@ final readonly class ShoppingListView
                     'name' => $item->displayName(),
                     'quantity' => $item->quantity,
                     'checked' => $item->checked_at !== null,
-                    'expired' => $item->offer !== null && $item->offer->valid_to->lessThan($today),
+                    // Akci stáhl obchod (R16) — za akční cenu už se koupit nedá, jako skončená (R170)
+                    'expired' => $item->offer !== null && ($item->offer->valid_to->lessThan($today) || $item->offer->withdrawn_at !== null),
+                    'withdrawn' => $item->offer?->withdrawn_at !== null && ! $item->offer->valid_to->lessThan($today),
                     'userPrice' => $item->offer === null ? null : $this->pricing->price($owner, $item->offer),
                     // Vlastní položka (R130) akci nemá
                     'offer' => $item->offer === null ? null : $this->presenter->toPage($item->offer, $storeCodes),

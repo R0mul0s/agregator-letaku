@@ -33,7 +33,6 @@ use App\Domain\Sources\Pdf\PdfTextReader;
 use App\Domain\Sources\SourceHttp;
 use App\Enums\Chain;
 use App\Enums\LeafletKind;
-use App\Models\Store;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Client\RequestException;
 use SimpleXMLElement;
@@ -205,8 +204,7 @@ final class CoopOfferSource implements OfferSource
     private function storesByLeaflet(): ?array
     {
         $lists = $this->storeLists->fresh(Chain::Coop);
-        $total = Store::query()->where('chain', Chain::Coop)->count();
-        if ($total === 0 || count($lists) < $total * config()->float('letaky.sources.coop.store_lists_min_share')) {
+        if (! $this->storeLists->complete(Chain::Coop, $lists)) {
             return null;
         }
 

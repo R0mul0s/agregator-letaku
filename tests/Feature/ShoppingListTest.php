@@ -39,6 +39,18 @@ it('tlačítko na kartě akci přidá a podruhé odebere, stránka zůstane', fu
     expect($this->user->shoppingListItems()->count())->toBe(0);
 });
 
+it('s chtěným stavem opakovaný požadavek (dvojklik) akci nepřidá a neodebere znovu (R170)', function (): void {
+    $offer = Offer::factory()->create();
+
+    $this->post(route('shopping-list.toggle'), ['offer_id' => $offer->id, 'in_list' => true])->assertSessionHas('status', ShoppingListController::STATUS_ADDED);
+    $this->post(route('shopping-list.toggle'), ['offer_id' => $offer->id, 'in_list' => true])->assertSessionHas('status', ShoppingListController::STATUS_ADDED);
+    expect($this->user->shoppingListItems()->count())->toBe(1);
+
+    $this->post(route('shopping-list.toggle'), ['offer_id' => $offer->id, 'in_list' => false])->assertSessionHas('status', ShoppingListController::STATUS_REMOVED);
+    $this->post(route('shopping-list.toggle'), ['offer_id' => $offer->id, 'in_list' => false])->assertSessionHas('status', ShoppingListController::STATUS_REMOVED);
+    expect($this->user->shoppingListItems()->count())->toBe(0);
+});
+
 it('ukáže seznam po obchodech, v obchodě nejdřív nekoupené, skončenou akci označí', function (): void {
     $milk = Offer::factory()->create(['chain' => Chain::Lidl, 'name' => 'Mléko']);
     $butter = Offer::factory()->create(['chain' => Chain::Lidl, 'name' => 'Máslo']);
@@ -56,6 +68,24 @@ it('ukáže seznam po obchodech, v obchodě nejdřív nekoupené, skončenou akc
         ->where('groups.1.items.1.offer.name', 'Máslo')
         ->where('groups.1.items.1.checked', true)
         ->where('hasChecked', true));
+});
+
+it('akci staženou obchodem označí jako skončenou a akce vypnutého obchodu neukáže (R170)', function (): void {
+    $withdrawn = Offer::factory()->create(['chain' => Chain::Lidl, 'name' => 'Mléko', 'withdrawn_at' => now()]);
+    $disabled = Offer::factory()->create(['chain' => Chain::Tesco, 'name' => 'Máslo']);
+    $this->user->shoppingListItems()->create(['offer_id' => $withdrawn->id]);
+    $this->user->shoppingListItems()->create(['offer_id' => $disabled->id]);
+    config(['letaky.disabled_chains' => ['tesco']]);
+
+    $this->get(route('shopping-list.index'))->assertInertia(fn (Assert $page) => $page
+        ->has('groups', 1)
+        ->where('groups.0.chain', 'lidl')
+        ->where('groups.0.items.0.expired', true)
+        ->where('groups.0.items.0.withdrawn', true));
+
+    // „Smazat skončené akce“ smaže i staženou, položka vypnutého obchodu zůstane
+    $this->delete(route('shopping-list.clear-expired'));
+    expect($this->user->shoppingListItems()->pluck('offer_id')->all())->toBe([$disabled->id]);
 });
 
 it('odškrtne položku, smaže ji a po nákupu smaže všechny odškrtnuté', function (): void {

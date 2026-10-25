@@ -8,6 +8,7 @@
  * @author Roman Hlaváček
  * @created 2026-10-02
  */
+import { announce } from '@/lib/a11y';
 import { lookup } from '@/lib/i18n';
 import { router } from '@inertiajs/vue3';
 import { reactive } from 'vue';
@@ -87,6 +88,7 @@ export function showToast(message, action = null) {
 
     const id = nextId++;
     toasts.push({ id, message, action });
+    announce(message);
     while (toasts.length > MAX_TOASTS) {
         dismissToast(toasts[0].id);
     }

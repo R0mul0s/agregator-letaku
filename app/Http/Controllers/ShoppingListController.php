@@ -127,15 +127,24 @@ class ShoppingListController extends Controller
     }
 
     /**
-     * Tlačítko na kartě akce: akci v seznamu odebere, jinak ji přidá; vrátí se, odkud uživatel přišel.
+     * Tlačítko na kartě akce: akci do seznamu přidá, nebo ji odebere; vrátí se, odkud uživatel přišel.
+     * Prohlížeč posílá, jaký stav chce (`in_list`) — dvojklik ani opakovaný požadavek po výpadku
+     * signálu akci nepřidá a hned zase neodebere (R170). Bez něj (starší stránka) přepne stav.
      */
     public function toggle(ShoppingListRequest $request, WatchSuggestions $suggestions): RedirectResponse
     {
         $user = $this->user($request);
         $items = $user->shoppingListItems();
-        $removed = (clone $items)->where('offer_id', $request->offerId())->delete() > 0;
-        if (! $removed) {
-            $item = $items->create(['offer_id' => $request->offerId(), 'quantity' => $request->quantity()]);
+        $wanted = $request->wantedInList() ?? ! (clone $items)->where('offer_id', $request->offerId())->exists();
+        if (! $wanted) {
+            (clone $items)->where('offer_id', $request->offerId())->delete();
+
+            return back(fallback: route('shopping-list.index'))->with('status', self::STATUS_REMOVED);
+        }
+
+        // Souběžný požadavek se stejnou akcí najde řádek, místo aby narazil na unikátní klíč
+        $item = $items->createOrFirst(['offer_id' => $request->offerId()], ['quantity' => $request->quantity()]);
+        if ($item->wasRecentlyCreated) {
             $item->load(['offer' => fn ($query) => $query->withoutRaw()]);
             $this->trackAdded($request, $item);
             // Dává si do seznamu opakovaně akce stejného produktu? Nabídnout hlídání (R148)
@@ -144,7 +153,7 @@ class ShoppingListController extends Controller
             }
         }
 
-        return back(fallback: route('shopping-list.index'))->with('status', $removed ? self::STATUS_REMOVED : self::STATUS_ADDED);
+        return back(fallback: route('shopping-list.index'))->with('status', self::STATUS_ADDED);
     }
 
     /**
@@ -201,7 +210,10 @@ class ShoppingListController extends Controller
     public function clearExpired(Request $request, LocalCalendar $calendar): RedirectResponse
     {
         $this->user($request)->shoppingListItems()
-            ->whereHas('offer', fn ($query) => $query->where('valid_to', '<', $calendar->today()->toDateString()))
+            // Skončené i stažené obchodem (R170) — v seznamu jsou označené stejně
+            ->whereHas('offer', fn ($query) => $query->where(fn ($query) => $query
+                ->where('valid_to', '<', $calendar->today()->toDateString())
+                ->orWhereNotNull('withdrawn_at')))
             ->delete();
 
         return back(fallback: route('shopping-list.index'))->with('status', self::STATUS_EXPIRED_CLEARED);

@@ -21,8 +21,11 @@ use App\Domain\Matching\TextNormalizer;
 
 final class LeafletOfferId
 {
-    /** Předpona ID akcí z letáku — jako u ostatních PDF letáků. */
-    private const PREFIX = 'letak-';
+    /**
+     * Předpona ID akcí z letáku — jako u ostatních PDF letáků (Albert, Penny, Globus). Podle ní
+     * historie cen pozná ID s cenou v otisku a stejnou položku hledá podle názvu (R170).
+     */
+    public const PREFIX = 'letak-';
 
     private const HASH_LENGTH = 24;
 

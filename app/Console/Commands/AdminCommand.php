@@ -28,7 +28,8 @@ class AdminCommand extends Command
      */
     public function handle(): int
     {
-        $email = (string) $this->argument('email');
+        $email = $this->input->getArgument('email');
+        $email = is_string($email) ? $email : '';
         $user = User::query()->where('email', $email)->first();
         if ($user === null) {
             $this->error(__('app.admin.unknown_user', ['email' => $email]));

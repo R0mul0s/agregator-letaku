@@ -8,6 +8,8 @@
     @created 2026-10-05
 -->
 <script setup>
+// Styly jen této stránky — Vite je dá do CSS stránky, ne do společného app.css (R170)
+import '../../scss/pages/_users.scss';
 import ChainLogo from '@/Components/ChainLogo.vue';
 import EmptyState from '@/Components/EmptyState.vue';
 import Pagination from '@/Components/Pagination.vue';
@@ -146,6 +148,10 @@ function registeredLabel(isoDateTime) {
 
 onMounted(() => {
     refreshTimer = setInterval(() => {
+        // Karta na pozadí přehled neobnovuje — nikdo ho nevidí a server by zbytečně počítal (R170)
+        if (document.visibilityState !== 'visible') {
+            return;
+        }
         router.reload({ only: ['users', 'counts', 'total', 'pagination'], onSuccess: () => (now.value = Date.now()) });
     }, REFRESH_MS);
 });

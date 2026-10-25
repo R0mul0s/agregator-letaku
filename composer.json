@@ -2,7 +2,7 @@
     "$schema": "https://getcomposer.org/schema.json",
     "name": "r0mul0s/agregator-letaku",
     "type": "project",
-    "description": "Hlídání akčních nabídek z letáků obchodů Kaufland, Tesco, Albert, Lidl a Penny",
+    "description": "Slevohlídka — hlídání akčních nabídek z letáků obchodů Kaufland, Tesco, Albert, Lidl, Penny, Globus, Billa, Hruška, Norma a COOP",
     "keywords": [
         "letaky",
         "akce",
@@ -11,6 +11,8 @@
     "license": "proprietary",
     "require": {
         "php": "^8.4",
+        "ext-dom": "*",
+        "ext-intl": "*",
         "inertiajs/inertia-laravel": "^3.4",
         "laravel/fortify": "^1.30",
         "laravel/framework": "^13.17",

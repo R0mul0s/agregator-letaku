@@ -71,6 +71,10 @@ final class KauflandOfferSource implements OfferSource
         }
 
         array_push($batches, ...$this->storePages($lists, $seen, $weeks));
+        // Málo čerstvých seznamů (R170): akce platí všude, jinak by zmizely v prodejnách bez seznamu
+        if (! $this->storeLists->complete(Chain::Kaufland, $lists)) {
+            return $batches;
+        }
 
         return array_map(fn (SourceBatch $batch): SourceBatch => new SourceBatch(
             $batch->leaflet,
