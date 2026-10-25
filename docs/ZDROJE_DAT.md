@@ -133,7 +133,9 @@ Vyhledávání: `search(query:, page:, count:)` se stejnými poli.
 nejdelší 350 znaků — přejmenování uzlu u Tesca tedy znamená nové ID. Nejnižší úroveň bývá skoro
 produkt („Polotučné mléko“, „Máslo“), jinde jen balení („Malá balení“ / „Velká balení“) a regál
 s policí mívají stejný název („Máslo › Máslo“). Oddělení „Top výběr“ a „Novinky“ jsou marketingové
-výběry, ne kategorie.
+výběry, ne kategorie. Nepotravinové oddělení „Domov a zábava“ (Domácí potřeby a dekorace, Dílna,
+Elektro, Auto, Hračky, Památka zesnulým, F&F Home…) se přebírá od R174 kromě sekcí „Knihy, noviny
+a časopisy“ a „TESCO Mobile“; oblečení e-shop nemá (25. 10. 2026: 13 oddělení, 1 969 uzlů).
 
 ```json
 {"id":"211037571","title":"Tesco Mléko UHT polotučné 1,5% 1l",

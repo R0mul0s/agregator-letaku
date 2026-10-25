@@ -428,6 +428,11 @@ Co bylo zvláštní na jednotlivých dřívějších nasazeních (SQL skripty, n
 je v [HISTORIE_NASAZENI.md](HISTORIE_NASAZENI.md). Poznámky k nasazení, které se teprve chystá,
 patří sem pod tenhle postup; po nasazení se přesunou tam (R106).
 
+**Chystané nasazení (R174, katalog 286 produktů):** po nahrání kódu pusť
+`data-2026-10-25-katalog-rozsireni.sql` (kategorie produktů založí sám) a zavolej jednou
+`/cron/import-categories?token=…` — doplní zbytek oddělení „Domov a zábava“ (jinak až 1. v měsíci).
+Akce se k novým produktům přiřadí při dalším stažení každého obchodu. Bez migrace a nových proměnných.
+
 ---
 
 ## Záloha databáze
@@ -477,6 +482,7 @@ migraci ztratila změny od té doby (registrace, hlídané položky, nákupní s
 | `migrations-2026-10-25-delsi-kod-prodejny.sql` | delší kód prodejny (R169): `stores.code` a `offer_stores.store_code` na 80 znaků kvůli prodejnám COOP; opakovatelný, pustit **před** nahráním kódu | 2026-10-25 |
 | `migrations-2026-10-25-indexy-upozorneni.sql` | indexy pro cron upozornění a úklid (R170): `users.push_sent_at`, `digest_sent_at`, `notified_at`, `notifications.created_at`; opakovatelný, pustit kdykoli (stará verze kódu s ním běží) | 2026-10-25 |
 | `migrations-2026-10-25-hledani-bez-vysledku.sql` | hledání bez výsledků (R171): tabulka `search_misses`; opakovatelný, pustit **před** nahráním kódu (komentář sloupce `source` na produkci bez zpětných lomítek, opraveno ve skriptu po nasazení — jen kosmetika) | 2026-10-25 |
+| `data-2026-10-25-katalog-rozsireni.sql` | rozšíření katalogu (R174): 32 nových produktů, nová pravidla 28 a kategorie 12 nepotravinových z oddělení „Domov a zábava“; kategorie, na které produkty odkazují, založí s nadřazenými (`INSERT IGNORE` podle `source_id`), produkty podle názvu; opakovatelný, nezávisí na kódu ani na cronu kategorií | 2026-10-25 |
 
 ## Nasazené verze
 

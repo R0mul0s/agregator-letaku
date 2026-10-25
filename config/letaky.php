@@ -775,10 +775,13 @@ return [
 
     /*
     | Kategorie katalogu = strom e-shopu Tesco (R28). Oddělení s marketingovými výběry
-    | („Top výběr“, „Novinky“) a nepotravinové zboží se nepřebírají.
+    | („Top výběr“, „Novinky“) se nepřebírají. Nepotravinové oddělení „Domov a zábava“ ano
+    | (R174 — katalog má od R135 i nářadí, textil a spotřebiče), jen bez sekcí (2. úroveň
+    | kteréhokoli oddělení), které v letácích nemají zboží.
     */
     'categories' => [
-        'excluded_roots' => ['Top výběr', 'Novinky', 'Domov a zábava'],
+        'excluded_roots' => ['Top výběr', 'Novinky'],
+        'excluded_sections' => ['Knihy, noviny a časopisy', 'TESCO Mobile'],
     ],
 
     /*
@@ -814,6 +817,7 @@ return [
             'Drogerie' => 'drugstore',
             'Dítě' => 'baby',
             'Zvíře' => 'pets',
+            'Domov a zábava' => 'home',
         ],
     ],
 

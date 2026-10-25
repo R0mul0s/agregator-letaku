@@ -70,9 +70,9 @@ it('stáhne strom kategorií', function (): void {
 
     $this->get(route('cron.import-categories', ['token' => CRON_TOKEN]))
         ->assertOk()
-        ->assertSeeText('Kategorie — uloženo: 54');
+        ->assertSeeText('Kategorie — uloženo: 55');
 
-    expect(Category::query()->count())->toBe(54);
+    expect(Category::query()->count())->toBe(55);
 });
 
 it('volání cronu nezakládá relaci (R113)', function (): void {

@@ -8,7 +8,7 @@
 -->
 <script setup>
 defineProps({
-    /** produce / dairy / bakery / meat / frozen / pantry / drinks / special / cleaning / drugstore / baby / pets / other */
+    /** produce / dairy / bakery / meat / frozen / pantry / drinks / special / cleaning / drugstore / baby / pets / home / other */
     name: { type: String, required: true },
 });
 </script>
@@ -76,6 +76,11 @@ defineProps({
             <circle cx="14" cy="6" r="1.6" />
             <circle cx="17.5" cy="10.5" r="1.6" />
             <path d="M12 12c-3 0-5 3.5-5 5.5s2 2.5 5 1.5c3 1 5 .5 5-1.5S15 12 12 12z" />
+        </template>
+        <!-- Domek -->
+        <template v-else-if="name === 'home'">
+            <path d="M3 11l9-7.5 9 7.5" />
+            <path d="M5.5 9v11a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1V9M10 21v-6h4v6" />
         </template>
         <!-- Košík -->
         <template v-else>

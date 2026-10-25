@@ -18,13 +18,15 @@ beforeEach(function (): void {
     Http::fake(['https://xapi.tesco.com/*' => Http::response(responseFixture('tesco/taxonomy-2026-10-02.json'))]);
 });
 
-it('uloží strom kategorií bez vyloučených oddělení', function (): void {
+it('uloží strom kategorií bez vyloučených oddělení a sekcí', function (): void {
     $this->artisan('letaky:import-categories')->assertSuccessful();
 
-    // Fixture má 60 uzlů; „Top výběr“ (4) a „Domov a zábava“ (2) se nepřebírají
-    expect(Category::query()->count())->toBe(54)
+    // Fixture má 60 uzlů; „Top výběr“ (4) se nepřebírá, z „Domov a zábava“ (2) jen oddělení
+    // bez sekce „Knihy, noviny a časopisy“ (R174)
+    expect(Category::query()->count())->toBe(55)
         ->and(Category::query()->whereNull('parent_id')->orderBy('position')->pluck('name')->all())
-        ->toBe(['Mléčné, vejce a margaríny', 'Nápoje']);
+        ->toBe(['Mléčné, vejce a margaríny', 'Nápoje', 'Domov a zábava'])
+        ->and(Category::query()->where('name', 'Knihy, noviny a časopisy')->exists())->toBeFalse();
 
     Http::assertSent(fn (Request $request): bool => $request->hasHeader('x-apikey', 'test-api-key')
         && str_contains($request->body(), 'taxonomy'));

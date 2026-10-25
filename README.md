@@ -20,11 +20,11 @@ s věrnostní kartou a ceny za jednotku, a dá vědět e-mailem, když přibude 
 
 > **Stav:** běží na [slevohlidka.cz](https://slevohlidka.cz) (Websupport,
 > [deploy/DEPLOYMENT.md](deploy/DEPLOYMENT.md)). Hotové je stahování akcí všech deseti obchodů
-> (z webu, API a PDF letáků, i letáky, které ještě nezačaly), hlídání s katalogem 254 produktů,
+> (z webu, API a PDF letáků, i letáky, které ještě nezačaly), hlídání s katalogem 286 produktů,
 > Moje slevy, nákupní seznam se sdílením, centrum upozornění, upozornění e-mailem a v telefonu
 > (aplikace na plochu), veřejné Všechny akce s čistými adresami obchodů a produktů a Nejlepší
 > slevy týdne. Co platí a proč je v tabulce na začátku [PLAN.md](docs/PLAN.md), log rozhodnutí
-> R1–R164 v [ROZHODNUTI.md](docs/ROZHODNUTI.md). Makro zatím nejde (ochrana proti robotům,
+> R1–R174 v [ROZHODNUTI.md](docs/ROZHODNUTI.md). Makro zatím nejde (ochrana proti robotům,
 > [ZDROJE_DAT.md](docs/ZDROJE_DAT.md)).
 
 ## Jak se to používá

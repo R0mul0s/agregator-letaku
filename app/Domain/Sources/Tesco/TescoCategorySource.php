@@ -4,7 +4,8 @@
  * Strom kategorií e-shopu Tesco jako zdroj kategorií katalogu (R28, ZDROJE_DAT.md, Tesco).
  *
  * Dotaz `taxonomy` na stejné GraphQL API jako akce e-shopu vrací 4 úrovně: oddělení › sekce ›
- * regál › police. Marketingová a nepotravinová oddělení z konfigurace se vynechají i s podstromem.
+ * regál › police. Marketingová oddělení z konfigurace se vynechají i s podstromem, stejně tak sekce
+ * oddělení, které v letácích nemají zboží (knihy, mobilní tarify, R174).
  *
  * @author Roman Hlaváček
  *
@@ -67,13 +68,32 @@ final class TescoCategorySource
             throw SourceResponseChanged::because(Chain::Tesco, 'strom kategorií je prázdný');
         }
 
-        $excluded = array_map(strval(...), config()->array('letaky.categories.excluded_roots'));
-        $roots = array_filter($roots, fn (mixed $root): bool => ! is_array($root) || ! in_array($root['name'] ?? null, $excluded, true));
+        $roots = $this->withoutExcluded($roots, config()->array('letaky.categories.excluded_roots'));
+        $excludedSections = config()->array('letaky.categories.excluded_sections');
+        foreach ($roots as $key => $root) {
+            if (is_array($root) && is_array($root['children'] ?? null)) {
+                $roots[$key]['children'] = array_values($this->withoutExcluded($root['children'], $excludedSections));
+            }
+        }
 
         $categories = [];
         $this->collect(array_values($roots), null, 0, $categories);
 
         return $categories;
+    }
+
+    /**
+     * Uzly jedné úrovně bez těch, jejichž název je mezi vyloučenými.
+     *
+     * @param  array<mixed>  $nodes
+     * @param  array<mixed>  $excludedNames
+     * @return array<mixed>
+     */
+    private function withoutExcluded(array $nodes, array $excludedNames): array
+    {
+        $excluded = array_map(strval(...), $excludedNames);
+
+        return array_filter($nodes, fn (mixed $node): bool => ! is_array($node) || ! in_array($node['name'] ?? null, $excluded, true));
     }
 
     /**
