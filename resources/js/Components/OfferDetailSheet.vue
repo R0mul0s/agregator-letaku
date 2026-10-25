@@ -2,8 +2,8 @@
     Okno s detailem akce (R159) — jedno pro celou aplikaci (AppLayout), obsah řídí lib/offerDetail.js.
     Otevírá ho klepnutí na fotku nebo název akce na kartě a na název v řádku. Velká fotka, ceny
     jako na kartě, platnost a prodejny, odkaz do obchodu nebo letáku a co s akcí jde udělat:
-    do nákupního seznamu, hlídat (Všechny akce), sdílet, „Tohle ne“ a hlášení chyby přes okno
-    akcí (R125). Nepřihlášený místo toho dostane výzvu k hlídání zdarma.
+    do nákupního seznamu, hlídat (Všechny akce), sdílet, „Tohle ne“ a hlášení chyby přes tři tečky
+    (R125) a graf cen v akcích (R163). Nepřihlášený místo „Hlídat“ dostane výzvu k hlídání zdarma.
 
     @author Roman Hlaváček
     @created 2026-10-25
@@ -12,18 +12,23 @@
 import BottomSheet from '@/Components/BottomSheet.vue';
 import ChainLogo from '@/Components/ChainLogo.vue';
 import InfoIcon from '@/Components/InfoIcon.vue';
+import OfferMenuButton from '@/Components/OfferMenuButton.vue';
 import OfferPrices from '@/Components/OfferPrices.vue';
 import OfferShareButton from '@/Components/OfferShareButton.vue';
+import PriceHistoryChart from '@/Components/PriceHistoryChart.vue';
 import ShoppingToggle from '@/Components/ShoppingToggle.vue';
 import WatchOfferButton from '@/Components/WatchOfferButton.vue';
 import { formatDate, formatDiscount } from '@/lib/format';
 import { useTranslations } from '@/lib/i18n';
+import { ABORTED, createLatestRequest } from '@/lib/latestRequest';
 import { discountPercent, MATCH_MAYBE, offerStoresLabel, packageLabel, startsLabel } from '@/lib/offer';
-import { showOfferActions } from '@/lib/offerActions';
 import { closeOfferDetail, offerDetailState } from '@/lib/offerDetail';
 import { showStoresDialog } from '@/lib/storesDialog';
 import { Link, usePage } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
+
+/** Nejmenší počet akcí položky pro graf historie: tato a aspoň jedna dřívější. */
+const MIN_HISTORY_POINTS = 2;
 
 const t = useTranslations();
 const page = usePage();
@@ -57,12 +62,27 @@ const storesLabel = computed(() => (offer.value ? offerStoresLabel(offer.value, 
 /** „Hlídat“ jako na kartě ve Všech akcích — jen kde stránka posílá cíl a adresy (R60). */
 const canWatch = computed(() => Boolean(offer.value?.watchTarget && page.props.watchUrls));
 
-/** „Tohle ne“ a hlášení chyby (R125) jsou v okně akcí — jen přihlášený. */
-function openActions() {
-    const { offer: current, watchItem } = offerDetailState;
-    closeOfferDetail();
-    showOfferActions(current, watchItem);
-}
+/** Historie cen položky (R163) — načte se po otevření okna; odpověď pro dřív otevřenou akci se zahodí. */
+const history = ref(null);
+const historyRequest = createLatestRequest();
+watch(
+    () => offerDetailState.open && offerDetailState.offer,
+    async (current) => {
+        history.value = null;
+        if (!current?.historyUrl) {
+            historyRequest.cancel();
+
+            return;
+        }
+        const result = await historyRequest.json(current.historyUrl);
+        if (result !== ABORTED && result !== null) {
+            history.value = result;
+        }
+    },
+);
+
+/** Graf jen s aspoň jednou dřívější akcí — samotná tato akce by nic neřekla. */
+const showHistory = computed(() => (history.value?.points?.length ?? 0) >= MIN_HISTORY_POINTS);
 </script>
 
 <template>
@@ -102,17 +122,18 @@ function openActions() {
                 <ShoppingToggle v-if="!offer.ended" :offer-id="offer.id" />
                 <WatchOfferButton v-if="canWatch" :target="offer.watchTarget" :urls="page.props.watchUrls" />
                 <OfferShareButton :offer="offer" />
+                <!-- „Tohle ne“ a hlášení chyby jako všude jinde — tři tečky (R125, R163) -->
+                <OfferMenuButton :offer="offer" :watch-item="offerDetailState.watchItem" />
             </div>
+
+            <!-- Ceny v akcích za sledované období (R163) — až po načtení, jen s dřívější akcí -->
+            <PriceHistoryChart v-if="showHistory" :points="history.points" :weeks="history.weeks" />
 
             <!-- Nepřihlášený bez „Hlídat“ u akce: proč se registrovat (R158, R159) -->
             <div v-if="isGuest && !canWatch" class="offer-detail__guest">
                 <p class="offer-detail__guest-text">{{ t('offer_detail.guest_text') }}</p>
                 <Link :href="page.props.auth.registerUrl" class="button button--highlight">{{ t('offer_detail.guest_cta') }}</Link>
             </div>
-
-            <button v-if="page.props.offerReports" type="button" class="link offer-detail__more" @click="openActions">
-                {{ offerDetailState.watchItem ? t('offer_detail.not_this') : t('offer_detail.report') }}
-            </button>
         </div>
     </BottomSheet>
 </template>

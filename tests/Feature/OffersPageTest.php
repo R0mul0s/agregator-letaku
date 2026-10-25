@@ -15,12 +15,15 @@ use App\Enums\LoyaltyProgram;
 use App\Enums\MatchStatus;
 use App\Enums\OfferType;
 use App\Enums\PackageUnit;
+use App\Enums\StoreFormat;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Models\Category;
 use App\Models\FollowedChain;
 use App\Models\Offer;
 use App\Models\OfferProduct;
+use App\Models\OfferStore;
 use App\Models\Product;
+use App\Models\Store;
 use App\Models\User;
 use App\Models\WatchItem;
 use App\Support\Pagination\PaginationLinks;
@@ -475,7 +478,7 @@ it('filtruje nové, brzy končící a slevy od procent; filtry zůstanou v odkaz
         ->where('filters.nove', true)
         ->where('filters.sleva-od', 20)
         ->where('filters.konci-brzy', false)
-        ->where('filterOptions', ['endingSoonDays' => 2, 'freshDays' => 2, 'minDiscounts' => [10, 20, 30, 50], 'departments' => []])
+        ->where('filterOptions', ['endingSoonDays' => 2, 'freshDays' => 2, 'minDiscounts' => [10, 20, 30, 50], 'departments' => [], 'storeFilter' => null])
         ->where('pagination.nextUrl', '/akce?nove=1&sleva-od=20&strana=2'));
     expect($response->getContent())->toContain('<meta name="robots" content="noindex, follow">');
     $this->get(route('offers', ['sleva-od' => 15]))->assertSessionHasErrors('sleva-od');
@@ -545,4 +548,50 @@ it('shrnutí produktu vynechá cenu za jednotku, když je stejná jako cena (bal
 
     $this->get('/akce/lego')->assertInertia(fn (Assert $page) => $page
         ->where('productSummary.best', ['chain' => 'tesco', 'price' => 22990, 'unitPrice' => null, 'unitKey' => null]));
+});
+
+it('přihlášený vidí ve Všech akcích cenu, kterou zaplatí — s kartou z Mých obchodů (R163)', function (): void {
+    Offer::factory()->create(['name' => 'Termix', 'price' => 1090, 'original_price' => 2090, 'loyalty_price' => 990, 'loyalty_program' => LoyaltyProgram::KauflandCard]);
+
+    $this->get(route('offers'))->assertInertia(fn (Assert $page) => $page->where('offers.data.0.userPrice', 1090));
+
+    auth()->user()->update(['loyalty_programs' => [LoyaltyProgram::KauflandCard]]);
+    $this->get(route('offers'))->assertInertia(fn (Assert $page) => $page->where('offers.data.0.userPrice', 990));
+
+    // Nepřihlášený cenu uživatele nemá
+    auth()->logout();
+    $this->get(route('offers'))->assertInertia(fn (Assert $page) => $page->missing('offers.data.0.userPrice'));
+});
+
+it('nepřihlášený filtruje typ prodejny a vybrané prodejny; přihlášený oddíl nemá (R164)', function (): void {
+    auth()->logout();
+    Store::query()->create(['chain' => Chain::Kaufland, 'code' => 'CZ3300', 'name' => 'Praha-Vypich', 'city' => 'Praha']);
+    Store::query()->create(['chain' => Chain::Kaufland, 'code' => 'CZ4400', 'name' => 'Trutnov', 'city' => 'Trutnov']);
+    Offer::factory()->create(['name' => 'Tesco hypermarket', 'chain' => Chain::Tesco, 'store_format' => StoreFormat::Hypermarket]);
+    Offer::factory()->create(['name' => 'Tesco supermarket', 'chain' => Chain::Tesco, 'store_format' => StoreFormat::Supermarket]);
+    Offer::factory()->create(['name' => 'Tesco všude', 'chain' => Chain::Tesco]);
+    $trutnov = Offer::factory()->create(['name' => 'Kaufland jen Trutnov', 'chain' => Chain::Kaufland]);
+    OfferStore::query()->create(['offer_id' => $trutnov->id, 'store_code' => 'CZ4400']);
+    Offer::factory()->create(['name' => 'Kaufland všude', 'chain' => Chain::Kaufland]);
+    $lidl = Offer::factory()->create(['name' => 'Lidl jinde', 'chain' => Chain::Lidl]);
+    OfferStore::query()->create(['offer_id' => $lidl->id, 'store_code' => 'CZ9999']);
+
+    $names = fn (array $query): array => collect(offerNames($query))->sort()->values()->all();
+
+    expect($names(['typ-prodejny' => 'supermarket']))->not->toContain('Tesco hypermarket')->toContain('Tesco supermarket', 'Tesco všude')
+        // Vybraná prodejna Kauflandu: akce jen jinde zmizí, ostatní obchody beze změny
+        ->and($names(['prodejny' => 'CZ3300']))->not->toContain('Kaufland jen Trutnov')->toContain('Kaufland všude', 'Lidl jinde')
+        ->and($names(['prodejny' => 'CZ4400']))->toContain('Kaufland jen Trutnov');
+
+    $this->get(route('offers', ['prodejny' => 'CZ3300', 'typ-prodejny' => 'supermarket']))->assertInertia(fn (Assert $page) => $page
+        ->where('filters.prodejny', ['CZ3300'])
+        ->where('filters.typ-prodejny', 'supermarket')
+        ->where('filterOptions.storeFilter.chains.0.chain', 'kaufland')
+        ->where('filterOptions.storeFilter.formatChains', ['Tesco', 'Albert']));
+    // Filtrovaný výpis se neindexuje
+    expect($this->get(route('offers', ['prodejny' => 'CZ3300']))->getContent())->toContain('noindex');
+    // Neznámá prodejna validací neprojde
+    $this->get(route('offers', ['prodejny' => 'NEEXISTUJE']))->assertSessionHasErrors('prodejny');
+
+    $this->actingAs(User::factory()->create())->get(route('offers'))->assertInertia(fn (Assert $page) => $page->where('filterOptions.storeFilter', null));
 });

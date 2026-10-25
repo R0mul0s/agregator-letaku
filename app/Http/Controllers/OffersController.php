@@ -20,6 +20,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Domain\Catalog\WatchTargets;
+use App\Domain\Chains\ChainCatalog;
 use App\Domain\Offers\OfferDepartments;
 use App\Domain\Offers\OfferFeed;
 use App\Domain\Offers\OfferFilters;
@@ -29,8 +30,10 @@ use App\Domain\Offers\OfferSearch;
 use App\Domain\Offers\PriceHistory;
 use App\Domain\Offers\ProductOfferSummary;
 use App\Domain\Offers\SearchVocabulary;
+use App\Domain\Offers\UserPricing;
 use App\Enums\Chain;
 use App\Enums\OfferListSort;
+use App\Enums\StoreFormat;
 use App\Http\Requests\OffersRequest;
 use App\Http\Responses\RegisterResponse;
 use App\Models\Offer;
@@ -51,7 +54,7 @@ class OffersController extends Controller
      * Zobrazí neskončené akce odpovídající hledání, v načteném rozsahu stránek. Stará adresa
      * jednoho obchodu nebo produktu (`?chain=lidl`, `?produkt=12`) přesměruje na čistou (R94).
      */
-    public function __invoke(OffersRequest $request, OfferSearch $search, OfferPresenter $presenter, PriceHistory $priceHistory, WatchTargets $watchTargets, SearchVocabulary $vocabulary, OfferPages $pages, OfferDepartments $departments, ProductOfferSummary $productSummary): Response|RedirectResponse
+    public function __invoke(OffersRequest $request, OfferSearch $search, OfferPresenter $presenter, PriceHistory $priceHistory, WatchTargets $watchTargets, SearchVocabulary $vocabulary, OfferPages $pages, OfferDepartments $departments, ProductOfferSummary $productSummary, UserPricing $pricing, ChainCatalog $chainCatalog): Response|RedirectResponse
     {
         abort_if($request->pathTarget() === null, HttpResponse::HTTP_NOT_FOUND);
         $cleanUrl = $this->cleanUrl($request, $pages);
@@ -101,6 +104,8 @@ class OffersController extends Controller
                 ->map(fn (Offer $offer): array => [
                     ...$presenter->toPage($offer, $storeCodes, $history[$offer->id] ?? null),
                     'watchTarget' => $targets[$offer->id] ?? null,
+                    // Přihlášený vidí cenu, kterou zaplatí — s kartou, kterou má v Mých obchodech (R163)
+                    ...($user instanceof User ? ['userPrice' => $pricing->price($user, $offer)] : []),
                 ])
                 ->all(),
             'total' => $total,
@@ -148,6 +153,9 @@ class OffersController extends Controller
                 OffersRequest::MIN_DISCOUNT => $offerFilters->minDiscount ?? '',
                 // Oddělení katalogu jako část adresy ('' = všechna, R102)
                 OffersRequest::DEPARTMENT => $offerFilters->department === null ? '' : OfferDepartments::slug($offerFilters->department),
+                // Typ prodejny a vybrané prodejny nepřihlášeného (R164)
+                OffersRequest::STORE_FORMAT => $offerFilters->storeFormat->value ?? '',
+                OffersRequest::STORES => $offerFilters->storeCodes,
             ],
             // Hodnoty do popisků a voleb filtrů (R101): „Končí do 2 dnů“, „Nové za 2 dny“, „Sleva od 20 %“.
             // Closure: „Načíst další“ (částečné načtení, R106) dotazy na oddělení nespouští
@@ -158,6 +166,8 @@ class OffersController extends Controller
                 // Oddělení, ve kterých jsou teď akce [{ slug, name, icon, count }] (R102), počet ve
                 // vybraných obchodech pro dlaždice (R141)
                 'departments' => $departments->withOffers($offerFilters->chains),
+                // Prodejna pro nepřihlášeného (R164) — přihlášený ji má v Mých obchodech
+                'storeFilter' => $user instanceof User ? null : $this->storeFilterOptions($chainCatalog),
             ],
             // Řazení, podle kterého výpis opravdu řadí, a na výběr (relevance jen s textem, R100)
             'sort' => $sort->value,
@@ -193,6 +203,32 @@ class OffersController extends Controller
                 'name' => $chain->label(),
             ], Chain::enabled()),
         ]);
+    }
+
+    /**
+     * Volby oddílu „Prodejna“ v okně Filtry pro nepřihlášeného (R164): typy prodejny s obchody,
+     * které je rozlišují, a prodejny obchodů, jejichž akce se liší po prodejnách.
+     *
+     * @return array{formats: list<array{value: string, name: string}>, formatChains: list<string>, chains: list<array{chain: string, name: string, stores: list<array{code: string, name: string, city: string|null}>}>, maxStores: int}
+     */
+    private function storeFilterOptions(ChainCatalog $catalog): array
+    {
+        $chains = Chain::enabled();
+        $withStores = [];
+        foreach ($chains as $chain) {
+            $stores = $catalog->stores($chain);
+            if ($stores !== []) {
+                // Název ve 2. pádě — „Prodejny Kauflandu“
+                $withStores[] = ['chain' => $chain->value, 'name' => $chain->genitive(), 'stores' => $stores];
+            }
+        }
+
+        return [
+            'formats' => array_map(fn (StoreFormat $format): array => ['value' => $format->value, 'name' => $format->label()], StoreFormat::cases()),
+            'formatChains' => array_values(array_map(fn (Chain $chain): string => $chain->label(), array_filter($chains, $catalog->hasStoreFormats(...)))),
+            'chains' => $withStores,
+            'maxStores' => config()->integer('letaky.stores.max_selected'),
+        ];
     }
 
     /**

@@ -4,7 +4,7 @@
  * Filtry výpisu akcí (Všechny akce a jejich našeptávač): obchody, produkt katalogu (R71),
  * jen akce, které ještě nezačaly (R76), bez akcí jen z e-shopu (R82), řazení a nastavení
  * Mých obchodů přihlášeného (R100), končí brzy, nové a sleva od (R101) a oddělení katalogu
- * (R102). Zná i názvy
+ * (R102) a pro nepřihlášeného typ prodejny a vybrané prodejny (R164). Zná i názvy
  * parametrů adresy Všech akcí — čte je OffersRequest, odkazy skládá urlParameters().
  *
  * @author Roman Hlaváček
@@ -18,6 +18,7 @@ namespace App\Domain\Offers;
 
 use App\Enums\Chain;
 use App\Enums\OfferListSort;
+use App\Enums\StoreFormat;
 use App\Models\User;
 
 final readonly class OfferFilters
@@ -58,6 +59,12 @@ final readonly class OfferFilters
     /** Parametr adresy: oddělení katalogu jako část bez diakritiky (OfferDepartments, R102). */
     public const DEPARTMENT_PARAMETER = 'kategorie';
 
+    /** Parametr adresy: typ prodejny pro nepřihlášeného (StoreFormat, R164) — u obchodů s HM/SM. */
+    public const STORE_FORMAT_PARAMETER = 'typ-prodejny';
+
+    /** Parametr adresy: vybrané prodejny pro nepřihlášeného (kódy čárkou, R164) — Kaufland, Globus. */
+    public const STORES_PARAMETER = 'prodejny';
+
     /**
      * @param  list<Chain>  $chains  Jen akce těchto obchodů; prázdné = všechny obchody
      * @param  int|null  $productId  Jen akce přiřazené k produktu katalogu
@@ -70,6 +77,8 @@ final readonly class OfferFilters
      * @param  bool  $freshOnly  Jen nově zveřejněné akce
      * @param  int|null  $minDiscount  Jen skutečné slevy (R8) od tolika procent
      * @param  string|null  $department  Jen akce produktů z oddělení katalogu (název)
+     * @param  StoreFormat|null  $storeFormat  Jen akce pro tento typ prodejny a akce všech prodejen (R164)
+     * @param  list<string>  $storeCodes  Jen akce platné v některé z prodejen — u obchodů těch prodejen (R164)
      */
     public function __construct(
         public array $chains = [],
@@ -83,6 +92,8 @@ final readonly class OfferFilters
         public bool $freshOnly = false,
         public ?int $minDiscount = null,
         public ?string $department = null,
+        public ?StoreFormat $storeFormat = null,
+        public array $storeCodes = [],
     ) {}
 
     /**
@@ -102,6 +113,8 @@ final readonly class OfferFilters
             $this->freshOnly,
             $this->minDiscount,
             $this->department,
+            $this->storeFormat,
+            $this->storeCodes,
         );
     }
 
@@ -132,6 +145,8 @@ final readonly class OfferFilters
             self::FRESH_PARAMETER => $this->freshOnly ? 1 : null,
             self::MIN_DISCOUNT_PARAMETER => $this->minDiscount,
             self::DEPARTMENT_PARAMETER => $this->department === null ? null : OfferDepartments::slug($this->department),
+            self::STORE_FORMAT_PARAMETER => $this->storeFormat?->value,
+            self::STORES_PARAMETER => $this->storeCodes === [] ? null : implode(self::CHAIN_SEPARATOR, $this->storeCodes),
             self::SORT_PARAMETER => $this->sort?->value,
             self::SHOPPING_PREFERENCES_PARAMETER => $this->preferencesOff ? 0 : null,
         ], fn (int|string|null $value): bool => $value !== null);

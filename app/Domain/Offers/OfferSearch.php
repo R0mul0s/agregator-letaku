@@ -25,7 +25,9 @@ namespace App\Domain\Offers;
 use App\Domain\Chains\ShoppingPreferencesScope;
 use App\Enums\OfferListSort;
 use App\Enums\PackageUnit;
+use App\Enums\StoreFormat;
 use App\Models\Offer;
+use App\Models\Store;
 use App\Support\Like;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
@@ -88,6 +90,11 @@ final class OfferSearch
                 fn (Builder $query) => $query->whereHas('product', fn (Builder $query) => $query->whereIn('category_id', $this->departments->categoryIds($department))),
             ))
             ->when($filters->minDiscount, fn (Builder $query, int $percent) => $query->withDiscountOf($percent))
+            // Typ prodejny nepřihlášeného (R164): akce toho typu a akce všech prodejen (bez typu)
+            ->when($filters->storeFormat, fn (Builder $query, StoreFormat $format) => $query->where(
+                fn (Builder $query) => $query->whereNull('store_format')->orWhere('store_format', $format),
+            ))
+            ->when($filters->storeCodes !== [], fn (Builder $query) => $this->whereInStores($query, $filters->storeCodes))
             ->with('stores');
 
         foreach (WordStart::words($text ?? '') as $word) {
@@ -145,6 +152,22 @@ final class OfferSearch
     public function freshSince(): CarbonImmutable
     {
         return CarbonImmutable::now()->subDays(config()->integer('letaky.offers.fresh_days'));
+    }
+
+    /**
+     * Jen akce platné v některé z vybraných prodejen (R164) — u obchodů, kterým prodejny patří;
+     * akce ostatních obchodů beze změny. Akce bez omezení na prodejny platí všude (R49).
+     *
+     * @param  Builder<Offer>  $query
+     * @param  list<string>  $storeCodes
+     */
+    private function whereInStores(Builder $query, array $storeCodes): void
+    {
+        $chains = Store::query()->whereIn('code', $storeCodes)->distinct()->pluck('chain')->map(fn ($chain): string => $chain->value)->all();
+
+        $query->where(fn (Builder $query) => $query
+            ->whereNotIn('chain', $chains)
+            ->orWhere(fn (Builder $query) => $query->availableInStores($storeCodes)));
     }
 
     /**

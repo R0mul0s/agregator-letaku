@@ -31,6 +31,7 @@ use App\Http\Controllers\LegalController;
 use App\Http\Controllers\ManifestController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OfferFeedController;
+use App\Http\Controllers\OfferPriceHistoryController;
 use App\Http\Controllers\OfferReportController;
 use App\Http\Controllers\OffersController;
 use App\Http\Controllers\OfferStoresController;
@@ -175,6 +176,12 @@ Route::get('/akce/{offer}/prodejny', OfferStoresController::class)
     ->whereNumber('offer')
     ->middleware(['throttle:'.RateLimits::SUGGESTIONS, ReadOnlySession::class])
     ->name('offers.stores');
+
+// Historie cen položky pro graf v okně s detailem akce (R163) — až po otevření okna
+Route::get('/akce/{offer}/historie', OfferPriceHistoryController::class)
+    ->whereNumber('offer')
+    ->middleware(['throttle:'.RateLimits::SUGGESTIONS, ReadOnlySession::class])
+    ->name('offers.price-history');
 
 // Živá ukázka hlídání na úvodní stránce (R90) — dotaz po každé změně výběru, limit jako našeptávač
 Route::get('/ukazka-hlidani', WatchDemoController::class)

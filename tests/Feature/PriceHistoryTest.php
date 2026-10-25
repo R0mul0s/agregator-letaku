@@ -87,3 +87,21 @@ it('Všechny akce posílají ke kartě srovnání s dřívějšími akcemi', fun
         ->where('offers.data.0.name', 'Máslo')
         ->where('offers.data.0.priceHistory.status', PriceHistory::LOWEST));
 });
+
+it('historie pro graf v okně detailu: akce položky za období od nejstarší i s touto, bez akcí na více kusů a jiné položky (R163)', function (): void {
+    earlierOffer(20, ['price' => 990]);
+    $older = earlierOffer(5, ['price' => 2490, 'original_price' => 3490]);
+    earlierOffer(2, ['price' => 1990, 'offer_type' => OfferType::Multibuy]);
+    earlierOffer(2, ['price' => 1490, 'external_id' => '222']);
+    $current = Offer::factory()->create(['external_id' => '111', 'price' => 2990, 'original_price' => 3990]);
+
+    $this->getJson(route('offers.price-history', $current))
+        ->assertOk()
+        ->assertExactJson([
+            'weeks' => 12,
+            'points' => [
+                ['from' => $older->valid_from->toDateString(), 'to' => $older->valid_to->toDateString(), 'price' => 2490, 'originalPrice' => 3490, 'current' => false],
+                ['from' => $current->valid_from->toDateString(), 'to' => $current->valid_to->toDateString(), 'price' => 2990, 'originalPrice' => 3990, 'current' => true],
+            ],
+        ]);
+});

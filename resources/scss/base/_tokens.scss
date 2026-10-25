@@ -219,6 +219,9 @@
     --offer-image-height: 8rem;
     // Fotka v okně s detailem akce (R159)
     --offer-detail-image-height: 15rem;
+    // Graf cen v akcích (R163) — písmo v jednotkách viewBoxu grafu (320 široký)
+    --price-history-label-size: 10px;
+    --price-history-axis-size: 9px;
     --watch-tile-min-width: 15rem;
     // Nákupní seznam (R61): řádek a zaškrtávátko dost velké pro palec v obchodě
     --shopping-row-min-height: 3rem;

@@ -510,8 +510,9 @@ return [
 
         // Okno s detailem akce po klepnutí na fotku nebo název (R159, OfferDetailSheet)
         'offer_detail' => [
-            'not_this' => 'Tohle ne nebo nahlásit chybu',
-            'report' => 'Nahlásit chybu v akci',
+            // Graf cen v akcích (R163, PriceHistoryChart)
+            'history_title' => 'Ceny v akcích za posledních :weeks týdnů',
+            'history_point' => ':range: :price',
             'guest_text' => 'Chcete vědět, až bude zase v akci?',
             'guest_cta' => 'Hlídat zdarma',
         ],
@@ -891,6 +892,8 @@ return [
             'active_filters' => 'Zapnuto (:count)',
             'clear_all' => 'Zrušit vše',
             'chains_selected' => ':count obchod|:count obchody|:count obchodů',
+            // Vybrané prodejny nepřihlášeného (R164)
+            'stores_selected' => ':count prodejna|:count prodejny|:count prodejen',
             // Oddělení katalogu (R102) — akce přiřazené k produktům katalogu
             'department_label' => 'Kategorie',
             'department_any' => 'Kategorie…',
@@ -1001,6 +1004,11 @@ return [
             'chains_hint' => 'Když nevyberete žádný, ukážeme všechny obchody.',
             'department_hint' => 'Jen akce, které jsme přiřadili k produktu z katalogu — některé akce v žádné kategorii nejsou.',
             'shopping_preferences_hint' => 'Vaše prodejny, věrnostní karty a e-shopy z Mých obchodů.',
+            // Prodejna bez přihlášení (R164) — přihlášený ji má v Mých obchodech
+            'store' => 'Prodejna',
+            'store_format_hint' => 'Typ prodejny rozlišují :chains — ostatní obchody mají akce stejné ve všech prodejnách.',
+            'list_and' => ' a ',
+            'stores_of' => 'Prodejny :chain',
         ],
 
         // Přepínač zobrazení akcí: karty, nebo kompaktní řádky (R82)

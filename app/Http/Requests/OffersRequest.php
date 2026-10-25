@@ -27,7 +27,9 @@ use App\Domain\Offers\OfferFilters;
 use App\Domain\Offers\OfferPages;
 use App\Enums\Chain;
 use App\Enums\OfferListSort;
+use App\Enums\StoreFormat;
 use App\Http\Requests\Concerns\HasPageWindow;
+use App\Models\Store;
 use App\Models\User;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
@@ -67,6 +69,12 @@ class OffersRequest extends FormRequest
     /** Parametr adresy: `0` = bez nastavení Mých obchodů přihlášeného (R100). */
     public const SHOPPING_PREFERENCES = OfferFilters::SHOPPING_PREFERENCES_PARAMETER;
 
+    /** Parametr adresy: typ prodejny pro nepřihlášeného (R164). */
+    public const STORE_FORMAT = OfferFilters::STORE_FORMAT_PARAMETER;
+
+    /** Parametr adresy: vybrané prodejny pro nepřihlášeného (R164). */
+    public const STORES = OfferFilters::STORES_PARAMETER;
+
     /**
      * Pravidla validace.
      *
@@ -90,6 +98,17 @@ class OffersRequest extends FormRequest
             self::DEPARTMENT => ['nullable', 'string', Rule::in(array_keys(app(OfferDepartments::class)->all()))],
             self::SORT => ['nullable', Rule::enum(OfferListSort::class)],
             self::SHOPPING_PREFERENCES => ['nullable', 'boolean'],
+            // Typ prodejny a vybrané prodejny pro nepřihlášeného (R164)
+            self::STORE_FORMAT => ['nullable', Rule::enum(StoreFormat::class)],
+            // Existující prodejny, u každého obchodu nejvýš tolik jako v Mých obchodech
+            self::STORES => ['nullable', 'string', function (string $attribute, mixed $value, Closure $fail): void {
+                $codes = is_string($value) ? self::parseStoreCodes($value) : [];
+                $stores = Store::query()->whereIn('code', $codes)->get(['code', 'chain']);
+                $perChain = array_count_values($stores->map(fn (Store $store): string => $store->chain->value)->all());
+                if ($codes === [] || $stores->count() !== count($codes) || max([0, ...$perChain]) > config()->integer('letaky.stores.max_selected')) {
+                    $fail('validation.exists')->translate();
+                }
+            }],
             ...$this->pageWindowRules(),
         ];
     }
@@ -224,6 +243,8 @@ class OffersRequest extends FormRequest
             freshOnly: $this->boolean(self::FRESH),
             minDiscount: $this->minDiscount(),
             department: $this->department(),
+            storeFormat: $this->storeFormat(),
+            storeCodes: $this->storeCodes(),
         );
     }
 
@@ -303,6 +324,36 @@ class OffersRequest extends FormRequest
             $this->boolean(self::FRESH),
             $this->minDiscount(),
             $this->department(),
+            $this->storeFormat(),
+            $this->storeCodes(),
         );
+    }
+
+    /**
+     * Typ prodejny (R164), nebo null = všechny.
+     */
+    public function storeFormat(): ?StoreFormat
+    {
+        return $this->enum(self::STORE_FORMAT, StoreFormat::class);
+    }
+
+    /**
+     * Vybrané prodejny (R164) — kódy z parametru, bez opakování.
+     *
+     * @return list<string>
+     */
+    public function storeCodes(): array
+    {
+        return $this->filled(self::STORES) ? self::parseStoreCodes($this->string(self::STORES)->toString()) : [];
+    }
+
+    /**
+     * Kódy prodejen z hodnoty parametru (čárkou), bez prázdných a opakování.
+     *
+     * @return list<string>
+     */
+    public static function parseStoreCodes(string $value): array
+    {
+        return array_values(array_unique(array_filter(array_map(trim(...), explode(OfferFilters::CHAIN_SEPARATOR, $value)), fn (string $code): bool => $code !== '')));
     }
 }

@@ -44,6 +44,8 @@ final class OfferPresenter
     {
         return [
             'id' => $offer->id,
+            // Historie cen pro graf v okně s detailem akce — načte se až po jeho otevření (R163)
+            'historyUrl' => route('offers.price-history', $offer, absolute: false),
             'chain' => $offer->chain->value,
             'chainName' => $offer->chain->label(),
             'name' => $offer->name,

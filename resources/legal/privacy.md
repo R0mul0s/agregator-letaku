@@ -247,6 +247,7 @@ snadno jako přijmout.
 | `slevohlidka.install.dismissed_at` | localStorage | kdy a kolikrát jste zavřeli výzvu k přidání Slevohlídky na plochu (pak se několik dní neukáže, při každém dalším zavření déle — nejvýš 30 dní) | do smazání v prohlížeči |
 | `slevohlidka.shopping.wake_lock` | localStorage | v nákupním seznamu nezhasínat displej | do smazání v prohlížeči |
 | `slevohlidka.shopping.pending` | localStorage | odškrtnutí v nákupním seznamu udělaná bez signálu, než se odešlou | do odeslání nebo odhlášení |
+| `slevohlidka.offers.stores` | localStorage | bez přihlášení zvolený typ prodejny a vybrané prodejny ve Všech akcích, aby platily i příště | do smazání v prohlížeči |
 | `slevohlidka-static-…` | úložiště aplikace (Cache Storage) | soubory webu, aby se aplikace v telefonu načetla rychle a bez signálu | do další verze webu |
 | `slevohlidka-pages` | úložiště aplikace (Cache Storage) | poslední verze Mých slev, nákupního seznamu a Hlídám pro použití bez signálu | do odhlášení |
 

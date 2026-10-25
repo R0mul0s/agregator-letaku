@@ -90,9 +90,65 @@
         margin: 0;
         font-weight: var(--font-weight-bold);
     }
+}
 
-    &__more {
-        align-self: flex-start;
-        margin-top: var(--space-2);
+// Graf cen v akcích (R163, PriceHistoryChart.vue) — jedna řada, tenké čáry, nenápadná osa
+.price-history {
+    margin: var(--space-2) 0 0;
+
+    &__title {
+        margin-bottom: var(--space-1);
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+        font-weight: var(--font-weight-bold);
+    }
+
+    &__chart {
+        display: block;
+        width: 100%;
+        height: auto;
+        overflow: visible;
+    }
+
+    &__baseline {
+        stroke: var(--color-border);
+        stroke-width: 1;
+    }
+
+    &__step {
+        stroke: var(--color-text-muted);
+        stroke-width: 2;
+        stroke-linecap: round;
+
+        &--current {
+            stroke: var(--color-price);
+            stroke-width: 3;
+        }
+    }
+
+    &__original {
+        stroke: var(--color-text-muted);
+        stroke-width: 1;
+        stroke-dasharray: 3 3;
+        opacity: 0.6;
+    }
+
+    &__hit {
+        fill: transparent;
+    }
+
+    &__label {
+        fill: var(--color-text-muted);
+        font-size: var(--price-history-label-size);
+        font-weight: var(--font-weight-bold);
+
+        &--current {
+            fill: var(--color-text);
+        }
+    }
+
+    &__axis {
+        fill: var(--color-text-muted);
+        font-size: var(--price-history-axis-size);
     }
 }

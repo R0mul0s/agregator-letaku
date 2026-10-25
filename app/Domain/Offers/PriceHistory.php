@@ -139,6 +139,43 @@ final class PriceHistory
     }
 
     /**
+     * Akce položky za posledních `letaky.price_history.weeks` týdnů až po konec této akce, pro
+     * graf v okně s detailem akce (R163): od nejstarší, i tato akce (`current`). Cena jako
+     * u porovnání (comparablePrice), původní cena jen u slevy. Akce na více kusů vynechá.
+     *
+     * @return list<array{from: string, to: string, price: int, originalPrice: int|null, current: bool}>
+     */
+    public function timeline(Offer $offer): array
+    {
+        $since = $offer->valid_from->subDays(config()->integer('letaky.price_history.weeks') * self::DAYS_IN_WEEK);
+        $rows = Offer::query()
+            ->where('chain', $offer->chain)
+            ->where('external_id', $offer->external_id)
+            ->where('valid_to', '>=', $since->toDateString())
+            ->where('valid_from', '<=', $offer->valid_to->toDateString())
+            ->orderBy('valid_from')
+            ->orderBy('id')
+            ->get(['id', 'valid_from', 'valid_to', 'price', 'original_price', 'loyalty_price', 'offer_type']);
+
+        $points = [];
+        foreach ($rows as $row) {
+            $price = self::comparablePrice($row);
+            if ($price === null) {
+                continue;
+            }
+            $points[] = [
+                'from' => $row->valid_from->toDateString(),
+                'to' => $row->valid_to->toDateString(),
+                'price' => $price,
+                'originalPrice' => $row->offer_type === OfferType::Discount ? $row->original_price : null,
+                'current' => $row->id === $offer->id,
+            ];
+        }
+
+        return $points;
+    }
+
+    /**
      * Cena k porovnání: u akce jen s kartou cena s kartou, u akce na více kusů žádná
      * (má jen běžnou cenu kusu), jinak cena bez karty.
      */

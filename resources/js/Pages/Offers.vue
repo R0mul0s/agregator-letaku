@@ -35,6 +35,7 @@ import SearchSuggest from '@/Components/SearchSuggest.vue';
 import ShoppingToggle from '@/Components/ShoppingToggle.vue';
 import SortSelect from '@/Components/SortSelect.vue';
 import SortSheet from '@/Components/SortSheet.vue';
+import StoreSelect from '@/Components/StoreSelect.vue';
 import ViewToggle from '@/Components/ViewToggle.vue';
 import WatchOfferButton from '@/Components/WatchOfferButton.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
@@ -44,10 +45,11 @@ import { formatNumber, formatPrice } from '@/lib/format';
 import { useTranslations } from '@/lib/i18n';
 import { unitPriceLabel } from '@/lib/offer';
 import { rememberSearch } from '@/lib/search';
+import { readStored, writeStored } from '@/lib/storage';
 import { updatedLabel } from '@/lib/updated';
 import { useCompactView } from '@/lib/viewMode';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
-import { computed, onBeforeUnmount, reactive, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 
 /** Pauza v psaní, po které se přepočítají výsledky (ms) — delší než u návrhů, výsledky jsou dražší. */
 const LIVE_SEARCH_DEBOUNCE_MS = 450;
@@ -73,6 +75,13 @@ const DEPARTMENT = 'kategorie';
 /** Parametr „bez e-shopu“ (R82) a produktu katalogu (R71) — OffersRequest. */
 const WITHOUT_ESHOP = 'bez-eshopu';
 const PRODUCT = 'produkt';
+
+/** Typ prodejny a vybrané prodejny nepřihlášeného (R164, OfferFilters::STORE_FORMAT_PARAMETER / STORES_PARAMETER). */
+const STORE_FORMAT = 'typ-prodejny';
+const STORES = 'prodejny';
+
+/** Klíč v localStorage: typ prodejny a prodejny nepřihlášeného, aby platily i příště (R164). */
+const STORE_FILTER_KEY = 'slevohlidka.offers.stores';
 
 /** Po kolika akcích výpisu je karta pro nepřihlášené — celé řádky při 1, 2 i 3 sloupcích (R141). */
 const GUEST_CARD_AFTER = 6;
@@ -163,9 +172,12 @@ function search({ live = false } = {}) {
     searchedText = filters.q.trim();
     const query = Object.fromEntries(
         Object.entries({ ...filters, chain: chainParameter.value, [SHOPPING_PREFERENCES]: shoppingPreferencesParameter.value })
+            // Seznam (vybrané prodejny) čárkou, prázdný vynechá
+            .map(([key, value]) => [key, Array.isArray(value) ? value.join(CHAIN_SEPARATOR) : value])
             .filter(([, value]) => value !== '' && value !== false && value !== null)
             .map(([key, value]) => [key, value === true ? 1 : value]),
     );
+    rememberStoreFilter();
 
     router.get(props.searchUrl, query, {
         preserveState: true,
@@ -220,6 +232,63 @@ const placeChips = computed(() => [
     { key: WITHOUT_ESHOP, label: t('search.without_eshop') },
     ...(props.shoppingPreferences ? [{ key: SHOPPING_PREFERENCES, label: t('search.shopping_preferences') }] : []),
 ]);
+
+/** Oddíl „Prodejna“ v okně Filtry — jen nepřihlášený, přihlášený má Moje obchody (R164). */
+const storeFilter = computed(() => props.filterOptions.storeFilter ?? null);
+
+/** Obchody s typem prodejny jako výčet „Tesco a Albert“. */
+const formatChainsText = computed(() => {
+    const chains = storeFilter.value?.formatChains ?? [];
+
+    return chains.length < 2 ? chains.join('') : `${chains.slice(0, -1).join(', ')}${t('sheet.list_and')}${chains.at(-1)}`;
+});
+
+/**
+ * Vybrané prodejny jednoho obchodu.
+ *
+ * @param {{ stores: Array<{ code: string }> }} group Obchod s prodejnami
+ * @returns {string[]}
+ */
+function storesOf(group) {
+    const codes = new Set(group.stores.map((store) => store.code));
+
+    return filters[STORES].filter((code) => codes.has(code));
+}
+
+/**
+ * Nastaví vybrané prodejny jednoho obchodu, prodejny ostatních obchodů nechá.
+ *
+ * @param {{ stores: Array<{ code: string }> }} group
+ * @param {string[]} selected
+ */
+function setStoresOf(group, selected) {
+    const codes = new Set(group.stores.map((store) => store.code));
+    filters[STORES] = [...filters[STORES].filter((code) => !codes.has(code)), ...selected];
+    search();
+}
+
+/** Zapamatuje volbu prodejny nepřihlášeného v prohlížeči (R164). */
+function rememberStoreFilter() {
+    if (storeFilter.value) {
+        writeStored(STORE_FILTER_KEY, { format: filters[STORE_FORMAT], stores: filters[STORES] });
+    }
+}
+
+// Nepřihlášený bez volby v adrese dostane tu zapamatovanou z minula
+onMounted(() => {
+    const stored = storeFilter.value ? readStored(STORE_FILTER_KEY, null) : null;
+    const hasChoice = filters[STORE_FORMAT] !== '' || filters[STORES].length > 0;
+    if (!stored || hasChoice || (!stored.format && !stored.stores?.length)) {
+        return;
+    }
+    // Prodejna, která mezitím zmizela, by adresu neprošla validací
+    const known = new Set(storeFilter.value.chains.flatMap((group) => group.stores.map((store) => store.code)));
+    filters[STORE_FORMAT] = storeFilter.value.formats.some((format) => format.value === stored.format) ? stored.format : '';
+    filters[STORES] = Array.isArray(stored.stores) ? stored.stores.filter((code) => known.has(code)) : [];
+    if (filters[STORE_FORMAT] !== '' || filters[STORES].length > 0) {
+        search();
+    }
+});
 
 /** Všechny štítky zapnuto / vypnuto v jednom řádku (široký displej). */
 const toggleChips = computed(() => [...periodChips.value, ...placeChips.value]);
@@ -318,6 +387,14 @@ const activeFilterChips = computed(() => {
     if (props.product) {
         chips.push({ key: PRODUCT, label: t('search.product_filter', { name: props.product }), action: clearProduct, removable: true });
     }
+    // Typ prodejny a prodejny nepřihlášeného (R164)
+    const storeFormat = storeFilter.value?.formats.find((format) => format.value === filters[STORE_FORMAT]);
+    if (storeFormat) {
+        chips.push({ key: STORE_FORMAT, label: storeFormat.name, action: () => chooseFilter(STORE_FORMAT, ''), removable: true });
+    }
+    if (filters[STORES].length) {
+        chips.push({ key: STORES, label: t('search.stores_selected', { count: filters[STORES].length }), action: () => (filtersOpen.value = true), removable: false });
+    }
 
     return chips;
 });
@@ -341,15 +418,23 @@ function toggleShoppingPreferences() {
 }
 
 /** Filtry, které „Zrušit filtry“ vypne — hledání, obchody a nastavení Mých obchodů zůstanou. */
-const CLEARABLE_FILTERS = [FRESH, ENDING_SOON, UPCOMING, WITHOUT_ESHOP, MIN_DISCOUNT, DEPARTMENT, PRODUCT];
+const CLEARABLE_FILTERS = [FRESH, ENDING_SOON, UPCOMING, WITHOUT_ESHOP, MIN_DISCOUNT, DEPARTMENT, PRODUCT, STORE_FORMAT, STORES];
+
+/**
+ * Je filtr zapnutý? Seznam (prodejny) jen neprázdný.
+ *
+ * @param {string} key
+ * @returns {boolean}
+ */
+const isActive = (key) => (Array.isArray(filters[key]) ? filters[key].length > 0 : Boolean(filters[key]));
 
 /** Je zapnutý některý filtr, který jde zrušit? */
-const hasActiveFilters = computed(() => CLEARABLE_FILTERS.some((key) => Boolean(filters[key])));
+const hasActiveFilters = computed(() => CLEARABLE_FILTERS.some(isActive));
 
 /** Zruší všechny filtry štítků (R101). */
 function clearFilters() {
     for (const key of CLEARABLE_FILTERS) {
-        filters[key] = typeof filters[key] === 'boolean' ? false : '';
+        filters[key] = Array.isArray(filters[key]) ? [] : typeof filters[key] === 'boolean' ? false : '';
     }
     search();
 }
@@ -598,6 +683,25 @@ onBeforeUnmount(() => liveSearch.cancel());
                         </FilterChip>
                     </div>
                     <p v-if="shoppingPreferences" class="filter-sheet__hint">{{ t('sheet.shopping_preferences_hint') }}</p>
+                </section>
+                <!-- Prodejna bez přihlášení (R164): typ prodejny a vybrané prodejny, přihlášený má Moje obchody -->
+                <section v-if="storeFilter" class="filter-sheet__section">
+                    <h3 class="filter-sheet__heading">{{ t('sheet.store') }}</h3>
+                    <div class="filter-sheet__options">
+                        <FilterChip
+                            v-for="format in storeFilter.formats"
+                            :key="format.value"
+                            :on="filters[STORE_FORMAT] === format.value"
+                            @click="chooseFilter(STORE_FORMAT, format.value)"
+                        >
+                            {{ format.name }}
+                        </FilterChip>
+                    </div>
+                    <p class="filter-sheet__hint">{{ t('sheet.store_format_hint', { chains: formatChainsText }) }}</p>
+                    <div v-for="group in storeFilter.chains" :key="group.chain" class="filter-sheet__stores">
+                        <span class="filter-sheet__label">{{ t('sheet.stores_of', { chain: group.name }) }}</span>
+                        <StoreSelect :model-value="storesOf(group)" :stores="group.stores" :max="storeFilter.maxStores" @update:model-value="(codes) => setStoresOf(group, codes)" />
+                    </div>
                 </section>
             </div>
             <template #footer>
