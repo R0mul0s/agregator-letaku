@@ -18,34 +18,36 @@ s věrnostní kartou a ceny za jednotku, a dá vědět e-mailem, když přibude 
 | **Instrukce pro AI agenty** | [CLAUDE.md](CLAUDE.md) |
 | **Správce** | Roman Hlaváček |
 
-> **Stav:** běží na [slevohlidka.rhsoft.cz](https://slevohlidka.rhsoft.cz) (Websupport,
+> **Stav:** běží na [slevohlidka.cz](https://slevohlidka.cz) (Websupport,
 > [deploy/DEPLOYMENT.md](deploy/DEPLOYMENT.md)). Hotové je stahování akcí všech sedmi obchodů
-> (u Alberta jen zmínky v letácích bez ceny), hlídání s katalogem 164 produktů, Moje slevy
-> s výběrem obchodu „Jsem v obchodě“, nákupní seznam, srovnání s dřívějšími akcemi, e-mailová
-> upozornění (hned / denně / týdně) a příprava na zveřejnění (podmínky, zásady, souhlasy, cookie
-> lišta). Co platí a proč je v tabulce na začátku [PLAN.md](docs/PLAN.md), log rozhodnutí R1–R65
-> v [kap. 8](docs/ROZHODNUTI.md). Makro zatím nejde (ochrana proti robotům,
+> (z webu, API a PDF letáků, i letáky, které ještě nezačaly), hlídání s katalogem 254 produktů,
+> Moje slevy, nákupní seznam se sdílením, centrum upozornění, upozornění e-mailem a v telefonu
+> (aplikace na plochu), veřejné Všechny akce s čistými adresami obchodů a produktů a Nejlepší
+> slevy týdne. Co platí a proč je v tabulce na začátku [PLAN.md](docs/PLAN.md), log rozhodnutí
+> R1–R164 v [ROZHODNUTI.md](docs/ROZHODNUTI.md). Makro zatím nejde (ochrana proti robotům,
 > [ZDROJE_DAT.md](docs/ZDROJE_DAT.md)).
 
 ## Jak se to používá
 
-1. **Registrace** — nový účet rovnou sleduje všechny obchody a otevře se Hlídám.
-2. **Hlídám** — vyber produkt z katalogu (jedním klepnutím), nebo zadej vlastní hledaná slova, případně variantu („zero“) a slova k vyloučení. Produkt jde začít hlídat i přímo z karty akce ve Všech akcích („+ Hlídat Máslo“).
-3. **Moje slevy** — akce k hlídaným položkám od nejnižší ceny za kg / l / ks. Souhrnné akce („různé druhy“) bez hledané varianty jsou označené **Možná**. U akce je srovnání s dřívějšími akcemi stejné položky („Nejlevněji za 12 týdnů“, „Před 3 týdny stálo 29,90 Kč“). Výběr **Jsem v obchodě** ukáže jen akce jednoho obchodu jako kompaktní řádky. Pod akcemi jsou **zmínky v letácích bez ceny** (Lidl, Penny, Albert).
-4. **Seznam** — nákupní seznam z akcí („+ Do seznamu“ na kartě), po obchodech, s odškrtáváním v obchodě.
-5. **Obchody** — které obchody sleduješ, karty a aplikace, které máš, u Tesca a Albertu typ prodejny, u Kauflandu své prodejny (pultové maso a ryby se po prodejnách liší). Změny se ukládají hned.
-6. **Všechny akce** — hledání s našeptávačem a filtr obchodu; veřejné i bez přihlášení.
-7. **Můj účet** (menu pod avatarem) — profil, upozornění e-mailem (hned / denně / týdně), řazení Mých slev, heslo a přihlášená zařízení, zrušení účtu.
-8. **Katalog** (jen admin, `php artisan letaky:admin email`) — tabulka sdílených produktů se slovy a kategorií ze stromu e-shopu Tesco. Akce se k nim přiřadí při každém stažení; v detailu produktu jde přiřazení ručně opravit.
+1. **Registrace** — heslem, nebo přes Google či Seznam; nový účet provede průvodce prvním nastavením (co kupuješ, obchody, karty, upozornění).
+2. **Hlídám** — vyber produkt z katalogu, nebo zadej vlastní hledaná slova, případně variantu („zero“) a slova k vyloučení. Produkt jde začít hlídat i z karty akce nebo ze stránky produktu („+ Hlídat Máslo“). U položky bez akce je vidět, kdy byla naposledy v akci.
+3. **Moje slevy** — akce k hlídaným položkám od nejnižší ceny za kg / l / ks, jako karty, nebo řádky. Kdo má kartu (Kaufland XTRA, Clubcard…), vidí jako hlavní cenu tu s kartou a pod ní cenu bez karty. Souhrnné akce („různé druhy“) bez hledané varianty jsou označené **Možná**, akce, které ještě nezačaly, jsou v sekci **Brzy**. Akci jde skrýt („Tohle ne“) nebo nahlásit chybu.
+4. **Detail akce** — klepnutí na fotku nebo název akce otevře okno s velkou fotkou, cenami, platností, odkazem do obchodu nebo letáku, přehledem cen v akcích za 12 týdnů a tlačítky Do seznamu, Hlídat a sdílet.
+5. **Seznam** — nákupní seznam z akcí i vlastních položek, po obchodech, s množstvím, odškrtáváním v obchodě i bez signálu a sdílením odkazem.
+6. **Obchody** — které obchody sleduješ, karty a aplikace, které máš, u Tesca a Albertu typ prodejny, u Kauflandu a Globusu své prodejny. Změny se ukládají hned.
+7. **Všechny akce** — veřejné i bez přihlášení: hledání s našeptávačem, obchody, kategorie, filtry (nové, končí brzy, sleva od, prodejna) a řazení. Stránka obchodu `/akce/lidl` a produktu `/akce/pivo` (s nejlevnější akcí a „Hlídat“), kanál RSS.
+8. **Upozornění** (zvonek) — nové akce na hlídané zboží, akce, které dnes začínají, a konec akcí ze seznamu; e-mailem a v telefonu podle nastavení.
+9. **Můj účet** (menu pod avatarem) — profil, upozornění, řazení Mých slev, heslo, propojené účty a přihlášená zařízení, zrušení účtu.
+10. **Správa** (jen admin, `php artisan letaky:admin email`) — katalog produktů, uživatelé, hlášení chyb, zprávy uživatelům a kvalita dat.
 
 Na telefonu jde Slevohlídka přidat na plochu (manifest).
 
 ## Jak to funguje
 
-1. Dvakrát denně se stáhne akční nabídka každého obchodu (cron URL na hostingu). Kaufland, Tesco, Globus, Billa a částečně Lidl a Penny mají strukturovaná data; z letáků Lidlu, Penny a Albertu se ukládá text stránek pro zmínky bez ceny. LLM zatím ne (R23).
+1. Několikrát denně se stáhne akční nabídka každého obchodu (cron URL na hostingu). Kaufland, Tesco, Globus, Billa a Penny mají strukturovaná data z webu nebo API, Lidl web; ceny z PDF letáků (Lidl, Albert, Penny, a letáky Globusu a Billy, které ještě nezačaly) se čtou z textové vrstvy přes `pdftotext` a přijmou jen ověřené cenou za jednotku. Z letáků se ukládá i text stránek pro zmínky bez ceny. LLM zatím ne (R23).
 2. Nabídky se převedou do jednotného tvaru: cena v haléřích, původní cena, cena s kartou, cena za jednotku, platnost a typ akce. Stažení hlídají pojistky — nula akcí je chyba, podezřele velký propad akce nestáhne a stažení obchodu běží jen jedno najednou (R54, R57).
 3. Hlídané položky uživatele se spárují s nabídkami sledovaných obchodů. Výsledek je **shoda**, nebo **možná** u položek typu „různé druhy“.
-4. Po stažení, které přineslo nové akce, odejdou e-mailová upozornění po dávkách (R42, R58).
+4. Po stažení, které přineslo nové akce, je zapíše centrum upozornění a odejdou upozornění e-mailem a do telefonu po dávkách (R42, R58, R66, R74). Výpadky stahování a chyby aplikace dostane admin hned do telefonu (R126, R154).
 
 ## Stack
 

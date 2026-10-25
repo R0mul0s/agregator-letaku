@@ -38,8 +38,8 @@ v [PLAN.md](PLAN.md). Větší celky se z toho stávají etapou.
 
 **Odkud:** R10 v PLAN.md. Nabídky se nemažou.
 
-- graf vývoje ceny u produktu (podnět uživatelů 5. 10. 2026) — nejnižší cena po týdnech napříč obchody (produkt katalogu přes `offer_product`, hlídaná položka) nebo jedné položky obchodu (`chain` + `external_id`); data jsou až od 2. 10. 2026 (5. 10. mělo víc cen jen 4 položky z ~10 600), vrátit se k tomu za pár týdnů. Srovnání s dřívějšími akcemi stejné položky je hotové (R59)
-- „je tahle akce opravdu výhodná?“ hotové (R59) — dál: srovnání i s běžnou cenou mimo akci (e-shopy Tesca a Billy ji mají)
+- ceny v akcích **jedné položky obchodu** v okně s detailem akce hotové (R163, řádky od nejnovější) — dál: nejnižší cena po týdnech napříč obchody (produkt katalogu přes `offer_product`, hlídaná položka) nebo jedné položky obchodu (`chain` + `external_id`); data jsou až od 2. 10. 2026 (5. 10. mělo víc cen jen 4 položky z ~10 600), vrátit se k tomu za pár týdnů. Srovnání s dřívějšími akcemi stejné položky je hotové (R59)
+- „je tahle akce opravdu výhodná?“ hotové (R59) — dál: srovnání i s **běžnou cenou mimo akci** — dnes ji nemáme vůbec, jen přeškrtnutou cenu u části akcí (Tesco skoro nikdy). Nejlevněji Billa: celý katalog (~12 tisíc produktů) už stahujeme a ceny mimo akci zahazujeme — tabulka změn ceny podle SKU (ukládat jen změny); Tesco e-shop a Globus katalog by chtěly víc požadavků (rozbor 25. 10. 2026). Pak čára běžné ceny v přehledu cen v akcích (R163) a „o 20 % levněji než obvykle“
 - Penny a Albert uvádějí nejnižší cenu za 30 dní, dá se uložit jako další údaj
 
 ## Další obchody
