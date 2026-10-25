@@ -86,7 +86,7 @@ Implementace: `app/Domain/Sources/Kaufland/KauflandOfferParser.php`.
 - Popis (`detailDescription`) nese údaje, které v názvu chybí: „Kunín Trvanlivé mléko tuk 1,5 %“ má „polotučné“ jen v popisu.
 - Platnost `dateFrom` / `dateTo` je u kategorie i u položky. Kampaně (Víkend, Start týdne) mají kratší platnost.
 - `label` určuje typ akce. Skutečná sleva je `reducedPrice` a `halfPrice`. **`smallPrice` („AKCE! pouze“) a `specialItems` nemají původní cenu**, často jde o trvale nízkou cenu ([R8](ROZHODNUTI.md)).
-- Kaufland Card: `customerType == "KDN"` a pole `loyalty*`.
+- Kaufland Card, od podzimu 2026 propagovaná jako **Kaufland XTRA** („Tvoje cena s Kaufland XTRA“): `customerType == "KDN"` a pole `loyalty*`. Ověřeno 25. 10. 2026 (R161): v datech nic nového (žádné pole ani logo XTRA), 29 z 799 akcí s cenou XTRA včetně nepotravin (Parkside, SilverCrest). V PDF letáku je štítek XTRA jen v obrázku stránky (stránka je celá JPEG s textovou vrstvou); v textu ho prozradí cena za jednotku „(*=100 g X: 11,94/ A: 13,27)“ (X = s XTRA, A = akční). Z ~20 dlaždic s XTRA v letáku 21.–27. 10. byly na webu všechny s cenou XTRA kromě dvou víkendových z titulní strany (Jihočeské máslo, slunečnicový olej, 23.–25. 10.), které na webu v neděli nebyly vůbec.
 - `basePrice` je text („(=1 l 21,27)“) a musí se parsovat.
 - **`unit` může vyjmenovat všechny varianty** (20. 10. 2026 Persil: „3,96 l=88 pracích dávek/ 3,6 l=80 pracích dávek/ … “, 129 znaků) — delší než sloupec `package_text` (100). Jediná taková akce shodila celé stažení („Data too long“); `BatchWriter` proto texty delší než sloupec zkrátí (`TEXT_LENGTHS`).
 - **Stejná položka je ve více kategoriích** (sortimentní a „Superkauf“), deduplikovat podle `klNr` a platnosti.

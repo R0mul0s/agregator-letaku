@@ -4,7 +4,8 @@
     s obrázkem by v obchodě znamenala hodně posouvání; klepnutí na název otevře detail akce (R159). V centru upozornění (R74) i s obchodem;
     skončená akce je ztlumená a bez tlačítka do seznamu. Akce nejlevnější za sledované období
     (R59) má štítek, akce, která ještě nezačala, štítek s datem začátku (R76). Ve Všech akcích
-    (kompaktní zobrazení, R82) bez ceny uživatele: akce jen s kartou ukáže cenu s kartou.
+    (kompaktní zobrazení, R82) bez ceny uživatele: akce jen s kartou ukáže cenu s kartou. U akce s cenou
+    s kartou je vidět i druhá cena — s kartou, nebo bez ní (R161).
 
     @author Roman Hlaváček
     @created 2026-10-04
@@ -14,7 +15,7 @@ import OfferMenuButton from '@/Components/OfferMenuButton.vue';
 import ShoppingToggle from '@/Components/ShoppingToggle.vue';
 import { formatDiscount, formatPrice } from '@/lib/format';
 import { useTranslations } from '@/lib/i18n';
-import { discountPercent, MATCH_MAYBE, OFFER_TYPE, offerUnitPriceLabel, packageLabel, startsLabel } from '@/lib/offer';
+import { discountPercent, MATCH_MAYBE, OFFER_TYPE, offerUnitPriceLabel, packageLabel, startsLabel, unitPriceLabel } from '@/lib/offer';
 import { showOfferDetail } from '@/lib/offerDetail';
 import { usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
@@ -62,19 +63,40 @@ const price = computed(() => {
     return formatPrice(props.offer.userPrice ?? props.offer.price, locale.value);
 });
 
-/** Cena s kartou bez ceny uživatele: u akce jen s kartou „s kartou X“, jinak „19,90 Kč s kartou X“. */
+/**
+ * Druhá cena u akce s cenou s kartou — obě ceny jako na kartě akce (R161). Bez ceny uživatele:
+ * u akce jen s kartou „s kartou X“, jinak „19,90 Kč s kartou X“. S cenou uživatele ta, kterou
+ * neplatí: s kartou „21,90 Kč bez karty“, bez ní „19,90 Kč s kartou X“.
+ */
 const loyaltyNote = computed(() => {
-    const { loyaltyPrice, loyaltyProgramName } = props.offer;
-    if (!withoutUserPrice.value || loyaltyPrice === null || loyaltyPrice === undefined) {
+    const { loyaltyPrice, loyaltyProgramName, price: regularPrice, userPrice } = props.offer;
+    if (loyaltyPrice === null || loyaltyPrice === undefined) {
         return null;
     }
     const withCard = t('offers.with_card', { program: loyaltyProgramName });
+    if (withoutUserPrice.value) {
+        return loyaltyOnly.value ? withCard : `${formatPrice(loyaltyPrice, locale.value)} ${withCard}`;
+    }
+    if (userPrice === loyaltyPrice) {
+        return regularPrice === null || regularPrice === loyaltyPrice ? null : t('offers.without_card', { price: formatPrice(regularPrice, locale.value) });
+    }
 
-    return loyaltyOnly.value ? withCard : `${formatPrice(loyaltyPrice, locale.value)} ${withCard}`;
+    return `${formatPrice(loyaltyPrice, locale.value)} ${withCard}`;
 });
 
-/** Cena za jednotku k hlavní ceně; u akce na více kusů by byla z běžné ceny, neukazuje se. */
-const unitPrice = computed(() => offerUnitPriceLabel(props.offer, locale.value, t));
+/**
+ * Cena za jednotku k hlavní ceně; u akce na více kusů by byla z běžné ceny, neukazuje se.
+ * Kdo platí cenou s kartou, má i cenu za jednotku s kartou (R161) — jinak by nesouhlasila s cenou.
+ */
+const unitPrice = computed(() => {
+    const { loyaltyPrice, loyaltyUnitPrice, offerType, unitPriceUnit, userPrice } = props.offer;
+    const paysWithCard = !withoutUserPrice.value && loyaltyPrice !== null && userPrice === loyaltyPrice;
+    if (paysWithCard && offerType !== OFFER_TYPE.MULTIBUY && loyaltyUnitPrice !== null && loyaltyUnitPrice !== undefined && unitPriceUnit) {
+        return unitPriceLabel(loyaltyUnitPrice, unitPriceUnit, locale.value, t);
+    }
+
+    return offerUnitPriceLabel(props.offer, locale.value, t);
+});
 </script>
 
 <template>

@@ -825,7 +825,8 @@ return [
 
         // App\Enums\LoyaltyProgram
         'loyalty_programs' => [
-            'kaufland_card' => 'Kaufland Card',
+            // Kaufland kartu propaguje jako „Kaufland XTRA“ (web „Tvoje cena s Kaufland XTRA“, R161)
+            'kaufland_card' => 'Kaufland XTRA',
             'clubcard' => 'Clubcard',
             'muj_albert' => 'Můj Albert',
             'lidl_plus' => 'Lidl Plus',
@@ -936,6 +937,8 @@ return [
             'empty' => 'Tentokrát jsme nic neulovili. Zkuste jiné slovo nebo jiný obchod.',
             'with_card' => 's kartou :program',
             'regular_price' => 'běžně :price',
+            // Řádek akce s cenou s kartou, kterou uživatel platí (R161): druhá cena — bez karty
+            'without_card' => ':price bez karty',
             // Před přeškrtnutou cenou jen pro čtečky (R99) — přeškrtnutí neohlásí
             'original_price_label' => 'původně',
             'unit_price' => ':price / :unit',
@@ -1174,7 +1177,7 @@ return [
             'features' => [
                 'watch' => ['title' => 'Hlídá, co kupujete', 'text' => 'Vyberte z katalogu máslo, pivo nebo Coca-Colu Zero, nebo napište vlastní slova. Ostatní akce vás rušit nebudou — slibujeme.'],
                 'unit_price' => ['title' => 'Cena za kilo a litr', 'text' => 'Řadíme podle ceny za jednotku, takže vás obří balení s velkým nápisem AKCE neoblafne.'],
-                'cards' => ['title' => 'Běžná cena i cena s kartou', 'text' => 'Clubcard, Lidl Plus, Kaufland Card, PENNY karta… U akce vidíte obě ceny vedle sebe. Řekněte nám, které karty máte, a akce jen pro držitele jiných karet vám nebudou překážet.'],
+                'cards' => ['title' => 'Běžná cena i cena s kartou', 'text' => 'Clubcard, Lidl Plus, Kaufland XTRA, PENNY karta… U akce vidíte obě ceny vedle sebe. Řekněte nám, které karty máte, a akce jen pro držitele jiných karet vám nebudou překážet.'],
                 'upcoming' => ['title' => 'Akce dřív, než začnou', 'text' => 'Leták na příští týden přečteme hned, jak vyjde. Uvidíte, jestli se vyplatí s nákupem pár dní počkat.'],
                 'history' => ['title' => 'Je to opravdu sleva?', 'text' => 'Cenu porovnáme s dřívějšími akcemi, takže poznáte, kdy je opravdu nejnižší.'],
                 'shopping' => ['title' => 'Nákupní seznam do obchodu', 'text' => 'Akce si odložíte do seznamu rozděleného podle obchodů a v obchodě je jen odškrtáváte — i bez signálu.'],
@@ -1818,7 +1821,7 @@ return [
                 ],
                 'cards' => [
                     'question' => 'Ukazujete i ceny s kartou?',
-                    'answer' => 'Ano. U akce vidíte běžnou cenu i cenu s kartou (Clubcard, Lidl Plus, Kaufland Card, PENNY karta…). V Mých obchodech si zaškrtnete, které karty máte, a akce jen pro držitele jiných karet vám nebudou překážet.',
+                    'answer' => 'Ano. U akce vidíte běžnou cenu i cenu s kartou (Clubcard, Lidl Plus, Kaufland XTRA, PENNY karta…). V Mých obchodech si zaškrtnete, které karty máte, a akce jen pro držitele jiných karet vám nebudou překážet.',
                 ],
                 'stores' => [
                     'question' => 'Platí akce ve všech prodejnách?',
