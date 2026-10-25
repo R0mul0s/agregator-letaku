@@ -937,8 +937,11 @@ return [
             'empty' => 'Tentokrát jsme nic neulovili. Zkuste jiné slovo nebo jiný obchod.',
             'with_card' => 's kartou :program',
             'regular_price' => 'běžně :price',
-            // Řádek akce s cenou s kartou, kterou uživatel platí (R161): druhá cena — bez karty
-            'without_card' => ':price bez karty',
+            // Druhá cena pod hlavní v řádku akce (R161) — krátce, obchod je v řádku
+            'without_card' => 'bez karty :price',
+            'row_with_card' => 's kartou :price',
+            'row_card_only' => 's kartou',
+            'row_card_only_regular' => 's kartou, běžně :price',
             // Před přeškrtnutou cenou jen pro čtečky (R99) — přeškrtnutí neohlásí
             'original_price_label' => 'původně',
             'unit_price' => ':price / :unit',

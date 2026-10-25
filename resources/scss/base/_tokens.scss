@@ -227,6 +227,8 @@
     --shopping-cta-mascot-size: 5rem;
     // Text akce na více kusů místo ceny v řádku akce — šířka, ve které se zalomí
     --offer-row-text-max-width: 9rem;
+    // Druhá cena pod hlavní v řádku akce (R161) — „s kartou, běžně 54,90 Kč“ na dva řádky
+    --offer-row-note-max-width: 6.5rem;
     // Pole popisu chyby v hlášení akce (R125) — na pár vět
     --offer-report-note-height: 5rem;
     // Zvonek s nepřečtenými zacinká po načtení stránky (R127): 2 × 3 s, dekorativní animace

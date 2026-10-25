@@ -64,29 +64,25 @@ const price = computed(() => {
 });
 
 /**
- * Druhá cena u akce s cenou s kartou — obě ceny jako na kartě akce (R161). Bez ceny uživatele:
- * u akce jen s kartou „s kartou X, běžně 29,90 Kč“, jinak „19,90 Kč s kartou X“. S cenou uživatele ta, kterou
- * neplatí: s kartou „21,90 Kč bez karty“, bez ní „19,90 Kč s kartou X“.
+ * Druhá cena u akce s cenou s kartou pod hlavní cenou — obě ceny jako na kartě akce (R161),
+ * krátce bez názvu programu (obchod je v řádku): „s kartou 19,90 Kč“, u akce jen s kartou bez
+ * ceny uživatele „s kartou, běžně 29,90 Kč“, kdo platí cenou s kartou „bez karty 21,90 Kč“.
  */
 const loyaltyNote = computed(() => {
-    const { loyaltyPrice, loyaltyProgramName, price: regularPrice, userPrice } = props.offer;
+    const { loyaltyPrice, price: regularPrice, userPrice } = props.offer;
     if (loyaltyPrice === null || loyaltyPrice === undefined) {
         return null;
     }
-    const withCard = t('offers.with_card', { program: loyaltyProgramName });
-    if (withoutUserPrice.value) {
-        if (!loyaltyOnly.value) {
-            return `${formatPrice(loyaltyPrice, locale.value)} ${withCard}`;
-        }
-
-        // Akce jen s kartou: hlavní cena je s kartou, k ní běžná jako na kartě akce
-        return regularPrice === null ? withCard : `${withCard}, ${t('offers.regular_price', { price: formatPrice(regularPrice, locale.value) })}`;
+    const format = (value) => formatPrice(value, locale.value);
+    if (withoutUserPrice.value && loyaltyOnly.value) {
+        // Hlavní cena je s kartou, k ní běžná jako na kartě akce
+        return regularPrice === null ? t('offers.row_card_only') : t('offers.row_card_only_regular', { price: format(regularPrice) });
     }
-    if (userPrice === loyaltyPrice) {
-        return regularPrice === null || regularPrice === loyaltyPrice ? null : t('offers.without_card', { price: formatPrice(regularPrice, locale.value) });
+    if (!withoutUserPrice.value && userPrice === loyaltyPrice) {
+        return regularPrice === null || regularPrice === loyaltyPrice ? null : t('offers.without_card', { price: format(regularPrice) });
     }
 
-    return `${formatPrice(loyaltyPrice, locale.value)} ${withCard}`;
+    return t('offers.row_with_card', { price: format(loyaltyPrice) });
 });
 
 /**
@@ -126,12 +122,13 @@ const unitPrice = computed(() => {
                 <span v-if="withChain" class="offer-row__chain">{{ offer.chainName }}</span>
                 <span v-if="packageText">{{ packageText }}</span>
                 <span v-if="unitPrice">{{ unitPrice }}</span>
-                <span v-if="loyaltyNote">{{ loyaltyNote }}</span>
             </p>
         </div>
         <div class="offer-row__prices">
             <!-- Text akce na více kusů se zalomí v omezené šířce, jinak by roztáhl řádek přes displej -->
             <span class="offer-row__price" :class="{ 'offer-row__price--text': isPromotionText }">{{ price }}</span>
+            <!-- Druhá cena (s kartou, nebo bez ní, R161) pod hlavní menším písmem -->
+            <span v-if="loyaltyNote" class="offer-row__price-note">{{ loyaltyNote }}</span>
             <span v-if="discount" class="offer-row__discount">{{ formatDiscount(discount) }}</span>
         </div>
         <div v-if="!offer.ended" class="offer-row__actions">

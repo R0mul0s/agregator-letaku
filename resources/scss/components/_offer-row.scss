@@ -78,6 +78,16 @@
         gap: var(--space-1);
     }
 
+    // Druhá cena pod hlavní (R161): „bez karty 10,90 Kč“, „s kartou 9,90 Kč“ — úzká, ať
+    // nebere místo názvu
+    &__price-note {
+        max-width: var(--offer-row-note-max-width);
+        color: var(--color-text-muted);
+        font-size: var(--font-size-xs);
+        line-height: var(--line-height-heading);
+        text-align: right;
+    }
+
     &__discount {
         color: var(--color-accent-strong);
         font-size: var(--font-size-xs);
