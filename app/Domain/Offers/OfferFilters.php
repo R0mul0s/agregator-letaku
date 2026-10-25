@@ -65,6 +65,9 @@ final readonly class OfferFilters
     /** Parametr adresy: vybrané prodejny pro nepřihlášeného (kódy čárkou, R164) — Kaufland, Globus. */
     public const STORES_PARAMETER = 'prodejny';
 
+    /** Hodnota typu prodejny: všechny typy — přihlášený tím ve výpisu zruší prodejny z Mých obchodů (R164). */
+    public const ALL_STORE_FORMATS = 'vse';
+
     /**
      * @param  list<Chain>  $chains  Jen akce těchto obchodů; prázdné = všechny obchody
      * @param  int|null  $productId  Jen akce přiřazené k produktu katalogu
@@ -79,6 +82,7 @@ final readonly class OfferFilters
      * @param  string|null  $department  Jen akce produktů z oddělení katalogu (název)
      * @param  StoreFormat|null  $storeFormat  Jen akce pro tento typ prodejny a akce všech prodejen (R164)
      * @param  list<string>  $storeCodes  Jen akce platné v některé z prodejen — u obchodů těch prodejen (R164)
+     * @param  bool  $storeChoice  Prodejnu zvolil ve výpisu — u přihlášeného nahradí typ a prodejny z Mých obchodů (R164)
      */
     public function __construct(
         public array $chains = [],
@@ -94,6 +98,7 @@ final readonly class OfferFilters
         public ?string $department = null,
         public ?StoreFormat $storeFormat = null,
         public array $storeCodes = [],
+        public bool $storeChoice = false,
     ) {}
 
     /**
@@ -115,6 +120,7 @@ final readonly class OfferFilters
             $this->department,
             $this->storeFormat,
             $this->storeCodes,
+            $this->storeChoice,
         );
     }
 
@@ -145,7 +151,8 @@ final readonly class OfferFilters
             self::FRESH_PARAMETER => $this->freshOnly ? 1 : null,
             self::MIN_DISCOUNT_PARAMETER => $this->minDiscount,
             self::DEPARTMENT_PARAMETER => $this->department === null ? null : OfferDepartments::slug($this->department),
-            self::STORE_FORMAT_PARAMETER => $this->storeFormat?->value,
+            // Volba „všechny“ bez prodejen musí v adrese zůstat — jinak by platily Moje obchody
+            self::STORE_FORMAT_PARAMETER => $this->storeFormat->value ?? ($this->storeChoice && $this->storeCodes === [] ? self::ALL_STORE_FORMATS : null),
             self::STORES_PARAMETER => $this->storeCodes === [] ? null : implode(self::CHAIN_SEPARATOR, $this->storeCodes),
             self::SORT_PARAMETER => $this->sort?->value,
             self::SHOPPING_PREFERENCES_PARAMETER => $this->preferencesOff ? 0 : null,

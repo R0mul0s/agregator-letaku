@@ -478,7 +478,10 @@ it('filtruje nové, brzy končící a slevy od procent; filtry zůstanou v odkaz
         ->where('filters.nove', true)
         ->where('filters.sleva-od', 20)
         ->where('filters.konci-brzy', false)
-        ->where('filterOptions', ['endingSoonDays' => 2, 'freshDays' => 2, 'minDiscounts' => [10, 20, 30, 50], 'departments' => [], 'storeFilter' => null])
+        ->where('filterOptions.endingSoonDays', 2)
+        ->where('filterOptions.freshDays', 2)
+        ->where('filterOptions.minDiscounts', [10, 20, 30, 50])
+        ->where('filterOptions.departments', [])
         ->where('pagination.nextUrl', '/akce?nove=1&sleva-od=20&strana=2'));
     expect($response->getContent())->toContain('<meta name="robots" content="noindex, follow">');
     $this->get(route('offers', ['sleva-od' => 15]))->assertSessionHasErrors('sleva-od');
@@ -563,7 +566,7 @@ it('přihlášený vidí ve Všech akcích cenu, kterou zaplatí — s kartou z 
     $this->get(route('offers'))->assertInertia(fn (Assert $page) => $page->missing('offers.data.0.userPrice'));
 });
 
-it('nepřihlášený filtruje typ prodejny a vybrané prodejny; přihlášený oddíl nemá (R164)', function (): void {
+it('nepřihlášený filtruje typ prodejny a vybrané prodejny (R164)', function (): void {
     auth()->logout();
     Store::query()->create(['chain' => Chain::Kaufland, 'code' => 'CZ3300', 'name' => 'Praha-Vypich', 'city' => 'Praha']);
     Store::query()->create(['chain' => Chain::Kaufland, 'code' => 'CZ4400', 'name' => 'Trutnov', 'city' => 'Trutnov']);
@@ -593,5 +596,28 @@ it('nepřihlášený filtruje typ prodejny a vybrané prodejny; přihlášený o
     // Neznámá prodejna validací neprojde
     $this->get(route('offers', ['prodejny' => 'NEEXISTUJE']))->assertSessionHasErrors('prodejny');
 
-    $this->actingAs(User::factory()->create())->get(route('offers'))->assertInertia(fn (Assert $page) => $page->where('filterOptions.storeFilter', null));
+});
+
+it('přihlášený má oddíl Prodejna předvyplněný z Mých obchodů a volba ve výpisu je nahradí jen pro výpis (R164)', function (): void {
+    Store::query()->create(['chain' => Chain::Kaufland, 'code' => 'CZ3300', 'name' => 'Praha-Vypich', 'city' => 'Praha']);
+    Store::query()->create(['chain' => Chain::Kaufland, 'code' => 'CZ4400', 'name' => 'Trutnov', 'city' => 'Trutnov']);
+    $user = auth()->user();
+    FollowedChain::query()->create(['user_id' => $user->id, 'chain' => Chain::Kaufland, 'include_online_only' => true, 'store_codes' => ['CZ4400']]);
+    FollowedChain::query()->create(['user_id' => $user->id, 'chain' => Chain::Tesco, 'include_online_only' => true, 'store_format' => StoreFormat::Supermarket]);
+    $trutnov = Offer::factory()->create(['name' => 'Kaufland jen Trutnov', 'chain' => Chain::Kaufland]);
+    OfferStore::query()->create(['offer_id' => $trutnov->id, 'store_code' => 'CZ4400']);
+    Offer::factory()->create(['name' => 'Tesco hypermarket', 'chain' => Chain::Tesco, 'store_format' => StoreFormat::Hypermarket]);
+
+    $this->get(route('offers'))->assertInertia(fn (Assert $page) => $page
+        ->where('filterOptions.storeFilter.preferred', ['format' => 'supermarket', 'stores' => ['CZ4400']])
+        ->where('filterOptions.storeFilter.preferencesUrl', '/obchody'));
+    // Podle Mých obchodů: Trutnov ano, hypermarket Tesca ne
+    expect(offerNames())->toContain('Kaufland jen Trutnov')->not->toContain('Tesco hypermarket')
+        // Ve výpisu jiná prodejna a všechny typy: Moje obchody se neuplatní
+        ->and(offerNames(['prodejny' => 'CZ3300']))->not->toContain('Kaufland jen Trutnov')->toContain('Tesco hypermarket')
+        // „Všechny prodejny“ zruší prodejny i typ z Mých obchodů
+        ->and(offerNames(['typ-prodejny' => 'vse']))->toContain('Kaufland jen Trutnov', 'Tesco hypermarket');
+
+    // Moje obchody zůstaly, jak byly
+    expect($user->followedChains()->where('chain', Chain::Kaufland)->value('store_codes'))->toBe(['CZ4400']);
 });

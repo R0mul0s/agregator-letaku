@@ -1009,6 +1009,12 @@ return [
             'store_format_hint' => 'Typ prodejny rozlišují :chains — ostatní obchody mají akce stejné ve všech prodejnách.',
             'list_and' => ' a ',
             'stores_of' => 'Prodejny :chain',
+            // Přihlášený (R164): předvyplněno z Mých obchodů, změna jen pro tento výpis
+            'store_choice_preferences' => 'Podle vašich Mých obchodů.',
+            'store_choice_edit' => 'Změnit natrvalo',
+            'store_choice_listing' => 'Jen pro tento výpis, Moje obchody zůstávají.',
+            'store_choice_reset' => 'Zpět na Moje obchody',
+            'all_store_formats' => 'Všechny prodejny',
         ],
 
         // Přepínač zobrazení akcí: karty, nebo kompaktní řádky (R82)

@@ -99,7 +99,7 @@ class OffersRequest extends FormRequest
             self::SORT => ['nullable', Rule::enum(OfferListSort::class)],
             self::SHOPPING_PREFERENCES => ['nullable', 'boolean'],
             // Typ prodejny a vybrané prodejny pro nepřihlášeného (R164)
-            self::STORE_FORMAT => ['nullable', Rule::enum(StoreFormat::class)],
+            self::STORE_FORMAT => ['nullable', Rule::in([...array_map(fn (StoreFormat $format): string => $format->value, StoreFormat::cases()), OfferFilters::ALL_STORE_FORMATS])],
             // Existující prodejny, u každého obchodu nejvýš tolik jako v Mých obchodech
             self::STORES => ['nullable', 'string', function (string $attribute, mixed $value, Closure $fail): void {
                 $codes = is_string($value) ? self::parseStoreCodes($value) : [];
@@ -245,6 +245,7 @@ class OffersRequest extends FormRequest
             department: $this->department(),
             storeFormat: $this->storeFormat(),
             storeCodes: $this->storeCodes(),
+            storeChoice: $this->storeChoice(),
         );
     }
 
@@ -326,6 +327,7 @@ class OffersRequest extends FormRequest
             $this->department(),
             $this->storeFormat(),
             $this->storeCodes(),
+            $this->storeChoice(),
         );
     }
 
@@ -335,6 +337,15 @@ class OffersRequest extends FormRequest
     public function storeFormat(): ?StoreFormat
     {
         return $this->enum(self::STORE_FORMAT, StoreFormat::class);
+    }
+
+    /**
+     * Zvolil prodejnu ve výpisu (typ i „všechny“, nebo prodejny)? Přihlášenému to nahradí typ
+     * a prodejny z Mých obchodů (R164).
+     */
+    public function storeChoice(): bool
+    {
+        return $this->filled(self::STORE_FORMAT) || $this->filled(self::STORES);
     }
 
     /**

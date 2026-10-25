@@ -78,7 +78,7 @@ final class OfferSearch
             ->when($filters->chains !== [], fn (Builder $query) => $query->whereIn('chain', $filters->chains))
             ->when($filters->withoutEshop, fn (Builder $query) => $query->where('online_only', false))
             ->when($filters->productId, fn (Builder $query, int $productId) => $query->whereHas('productAssignments', fn (Builder $query) => $query->where('product_id', $productId)))
-            ->when($filters->preferencesOf, fn (Builder $query, $user) => $this->preferences->apply($query, $user))
+            ->when($filters->preferencesOf, fn (Builder $query, $user) => $this->preferences->apply($query, $user, withStores: ! $filters->storeChoice))
             // Končí brzy (R101): už platí a konec je do `ending_soon_days` dní
             ->when($filters->endingSoon, fn (Builder $query) => $query
                 ->where('valid_from', '<=', $today->toDateString())

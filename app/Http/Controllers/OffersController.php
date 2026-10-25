@@ -36,6 +36,7 @@ use App\Enums\OfferListSort;
 use App\Enums\StoreFormat;
 use App\Http\Requests\OffersRequest;
 use App\Http\Responses\RegisterResponse;
+use App\Models\FollowedChain;
 use App\Models\Offer;
 use App\Models\Product;
 use App\Models\User;
@@ -154,7 +155,7 @@ class OffersController extends Controller
                 // Oddělení katalogu jako část adresy ('' = všechna, R102)
                 OffersRequest::DEPARTMENT => $offerFilters->department === null ? '' : OfferDepartments::slug($offerFilters->department),
                 // Typ prodejny a vybrané prodejny nepřihlášeného (R164)
-                OffersRequest::STORE_FORMAT => $offerFilters->storeFormat->value ?? '',
+                OffersRequest::STORE_FORMAT => $request->filled(OffersRequest::STORE_FORMAT) ? $request->string(OffersRequest::STORE_FORMAT)->toString() : '',
                 OffersRequest::STORES => $offerFilters->storeCodes,
             ],
             // Hodnoty do popisků a voleb filtrů (R101): „Končí do 2 dnů“, „Nové za 2 dny“, „Sleva od 20 %“.
@@ -166,8 +167,8 @@ class OffersController extends Controller
                 // Oddělení, ve kterých jsou teď akce [{ slug, name, icon, count }] (R102), počet ve
                 // vybraných obchodech pro dlaždice (R141)
                 'departments' => $departments->withOffers($offerFilters->chains),
-                // Prodejna pro nepřihlášeného (R164) — přihlášený ji má v Mých obchodech
-                'storeFilter' => $user instanceof User ? null : $this->storeFilterOptions($chainCatalog),
+                // Prodejna (R164) — přihlášený předvyplněnou z Mých obchodů, změna platí jen ve výpisu
+                'storeFilter' => $this->storeFilterOptions($chainCatalog, $user instanceof User ? $user : null),
             ],
             // Řazení, podle kterého výpis opravdu řadí, a na výběr (relevance jen s textem, R100)
             'sort' => $sort->value,
@@ -206,12 +207,13 @@ class OffersController extends Controller
     }
 
     /**
-     * Volby oddílu „Prodejna“ v okně Filtry pro nepřihlášeného (R164): typy prodejny s obchody,
-     * které je rozlišují, a prodejny obchodů, jejichž akce se liší po prodejnách.
+     * Volby oddílu „Prodejna“ v okně Filtry (R164): typy prodejny s obchody, které je rozlišují,
+     * a prodejny obchodů, jejichž akce se liší po prodejnách. Přihlášenému i předvyplnění
+     * z Mých obchodů (`preferred`): typ, je-li u všech obchodů s typem stejný, a vybrané prodejny.
      *
-     * @return array{formats: list<array{value: string, name: string}>, formatChains: list<string>, chains: list<array{chain: string, name: string, stores: list<array{code: string, name: string, city: string|null}>}>, maxStores: int}
+     * @return array{formats: list<array{value: string, name: string}>, formatChains: list<string>, chains: list<array{chain: string, name: string, stores: list<array{code: string, name: string, city: string|null}>}>, maxStores: int, preferred: array{format: string, stores: list<string>}|null, preferencesUrl: string|null}
      */
-    private function storeFilterOptions(ChainCatalog $catalog): array
+    private function storeFilterOptions(ChainCatalog $catalog, ?User $user): array
     {
         $chains = Chain::enabled();
         $withStores = [];
@@ -228,6 +230,25 @@ class OffersController extends Controller
             'formatChains' => array_values(array_map(fn (Chain $chain): string => $chain->label(), array_filter($chains, $catalog->hasStoreFormats(...)))),
             'chains' => $withStores,
             'maxStores' => config()->integer('letaky.stores.max_selected'),
+            'preferred' => $user === null ? null : $this->preferredStores($user),
+            'preferencesUrl' => $user === null ? null : route('preferences', absolute: false),
+        ];
+    }
+
+    /**
+     * Typ prodejny a prodejny z Mých obchodů pro předvyplnění oddílu Prodejna (R164). Typ jen
+     * když je u všech sledovaných obchodů s typem stejný — oddíl má jeden pro všechny obchody.
+     *
+     * @return array{format: string, stores: list<string>}
+     */
+    private function preferredStores(User $user): array
+    {
+        $followed = $user->followedChains()->get();
+        $formats = array_values(array_unique($followed->map(fn (FollowedChain $chain): ?string => $chain->store_format?->value)->filter()->all()));
+
+        return [
+            'format' => count($formats) === 1 ? $formats[0] : '',
+            'stores' => array_values($followed->flatMap(fn (FollowedChain $chain): array => $chain->store_codes ?? [])->all()),
         ];
     }
 

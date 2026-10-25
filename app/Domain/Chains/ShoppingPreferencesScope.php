@@ -27,16 +27,17 @@ final class ShoppingPreferencesScope
     /**
      * Omezí nabídky nastavením uživatele: u sledovaných obchodů typ prodejny, e-shop a prodejny,
      * u všech bez akcí jen s kartou, kterou nemá. Ostatní podmínky dotazu (obchody) nemění.
+     * Bez `$withStores` typ prodejny a prodejny vynechá — prodejnu si zvolil ve výpisu (R164).
      *
      * @param  Builder<Offer>  $query
      */
-    public function apply(Builder $query, User $user): void
+    public function apply(Builder $query, User $user, bool $withStores = true): void
     {
         $followed = $user->followedChains()->get();
 
-        $query->where(function (Builder $query) use ($followed): void {
+        $query->where(function (Builder $query) use ($followed, $withStores): void {
             foreach ($followed as $chain) {
-                $query->orWhere(fn (Builder $query) => $this->whereFollowed($query, $chain));
+                $query->orWhere(fn (Builder $query) => $this->whereFollowed($query, $chain, $withStores));
             }
             $query->orWhereNotIn('chain', $followed->map(fn (FollowedChain $chain): string => $chain->chain->value)->all());
         });
@@ -46,14 +47,15 @@ final class ShoppingPreferencesScope
     /**
      * Nabídky jednoho sledovaného obchodu: typ prodejny (nabídka bez typu platí všude),
      * akce jen z e-shopu a vybrané prodejny (R49; akce bez prodejen platí všude) podle volby uživatele.
+     * Bez `$withStores` jen e-shop — typ a prodejny určuje volba ve výpisu (R164).
      *
      * @param  Builder<Offer>  $query
      */
-    public function whereFollowed(Builder $query, FollowedChain $chain): void
+    public function whereFollowed(Builder $query, FollowedChain $chain, bool $withStores = true): void
     {
         $query->where('chain', $chain->chain);
 
-        if ($chain->store_format !== null) {
+        if ($withStores && $chain->store_format !== null) {
             $query->where(fn (Builder $query) => $query->whereNull('store_format')->orWhere('store_format', $chain->store_format));
         }
 
@@ -61,7 +63,7 @@ final class ShoppingPreferencesScope
             $query->where('online_only', false);
         }
 
-        if ($chain->store_codes !== null && $chain->store_codes !== []) {
+        if ($withStores && $chain->store_codes !== null && $chain->store_codes !== []) {
             $query->availableInStores($chain->store_codes);
         }
     }
