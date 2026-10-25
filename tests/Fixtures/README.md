@@ -60,6 +60,9 @@ s novým datem.
 | `globus/pdf-41-2026-10-06-strana-16.html`, `strana-32`, `strana-41` | `pdftotext -bbox-layout -f N -l N`, týž leták | strana 16 (hlavička „Platí od 7. 10. do 20. 10. 2026.“), 32 (cena s kartou nad stejně velkou běžnou cenou — Persil, dávky praní), 41 (akce s delší platností „od 30. 9. do 26. 10. 2026“) |
 | `globus/pdf-40-2026-10-06-strany-1-2.html` | `pdftotext -bbox-layout -f 1 -l 2` nad PDF letáku od 30. 9. 2026 | Milka Čokoláda a Pizza Ristorante — stejné akce jako ve fixtures API z 2. 10. (převzetí akce z PDF akcí z API, R88) |
 | `pdf/lidl-8-10-2026-page-22.html` | `pdftotext -bbox-layout -f 22 -l 22` nad PDF letáku Lidl od 8. 10. 2026 (`pdfUrl` z flyer API) | celá strana 22 (slovenské speciality): mřížka dlaždic s názvem, popisem s cenou za jednotku, štítkem „Super cena“ / „-28% 34.90“ a velkou cenou — pro `PdfTextReader` (R86) |
+| `hruska/home-2026-10-25.html` | `mojehruska.cz/` | jen blok „Aktuální leták 21.10.2026 - 27.10.2026“ s odkazem na PDF `media.mojehruska.cz/2026/10/43_26.pdf` (R165) |
+| `hruska/pdf-43-2026-10-25-strana-1.html`, `strana-4`, `strana-6`, `strana-12` | `pdftotext -bbox-layout -f N -l N` nad PDF letáku Hrušky 43/26 | celé strany beze změny: hlavička „Platnost: 21. 10.–27. 10. 2026“, klubové ceny, značka nad názvem, text zarovnaný vpravo, rámeček „POUZE STŘEDA“ s cenou dne (1); ovoce a zelenina „1 kg“ / „1 ks“ (4); klubová cena „od … bez klubu“, pult „229,-“ za kg (6); sloupce „SUPER pátek–neděle“ a „EXTRA pondělí–úterý“, „5×75 g“ za kus (12) |
+| `hruska/pdf-44-2026-10-25-strana-1.html` | `pdftotext -bbox-layout -f 1 -l 1` nad PDF letáku 44/26 (bez odkazu na webu) | titulní strana beze změny: „Platnost: 29. 10.–3. 11. 2026“, rámeček „POUZE ČTVRTEK“ |
 
 Fixtures vygeneroval jednorázový skript z odpovědí uložených při průzkumu. Položky jsou
 beze změny; skript jen vybral podmnožinu a akce e-shopu Tesco přeskládal po 5 na stránku

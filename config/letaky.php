@@ -16,6 +16,7 @@ declare(strict_types=1);
 use App\Domain\Sources\Albert\AlbertOfferSource;
 use App\Domain\Sources\Billa\BillaOfferSource;
 use App\Domain\Sources\Globus\GlobusOfferSource;
+use App\Domain\Sources\Hruska\HruskaOfferSource;
 use App\Domain\Sources\Kaufland\KauflandOfferSource;
 use App\Domain\Sources\Kaufland\KauflandStoreSource;
 use App\Domain\Sources\Lidl\LidlOfferSource;
@@ -380,6 +381,24 @@ return [
             // Náhled stránky (151 × 263 px) — stačí na kartu zmínky
             'page_image_size' => 'at200',
             'request_delay_ms' => (int) env('LETAKY_ALBERT_REQUEST_DELAY_MS', 500),
+        ],
+        'hruska' => [
+            // Jen PDF letáku přes pdftotext (R165): web nemá akce ani API, úvodní stránka odkazuje na PDF
+            // aktuálního letáku (11–16 MB, 12 stran). Leták neplatí v prodejnách Hruška Mini a Partner
+            'offers_source' => HruskaOfferSource::class,
+            'has_store_formats' => false,
+            'has_eshop' => false,
+            'base_url' => 'https://mojehruska.cz/',
+            // Akce nemají vlastní stránku — odkaz vede na úvodní stránku s letákem
+            'offers_page_url' => 'https://mojehruska.cz/',
+            // Odkaz na PDF: rok, měsíc nahrání (bez nuly), týden a dvoumístný rok („2026/10/43_26.pdf“)
+            'pdf_url_pattern' => '#https://media\.mojehruska\.cz/(\d{4})/(\d{1,2})/(\d{1,2})_(\d{2})\.pdf#',
+            // Leták dalšího týdne (od pátku na serveru, bez odkazu): rok a měsíc nahrání, týden, rok2
+            'pdf_url_format' => 'https://media.mojehruska.cz/%d/%d/%d_%02d.pdf',
+            // Leták má ~170 ověřených akcí (měření R165); méně = změněné rozvržení nebo rozbitý parser.
+            // Stažení pak skončí chybou, aby import akce letáku neoznačil jako stažené (R16)
+            'pdf_min_offers' => 60,
+            'request_delay_ms' => (int) env('LETAKY_HRUSKA_REQUEST_DELAY_MS', 1000),
         ],
         'tesco' => [
             'offers_source' => TescoOfferSource::class,
@@ -830,6 +849,8 @@ return [
             'https://letaky.albert.cz/',
             'https://www.lidl.cz/l/cs/letak/',
             'https://files.rewe.co.at/PennyIntLeaflet/',
+            // Hruška: akce jsou jen v letáku, odkaz vede na úvodní stránku s ním (R165)
+            'https://mojehruska.cz/',
         ],
         // Text akce na více kusů verzálkami bez diakritiky (Tesco menu e-shopu „PECIVO+NAPOJ“):
         // slova, která před převodem na větu dostanou diakritiku (PromotionText, R101)

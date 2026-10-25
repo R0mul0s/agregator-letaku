@@ -31,7 +31,6 @@ declare(strict_types=1);
 
 namespace App\Domain\Sources\Lidl;
 
-use App\Domain\Matching\TextNormalizer;
 use App\Domain\Offers\Data\LeafletData;
 use App\Domain\Offers\Data\OfferData;
 use App\Domain\Offers\Data\PackageSize;
@@ -42,6 +41,7 @@ use App\Domain\Offers\Parsing\Text;
 use App\Domain\Offers\Parsing\VariantNote;
 use App\Domain\Sources\Pdf\CountsTiles;
 use App\Domain\Sources\Pdf\DiscountCheck;
+use App\Domain\Sources\Pdf\LeafletOfferId;
 use App\Domain\Sources\Pdf\PdfLine;
 use App\Domain\Sources\Pdf\PdfPage;
 use App\Domain\Sources\Pdf\PdfWord;
@@ -100,12 +100,6 @@ final class LidlLeafletParser
 
     private const HALERS_PER_CROWN = 100;
 
-    /** Předpona ID nabídky z letáku — odliší ji od ID produktu z webu. */
-    private const EXTERNAL_ID_PREFIX = 'letak-';
-
-    /** Délka otisku názvu a balení v ID (sloupec external_id má 64 znaků). */
-    private const EXTERNAL_ID_HASH_LENGTH = 24;
-
     /** Hlavička strany: „Od čtvrtka 8. 10. do 11. 10.“. */
     private const HEADER_PATTERN = '/^Od\s+\p{L}+\s+(\d{1,2})\.\s*(\d{1,2})\.\s+do\s+(\d{1,2})\.\s*(\d{1,2})\./u';
 
@@ -158,7 +152,7 @@ final class LidlLeafletParser
         private readonly PackageParser $packages,
         private readonly VariantNote $variants,
         private readonly LeafletDates $dates,
-        private readonly TextNormalizer $normalizer,
+        private readonly LeafletOfferId $ids,
     ) {}
 
     /**
@@ -524,7 +518,8 @@ final class LidlLeafletParser
         $validity = $this->shortValidity($validity, Text::join($name, $description));
 
         return new OfferData(
-            externalId: $this->externalId($name, $packageText, $big),
+            // Stejný název a balení s jinou cenou je jiný výrobek („OPTISANA Nosní sprej“ 30 ml za 59,90 a 69,90)
+            externalId: $this->ids->for($name, $packageText, $big),
             name: $name,
             offerType: $terms['type'],
             validFrom: $validity[0],
@@ -759,18 +754,6 @@ final class LidlLeafletParser
         }
 
         return $validity;
-    }
-
-    /**
-     * Stabilní ID dlaždice (R16): stejný název, balení a velká cena dají při dalším stažení
-     * i na jiné straně letáku stejný klíč. Cena odliší různé výrobky se stejným názvem
-     * („OPTISANA Nosní sprej“ 30 ml za 59,90 a za 69,90); změněná cena je nová akce.
-     */
-    private function externalId(string $name, ?string $packageText, int $price): string
-    {
-        $fingerprint = trim($this->normalizer->normalize($name, $packageText)).'|'.$price;
-
-        return self::EXTERNAL_ID_PREFIX.substr(hash('sha256', $fingerprint), 0, self::EXTERNAL_ID_HASH_LENGTH);
     }
 
     /**

@@ -39,6 +39,8 @@ final class TileUnits
         'ml' => ['ml', 1], 'l' => ['ml', 1000],
         'ks' => ['ks', 1], 'kus' => ['ks', 1], 'kusy' => ['ks', 1], 'kusů' => ['ks', 1],
         'm' => ['m', 1],
+        // Prací dávky („50 PD“, „1 PD = 2,00 Kč“) — dvě písmena by se podle začátku slova nepoznala
+        'pd' => ['pd', 1],
     ];
 
     private const UNIT_STEM_LENGTH = 3;

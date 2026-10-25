@@ -754,6 +754,66 @@ v uložených upozorněních. Nepřevzatý řádek z PDF stáhne R16.
   21 v katalogu prodejny 4005 chybí (hlavně krmiva ze stran 15–18).
 - Stažení Globusu 6. 10. s letákem od 7. 10.: 797 akcí (656 z API, 141 z PDF), ~26 s.
 
+## Hruška
+
+**Cesta:** jen PDF letáku přes `pdftotext -bbox-layout` (R86), bez LLM — implementováno (R165,
+`app/Domain/Sources/Hruska`). Průzkum 25. 10. 2026. Doména **`mojehruska.cz`** (WordPress; `hruska.cz` je jiná
+firma, `tamda.cz` neexistuje). Web nemá akce, e-shop ani API (WP REST jen stránky). `robots.txt` (Yoast)
+nic nezakazuje, `media.mojehruska.cz/robots.txt` 404, bez WAF; dvě cookies s náhodným názvem nic nevyžaduje.
+Náročnost střední.
+
+421 prodejen (411 Hruška a 10 Hruška mini, hlavně Moravskoslezský a Olomoucký kraj, východní Čechy), **jeden
+leták pro celou síť**. Leták **neplatí v Hruška Mini a Hruška Partner** (patička; seznam vyjmutých prodejen
+na webu není), část položek je „Jen ve vybraných prodejnách“ a pultové zboží s hvězdičkou nemusí být všude —
+aplikace to nerozlišuje.
+
+### Endpointy
+
+| Účel | Požadavek |
+|---|---|
+| Aktuální leták | `GET https://mojehruska.cz/` — `<h1>Aktuální leták<br> 21.10.2026 - 27.10.2026</h1>` a odkaz `<a class="btn" href="https://media.mojehruska.cz/2026/10/43_26.pdf">` (11 MB, 12 stran, ~4 s); PDF má `Last-Modified` a `ETag`, bez cookies |
+| Leták dalšího týdne | `media.mojehruska.cz/{rok}/{měsíc nahrání bez nuly}/{ISO týden začátku}_{rok2}.pdf` — na serveru od pátku (44/26: `Last-Modified` pá 23. 10.), **web na něj neodkazuje**; zdroj zkusí `HEAD` pro měsíc dneška, začátku a týden před ním (`2026/11/44_26.pdf` vrací 404) |
+| Starší leták | zmizí (`42_26.pdf` 404) |
+| Katalog (nepoužívá se) | `GET /katalog/` → `media.mojehruska.cz/2026/9/Katalog-5.pdf` (15. 9.–9. 11.) |
+| Prodejny (nepoužívá se) | `GET /prodejny/` — HTML tabulka `div.row > div.cell` (číslo, adresa, okres, telefon, otevírací doba) |
+
+### Převod (`HruskaLeafletParser`)
+
+Platnost z hlavičky první strany: „Platnost: 21. 10.–27. 10. 2026 | 43/26“ (týden st–út, při svátku jinak:
+44/26 je 29. 10.–3. 11., 28. 10. zavřeno). Výšky písma (body PDF) jsou na všech stranách stejné:
+
+| Prvek | Výška | Příklad |
+|---|---|---|
+| koruny a haléře cenovky „NAŠE CENA“ | 34,7 / 20,2 | „24“ „90“ jako dvě slova, celé koruny „399,-“ jedním slovem |
+| klubová cena „KLUBOVÁ CENA“ a běžná cena pod ní | 37,1 / 21,7 a 23,5 / 13,7 | „21“ „90“, pod tím „22“ „90“ |
+| značka nad názvem (jen maso a uzeniny) | 10,9 | „Krásno“ |
+| název | 11,1 | „Amálka šunka“ / „nejvyšší jakosti“ (víc řádků se překrývá o ~3 b.) |
+| popis s balením | 8,5 | „vybrané druhy \| 0,5 l \| sklo“, „100 g“, „500 g \| váleček“ |
+| cena za jednotku | 7,3 | „1 kg = 249,00 Kč“, „1 l= 35,80 Kč“, „1 kg = od 749,50 Kč“ |
+| štítky „NAŠE CENA“, „BEZ LEPKU“ | 7,4 | — |
+
+- Cenovka leží **nad textem dlaždice**; text je zarovnaný vlevo, u obrázku vpravo zarovnaný doprava (Kozel, Bohemia).
+- **Původní cena ani sleva v letáku nejsou** — všechny akce jsou `PromoPrice` (R8). Znak „%“ je jen ozdoba odznaku.
+- **Hruška klub:** „1 kg = 219,00 Kč s klubem/ 229,00 Kč bez klubu“ (i „od 139,33 Kč s klubem/ od 152,67 Kč bez
+  klubu“) ověří velkou klubovou cenu a menší běžnou; běžná je `price`, klubová `loyalty_price`. Část klubových
+  cen platí jen s aktivovaným kupónem v aplikaci („AKTIVUJTE KUPON“) — nerozlišuje se.
+- **Cena dne:** „1 kg = 134,50 Kč/149,50 Kč“ (dvě ceny bez „s klubem“) je cena jednoho dne a zbytku týdne
+  v rámečku „POUZE STŘEDA“ — dlaždice se neuloží; rámeček se pozná podle slova „POUZE“ (název dne v něm je
+  rozsekaný: „STŘE D“, „ČTVR“ „TEK“). Poslední strana má sloupce **„SUPER“ pátek–neděle a „EXTRA“
+  pondělí–úterý** s názvy dnů velkým písmem (~20–25 b.) — dlaždice pod nimi platí jen v ty dny.
+- **Balení:** „150 + 50 g zdarma“ ověří součet, „5×75 g“ cenu za kus („1 ks = 25,98 Kč“), „5 + 1 zdarma“ šest
+  kusů, „50 PD“ / „1 PD = 2,00 Kč“ prací dávky. Ovoce, zelenina a pult „1 kg“, „1 l“, „1 ks“ (i „1 ks \| 170 g“)
+  cenu za jednotku nemají — přijmou se jen s cenovkou těsně nad textem (do 25 b.), jednoznačně nejbližší.
+- Neověří se: „od“ před cenou (cena nejlevnější varianty, „1 kg = od …“ k jinému balení), překlep „4×85 kg“,
+  chryzantémy „ø 12 cm“, nálepky soutěže „49,-“.
+- Části názvu odděluje „|“ („Milena | Koko | Sojové řezy“ → „Milena, Koko, Sojové řezy“), hvězdička za názvem
+  odkazuje na poznámku o pultovém zboží a z názvu se maže.
+- `pdftotext -layout` slévá překrývající se nápisy („KLUABKOKVTUÁIPVCOEUNJNATE“) — jen `-bbox-layout`.
+
+Měření 25. 10. 2026: leták 43/26 168 ověřených ze 177 cen, 44/26 171 ze 178; stažení obou ~9 s, 339 akcí,
+217 z nich se přiřadilo k produktům katalogu. Leták pod `pdf_min_offers` (60) ověřenými akcemi = chyba (R16).
+Obrázky produktů nejsou (jen rastr PDF), odkaz akce vede na úvodní stránku s letákem.
+
 ## Makro (průzkum 2026-10-02 — zatím bez zdroje)
 
 Požadavek uživatele přidat Makro. Výsledek: **zdroj, který by šel použít v souladu s pravidly projektu, zatím není.**
@@ -770,7 +830,7 @@ Požadavek uživatele přidat Makro. Výsledek: **zdroj, který by šel použít
 
 ---
 
-## Další obchody (průzkum 2026-10-25 — zatím neimplementováno)
+## Další obchody (průzkum 2026-10-25)
 
 Průzkum zdrojů pro rozšíření nad 7 obchodů: potraviny Coop, Hruška a Norma, drogerie TETA,
 Rossmann a dm. Všechno je ověřené skutečnými požadavky s naším User-Agentem, nikde žádná
@@ -782,7 +842,7 @@ platnost akcí strojově **i** úplně zároveň, kromě TETY.
 | **TETA** | JSON API backendu e-shopu | 332 akcí (skupiny produktů) | ano | ano (Teta klub) | nízká až střední |
 | **Rossmann** | výpis e-shopu (HTML) + PDF letáku kvůli platnosti | ~1 400 SKU akcí, ~4 900 se Clubem a 2+1 | jen u „Akce“ | ano (ROSSMANN CLUB) | střední |
 | **Norma** | PDF letáku (`pdftotext`, R86) | ~155 dlaždic | ~40 z nich | ne | střední |
-| **Hruška** | PDF letáku | ~160 dlaždic | ne | ano (Klubová cena) | střední |
+| **Hruška** | PDF letáku — **implementováno (R165)**, viz kapitola [Hruška](#hruška) | ~170 dlaždic | ne | ano (Klubová cena) | střední |
 | **Coop** | PDF letáků na coopclub.cz — jen Čechy | 5 letáků po ~55–85 položkách | ne | ano (kupón v aplikaci) | střední až vysoká |
 | **dm** | — akce nemá („Super ceny bez akce“), jen Výprodej | ~100–140 výprodejových (odhad) | jen výprodej | ne | nevyplatí se |
 
@@ -869,24 +929,6 @@ Leták po–ne, strany 7–8 víkendová nabídka čt–ne; data bez roku (rok z
 v pořadí akční–původní („34,9049,90“), jednotka „(100 g 17,45)“ bez rovnítka, dvě ceny za jednotku u nálevů
 („PP 470 g“), nepotraviny „cena za provedení (od)“, rozpadlý dekorativní text. Odkazy brát ze stránky, ne
 odhadem z čísla týdne; `Last-Modified` se generuje při každém požadavku. Obrázky produktů nejsou.
-
-### Hruška
-
-**Cesta:** PDF letáku přes `pdftotext -bbox-layout`. Doména **`mojehruska.cz`** (WordPress, `hruska.cz` je jiná
-firma). 421 prodejen (Morava a Slezsko, východní Čechy), jeden leták pro celou síť — **neplatí v Hruška Mini a
-Hruška Partner**, část položek „jen ve vybraných prodejnách“. `robots.txt` nic nezakazuje, bez WAF.
-
-| Účel | Požadavek |
-|---|---|
-| Aktuální leták | `GET https://mojehruska.cz/` — `<h1>Aktuální leták<br> 21.10.2026 - 27.10.2026</h1>` a odkaz `https://media.mojehruska.cz/2026/10/43_26.pdf` (11 MB, 12 stran) |
-| Příští leták | `media.mojehruska.cz/{rok}/{měsíc nahrání bez nuly}/{týden}_{rok2}.pdf` — nahraný v pátek, **web na něj neodkazuje** (jen odhad adresy) |
-| Prodejny | `GET https://mojehruska.cz/prodejny/` — HTML tabulka |
-
-Týden st–út, při svátku jinak (44/26: 29. 10.–3. 11.). ~160 dlaždic: „NAŠE CENA“ s korunami a haléři jako
-dvěma slovy různé velikosti („16“ + „90“) nebo „209,-“; **původní cena ani sleva nejsou** (akce bez slevy, R8).
-„KLUBOVÁ CENA“: velká cena je klubová, malá „NAŠE CENA“ uvnitř dlaždice je běžná; ověření jednotkovou cenou
-„1 kg = 219,00 Kč s klubem/ 229,00 Kč bez klubu“. Pasti: akce na jednotlivé dny („POUZE STŘEDA 21. 10.“,
-„SUPER PÁTEK–NEDĚLE“), `-layout` slévá překrývající se nápisy (jen bbox), staré letáky mizí (404).
 
 ### Coop
 

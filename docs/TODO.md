@@ -45,10 +45,11 @@ v [PLAN.md](PLAN.md). Větší celky se z toho stávají etapou.
 ## Další obchody
 
 - Globus (R46) a Billa (R48) hotové. Billa: zmínky z letáku Publitas (jako Albert R36) by doplnily „různé druhy“ — zatím ne.
-- **Další obchody — průzkum 2026-10-25** ([ZDROJE_DAT.md](ZDROJE_DAT.md#další-obchody-průzkum-2026-10-25--zatím-neimplementováno)):
+- **Další obchody — průzkum 2026-10-25** ([ZDROJE_DAT.md](ZDROJE_DAT.md#další-obchody-průzkum-2026-10-25)):
   - **TETA** — nejsnazší: JSON API s běžnou, akční i klubovou cenou v haléřích a platností akce; ~330 požadavků na stažení
   - **Rossmann** — výpis e-shopu po druzích akcí (HTML, ~75 požadavků), platnost jen z PDF letáku
-  - **Norma, Hruška** — jen PDF letáku přes `pdftotext` jako Lidl a Albert; Hruška bez původních cen, Norma se slepenými cenami
+  - **Hruška** — hotová (R165); u akcí „Jen ve vybraných prodejnách“ a mimo Hruška Mini a Partner by šlo doplnit, kde neplatí
+  - **Norma** — jen PDF letáku přes `pdftotext` jako Lidl a Albert; ceny slepené do jednoho slova
   - **Coop** — PDF jen pro Čechy (celostátní + 4 regiony), Morava jen obrázky; regiony podle družstev
   - **dm** — ne: akce záměrně nemá, jen výprodej
   - drogerie rozšiřuje záběr nad potraviny (Lidl ukládá jen potraviny, R25) — rozhodnout před implementací
