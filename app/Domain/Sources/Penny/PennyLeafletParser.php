@@ -223,6 +223,12 @@ final class PennyLeafletParser
     /** Externí ID nabídky z letáku — leták nemá kód zboží, ID je otisk názvu, balení a ceny. */
     private const EXTERNAL_ID_PREFIX = 'letak-';
 
+    /**
+     * Glyf čárky v písmu letáku (U+E012 ze soukromé oblasti Unicode): „PEPSI▯ PEPSI ZERO“,
+     * „NÍZKOTUČNÝ 0▯1%“ — na webu se ukazoval jako prázdný čtvereček.
+     */
+    private const COMMA_GLYPH = "\u{E012}";
+
     private const EXTERNAL_ID_LENGTH = 16;
 
     public function __construct(
@@ -932,6 +938,17 @@ final class PennyLeafletParser
     }
 
     /**
+     * Název k zobrazení: glyf čárky jako čárka — ve výčtu s mezerou za ní („THURGAU, FRANKOVKA“),
+     * v čísle bez ní („0,1%“).
+     */
+    private static function displayName(string $name): string
+    {
+        $withSpaces = (string) preg_replace('/'.self::COMMA_GLYPH.'\s*(?=\p{L})/u', ', ', $name);
+
+        return Text::clean(str_replace(self::COMMA_GLYPH, ',', $withSpaces)) ?? $name;
+    }
+
+    /**
      * Přeškrtnutá cena u velké ceny; null, když ji dlaždice nemá. Malé číslo bez přeškrtávací
      * čáry se uzná, jen když k ceně sedí procento ze štítku slevy.
      *
@@ -1122,9 +1139,13 @@ final class PennyLeafletParser
             $offerType = $original !== null ? OfferType::Discount : OfferType::PromoPrice;
         }
 
+        // ID z názvu tak, jak je v letáku (i s glyfem čárky) — akce uložené před převodem glyfu
+        // si ho nechají a neohlásí se podruhé jako nové
+        $name = self::displayName($tile['name']);
+
         return new OfferData(
             externalId: self::EXTERNAL_ID_PREFIX.substr(sha1(mb_strtolower($tile['name']).'|'.$tile['package'].'|'.$price), 0, self::EXTERNAL_ID_LENGTH),
-            name: $tile['name'],
+            name: $name,
             offerType: $offerType,
             validFrom: $validity[0],
             validTo: $validity[1],
@@ -1134,7 +1155,7 @@ final class PennyLeafletParser
             loyaltyPrice: $loyalty,
             loyaltyProgram: $loyalty === null ? null : LoyaltyProgram::PennyKarta,
             promotionText: $promotion,
-            variantNote: $this->variants->detect($tile['name']),
+            variantNote: $this->variants->detect($name),
             packageText: $tile['package'],
             package: $this->packages->parse($tile['package']),
             sourceUrl: $pageUrl,

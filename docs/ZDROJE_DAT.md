@@ -327,6 +327,7 @@ vrací originál (Billa až ~350 kB, 525×800 px). Menší variantu dá přípon
 - **Vlastní glyfy ve fontu cen** (odvozeno shodou s API 2. 10. 2026, nedokumentováno):
   - velká cena „24Ǻ“: `Ǻ` (U+01FA) = „,90“ — 560 výskytů, jiné haléře se v letáku neobjevily (výjimečně `Ƿ`, `ɏ` — přeskočí se)
   - malá cena „49“ „,“+U+E00A+U+E009 = „49,90“; U+E00A = „9“, U+E009 = „0“
+  - U+E012 = čárka v textu („PEPSI▯ PEPSI ZERO“, „NÍZKOTUČNÝ 0▯1%“, ověřeno 25. 10. 2026) — v názvu akce se převede na čárku (ve výčtu s mezerou za ní), ID akce je dál otisk názvu s glyfem
   - červený glyf U+E010 / U+E011 / U+E00F za malou cenou je **přeškrtávací čára** pro 1- / 2- / 3místnou cenu, ne číslice — podle ní se pozná přeškrtnutá (původní) cena
 - Index letáku (`…/{DD_MM_YYYY}/`) odkazuje na stránky `href="./2/"` … `./37/` → počet stran. **Některé strany vektorovou vrstvu nemají** (2. 10.: strany 9 a 33, jen obrázek) → 404, přeskočí se.
 - PDF (`…/files/assets/common/downloads/{DD_MM_YYYY}.pdf`) má kvůli fontu rozbité ceny, nepoužívat.

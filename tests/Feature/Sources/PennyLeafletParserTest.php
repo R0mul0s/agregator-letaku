@@ -188,3 +188,15 @@ it('banány s blokem v rohu dlaždice nad cenou přečte, „Super cena“ bez �
     // Fíky „Super cena!“ bez přeškrtnuté ceny, salát „2 ks / 1 balení“ není jedna jednotka
     expect(array_filter($offers, fn (OfferData $offer): bool => str_starts_with($offer->name, 'FÍKY') || str_starts_with($offer->name, 'SALÁT')))->toBeEmpty();
 });
+
+it('glyf čárky z písma letáku (U+E012) v názvu převede na čárku, ID nechá z původního názvu', function (): void {
+    $pepsi = pennyPageOffer(pennyPageOffers('0001-2026-10-02'), 'PEPSI');
+    $yogurt = pennyPageOffer(pennyPageOffers('0004-2026-10-02'), 'JOGURT BÍLÝ');
+
+    expect($pepsi->name)->toBe('PEPSI, PEPSI ZERO, MIRINDA')
+        // Desetinná čárka bez mezery
+        ->and($yogurt->name)->toBe('JOGURT BÍLÝ NÍZKOTUČNÝ 0,1% MILKERIA')
+        // ID je otisk názvu z letáku i s glyfem — akce uložené dřív se neohlásí znovu jako nové
+        ->and($pepsi->externalId)->toBe('letak-'.substr(sha1(mb_strtolower($pepsi->raw['name']).'|'.$pepsi->raw['package'].'|'.$pepsi->price), 0, 16))
+        ->and($pepsi->raw['name'])->toContain("\u{E012}");
+});
