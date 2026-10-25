@@ -266,6 +266,23 @@ class Offer extends Model
     }
 
     /**
+     * Sleva v procentech pro cenu s kartou (R162): z původní ceny, jen u typu „sleva“ s cenou
+     * s kartou nižší než akční cena. Kdo kartu má, vidí ji místo effectiveDiscountPercent()
+     * (Termix 20,90 → 10,90 = −47 %, s kartou 9,90 = −52 %). Zaokrouhlená dolů jako u obchodů
+     * (Kaufland 52,6 % uvádí jako 52 %) — slevu s kartou obchod v datech nemá, jen v letáku.
+     * Řazení a filtry slev zůstávají podle effectiveDiscountPercent().
+     */
+    public function loyaltyDiscountPercent(): ?int
+    {
+        if ($this->offer_type !== OfferType::Discount || $this->loyalty_price === null || $this->original_price === null
+            || $this->original_price <= $this->loyalty_price || ($this->price !== null && $this->loyalty_price >= $this->price)) {
+            return null;
+        }
+
+        return (int) floor((1 - $this->loyalty_price / $this->original_price) * self::PERCENT);
+    }
+
+    /**
      * Sleva v procentech jako výraz SQL s hodnotami — pro filtr a řazení podle slevy, ať se
      * nerozejde s effectiveDiscountPercent() (sloupec `discount_percent` sám chybí u slev
      * dopočtených z přeškrtnuté ceny, R113).

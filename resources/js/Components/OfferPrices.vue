@@ -1,6 +1,7 @@
 <!--
     Ceny akce podle typu (R8) — hlavní cena, přeškrtnutá a sleva, cena s kartou, cena za jednotku
-    a srovnání s dřívějšími akcemi (R59). Sdílí ji karta akce a okno s detailem akce (R159).
+    a srovnání s dřívějšími akcemi (R59). Sdílí ji karta akce a okno s detailem akce (R159). Kdo kartu
+    má (cena uživatele je cena s kartou, Moje slevy), vidí jako hlavní cenu tu s kartou (R162).
 
     @author Roman Hlaváček
     @created 2026-10-25
@@ -8,7 +9,7 @@
 <script setup>
 import { formatDiscount, formatPrice } from '@/lib/format';
 import { useTranslations } from '@/lib/i18n';
-import { discountPercent, OFFER_TYPE, offerUnitPriceLabel } from '@/lib/offer';
+import { discountPercent, OFFER_TYPE, offerUnitPriceLabel, paysWithCard } from '@/lib/offer';
 import { usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 
@@ -26,6 +27,9 @@ const discount = computed(() => discountPercent(props.offer));
 
 /** Akce platí jen s kartou — hlavní cena je cena s kartou, běžná cena vedle. */
 const isLoyaltyOnly = computed(() => props.offer.offerType === OFFER_TYPE.LOYALTY_ONLY);
+
+/** Uživatel kartu má a platí cenou s kartou (Moje slevy, R162) — ta je hlavní. */
+const withCard = computed(() => paysWithCard(props.offer));
 
 /** Cena za jednotku k hlavní ceně („29,90 Kč / kg“); null bez balení a u akce na více kusů. */
 const unitPrice = computed(() => offerUnitPriceLabel(props.offer, locale.value, t));
@@ -60,7 +64,8 @@ const historyLabel = computed(() => {
             <span v-if="offer.price !== null" class="offer-card__note">{{ t('offers.regular_price', { price: formatPrice(offer.price, locale) }) }}</span>
         </template>
         <template v-else>
-            <span class="offer-card__price">{{ formatPrice(offer.price, locale) }}</span>
+            <!-- Kdo kartu má, vidí jako hlavní cenu tu s kartou (R162), cena bez karty je pod ní -->
+            <span class="offer-card__price">{{ formatPrice(withCard ? offer.loyaltyPrice : offer.price, locale) }}</span>
             <!-- Přeškrtnutí čtečka obvykle neohlásí — bez slova „původně“ by zazněly dvě ceny za sebou -->
             <s v-if="offer.originalPrice !== null" class="offer-card__original"
                 ><span class="visually-hidden">{{ t('offers.original_price_label') }} </span>{{ formatPrice(offer.originalPrice, locale) }}</s
@@ -69,7 +74,8 @@ const historyLabel = computed(() => {
         </template>
     </div>
 
-    <p v-if="!isLoyaltyOnly && offer.loyaltyPrice !== null" class="offer-card__loyalty">
+    <p v-if="withCard && offer.price !== null" class="offer-card__loyalty">{{ t('offers.without_card', { price: formatPrice(offer.price, locale) }) }}</p>
+    <p v-else-if="!isLoyaltyOnly && offer.loyaltyPrice !== null" class="offer-card__loyalty">
         {{ formatPrice(offer.loyaltyPrice, locale) }} {{ t('offers.with_card', { program: offer.loyaltyProgramName }) }}
     </p>
     <p v-if="unitPrice" class="offer-card__unit-price">{{ unitPrice }}</p>

@@ -35,8 +35,28 @@ export function unitPriceLabel(halers, unit, locale, t) {
 }
 
 /**
- * Cena za jednotku k hlavní ceně akce (u akce jen s kartou z ceny s kartou); null bez balení.
- * U akce na více kusů by byla z běžné ceny a v přehledu by mátla — nezobrazuje se.
+ * Platí uživatel u akce cenou s kartou, přestože akce platí i bez karty (R162)? Jen kde stránka
+ * posílá cenu uživatele (`userPrice` — Moje slevy, centrum upozornění) a ta je cenou s kartou —
+ * uživatel kartu má. Pak je hlavní cenou cena s kartou a cena bez karty je ta druhá.
+ *
+ * @param {object} offer Akce z OfferPresenter
+ * @returns {boolean}
+ */
+export function paysWithCard(offer) {
+    return (
+        offer.userPrice !== undefined &&
+        offer.loyaltyPrice !== null &&
+        offer.loyaltyPrice !== undefined &&
+        offer.userPrice === offer.loyaltyPrice &&
+        offer.offerType !== OFFER_TYPE.LOYALTY_ONLY &&
+        offer.offerType !== OFFER_TYPE.MULTIBUY
+    );
+}
+
+/**
+ * Cena za jednotku k hlavní ceně akce (u akce jen s kartou a kdo platí cenou s kartou z ceny
+ * s kartou); null bez balení. U akce na více kusů by byla z běžné ceny a v přehledu by mátla —
+ * nezobrazuje se.
  *
  * @param {object} offer Akce z OfferPresenter
  * @param {string} locale
@@ -44,7 +64,7 @@ export function unitPriceLabel(halers, unit, locale, t) {
  * @returns {string|null}
  */
 export function offerUnitPriceLabel(offer, locale, t) {
-    const value = offer.offerType === OFFER_TYPE.LOYALTY_ONLY ? offer.loyaltyUnitPrice : offer.unitPrice;
+    const value = offer.offerType === OFFER_TYPE.LOYALTY_ONLY || paysWithCard(offer) ? offer.loyaltyUnitPrice : offer.unitPrice;
     if (offer.offerType === OFFER_TYPE.MULTIBUY || value === null || value === undefined || !offer.unitPriceUnit) {
         return null;
     }
@@ -54,13 +74,14 @@ export function offerUnitPriceLabel(offer, locale, t) {
 
 /**
  * Sleva v procentech: od obchodu, jinak dopočtená z původní ceny; jen u typu „sleva“ (R8).
- * Počítá ji server (Offer::effectiveDiscountPercent, R113), ať se výpočet nerozejde.
+ * Kdo platí cenou s kartou, má slevu s kartou (R162). Počítá ji server
+ * (Offer::effectiveDiscountPercent a loyaltyDiscountPercent, R113), ať se výpočet nerozejde.
  *
  * @param {object} offer
  * @returns {number|null}
  */
 export function discountPercent(offer) {
-    return offer.discountPercent || null;
+    return (paysWithCard(offer) ? offer.loyaltyDiscountPercent : null) || offer.discountPercent || null;
 }
 
 /**

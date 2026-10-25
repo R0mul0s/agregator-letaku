@@ -15,7 +15,7 @@ import OfferMenuButton from '@/Components/OfferMenuButton.vue';
 import ShoppingToggle from '@/Components/ShoppingToggle.vue';
 import { formatDiscount, formatPrice } from '@/lib/format';
 import { useTranslations } from '@/lib/i18n';
-import { discountPercent, MATCH_MAYBE, OFFER_TYPE, offerUnitPriceLabel, packageLabel, startsLabel, unitPriceLabel } from '@/lib/offer';
+import { discountPercent, MATCH_MAYBE, OFFER_TYPE, offerUnitPriceLabel, packageLabel, startsLabel } from '@/lib/offer';
 import { showOfferDetail } from '@/lib/offerDetail';
 import { usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
@@ -86,18 +86,10 @@ const loyaltyNote = computed(() => {
 });
 
 /**
- * Cena za jednotku k hlavní ceně; u akce na více kusů by byla z běžné ceny, neukazuje se.
- * Kdo platí cenou s kartou, má i cenu za jednotku s kartou (R161) — jinak by nesouhlasila s cenou.
+ * Cena za jednotku k hlavní ceně — kdo platí cenou s kartou, z ceny s kartou (R161, R162);
+ * u akce na více kusů by byla z běžné ceny, neukazuje se.
  */
-const unitPrice = computed(() => {
-    const { loyaltyPrice, loyaltyUnitPrice, offerType, unitPriceUnit, userPrice } = props.offer;
-    const paysWithCard = !withoutUserPrice.value && loyaltyPrice !== null && userPrice === loyaltyPrice;
-    if (paysWithCard && offerType !== OFFER_TYPE.MULTIBUY && loyaltyUnitPrice !== null && loyaltyUnitPrice !== undefined && unitPriceUnit) {
-        return unitPriceLabel(loyaltyUnitPrice, unitPriceUnit, locale.value, t);
-    }
-
-    return offerUnitPriceLabel(props.offer, locale.value, t);
-});
+const unitPrice = computed(() => offerUnitPriceLabel(props.offer, locale.value, t));
 </script>
 
 <template>
