@@ -45,7 +45,13 @@ v [PLAN.md](PLAN.md). Větší celky se z toho stávají etapou.
 ## Další obchody
 
 - Globus (R46) a Billa (R48) hotové. Billa: zmínky z letáku Publitas (jako Albert R36) by doplnily „různé druhy“ — zatím ne.
-- Norma, Coop, Rossmann, dm. Každý potřebuje vlastní průzkum zdroje dat jako v [ZDROJE_DAT.md](ZDROJE_DAT.md).
+- **Další obchody — průzkum 2026-10-25** ([ZDROJE_DAT.md](ZDROJE_DAT.md#další-obchody-průzkum-2026-10-25--zatím-neimplementováno)):
+  - **TETA** — nejsnazší: JSON API s běžnou, akční i klubovou cenou v haléřích a platností akce; ~330 požadavků na stažení
+  - **Rossmann** — výpis e-shopu po druzích akcí (HTML, ~75 požadavků), platnost jen z PDF letáku
+  - **Norma, Hruška** — jen PDF letáku přes `pdftotext` jako Lidl a Albert; Hruška bez původních cen, Norma se slepenými cenami
+  - **Coop** — PDF jen pro Čechy (celostátní + 4 regiony), Morava jen obrázky; regiony podle družstev
+  - **dm** — ne: akce záměrně nemá, jen výprodej
+  - drogerie rozšiřuje záběr nad potraviny (Lidl ukládá jen potraviny, R25) — rozhodnout před implementací
 - **Makro** — průzkum 2026-10-02: makro.cz je za ochranou proti robotům (403 i `robots.txt`), jinde jen agregátory (R1). Čeká na oficiální přístup, viz [ZDROJE_DAT.md](ZDROJE_DAT.md#makro-průzkum-2026-10-02--zatím-bez-zdroje).
 
 ## Stahování — rozšíření

@@ -8,7 +8,7 @@
 
 Výsledek technického průzkumu z **2. 10. 2026** (leták 30. 9.–6. 10. 2026), doplněný
 při implementaci a provozu: Globus a Billa (R46, R48), Kaufland po prodejnách (R49, 3. 10.),
-prodlužování akcí Billy a User-Agent (R54, R65, 4. 10.). Všechno je ověřené skutečnými
+prodlužování akcí Billy a User-Agent (R54, R65, 4. 10.), průzkum dalších obchodů (25. 10.). Všechno je ověřené skutečnými
 požadavky (curl). Co je jen předpoklad, je označené **(předpoklad)**.
 
 Jde o **neveřejná a nedokumentovaná rozhraní**, která se můžou kdykoli změnit.
@@ -767,6 +767,156 @@ Požadavek uživatele přidat Makro. Výsledek: **zdroj, který by šel použít
   a ceny se uvádějí **bez DPH i s DPH** — pro porovnání s ostatními obchody by se brala cena s DPH.
 - Možná cesta: požádat Makro o přístup (oficiální feed letáků nebo povolení stahování), nebo
   počkat, jestli leták nezveřejní na platformě bez ochrany (jako Albert na Publitas).
+
+---
+
+## Další obchody (průzkum 2026-10-25 — zatím neimplementováno)
+
+Průzkum zdrojů pro rozšíření nad 7 obchodů: potraviny Coop, Hruška a Norma, drogerie TETA,
+Rossmann a dm. Všechno je ověřené skutečnými požadavky s naším User-Agentem, nikde žádná
+ochrana proti robotům; agregátory jsme jako zdroj nepoužili (R1). Žádný z nich nemá
+platnost akcí strojově **i** úplně zároveň, kromě TETY.
+
+| Obchod | Zdroj | Akcí | Původní cena | Cena s kartou | Náročnost |
+|---|---|---|---|---|---|
+| **TETA** | JSON API backendu e-shopu | 332 akcí (skupiny produktů) | ano | ano (Teta klub) | nízká až střední |
+| **Rossmann** | výpis e-shopu (HTML) + PDF letáku kvůli platnosti | ~1 400 SKU akcí, ~4 900 se Clubem a 2+1 | jen u „Akce“ | ano (ROSSMANN CLUB) | střední |
+| **Norma** | PDF letáku (`pdftotext`, R86) | ~155 dlaždic | ~40 z nich | ne | střední |
+| **Hruška** | PDF letáku | ~160 dlaždic | ne | ano (Klubová cena) | střední |
+| **Coop** | PDF letáků na coopclub.cz — jen Čechy | 5 letáků po ~55–85 položkách | ne | ano (kupón v aplikaci) | střední až vysoká |
+| **dm** | — akce nemá („Super ceny bez akce“), jen Výprodej | ~100–140 výprodejových (odhad) | jen výprodej | ne | nevyplatí se |
+
+Lokální `pdftotext` v Git Bashi je Xpdf 4.00 (bez `-bbox-layout`, bez `-enc UTF-8` ztrácí diakritiku) —
+PDF zkoušet v kontejneru `app` (Poppler 25.12), produkce má Poppler 22.02.
+
+### TETA drogerie
+
+**Cesta:** veřejné JSON API backendu `https://be.tetadrogerie.cz/api/v2/shop/…` (Sylius a API Platform,
+volá ho web v Nuxtu — `__NUXT__.config.public.apiBase`). Ceny v haléřích jako `int`, cena s klubem,
+podmínka vícekusové akce, značka, obrázek. `robots.txt` domény `be.` nic nezakazuje (jen `User-agent: *`);
+na `www` je zakázané `/api/`, `/price`, `/inventory` a filtry `?taxa` — ty nepoužívat. Bez WAF a cookies.
+Podle letáku platí ceny **ve všech prodejnách i na e-shopu** (517 prodejen v API, 34 z nich franšízy).
+
+| Účel | Požadavek |
+|---|---|
+| Seznam akcí | `GET https://be.tetadrogerie.cz/api/v2/shop/actions?page=1&itemsPerPage=500`, `Accept: application/json` — 332 akcí, 86 kB; jen akce platné dnes |
+| Produkty akce | `GET …/api/v2/shop/search/products-variants?action={slug}&page=1&itemsPerPage=100` — `{items[], pagination{totalItems,lastPage}}`, 1–49 položek |
+| Prodejny | `GET …/api/v2/shop/stores/?page=1&itemsPerPage=1000` — **s lomítkem** (bez něj 301 na HTML) |
+| Leták | `https://letak.tetadrogerie.cz/teta-letak-22-2026/` (ecPaper) — hotspoty vedou na `/akce/detail/{KÓD}`, 207 z 237 na akce `TE…`; PDF má text, ale rozházený — nepoužívat |
+
+Akce: `{"slug":"te26220103","type":"leaflet","club":false,"name":"Sleva na produkty Nivea","dateFrom":"2026-10-20 00:00:00","dateTo":"2026-11-17 23:59:00"}`
+(místní čas). Typy: `te` leták (247 + 3 klubové), `sn` (36), `es` (18, nejspíš jen e-shop), `sk` klubové (2),
+`ed` (1), `ma` časopis (25) — **(předpoklad)** význam předpon.
+
+Položka: `bbyPrices.zcmd` = **běžná cena prodejny**, `acmd` = **akční cena**, `club` = cena s Teta klubem
+(u akce s `club:true`), `sale.amount` = sleva v %, `unit_price.number` = haléře za 1 `LIT`/`KG`/`KS`/`PD`
+(float), `conditions` = podmínka („za 1 ks při koupi 2 ks…“), `labels[].label: "gift"` = dárek. Značka
+v `taxa[]` s `parent.code == "article_brands"`, balení jen v názvu. Obrázek
+`https://teta-drogerie.fra1.digitaloceanspaces.com/cache/inveocz_product_list/{image}.webp`.
+
+Pasti:
+- **`price` a `originalPrice` nejsou ceny letáku** — jsou to ceny e-shopu (Nivea 499,90 proti 449,90 v prodejně);
+  u klubové akce je `price` klubová. Brát jen `bbyPrices`.
+- **Neznámý parametr API tiše ignoruje** a vrátí celý katalog (`totalItems` 10 000) — `action[]` místo `action`
+  taky. Hlídat rozumné `totalItems`; jedna akce na požadavek, tedy ~330 požadavků na stažení (rozdělit kvůli O8).
+- Platnost akce nesedí s letákem (`dateFrom` 20. 10., leták od 21. 10.), některé akce běží přes dva letáky.
+  Budoucí akce v seznamu nejsou.
+- Stejný produkt může být ve více akcích (`te` i `sn`) — odstranit duplicity podle `code`.
+- „S věrnostním kuponem“ (−10 % za body) z klubového letáku **není** `loyalty_price`.
+- U akcí „na celou značku“ e-shop vyjmenuje jen výběr produktů.
+
+### Rossmann
+
+**Cesta:** výpis e-shopu `/akce-a-slevy` filtrovaný druhem akce (HTML dlaždice, Etnetera) a **platnost z letáku**
+(e-shop ji nemá). Bez JSON API. `robots.txt`: `Disallow: *filter=*`; AJAX fragment
+`/akce-a-slevy$d4035-filter.xml?…&fp_specialOffer=ACTION&offset=0&limit=60` (limit ≤ 60, od 75 404) doslova
+zakázaný není, ale Disallow zjevně míří na filtrované výpisy — **šedá zóna, nepoužívat**. Čistá cesta je
+`GET /akce-a-slevy?specialOffer=ACTION&page={n}` (povoleno, ~20 dlaždic, `items_found:1407` v `dataLayer`), tedy
+~75 požadavků jen na `ACTION`. Azure Front Door bez výzvy, cookies nejsou potřeba.
+
+| Druh (`specialOffer`) | Počet 25. 10. | Co je |
+|---|---|---|
+| `ACTION` (= `PERCENTAGE`) | 1 407 | časová akce s přeškrtnutou cenou |
+| `HAS_RC_PROMOTION` | 1 930 | ROSSMANN CLUB (cena s kartou nebo klubové 2+1) |
+| `FREE_ITEM` | 989 | 1+1, 2+1 — jen štítek, cena běžná |
+| `2_PIECES_AND_MORE` | 19 | „od 2 ks“ — dlaždice ukazuje cenu bez podmínky |
+| `SUPER_PRICE`, `LONG_TERM_LOWERED_PRICE`, `CLEARANCE_SALE_PRICE` | 1 497 / 30 / 1 702 | nejsou časové akce, výprodej — podle R8 ne |
+
+Dlaždice `div.product-tile`: `id="product-id--sp1015324"`, název `h3.product-tile__title a`, značka
+`.product-tile__sub--title`, balení `.product-tile__sub--amount` („1 l“, „50 pd“), cena
+`.product-tile__price--final`, původní `.product-tile__price--original > s`, klubová `.product-tile__price--club`.
+Ceny jako „74.90 Kč“ (tečka) i „229 Kč“ — přes sdílený parser. `price` v `dataLayer` je **bez DPH**. Obrázek
+`https://binbox.rossmann.cz/binbox/pub/PRODUCT-{id}/…&size=240px`. EAN a cena za jednotku jen v detailu.
+
+Leták: `/obsah/akce-a-letaky` (`box-leaflet__date` „21.10.2026 - 3.11.2026“ a odkaz na PDF, 8,7 MB, 24 stran,
+text ano); Publitas `publikace.rossmann.cz/…/spreads.json` má text bez polohy a bez hotspotů. Leták platí
+v kamenných prodejnách, „na e-shopu se nabídka může lišit“ — ve vzorku 48 z 50 cen e-shopu bylo i v letáku.
+Část položek má vlastní platnost (Pampers od 7. 10.) a některé jsou „nedostupné na e-shopu“ (jen z PDF).
+
+### Norma
+
+**Cesta:** PDF letáku přes `pdftotext -bbox-layout` jako Lidl a Albert (R86). Bez API (PHP a jQuery). Česká část
+je na **`https://www.norma-online.de/cz/`** (`norma-online.cz` přesměruje 302, `norma.cz` má cizí certifikát).
+`robots.txt` zakazuje `*` jen `/ws/`; Akamai bez výzvy. Jeden celostátní leták (výjimky jen textem v letáku).
+
+| Účel | Požadavek |
+|---|---|
+| Seznam letáků | `GET https://www.norma-online.de/cz/angebote/` — odkazy na tento a příští týden („Nabídka na týden od pondělí 26.10.“) + 3 položky „Víno měsíce“ v HTML |
+| PDF | `…/cz/angebote/online-prospekt/{RRRR}-{TT}_CZ.pdf` (ISO týden) — 8 stran, 27–36 MB |
+
+Leták po–ne, strany 7–8 víkendová nabídka čt–ne; data bez roku (rok z názvu souboru). ~155 dlaždic:
+„super cena“ (bez původní) a „o 30 % levnější“ s původní cenou. Pasti: ceny **slepené do jednoho slova**
+v pořadí akční–původní („34,9049,90“), jednotka „(100 g 17,45)“ bez rovnítka, dvě ceny za jednotku u nálevů
+(„PP 470 g“), nepotraviny „cena za provedení (od)“, rozpadlý dekorativní text. Odkazy brát ze stránky, ne
+odhadem z čísla týdne; `Last-Modified` se generuje při každém požadavku. Obrázky produktů nejsou.
+
+### Hruška
+
+**Cesta:** PDF letáku přes `pdftotext -bbox-layout`. Doména **`mojehruska.cz`** (WordPress, `hruska.cz` je jiná
+firma). 421 prodejen (Morava a Slezsko, východní Čechy), jeden leták pro celou síť — **neplatí v Hruška Mini a
+Hruška Partner**, část položek „jen ve vybraných prodejnách“. `robots.txt` nic nezakazuje, bez WAF.
+
+| Účel | Požadavek |
+|---|---|
+| Aktuální leták | `GET https://mojehruska.cz/` — `<h1>Aktuální leták<br> 21.10.2026 - 27.10.2026</h1>` a odkaz `https://media.mojehruska.cz/2026/10/43_26.pdf` (11 MB, 12 stran) |
+| Příští leták | `media.mojehruska.cz/{rok}/{měsíc nahrání bez nuly}/{týden}_{rok2}.pdf` — nahraný v pátek, **web na něj neodkazuje** (jen odhad adresy) |
+| Prodejny | `GET https://mojehruska.cz/prodejny/` — HTML tabulka |
+
+Týden st–út, při svátku jinak (44/26: 29. 10.–3. 11.). ~160 dlaždic: „NAŠE CENA“ s korunami a haléři jako
+dvěma slovy různé velikosti („16“ + „90“) nebo „209,-“; **původní cena ani sleva nejsou** (akce bez slevy, R8).
+„KLUBOVÁ CENA“: velká cena je klubová, malá „NAŠE CENA“ uvnitř dlaždice je běžná; ověření jednotkovou cenou
+„1 kg = 219,00 Kč s klubem/ 229,00 Kč bez klubu“. Pasti: akce na jednotlivé dny („POUZE STŘEDA 21. 10.“,
+„SUPER PÁTEK–NEDĚLE“), `-layout` slévá překrývající se nápisy (jen bbox), staré letáky mizí (404).
+
+### Coop
+
+**Cesta:** PDF letáků na **coopclub.cz** (WordPress COOP Centra) přes `pdftotext -bbox-layout`. Coop je ~45 družstev
+s vlastními letáky; textovou vrstvu má jen celostátní **CC** („ve vybraných prodejnách COOP“) a 4 regiony
+**SČ, JČ, VČ, ZČ** (výčet družstev v patičce). **Morava** (TIP Extra, TUTY Menu, Tempo, Jednota Zlín, Hodonín)
+má jen obrázková PDF nebo galerie — bez OCR/LLM ne. `coopclub.cz/robots.txt` 404, bez WAF.
+
+| Účel | Požadavek |
+|---|---|
+| Seznam letáků | `GET https://www.coopclub.cz/letaky/feed/` (RSS, titulek „SČ 22 (od 21.10. do 3.11.)“ bez roku) nebo `/letaky/` (s rokem) |
+| Detail | `GET /letaky/sc-aktualni-letak/` — odkaz na PDF `wp-content/uploads/2026/09/4426022-STC-22-26.pdf` (2–9 MB, 2–4 strany) |
+| Prodejny | `GET /prodejny/` (1 450 markerů s GPS, bez družstva); družstvo jen v detailu prodejny |
+
+Cyklus 14 dní st–út. Položka: název, balení a „1 l = 25,80“; cena rozdělená na dvě slova („42“ + „,90“) i „219,–“;
+**bez původní ceny**. Cena s kupónem v aplikaci „34,90 … 36,90 CENA BEZ APLIKACE / BEZ KUPÓNU“ → `loyalty_price`.
+Pasti: slug detailu se přejmenovává (`sc-aktualni-letak44`) — identifikovat podle PDF; složka uploads nesedí
+s datem; stejné produkty v CC i regionech; přiřazení prodejny k regionu by chtělo 1 450 požadavků na detail.
+
+### dm drogerie markt
+
+**Závěr: akce v našem smyslu nemá.** dm „nemá slevové akce, protože chce být výhodná vždy“ (tisková zpráva
+2. 9. 2026, „Super ceny bez akce“), snížená cena platí nejméně 4 měsíce, leták nevydává. Strojově jde poznat jen
+**Výprodej** (přeškrtnutá cena, do vyprodání, ~0,8 % sortimentu ve vzorku 600).
+
+- Karty po 100: `GET https://products.dm.de/product/products/tiles/CZ/dans/{dan1},{dan2},…` (`Accept: application/json`,
+  bez `robots.txt`) — ceny jako text „89,50 Kč“, `price.price.previous` jen u výprodeje, eyecatcher „Výprodej“.
+  Seznam 13 557 produktů z `https://www.dm.cz/product-sitemap.xml` → ~136 požadavků.
+- Vyhledávání `product-search.services.dmtech.com` (umí `isSellout:true`) má `robots.txt` `Disallow: /` — nepoužívat.
+- „Nebyla zvýšena od“ (`notIncreasedSince`) je u všech produktů a **není sleva** (R8).
 
 ---
 
