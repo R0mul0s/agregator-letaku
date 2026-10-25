@@ -12,6 +12,7 @@
 declare(strict_types=1);
 
 use App\Domain\Notifications\AnnouncementRecord;
+use App\Domain\Notifications\AnnouncementText;
 use App\Http\Controllers\AnnouncementController;
 use App\Models\Announcement;
 use App\Models\User;
@@ -135,6 +136,37 @@ it('odkaz „/\“ v uložené zprávě bere jako cizí (R113)', function (): vo
         ->and(AnnouncementRecord::isExternal('/\evil.example.com'))->toBeTrue()
         ->and(AnnouncementRecord::isExternal('//evil.example.com'))->toBeTrue()
         ->and(AnnouncementRecord::isExternal('https://slevohlidka.cz'))->toBeTrue();
+});
+
+it('odkaz v textu musí vést na cestu v aplikaci nebo https adresu (R175)', function (string $body, bool $valid): void {
+    $response = $this->actingAs($this->admin)->post(route('announcements.store'), announcementInput(['body' => $body]));
+
+    $valid ? $response->assertSessionHasNoErrors() : $response->assertSessionHasErrors('body');
+})->with([
+    'cesta v aplikaci' => ['Zapněte si ho v [Mých obchodech](/obchody).', true],
+    'https' => ['Víc na [webu Makra](https://www.makro.cz/letaky).', true],
+    'hranaté závorky bez odkazu' => ['Hlídáme [nově] i Makro.', true],
+    'javascript' => ['Klepněte [sem](javascript:alert(1)).', false],
+    'http' => ['Klepněte [sem](http://example.com).', false],
+    'adresa bez schématu' => ['Klepněte [sem](//evil.example.com).', false],
+    'zpětné lomítko' => ['Klepněte [sem](/\evil.example.com).', false],
+    'prázdná adresa' => ['Klepněte [sem]().', false],
+]);
+
+it('odkaz v textu je v seznamu a v telefonu jen slovy, stránka záznamu ho dostane celý (R175)', function (): void {
+    $this->actingAs($this->admin)->post(route('announcements.store'), announcementInput([
+        'body' => 'Zapněte si ho v [Mých obchodech](/obchody) nebo na [webu](https://www.makro.cz).',
+    ]))->assertSessionHasNoErrors();
+
+    expect(AnnouncementText::plain('Zapněte si ho v [Mých obchodech](/obchody), ne [tady](javascript:x).'))
+        ->toBe('Zapněte si ho v Mých obchodech, ne [tady](javascript:x).');
+
+    $this->actingAs($this->user)->get(route('notifications.index'))
+        ->assertInertia(fn (Assert $page) => $page->where('notifications.0.text', 'Zapněte si ho v Mých obchodech nebo na webu.'));
+    $this->get(route('notifications.show', $this->user->notifications()->sole()->id))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('announcement.body', 'Zapněte si ho v [Mých obchodech](/obchody) nebo na [webu](https://www.makro.cz).')
+            ->where('announcement.links', true));
 });
 
 it('bez nadpisu a textu zprávu neodešle', function (): void {

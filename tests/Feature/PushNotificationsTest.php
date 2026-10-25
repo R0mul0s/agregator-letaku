@@ -354,7 +354,7 @@ describe('upozornění na nové akce', function (): void {
     it('zprávu od nás pošle jen se zaškrtnutým „i do telefonu“ (R74, 11d)', function (): void {
         $sender = fakePushSender();
         $admin = User::factory()->create(['is_admin' => true]);
-        $input = ['title' => 'Nově sledujeme Makro', 'body' => 'Od dneška hlídáme i Makro.', 'url' => null, 'category' => AnnouncementCategory::Service];
+        $input = ['title' => 'Nově sledujeme Makro', 'body' => 'Od dneška hlídáme i Makro v [Mých obchodech](/obchody).', 'url' => null, 'category' => AnnouncementCategory::Service];
 
         app(SendAnnouncement::class)($admin, [...$input, 'push' => false]);
         expect(app(SendPushNotifications::class)())->toBe(0);
@@ -364,7 +364,8 @@ describe('upozornění na nové akce', function (): void {
 
         $message = $sender->sent[0]['message'];
         expect($message->title)->toBe('Nově sledujeme Makro')
-            ->and($message->body)->toBe('Od dneška hlídáme i Makro.')
+            // Odkaz v textu (R175) do telefonu jen jako slova
+            ->and($message->body)->toBe('Od dneška hlídáme i Makro v Mých obchodech.')
             ->and($message->tag)->toBe('announcement')
             ->and($message->url)->toStartWith('/upozorneni/')
             ->and($message->badge)->toBe(2);

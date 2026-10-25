@@ -1417,6 +1417,16 @@ return [
             'url' => 'Odkaz',
             'url_hint' => 'Nepovinný. Cesta v aplikaci (/akce) nebo adresa začínající https://.',
             'url_invalid' => 'Odkaz musí být cesta v aplikaci (/akce) nebo adresa začínající https://.',
+            // Odkazy v textu zprávy (R175)
+            'link_add' => 'Vložit odkaz',
+            'link_url' => 'Adresa odkazu',
+            'link_url_hint' => 'Cesta v aplikaci (/obchody) nebo adresa začínající https://.',
+            'link_insert' => 'Vložit',
+            'link_cancel' => 'Zrušit',
+            'link_text' => 'text odkazu',
+            'link_hint' => 'Odkaz v textu: označte slova a klepněte na Vložit odkaz.',
+            'body_link_invalid' => 'Odkaz v textu musí vést na cestu v aplikaci (/akce) nebo na adresu začínající https://.',
+            'preview' => 'Náhled',
             'category' => 'Druh zprávy',
             'categories' => [
                 'service' => 'O službě',

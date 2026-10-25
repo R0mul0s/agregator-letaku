@@ -148,17 +148,17 @@
         margin-bottom: var(--space-3);
     }
 
-    // Text zprávy od nás (11d) — řádky, jak je admin napsal
-    &__body {
-        margin-bottom: var(--space-3);
-        white-space: pre-line;
-        overflow-wrap: anywhere;
-    }
-
     &__title {
         margin-bottom: var(--space-2);
         font-size: var(--font-size-card-title);
     }
+}
+
+// Text zprávy od nás (11d) — řádky, jak je admin napsal, s odkazy (R175, AnnouncementBody)
+.announcement-body {
+    margin-bottom: var(--space-3);
+    white-space: pre-line;
+    overflow-wrap: anywhere;
 }
 
 // Zprávy uživatelům pro admina (11d)
@@ -172,6 +172,37 @@
         min-height: var(--announcement-body-min-height);
         resize: vertical;
         font: inherit;
+    }
+
+    // Popisek textu a vpravo „Vložit odkaz“ (R175)
+    &__body-head {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-2);
+    }
+
+    // Pole adresy odkazu v textu nad textem zprávy
+    &__link {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-2);
+        margin-bottom: var(--space-2);
+        padding: var(--space-3);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-md);
+    }
+
+    // Náhled textu s odkazy, jak ho uvidí uživatelé
+    &__preview {
+        padding: var(--space-3) var(--space-4);
+        background: var(--color-bg);
+        border-radius: var(--radius-md);
+
+        .announcement-body {
+            margin-bottom: 0;
+        }
     }
 }
 

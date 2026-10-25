@@ -1,8 +1,8 @@
 <?php
 
 /**
- * Formulář zprávy od nás (R74, etapa 11d): nadpis, text, odkaz (cesta v aplikaci nebo https
- * adresa), druh zprávy a „i do telefonu“ — to jen u zprávy o službě (souhlas s obchodními
+ * Formulář zprávy od nás (R74, etapa 11d): nadpis, text s odkazy (R175), odkaz (cesta v aplikaci
+ * nebo https adresa), druh zprávy a „i do telefonu“ — to jen u zprávy o službě (souhlas s obchodními
  * sděleními zní na e-mail, R51).
  *
  * @author Roman Hlaváček
@@ -14,7 +14,9 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Domain\Notifications\AnnouncementText;
 use App\Enums\AnnouncementCategory;
+use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -29,12 +31,18 @@ class AnnouncementRequest extends FormRequest
     {
         return [
             'title' => ['required', 'string', 'max:'.config()->integer('letaky.notifications.announcement.title_max_length')],
-            'body' => ['required', 'string', 'max:'.config()->integer('letaky.notifications.announcement.body_max_length')],
-            // Cesta v aplikaci (/akce), nebo https adresa — jiné schéma (javascript:, http:) ne;
-            // cesta bez zpětného lomítka — prohlížeč čte „/\evil.com“ jako „//evil.com“ (R113)
+            'body' => [
+                'required', 'string', 'max:'.config()->integer('letaky.notifications.announcement.body_max_length'),
+                // Odkazy v textu (R175) se stejnými pravidly jako pole Odkaz
+                function (string $attribute, mixed $value, Closure $fail): void {
+                    if (is_string($value) && AnnouncementText::hasInvalidLink($value)) {
+                        $fail(__('app.ui.announcements.body_link_invalid'));
+                    }
+                },
+            ],
             'url' => [
                 'nullable', 'string', 'max:'.config()->integer('letaky.notifications.announcement.url_max_length'),
-                'regex:~^(/(?!/)[^\s\\\\]*|https://\S+)$~',
+                'regex:'.AnnouncementText::URL_PATTERN,
             ],
             'category' => ['required', Rule::enum(AnnouncementCategory::class)],
             'push' => ['boolean', Rule::prohibitedIf(fn (): bool => $this->boolean('push') && $this->input('category') === AnnouncementCategory::Marketing->value)],

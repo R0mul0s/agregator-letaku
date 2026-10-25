@@ -138,6 +138,7 @@ it('záznam pro adminy ukáže centrum upozornění s textem a odkazem a cron ho
         ->where('notifications.0.text', 'Cena je jiná — Máslo (Lidl)'));
     $this->get(route('notifications.show', $id))->assertInertia(fn (Assert $page) => $page
         ->where('announcement.body', 'Cena je jiná — Máslo (Lidl)')
+        ->where('announcement.links', false)
         ->where('announcement.url', '/hlaseni'));
 
     app(SendPushNotifications::class)();

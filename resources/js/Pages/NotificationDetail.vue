@@ -8,6 +8,7 @@
     @created 2026-10-05
 -->
 <script setup>
+import AnnouncementBody from '@/Components/AnnouncementBody.vue';
 import OfferRow from '@/Components/OfferRow.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { formatDateTime } from '@/lib/format';
@@ -26,7 +27,7 @@ const props = defineProps({
     indexUrl: { type: String, required: true },
     readUrl: { type: String, required: true },
     shoppingListUrl: { type: String, required: true },
-    /** Zpráva od nás (11d) { body, url, external }; null u záznamů s akcemi. */
+    /** Zpráva od nás (11d) { body, links, url, external }; null u záznamů s akcemi. */
     announcement: { type: Object, default: null },
 });
 
@@ -63,9 +64,9 @@ onMounted(() => {
             <Link :href="shoppingListUrl" class="button button--primary">{{ t('notifications.open_shopping_list') }}</Link>
         </p>
 
-        <!-- Zpráva od nás (11d): text s řádky, jak je admin napsal, a odkaz -->
+        <!-- Zpráva od nás (11d): text s řádky, jak je admin napsal, odkazy v textu (R175) a odkaz -->
         <section v-if="announcement" class="card notification-detail__group">
-            <p class="notification-detail__body">{{ announcement.body }}</p>
+            <AnnouncementBody :body="announcement.body" :links="announcement.links" />
             <p v-if="announcement.url" class="notification-detail__actions">
                 <a v-if="announcement.external" :href="announcement.url" target="_blank" rel="noopener noreferrer" class="button button--primary">{{
                     t('notifications.open_link')

@@ -123,7 +123,7 @@ class NotificationController extends Controller
     /**
      * Text a odkaz zprávy od nás a upozornění adminům (R125, R126); null u záznamů s akcemi.
      *
-     * @return array{body: string, url: string|null, external: bool}|null
+     * @return array{body: string, links: bool, url: string|null, external: bool}|null
      */
     private function announcement(DatabaseNotification $record): ?array
     {
@@ -136,6 +136,8 @@ class NotificationController extends Controller
 
         return [
             'body' => $announcement['body'],
+            // Odkazy v textu (R175) jen u zprávy od admina — text upozornění adminům je z chyb a zdrojů
+            'links' => $kind === NotificationKind::Announcement,
             'url' => $announcement['url'],
             'external' => $announcement['url'] !== null && AnnouncementRecord::isExternal($announcement['url']),
         ];

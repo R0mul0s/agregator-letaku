@@ -34,10 +34,12 @@ final class NotificationPresenter
         }
 
         if ($kind === NotificationKind::Announcement || $kind->isAdminAlert()) {
-            // Zpráva od nás (11d) a upozornění adminům (R125, R126): nadpis a začátek textu
+            // Zpráva od nás (11d) a upozornění adminům (R125, R126): nadpis a začátek textu,
+            // u zprávy bez značek odkazů (R175)
             $announcement = AnnouncementRecord::read($notification);
             $title = $announcement['title'];
-            $text = Str::limit($announcement['body'], config()->integer('letaky.notifications.announcement_excerpt'));
+            $body = $kind === NotificationKind::Announcement ? AnnouncementText::plain($announcement['body']) : $announcement['body'];
+            $text = Str::limit($body, config()->integer('letaky.notifications.announcement_excerpt'));
             $lowestCount = 0;
         } else {
             $groups = OffersNotification::groups($notification);

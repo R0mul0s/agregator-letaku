@@ -25,6 +25,7 @@ declare(strict_types=1);
 namespace App\Domain\Push\Actions;
 
 use App\Domain\Notifications\AnnouncementRecord;
+use App\Domain\Notifications\AnnouncementText;
 use App\Domain\Notifications\NotificationPresenter;
 use App\Domain\Notifications\OffersNotification;
 use App\Domain\Notifications\UserBatch;
@@ -231,7 +232,7 @@ final class SendPushNotifications
 
     /**
      * Upozornění na zprávu od nás (11d): nejnovější zpráva s nadpisem a začátkem textu,
-     * klepnutí otevře její záznam.
+     * klepnutí otevře její záznam. Odkazy v textu jen jako slova (R175).
      *
      * @param  Collection<int, DatabaseNotification>  $records  Zprávy od nejnovější
      */
@@ -246,7 +247,7 @@ final class SendPushNotifications
 
         return new PushMessage(
             title: $announcement['title'],
-            body: Str::limit($announcement['body'], config()->integer('letaky.notifications.announcement_excerpt')),
+            body: Str::limit(AnnouncementText::plain($announcement['body']), config()->integer('letaky.notifications.announcement_excerpt')),
             url: route('notifications.show', $latest->id, absolute: false),
             tag: NotificationKind::Announcement->pushTag(),
             badge: $unreadCount,

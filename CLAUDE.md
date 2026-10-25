@@ -32,7 +32,7 @@ Hotové etapy a funkce jsou v PLAN.md (tabulka *Co platí a co ne*, kap. 6 Etapy
 | Všechny akce (veřejné), obchod, produkt a prodejna čistou adresou, jejich kanál RSS | `/akce`, `/akce/lidl`, `/akce/pivo`, `/akce/kaufland/trutnov`, `/akce/lidl/rss` | R44, R71, R82, R94, R100–R102, R118, R119, R141, R149, R158 (stránka produktu), R159 + R163 (detail akce s cenami v akcích), R162–R164 (ceny s kartou, prodejna), R171 (hledání bez výsledků), R172 (stránka prodejny) |
 | Nejlepší slevy týdne (veřejné) s archivem | `/tyden` → `/tyden/2026-41` | R128, R143 |
 | Hlídám, katalog (admin), nákupní seznam (i sdílený odkazem) | `/hlidam`, `/katalog`, `/seznam`, `/seznam/s/{token}` | R39, R47, R144, R148, R152 / R24, R28–R31, R171 / R61, R130, R146, R148 |
-| Centrum upozornění, zprávy od nás (admin), uživatelé (admin), hlášení (admin), kvalita dat (admin) | `/upozorneni`, `/zpravy`, `/uzivatele`, `/hlaseni`, `/kvalita-dat` | R74, R84, R125, R129 |
+| Centrum upozornění, zprávy od nás (admin), uživatelé (admin), hlášení (admin), kvalita dat (admin) | `/upozorneni`, `/zpravy`, `/uzivatele`, `/hlaseni`, `/kvalita-dat` | R74, R84, R125, R129, R175 (odkazy v textu zprávy) |
 | Můj účet, Moje obchody | `/ucet`, `/obchody` | R40, R63, R64, R96, R98, R116 |
 | Průvodce prvním nastavením nového účtu | `/vitejte?krok=1` | R153 |
 | Přihlášení, registrace, kontakt, právní texty | `/prihlaseni`, `/registrace`, `/kontakt`, `/podminky`, `/ochrana-udaju` | R51, R72, R73, R116, R121, R123 |
