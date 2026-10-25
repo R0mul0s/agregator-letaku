@@ -261,12 +261,34 @@ it('stránka produktu a sitemap: titulek s produktem, čistá adresa v sitemap j
         ->productAssignments()->create(['product_id' => $beer->id, 'status' => MatchStatus::Match, 'is_manual' => false]);
 
     $html = $this->get('/akce/pivo')->getContent();
-    expect(metaContent($html, 'og:title'))->toBe('Pivo v akci — kde je nejlevněji · Slevohlídka')
+    // S dnes platnou akcí titulek s nejnižší cenou a počtem akcí (R158)
+    expect(metaContent($html, 'og:title'))->toBe("Pivo v akci od 29,90\u{A0}Kč — 1 akce · Slevohlídka")
         ->and($html)->toContain('<link rel="canonical" href="'.url('/akce/pivo').'">');
 
     $this->get('/sitemap.xml')
         ->assertSee('<loc>'.url('/akce/pivo').'</loc>', false)
         ->assertDontSee('/akce/maslo', false);
+});
+
+it('titulek a popis produktu: nejnižší cena, nejvýhodnější akce za kilo a další obchody; bez platné akce obecný text (R158)', function (): void {
+    $butter = Product::factory()->create(['name' => 'Máslo']);
+    $assign = fn (Offer $offer) => $offer->productAssignments()->create(['product_id' => $butter->id, 'status' => MatchStatus::Match, 'is_manual' => false]);
+    // Nejlevnější kus, ale dražší za kilo
+    $assign(Offer::factory()->create(['chain' => Chain::Tesco, 'name' => 'Máslo 125 g', 'price' => 2990, 'quantity' => 125, 'unit' => PackageUnit::Gram]));
+    // Nejvýhodnější za kilo
+    $assign(Offer::factory()->create(['chain' => Chain::Lidl, 'name' => 'Máslo 250 g', 'price' => 3990, 'quantity' => 250, 'unit' => PackageUnit::Gram, 'valid_to' => '2026-10-07']));
+    $assign(Offer::factory()->create(['chain' => Chain::Billa, 'name' => 'Máslo 250 g', 'price' => 4990, 'quantity' => 250, 'unit' => PackageUnit::Gram]));
+    // Ještě nezačala — nepočítá se
+    $assign(Offer::factory()->create(['chain' => Chain::Penny, 'name' => 'Máslo 250 g', 'price' => 1990, 'quantity' => 250, 'unit' => PackageUnit::Gram, 'valid_from' => '2026-10-05', 'valid_to' => '2026-10-11']));
+
+    $html = $this->get('/akce/maslo')->getContent();
+
+    expect(metaContent($html, 'og:title'))->toBe("Máslo v akci od 29,90\u{A0}Kč — 3 akce · Slevohlídka")
+        ->and(metaContent($html, 'description'))->toBe("Máslo v akci: nejvýhodněji teď Lidl za 39,90\u{A0}Kč (159,60\u{A0}Kč za kg), platí do 7. 10. Dál v akci: Tesco a Billa.");
+
+    // Bez dnes platné akce (jen budoucí) zůstane obecný titulek
+    Offer::query()->where('chain', '!=', Chain::Penny)->delete();
+    expect(metaContent($this->get('/akce/maslo')->getContent(), 'og:title'))->toBe('Máslo v akci — kde je nejlevněji · Slevohlídka');
 });
 
 it('přihlášení a registrace mají vlastní titulek a nadpis i bez JavaScriptu, zůstávají noindex (R123)', function (string $route, string $kind, string $other): void {

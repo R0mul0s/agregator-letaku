@@ -40,8 +40,9 @@ import WatchOfferButton from '@/Components/WatchOfferButton.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { MEDIA_FROM_MD } from '@/lib/breakpoints';
 import { debounce } from '@/lib/debounce';
-import { formatNumber } from '@/lib/format';
+import { formatNumber, formatPrice } from '@/lib/format';
 import { useTranslations } from '@/lib/i18n';
+import { unitPriceLabel } from '@/lib/offer';
 import { rememberSearch } from '@/lib/search';
 import { updatedLabel } from '@/lib/updated';
 import { useCompactView } from '@/lib/viewMode';
@@ -104,6 +105,10 @@ const props = defineProps({
     watchUrls: { type: Object, required: true },
     /** Název produktu katalogu, jehož akce výpis ukazuje (filtr z našeptávače), nebo null. */
     product: { type: String, default: null },
+    /** Stránka produktu (R158): co hlídat tlačítkem v pruhu { productId, name, watched }, jinak null. */
+    productWatch: { type: Object, default: null },
+    /** Shrnutí dnes platných akcí produktu { count, chainsCount, best: { chain, price, unitPrice, unitKey } }, jinak null. */
+    productSummary: { type: Object, default: null },
     /** Opravený překlep { original, corrected }, nebo null. */
     correction: { type: Object, default: null },
     /** Kanál RSS výpisu jednoho obchodu nebo produktu (R149), jinak null. */
@@ -237,6 +242,20 @@ function focusSearch() {
 
 /** „Aktualizováno dnes v 6:30“ v pruhu podle posledního stažení (sdílená patička, R92). */
 const updated = computed(() => updatedLabel(page.props.siteFooter?.lastImportAt, page.props.locale, page.props.timezone, t));
+
+/** Shrnutí v pruhu stránky produktu (R158): „Nejvýhodněji teď Lidl za 24,90 Kč (199,00 Kč za kg).“ */
+const productLead = computed(() => {
+    const best = props.productSummary?.best;
+    if (!best) {
+        return null;
+    }
+    const chain = page.props.chainInfo?.[best.chain]?.name ?? best.chain;
+    const price = formatPrice(best.price, page.props.locale);
+
+    return best.unitPrice === null
+        ? t('offers.product_hero.best', { chain, price })
+        : t('offers.product_hero.best_unit', { chain, price, unit_price: unitPriceLabel(best.unitPrice, best.unitKey, page.props.locale, t) });
+});
 
 /** Jediný vybraný obchod (stránka /akce/lidl) — logo v nadpisu a věta o obchodě, jinak null. */
 const singleChain = computed(() => (filters.chain.length === 1 ? (props.chains.find((chain) => chain.value === filters.chain[0]) ?? null) : null));
@@ -388,7 +407,19 @@ onBeforeUnmount(() => liveSearch.cancel());
                         <span v-if="singleChain" class="offers-hero__logo"><ChainLogo :chain="singleChain.value" large /></span>
                         {{ heading }}
                     </h1>
-                    <p class="offers-hero__lead">
+                    <!-- Stránka produktu (R158): nejvýhodnější akce a „Hlídat“ — lidé z ChatGPT a Googlu
+                         přicházejí rovnou sem a dřív odcházeli bez jediného dalšího kroku -->
+                    <div v-if="productWatch" class="offers-hero__product">
+                        <p v-if="productLead" class="offers-hero__product-lead">
+                            {{ productLead }}
+                            {{ t('offers.product_hero.count', { count: productSummary.count }) }}
+                        </p>
+                        <WatchOfferButton :target="productWatch" :urls="watchUrls" hero />
+                        <p v-if="!productWatch.watched" class="offers-hero__product-note">
+                            {{ t('offers.product_hero.note', { name: productWatch.name }) }}
+                        </p>
+                    </div>
+                    <p v-else class="offers-hero__lead">
                         {{ singleChain ? t('offers.hero_lead_chain', { chain: singleChain.name }) : t('offers.hero_lead', { chains: chains.length }) }}
                     </p>
                     <form class="offers-hero__search" role="search" @submit.prevent="submitSearch(filters.q)">

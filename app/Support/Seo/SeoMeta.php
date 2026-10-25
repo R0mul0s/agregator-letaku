@@ -23,9 +23,11 @@ use App\Domain\Offers\OfferFeed;
 use App\Domain\Offers\OfferFilters;
 use App\Domain\Offers\OfferPages;
 use App\Domain\Offers\OfferSearch;
+use App\Domain\Offers\ProductOfferSummary;
 use App\Domain\Offers\WeeklyDeals;
 use App\Enums\Chain;
 use App\Http\Requests\OffersRequest;
+use App\Support\PriceFormatter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 
@@ -39,6 +41,8 @@ final class SeoMeta
         private readonly OfferSearch $search,
         private readonly StructuredData $structuredData,
         private readonly OfferFeed $feed,
+        private readonly ProductOfferSummary $summaries,
+        private readonly PriceFormatter $prices,
     ) {}
 
     private const INDEX = 'index, follow';
@@ -60,6 +64,9 @@ final class SeoMeta
 
     private const OG_IMAGE_HEIGHT = 630;
 
+    /** Konec platnosti v popisu produktu (R158): „28. 10.“ — rok je zřejmý. */
+    private const SHORT_DATE_FORMAT = 'j. n.';
+
     /**
      * Metadata stránky podle routy a parametrů. `heading` je nadpis stránky pro obsah
      * pro roboty bez JavaScriptu (resources/views/seo/content.blade.php, R94). `$inertiaPage`
@@ -78,9 +85,9 @@ final class SeoMeta
         $props = is_array($inertiaPage['props'] ?? null) ? $inertiaPage['props'] : [];
         $robots = $this->robots($routeName, $page, $request, $productId, $props);
         $replace = $this->replacements($chain, $productId, $this->week($request, $routeName));
-        $title = __("app.seo.pages.{$page}.title", $replace);
+        $title = $this->text($request, $page, 'title', $replace, $productId);
         $heading = __("app.seo.pages.{$page}.heading", $replace);
-        $description = __("app.seo.pages.{$page}.description", $replace);
+        $description = $this->text($request, $page, 'description', $replace, $productId);
         $canonical = $this->canonical($request, $routeName, $chain, $productId);
 
         return [
@@ -112,7 +119,7 @@ final class SeoMeta
         $routeName = (string) $request->route()?->getName();
         [$chain, $productId] = $this->target($request, $routeName);
 
-        return __("app.seo.pages.{$this->page($request, $routeName, $chain, $productId)}.title", $this->replacements($chain, $productId, $this->week($request, $routeName)));
+        return $this->text($request, $this->page($request, $routeName, $chain, $productId), 'title', $this->replacements($chain, $productId, $this->week($request, $routeName)), $productId);
     }
 
     /**
@@ -181,6 +188,60 @@ final class SeoMeta
         $slug = $request->route(WeeklyDeals::WEEK_PARAMETER);
 
         return $routeName === WeeklyDeals::ROUTE && is_string($slug) ? IsoWeek::fromSlug($slug) : null;
+    }
+
+    /**
+     * Titulek nebo popis stránky. Produkt s dnes platnou akcí (R158) má v obou aktuální cenu
+     * a počet akcí — proklik z výsledků hledání byl s obecným textem kolem 1 %. Jen
+     * nefiltrovaný výpis produktu; filtrovaný se neindexuje a čísla by s ním neseděla.
+     *
+     * @param  'title'|'description'  $field
+     * @param  array<string, string>  $replace
+     */
+    private function text(Request $request, string $page, string $field, array $replace, ?int $productId): string
+    {
+        $summary = $page === 'offers_product' && $productId !== null && ! $this->isFiltered($request)
+            ? $this->summaries->for($productId)
+            : null;
+        if ($summary === null) {
+            return __("app.seo.pages.{$page}.{$field}", $replace);
+        }
+
+        if ($field === 'title') {
+            return trans_choice('app.seo.pages.offers_product.title_offers', $summary['count'], [
+                ...$replace,
+                'price' => $this->prices->format($summary['lowestPrice']),
+            ]);
+        }
+
+        $best = $summary['best'];
+        $others = array_values(array_filter($summary['chains'], fn (Chain $chain): bool => $chain !== $best['chain']));
+
+        return __('app.seo.pages.offers_product.description_offers', [
+            ...$replace,
+            'chain' => $best['chain']->label(),
+            'price' => $this->prices->format($best['price']),
+            'unit_price' => $best['unitPrice'] === null ? '' : __('app.seo.pages.offers_product.description_unit_price', [
+                'price' => $this->prices->format($best['unitPrice']),
+                'unit' => __('app.ui.unit_price_units.'.$best['unitKey']),
+            ]),
+            'date' => $best['validTo']->format(self::SHORT_DATE_FORMAT),
+            'others' => $others === [] ? '' : __('app.seo.pages.offers_product.description_others', [
+                'chains' => self::listOf(array_map(fn (Chain $chain): string => $chain->label(), $others)),
+            ]),
+        ]);
+    }
+
+    /**
+     * Výčet „Kaufland, Tesco a Billa“.
+     *
+     * @param  list<string>  $items
+     */
+    private static function listOf(array $items): string
+    {
+        $last = array_pop($items);
+
+        return $items === [] ? (string) $last : implode(', ', $items).__('app.seo.list_last_separator').$last;
     }
 
     /**

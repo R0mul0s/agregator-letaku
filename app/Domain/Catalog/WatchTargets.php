@@ -62,4 +62,18 @@ final class WatchTargets
 
         return $targets;
     }
+
+    /**
+     * Cíl hlídání pro stránku produktu (`/akce/camembert`, R158) — tlačítko v červeném pruhu.
+     *
+     * @return array{productId: int, name: string, watched: bool}
+     */
+    public function forProduct(int $productId, string $name, ?User $user): array
+    {
+        return [
+            'productId' => $productId,
+            'name' => $name,
+            'watched' => $user !== null && $user->watchItems()->where('product_id', $productId)->exists(),
+        ];
+    }
 }

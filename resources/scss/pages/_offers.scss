@@ -131,6 +131,28 @@
         }
     }
 
+    // Stránka produktu (R158): nejvýhodnější akce a žluté „Hlídat“ — na rozdíl od popisu
+    // i na telefonu, tam přicházejí lidé z ChatGPT a Googlu
+    &__product {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--space-2);
+        max-width: var(--landing-lead-max-width);
+    }
+
+    &__product-lead {
+        margin: 0;
+        color: var(--color-landing-on-hero);
+        font-weight: var(--font-weight-bold);
+    }
+
+    &__product-note {
+        margin: 0;
+        color: var(--color-landing-on-hero-soft);
+        font-size: var(--font-size-sm);
+    }
+
     // Hledání — bílá „pilulka“ s tlačítkem (SearchField on-hero, R147)
     &__search {
         align-self: stretch;

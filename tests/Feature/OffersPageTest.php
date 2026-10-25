@@ -22,6 +22,7 @@ use App\Models\Offer;
 use App\Models\OfferProduct;
 use App\Models\Product;
 use App\Models\User;
+use App\Models\WatchItem;
 use App\Support\Pagination\PaginationLinks;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Cache;
@@ -512,4 +513,36 @@ it('počítá akce oddělení jen ve vybraných obchodech (dlaždice, R141)', fu
 
     $this->get(route('offers'))->assertInertia(fn (Assert $page) => $page->where('filterOptions.departments.0.count', 3));
     $this->get('/akce/lidl')->assertInertia(fn (Assert $page) => $page->where('filterOptions.departments.0.count', 1));
+});
+
+it('stránka produktu: v pruhu „Hlídat“ a shrnutí dnes platných akcí, při hledání bez shrnutí (R158)', function (): void {
+    $product = Product::factory()->create(['name' => 'Máslo']);
+    $assign = fn (Offer $offer) => $offer->productAssignments()->create(['product_id' => $product->id, 'status' => MatchStatus::Match, 'is_manual' => false]);
+    $assign(Offer::factory()->create(['chain' => Chain::Tesco, 'name' => 'Máslo 125 g', 'price' => 2990, 'quantity' => 125, 'unit' => PackageUnit::Gram]));
+    $assign(Offer::factory()->create(['chain' => Chain::Lidl, 'name' => 'Máslo 250 g', 'price' => 3990, 'quantity' => 250, 'unit' => PackageUnit::Gram]));
+
+    $this->get('/akce/maslo')->assertInertia(fn (Assert $page) => $page
+        ->where('productWatch', ['productId' => $product->id, 'name' => 'Máslo', 'watched' => false])
+        ->where('productSummary', ['count' => 2, 'chainsCount' => 2, 'best' => ['chain' => 'lidl', 'price' => 3990, 'unitPrice' => 15960, 'unitKey' => 'kg']]));
+
+    // Hlídaný produkt — tlačítko ukáže „Hlídáte“
+    WatchItem::factory()->for(auth()->user())->create(['name' => 'Máslo', 'product_id' => $product->id, 'keywords' => null]);
+    $this->get('/akce/maslo')->assertInertia(fn (Assert $page) => $page->where('productWatch.watched', true));
+
+    // Hledání ve výpisu produktu: čísla by neseděla s výpisem
+    $this->get('/akce/maslo?q=250')->assertInertia(fn (Assert $page) => $page->where('productSummary', null)->where('productWatch.productId', $product->id));
+
+    // Jinde ani tlačítko, ani shrnutí; nepřihlášený tlačítko má
+    $this->get(route('offers'))->assertInertia(fn (Assert $page) => $page->where('productWatch', null)->where('productSummary', null));
+    auth()->logout();
+    $this->get('/akce/maslo')->assertInertia(fn (Assert $page) => $page->where('productWatch.watched', false)->where('productSummary.count', 2));
+});
+
+it('shrnutí produktu vynechá cenu za jednotku, když je stejná jako cena (balení 1 ks, R158)', function (): void {
+    $product = Product::factory()->create(['name' => 'LEGO']);
+    Offer::factory()->create(['chain' => Chain::Tesco, 'name' => 'LEGO City', 'price' => 22990, 'quantity' => 1, 'unit' => PackageUnit::Piece])
+        ->productAssignments()->create(['product_id' => $product->id, 'status' => MatchStatus::Match, 'is_manual' => false]);
+
+    $this->get('/akce/lego')->assertInertia(fn (Assert $page) => $page
+        ->where('productSummary.best', ['chain' => 'tesco', 'price' => 22990, 'unitPrice' => null, 'unitKey' => null]));
 });

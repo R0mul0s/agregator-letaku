@@ -223,4 +223,15 @@
         color: var(--color-success-text);
         font-weight: var(--font-weight-bold);
     }
+
+    // V červeném pruhu stránky produktu (R158): velikost běžného tlačítka, potvrzení bílým písmem
+    &--hero {
+        min-height: var(--control-size);
+        padding: var(--space-2) var(--space-4);
+        font-size: inherit;
+    }
+
+    &--done#{&}--hero {
+        color: var(--color-landing-on-hero);
+    }
 }

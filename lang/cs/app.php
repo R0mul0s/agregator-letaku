@@ -43,6 +43,12 @@ return [
                 'title' => ':product v akci — kde je nejlevněji · Slevohlídka',
                 'heading' => ':product v akci',
                 'description' => ':product v akci: kde je právě nejlevněji a za kolik. Aktuální ceny z letáků Kauflandu, Tesca, Albertu, Lidlu, Penny, Globusu a Billy, i za kilo nebo litr.',
+                // S dnes platnou akcí (R158, ProductOfferSummary): nejnižší cena a počet akcí,
+                // v popisu nejvýhodnější akce podle ceny za jednotku a další obchody
+                'title_offers' => ':product v akci od :price — :count akce · Slevohlídka|:product v akci od :price — :count akce · Slevohlídka|:product v akci od :price — :count akcí · Slevohlídka',
+                'description_offers' => ':product v akci: nejvýhodněji teď :chain za :price:unit_price, platí do :date:others',
+                'description_unit_price' => ' (:price za :unit)',
+                'description_others' => ' Dál v akci: :chains.',
             ],
             'terms' => [
                 'title' => 'Podmínky užití · Slevohlídka',
@@ -100,6 +106,8 @@ return [
             'operator_title' => 'Kdo Slevohlídku provozuje',
         ],
         'og_image_alt' => 'Slevohlídka — rychlý lovec slev. Maskot s nákupním košíkem a cenovkou.',
+        // Poslední oddělovač výčtu („Kaufland, Tesco a Billa“, R158)
+        'list_last_separator' => ' a ',
         'organization_description' => 'Slevohlídka hlídá akce z letáků obchodů Kaufland, Tesco, Albert, Lidl, Penny, Globus a Billa.',
     ],
 
@@ -898,6 +906,13 @@ return [
             // Červený pruh Všech akcí (R141): věta pod nadpisem, tlačítko hledání, obchody, slevy týdne
             'hero_lead' => 'Akce ze :chains obchodů na jednom místě. Hledejte, vyberte obchod nebo oddělení a řaďte podle ceny za kilo.',
             'hero_lead_chain' => 'Akce z letáku a webu obchodu :chain. Hledejte, vyberte oddělení a řaďte podle ceny za kilo.',
+            // Stránka produktu (R158): shrnutí v červeném pruhu a „Hlídat“
+            'product_hero' => [
+                'best' => 'Nejvýhodněji teď :chain za :price.',
+                'best_unit' => 'Nejvýhodněji teď :chain za :price (:unit_price).',
+                'count' => 'Celkem :count akce.|Celkem :count akce.|Celkem :count akcí.',
+                'note' => 'Zdarma. Dáme vědět, až bude :name znovu v akci.',
+            ],
             'search_submit' => 'Najít',
             // Odběr akcí obchodu nebo produktu ve čtečce RSS (R149)
             'feed' => 'Odebírat přes RSS',

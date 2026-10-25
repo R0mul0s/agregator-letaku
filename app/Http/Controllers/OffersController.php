@@ -27,6 +27,7 @@ use App\Domain\Offers\OfferPages;
 use App\Domain\Offers\OfferPresenter;
 use App\Domain\Offers\OfferSearch;
 use App\Domain\Offers\PriceHistory;
+use App\Domain\Offers\ProductOfferSummary;
 use App\Domain\Offers\SearchVocabulary;
 use App\Enums\Chain;
 use App\Enums\OfferListSort;
@@ -37,6 +38,7 @@ use App\Models\Product;
 use App\Models\User;
 use App\Support\Pagination\PaginationLinks;
 use App\Support\Seo\SeoMeta;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -49,7 +51,7 @@ class OffersController extends Controller
      * Zobrazí neskončené akce odpovídající hledání, v načteném rozsahu stránek. Stará adresa
      * jednoho obchodu nebo produktu (`?chain=lidl`, `?produkt=12`) přesměruje na čistou (R94).
      */
-    public function __invoke(OffersRequest $request, OfferSearch $search, OfferPresenter $presenter, PriceHistory $priceHistory, WatchTargets $watchTargets, SearchVocabulary $vocabulary, OfferPages $pages, OfferDepartments $departments): Response|RedirectResponse
+    public function __invoke(OffersRequest $request, OfferSearch $search, OfferPresenter $presenter, PriceHistory $priceHistory, WatchTargets $watchTargets, SearchVocabulary $vocabulary, OfferPages $pages, OfferDepartments $departments, ProductOfferSummary $productSummary): Response|RedirectResponse
     {
         abort_if($request->pathTarget() === null, HttpResponse::HTTP_NOT_FOUND);
         $cleanUrl = $this->cleanUrl($request, $pages);
@@ -93,6 +95,7 @@ class OffersController extends Controller
         // „Hlídat“ z karty (R60): produkt katalogu akce, nebo její název jako vlastní slova
         $user = $request->user();
         $targets = $watchTargets->forOffers($offers, $user instanceof User ? $user : null);
+        $productName = $productId === null ? null : Product::query()->whereKey($productId)->value('name');
         $offersPage = [
             'data' => $offers
                 ->map(fn (Offer $offer): array => [
@@ -169,7 +172,14 @@ class OffersController extends Controller
                 'url' => route('preferences', absolute: false),
             ] : null,
             // Filtr produktu z našeptávače jako štítek nad výsledky (R71)
-            'product' => $productId === null ? null : Product::query()->whereKey($productId)->value('name'),
+            'product' => $productName,
+            // Stránka produktu (R158): „Hlídat“ v červeném pruhu a shrnutí dnes platných akcí —
+            // shrnutí jen u výpisu bez hledání a výběru obchodů, jinak by čísla neseděla s výpisem
+            'productWatch' => $productId === null || $productName === null ? null
+                : $watchTargets->forProduct($productId, $productName, $user instanceof User ? $user : null),
+            'productSummary' => fn (): ?array => $productId !== null && $searchText === null && $offerFilters->chains === []
+                ? self::summaryProps($productSummary->for($productId))
+                : null,
             // Odběr přes RSS (R149) — jen výpis jednoho obchodu nebo produktu
             'feedUrl' => OfferFeed::url(
                 $productId === null && count($chosenFilters->chains) === 1 ? $chosenFilters->chains[0] : null,
@@ -183,6 +193,27 @@ class OffersController extends Controller
                 'name' => $chain->label(),
             ], Chain::enabled()),
         ]);
+    }
+
+    /**
+     * Shrnutí akcí produktu pro červený pruh (R158): počet a nejvýhodnější akce podle ceny
+     * za jednotku; null bez dnes platné akce. Ceny v haléřích, formátuje Vue.
+     *
+     * @param  array{count: int, chains: list<Chain>, lowestPrice: int, best: array{chain: Chain, price: int, unitPrice: int|null, unitKey: string|null, validTo: CarbonImmutable}}|null  $summary
+     * @return array{count: int, chainsCount: int, best: array{chain: string, price: int, unitPrice: int|null, unitKey: string|null}}|null
+     */
+    private static function summaryProps(?array $summary): ?array
+    {
+        return $summary === null ? null : [
+            'count' => $summary['count'],
+            'chainsCount' => count($summary['chains']),
+            'best' => [
+                'chain' => $summary['best']['chain']->value,
+                'price' => $summary['best']['price'],
+                'unitPrice' => $summary['best']['unitPrice'],
+                'unitKey' => $summary['best']['unitKey'],
+            ],
+        ];
     }
 
     /**

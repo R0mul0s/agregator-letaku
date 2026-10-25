@@ -18,6 +18,8 @@ const props = defineProps({
     target: { type: Object, required: true },
     /** Adresy a názvy parametrů { store, index, register, prefillParameter, watchParameter, stayField }. */
     urls: { type: Object, required: true },
+    /** Velké žluté tlačítko v červeném pruhu stránky produktu (R158) místo malého na kartě. */
+    hero: { type: Boolean, default: false },
 });
 
 const t = useTranslations();
@@ -25,6 +27,9 @@ const page = usePage();
 const processing = ref(false);
 
 const isGuest = computed(() => !page.props.auth.user);
+
+/** Vzhled tlačítka: na kartě jemné, v pruhu produktu žluté (jen na červeném pruhu, R137). */
+const buttonClass = computed(() => (props.hero ? 'button button--highlight watch-offer watch-offer--hero' : 'button button--soft watch-offer'));
 
 /** Registrace s produktem k hlídání po ní. */
 const registerHref = computed(() =>
@@ -50,12 +55,12 @@ function watchProduct() {
 </script>
 
 <template>
-    <span v-if="target.watched" class="watch-offer watch-offer--done">{{ t('offers.watch.watched', { name: target.name }) }}</span>
-    <Link v-else-if="isGuest" :href="registerHref" class="button button--soft watch-offer">
+    <span v-if="target.watched" class="watch-offer watch-offer--done" :class="{ 'watch-offer--hero': hero }">{{ t('offers.watch.watched', { name: target.name }) }}</span>
+    <Link v-else-if="isGuest" :href="registerHref" :class="buttonClass">
         {{ target.productId ? t('offers.watch.product', { name: target.name }) : t('offers.watch.own') }}
     </Link>
-    <button v-else-if="target.productId" type="button" class="button button--soft watch-offer" :disabled="processing" @click="watchProduct">
+    <button v-else-if="target.productId" type="button" :class="buttonClass" :disabled="processing" @click="watchProduct">
         {{ t('offers.watch.product', { name: target.name }) }}
     </button>
-    <Link v-else :href="prefillHref" class="button button--soft watch-offer">{{ t('offers.watch.own') }}</Link>
+    <Link v-else :href="prefillHref" :class="buttonClass">{{ t('offers.watch.own') }}</Link>
 </template>
