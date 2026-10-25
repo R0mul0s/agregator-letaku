@@ -92,63 +92,72 @@
     }
 }
 
-// Graf cen v akcích (R163, PriceHistoryChart.vue) — jedna řada, tenké čáry, nenápadná osa
+// Ceny v akcích (R163, PriceHistoryChart.vue) — řádek na akci: datum, pruh od nuly, cena
 .price-history {
     margin: var(--space-2) 0 0;
 
     &__title {
-        margin-bottom: var(--space-1);
+        margin-bottom: var(--space-2);
         color: var(--color-text-muted);
         font-size: var(--font-size-sm);
         font-weight: var(--font-weight-bold);
     }
 
-    &__chart {
-        display: block;
-        width: 100%;
-        height: auto;
-        overflow: visible;
+    &__rows {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        gap: var(--space-2) var(--space-3);
+        align-items: center;
+        margin: 0;
+        padding: 0;
+        list-style: none;
     }
 
-    &__baseline {
-        stroke: var(--color-border);
-        stroke-width: 1;
+    // Řádek se dělí o mřížku seznamu — sloupce dat, pruhů a cen jsou zarovnané pod sebou
+    &__row {
+        display: contents;
     }
 
-    &__step {
-        stroke: var(--color-text-muted);
-        stroke-width: 2;
-        stroke-linecap: round;
-
-        &--current {
-            stroke: var(--color-price);
-            stroke-width: 3;
-        }
+    &__range {
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+        white-space: nowrap;
     }
 
-    &__original {
-        stroke: var(--color-text-muted);
-        stroke-width: 1;
-        stroke-dasharray: 3 3;
-        opacity: 0.6;
-    }
-
-    &__hit {
-        fill: transparent;
-    }
-
-    &__label {
-        fill: var(--color-text-muted);
-        font-size: var(--price-history-label-size);
+    &__now {
+        margin-left: var(--space-1);
+        color: var(--color-text);
         font-weight: var(--font-weight-bold);
-
-        &--current {
-            fill: var(--color-text);
-        }
     }
 
-    &__axis {
-        fill: var(--color-text-muted);
-        font-size: var(--price-history-axis-size);
+    &__track {
+        display: block;
+        height: var(--price-history-bar-height);
+    }
+
+    // Délka z ceny (vlastní vlastnost --price-history-bar), tenký pruh se zaobleným koncem
+    &__bar {
+        display: block;
+        width: var(--price-history-bar);
+        height: 100%;
+        background: var(--color-text-muted);
+        border-radius: 0 var(--radius-pill) var(--radius-pill) 0;
+        opacity: 0.55;
+    }
+
+    &__price {
+        font-size: var(--font-size-sm);
+        font-weight: var(--font-weight-bold);
+        text-align: right;
+        white-space: nowrap;
+    }
+
+    &__row--current &__bar {
+        background: var(--color-price);
+        opacity: 1;
+    }
+
+    &__row--current &__price {
+        color: var(--color-price);
     }
 }

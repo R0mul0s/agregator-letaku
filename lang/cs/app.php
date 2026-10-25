@@ -512,7 +512,7 @@ return [
         'offer_detail' => [
             // Graf cen v akcích (R163, PriceHistoryChart)
             'history_title' => 'Ceny v akcích za posledních :weeks týdnů',
-            'history_point' => ':range: :price',
+            'history_now' => 'teď',
             'guest_text' => 'Chcete vědět, až bude zase v akci?',
             'guest_cta' => 'Hlídat zdarma',
         ],
