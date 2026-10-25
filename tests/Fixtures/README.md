@@ -63,6 +63,9 @@ s novým datem.
 | `hruska/home-2026-10-25.html` | `mojehruska.cz/` | jen blok „Aktuální leták 21.10.2026 - 27.10.2026“ s odkazem na PDF `media.mojehruska.cz/2026/10/43_26.pdf` (R165) |
 | `hruska/pdf-43-2026-10-25-strana-1.html`, `strana-4`, `strana-6`, `strana-12` | `pdftotext -bbox-layout -f N -l N` nad PDF letáku Hrušky 43/26 | celé strany beze změny: hlavička „Platnost: 21. 10.–27. 10. 2026“, klubové ceny, značka nad názvem, text zarovnaný vpravo, rámeček „POUZE STŘEDA“ s cenou dne (1); ovoce a zelenina „1 kg“ / „1 ks“ (4); klubová cena „od … bez klubu“, pult „229,-“ za kg (6); sloupce „SUPER pátek–neděle“ a „EXTRA pondělí–úterý“, „5×75 g“ za kus (12) |
 | `hruska/pdf-44-2026-10-25-strana-1.html` | `pdftotext -bbox-layout -f 1 -l 1` nad PDF letáku 44/26 (bez odkazu na webu) | titulní strana beze změny: „Platnost: 29. 10.–3. 11. 2026“, rámeček „POUZE ČTVRTEK“ |
+| `norma/angebote-2026-10-25.html` | `www.norma-online.de/cz/angebote/` | jen blok dvou letáků (2026-44 a 2026-45, každý odkaz na PDF dvakrát) (R166) |
+| `norma/pdf-2026-44-2026-10-25-strana-1.html`, `strana-3`, `strana-6`, `strana-7` | `pdftotext -bbox-layout -f N -l N` nad PDF letáku Normy 2026-44 | celé strany beze změny: titulní strana s hlavičkou platnosti, balením v názvu („2,25 l“) a pevným podílem „PP 360 g“ (1); textil nahoře a potraviny dole, procento po znacích „2“ „5“ „%“, text zarovnaný k poslednímu řádku názvu (3); znaky „, 9“ s mezerou, menší cenovky dole, přeškrtnutá „114,9“ „0“, ligatura „ﬁ“ (6); víkendová strana „od čtvrtka 29. října“ (7) |
+| `norma/pdf-2026-45-2026-10-25-strana-4.html` | `pdftotext -bbox-layout -f 4 -l 4` nad PDF letáku 2026-45 | popis menším písmem (6,8 b.) |
 
 Fixtures vygeneroval jednorázový skript z odpovědí uložených při průzkumu. Položky jsou
 beze změny; skript jen vybral podmnožinu a akce e-shopu Tesco přeskládal po 5 na stránku

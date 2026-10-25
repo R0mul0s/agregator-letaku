@@ -22,6 +22,7 @@ enum Chain: string
     case Globus = 'globus';
     case Billa = 'billa';
     case Hruska = 'hruska';
+    case Norma = 'norma';
 
     /**
      * Název obchodu pro zobrazení (lang/cs/app.php, skupina chains).

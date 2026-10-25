@@ -814,6 +814,48 @@ Měření 25. 10. 2026: leták 43/26 168 ověřených ze 177 cen, 44/26 171 ze 1
 217 z nich se přiřadilo k produktům katalogu. Leták pod `pdf_min_offers` (60) ověřenými akcemi = chyba (R16).
 Obrázky produktů nejsou (jen rastr PDF), odkaz akce vede na úvodní stránku s letákem.
 
+## Norma
+
+**Cesta:** jen PDF letáků přes `pdftotext -bbox-layout` (R86), bez LLM — implementováno (R166,
+`app/Domain/Sources/Norma`). Průzkum 25. 10. 2026. Česká část webu je na **`https://www.norma-online.de/cz/`**
+(`norma-online.cz` přesměruje 302, `www.norma.cz` má cizí certifikát); web je PHP s jQuery, bez API.
+`robots.txt` (norma-online.de) zakazuje pro `*` jen `/ws/` a jednu německou stránku; Akamai bez výzvy, bez
+cookies. Česká firma NORMA, k.s. (IČO 47114789). Jeden celostátní leták; výjimky jen textem v letáku
+(„Nabídka rozpékaného pečiva není platná pro prodejnu Praha – Větrník“). Náročnost střední.
+
+### Endpointy
+
+| Účel | Požadavek |
+|---|---|
+| Stránka nabídky | `GET https://www.norma-online.de/cz/angebote/` — HTML 52 kB; každý leták dvakrát (náhled a tlačítko) `href="/cz/angebote/online-prospekt/2026-44_CZ.pdf"`, nadpis „Nabídka na týden od pondělí 26.10.“; navíc 3 položky „Víno měsíce“ v HTML (nepoužívají se) |
+| PDF letáku | `…/cz/angebote/online-prospekt/{rok}-{ISO týden}_CZ.pdf` — 8 stran, 27–36 MB, ~2 s; `Last-Modified` se generuje při každém požadavku. Starší leták zůstává (KW43 200), budoucí jen ze stránky (odkazy neodhadovat) |
+| Prohlížeč (nepoužívá se) | `…/online-prospekt/2026-44_CZ/` — FlipHTML5 bez textu (`textForPages` prázdné), obrázky stran `files/large/{n}.jpg` |
+
+### Převod (`NormaLeafletParser`)
+
+Platnost letáku je týden pondělí–neděle podle čísla týdne v názvu souboru; strana má hlavičku s názvy měsíců
+„od pondělí 26. října do neděle 1. listopadu“, víkendové strany 7–8 „od čtvrtka 29. října do neděle
+1. listopadu“ (rok podle letáku přes `LeafletDates`).
+
+- **Dlaždice:** nahoře název (11,2–12,2 b., značka barevně na prvním řádku), pod ním popis (6,8–10,8 b. podle
+  letáku a strany) s balením a **cenou za jednotku v závorce bez rovnítka**: „• 280 g (100 g 9,61)“,
+  „0,5 l“ / „(1 l 39,80)“ přes dva řádky, dvě ceny „670 g / PP 360 g (100 g 3,72/6,92)“ (celková
+  hmotnost a pevný podíl) nebo „600/800 g (100 g 23,32/17,49)“. Text je zarovnaný vlevo, vpravo nebo
+  k poslednímu řádku názvu; balení bývá i posledním řádkem názvu („Pepsi“ / „Mirinda“ / „2,25 l“).
+- **Natočená cenovka** pod obrázkem: každý znak samostatné slovo posunuté nahoru („1“ „2“ „,“ „9“ „0“), někdy
+  víc znaků najednou („89,9“ „0“, „, 9“ s mezerou). Výška znaku cenovky 20–60 b., přeškrtnutá cena 10–17 b.
+  (poslední „0“ i 7,3 b.). Sleva „levnější o 25%“ jedním slovem, nebo po znacích „2“ „5“ „%“ (číslice ceny
+  vedle jsou větší); „super cena“ = akční cena bez slevy (R8).
+- Ligatury písma „ﬁ“ / „ﬂ“ s mezerou za sebou („ﬂ eecu“) a slova rozdělená na konci řádku („biﬁ do- kulturou“).
+- Neověří se: oblečení, textil, domácnost a dekorace („cena za provedení“, „cena za 20 párů“ — bez ceny za
+  jednotku), dlaždice s textem širším než název, ceny s překlepem „(1 l (133,20)“, Bromelie a květiny; u jedné
+  cenovky má textová vrstva vedle viditelné „9,90“ další skryté číslice.
+- `pdftotext -layout` slepí ceny do jednoho slova („34,9049,90“) — jen `-bbox-layout`.
+
+Měření 25. 10. 2026: leták 2026-44 112 ověřených ze 185 cen, 2026-45 98 ze 228 (strany 2 a 3 jsou hlavně
+nepotraviny); stažení obou ~13 s, 210 akcí, 130 přiřazených ke katalogu. Leták pod `pdf_min_offers` (40)
+ověřenými akcemi = chyba (R16). Obrázky produktů nejsou, odkaz akce vede na stránku nabídky.
+
 ## Makro (průzkum 2026-10-02 — zatím bez zdroje)
 
 Požadavek uživatele přidat Makro. Výsledek: **zdroj, který by šel použít v souladu s pravidly projektu, zatím není.**
@@ -841,7 +883,7 @@ platnost akcí strojově **i** úplně zároveň, kromě TETY.
 |---|---|---|---|---|---|
 | **TETA** | JSON API backendu e-shopu | 332 akcí (skupiny produktů) | ano | ano (Teta klub) | nízká až střední |
 | **Rossmann** | výpis e-shopu (HTML) + PDF letáku kvůli platnosti | ~1 400 SKU akcí, ~4 900 se Clubem a 2+1 | jen u „Akce“ | ano (ROSSMANN CLUB) | střední |
-| **Norma** | PDF letáku (`pdftotext`, R86) | ~155 dlaždic | ~40 z nich | ne | střední |
+| **Norma** | PDF letáku — **implementováno (R166)**, viz kapitola [Norma](#norma) | ~110 akcí | část | ne | střední |
 | **Hruška** | PDF letáku — **implementováno (R165)**, viz kapitola [Hruška](#hruška) | ~170 dlaždic | ne | ano (Klubová cena) | střední |
 | **Coop** | PDF letáků na coopclub.cz — jen Čechy | 5 letáků po ~55–85 položkách | ne | ano (kupón v aplikaci) | střední až vysoká |
 | **dm** | — akce nemá („Super ceny bez akce“), jen Výprodej | ~100–140 výprodejových (odhad) | jen výprodej | ne | nevyplatí se |
@@ -912,23 +954,6 @@ Leták: `/obsah/akce-a-letaky` (`box-leaflet__date` „21.10.2026 - 3.11.2026“
 text ano); Publitas `publikace.rossmann.cz/…/spreads.json` má text bez polohy a bez hotspotů. Leták platí
 v kamenných prodejnách, „na e-shopu se nabídka může lišit“ — ve vzorku 48 z 50 cen e-shopu bylo i v letáku.
 Část položek má vlastní platnost (Pampers od 7. 10.) a některé jsou „nedostupné na e-shopu“ (jen z PDF).
-
-### Norma
-
-**Cesta:** PDF letáku přes `pdftotext -bbox-layout` jako Lidl a Albert (R86). Bez API (PHP a jQuery). Česká část
-je na **`https://www.norma-online.de/cz/`** (`norma-online.cz` přesměruje 302, `norma.cz` má cizí certifikát).
-`robots.txt` zakazuje `*` jen `/ws/`; Akamai bez výzvy. Jeden celostátní leták (výjimky jen textem v letáku).
-
-| Účel | Požadavek |
-|---|---|
-| Seznam letáků | `GET https://www.norma-online.de/cz/angebote/` — odkazy na tento a příští týden („Nabídka na týden od pondělí 26.10.“) + 3 položky „Víno měsíce“ v HTML |
-| PDF | `…/cz/angebote/online-prospekt/{RRRR}-{TT}_CZ.pdf` (ISO týden) — 8 stran, 27–36 MB |
-
-Leták po–ne, strany 7–8 víkendová nabídka čt–ne; data bez roku (rok z názvu souboru). ~155 dlaždic:
-„super cena“ (bez původní) a „o 30 % levnější“ s původní cenou. Pasti: ceny **slepené do jednoho slova**
-v pořadí akční–původní („34,9049,90“), jednotka „(100 g 17,45)“ bez rovnítka, dvě ceny za jednotku u nálevů
-(„PP 470 g“), nepotraviny „cena za provedení (od)“, rozpadlý dekorativní text. Odkazy brát ze stránky, ne
-odhadem z čísla týdne; `Last-Modified` se generuje při každém požadavku. Obrázky produktů nejsou.
 
 ### Coop
 

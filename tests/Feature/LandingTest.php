@@ -36,7 +36,7 @@ it('nepřihlášenému ukáže úvodní stránku s počty, přihlášenému Moje
             ->component('Landing')
             ->where('stats.offers', 3)
             ->where('stats.products', 2)
-            ->where('stats.chains', 8)
+            ->where('stats.chains', 9)
             // Logo obchodu je odkaz na jeho akce (R68), Albert už má akce s cenou z PDF (R86)
             ->where('chainUrls.kaufland', '/akce/kaufland')
             ->where('chainUrls.albert', '/akce/albert')

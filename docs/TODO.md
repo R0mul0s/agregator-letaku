@@ -49,7 +49,7 @@ v [PLAN.md](PLAN.md). Větší celky se z toho stávají etapou.
   - **TETA** — nejsnazší: JSON API s běžnou, akční i klubovou cenou v haléřích a platností akce; ~330 požadavků na stažení
   - **Rossmann** — výpis e-shopu po druzích akcí (HTML, ~75 požadavků), platnost jen z PDF letáku
   - **Hruška** — hotová (R165); u akcí „Jen ve vybraných prodejnách“ a mimo Hruška Mini a Partner by šlo doplnit, kde neplatí
-  - **Norma** — jen PDF letáku přes `pdftotext` jako Lidl a Albert; ceny slepené do jednoho slova
+  - **Norma** — hotová (R166); „Víno měsíce“ na stránce nabídky (3 položky v HTML) se nestahuje
   - **Coop** — PDF jen pro Čechy (celostátní + 4 regiony), Morava jen obrázky; regiony podle družstev
   - **dm** — ne: akce záměrně nemá, jen výprodej
   - drogerie rozšiřuje záběr nad potraviny (Lidl ukládá jen potraviny, R25) — rozhodnout před implementací

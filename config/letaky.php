@@ -20,6 +20,7 @@ use App\Domain\Sources\Hruska\HruskaOfferSource;
 use App\Domain\Sources\Kaufland\KauflandOfferSource;
 use App\Domain\Sources\Kaufland\KauflandStoreSource;
 use App\Domain\Sources\Lidl\LidlOfferSource;
+use App\Domain\Sources\Norma\NormaOfferSource;
 use App\Domain\Sources\Penny\PennyOfferSource;
 use App\Domain\Sources\Tesco\TescoOfferSource;
 
@@ -399,6 +400,21 @@ return [
             // Stažení pak skončí chybou, aby import akce letáku neoznačil jako stažené (R16)
             'pdf_min_offers' => 60,
             'request_delay_ms' => (int) env('LETAKY_HRUSKA_REQUEST_DELAY_MS', 1000),
+        ],
+        'norma' => [
+            // Jen PDF letáků přes pdftotext (R166): web nemá akce ani API. Česká část je na německé
+            // doméně (norma-online.cz přesměruje), stránka nabídky odkazuje na tento a příští týden
+            'offers_source' => NormaOfferSource::class,
+            'has_store_formats' => false,
+            'has_eshop' => false,
+            'base_url' => 'https://www.norma-online.de',
+            'offers_page_url' => 'https://www.norma-online.de/cz/angebote/',
+            // PDF letáku: rok a ISO týden začátku („2026-44_CZ.pdf“, 27–36 MB, 8 stran)
+            'pdf_link_pattern' => '#href="(/cz/angebote/online-prospekt/(\d{4})-(\d{2})_CZ\.pdf)"#',
+            // Leták má ~110 ověřených akcí (měření R166); méně = změněné rozvržení nebo rozbitý parser.
+            // Stažení pak skončí chybou, aby import akce letáku neoznačil jako stažené (R16)
+            'pdf_min_offers' => 40,
+            'request_delay_ms' => (int) env('LETAKY_NORMA_REQUEST_DELAY_MS', 1000),
         ],
         'tesco' => [
             'offers_source' => TescoOfferSource::class,
@@ -851,6 +867,8 @@ return [
             'https://files.rewe.co.at/PennyIntLeaflet/',
             // Hruška: akce jsou jen v letáku, odkaz vede na úvodní stránku s ním (R165)
             'https://mojehruska.cz/',
+            // Norma: stránka s letáky (R166)
+            'https://www.norma-online.de/cz/angebote/',
         ],
         // Text akce na více kusů verzálkami bez diakritiky (Tesco menu e-shopu „PECIVO+NAPOJ“):
         // slova, která před převodem na větu dostanou diakritiku (PromotionText, R101)

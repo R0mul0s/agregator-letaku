@@ -1,7 +1,7 @@
 # Slevohlídka (agregátor letáků)
 
 Webová aplikace **Slevohlídka** („Rychlý lovec slev“, R34), která hlídá akční nabídky z letáků obchodů **Kaufland, Tesco,
-Albert, Lidl, Penny, Globus, Billa a Hruška**. Uživatel si vybere obchody a hlídané položky (konkrétní
+Albert, Lidl, Penny, Globus, Billa, Hruška a Norma**. Uživatel si vybere obchody a hlídané položky (konkrétní
 produkt nebo kategorii) a vidí, kde a za kolik jsou ve slevě. Osobní projekt
 Romana Hlaváčka (IČO), připravuje se zveřejnění pro cizí uživatele (R51, [docs/ZVEREJNENI.md](docs/ZVEREJNENI.md)).
 
@@ -39,7 +39,7 @@ Hotové etapy a funkce jsou v PLAN.md (tabulka *Co platí a co ne*, kap. 6 Etapy
 
 Produkce běží na `https://slevohlidka.cz` (nasazeno 2026-10-02, přestěhováno ze `slevohlidka.rhsoft.cz` R93, naposledy `44ec6ff` 2026-10-25);
 postup aktualizace a nasazené verze jsou v `deploy/DEPLOYMENT.md`, poznámky k dřívějším nasazením
-v `deploy/HISTORIE_NASAZENI.md`. Sleduje se 8 obchodů; Makro zatím nejde (ochrana proti robotům).
+v `deploy/HISTORIE_NASAZENI.md`. Sleduje se 9 obchodů; Makro zatím nejde (ochrana proti robotům).
 Etapa 6 (LLM) jen když bude potřeba.
 
 Vývojový uživatel ze seederu: `test@example.com` / `password` (admin katalogu; seeder
@@ -76,7 +76,7 @@ Stažení nabídek od obchodů (skutečné požadavky, šetrně s pauzami; Tesco
 potřebuje `TESCO_API_KEY` v `.env`, viz ZDROJE_DAT.md):
 ```bash
 docker compose exec app php artisan letaky:import-offers            # všechny obchody se zdrojem
-docker compose exec app php artisan letaky:import-offers kaufland   # jen vybrané (kaufland, tesco, albert, lidl, penny, globus, billa, hruska)
+docker compose exec app php artisan letaky:import-offers kaufland   # jen vybrané (kaufland, tesco, albert, lidl, penny, globus, billa, hruska, norma)
 docker compose exec app php artisan letaky:import-stores kaufland     # prodejny Kauflandu a jejich akce (R49), před import-offers
 docker compose exec app php artisan letaky:import-categories        # strom kategorií katalogu (Tesco, R28)
 docker compose exec app php artisan letaky:admin email@example.com  # správa katalogu /katalog (R29), --revoke odebere
