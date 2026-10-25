@@ -508,6 +508,13 @@ return [
             'user_word' => ':word (:count)',
         ],
 
+        // Okno s detailem akce po klepnutí na fotku nebo název (R159, OfferDetailSheet)
+        'offer_detail' => [
+            'not_this' => 'Tohle ne nebo nahlásit chybu',
+            'report' => 'Nahlásit chybu v akci',
+            'guest_text' => 'Chcete vědět, až bude zase v akci?',
+            'guest_cta' => 'Hlídat zdarma',
+        ],
         // „Tohle ne“ u akce v Mých slevách a tři tečky na kartě akce (R125)
         'offer_actions' => [
             'menu' => 'Další možnosti akce',

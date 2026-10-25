@@ -108,3 +108,23 @@ export function startsLabel(entry, locale, t) {
 export function upcomingAnchor(itemId) {
     return `brzy-polozka-${itemId}`;
 }
+
+/**
+ * Štítek akce, která neplatí ve všech prodejnách (R49): vybrané prodejny, kde platí; není-li
+ * v žádné vybrané, tak to; bez výběru názvy (pár prodejen) nebo počet. Null = platí všude.
+ *
+ * @param {object} offer Akce z OfferPresenter (`stores` = { names, count, elsewhere } nebo null)
+ * @param {(key: string, replace?: object) => string} t Překlad (useTranslations)
+ * @returns {string|null}
+ */
+export function offerStoresLabel(offer, t) {
+    const stores = offer.stores;
+    if (!stores) {
+        return null;
+    }
+    if (stores.names.length) {
+        return t('offers.only_in_stores', { stores: stores.names.join(', ') });
+    }
+
+    return stores.elsewhere ? t('offers.not_in_my_stores') : t('offers.only_in_count', { count: stores.count });
+}

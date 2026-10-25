@@ -1,6 +1,7 @@
 <!--
     Karta jedné akční nabídky — obchod, název, ceny podle typu akce (R8), cena za jednotku, platnost.
-    Akce, která ještě nezačala, má štítek s datem začátku a odlišený rámeček (R76).
+    Akce, která ještě nezačala, má štítek s datem začátku a odlišený rámeček (R76). Klepnutí na
+    fotku nebo název otevře okno s detailem akce (R159).
 
     @author Roman Hlaváček
     @created 2026-10-02
@@ -10,10 +11,12 @@ import ChainLogo from '@/Components/ChainLogo.vue';
 import ChainWatermark from '@/Components/ChainWatermark.vue';
 import InfoIcon from '@/Components/InfoIcon.vue';
 import OfferMenuButton from '@/Components/OfferMenuButton.vue';
+import OfferPrices from '@/Components/OfferPrices.vue';
 import OfferShareButton from '@/Components/OfferShareButton.vue';
-import { formatDate, formatDiscount, formatPrice } from '@/lib/format';
+import { formatDate, formatDiscount } from '@/lib/format';
 import { useTranslations } from '@/lib/i18n';
-import { discountPercent, MATCH_MAYBE, OFFER_TYPE, offerUnitPriceLabel, packageLabel, startsLabel } from '@/lib/offer';
+import { discountPercent, MATCH_MAYBE, OFFER_TYPE, offerStoresLabel, packageLabel, startsLabel } from '@/lib/offer';
+import { showOfferDetail } from '@/lib/offerDetail';
 import { showStoresDialog } from '@/lib/storesDialog';
 import { usePage } from '@inertiajs/vue3';
 import { computed, ref, useId, watch } from 'vue';
@@ -58,47 +61,16 @@ const discount = computed(() => discountPercent(props.offer));
 /** Akce, která ještě nezačala (R76): „Od zítra“, „Od st 8. 10.“; null = už platí. */
 const starts = computed(() => startsLabel(props.offer, locale.value, t));
 
-/**
- * Štítek akce, která neplatí ve všech prodejnách (R49): vybrané prodejny, kde platí;
- * není-li v žádné vybrané, tak to; bez výběru názvy (pár prodejen) nebo počet.
- */
-const storesLabel = computed(() => {
-    const stores = props.offer.stores;
-    if (!stores) {
-        return null;
-    }
-    if (stores.names.length) {
-        return t('offers.only_in_stores', { stores: stores.names.join(', ') });
-    }
+/** Štítek akce, která neplatí ve všech prodejnách (R49), jinak null. */
+const storesLabel = computed(() => offerStoresLabel(props.offer, t));
 
-    return stores.elsewhere ? t('offers.not_in_my_stores') : t('offers.only_in_count', { count: stores.count });
-});
-
-/** Akce platí jen s kartou — hlavní cena je cena s kartou, běžná cena vedle. */
-const isLoyaltyOnly = computed(() => props.offer.offerType === OFFER_TYPE.LOYALTY_ONLY);
+/** Detail akce v okně (R159), v Mých slevách s hlídanou položkou kvůli „Tohle ne“. */
+function openDetail() {
+    showOfferDetail(props.offer, props.watchItem);
+}
 
 /** Balení: text obchodu, jinak množství a jednotka z názvu Tesco („1 l“, „500 g“). */
 const packageText = computed(() => packageLabel(props.offer, locale.value, t));
-
-/** Cena za jednotku k hlavní ceně karty („29,90 Kč / kg“); null bez balení a u akce na více kusů. */
-const unitPrice = computed(() => offerUnitPriceLabel(props.offer, locale.value, t));
-
-/**
- * „Je to opravdu sleva?“ (R59): srovnání s dřívějšími akcemi stejné položky u obchodu
- * (App\Domain\Offers\PriceHistory); null = dřívější akce není.
- */
-const historyLabel = computed(() => {
-    const history = props.offer.priceHistory;
-    if (!history) {
-        return null;
-    }
-
-    return t(`offers.history.${history.status}`, {
-        weeks: history.weeks,
-        count: history.weeksAgo,
-        price: formatPrice(history.price, locale.value),
-    });
-});
 </script>
 
 <template>
@@ -134,47 +106,26 @@ const historyLabel = computed(() => {
         <p v-if="offer.matchStatus === MATCH_MAYBE" :id="maybeHintId" class="offer-card__hint" :hidden="!maybeHintOpen">{{ t('offers.maybe_hint') }}</p>
 
         <!-- Obrázek z CDN obchodu, nestahuje se k nám (R22); název nese nadpis, obrázek je dekorativní.
-             Sleva jako červená cenovka přes obrázek (motiv z loga); čtečka ji má i u ceny. -->
-        <div v-if="hasImage" class="offer-card__media">
+             Sleva jako červená cenovka přes obrázek (motiv z loga); čtečka ji má i u ceny.
+             Klepnutí na obrázek i název otevře detail akce (R159) — z klávesnice tlačítko v názvu. -->
+        <div v-if="hasImage" class="offer-card__media offer-card__media--open" @click="openDetail">
             <img :src="offer.imageUrl" alt="" class="offer-card__image" loading="lazy" referrerpolicy="no-referrer" @error="imageBroken = true" />
             <span v-if="discount" class="offer-card__sticker" aria-hidden="true">{{ formatDiscount(discount) }}</span>
         </div>
         <!-- Bez fotky (Penny, Albert, letáky Lidlu a Globusu) jemný přechod se siluetou maskota —
              karty mají stejně vysoké pole a prázdná plocha nevypadá jako chyba (R138) -->
-        <div v-else class="offer-card__media offer-card__media--none" aria-hidden="true">
+        <div v-else class="offer-card__media offer-card__media--none offer-card__media--open" aria-hidden="true" @click="openDetail">
             <img src="/images/brand/mascot-192.webp" width="192" height="192" alt="" class="offer-card__placeholder" loading="lazy" />
             <span v-if="discount" class="offer-card__sticker">{{ formatDiscount(discount) }}</span>
         </div>
-        <component :is="`h${headingLevel}`" class="offer-card__name">{{ offer.name }}</component>
+        <component :is="`h${headingLevel}`" class="offer-card__name">
+            <button type="button" class="offer-card__open" @click="openDetail">{{ offer.name }}</button>
+        </component>
         <p v-if="offer.description" class="offer-card__description">{{ offer.description }}</p>
         <p v-if="offer.variantNote" class="offer-card__variant">{{ offer.variantNote }}</p>
         <p v-if="packageText" class="offer-card__package">{{ packageText }}</p>
 
-        <div class="offer-card__prices">
-            <template v-if="isLoyaltyOnly">
-                <span class="offer-card__price">{{ formatPrice(offer.loyaltyPrice, locale) }}</span>
-                <span class="offer-card__note">{{ t('offers.with_card', { program: offer.loyaltyProgramName }) }}</span>
-                <span v-if="offer.price !== null" class="offer-card__note">{{ t('offers.regular_price', { price: formatPrice(offer.price, locale) }) }}</span>
-            </template>
-            <template v-else-if="offer.offerType === OFFER_TYPE.MULTIBUY">
-                <span v-if="offer.promotionText" class="offer-card__price offer-card__price--text">{{ offer.promotionText }}</span>
-                <span v-if="offer.price !== null" class="offer-card__note">{{ t('offers.regular_price', { price: formatPrice(offer.price, locale) }) }}</span>
-            </template>
-            <template v-else>
-                <span class="offer-card__price">{{ formatPrice(offer.price, locale) }}</span>
-                <!-- Přeškrtnutí čtečka obvykle neohlásí — bez slova „původně“ by zazněly dvě ceny za sebou -->
-                <s v-if="offer.originalPrice !== null" class="offer-card__original"
-                    ><span class="visually-hidden">{{ t('offers.original_price_label') }} </span>{{ formatPrice(offer.originalPrice, locale) }}</s
-                >
-                <span v-if="discount" class="offer-card__discount">{{ formatDiscount(discount) }}</span>
-            </template>
-        </div>
-
-        <p v-if="!isLoyaltyOnly && offer.loyaltyPrice !== null" class="offer-card__loyalty">
-            {{ formatPrice(offer.loyaltyPrice, locale) }} {{ t('offers.with_card', { program: offer.loyaltyProgramName }) }}
-        </p>
-        <p v-if="unitPrice" class="offer-card__unit-price">{{ unitPrice }}</p>
-        <p v-if="historyLabel" class="offer-card__history" :class="`offer-card__history--${offer.priceHistory.status}`">{{ historyLabel }}</p>
+        <OfferPrices :offer="offer" />
 
         <footer class="offer-card__footer">
             <span>{{ t('offers.valid', { from: formatDate(offer.validFrom, locale), to: formatDate(offer.validTo, locale) }) }}</span>

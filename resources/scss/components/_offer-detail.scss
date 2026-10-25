@@ -1,0 +1,98 @@
+// _offer-detail.scss
+// Okno s detailem akce (R159, OfferDetailSheet.vue) a tlačítka, která ho otevírají z karty
+// a řádku akce — vypadají jako text, klepnout jde na celý název.
+//
+// @author Roman Hlaváček
+// @created 2026-10-25
+
+// Název na kartě a v řádku jako tlačítko bez vzhledu tlačítka
+.offer-card__open,
+.offer-row__open {
+    padding: 0;
+    background: none;
+    border: 0;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+
+    &:hover {
+        text-decoration: underline;
+    }
+}
+
+.offer-card__media--open {
+    cursor: pointer;
+}
+
+.offer-detail {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+
+    &__media {
+        position: relative;
+        padding: var(--space-3);
+        background: var(--color-logo-bg);
+        border-radius: var(--radius-md);
+    }
+
+    // Celá fotka bez ořezu — v okně je místo na víc než na kartě
+    &__image {
+        display: block;
+        width: 100%;
+        height: var(--offer-detail-image-height);
+        object-fit: contain;
+    }
+
+    &__badges {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--space-2);
+    }
+
+    &__chain {
+        font-weight: var(--font-weight-bold);
+    }
+
+    &__valid {
+        margin: 0;
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+    }
+
+    &__stores {
+        align-self: flex-start;
+    }
+
+    &__actions {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--space-2);
+        margin-top: var(--space-2);
+    }
+
+    &__guest {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--space-2);
+        margin-top: var(--space-2);
+        padding: var(--space-3);
+        background: var(--gradient-panel);
+        border-radius: var(--radius-md);
+        color: var(--color-landing-on-hero);
+    }
+
+    &__guest-text {
+        margin: 0;
+        font-weight: var(--font-weight-bold);
+    }
+
+    &__more {
+        align-self: flex-start;
+        margin-top: var(--space-2);
+    }
+}

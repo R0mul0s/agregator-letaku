@@ -524,11 +524,14 @@ onMounted(async () => {
                         {{ t('home.min_discount_filter', { percent: offersPreferences.minDiscountPercent }) }}
                         · <Link :href="urls.offersPreferences" class="home-hero__link">{{ t('home.change_preferences') }}</Link>
                     </p>
-                    <!-- Souhrn — čísla jsou zkratky: všechny akce, nové, skok na nejvyšší slevu (R102) -->
+                    <!-- Souhrn — čísla jsou zkratky: hlídané položky (R159 — vypadaly jako ostatní a lidé
+                         na ně klepali), všechny akce, nové, skok na nejvyšší slevu (R102) -->
                     <ul v-if="watchItems.length" class="home-hero__stats">
-                        <li class="home-hero__stat">
-                            <strong class="home-hero__stat-value">{{ watchItems.length }}</strong>
-                            {{ t('home.stat_items', { count: watchItems.length }) }}
+                        <li>
+                            <Link :href="urls.watchItems" class="home-hero__stat home-hero__stat--button">
+                                <strong class="home-hero__stat-value">{{ watchItems.length }}</strong>
+                                {{ t('home.stat_items', { count: watchItems.length }) }}
+                            </Link>
                         </li>
                         <li>
                             <button type="button" class="home-hero__stat home-hero__stat--button" @click="showAllOffers">

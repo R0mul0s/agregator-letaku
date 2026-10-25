@@ -1,7 +1,7 @@
 <!--
     Akce jako kompaktní řádek (R62) — „Jsem v obchodě“ v Mých slevách: název s balením, cena
     za jednotku, cena, kterou uživatel zaplatí, sleva a tlačítko do nákupního seznamu. Velká karta
-    s obrázkem by v obchodě znamenala hodně posouvání. V centru upozornění (R74) i s obchodem;
+    s obrázkem by v obchodě znamenala hodně posouvání; klepnutí na název otevře detail akce (R159). V centru upozornění (R74) i s obchodem;
     skončená akce je ztlumená a bez tlačítka do seznamu. Akce nejlevnější za sledované období
     (R59) má štítek, akce, která ještě nezačala, štítek s datem začátku (R76). Ve Všech akcích
     (kompaktní zobrazení, R82) bez ceny uživatele: akce jen s kartou ukáže cenu s kartou.
@@ -15,6 +15,7 @@ import ShoppingToggle from '@/Components/ShoppingToggle.vue';
 import { formatDiscount, formatPrice } from '@/lib/format';
 import { useTranslations } from '@/lib/i18n';
 import { discountPercent, MATCH_MAYBE, OFFER_TYPE, offerUnitPriceLabel, packageLabel, startsLabel } from '@/lib/offer';
+import { showOfferDetail } from '@/lib/offerDetail';
 import { usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 
@@ -82,7 +83,8 @@ const unitPrice = computed(() => offerUnitPriceLabel(props.offer, locale.value, 
             <!-- Popisek nad názvem — hlídaná položka v pohledu Podle obchodů (R102) -->
             <p v-if="$slots.label" class="offer-row__label"><slot name="label" /></p>
             <p class="offer-row__name">
-                {{ offer.name }}
+                <!-- Klepnutí na název otevře okno s detailem akce (R159) -->
+                <button type="button" class="offer-row__open" @click="showOfferDetail(offer, watchItem)">{{ offer.name }}</button>
                 <span v-if="offer.matchStatus === MATCH_MAYBE" class="tag tag--warning">{{ t('offers.maybe') }}</span>
                 <span v-if="offer.onlineOnly" class="tag tag--warning">{{ t('offers.online_only') }}</span>
                 <span v-if="offer.ended" class="tag">{{ t('notifications.ended') }}</span>
