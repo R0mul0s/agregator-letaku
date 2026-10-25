@@ -408,9 +408,9 @@
     --offers-department-width: 5.75rem;
     // Vyblednutí okraje posuvného řádku, kde pokračuje (ScrollRow)
     --scroll-row-fade-width: 3rem;
-    // Na počítači všech 12 oddělení v jednom řádku šířky obsahu
-    --offers-department-min-width: 5rem;
     --offers-department-icon: 2.75rem;
+    // Na počítači ikona vlevo vedle názvu (R174) — menší, ať se název vejde do dvou řádků
+    --offers-department-icon-compact: 2.25rem;
     // Červený pruh s nadpisem ostatních stránek (R144): maskot v kruhu vpravo od středního displeje
     --page-hero-mascot-size: 7.5rem;
     // Karta „Sdílet seznam“ (R146): dvě tlačítka vedle sebe, na úzkém telefonu pod sebou

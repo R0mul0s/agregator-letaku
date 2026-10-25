@@ -16,3 +16,8 @@ $breakpoint-nav: 830px;
 // Nepřihlášený na telefonu: od této šířky se vedle loga, Registrace a hamburgeru vejde i název
 // s mottem (užší telefon má jen logo)
 $breakpoint-guest-name: 360px;
+
+// Oddělení ve Všech akcích na počítači (R174): do tohoto počtu v jednom řádku, víc ve dvou
+// vyrovnaných řádcích; pravidla podle počtu oddělení (:has) se generují do max-columns sloupců
+$offers-departments-single-row: 7;
+$offers-departments-max-columns: 8;
