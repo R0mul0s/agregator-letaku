@@ -21,7 +21,7 @@ final class SourceRegistry
     public function __construct(private readonly Container $container) {}
 
     /**
-     * Obchody, které mají zdroj nabídek, v pořadí výčtu.
+     * Obchody, které mají zdroj nabídek a nejsou vypnuté (R155), v pořadí výčtu.
      *
      * @return list<Chain>
      */
@@ -29,12 +29,12 @@ final class SourceRegistry
     {
         return array_values(array_filter(
             Chain::cases(),
-            fn (Chain $chain): bool => config("letaky.sources.{$chain->value}.offers_source") !== null,
+            fn (Chain $chain): bool => config("letaky.sources.{$chain->value}.offers_source") !== null && ! $chain->isDisabled(),
         ));
     }
 
     /**
-     * Obchody, které mají zdroj prodejen (akce se liší po prodejnách, R49).
+     * Obchody, které mají zdroj prodejen (akce se liší po prodejnách, R49) a nejsou vypnuté.
      *
      * @return list<Chain>
      */
@@ -42,7 +42,7 @@ final class SourceRegistry
     {
         return array_values(array_filter(
             Chain::cases(),
-            fn (Chain $chain): bool => config("letaky.sources.{$chain->value}.stores_source") !== null,
+            fn (Chain $chain): bool => config("letaky.sources.{$chain->value}.stores_source") !== null && ! $chain->isDisabled(),
         ));
     }
 

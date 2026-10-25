@@ -76,7 +76,6 @@ v [PLAN.md](PLAN.md). Větší celky se z toho stávají etapou.
 **Odkud:** revize kódu, provozu a frontendu 7. 10. 2026. Hotové body jsou v R106.
 
 - **zálohy:** denní zálohu celé databáze za 14 dní dělá hosting, ruční export před SQL skriptem je celá databáze (DEPLOYMENT.md, *Záloha databáze*); zbývá jednou vyzkoušet obnovu — z administrace Websupportu (celá databáze, nebo i jednotlivé tabulky?) a ruční export v Dockeru
-- **vypínač obchodu v `.env`**, který skryje i už uložené akce — výzvě obchodu (O6) vyhovět bez nasazení kódu
 - **test shody SQL skriptů s migracemi:** pustit `deploy/migrations-*.sql` na prázdnou databázi a porovnat `SHOW CREATE TABLE` s výsledkem `migrate`
 - UptimeRobot i na `/up` (`/health/tasks` pro prodejny, upozornění, úklid a kategorie hotové, R115)
 - frontend: ESLint a test klíčů `t('…')` hotové (R113); zbývá `jsconfig.json` s `checkJs` a případně Vitest pro `lib/format`, `lib/i18n`, `lib/offer`

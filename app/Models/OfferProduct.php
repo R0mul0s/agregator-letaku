@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\Chain;
 use App\Enums\MatchStatus;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
@@ -80,17 +81,20 @@ class OfferProduct extends Model
     }
 
     /**
-     * Připojí akce (`offers`) a nechá jen aktuální: obchod je nestáhl (R16) a neskončily —
-     * stejně jako Offer::active()->notExpired(); `$startedOnly` vynechá i akce, které ještě
-     * nezačaly (R76). Jedno místo pro výpisy, které jdou přes přiřazení k produktům (R113).
+     * Připojí akce (`offers`) a nechá jen aktuální: obchod je nestáhl (R16), obchod není vypnutý
+     * (R155) a neskončily — stejně jako Offer::active()->notExpired(); `$startedOnly` vynechá
+     * i akce, které ještě nezačaly (R76). Jedno místo pro výpisy, které jdou přes přiřazení
+     * k produktům (R113).
      *
      * @param  Builder<self>  $query
      */
     public function scopeJoinCurrentOffers(Builder $query, CarbonImmutable $localToday, bool $startedOnly = false): void
     {
         $today = $localToday->toDateString();
+        $disabled = Chain::disabledValues();
         $query->join('offers', 'offers.id', '=', 'offer_product.offer_id')
             ->whereNull('offers.withdrawn_at')
+            ->when($disabled !== [], fn (Builder $query) => $query->whereNotIn('offers.chain', $disabled))
             ->where('offers.valid_to', '>=', $today)
             ->when($startedOnly, fn (Builder $query) => $query->where('offers.valid_from', '<=', $today));
     }

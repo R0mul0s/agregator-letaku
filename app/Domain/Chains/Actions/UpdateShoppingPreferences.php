@@ -31,7 +31,8 @@ final class UpdateShoppingPreferences
         DB::transaction(function () use ($user, $chains, $loyaltyPrograms): void {
             $followed = array_map(fn (FollowedChainData $data): Chain => $data->chain, $chains);
 
-            $user->followedChains()->whereNotIn('chain', $followed)->delete();
+            // Vypnutý obchod (R155) stránka nenabízí — jeho sledování zůstane do zapnutí
+            $user->followedChains()->whereNotIn('chain', [...$followed, ...Chain::disabled()])->delete();
             foreach ($chains as $data) {
                 $user->followedChains()->updateOrCreate(['chain' => $data->chain], [
                     'store_format' => $data->storeFormat,

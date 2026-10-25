@@ -185,6 +185,17 @@ return [
     ],
 
     /*
+    | Vypnuté obchody (R155): výzvě obchodu, ať ho přestaneme zobrazovat (O6), jde vyhovět bez
+    | nasazení kódu — `LETAKY_DISABLED_CHAINS=tesco,albert` v .env na hostingu. Obchod se nestahuje
+    | a jeho už uložené akce zmizí ze všech výpisů, souhrnů, upozornění a sitemapy (scope
+    | Offer::active); v databázi zůstávají a po odebrání z proměnné se zase ukážou.
+    */
+    'disabled_chains' => array_values(array_filter(array_map(
+        trim(...),
+        explode(',', (string) env('LETAKY_DISABLED_CHAINS', '')),
+    ))),
+
+    /*
     | Zdroje obchodů (docs/ZDROJE_DAT.md). Obchod bez offers_source se nestahuje.
     */
     'sources' => [

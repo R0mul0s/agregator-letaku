@@ -177,7 +177,8 @@ final class SendPushNotifications
     {
         $groups = array_merge(...$records->map(OffersNotification::groups(...))->all());
         $offerIds = array_values(array_unique(array_merge([], ...array_column($groups, 'offerIds'))));
-        $offers = Offer::query()->withoutRaw()->findMany($offerIds)->keyBy('id');
+        // Záznam zapsaný před vypnutím obchodu (R155) jeho akce nevypíše
+        $offers = Offer::query()->withoutRaw()->fromEnabledChains()->findMany($offerIds)->keyBy('id');
         $offers = array_values(array_filter(array_map(fn (int $id): ?Offer => $offers->get($id), $offerIds)));
         if ($offers === []) {
             return null;

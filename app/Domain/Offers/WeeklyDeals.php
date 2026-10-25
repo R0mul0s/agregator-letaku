@@ -205,10 +205,11 @@ final class WeeklyDeals
             return $query->active()->notExpired($this->calendar->today());
         }
 
-        // Archiv: akce stažená obchodem až během týdne nebo po něm v týdnu platila
+        // Archiv: akce stažená obchodem až během týdne nebo po něm v týdnu platila; vypnutý
+        // obchod (R155) ani v archivu
         $weekStart = $this->calendar->startOfDayInstant($week->monday());
 
-        return $query->where(fn (Builder $query) => $query->whereNull('withdrawn_at')->orWhere('withdrawn_at', '>=', $weekStart));
+        return $query->fromEnabledChains()->where(fn (Builder $query) => $query->whereNull('withdrawn_at')->orWhere('withdrawn_at', '>=', $weekStart));
     }
 
     /**

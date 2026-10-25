@@ -142,6 +142,8 @@ return [
         'categories_done' => 'Kategorie — uloženo: :count',
         'categories_failed' => 'Kategorie — chyba: :error',
         'stores_done' => ':chain — prodejen: :stores, seznamů akcí: :lists',
+        // Obchod vypnutý v .env (R155) — cron URL odpoví 200, ať WebAdmin nehlásí chybu
+        'chain_disabled' => 'Obchod :chain je vypnutý (LETAKY_DISABLED_CHAINS) — nic se nestáhlo.',
     ],
 
     // Společné pro všechny e-maily (resources/views/vendor/mail)

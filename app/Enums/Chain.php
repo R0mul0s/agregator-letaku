@@ -37,4 +37,45 @@ enum Chain: string
     {
         return __('app.chains_genitive.'.$this->value);
     }
+
+    /**
+     * Obchody vypnuté v konfiguraci (`letaky.disabled_chains`, R155); neznámé hodnoty vynechá.
+     *
+     * @return list<self>
+     */
+    public static function disabled(): array
+    {
+        return array_values(array_filter(array_map(
+            fn (mixed $value): ?self => is_string($value) ? self::tryFrom(mb_strtolower($value)) : null,
+            config()->array('letaky.disabled_chains'),
+        )));
+    }
+
+    /**
+     * Obchody bez vypnutých (R155), v pořadí výčtu — nabídka obchodů ve filtrech a nastavení.
+     *
+     * @return list<self>
+     */
+    public static function enabled(): array
+    {
+        return array_values(array_filter(self::cases(), fn (self $chain): bool => ! $chain->isDisabled()));
+    }
+
+    /**
+     * Hodnoty vypnutých obchodů pro dotaz (`whereNotIn`).
+     *
+     * @return list<string>
+     */
+    public static function disabledValues(): array
+    {
+        return array_map(fn (self $chain): string => $chain->value, self::disabled());
+    }
+
+    /**
+     * Je obchod vypnutý (R155)? Nestahuje se a jeho akce se nikde neukazují.
+     */
+    public function isDisabled(): bool
+    {
+        return in_array($this, self::disabled(), true);
+    }
 }

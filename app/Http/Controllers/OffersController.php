@@ -177,10 +177,11 @@ class OffersController extends Controller
                 $pages,
             ),
             'correction' => $correction,
+            // Filtr obchodů bez vypnutých (R155)
             'chains' => array_map(fn (Chain $chain): array => [
                 'value' => $chain->value,
                 'name' => $chain->label(),
-            ], Chain::cases()),
+            ], Chain::enabled()),
         ]);
     }
 

@@ -147,12 +147,13 @@ kanálů jako Kupi.
 
 - [ ] **[R] Hodina u advokáta** před monetizací — s touto kapitolou a [ZDROJE_DAT.md](ZDROJE_DAT.md).
 - [ ] **[R] Zvážit vypnutí nebo omezení obchodů s výslovným zákazem** (Tesco, Albert),
-  případně u nich nezobrazovat fotky. Albert má od R87 i akce s cenou z PDF letáku (dřív jen
+  případně u nich nezobrazovat fotky. Vypnutí celého obchodu je proměnná v `.env` (R155). Albert má od R87 i akce s cenou z PDF letáku (dřív jen
   zmínky z textu letáku, R36) — návrat jen ke zmínkám je úprava zdroje `AlbertOfferSource`, ne konfigurace.
 - [ ] **[R] Oslovit obchody** (souhlas, partnerství, affiliate) — nejčistší cesta a zdroj
   příjmu; dává smysl, až budou čísla návštěvnosti.
 - Co už platí: jen fakta s odkazem na zdroj, fotky se neukládají (R5, R22), robots.txt
-  a šetrné stahování, upozornění v patičce, kontakt pro obchody, rychlé vyřízení žádosti.
+  a šetrné stahování, upozornění v patičce, kontakt pro obchody, rychlé vyřízení žádosti —
+  obchod jde vypnout bez nasazení kódu (`LETAKY_DISABLED_CHAINS` v `.env`, R155).
 
 ### Otázky na advokáta
 

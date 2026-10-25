@@ -15,6 +15,7 @@ declare(strict_types=1);
 namespace App\Domain\Matching;
 
 use App\Domain\Offers\LocalCalendar;
+use App\Enums\Chain;
 use App\Enums\LeafletKind;
 use App\Enums\MatchStatus;
 use App\Models\FollowedChain;
@@ -51,8 +52,11 @@ final readonly class LeafletMentions
         $pages = LeafletPage::query()
             ->with('leaflet')
             ->whereHas('leaflet', function (Builder $query) use ($followed): void {
+                $disabled = Chain::disabledValues();
                 $query->where('kind', LeafletKind::Leaflet)
                     ->where('valid_to', '>=', $this->calendar->today()->toDateString())
+                    // Vypnutý obchod (R155) ani zmínkou
+                    ->when($disabled !== [], fn (Builder $query) => $query->whereNotIn('chain', $disabled))
                     ->where(function (Builder $query) use ($followed): void {
                         foreach ($followed as $chain) {
                             $query->orWhere(fn (Builder $query) => $this->whereLeafletFollowed($query, $chain));

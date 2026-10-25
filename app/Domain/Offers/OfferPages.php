@@ -45,7 +45,8 @@ final class OfferPages
     {
         $chain = Chain::tryFrom($slug);
         if ($chain !== null) {
-            return ['chain' => $chain, 'productId' => null];
+            // Vypnutý obchod (R155) stránku nemá — 404, vyhledávač ji vyřadí
+            return $chain->isDisabled() ? null : ['chain' => $chain, 'productId' => null];
         }
 
         foreach ($this->products() as $id => $product) {

@@ -72,7 +72,8 @@ class NotificationController extends Controller
         $summary = $presenter->summary($record);
         abort_if($summary === null, 404);
 
-        $offers = Offer::query()->withoutRaw()->with('stores')->findMany(OffersNotification::offerIds($record))->keyBy('id');
+        // Akce vypnutého obchodu (R155) ani ve starém záznamu
+        $offers = Offer::query()->withoutRaw()->fromEnabledChains()->with('stores')->findMany(OffersNotification::offerIds($record))->keyBy('id');
         $storeCodes = $user->selectedStoreCodes();
         $today = $calendar->today();
         // „Je to opravdu sleva?“ (R59) — u řádku štítek „Nejlevněji za N týdnů“ (etapa 11c)

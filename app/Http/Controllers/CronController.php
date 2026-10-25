@@ -19,6 +19,7 @@ use App\Domain\Chains\Actions\ImportStores;
 use App\Domain\Notifications\Actions\RunNotificationChannels;
 use App\Domain\Offers\Actions\ImportChainOffers;
 use App\Domain\Offers\Exceptions\ImportAlreadyRunning;
+use App\Enums\Chain;
 use App\Enums\ScrapeStatus;
 use App\Http\Requests\CronRequest;
 use App\Support\Deadline;
@@ -35,6 +36,9 @@ class CronController extends Controller
     public function importOffers(CronRequest $request, ImportChainOffers $import): Response
     {
         $chain = $request->chain();
+        if ($chain->isDisabled()) {
+            return $this->chainDisabled($chain);
+        }
         $this->extendTimeLimit();
 
         try {
@@ -61,6 +65,9 @@ class CronController extends Controller
     public function importStores(CronRequest $request, ImportStores $import): Response
     {
         $chain = $request->chain();
+        if ($chain->isDisabled()) {
+            return $this->chainDisabled($chain);
+        }
         $this->extendTimeLimit();
 
         try {
@@ -155,6 +162,14 @@ class CronController extends Controller
     private function alreadyRunning(): Response
     {
         return $this->text(__('app.cron.already_running'), Response::HTTP_CONFLICT);
+    }
+
+    /**
+     * Obchod je vypnutý (R155) — 200, nic se nestáhne; cron WebAdminu stačí vypnout později.
+     */
+    private function chainDisabled(Chain $chain): Response
+    {
+        return $this->text(__('app.import.chain_disabled', ['chain' => $chain->label()]));
     }
 
     /**

@@ -196,13 +196,27 @@ class Offer extends Model
     }
 
     /**
-     * Nabídky, které obchod nestáhl před koncem platnosti (R16).
+     * Nabídky, které obchod nestáhl před koncem platnosti (R16), bez vypnutých obchodů (R155).
      *
      * @param  Builder<self>  $query
      */
     public function scopeActive(Builder $query): void
     {
-        $query->whereNull('withdrawn_at');
+        $query->whereNull('withdrawn_at')->fromEnabledChains();
+    }
+
+    /**
+     * Bez nabídek vypnutých obchodů (`letaky.disabled_chains`, R155) — výpis, který nejde přes
+     * `active()` (archiv, akce podle ID), ho potřebuje sám.
+     *
+     * @param  Builder<self>  $query
+     */
+    public function scopeFromEnabledChains(Builder $query): void
+    {
+        $disabled = Chain::disabledValues();
+        if ($disabled !== []) {
+            $query->whereNotIn($query->qualifyColumn('chain'), $disabled);
+        }
     }
 
     /**

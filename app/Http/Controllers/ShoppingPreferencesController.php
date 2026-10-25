@@ -30,7 +30,7 @@ class ShoppingPreferencesController extends Controller
     public const STATUS_SAVED = 'preferences-saved';
 
     /**
-     * Zobrazí všechny obchody — sledovatelné s upřesněním, ostatní jako připravované.
+     * Zobrazí všechny obchody kromě vypnutých — sledovatelné s upřesněním, ostatní jako připravované.
      */
     public function show(Request $request, ChainCatalog $catalog): Response
     {
@@ -55,7 +55,7 @@ class ShoppingPreferencesController extends Controller
                 // Prodejny k výběru (R49) — jen obchod, jehož akce se liší po prodejnách
                 'stores' => $catalog->stores($chain),
                 'storeCodes' => $followed->get($chain->value)->store_codes ?? [],
-            ], Chain::cases()),
+            ], Chain::enabled()),
             'maxSelectedStores' => config()->integer('letaky.stores.max_selected'),
             'storeFormats' => array_map(fn (StoreFormat $format): array => [
                 'value' => $format->value,

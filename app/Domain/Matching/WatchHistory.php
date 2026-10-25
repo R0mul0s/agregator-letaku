@@ -58,6 +58,8 @@ final class WatchHistory
         // okna by náhled při psaní procházel celou historii; po dávkách, stačí první shoda
         $offers = Offer::query()
             ->withoutRaw()
+            // Vypnutý obchod (R155) ani v historii
+            ->fromEnabledChains()
             ->where('valid_to', '>=', $this->windowStart()->toDateString())
             ->where(fn (Builder $query) => $query
                 ->whereNotNull('withdrawn_at')

@@ -49,7 +49,12 @@ class CronRequest extends FormRequest
     public function rules(): array
     {
         $sources = app(SourceRegistry::class);
-        $chains = $this->routeIs(self::STORES_ROUTE) ? $sources->chainsWithStores() : $sources->chainsWithOffers();
+        // Vypnutý obchod (R155) projde — kontroler odpoví, že se nestahuje; 422 by cron WebAdminu
+        // hlásil každý den jako chybu
+        $chains = [
+            ...($this->routeIs(self::STORES_ROUTE) ? $sources->chainsWithStores() : $sources->chainsWithOffers()),
+            ...Chain::disabled(),
+        ];
         $required = $this->routeIs(self::CHAIN_ROUTES) ? 'required' : 'sometimes';
 
         return [

@@ -373,6 +373,14 @@ Po prvním nasazení zavolej úklid a kategorie ručně, jinak hlásí „nikdy�
 („Chyba: RuntimeException“ se zprávou, souborem a řádkem) — stejná chyba jednou za den, nejvýš 5 za
 hodinu. Celý záznam s trasou volání je dál v `storage/logs/laravel-<datum>.log` (FTP).
 
+## Vypnutí obchodu (R155)
+
+Když obchod požádá, ať ho nezobrazujeme (O6, [ZVEREJNENI.md](../docs/ZVEREJNENI.md#5-právo-k-obsahu-obchodů-o6--podklady-pro-advokáta)):
+do `.env` na hostingu přidej `LETAKY_DISABLED_CHAINS=tesco` (víc obchodů čárkou). Nasazení ani SQL
+není potřeba — obchod se přestane stahovat a jeho akce zmizí ze všech výpisů hned, z úvodní
+stránky, týdne a našeptávače do hodiny (cache). Cron URL obchodu odpoví 200 „Obchod … je vypnutý“,
+cron ve WebAdminu pak vypni. Data zůstávají; odebráním hodnoty z proměnné se obchod vrátí.
+
 ## Limit odesílání e-mailů
 
 Websupport (ochrana proti spamu, ověřeno 2026-10-03): **300 e-mailů za hodinu z jedné
