@@ -65,7 +65,7 @@ const price = computed(() => {
 
 /**
  * Druhá cena u akce s cenou s kartou — obě ceny jako na kartě akce (R161). Bez ceny uživatele:
- * u akce jen s kartou „s kartou X“, jinak „19,90 Kč s kartou X“. S cenou uživatele ta, kterou
+ * u akce jen s kartou „s kartou X, běžně 29,90 Kč“, jinak „19,90 Kč s kartou X“. S cenou uživatele ta, kterou
  * neplatí: s kartou „21,90 Kč bez karty“, bez ní „19,90 Kč s kartou X“.
  */
 const loyaltyNote = computed(() => {
@@ -75,7 +75,12 @@ const loyaltyNote = computed(() => {
     }
     const withCard = t('offers.with_card', { program: loyaltyProgramName });
     if (withoutUserPrice.value) {
-        return loyaltyOnly.value ? withCard : `${formatPrice(loyaltyPrice, locale.value)} ${withCard}`;
+        if (!loyaltyOnly.value) {
+            return `${formatPrice(loyaltyPrice, locale.value)} ${withCard}`;
+        }
+
+        // Akce jen s kartou: hlavní cena je s kartou, k ní běžná jako na kartě akce
+        return regularPrice === null ? withCard : `${withCard}, ${t('offers.regular_price', { price: formatPrice(regularPrice, locale.value) })}`;
     }
     if (userPrice === loyaltyPrice) {
         return regularPrice === null || regularPrice === loyaltyPrice ? null : t('offers.without_card', { price: formatPrice(regularPrice, locale.value) });
