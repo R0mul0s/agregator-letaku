@@ -1,7 +1,7 @@
 <!--
     Ceny v akcích stejné položky u obchodu (R163) v okně s detailem akce — řádek na akci od
-    nejstarší: datum, vodorovný pruh od nuly délkou podle ceny a cena; tato akce zvýrazněná
-    a označená „teď“. Časová osa se u pár krátkých akcí za 12 týdnů rozpadla na drobné čárky
+    nejnovější: datum, vodorovný pruh od nuly délkou podle ceny a cena; tato akce nahoře,
+    zvýrazněná a označená „teď“. Časová osa se u pár krátkých akcí za 12 týdnů rozpadla na drobné čárky
     s překrývajícími se popisky, řádky mají popisek každý. Běžné ceny mimo akci neznáme.
 
     @author Roman Hlaváček
@@ -27,8 +27,9 @@ const locale = computed(() => page.props.locale);
 /** Nejvyšší cena — plná délka pruhu. */
 const maxPrice = computed(() => Math.max(...props.points.map((point) => point.price)));
 
+/** Od nejnovější — aktuální akce nahoře, starší pod ní (i při dvanácti řádcích je hned vidět). */
 const rows = computed(() =>
-    props.points.map((point) => ({
+    [...props.points].reverse().map((point) => ({
         ...point,
         range: `${formatShortDate(point.from, locale.value)} – ${formatShortDate(point.to, locale.value)}`,
         label: formatPrice(point.price, locale.value),
