@@ -468,6 +468,8 @@
     --icon-size-sm: 0.875rem;
     // Křížek u vybrané prodejny (StoreSelect, R49)
     --store-chip-remove-size: 1.5rem;
+    // Rozbalený seznam prodejen (StoreSelect, R168) — zhruba šest prodejen, dál se roluje
+    --store-select-list-max-height: 18rem;
     // Lišta sekcí stránky přilepená pod hlavičkou (Můj účet, R116): nad obsahem, pod rozbalovacími seznamy
     --z-section-nav: 10;
     // Plovoucí lišta filtrů (R119) nad přilepenou hlavičkou skupiny, která pod ní jede

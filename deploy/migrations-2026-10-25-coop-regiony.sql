@@ -7,11 +7,11 @@
 -- @created 2026-10-25
 
 INSERT INTO `stores` (`chain`, `code`, `name`, `city`, `created_at`, `updated_at`) VALUES
-  ('coop', 'coop-sc', 'Střední Čechy', 'Čechy', NOW(), NOW()),
-  ('coop', 'coop-jc', 'Jižní Čechy', 'Čechy', NOW(), NOW()),
-  ('coop', 'coop-vc', 'Východní Čechy', 'Čechy', NOW(), NOW()),
-  ('coop', 'coop-zc', 'Západní Čechy', 'Čechy', NOW(), NOW()),
-  ('coop', 'coop-ms', 'Morava a Slezsko', 'Morava a Slezsko', NOW(), NOW())
+  ('coop', 'coop-sc', 'Střední Čechy', 'Jednota Benešov, Kladno, Rakovník, Nymburk, COOP Hořovice, Příbram, Mnichovo Hradiště', NOW(), NOW()),
+  ('coop', 'coop-jc', 'Jižní Čechy', 'Milevsko, Tábor, Vimperk, Volyně, Kaplice, Jindřichův Hradec, Kamenice nad Lipou', NOW(), NOW()),
+  ('coop', 'coop-vc', 'Východní Čechy', 'Nová Paka, Pardubice, Dvůr Králové nad Labem', NOW(), NOW()),
+  ('coop', 'coop-zc', 'Západní Čechy', 'COOP Plasy, Tachov, Podbořany, Sušice, Plzeň', NOW(), NOW()),
+  ('coop', 'coop-ms', 'Morava a Slezsko', 'jen celostátní leták', NOW(), NOW())
 ON DUPLICATE KEY UPDATE `name` = VALUES(`name`), `city` = VALUES(`city`), `updated_at` = NOW();
 
 INSERT INTO `migrations` (`migration`, `batch`)

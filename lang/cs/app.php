@@ -780,9 +780,11 @@ return [
                 'kaufland' => 'Pultové maso, ryby a pár dalších akcí se liší po prodejnách. Bez výběru uvidíte akce všech prodejen.',
                 'globus' => 'Část akcí má v některých hypermarketech jinou cenu a pár jich platí jen někde. Bez výběru uvidíte akce všech hypermarketů.',
                 // Regiony místo prodejen (R167) — podle družstva, které prodejnu provozuje
-                'coop' => 'Kromě celostátního letáku má každý region v Čechách vlastní. Vyberte region podle družstva, které vaši prodejnu provozuje: střední Čechy (Jednota Benešov, Kladno, Rakovník, Nymburk, COOP Hořovice, Příbram, Mnichovo Hradiště), jižní (Milevsko, Tábor, Vimperk, Volyně, Kaplice, Jindřichův Hradec, Kamenice nad Lipou), východní (Nová Paka, Pardubice, Dvůr Králové nad Labem), západní (COOP Plasy, Tachov, Podbořany, Sušice, Plzeň). Na Moravě a ve Slezsku zatím ukážeme jen celostátní akce. Bez výběru uvidíte akce všech regionů.',
+                'coop' => 'Kromě celostátního letáku má každý region v Čechách vlastní — vyberte region podle družstva, které vaši prodejnu provozuje. Bez výběru uvidíte akce všech regionů.',
             ],
             'stores_search' => 'Hledat prodejnu nebo město',
+            // Pole výběru prodejen (StoreSelect, R168) — klepnutí rozbalí seznam, psaní ho filtruje
+            'stores_pick' => 'Vyberte nebo hledejte prodejnu',
             'stores_all' => 'Všechny prodejny',
             'stores_remove' => 'Odebrat prodejnu :store',
             'stores_none_found' => 'Žádná prodejna neodpovídá.',

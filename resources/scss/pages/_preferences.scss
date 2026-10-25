@@ -179,10 +179,55 @@
         font-size: var(--font-size-sm);
     }
 
-    &__results {
-        margin: 0;
+    // Pole se šipkou: šipka uvnitř pole vpravo, text pod ni nezajede
+    &__field {
+        position: relative;
+    }
+
+    &__input {
+        width: 100%;
+        padding-right: var(--control-size);
+    }
+
+    &__toggle {
+        position: absolute;
+        top: 0;
+        right: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: var(--control-size);
+        height: 100%;
         padding: 0;
-        overflow: hidden;
+        background: none;
+        border: 0;
+        color: var(--color-text-muted);
+        cursor: pointer;
+
+        svg {
+            width: var(--icon-size);
+            height: var(--icon-size);
+            fill: none;
+            stroke: currentcolor;
+            stroke-width: var(--svg-stroke-icon);
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            transition: transform var(--duration-fast);
+        }
+    }
+
+    &__toggle-icon--open {
+        transform: rotate(180deg);
+    }
+
+    // Seznam pod polem v toku stránky (ne přes obsah) — v okně filtrů i v kartě obchodu se nic neořízne
+    &__results {
+        max-height: var(--store-select-list-max-height);
+        margin: 0;
+        padding: var(--space-1);
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        background: var(--color-surface);
         border: 1px solid var(--color-border);
         border-radius: var(--radius-sm);
         list-style: none;
@@ -190,34 +235,76 @@
 
     &__result {
         display: flex;
-        align-items: baseline;
-        justify-content: space-between;
+        align-items: center;
         gap: var(--space-2);
-        width: 100%;
-        padding: var(--space-2) var(--space-3);
-        background: var(--color-surface);
-        border: 0;
-        color: var(--color-text);
-        font: inherit;
+        min-height: var(--control-size);
+        padding: var(--space-1) var(--space-2);
+        border-radius: var(--radius-sm);
         font-size: var(--font-size-sm);
-        text-align: left;
         cursor: pointer;
 
-        &:hover,
-        &:focus-visible {
+        &--active {
             background: var(--color-accent-soft);
+        }
+
+        // Nad limitem vybraných jde jen odebírat
+        &[aria-disabled='true'] {
+            opacity: var(--opacity-disabled);
+            cursor: default;
         }
     }
 
-    li + li &__result {
-        border-top: 1px solid var(--color-border);
+    &__check {
+        display: inline-flex;
+        flex: none;
+        align-items: center;
+        justify-content: center;
+        width: var(--checkbox-size);
+        height: var(--checkbox-size);
+        background: var(--color-surface);
+        border: 1px solid var(--color-input-border);
+        border-radius: var(--checkbox-radius);
+
+        svg {
+            width: 100%;
+            height: 100%;
+            fill: none;
+            stroke: var(--color-on-accent);
+            stroke-width: var(--svg-stroke-check);
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            visibility: hidden;
+        }
+
+        [aria-selected='true'] > & {
+            background: var(--color-accent);
+            border-color: var(--color-accent);
+
+            svg {
+                visibility: visible;
+            }
+        }
+    }
+
+    &__result-text {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
     }
 
     &__result-name {
         font-weight: var(--font-weight-bold);
     }
 
+    // Druhý řádek: město, u regionů COOP družstva (R167)
     &__result-city {
         color: var(--color-text-muted);
+        font-size: var(--font-size-xs);
+    }
+
+    &__empty {
+        padding: var(--space-2);
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
     }
 }

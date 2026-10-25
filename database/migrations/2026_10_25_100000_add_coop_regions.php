@@ -19,13 +19,13 @@ use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
-    /** Regiony k 25. 10. 2026: kód => [název, oblast]. Družstva regionů jsou v nápovědě výběru. */
+    /** Regiony k 25. 10. 2026: kód => [název, družstva] — družstva jsou druhý řádek ve výběru (místo města). */
     private const REGIONS = [
-        'coop-sc' => ['Střední Čechy', 'Čechy'],
-        'coop-jc' => ['Jižní Čechy', 'Čechy'],
-        'coop-vc' => ['Východní Čechy', 'Čechy'],
-        'coop-zc' => ['Západní Čechy', 'Čechy'],
-        'coop-ms' => ['Morava a Slezsko', 'Morava a Slezsko'],
+        'coop-sc' => ['Střední Čechy', 'Jednota Benešov, Kladno, Rakovník, Nymburk, COOP Hořovice, Příbram, Mnichovo Hradiště'],
+        'coop-jc' => ['Jižní Čechy', 'Milevsko, Tábor, Vimperk, Volyně, Kaplice, Jindřichův Hradec, Kamenice nad Lipou'],
+        'coop-vc' => ['Východní Čechy', 'Nová Paka, Pardubice, Dvůr Králové nad Labem'],
+        'coop-zc' => ['Západní Čechy', 'COOP Plasy, Tachov, Podbořany, Sušice, Plzeň'],
+        'coop-ms' => ['Morava a Slezsko', 'jen celostátní leták'],
     ];
 
     /**
