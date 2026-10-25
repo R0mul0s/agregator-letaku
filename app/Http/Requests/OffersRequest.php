@@ -160,13 +160,28 @@ class OffersRequest extends FormRequest
      * Obchod nebo produkt z části adresy (`/akce/lidl`, `/akce/pivo`, R94); bez ní oba null.
      * Neznámou část adresy hlásí kontroler jako 404.
      *
-     * @return array{chain: Chain|null, productId: int|null}|null null = část adresy neexistuje
+     * @return array{chain: Chain|null, productId: int|null, storeCode?: string}|null null = část adresy neexistuje
      */
     public function pathTarget(): ?array
     {
         $slug = $this->route('slug');
+        $store = $this->route('store');
+        if (is_string($slug) && is_string($store)) {
+            // Stránka prodejny /akce/kaufland/trutnov (R172)
+            $target = app(OfferPages::class)->resolveStore($slug, $store);
+
+            return $target === null ? null : ['chain' => $target['chain'], 'productId' => null, 'storeCode' => $target['storeCode']];
+        }
 
         return is_string($slug) ? app(OfferPages::class)->resolve($slug) : ['chain' => null, 'productId' => null];
+    }
+
+    /**
+     * Prodejna ze stránky prodejny `/akce/kaufland/trutnov` (R172), jinak null.
+     */
+    public function pathStoreCode(): ?string
+    {
+        return $this->pathTarget()['storeCode'] ?? null;
     }
 
     /**
@@ -345,7 +360,7 @@ class OffersRequest extends FormRequest
      */
     public function storeChoice(): bool
     {
-        return $this->filled(self::STORE_FORMAT) || $this->filled(self::STORES);
+        return $this->filled(self::STORE_FORMAT) || $this->filled(self::STORES) || $this->pathStoreCode() !== null;
     }
 
     /**
@@ -355,7 +370,12 @@ class OffersRequest extends FormRequest
      */
     public function storeCodes(): array
     {
-        return $this->filled(self::STORES) ? self::parseStoreCodes($this->string(self::STORES)->toString()) : [];
+        if ($this->filled(self::STORES)) {
+            return self::parseStoreCodes($this->string(self::STORES)->toString());
+        }
+        $pathStore = $this->pathStoreCode();
+
+        return $pathStore === null ? [] : [$pathStore];
     }
 
     /**

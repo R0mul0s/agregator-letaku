@@ -85,6 +85,8 @@ class CrawlerFilesController extends Controller
                 'loc' => $this->pages->productUrl($productId, absolute: true),
                 'lastmod' => ($productChanges[$productId] ?? null)?->toAtomString(),
             ], $productIds),
+            // Stránky prodejen (R172) — změní se se staženou nabídkou obchodu
+            ...$this->storeUrls($chainChanges),
             ...$this->weeklyUrls($weekly, $changes),
             // Podmínky a zásady ne — jsou noindex (R121)
             ...array_map(fn (string $route): array => ['loc' => route($route), 'lastmod' => $legalModified], PublicPages::indexedRoutes()),
@@ -94,6 +96,24 @@ class CrawlerFilesController extends Controller
             ->view('crawlers.sitemap', ['urls' => $urls])
             ->header('Content-Type', 'application/xml; charset=utf-8')
             ->header('Cache-Control', 'public, max-age='.self::CACHE_SECONDS);
+    }
+
+    /**
+     * Stránky prodejen obchodů se stránkami prodejen (R172) s `lastmod` jejich obchodu.
+     *
+     * @param  array<string, CarbonImmutable>  $chainChanges
+     * @return list<array{loc: string, lastmod: string|null}>
+     */
+    private function storeUrls(array $chainChanges): array
+    {
+        $urls = [];
+        foreach ($this->chainsWithCurrentOffers() as $chain) {
+            foreach ($this->pages->storesOf($chain, absolute: true) as $store) {
+                $urls[] = ['loc' => $store['url'], 'lastmod' => ($chainChanges[$chain->value] ?? null)?->toAtomString()];
+            }
+        }
+
+        return $urls;
     }
 
     /**

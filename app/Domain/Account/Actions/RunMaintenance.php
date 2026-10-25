@@ -2,7 +2,7 @@
 
 /**
  * Denní úklid cronu: vypršelé relace a odkazy pro obnovu hesla (R53), surové odpovědi
- * starých akcí (R113), staré statistiky letáků (R129) a staré návrhy, co hlídat (R148). Volá ho cron URL `/cron/prune-sessions` i `letaky:prune-sessions`;
+ * starých akcí (R113), staré statistiky letáků (R129), staré návrhy, co hlídat (R148), a stará hledání bez výsledků (R171). Volá ho cron URL `/cron/prune-sessions` i `letaky:prune-sessions`;
  * výsledek se zapíše pro hlídání `/health/tasks` (R115).
  *
  * @author Roman Hlaváček
@@ -14,6 +14,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Account\Actions;
 
+use App\Domain\Catalog\SearchMisses;
 use App\Domain\Offers\Actions\PruneLeafletStats;
 use App\Domain\Offers\Actions\PruneOfferRaw;
 use App\Domain\Shopping\WatchSuggestions;
@@ -27,13 +28,14 @@ final readonly class RunMaintenance
         private PruneOfferRaw $pruneOfferRaw,
         private PruneLeafletStats $pruneLeafletStats,
         private WatchSuggestions $watchSuggestions,
+        private SearchMisses $searchMisses,
     ) {}
 
     /**
      * Uklidí; vrátí počet smazaných relací, upravených akcí, smazaných statistik letáků
-     * a smazaných návrhů, co hlídat.
+     * smazaných návrhů, co hlídat, a hledání bez výsledků.
      *
-     * @return array{sessions: int, offer_raw: int, leaflet_stats: int, watch_suggestions: int}
+     * @return array{sessions: int, offer_raw: int, leaflet_stats: int, watch_suggestions: int, search_misses: int}
      */
     public function __invoke(): array
     {
@@ -42,6 +44,7 @@ final readonly class RunMaintenance
             'offer_raw' => ($this->pruneOfferRaw)(),
             'leaflet_stats' => ($this->pruneLeafletStats)(),
             'watch_suggestions' => $this->watchSuggestions->prune(),
+            'search_misses' => $this->searchMisses->prune(),
         ]);
     }
 }

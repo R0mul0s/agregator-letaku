@@ -50,6 +50,12 @@ return [
                 'description_unit_price' => ' (:price za :unit)',
                 'description_others' => ' Dál v akci: :chains.',
             ],
+            // Stránka prodejny /akce/kaufland/trutnov (R172) — „Kaufland Trutnov leták“ se hledá často
+            'offers_store' => [
+                'title' => ':chain_name :store — akce z letáku tento týden · Slevohlídka',
+                'heading' => 'Akce :chain :store',
+                'description' => 'Akce z letáku :chain v prodejně :store, které tu tento týden platí — i ty, které nejsou ve všech prodejnách. S cenou za kilo nebo litr a cenou s věrnostní kartou.',
+            ],
             'terms' => [
                 'title' => 'Podmínky užití · Slevohlídka',
                 'heading' => 'Podmínky užití',
@@ -238,6 +244,7 @@ return [
         'offer_raw_pruned' => 'Úklid — vyprázdněno surových odpovědí starých akcí: :count',
         'leaflet_stats_pruned' => 'Úklid — smazáno starých statistik letáků: :count',
         'watch_suggestions_pruned' => 'Úklid — smazáno starých návrhů, co hlídat: :count',
+        'search_misses_pruned' => 'Úklid — smazáno starých hledání bez výsledků: :count',
     ],
 
     // E-mailový souhrn nových akcí (R42, App\Mail\DigestMail)
@@ -465,6 +472,22 @@ return [
 
         'catalog' => [
             'title' => 'Katalog produktů',
+            // Hledání bez výsledků (R171)
+            'search_misses' => [
+                'title' => 'Co lidé hledají a nenašli',
+                'intro' => 'Hledání ve Všech akcích a v Hlídám, která nenašla nic — od :hits hledání výš, za posledních :days dní. Podklad pro nové produkty katalogu i další obchody.',
+                'empty' => 'Zatím nic — všechno, co lidé hledali, se našlo.',
+                'hits' => 'hledáno :count×',
+                'last_seen' => 'naposledy :date',
+                'sources' => [
+                    'offers' => 'Všechny akce',
+                    'watch' => 'Hlídám',
+                ],
+                'create' => 'Vytvořit produkt',
+                'dismiss' => 'Skrýt',
+                'dismiss_confirm_title' => 'Skrýt hledání?',
+                'dismiss_confirm' => '„:text“ zmizí z přehledu a další hledání ho nevrátí.',
+            ],
             'intro' => 'Produkty, které jde hlídat. Akce se k nim přiřazují podle slov při každém stažení; přiřazení jde ručně opravit v detailu produktu.',
             'empty' => 'Katalog je zatím prázdný.',
             'close_form' => 'Zavřít formulář',
@@ -933,6 +956,17 @@ return [
             // Červený pruh Všech akcí (R141): věta pod nadpisem, tlačítko hledání, obchody, slevy týdne
             'hero_lead' => 'Akce ze :chains obchodů na jednom místě. Hledejte, vyberte obchod nebo oddělení a řaďte podle ceny za kilo.',
             'hero_lead_chain' => 'Akce z letáku a webu obchodu :chain. Hledejte, vyberte oddělení a řaďte podle ceny za kilo.',
+            // Stránka prodejny (R172)
+            'store_hero' => [
+                'lead' => 'Jen akce, které v téhle prodejně platí — :count z nich není ve všech prodejnách.|Jen akce, které v téhle prodejně platí — :count z nich nejsou ve všech prodejnách.|Jen akce, které v téhle prodejně platí — :count z nich není ve všech prodejnách.',
+                'lead_all' => 'Akce, které v téhle prodejně tento týden platí.',
+                'all_stores' => 'Akce všech prodejen',
+            ],
+            // Prodejny pod výpisem obchodu (R172)
+            'stores' => [
+                'title' => 'Akce podle prodejny',
+                'lead' => 'Některé akce platí jen v části prodejen. Vyberte tu svou a uvidíte jen akce, které v ní opravdu jsou.',
+            ],
             // Stránka produktu (R158): shrnutí v červeném pruhu a „Hlídat“
             'product_hero' => [
                 'best' => 'Nejvýhodněji teď :chain za :price.',
@@ -1964,6 +1998,7 @@ return [
                 // CatalogController
                 'product-saved' => 'Produkt je uložený.',
                 'product-deleted' => 'Produkt je smazaný.',
+                'search-miss-dismissed' => 'Hledání jsme z přehledu skryli.',
                 'assignment-changed' => 'Přiřazení akce je opravené.',
                 // WatchItemExclusionController („Tohle ne“, R125)
                 'offer-hidden' => 'Akci jsme u položky skryli.',

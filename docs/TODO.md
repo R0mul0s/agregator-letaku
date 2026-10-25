@@ -182,8 +182,7 @@ funkce, změřit, co lidé opravdu používají, a nepoužívané schovat nebo z
 
 - **počítadlo úspor** — „Tento měsíc jste ušetřili 640 Kč“ z odškrtnutých položek nákupního seznamu (původní nebo běžná cena − cena, kterou uživatel zaplatil, `UserPricing`); data už jsou. Motivuje k návratu, jde sdílet a hodí se do týdenního souhrnu. Rozhodnout, co s akcí bez přeškrtnuté ceny (Tesco skoro nikdy, viz *Historie a porovnání cen*)
 - **„Nakupuji v sobotu“** — zvolit den nákupu a v Mých slevách i nákupním seznamu vidět jen akce, které ten den platí (Lidl a Penny mají akce jen na část týdne); den předem upozornění s nákupním seznamem. Den nákupu jako předvolba účtu, filtr `valid_from <= den <= valid_to`
-- **hledání bez výsledků** — anonymně počítat dotazy ve Všech akcích a v Hlídám, které nic nenašly (normalizovaný text, počet, bez uživatele; práh jako u návrhů R148), a ukázat je adminovi v katalogu — přímý podklad pro nové produkty katalogu a výběr dalších obchodů; doplnit do zásad
-- **stránky prodejen pro vyhledávače** (`/akce/kaufland/trutnov`, Globus, COOP) — lidé hledají „leták Kaufland Trutnov“ a seznamy prodejen už máme; riziko tenkého obsahu (akce prodejny se od obchodu liší málo) — přidat něco navíc (akce jen v této prodejně, otevírací doba?), registr `PublicPages`, sitemap
+- hledání bez výsledků (R171) a stránky prodejen Kauflandu a Globusu (R172) hotové — dál: hledání bez výsledků i v nákupním seznamu („Co koupit“); stránky prodejen COOP jen pro prodejny se sledovaným letákem (dnes by to byly stovky skoro stejných stránek po pěti regionech); adresa a otevírací doba prodejny ze zdroje prodejen; ohlašovat stránky prodejen přes IndexNow (dnes jen sitemap.xml)
 - **hlídání pro domácnost** — sdílený seznam už je (R130), hlídané položky jsou jen jednoho účtu; druhý člen domácnosti by sledoval stejné položky (pozvánka odkazem, společná sada hlídání)
 
 **Z revize — architektura (zatím ne):**

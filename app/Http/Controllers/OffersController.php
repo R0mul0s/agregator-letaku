@@ -19,6 +19,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Domain\Catalog\SearchMisses;
 use App\Domain\Catalog\WatchTargets;
 use App\Domain\Chains\ChainCatalog;
 use App\Domain\Offers\OfferDepartments;
@@ -33,6 +34,7 @@ use App\Domain\Offers\SearchVocabulary;
 use App\Domain\Offers\UserPricing;
 use App\Enums\Chain;
 use App\Enums\OfferListSort;
+use App\Enums\SearchMissSource;
 use App\Enums\StoreFormat;
 use App\Http\Requests\OffersRequest;
 use App\Http\Responses\RegisterResponse;
@@ -55,7 +57,7 @@ class OffersController extends Controller
      * Zobrazí neskončené akce odpovídající hledání, v načteném rozsahu stránek. Stará adresa
      * jednoho obchodu nebo produktu (`?chain=lidl`, `?produkt=12`) přesměruje na čistou (R94).
      */
-    public function __invoke(OffersRequest $request, OfferSearch $search, OfferPresenter $presenter, PriceHistory $priceHistory, WatchTargets $watchTargets, SearchVocabulary $vocabulary, OfferPages $pages, OfferDepartments $departments, ProductOfferSummary $productSummary, UserPricing $pricing, ChainCatalog $chainCatalog): Response|RedirectResponse
+    public function __invoke(OffersRequest $request, OfferSearch $search, OfferPresenter $presenter, PriceHistory $priceHistory, WatchTargets $watchTargets, SearchVocabulary $vocabulary, OfferPages $pages, OfferDepartments $departments, ProductOfferSummary $productSummary, UserPricing $pricing, ChainCatalog $chainCatalog, SearchMisses $misses): Response|RedirectResponse
     {
         abort_if($request->pathTarget() === null, HttpResponse::HTTP_NOT_FOUND);
         $cleanUrl = $this->cleanUrl($request, $pages);
@@ -92,6 +94,9 @@ class OffersController extends Controller
         // „Načíst další“ (R106): jen nová stránka, Inertia ji připojí pod načtené — dřív se
         // posílal celý rozsah znovu (na desáté stránce ~420 kB)
         $appending = $request->appendsPage($window, 'offers');
+        if ($total === 0 && $text !== null && ! $appending) {
+            $this->recordMiss($request, $text, $search, $vocabulary, $misses);
+        }
         $fetched = $appending ? $window->lastOnly() : $window;
         $offers = $query->offset($fetched->offset())->limit($fetched->limit())->get();
         // „Je to opravdu sleva?“ (R59) — jedním dotazem pro celou stránku
@@ -198,12 +203,72 @@ class OffersController extends Controller
                 $pages,
             ),
             'correction' => $correction,
+            // Stránka prodejny (R172): prodejna v červeném pruhu a kolik akcí neplatí všude
+            'storePage' => fn (): ?array => $this->storePageProps($request, $pages, $search),
+            // Stránka obchodu se stránkami prodejen (R172): odkazy na prodejny pod výpisem
+            'chainStores' => fn (): array => $this->chainStoresProps($request, $chosenFilters, $pages),
             // Filtr obchodů bez vypnutých (R155)
             'chains' => array_map(fn (Chain $chain): array => [
                 'value' => $chain->value,
                 'name' => $chain->label(),
             ], Chain::enabled()),
         ]);
+    }
+
+    /**
+     * Prodejna stránky prodejny `/akce/kaufland/trutnov` (R172): název, město, obchod, odkaz na
+     * všechny akce obchodu a kolik akcí tu platí jen v části prodejen; jinde null.
+     *
+     * @return array{name: string, city: string, chain: string, chainUrl: string, restrictedCount: int}|null
+     */
+    private function storePageProps(OffersRequest $request, OfferPages $pages, OfferSearch $search): ?array
+    {
+        $code = $request->pathStoreCode();
+        $store = $code === null ? null : $pages->store($code);
+        if ($code === null || $store === null) {
+            return null;
+        }
+
+        return [
+            'name' => $store['name'],
+            'city' => $store['city'],
+            'chain' => $store['chain']->value,
+            'chainUrl' => $pages->chainUrl($store['chain']),
+            'restrictedCount' => $search->query(null, new OfferFilters([$store['chain']], storeCodes: [$code], storeChoice: true))->has('stores')->count(),
+        ];
+    }
+
+    /**
+     * Prodejny obchodu se stránkou (R172) pro stránku obchodu `/akce/kaufland` bez dalších filtrů
+     * [{ name, url }]; jinde prázdné. Vyhledávač podle nich stránky prodejen najde.
+     *
+     * @return list<array{name: string, url: string}>
+     */
+    private function chainStoresProps(OffersRequest $request, OfferFilters $chosen, OfferPages $pages): array
+    {
+        $isChainPage = $request->route()?->getName() === OfferPages::PAGE_ROUTE && count($chosen->chains) === 1 && $chosen->productId === null;
+
+        return $isChainPage
+            ? array_map(fn (array $store): array => ['name' => $store['name'], 'url' => $store['url']], $pages->storesOf($chosen->chains[0]))
+            : [];
+    }
+
+    /**
+     * Hledání bez výsledků (R171): započítá text, který nenajde nic v žádném obchodě ani po opravě
+     * překlepu — bez filtrů, ty by ho schovaly. Jen hledání z aplikace (požadavek Inertie), ne
+     * odkaz z vyhledávače nebo robot s `?q=`.
+     */
+    private function recordMiss(OffersRequest $request, string $text, OfferSearch $search, SearchVocabulary $vocabulary, SearchMisses $misses): void
+    {
+        if (! $request->hasHeader(Header::INERTIA) || $search->query($text, new OfferFilters)->exists()) {
+            return;
+        }
+        $corrected = $vocabulary->correct($text);
+        if ($corrected !== null && $search->query($corrected, new OfferFilters)->exists()) {
+            return;
+        }
+
+        $misses->record(SearchMissSource::Offers, $text, $request->session()->getId());
     }
 
     /**
@@ -275,7 +340,10 @@ class OffersController extends Controller
      */
     private function cleanUrl(OffersRequest $request, OfferPages $pages): ?string
     {
-        if ($request->route()?->getName() !== 'offers' || $request->hasHeader(Header::INERTIA)) {
+        $routeName = $request->route()?->getName();
+        // Obchod s jednou prodejnou v parametru (`/akce/kaufland?prodejny=CZ4400`) → stránka prodejny (R172)
+        $storeParameter = $routeName === OfferPages::PAGE_ROUTE && $request->filled(OffersRequest::STORES);
+        if (($routeName !== 'offers' && ! $storeParameter) || $request->hasHeader(Header::INERTIA)) {
             return null;
         }
 
@@ -287,6 +355,14 @@ class OffersController extends Controller
         // Hledání a stránky zůstanou jako parametry, filtry složí OfferPages
         $extra = array_map(fn (mixed $value): string => is_scalar($value) ? (string) $value : '', $request->only(['q', OffersRequest::PAGE, OffersRequest::FROM_PAGE]));
 
-        return $pages->url($filters, $extra);
+        $url = $pages->url($filters, $extra);
+        if ($storeParameter && $request->route('slug') !== null) {
+            // Jiná kombinace prodejen než jedna se stránkou zůstane na stránce obchodu s parametrem
+            $chainPath = (string) parse_url($pages->chainUrl($filters->chains[0] ?? Chain::from((string) $request->route('slug'))), PHP_URL_PATH);
+
+            return str_starts_with((string) parse_url($url, PHP_URL_PATH), $chainPath.'/') ? $url : null;
+        }
+
+        return $url;
     }
 }

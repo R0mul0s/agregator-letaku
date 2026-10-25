@@ -41,6 +41,15 @@
                 @if (! empty($props['pagination']['nextUrl']))
                     <p><a href="{{ $props['pagination']['nextUrl'] }}">{{ __('app.seo.content.next_page') }}</a></p>
                 @endif
+                {{-- Prodejny obchodu (R172) — robot bez JavaScriptu stránky prodejen najde odsud --}}
+                @if (! empty($props['chainStores']))
+                    <h2>{{ __('app.ui.offers.stores.title') }}</h2>
+                    <ul>
+                        @foreach ($props['chainStores'] as $store)
+                            <li><a href="{{ $store['url'] }}">{{ $store['name'] }}</a></li>
+                        @endforeach
+                    </ul>
+                @endif
                 @break
 
             {{-- Nejlepší slevy týdne (R128): žebříček, slevy po obchodech a odkazy na sousední týdny a archiv --}}

@@ -125,6 +125,10 @@ const props = defineProps({
     correction: { type: Object, default: null },
     /** Kanál RSS výpisu jednoho obchodu nebo produktu (R149), jinak null. */
     feedUrl: { type: String, default: null },
+    /** Stránka prodejny (R172) { name, city, chain, chainUrl, restrictedCount }, jinak null. */
+    storePage: { type: Object, default: null },
+    /** Stránka obchodu: jeho prodejny se stránkou [{ name, url }] (R172), jinak prázdné. */
+    chainStores: { type: Array, default: () => [] },
 });
 
 const t = useTranslations();
@@ -601,6 +605,11 @@ onBeforeUnmount(() => liveSearch.cancel());
                             {{ t('offers.product_hero.note', { name: productWatch.name }) }}
                         </p>
                     </div>
+                    <!-- Stránka prodejny (R172): kolik akcí tu platí jen v části prodejen a odkaz na celý obchod -->
+                    <p v-else-if="storePage" class="offers-hero__lead">
+                        {{ storePage.restrictedCount ? t('offers.store_hero.lead', { count: storePage.restrictedCount }) : t('offers.store_hero.lead_all') }}
+                        <Link :href="storePage.chainUrl" class="offers-hero__store-link">{{ t('offers.store_hero.all_stores') }}</Link>
+                    </p>
                     <p v-else class="offers-hero__lead">
                         {{ singleChain ? t('offers.hero_lead_chain', { chain: singleChain.name }) : t('offers.hero_lead', { chains: chains.length }) }}
                     </p>
@@ -873,6 +882,17 @@ onBeforeUnmount(() => liveSearch.cancel());
             </div>
 
             <Pagination :pagination="pagination" :total="offers.total" />
+
+            <!-- Prodejny obchodu (R172): akce jen té prodejny; odkazy najde i vyhledávač -->
+            <section v-if="chainStores.length" class="card offers-stores" aria-labelledby="offers-stores-title">
+                <h2 id="offers-stores-title" class="card__title">{{ t('offers.stores.title') }}</h2>
+                <p class="offers-stores__lead">{{ t('offers.stores.lead') }}</p>
+                <ul class="offers-stores__list">
+                    <li v-for="store in chainStores" :key="store.url">
+                        <Link :href="store.url" class="link">{{ store.name }}</Link>
+                    </li>
+                </ul>
+            </section>
         </section>
     </AppLayout>
 </template>

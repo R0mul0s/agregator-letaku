@@ -476,6 +476,7 @@ migraci ztratila změny od té doby (registrace, hlídané položky, nákupní s
 | `migrations-2026-10-18-pruvodce.sql` | průvodce prvním nastavením (R153): `users.onboarded_at`, dosavadním účtům čas registrace (jen při prvním spuštění); opakovatelný, pustit **před** nahráním kódu | 2026-10-18 |
 | `migrations-2026-10-25-delsi-kod-prodejny.sql` | delší kód prodejny (R169): `stores.code` a `offer_stores.store_code` na 80 znaků kvůli prodejnám COOP; opakovatelný, pustit **před** nahráním kódu | 2026-10-25 |
 | `migrations-2026-10-25-indexy-upozorneni.sql` | indexy pro cron upozornění a úklid (R170): `users.push_sent_at`, `digest_sent_at`, `notified_at`, `notifications.created_at`; opakovatelný, pustit kdykoli (stará verze kódu s ním běží) | — |
+| `migrations-2026-10-25-hledani-bez-vysledku.sql` | hledání bez výsledků (R171): tabulka `search_misses`; opakovatelný, pustit **před** nahráním kódu | — |
 
 ## Nasazené verze
 

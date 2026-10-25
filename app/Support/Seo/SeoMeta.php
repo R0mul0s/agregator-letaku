@@ -33,8 +33,8 @@ use Illuminate\Support\Arr;
 
 final class SeoMeta
 {
-    /** Routy výpisu akcí — `/akce` a čistá adresa obchodu nebo produktu (R94). */
-    private const OFFERS_ROUTES = ['offers', OfferPages::PAGE_ROUTE];
+    /** Routy výpisu akcí — `/akce`, čistá adresa obchodu nebo produktu (R94) a prodejny (R172). */
+    private const OFFERS_ROUTES = ['offers', OfferPages::PAGE_ROUTE, OfferPages::STORE_ROUTE];
 
     public function __construct(
         private readonly OfferPages $pages,
@@ -81,14 +81,15 @@ final class SeoMeta
     {
         $routeName = (string) $request->route()?->getName();
         [$chain, $productId] = $this->target($request, $routeName);
-        $page = $this->page($request, $routeName, $chain, $productId);
+        $storeCode = $this->storeCode($request, $routeName);
+        $page = $this->page($request, $routeName, $chain, $productId, $storeCode);
         $props = is_array($inertiaPage['props'] ?? null) ? $inertiaPage['props'] : [];
         $robots = $this->robots($routeName, $page, $request, $productId, $props);
-        $replace = $this->replacements($chain, $productId, $this->week($request, $routeName));
+        $replace = $this->replacements($chain, $productId, $this->week($request, $routeName), $storeCode);
         $title = $this->text($request, $page, 'title', $replace, $productId);
         $heading = __("app.seo.pages.{$page}.heading", $replace);
         $description = $this->text($request, $page, 'description', $replace, $productId);
-        $canonical = $this->canonical($request, $routeName, $chain, $productId);
+        $canonical = $this->canonical($request, $routeName, $chain, $productId, $storeCode);
 
         return [
             'title' => $title,
@@ -118,8 +119,9 @@ final class SeoMeta
     {
         $routeName = (string) $request->route()?->getName();
         [$chain, $productId] = $this->target($request, $routeName);
+        $storeCode = $this->storeCode($request, $routeName);
 
-        return $this->text($request, $this->page($request, $routeName, $chain, $productId), 'title', $this->replacements($chain, $productId, $this->week($request, $routeName)), $productId);
+        return $this->text($request, $this->page($request, $routeName, $chain, $productId, $storeCode), 'title', $this->replacements($chain, $productId, $this->week($request, $routeName), $storeCode), $productId);
     }
 
     /**
@@ -130,8 +132,9 @@ final class SeoMeta
     {
         $routeName = (string) $request->route()?->getName();
         [$chain, $productId] = $this->target($request, $routeName);
+        $storeCode = $this->storeCode($request, $routeName);
 
-        return __("app.seo.pages.{$this->page($request, $routeName, $chain, $productId)}.heading", $this->replacements($chain, $productId, $this->week($request, $routeName)));
+        return __("app.seo.pages.{$this->page($request, $routeName, $chain, $productId, $storeCode)}.heading", $this->replacements($chain, $productId, $this->week($request, $routeName), $storeCode));
     }
 
     /**
@@ -146,10 +149,11 @@ final class SeoMeta
     /**
      * Druh stránky pro texty v app.seo.pages.
      */
-    private function page(Request $request, string $routeName, ?Chain $chain, ?int $productId): string
+    private function page(Request $request, string $routeName, ?Chain $chain, ?int $productId, ?string $storeCode = null): string
     {
         return match (true) {
             $routeName === 'home' && $request->user() === null => 'home',
+            $storeCode !== null => 'offers_store',
             $this->isOffers($routeName) && $productId !== null => 'offers_product',
             $this->isOffers($routeName) && $chain !== null => 'offers_chain',
             $this->isOffers($routeName) => 'offers',
@@ -173,11 +177,29 @@ final class SeoMeta
         }
 
         $slug = $request->route('slug');
-        $path = is_string($slug) ? $this->pages->resolve($slug) : null;
+        $store = $request->route('store');
+        $path = match (true) {
+            is_string($slug) && is_string($store) => $this->pages->resolveStore($slug, $store),
+            is_string($slug) => $this->pages->resolve($slug),
+            default => null,
+        };
         $chain = $request->enum(OffersRequest::CHAIN, Chain::class) ?? $path['chain'] ?? null;
         $productId = ($request->integer(OffersRequest::PRODUCT) ?: null) ?? $path['productId'] ?? null;
 
         return [$chain, $productId !== null && $this->pages->productName($productId) !== null ? $productId : null];
+    }
+
+    /**
+     * Prodejna stránky prodejny `/akce/kaufland/trutnov` (R172); jinde null.
+     */
+    private function storeCode(Request $request, string $routeName): ?string
+    {
+        $slug = $request->route('slug');
+        $store = $request->route('store');
+
+        return $routeName === OfferPages::STORE_ROUTE && is_string($slug) && is_string($store)
+            ? $this->pages->resolveStore($slug, $store)['storeCode'] ?? null
+            : null;
     }
 
     /**
@@ -245,14 +267,19 @@ final class SeoMeta
     }
 
     /**
-     * Doplňované hodnoty textů: obchod ve 2. pádě, název produktu a číslo, rok a dny týdne.
+     * Doplňované hodnoty textů: obchod ve 2. pádě i v 1. pádě, název produktu, prodejna (R172) a číslo, rok a dny týdne.
      *
      * @return array<string, string>
      */
-    private function replacements(?Chain $chain, ?int $productId, ?IsoWeek $week = null): array
+    private function replacements(?Chain $chain, ?int $productId, ?IsoWeek $week = null, ?string $storeCode = null): array
     {
+        $store = $storeCode === null ? null : $this->pages->store($storeCode);
+
         return [
             'chain' => $chain?->genitive() ?? '',
+            // Stránka prodejny (R172): „Kaufland Trutnov“, „Globus Brno“
+            'chain_name' => $chain?->label() ?? '',
+            'store' => $store['name'] ?? '',
             'product' => $productId === null ? '' : (string) $this->pages->productName($productId),
             'number' => (string) $week?->number,
             'year' => (string) $week?->year,
@@ -324,7 +351,7 @@ final class SeoMeta
      * protichůdné signály. Adresa z APP_URL (url()->current()), ne z požadavku — s kořenovým
      * .htaccess by nesla /public (R67).
      */
-    private function canonical(Request $request, string $routeName, ?Chain $chain, ?int $productId): string
+    private function canonical(Request $request, string $routeName, ?Chain $chain, ?int $productId, ?string $storeCode = null): string
     {
         if (! $this->isOffers($routeName)) {
             // Úvodní stránka s koncovým lomítkem ("https://…/"), ostatní bez
@@ -340,7 +367,7 @@ final class SeoMeta
         $page = $request->integer(OffersRequest::PAGE);
 
         return $this->pages->url(
-            new OfferFilters($chain === null ? [] : [$chain], $productId),
+            new OfferFilters($chain === null ? [] : [$chain], $productId, storeCodes: $storeCode === null ? [] : [$storeCode], storeChoice: $storeCode !== null),
             [OffersRequest::PAGE => $page > 1 ? $page : null],
             absolute: true,
         );

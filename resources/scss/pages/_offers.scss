@@ -550,3 +550,33 @@
         color: var(--color-text-muted);
     }
 }
+
+// Odkaz z pruhu stránky prodejny na akce všech prodejen (R172)
+.offers-hero__store-link {
+    color: inherit;
+    font-weight: var(--font-weight-bold);
+    text-decoration: underline;
+}
+
+// Prodejny pod výpisem obchodu (R172) — sloupce odkazů
+.offers-stores {
+    margin-top: var(--space-5);
+
+    &__lead {
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+    }
+
+    &__list {
+        columns: var(--offers-stores-column-width) auto;
+        column-gap: var(--space-4);
+        margin: var(--space-3) 0 0;
+        padding: 0;
+        list-style: none;
+
+        li {
+            padding-block: var(--space-1);
+            break-inside: avoid;
+        }
+    }
+}

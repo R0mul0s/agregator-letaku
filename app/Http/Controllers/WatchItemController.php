@@ -13,6 +13,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Domain\Catalog\CatalogBrowseTree;
+use App\Domain\Catalog\SearchMisses;
 use App\Domain\Catalog\WatchableProducts;
 use App\Domain\Matching\Actions\AddWatchItem;
 use App\Domain\Matching\MyOffers;
@@ -23,6 +24,7 @@ use App\Domain\Offers\UserPricing;
 use App\Domain\Shopping\WatchSuggestions;
 use App\Enums\AnalyticsEvent;
 use App\Enums\MatchStatus;
+use App\Enums\SearchMissSource;
 use App\Http\Requests\WatchItemRequest;
 use App\Models\Offer;
 use App\Models\User;
@@ -47,6 +49,9 @@ class WatchItemController extends Controller
 
     /** Pole formuláře: po přidání zůstat na stránce, odkud uživatel přišel (Všechny akce, R60). */
     public const STAY_FIELD = 'stay';
+
+    /** Parametr náhledu: hledání v „Co chcete hlídat?“ nenašlo produkt katalogu (R171). */
+    public const MISS_FIELD = 'no_product';
 
     /** Kódy stavu pro toast po uložení (R47, lang: ui.toast.messages). */
     public const STATUS_ADDED = 'watch-item-added';
@@ -148,7 +153,7 @@ class WatchItemController extends Controller
      * hned vidí, že „rum“ chytá i „Rump steak“. Stejná pravidla jako Moje slevy. Když teď
      * nenajde nic, přidá poslední akci z historie, nebo od kdy akce sledujeme (R104).
      */
-    public function preview(Request $request, MyOffers $myOffers, UserPricing $pricing, WatchHistory $history, TextNormalizer $normalizer): JsonResponse
+    public function preview(Request $request, MyOffers $myOffers, UserPricing $pricing, WatchHistory $history, TextNormalizer $normalizer, SearchMisses $misses): JsonResponse
     {
         $data = $request->validate(KeywordFields::rules());
 
@@ -157,6 +162,10 @@ class WatchItemController extends Controller
         $rule = WatchRule::fromText($data['keywords'], $data['variant_keywords'] ?? null, $data['exclude_keywords'] ?? null, $normalizer);
         $matches = $myOffers->preview($user, $rule);
         $lastSeen = $matches === [] ? $history->lastSeen($rule) : null;
+        // Hledání v „Co chcete hlídat?“, které nenašlo produkt katalogu (pozná prohlížeč) ani akci (R171)
+        if ($matches === [] && $request->boolean(self::MISS_FIELD)) {
+            $misses->record(SearchMissSource::Watch, $data['keywords'], $request->session()->getId());
+        }
 
         return response()->json([
             'count' => count($matches),

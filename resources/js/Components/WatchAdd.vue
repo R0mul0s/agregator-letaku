@@ -37,6 +37,9 @@ const TYPO_SHORT_WORD_LENGTH = 3;
 /** Kratší text se hledá jen jako začátek názvu produktu. */
 const MIN_WORD_MATCH_LENGTH = 2;
 
+/** Parametr náhledu: text nenašel produkt katalogu — server započítá hledání bez výsledků (WatchItemController::MISS_FIELD, R171). */
+const NO_PRODUCT_FIELD = 'no_product';
+
 const props = defineProps({
     /** Produkty katalogu [{ id, name, categoryName, icon, watched, offersCount, lowestPrice }]. */
     products: { type: Array, required: true },
@@ -139,8 +142,12 @@ const placeholder = useRotatingPlaceholder(
     (example) => t('search.try', { example }),
 );
 
-// Kolik akcí by našla vlastní slova — náhled u poslední volby (R71)
-const preview = useWatchPreview(props.previewUrl, () => ({ keywords: query.value.toLocaleLowerCase(page.props.locale) }));
+// Kolik akcí by našla vlastní slova — náhled u poslední volby (R71). Bez produktu katalogu (ani
+// podobného) náhled ohlásí, že katalog nic nenašel — nenajde-li nic ani v akcích, započítá se (R171)
+const preview = useWatchPreview(props.previewUrl, () => ({
+    keywords: query.value.toLocaleLowerCase(page.props.locale),
+    ...(matches.value.length || typoMatches.value.length ? {} : { [NO_PRODUCT_FIELD]: '1' }),
+}));
 
 /** Po změně textu otevře seznam od začátku. */
 function onInput() {

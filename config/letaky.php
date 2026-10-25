@@ -236,6 +236,8 @@ return [
             // /health/tasks: podíl store_lists_min_share čerstvých seznamů starší = výpadek (R115, R170).
             // Seznamy se stahují ve 4:45 a 12:45 — ozve se dřív, než po store_offers_max_age_hours přestanou platit
             'store_lists_health_hours' => 18,
+            // Každá prodejna má vlastní stránku akcí pro vyhledávače /akce/kaufland/trutnov (R172)
+            'store_pages' => true,
         ],
         'lidl' => [
             'offers_source' => LidlOfferSource::class,
@@ -276,6 +278,8 @@ return [
             // Veřejné REST API webu (R46): akce s cenou v prodejně a k nim položky letáku
             'offers_source' => GlobusOfferSource::class,
             'has_store_formats' => false,
+            // Každý hypermarket má vlastní stránku akcí /akce/globus/brno (R172)
+            'store_pages' => true,
             'has_eshop' => false,
             'api_url' => 'https://www.globus.cz/api/v1/gsoa/actionOffers/houses/%d/',
             'catalog_path' => 'actionProductsCatalog',
@@ -1025,6 +1029,24 @@ return [
     'feed' => [
         'items' => 50,
         'cache_seconds' => 3600,
+    ],
+
+    /*
+    | Hledání bez výsledků (R171, App\Domain\Catalog\SearchMisses): ve Všech akcích a v Hlídám
+    | se souhrnně počítá, co nic nenašlo — admin to vidí v katalogu jako podklad pro nové produkty.
+    | Jeden člověk (relace) se u stejného textu započítá nejvýš jednou za dedupe_hours; admin vidí
+    | jen hledání od min_hits výš (jedno hledání nic neříká a mohlo by prozradit konkrétního člověka).
+    */
+    'search_misses' => [
+        // Kratší text se nezapíše — při psaní by se počítalo každé písmeno
+        'min_length' => 3,
+        'min_hits' => 2,
+        'dedupe_hours' => 24,
+        'retention_days' => 90,
+        // Kolik hledání admin v katalogu vidí (nejčastější)
+        'shown' => 50,
+        // Z kolika posledních řádků se přehled skládá (sloučení začátků slov při psaní)
+        'scan_rows' => 2000,
     ],
 
     'watch_suggestions' => [

@@ -53,6 +53,7 @@ final class StructuredData
         'offers' => 'CollectionPage',
         'offers_chain' => 'CollectionPage',
         'offers_product' => 'CollectionPage',
+        'offers_store' => 'CollectionPage',
         'weekly' => 'CollectionPage',
     ];
 
@@ -205,6 +206,11 @@ final class StructuredData
         } elseif ($page === 'offers_chain' || $page === 'offers_product') {
             $items[] = [__('app.seo.pages.offers.heading'), route('offers')];
             $items[] = [$heading, $this->pages->url(new OfferFilters($chain === null ? [] : [$chain], $productId), absolute: true)];
+        } elseif ($page === 'offers_store' && $chain !== null) {
+            // Prodejna (R172): Všechny akce › akce obchodu › prodejna
+            $items[] = [__('app.seo.pages.offers.heading'), route('offers')];
+            $items[] = [__('app.seo.pages.offers_chain.heading', ['chain' => $chain->genitive()]), $this->pages->chainUrl($chain, absolute: true)];
+            $items[] = [$heading, $canonical];
         } else {
             $items[] = [$heading, $canonical];
         }

@@ -14,6 +14,7 @@ use App\Domain\Offers\IsoWeek;
 use App\Domain\Offers\OfferFeed;
 use App\Domain\Offers\OfferPages;
 use App\Domain\Offers\WeeklyDeals;
+use App\Enums\Chain;
 use App\Enums\SocialProvider;
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\AnnouncementController;
@@ -105,6 +106,12 @@ Route::middleware('throttle:'.RateLimits::PUBLIC)->group(function (): void {
         ->where('slug', '[a-z0-9]+(?:-[a-z0-9]+)*')
         ->middleware(ReadOnlySession::class)
         ->name(OfferFeed::ROUTE);
+    // Stránka prodejny pro vyhledávače (R172): /akce/kaufland/trutnov — obchod a jedna prodejna;
+    // „rss“ je kanál obchodu výš. Jen název obchodu — /akce/{id akce}/prodejny a /historie jsou níž
+    Route::get('/akce/{slug}/{store}', OffersController::class)
+        ->whereIn('slug', array_map(fn (Chain $chain): string => $chain->value, Chain::cases()))
+        ->where('store', '(?!'.implode('$|', OfferPages::RESERVED_STORE_SLUGS).'$)[a-z0-9]+(?:-[a-z0-9]+)*')
+        ->name(OfferPages::STORE_ROUTE);
 
     // Nejlepší slevy týdne s archivem po týdnech (R128): /tyden přesměruje na aktuální týden
     Route::get('/tyden', [WeeklyDealsController::class, 'current'])->name(WeeklyDeals::INDEX_ROUTE);
@@ -287,6 +294,8 @@ Route::middleware('auth')->group(function (): void {
     Route::middleware('can:manage-catalog')->prefix('katalog')->name('catalog.')->group(function (): void {
         Route::get('/', [CatalogController::class, 'index'])->name('index');
         Route::post('/', [CatalogController::class, 'store'])->name('store');
+        // Hledání bez výsledků (R171) — před /{product}, jinak by adresu vzal produkt
+        Route::delete('/hledani-bez-vysledku', [CatalogController::class, 'dismissSearchMiss'])->name('search-misses.dismiss');
         Route::get('/{product}', [CatalogController::class, 'show'])->name('show');
         Route::put('/{product}', [CatalogController::class, 'update'])->name('update');
         Route::delete('/{product}', [CatalogController::class, 'destroy'])->name('destroy');

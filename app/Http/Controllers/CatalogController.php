@@ -18,12 +18,14 @@ use App\Domain\Catalog\Actions\CorrectAssignment;
 use App\Domain\Catalog\Actions\DeleteProduct;
 use App\Domain\Catalog\CatalogTable;
 use App\Domain\Catalog\CategoryPaths;
+use App\Domain\Catalog\SearchMisses;
 use App\Domain\Catalog\UserFeedback;
 use App\Domain\Matching\TextNormalizer;
 use App\Domain\Offers\OfferFilters;
 use App\Domain\Offers\OfferPresenter;
 use App\Domain\Offers\OfferSearch;
 use App\Enums\MatchStatus;
+use App\Enums\SearchMissSource;
 use App\Http\Requests\CatalogIndexRequest;
 use App\Http\Requests\ProductRequest;
 use App\Models\Offer;
@@ -49,6 +51,8 @@ class CatalogController extends Controller
 
     public const STATUS_ASSIGNMENT_CHANGED = 'assignment-changed';
 
+    public const STATUS_SEARCH_MISS_DISMISSED = 'search-miss-dismissed';
+
     public function __construct(
         private readonly CategoryPaths $categories,
         private readonly AssignProducts $assign,
@@ -57,10 +61,10 @@ class CatalogController extends Controller
 
     /**
      * Tabulka produktů (oddělení, kategorie, slova, počet přiřazených neskončených nabídek
-     * a hlídajících uživatelů) s hledáním, oddělením, řazením a stránkováním na serveru (R43)
-     * a formulář nového produktu.
+     * a hlídajících uživatelů) s hledáním, oddělením, řazením a stránkováním na serveru (R43),
+     * formulář nového produktu a co lidé hledají a nenašli (R171).
      */
-    public function index(CatalogIndexRequest $request, TextNormalizer $normalizer): Response
+    public function index(CatalogIndexRequest $request, TextNormalizer $normalizer, SearchMisses $misses): Response
     {
         $query = $this->table->query($request->searchWords(), $request->department());
         $total = $query->count();
@@ -97,7 +101,31 @@ class CatalogController extends Controller
                 ...$request->listParameters(),
                 ...PaginationLinks::parameters($page, $from, CatalogIndexRequest::PAGE, CatalogIndexRequest::FROM_PAGE),
             ], absolute: false)),
+            // Co lidé hledají a nenašli (R171) — podklad pro nové produkty; „Načíst další“ ho nepočítá
+            'searchMisses' => fn (): array => [
+                'items' => array_map(fn (array $miss): array => [
+                    'term' => $miss['term'],
+                    'text' => $miss['text'],
+                    'hits' => $miss['hits'],
+                    'sources' => array_map(fn (SearchMissSource $source): string => $source->label(), $miss['sources']),
+                    'lastSeenAt' => $miss['lastSeenAt']->toDateString(),
+                ], $misses->forAdmin()),
+                'dismissUrl' => route('catalog.search-misses.dismiss', absolute: false),
+                'minHits' => config()->integer('letaky.search_misses.min_hits'),
+                'retentionDays' => config()->integer('letaky.search_misses.retention_days'),
+            ],
         ]);
+    }
+
+    /**
+     * Skryje hledání bez výsledků z přehledu (R171) — admin ho vyřešil nebo nedává smysl.
+     */
+    public function dismissSearchMiss(Request $request, SearchMisses $misses): RedirectResponse
+    {
+        $term = $request->validate(['term' => ['required', 'string', 'max:100']])['term'];
+        $misses->dismiss($term);
+
+        return back(fallback: route('catalog.index'))->with('status', self::STATUS_SEARCH_MISS_DISMISSED);
     }
 
     /**

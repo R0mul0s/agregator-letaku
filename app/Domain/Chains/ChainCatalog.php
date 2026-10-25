@@ -40,6 +40,15 @@ final class ChainCatalog
     }
 
     /**
+     * Má každá prodejna obchodu vlastní stránku akcí pro vyhledávače (R172)? Jen obchody, kde se
+     * akce po prodejnách opravdu liší — COOP má po prodejnách jen pět regionálních letáků.
+     */
+    public function hasStorePages(Chain $chain): bool
+    {
+        return config("letaky.sources.{$chain->value}.store_pages") === true && ! $chain->isDisabled();
+    }
+
+    /**
      * Je konec akcí obchodu jen odhad (Billa: akční týden, prodlužování, R48, R54)? Takovým
      * akcím se neupozorňuje, že končí (R74).
      */

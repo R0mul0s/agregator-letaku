@@ -69,3 +69,13 @@ function registrationInput(array $overrides = []): array
         ...$overrides,
     ];
 }
+
+/**
+ * Obsah meta značky z HTML stránky (name nebo property), nebo null.
+ */
+function metaContent(string $html, string $name): ?string
+{
+    $pattern = '/<meta (?:name|property)="'.preg_quote($name, '/').'" content="([^"]*)"/';
+
+    return preg_match($pattern, $html, $match) === 1 ? html_entity_decode($match[1]) : null;
+}

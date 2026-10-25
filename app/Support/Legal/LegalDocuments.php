@@ -88,6 +88,7 @@ final class LegalDocuments
             '{notifications_retention_days}' => (string) config()->integer('letaky.notifications.retention_days'),
             // Návrhy, co hlídat (R148)
             '{watch_suggestions_window_days}' => (string) config()->integer('letaky.watch_suggestions.window_days'),
+            '{search_misses_retention_days}' => (string) config()->integer('letaky.search_misses.retention_days'),
             '{watch_suggestions_dismiss_days}' => (string) config()->integer('letaky.watch_suggestions.dismiss_days'),
         ];
     }

@@ -123,9 +123,15 @@ do telefonu je neposíláme.
 | IP adresa, u přihlášení i e-mail, v omezení počtu požadavků | ochrana proti zneužití (hádání hesel, přetížení, rozesílání e-mailů na cizí adresy) | oprávněný zájem na zabezpečení |
 | čas poslední aktivity v účtu (s přesností na minutu) | přehled o tom, kolik lidí službu používá, a správa účtů | oprávněný zájem na provozu služby |
 | záznamy o chybách aplikace | oprava chyb | oprávněný zájem na provozu služby |
+| hledaný text, který ve Všech akcích nebo v Hlídám nic nenašel — souhrnně, bez vazby na vás | rozšíření katalogu produktů a výběr dalších obchodů | oprávněný zájem na zlepšování služby |
 
 Relace s IP adresou vzniká i u nepřihlášeného návštěvníka, bez ní nefunguje ochrana
 formulářů.
+
+U hledání, které nic nenašlo, ukládáme jen text a počet hledání, ne kdo hledal. Abychom stejné
+hledání jednoho člověka nepočítali vícekrát, pamatujeme si jeden den otisk relace — z něj vás
+zpětně nepoznáme. Pokud do hledání napíšete osobní údaj, uvidí ho jen náš administrátor
+a smaže se s ostatními hledáními.
 
 ### Když nám napíšete nebo zavoláte
 
@@ -177,6 +183,7 @@ a cílení reklamy (Google signály). Reklamu zatím nezobrazujeme.
 | odkaz pro obnovu hesla | platí 60 minut, záznam se smaže nejpozději do 24 hodin po vypršení |
 | omezení počtu požadavků | nejvýš hodinu, potom se smaže nejpozději do 24 hodin |
 | záznamy o chybách | 14 dní |
+| hledání, která nic nenašla (souhrnně) | {search_misses_retention_days} dní od posledního stejného hledání, potom se smaže nejpozději do 24 hodin |
 | volba cookies | 6 měsíců, pak se vás zeptáme znovu |
 | data Google Analytics | 14 měsíců (nastavení uchování v Google Analytics) |
 | záznamy návštěv v Microsoft Clarity | 30 dní; teplotní mapy a souhrny 13 měsíců |

@@ -23,16 +23,6 @@ beforeEach(function (): void {
     $this->travelTo('2026-10-02 10:00:00');
 });
 
-/**
- * Obsah meta značky z HTML stránky (name nebo property), nebo null.
- */
-function metaContent(string $html, string $name): ?string
-{
-    $pattern = '/<meta (?:name|property)="'.preg_quote($name, '/').'" content="([^"]*)"/';
-
-    return preg_match($pattern, $html, $match) === 1 ? html_entity_decode($match[1]) : null;
-}
-
 it('úvodní stránka má titulek, popis, canonical, Open Graph a schema.org', function (): void {
     $html = $this->get('/')->assertOk()->getContent();
 

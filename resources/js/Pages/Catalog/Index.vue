@@ -9,6 +9,7 @@
 import EmptyState from '@/Components/EmptyState.vue';
 import Pagination from '@/Components/Pagination.vue';
 import ProductForm from '@/Components/ProductForm.vue';
+import SearchMisses from '@/Components/SearchMisses.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { debounce } from '@/lib/debounce';
 import { useTranslations } from '@/lib/i18n';
@@ -40,11 +41,30 @@ const props = defineProps({
     products: { type: Array, required: true },
     /** Odkazy stránkování a „Načíst další“ (PaginationLinks, R43). */
     pagination: { type: Object, required: true },
+    /** Co lidé hledají a nenašli (R171): { items, dismissUrl, minHits, retentionDays }. */
+    searchMisses: { type: Object, required: true },
 });
 
 const t = useTranslations();
 
 const showForm = ref(false);
+
+/** Výchozí hodnoty formuláře nového produktu — z hledání bez výsledků (R171) název a slova. */
+const newProduct = ref({});
+/** Klíč formuláře — nové výchozí hodnoty ho vytvoří znovu (useForm je čte jen při vzniku). */
+const formKey = ref(0);
+
+/**
+ * Otevře formulář nového produktu s textem hledání bez výsledků a posune na něj.
+ *
+ * @param {{ term: string, text: string }} miss
+ */
+function createFromMiss(miss) {
+    newProduct.value = { name: miss.text.charAt(0).toLocaleUpperCase() + miss.text.slice(1), keywords: miss.term };
+    formKey.value++;
+    showForm.value = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
 const query = ref(props.filters.q);
 const department = ref(props.filters.department);
 
@@ -112,8 +132,10 @@ onBeforeUnmount(() => onSearchInput.cancel());
 
         <section v-if="showForm" class="card catalog-new">
             <h2 class="card__title">{{ t('catalog.add_title') }}</h2>
-            <ProductForm :url="urls.store" :categories="categories" :submit-label="t('catalog.add')" />
+            <ProductForm :key="formKey" :url="urls.store" :product="newProduct" :categories="categories" :submit-label="t('catalog.add')" />
         </section>
+
+        <SearchMisses :misses="searchMisses" @create="createFromMiss" />
 
         <EmptyState v-if="!hasProducts" :text="t('catalog.empty')" />
 
