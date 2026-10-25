@@ -16,7 +16,7 @@ import { usePage } from '@inertiajs/vue3';
 import { computed, nextTick, ref, useId, watch } from 'vue';
 
 const props = defineProps({
-    /** Prodejny obchodu [{ code, name, city }]. */
+    /** Prodejny obchodu [{ code, name, city, note? }] — poznámka u COOP prodejny bez sledovaného letáku. */
     stores: { type: Array, required: true },
     /** Nejvíc vybraných prodejen. */
     max: { type: Number, required: true },
@@ -190,7 +190,8 @@ function onFocusOut(event) {
         </div>
         <p v-if="full" class="form-field__hint">{{ t('preferences.stores_max', { count: max }) }}</p>
 
-        <ul v-show="open" :id="listId" ref="list" class="store-select__results" role="listbox" aria-multiselectable="true" :aria-label="t('preferences.stores')">
+        <!-- Jen rozbalený — COOP má ~1 450 prodejen a každá karta obchodu jeden výběr -->
+        <ul v-if="open" :id="listId" ref="list" class="store-select__results" role="listbox" aria-multiselectable="true" :aria-label="t('preferences.stores')">
             <li
                 v-for="(store, index) in results"
                 :id="`${listId}-${index}`"
@@ -210,7 +211,9 @@ function onFocusOut(event) {
                 </span>
                 <span class="store-select__result-text">
                     <span class="store-select__result-name">{{ store.name }}</span>
-                    <span v-if="store.city !== store.name" class="store-select__result-city">{{ store.city }}</span>
+                    <span v-if="store.city !== store.name || store.note" class="store-select__result-city">
+                        {{ [store.city !== store.name ? store.city : null, store.note].filter(Boolean).join(' · ') }}
+                    </span>
                 </span>
             </li>
             <li v-if="!results.length" class="store-select__empty" role="presentation">{{ t('preferences.stores_none_found') }}</li>

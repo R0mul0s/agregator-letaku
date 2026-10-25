@@ -23,7 +23,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $code
  * @property string $name
  * @property string $city
- * @property list<string>|null $offer_keys
+ * @property list<string>|null $offer_keys Akce platné v prodejně („id|od|do“), u COOP zkratky letáků („SČ“, R169)
  * @property CarbonImmutable|null $offer_keys_fetched_at
  * @property CarbonImmutable $created_at
  * @property CarbonImmutable $updated_at

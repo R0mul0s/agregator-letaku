@@ -71,6 +71,8 @@ s novým datem.
 | `coop/pdf-csc-22-2026-10-25-strana-1.html` | `pdftotext -bbox-layout -f 1 -l 1` nad PDF celostátního letáku CC 22/2026 | celá strana beze změny: verzálky 16,8 b., „… Kč“ za cenou za jednotku, „S KUPÓNEM“ verzálkami, pult „PÁRKY SE SÝREM“ s odznakem „100 g“ |
 | `coop/pdf-sc-22-2026-10-25-strana-1.html`, `strana-3` | `pdftotext -bbox-layout -f N -l N` nad PDF letáku střední Čechy SČ 22/2026 | celé strany beze změny: značka nad názvem, „130 g \| 1 kg = 130,–“, víc velikostí balení, pult Herkules v samostatném bloku (1); cena s kupónem Ariel, značka „VELKO-“ / „POPOVICKÝ“ (3) |
 | `coop/pdf-jc-22-2026-10-25-strana-1.html` | `pdftotext -bbox-layout -f 1 -l 1` nad PDF letáku jižní Čechy JČ 22/2026 | menší písmo (10,7 b.), značka v samostatném bloku nad názvem, „1 kg = 1 495,–“ |
+| `coop/prodejny-2026-10-25.html` | `www.coopclub.cz/prodejny/` | `var config` jen se 4 značkami mapy (Václavice, Terno Hradec Králové, TUTY Dvůr Králové, Kladno), klíč mapového API prázdný (R169) |
+| `coop/prodejna-{kód}-2026-10-25.html` | `www.coopclub.cz/prodejny/{kód}/` | jen oddíly „Družstvo“ a „Letákové akce v této prodejně“: Jednota Václavice (leták SČ), Terno Hradec Králové (družstvo České Budějovice, žádný leták), TUTY Dvůr Králové (jen TUTY/TIP), Jednota Pardubice („COOP Pardubice, družstvo“ bez odkazu — leták VČ podle družstva) |
 
 Fixtures vygeneroval jednorázový skript z odpovědí uložených při průzkumu. Položky jsou
 beze změny; skript jen vybral podmnožinu a akce e-shopu Tesco přeskládal po 5 na stránku

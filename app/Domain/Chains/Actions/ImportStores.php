@@ -5,6 +5,9 @@
  * z těchto seznamů pozná, v kterých prodejnách akce platí, a stáhne detail akcí, které ve
  * výchozí nabídce chybí. Prodejna, která ze seznamu zmizela, se smaže.
  *
+ * U COOP je „seznam akcí“ prodejny seznam letáků, které v ní platí, a stránek prodejen je tolik,
+ * že se jedno stažení postará jen o část (`store_lists_per_run`, R169).
+ *
  * Seznam akcí jedné prodejny, který se nestáhne, nezastaví ostatní — zůstane předchozí a po
  * `store_offers_max_age_hours` se přestane brát v úvahu. Chyba je až to, když se nestáhne žádný.
  *
@@ -77,7 +80,7 @@ final class ImportStores
 
         $lists = 0;
         $lastError = null;
-        foreach (array_keys($stores) as $code) {
+        foreach ($this->codesToRefresh($chain, array_keys($stores)) as $code) {
             try {
                 $keys = $source->offerKeys($code);
             } catch (Throwable $error) {
@@ -100,6 +103,31 @@ final class ImportStores
         }
 
         return ['stores' => count($stores), 'lists' => $lists];
+    }
+
+    /**
+     * Prodejny, jejichž seznam se stáhne teď: všechny, nebo s `store_lists_per_run` jen tolik
+     * nejdéle neobnovených (nové první) — COOP má ~1 450 stránek prodejen a obnoví je postupně
+     * během několika běhů cronu (R169).
+     *
+     * @param  list<string>  $codes
+     * @return list<string>
+     */
+    private function codesToRefresh(Chain $chain, array $codes): array
+    {
+        $perRun = config("letaky.sources.{$chain->value}.store_lists_per_run");
+        if (! is_int($perRun)) {
+            return $codes;
+        }
+
+        return array_values(Store::query()
+            ->where('chain', $chain)
+            ->whereIn('code', $codes)
+            ->orderByRaw('offer_keys_fetched_at IS NOT NULL')
+            ->orderBy('offer_keys_fetched_at')
+            ->limit($perRun)
+            ->pluck('code')
+            ->all());
     }
 
     /**

@@ -16,6 +16,7 @@ declare(strict_types=1);
 use App\Domain\Sources\Albert\AlbertOfferSource;
 use App\Domain\Sources\Billa\BillaOfferSource;
 use App\Domain\Sources\Coop\CoopOfferSource;
+use App\Domain\Sources\Coop\CoopStoreSource;
 use App\Domain\Sources\Globus\GlobusOfferSource;
 use App\Domain\Sources\Hruska\HruskaOfferSource;
 use App\Domain\Sources\Kaufland\KauflandOfferSource;
@@ -427,15 +428,33 @@ return [
             'feed_url' => 'https://www.coopclub.cz/letaky/feed/',
             // Odkaz na PDF na stránce letáku (složka nahrání nesedí s platností — jen ze stránky)
             'pdf_url_pattern' => '#https://www\.coopclub\.cz/wp-content/uploads/\d{4}/\d{2}/[^"\'\s]+\.pdf#',
-            // Sledované letáky podle zkratky v titulku => region (kód prodejny, migrace 2026_10_25_100000);
-            // null = celostátní leták, platí ve všech prodejnách. TIP a TUTY (Morava) jsou jen obrázky
-            'leaflets' => [
-                'CSC' => null,
-                'SČ' => 'coop-sc',
-                'JČ' => 'coop-jc',
-                'VČ' => 'coop-vc',
-                'ZČ' => 'coop-zc',
+            // Sledované letáky podle zkratky v titulku RSS; celostátní leták se zpracuje první (R167).
+            // TIP a TUTY jsou jen obrázky
+            'leaflets' => ['CSC', 'SČ', 'JČ', 'VČ', 'ZČ'],
+            'national_leaflet' => 'CSC',
+            // Prodejny (R169): kde akce letáku platí, říká stránka prodejny — odkaz „…/letaky/sc-aktualni-letak/“
+            // => zkratka letáku. Seznam ~1 450 prodejen je jeden JSON ve stránce stores_url
+            'stores_source' => CoopStoreSource::class,
+            'stores_url' => 'https://www.coopclub.cz/prodejny/',
+            'store_page_url' => 'https://www.coopclub.cz/prodejny/%s/',
+            'leaflet_slugs' => ['csc' => 'CSC', 'sc' => 'SČ', 'jc' => 'JČ', 'vc' => 'VČ', 'zc' => 'ZČ'],
+            // Leták VČ žádná stránka prodejny neodkazuje (ověřeno 25. 10. 2026) — prodejna bez odkazu na
+            // jakýkoli leták ho dostane podle družstva z patičky letáku („SD Nová Paka, SD v Pardubicích,
+            // COOP Dvůr Králové“; na stránce prodejny „COOP Pardubice, družstvo“ apod.)
+            'leaflet_cooperatives' => [
+                'VČ' => '/Nová Paka|Pardubic|Dvo(?:ře|ůr) Králové/u',
             ],
+            // Stránek prodejen je ~1 450 — jedno stažení obnoví jen tolik nejstarších (zbytek příští
+            // běh cronu), ať se vejde do limitu požadavku (cron.time_limit_seconds) a coopclub.cz nezatíží
+            'store_lists_per_run' => 120,
+            'store_page_delay_ms' => (int) env('LETAKY_COOP_STORE_PAGE_DELAY_MS', 500),
+            // Seznam letáků prodejny starší než tohle se nebere v úvahu — obnova všech trvá ~1,5 dne
+            'store_offers_max_age_hours' => 96,
+            // Akce dostanou prodejny, jen když je čerstvý seznam letáků aspoň u takového podílu prodejen
+            // (jinak, např. hned po nasazení, platí všude) — chybějící prodejna by akce neviděla
+            'store_lists_min_share' => 0.9,
+            // Prodejna bez sledovaného letáku (Terno, TIP, TUTY, Morava) má ve výběru poznámku
+            'store_note_without_lists' => true,
             // Leták má 45–75 ověřených akcí (měření R167); méně = změněné rozvržení nebo rozbitý parser.
             // Stažení pak skončí chybou, aby import akce letáku neoznačil jako stažené (R16)
             'pdf_min_offers' => 25,

@@ -1,9 +1,9 @@
 <?php
 
 /**
- * Import letáků COOP (R167): RSS kanál letáků na coopclub.cz, stránka letáku s odkazem na PDF,
- * celostátní leták pro všechny prodejny a regionální leták jen pro svůj region (regiony jsou
- * prodejny obchodu, migrace 2026_10_25_100000). Program pdftotext se nespouští.
+ * Import letáků COOP (R167, R169): RSS kanál letáků na coopclub.cz, stránka letáku s odkazem na PDF;
+ * akce letáku platí v prodejnách, které ho mají na své stránce (seznamy letáků prodejen ze stažení
+ * prodejen). Program pdftotext se nespouští.
  *
  * @author Roman Hlaváček
  *
@@ -18,6 +18,7 @@ use App\Enums\ScrapeStatus;
 use App\Models\Leaflet;
 use App\Models\Offer;
 use App\Models\ScrapeRun;
+use App\Models\Store;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Process;
@@ -72,20 +73,45 @@ it('stáhne celostátní a regionální leták z RSS, moravský obrázkový a sk
     Http::assertSent(fn (Request $request): bool => $request->url() === 'https://www.coopclub.cz/wp-content/uploads/2026/09/4426022-STC-22-26.pdf');
 });
 
-it('akce celostátního letáku platí všude, akce jen z regionálního letáku jen v regionu', function (): void {
+/**
+ * Prodejny COOP s čerstvými seznamy letáků (R169): dvě s letákem SČ, Terno bez sledovaného letáku.
+ */
+function coopStoresWithLeaflets(): void
+{
+    foreach (['jednota-vaclavice' => ['SČ'], 'jednota-kladno' => ['SČ'], 'terno-hradec-kralove' => []] as $code => $leaflets) {
+        Store::query()->create(['chain' => Chain::Coop, 'code' => $code, 'name' => $code, 'city' => $code, 'offer_keys' => $leaflets, 'offer_keys_fetched_at' => now()]);
+    }
+}
+
+it('akce regionálního letáku platí v prodejnách, které ho mají na své stránce (R169)', function (): void {
     fakeCoop();
     fakeCoopPdfText();
+    coopStoresWithLeaflets();
 
     $this->artisan('letaky:import-offers', ['chain' => ['coop']])->assertSuccessful();
 
-    // Lipánek je v obou letácích se stejnou cenou — uloží ho celostátní leták bez omezení
+    // Lipánek je v obou letácích se stejnou cenou — uloží ho celostátní leták, který nemá na stránce
+    // žádná prodejna („ve vybraných prodejnách“), takže platí všude
     $lipanek = Offer::query()->where('chain', Chain::Coop)->where('price', 1690)->where('package_text', '130 g')->with('stores')->get();
     $staropramen = Offer::query()->where('name', 'Staropramen 10')->with('stores')->sole();
     expect($lipanek)->toHaveCount(1)
         ->and($lipanek[0]->stores)->toBeEmpty()
         ->and($lipanek[0]->leaflet_id)->toBe(Leaflet::query()->where('external_id', 'CSC 22/2026')->value('id'))
-        ->and($staropramen->stores->pluck('store_code')->all())->toBe(['coop-sc'])
+        // Jen z letáku SČ: prodejny s ním, Terno v Hradci Králové ne
+        ->and($staropramen->stores->pluck('store_code')->sort()->values()->all())->toBe(['jednota-kladno', 'jednota-vaclavice'])
         ->and($staropramen->source_url)->toBe('https://www.coopclub.cz/letaky/sc-aktualni-letak/');
+});
+
+it('bez čerstvých seznamů letáků prodejen platí akce všude', function (): void {
+    fakeCoop();
+    fakeCoopPdfText();
+    coopStoresWithLeaflets();
+    // Seznamy starší než store_offers_max_age_hours se neberou v úvahu
+    Store::query()->where('chain', Chain::Coop)->update(['offer_keys_fetched_at' => now()->subDays(5)]);
+
+    $this->artisan('letaky:import-offers', ['chain' => ['coop']])->assertSuccessful();
+
+    expect(Offer::query()->where('name', 'Staropramen 10')->with('stores')->sole()->stores)->toBeEmpty();
 });
 
 it('uloží cenu s kupónem v aplikaci COOP Česko', function (): void {

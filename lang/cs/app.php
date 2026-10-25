@@ -779,12 +779,14 @@ return [
             'stores_hints' => [
                 'kaufland' => 'Pultové maso, ryby a pár dalších akcí se liší po prodejnách. Bez výběru uvidíte akce všech prodejen.',
                 'globus' => 'Část akcí má v některých hypermarketech jinou cenu a pár jich platí jen někde. Bez výběru uvidíte akce všech hypermarketů.',
-                // Regiony místo prodejen (R167) — podle družstva, které prodejnu provozuje
-                'coop' => 'Kromě celostátního letáku má každý region v Čechách vlastní — vyberte region podle družstva, které vaši prodejnu provozuje. Bez výběru uvidíte akce všech regionů.',
+                // Prodejny COOP mají různé letáky podle družstva (R169) — stačí najít svou prodejnu
+                'coop' => 'Které letáky v prodejně COOP platí, záleží na družstvu, které ji provozuje — najděte svou prodejnu a uvidíte jen akce, které v ní platí. Bez výběru uvidíte akce všech prodejen.',
             ],
             'stores_search' => 'Hledat prodejnu nebo město',
             // Pole výběru prodejen (StoreSelect, R168) — klepnutí rozbalí seznam, psaní ho filtruje
             'stores_pick' => 'Vyberte nebo hledejte prodejnu',
+            // Prodejna COOP bez sledovaného letáku (R169) — druhý řádek ve výběru
+            'store_without_leaflet' => 'žádný z letáků, které sledujeme',
             'stores_all' => 'Všechny prodejny',
             'stores_remove' => 'Odebrat prodejnu :store',
             'stores_none_found' => 'Žádná prodejna neodpovídá.',

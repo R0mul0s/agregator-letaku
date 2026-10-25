@@ -590,7 +590,11 @@ it('nepřihlášený filtruje typ prodejny a vybrané prodejny (R164)', function
         ->where('filters.prodejny', ['CZ3300'])
         ->where('filters.typ-prodejny', 'supermarket')
         ->where('filterOptions.storeFilter.chains.0.chain', 'kaufland')
+        // Prodejny až po otevření okna (R169) — se stránkou jen adresa
+        ->missing('filterOptions.storeFilter.chains.0.stores')
+        ->where('filterOptions.storeFilter.storesUrl', '/akce/prodejny')
         ->where('filterOptions.storeFilter.formatChains', ['Tesco', 'Albert']));
+    $this->getJson('/akce/prodejny')->assertOk()->assertJsonPath('stores.kaufland.0.code', 'CZ3300');
     // Filtrovaný výpis se neindexuje
     expect($this->get(route('offers', ['prodejny' => 'CZ3300']))->getContent())->toContain('noindex');
     // Neznámá prodejna validací neprojde

@@ -26,10 +26,19 @@ beforeEach(function (): void {
 });
 
 /**
- * Prodejna Kauflandu se seznamem akcí staženým před zadaným počtem hodin.
+ * Prodejna Kauflandu se seznamem akcí a prodejna COOP se seznamem letáků (R169) stažené před
+ * zadaným počtem hodin; vrátí tu Kauflandu.
  */
 function storeWithListFetchedHoursAgo(int $hours): Store
 {
+    Store::query()->create([
+        'chain' => Chain::Coop,
+        'code' => 'jednota-kladno',
+        'name' => 'Jednota Kladno',
+        'city' => 'Kladno',
+        'offer_keys_fetched_at' => CarbonImmutable::now()->subHours($hours),
+    ]);
+
     return Store::query()->create([
         'chain' => Chain::Kaufland,
         'code' => '1100',

@@ -211,24 +211,18 @@ class OffersController extends Controller
      * a prodejny obchodů, jejichž akce se liší po prodejnách. Přihlášenému i předvyplnění
      * z Mých obchodů (`preferred`): typ, je-li u všech obchodů s typem stejný, a vybrané prodejny.
      *
-     * @return array{formats: list<array{value: string, name: string}>, formatChains: list<string>, chains: list<array{chain: string, name: string, stores: list<array{code: string, name: string, city: string|null}>}>, maxStores: int, preferred: array{format: string, stores: list<string>}|null, preferencesUrl: string|null}
+     * @return array{formats: list<array{value: string, name: string}>, formatChains: list<string>, chains: list<array{chain: string, name: string}>, storesUrl: string, maxStores: int, preferred: array{format: string, stores: list<string>}|null, preferencesUrl: string|null}
      */
     private function storeFilterOptions(ChainCatalog $catalog, ?User $user): array
     {
         $chains = Chain::enabled();
-        $withStores = [];
-        foreach ($chains as $chain) {
-            $stores = $catalog->stores($chain);
-            if ($stores !== []) {
-                // Název ve 2. pádě — „Prodejny Kauflandu“
-                $withStores[] = ['chain' => $chain->value, 'name' => $chain->genitive(), 'stores' => $stores];
-            }
-        }
 
         return [
             'formats' => array_map(fn (StoreFormat $format): array => ['value' => $format->value, 'name' => $format->label()], StoreFormat::cases()),
             'formatChains' => array_values(array_map(fn (Chain $chain): string => $chain->label(), array_filter($chains, $catalog->hasStoreFormats(...)))),
-            'chains' => $withStores,
+            // Název ve 2. pádě — „Prodejny Kauflandu“; samotné prodejny až po otevření okna (R169)
+            'chains' => array_map(fn (Chain $chain): array => ['chain' => $chain->value, 'name' => $chain->genitive()], $catalog->chainsWithStores()),
+            'storesUrl' => route('offers.store-options', absolute: false),
             'maxStores' => config()->integer('letaky.stores.max_selected'),
             'preferred' => $user === null ? null : $this->preferredStores($user),
             'preferencesUrl' => $user === null ? null : route('preferences', absolute: false),

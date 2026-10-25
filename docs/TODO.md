@@ -50,7 +50,7 @@ v [PLAN.md](PLAN.md). Větší celky se z toho stávají etapou.
   - **Rossmann** — výpis e-shopu po druzích akcí (HTML, ~75 požadavků), platnost jen z PDF letáku
   - **Hruška** — hotová (R165); u akcí „Jen ve vybraných prodejnách“ a mimo Hruška Mini a Partner by šlo doplnit, kde neplatí
   - **Norma** — hotová (R166); „Víno měsíce“ na stránce nabídky (3 položky v HTML) se nestahuje
-  - **COOP** — hotový pro Čechy (R167, regiony jako prodejny); Morava (TIP, TUTY, Tempo, Jednota Zlín a Hodonín) má letáky jen jako obrázky — chtělo by OCR nebo LLM; přiřazení prodejen k regionům (1 450 detailů prodejen) by dovolilo vybrat konkrétní prodejnu
+  - **COOP** — hotový pro Čechy (R167, po prodejnách podle letáků na jejich stránce R169); Terno má vlastní letáky po prodejnách na terno.cz (neprozkoumáno); Morava (TIP, TUTY, Tempo, Jednota Zlín a Hodonín) má letáky jen jako obrázky — chtělo by OCR nebo LLM; přiřazení prodejen k regionům (1 450 detailů prodejen) by dovolilo vybrat konkrétní prodejnu
   - **dm** — ne: akce záměrně nemá, jen výprodej
   - drogerie rozšiřuje záběr nad potraviny (Lidl ukládá jen potraviny, R25) — rozhodnout před implementací
 - **Makro** — průzkum 2026-10-02: makro.cz je za ochranou proti robotům (403 i `robots.txt`), jinde jen agregátory (R1). Čeká na oficiální přístup, viz [ZDROJE_DAT.md](ZDROJE_DAT.md#makro-průzkum-2026-10-02--zatím-bez-zdroje).

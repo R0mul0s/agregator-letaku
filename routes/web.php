@@ -34,6 +34,7 @@ use App\Http\Controllers\OfferFeedController;
 use App\Http\Controllers\OfferPriceHistoryController;
 use App\Http\Controllers\OfferReportController;
 use App\Http\Controllers\OffersController;
+use App\Http\Controllers\OfferStoreOptionsController;
 use App\Http\Controllers\OfferStoresController;
 use App\Http\Controllers\OfferSuggestionsController;
 use App\Http\Controllers\OnboardingController;
@@ -94,9 +95,9 @@ Route::middleware('throttle:'.RateLimits::PUBLIC)->group(function (): void {
     Route::get('/', HomeController::class)->name('home');
     Route::get('/akce', OffersController::class)->name('offers');
     // Čisté adresy pro vyhledávače (R94): obchod /akce/lidl, produkt katalogu /akce/pivo (OfferPages).
-    // Našeptávač /akce/naseptavac je registrovaný až níž — tady se z části adresy vylučuje
+    // Našeptávač /akce/naseptavac a prodejny /akce/prodejny jsou registrované až níž — tady se z části adresy vylučují
     Route::get('/akce/{slug}', OffersController::class)
-        ->where('slug', '(?!naseptavac$)[a-z0-9]+(?:-[a-z0-9]+)*')
+        ->where('slug', '(?!naseptavac$|prodejny$)[a-z0-9]+(?:-[a-z0-9]+)*')
         ->name(OfferPages::PAGE_ROUTE);
     // Odběr akcí obchodu nebo produktu přes RSS (R149) — čtečky se ptají často a bez cookies,
     // relace by každým dotazem založila řádek v sessions
@@ -170,6 +171,11 @@ Route::get('/akce/naseptavac', OfferSuggestionsController::class)
     // Relace jen pro čtení — dotaz při psaní nesmí přepsat zprávu souběžného uložení (R71)
     ->middleware(['throttle:'.RateLimits::SUGGESTIONS, ReadOnlySession::class])
     ->name('offers.suggestions');
+
+// Prodejny k výběru v okně Filtry (R164) — až po otevření okna, COOP jich má ~1 450 (R169)
+Route::get('/akce/prodejny', OfferStoreOptionsController::class)
+    ->middleware(['throttle:'.RateLimits::SUGGESTIONS, ReadOnlySession::class])
+    ->name('offers.store-options');
 
 // Prodejny akce pro okno „Kde akce platí“ (R49) — až po otevření okna, ne s každou akcí (R106)
 Route::get('/akce/{offer}/prodejny', OfferStoresController::class)

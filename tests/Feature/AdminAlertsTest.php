@@ -64,6 +64,7 @@ function allHealthy(): void
         ScrapeRun::query()->create(['chain' => $chain, 'status' => ScrapeStatus::Succeeded, 'started_at' => CarbonImmutable::now()->subHour(), 'finished_at' => CarbonImmutable::now()->subHour()]);
     }
     Store::query()->create(['chain' => Chain::Kaufland, 'code' => '1100', 'name' => 'Kaufland Praha', 'city' => 'Praha', 'offer_keys_fetched_at' => CarbonImmutable::now()->subHour()]);
+    Store::query()->create(['chain' => Chain::Coop, 'code' => 'jednota-kladno', 'name' => 'Jednota Kladno', 'city' => 'Kladno', 'offer_keys_fetched_at' => CarbonImmutable::now()->subHour()]);
     foreach (CronTask::cases() as $task) {
         TaskHeartbeats::succeeded($task);
     }

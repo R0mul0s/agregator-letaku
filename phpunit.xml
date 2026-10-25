@@ -36,6 +36,7 @@
         <env name="LETAKY_HRUSKA_REQUEST_DELAY_MS" value="0"/>
         <env name="LETAKY_NORMA_REQUEST_DELAY_MS" value="0"/>
         <env name="LETAKY_COOP_REQUEST_DELAY_MS" value="0"/>
+        <env name="LETAKY_COOP_STORE_PAGE_DELAY_MS" value="0"/>
         <env name="LETAKY_KAUFLAND_STORES_DELAY_MS" value="0"/>
         <env name="LETAKY_KAUFLAND_STORE_PAGE_DELAY_MS" value="0"/>
         <env name="TESCO_API_KEY" value="test-api-key"/>

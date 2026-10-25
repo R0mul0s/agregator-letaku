@@ -35,7 +35,8 @@ interface StoreSource
     public function stores(): array;
 
     /**
-     * Akce platné v prodejně jako klíče nabídky („id|od|do“, OfferData::key).
+     * Akce platné v prodejně jako klíče nabídky („id|od|do“, OfferData::key); u COOP zkratky letáků,
+     * které v prodejně platí („SČ“ — akce letáku se přiřadí podle nich, R169).
      *
      * @return list<string>
      *

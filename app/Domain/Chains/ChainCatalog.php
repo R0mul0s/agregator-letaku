@@ -58,16 +58,36 @@ final class ChainCatalog
 
     /**
      * Prodejny obchodu k výběru (R49), podle města a názvu; prázdné u obchodu, jehož akce
-     * se po prodejnách neliší. Kaufland je stahuje (ImportStores), hypermarkety Globusu
-     * zakládá migrace (R131).
+     * se po prodejnách neliší. Kaufland a COOP je stahují (ImportStores), hypermarkety Globusu
+     * zakládá migrace (R131). U COOP poznámka u prodejny, které nemá žádný ze sledovaných
+     * letáků (Terno, TIP, TUTY, Morava, R169) — akce COOP tam neuvidíte.
      *
-     * @return list<array{code: string, name: string, city: string}>
+     * @return list<array{code: string, name: string, city: string, note?: string}>
      */
     public function stores(Chain $chain): array
     {
-        return array_values(Store::query()->where('chain', $chain)->orderBy('city')->orderBy('name')->get(['code', 'name', 'city'])
-            ->map(fn (Store $store): array => ['code' => $store->code, 'name' => $store->name, 'city' => $store->city])
+        $noteEmpty = config("letaky.sources.{$chain->value}.store_note_without_lists") === true;
+
+        return array_values(Store::query()->where('chain', $chain)->orderBy('city')->orderBy('name')->get(['code', 'name', 'city', 'offer_keys', 'offer_keys_fetched_at'])
+            ->map(fn (Store $store): array => [
+                'code' => $store->code,
+                'name' => $store->name,
+                'city' => $store->city,
+                ...($noteEmpty && $store->offer_keys_fetched_at !== null && $store->offer_keys === [] ? ['note' => __('app.ui.preferences.store_without_leaflet')] : []),
+            ])
             ->all());
+    }
+
+    /**
+     * Zapnuté obchody, které mají prodejny k výběru (R49), v pořadí výčtu — bez načtení prodejen.
+     *
+     * @return list<Chain>
+     */
+    public function chainsWithStores(): array
+    {
+        $withStores = Store::query()->distinct()->pluck('chain')->map(fn (Chain $chain): string => $chain->value)->all();
+
+        return array_values(array_filter(Chain::enabled(), fn (Chain $chain): bool => in_array($chain->value, $withStores, true)));
     }
 
     /**

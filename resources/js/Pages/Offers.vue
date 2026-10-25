@@ -43,6 +43,7 @@ import { MEDIA_FROM_MD } from '@/lib/breakpoints';
 import { debounce } from '@/lib/debounce';
 import { formatNumber, formatPrice } from '@/lib/format';
 import { useTranslations } from '@/lib/i18n';
+import { ABORTED, createLatestRequest } from '@/lib/latestRequest';
 import { unitPriceLabel } from '@/lib/offer';
 import { rememberSearch } from '@/lib/search';
 import { readStored, writeStored } from '@/lib/storage';
@@ -241,6 +242,12 @@ const placeChips = computed(() => [
  */
 const storeFilter = computed(() => props.filterOptions.storeFilter ?? null);
 
+/** Prodejny k výběru podle obchodu — načtou se po otevření okna Filtry (R169); null = ještě ne. */
+const storeOptions = ref(null);
+const storeOptionsLoading = ref(false);
+const storeOptionsFailed = ref(false);
+const storeOptionsRequest = createLatestRequest();
+
 /** Moje obchody přihlášeného { format, stores }; nepřihlášený null. */
 const preferredStores = computed(() => storeFilter.value?.preferred ?? null);
 
@@ -295,9 +302,38 @@ function chooseStoreFormat(format) {
  * @returns {string[]}
  */
 function storesOf(group) {
-    const codes = new Set(group.stores.map((store) => store.code));
+    const codes = new Set(storesOfChain(group.chain).map((store) => store.code));
 
     return shownStores.value.filter((code) => codes.has(code));
+}
+
+/**
+ * Prodejny obchodu k výběru — načtené po otevření okna Filtry (R169); do té doby žádné.
+ *
+ * @param {string} chain
+ * @returns {Array<{ code: string, name: string, city: string, note?: string }>}
+ */
+function storesOfChain(chain) {
+    return storeOptions.value?.[chain] ?? [];
+}
+
+/**
+ * Načte prodejny k výběru (jednou za návštěvu stránky). Null = bez signálu nebo chyba — oddíl
+ * pak ukáže zprávu místo výběru.
+ *
+ * @returns {Promise<void>}
+ */
+async function loadStoreOptions() {
+    if (storeOptions.value || storeOptionsLoading.value || !storeFilter.value) {
+        return;
+    }
+    storeOptionsLoading.value = true;
+    const result = await storeOptionsRequest.json(storeFilter.value.storesUrl);
+    if (result !== ABORTED) {
+        storeOptions.value = result?.stores ?? null;
+        storeOptionsFailed.value = result === null;
+    }
+    storeOptionsLoading.value = false;
 }
 
 /**
@@ -307,7 +343,7 @@ function storesOf(group) {
  * @param {string[]} selected
  */
 function setStoresOf(group, selected) {
-    const codes = new Set(group.stores.map((store) => store.code));
+    const codes = new Set(storesOfChain(group.chain).map((store) => store.code));
     setStoreChoice(shownStoreFormat.value, [...shownStores.value.filter((code) => !codes.has(code)), ...selected]);
 }
 
@@ -326,13 +362,16 @@ function rememberStoreFilter() {
 }
 
 // Nepřihlášený bez volby v adrese dostane tu zapamatovanou z minula
-onMounted(() => {
+onMounted(async () => {
     const stored = storeFilter.value && !preferredStores.value ? readStored(STORE_FILTER_KEY, null) : null;
     if (!stored || hasStoreChoice.value || (!stored.format && !stored.stores?.length)) {
         return;
     }
-    // Prodejna, která mezitím zmizela, by adresu neprošla validací
-    const known = new Set(storeFilter.value.chains.flatMap((group) => group.stores.map((store) => store.code)));
+    // Prodejna, která mezitím zmizela, by adresu neprošla validací — seznam prodejen je potřeba hned
+    if (stored.stores?.length) {
+        await loadStoreOptions();
+    }
+    const known = new Set(storeFilter.value.chains.flatMap((group) => storesOfChain(group.chain).map((store) => store.code)));
     filters[STORE_FORMAT] = storeFilter.value.formats.some((format) => format.value === stored.format) ? stored.format : '';
     filters[STORES] = Array.isArray(stored.stores) ? stored.stores.filter((code) => known.has(code)) : [];
     if (hasStoreChoice.value) {
@@ -346,6 +385,13 @@ const toggleChips = computed(() => [...periodChips.value, ...placeChips.value]);
 /** Otevřená okna řazení a filtrů na telefonu (R102). */
 const sortOpen = ref(false);
 const filtersOpen = ref(false);
+
+// Prodejny k výběru až s otevřeným oknem — s COOP jich je ~1 450 (R169)
+watch(filtersOpen, (open) => {
+    if (open) {
+        loadStoreOptions();
+    }
+});
 
 /** Lišta Seřadit / Filtry — po odjetí pod hlavičku ji nahradí plovoucí lišta (R119). */
 const filterBar = ref(null);
@@ -751,7 +797,16 @@ onBeforeUnmount(() => liveSearch.cancel());
                     <p class="filter-sheet__hint">{{ t('sheet.store_format_hint', { chains: formatChainsText }) }}</p>
                     <div v-for="group in storeFilter.chains" :key="group.chain" class="filter-sheet__stores">
                         <span class="filter-sheet__label">{{ t('sheet.stores_of', { chain: group.name }) }}</span>
-                        <StoreSelect :model-value="storesOf(group)" :stores="group.stores" :max="storeFilter.maxStores" @update:model-value="(codes) => setStoresOf(group, codes)" />
+                        <StoreSelect
+                            v-if="storeOptions"
+                            :model-value="storesOf(group)"
+                            :stores="storesOfChain(group.chain)"
+                            :max="storeFilter.maxStores"
+                            @update:model-value="(codes) => setStoresOf(group, codes)"
+                        />
+                        <p v-else class="filter-sheet__hint" role="status">
+                            {{ storeOptionsFailed ? t('offers.stores_dialog_failed') : t('offers.stores_dialog_loading') }}
+                        </p>
                     </div>
                     <p v-if="preferredStores" class="filter-sheet__hint">
                         <template v-if="hasStoreChoice">

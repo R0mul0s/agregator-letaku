@@ -1,13 +1,14 @@
 <?php
 
 /**
- * Zdroj COOP — akce s cenou z PDF letáků na coopclub.cz (R86, R167, ZDROJE_DAT.md, Coop). Textovou
- * vrstvu mají jen celostátní leták a regionální letáky Čech; moravská družstva vydávají letáky jako
- * obrázky. Seznam letáků je RSS kanál („SČ 22 (od 21.10. do 3.11.)“), stránka letáku odkazuje na PDF.
+ * Zdroj COOP — akce s cenou z PDF letáků na coopclub.cz (R86, R167, ZDROJE_DAT.md, COOP). Textovou
+ * vrstvu mají jen celostátní leták a regionální letáky Čech; TIP a TUTY vydávají letáky jako obrázky.
+ * Seznam letáků je RSS kanál („SČ 22 (od 21.10. do 3.11.)“), stránka letáku odkazuje na PDF.
  *
- * Akce regionálního letáku platí jen v prodejnách regionu — regiony jsou „prodejny“ obchodu (migrace
- * 2026_10_25_100000); akce celostátního letáku platí všude. Stejná akce ve více regionálních letácích
- * platí ve všech těch regionech.
+ * Akce letáku platí v prodejnách, které ho mají na své stránce (R169): seznamy letáků prodejen
+ * ukládá stažení prodejen (`CoopStoreSource`, `stores.offer_keys` se zkratkami letáků). Stejná akce
+ * ve více letácích platí ve všech jejich prodejnách. Bez čerstvých seznamů (hned po nasazení)
+ * nebo u letáku, který nemá žádná prodejna, platí akce všude.
  *
  * @author Roman Hlaváček
  *
@@ -18,6 +19,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Sources\Coop;
 
+use App\Domain\Chains\StoreOfferLists;
 use App\Domain\Offers\Data\LeafletData;
 use App\Domain\Offers\Data\OfferData;
 use App\Domain\Offers\Data\SourceBatch;
@@ -31,6 +33,7 @@ use App\Domain\Sources\Pdf\PdfTextReader;
 use App\Domain\Sources\SourceHttp;
 use App\Enums\Chain;
 use App\Enums\LeafletKind;
+use App\Models\Store;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Client\RequestException;
 use SimpleXMLElement;
@@ -46,6 +49,7 @@ final class CoopOfferSource implements OfferSource
         private readonly PdfTextReader $pdf,
         private readonly LocalCalendar $calendar,
         private readonly LeafletDates $dates,
+        private readonly StoreOfferLists $storeLists,
     ) {}
 
     /**
@@ -75,7 +79,7 @@ final class CoopOfferSource implements OfferSource
     }
 
     /**
-     * Letáky z RSS kanálu, které sledujeme (zkratka v `leaflets`) a ještě neskončily.
+     * Letáky z RSS kanálu, které sledujeme (zkratka v `leaflets`) a ještě neskončily; celostátní první.
      *
      * @return list<array{string, string, string, array{CarbonImmutable, CarbonImmutable}}> Zkratka, cyklus, stránka letáku, platnost
      *
@@ -90,11 +94,11 @@ final class CoopOfferSource implements OfferSource
             throw SourceResponseChanged::because(Chain::Coop, 'RSS letáků není čitelné');
         }
 
-        $regions = config()->array('letaky.sources.coop.leaflets');
+        $tracked = config()->array('letaky.sources.coop.leaflets');
         $today = $this->calendar->today();
         $items = [];
         foreach ($feed->channel->item as $item) {
-            if (preg_match(self::TITLE_PATTERN, trim((string) $item->title), $m) !== 1 || ! array_key_exists($m[1], $regions)) {
+            if (preg_match(self::TITLE_PATTERN, trim((string) $item->title), $m) !== 1 || ! in_array($m[1], $tracked, true)) {
                 continue;
             }
 
@@ -107,7 +111,8 @@ final class CoopOfferSource implements OfferSource
         }
 
         // Celostátní leták první — akci, kterou mají i regionální letáky, uloží jeho dávka
-        usort($items, fn (array $a, array $b): int => ($regions[$a[0]] !== null) <=> ($regions[$b[0]] !== null));
+        $national = config()->string('letaky.sources.coop.national_leaflet');
+        usort($items, fn (array $a, array $b): int => ($a[0] !== $national) <=> ($b[0] !== $national));
 
         return $items;
     }
@@ -116,7 +121,7 @@ final class CoopOfferSource implements OfferSource
      * Leták: odkaz na PDF ze stránky letáku, platnost z hlavičky PDF (jinak z RSS) a ověřené akce.
      *
      * @param  array{CarbonImmutable, CarbonImmutable}  $feedValidity
-     * @return array{LeafletData, list<OfferData>, TileStats, string|null}
+     * @return array{LeafletData, list<OfferData>, TileStats, string} Leták, akce, statistika, zkratka letáku
      *
      * @throws SourceResponseChanged
      * @throws PdfTextFailed
@@ -138,42 +143,81 @@ final class CoopOfferSource implements OfferSource
             throw SourceResponseChanged::because(Chain::Coop, "leták {$number}: jen ".count($offers).' ověřených akcí');
         }
 
-        $region = config()->array('letaky.sources.coop.leaflets')[$code] ?? null;
-
         return [
             new LeafletData(LeafletKind::Leaflet, $number, title: $code, validFrom: $validity[0], validTo: $validity[1], sourceUrl: $link),
             $offers,
             $this->parser->lastStats(),
-            is_string($region) ? $region : null,
+            $code,
         ];
     }
 
     /**
-     * Dávky letáků s prodejnami (regiony) akcí. Akce celostátního letáku platí všude; akce jen
-     * z regionálních letáků platí v jejich regionech. Stejnou akci uloží první dávka, import ji
-     * v další přeskočí (jako Albert HM a SM).
+     * Dávky letáků s prodejnami akcí: prodejny všech letáků, ve kterých akce je. Stejnou akci uloží
+     * první dávka, import ji v další přeskočí (jako Albert HM a SM).
      *
-     * @param  list<array{LeafletData, list<OfferData>, TileStats, string|null}>  $leaflets
+     * @param  list<array{LeafletData, list<OfferData>, TileStats, string}>  $leaflets
      * @return list<SourceBatch>
      */
     private function batches(array $leaflets): array
     {
-        $regions = [];
-        foreach ($leaflets as [, $offers, , $region]) {
+        $leafletsOfOffer = [];
+        foreach ($leaflets as [, $offers, , $code]) {
             foreach ($offers as $offer) {
-                $regions[$offer->key()][] = $region;
+                $leafletsOfOffer[$offer->key()][$code] = true;
             }
         }
+        $stores = $this->storesByLeaflet();
 
         return array_map(fn (array $leaflet): SourceBatch => new SourceBatch(
             $leaflet[0],
-            array_map(function (OfferData $offer) use ($regions): OfferData {
-                $codes = $regions[$offer->key()];
-
-                return $offer->withStoreCodes(in_array(null, $codes, true) ? null : array_values(array_unique(array_filter($codes))));
-            }, $leaflet[1]),
+            array_map(fn (OfferData $offer): OfferData => $offer->withStoreCodes($this->storeCodes(array_keys($leafletsOfOffer[$offer->key()]), $stores)), $leaflet[1]),
             tiles: $leaflet[2],
         ), $leaflets);
+    }
+
+    /**
+     * Prodejny akce z jejích letáků; null (všude), když seznamy prodejen chybí nebo leták nemá
+     * žádná prodejna — celostátní leták „ve vybraných prodejnách“ nemusí mít žádná stránka prodejny.
+     *
+     * @param  list<string>  $leaflets
+     * @param  array<string, list<string>>|null  $stores  Zkratka letáku => prodejny
+     * @return list<string>|null
+     */
+    private function storeCodes(array $leaflets, ?array $stores): ?array
+    {
+        $codes = [];
+        foreach ($leaflets as $leaflet) {
+            if ($stores === null || ($stores[$leaflet] ?? []) === []) {
+                return null;
+            }
+            $codes = [...$codes, ...$stores[$leaflet]];
+        }
+
+        return array_values(array_unique($codes));
+    }
+
+    /**
+     * Prodejny podle letáku z čerstvých seznamů letáků prodejen; null, když je čerstvých seznamů méně
+     * než `store_lists_min_share` všech prodejen (hned po nasazení, výpadek stažení prodejen).
+     *
+     * @return array<string, list<string>>|null
+     */
+    private function storesByLeaflet(): ?array
+    {
+        $lists = $this->storeLists->fresh(Chain::Coop);
+        $total = Store::query()->where('chain', Chain::Coop)->count();
+        if ($total === 0 || count($lists) < $total * config()->float('letaky.sources.coop.store_lists_min_share')) {
+            return null;
+        }
+
+        $stores = [];
+        foreach ($lists as $store => $leaflets) {
+            foreach (array_keys($leaflets) as $leaflet) {
+                $stores[(string) $leaflet][] = (string) $store;
+            }
+        }
+
+        return $stores;
     }
 
     /**

@@ -866,22 +866,39 @@ družstva (TIP Extra, TUTY Menu, Tempo `odtempo.cz`, Jednota Zlín, Jednota Hodo
 s obrázky — bez OCR nebo LLM ne. `coopclub.cz/robots.txt` 404, bez WAF a cookies; `coop.cz` přesměruje na
 `skupina.coop` (Crawl-delay 5). Náročnost střední až vysoká.
 
-### Regiony (R167)
+### Prodejny (R169)
 
-Regionální leták platí jen v prodejnách svých družstev (výčet v patičce letáku). Regiony jsou „prodejny“
-obchodu (migrace `2026_10_25_100000_add_coop_regions`, kódy v `letaky.sources.coop.leaflets`):
+Kde leták platí, **neříká zeměpis ani družstvo z patičky letáku**, ale stránka prodejny: oddíl **„Letákové
+akce v této prodejně“** odkazuje na letáky, které v ní platí. Patička regionálního letáku vyjmenovává družstva
+(SČ: Jednota Benešov, Kladno, Rakovník, Nymburk, COOP Hořovice, Příbram, Mnichovo Hradiště; JČ: Milevsko, Tábor,
+Vimperk, Volyně, Kaplice, Jindřichův Hradec, Kamenice nad Lipou; VČ: Nová Paka, Pardubice, Dvůr Králové; ZČ:
+Plasy, Tachov, Podbořany, Sušice, Plzeň), jenže totéž družstvo provozuje i prodejny TIP a TUTY s jiným
+(obrázkovým) letákem a některá družstva nemají žádný leták coopclub.cz. Ověřeno 25. 10. 2026:
 
-| Kód | Region | Družstva (cyklus 22/2026) |
+| Prodejna | Družstvo | Letáky na stránce |
 |---|---|---|
-| `coop-sc` | Střední Čechy | Jednota Benešov, Jednota Kladno, Jednota SD v Rakovníku, COOP Hořovice, Jednota SD v Nymburce, COOP Příbram, COOP Mnichovo Hradiště |
-| `coop-jc` | Jižní Čechy | SD Milevsko, OD Tábor, SD Vimperk, SD Volyně, DS v Kaplici, SD Jindřichův Hradec, SD Kamenice nad Lipou |
-| `coop-vc` | Východní Čechy | SD Nová Paka, SD v Pardubicích, COOP Dvůr Králové nad Labem |
-| `coop-zc` | Západní Čechy | COOP Plasy, Jednota SD v Tachově, SD Podbořany, ZKD Sušice (bez prodejny Prášily), COOP Plzeň (prodejna č. 451 bez plného sortimentu); jen prodejny s logem COOP Jednota a COOP Konzum |
-| `coop-ms` | Morava a Slezsko | bez regionálního letáku s textem — jen celostátní akce |
+| Jednota Václavice, Jednota Kladno | Jednota Benešov, Jednota Kladno | `sc-aktualni-letak` |
+| Terno Hradec Králové | Jednota, spotřební družstvo České Budějovice | žádný (Terno má vlastní letáky po prodejnách na terno.cz) |
+| TUTY Dvůr Králové nad Labem | Jednota, SD ve Dvoře Králové nad Labem (VČ) | jen `tuty-tip-menu-aktualni-letak` |
+| TIP Nový Knín (u Prahy) | — | `tip-extra-aktualni-letak44-2`, `tuty-tip-menu-aktualni-letak` |
 
-Akce celostátního letáku platí všude (bez řádků v `offer_stores`), akce jen z regionálních letáků v jejich
-regionech; stejnou akci uloží první dávka (celostátní leták se zpracuje první). Seznam 1 450 prodejen
-(`/prodejny/`, markery s GPS bez družstva; družstvo jen v detailu prodejny) se nestahuje.
+Celostátní leták CC ve vzorku 19 prodejen neměla žádná — „ve vybraných prodejnách“ se nedá přiřadit, jeho akce
+platí všude.
+
+**Leták VČ žádná stránka prodejny neodkazuje** (ověřeno na Jednotě Pardubice, Dvůr Králové, Stará Paka, Jičín). Prodejna
+bez odkazu na jakýkoli leták ho proto dostane podle družstva na své stránce (`leaflet_cooperatives`: „Jednota, spotřební
+družstvo Nová Paka“, „COOP Pardubice, družstvo“, „…ve Dvoře Králové nad Labem“ — patička letáku VČ); TIP a TUTY
+týchž družstev mají odkaz na svůj obrázkový leták, takže VČ nedostanou.
+
+| Účel | Požadavek |
+|---|---|
+| Seznam prodejen | `GET https://www.coopclub.cz/prodejny/` — 1,3 MB; JSON v řetězci JavaScriptu `var config = '{…"markers":[…]}';` (~1 450 značek: `title` s odkazem `…/prodejny/{kód}/` a názvem „Jednota  Václavice“, `description` „Město,Ulice číslo,PSČ“, `lat`, `lng`; bez ID a bez družstva). Kvůli velikosti hledat hranice řetězce přímo, ne regulárním výrazem (limit PCRE). Ve stránce je i veřejný klíč mapového API — do fixtures nepatří |
+| Stránka prodejny | `GET /prodejny/{kód}/` — ~30 kB: oddíl „Družstvo“ (je na každé stránce prodejny) a „Letákové akce v této prodejně“ s odkazy `https://www.coopclub.cz/letaky/{zkratka}-aktualni-letak[číslo]/` |
+
+Kód prodejny je část adresy stránky (až 54 znaků — `stores.code` má 80). Stahuje `CoopStoreSource` přes
+`letaky:import-stores coop` / `/cron/import-stores?chain=coop`: seznam celý, stránky prodejen jen 120 nejdéle
+neobnovených za běh (pauza 0,5 s, ~90 s) — obnova všech ~1,5 dne při cronu každé 3 hodiny. Zkratky letáků prodejny
+(`SČ`, `CSC`…) jsou ve `stores.offer_keys`; akce letáku dostane prodejny, které ho mají (`offer_stores`); leták VČ podle družstva (viz výše).
 
 ### Endpointy
 
@@ -890,7 +907,7 @@ regionech; stejnou akci uloží první dávka (celostátní leták se zpracuje p
 | Seznam letáků | `GET https://www.coopclub.cz/letaky/feed/` — RSS 2.0, 10 posledních letáků: `title` „SČ 22 (od 21.10. do 3.11.)“ (bez roku, rok podle `pubDate`), `link` na stránku letáku, `guid` `?post_type=letaky&p=116126`; nový leták vychází v noci před středou, cyklus 14 dní st–út |
 | Stránka letáku | `GET /letaky/sc-aktualni-letak/` — odkaz `https://www.coopclub.cz/wp-content/uploads/2026/09/4426022-STC-22-26.pdf` (složka nesedí s platností — odkaz jen ze stránky; starší leták se přejmenuje na `sc-aktualni-letak44`) |
 | PDF | 2–9 MB, 2–4 strany, `Last-Modified` a `ETag` |
-| Prodejny (nepoužívá se) | `GET /prodejny/` (1,3 MB, 1 450 markerů), detail `/prodejny/jednota-vaclavice/` s polem „Družstvo“ |
+| Prodejny | viz oddíl *Prodejny (R169)* výše |
 
 ### Převod (`CoopLeafletParser`)
 
@@ -914,7 +931,7 @@ Platnost z hlavičky první strany („OD STŘEDY 21. 10. DO ÚTERÝ 3. 11. 2026
   a soutěže („HRAJTE S…“) cenu za jednotku nemají.
 
 Měření 25. 10. 2026 (cyklus 22): CC 46 ověřených z 56 cen, SČ 54/58, JČ 68/85, VČ 75/85, ZČ 56/60; stažení
-5 letáků ~18 s, 185 akcí (139 jen v některých regionech), 127 přiřazených ke katalogu. Leták pod `pdf_min_offers`
+5 letáků ~18 s, 185 akcí, 127 přiřazených ke katalogu. Po prodejnách (R169): z 1 450 prodejen má SČ 236, ZČ 210, JČ 111, VČ 83 (podle družstva), žádný sledovaný leták 809 (TIP, TUTY, Terno, Morava, družstva bez letáku coopclub.cz — např. Jednota Jindřichův Hradec patří COOP družstvu HB); 139 akcí jen v některých prodejnách, 25 867 řádků `offer_stores`. Stažení všech stránek prodejen ~13 běhů po ~90 s. Leták pod `pdf_min_offers`
 (25) ověřenými akcemi = chyba (R16). Obrázky produktů nejsou (jen JPG celých stran), odkaz akce vede na stránku
 letáku.
 
