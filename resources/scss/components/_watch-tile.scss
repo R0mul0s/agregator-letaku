@@ -43,6 +43,22 @@
         overflow-wrap: anywhere;
     }
 
+    // Název jako odkaz na akce v Mých slevách nebo tlačítko úpravy (R160) — vzhled textu
+    &__name-link {
+        padding: 0;
+        background: none;
+        border: 0;
+        color: inherit;
+        font: inherit;
+        text-align: left;
+        text-decoration: none;
+        cursor: pointer;
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+
     &__actions {
         display: flex;
         flex: none;

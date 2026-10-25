@@ -1,7 +1,7 @@
 <!--
     Dlaždice hlídané položky v Hlídám — název, odkud jsou pravidla (katalog / vlastní slova),
     co je teď v akci (počet, nejnižší cena, zmínky v letácích), bez akce kdy v ní byla naposledy
-    (R152) a akce upravit / přestat hlídat.
+    (R152) a akce upravit / přestat hlídat. Název vede na akce položky v Mých slevách (R160).
     Úprava vlastních slov otevře formulář přímo v dlaždici.
 
     @author Roman Hlaváček
@@ -84,7 +84,13 @@ async function remove() {
         />
         <template v-else>
             <div class="watch-tile__header">
-                <h3 class="watch-tile__name">{{ item.name }}</h3>
+                <!-- Na název lidé klepali (Clarity, R160): s akcemi vede na ně v Mých slevách,
+                     vlastní položka bez akcí otevře úpravu slov jako tužka -->
+                <h3 class="watch-tile__name">
+                    <Link v-if="item.offersCount" :href="`${homeUrl}#polozka-${item.id}`" class="watch-tile__name-link">{{ item.name }}</Link>
+                    <button v-else-if="!item.productId" type="button" class="watch-tile__name-link" @click="editing = true">{{ item.name }}</button>
+                    <template v-else>{{ item.name }}</template>
+                </h3>
                 <div class="watch-tile__actions">
                     <button v-if="!item.productId" type="button" class="icon-button" :title="t('watch.edit')" @click="editing = true">
                         <!-- Tužka -->

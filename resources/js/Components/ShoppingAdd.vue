@@ -234,6 +234,7 @@ function offerPrice(offer) {
             <!-- Výběr s logy obchodů jako v Mých slevách („Jsem v obchodě“) -->
             <ChainSelect :id="`${id}-chain`" v-model="chain" class="shopping-add__chain" :label="t('shopping.add_chain')" :chains="add.chains" :all-label="t('shopping.anywhere')" />
         </div>
-        <p :id="`${id}-hint`" class="form-field__hint">{{ t('shopping.add_hint') }}</p>
+        <!-- Na nápovědu („2x mléko“) lidé klepali (Clarity, R160) — klepnutí přesune do pole -->
+        <p :id="`${id}-hint`" class="form-field__hint" @click="field?.focus()">{{ t('shopping.add_hint') }}</p>
     </div>
 </template>
