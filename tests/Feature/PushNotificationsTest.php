@@ -235,7 +235,7 @@ describe('upozornění na nové akce', function (): void {
         expect(recordAndPush())->toBe(1);
 
         $message = $sender->sent[0]['message'];
-        expect($message->title)->toBe('Máslo je v akci')
+        expect($message->title)->toBe('V akci: Máslo')
             ->and($message->body)->toBe("Máslo 250 g — 39,90\u{00A0}Kč, Kaufland")
             ->and($message->url)->toBe('/upozorneni/'.$this->user->notifications()->sole()->id)
             ->and($message->badge)->toBe(1)
@@ -250,7 +250,7 @@ describe('upozornění na nové akce', function (): void {
         recordAndPush();
 
         $message = $sender->sent[0]['message'];
-        expect($message->title)->toBe('Máslo je nejlevněji za 12 týdnů')
+        expect($message->title)->toBe('Nejlevněji za 12 týdnů: Máslo')
             ->and($message->body)->toBe("Máslo 250 g — 39,90\u{00A0}Kč, Kaufland · nejlevněji za 12 týdnů");
     });
 
@@ -304,7 +304,7 @@ describe('upozornění na nové akce', function (): void {
             ->and($sender->sent)->toHaveCount(2);
 
         $messages = collect($sender->sent)->pluck('message')->keyBy('tag');
-        expect($messages['new-offers']->title)->toBe('Máslo je v akci')
+        expect($messages['new-offers']->title)->toBe('V akci: Máslo')
             ->and($messages['ending-soon']->title)->toBe('Zítra končí 1 akce z vašeho seznamu')
             ->and($messages['ending-soon']->body)->toBe("Pivo 0,5 l — 12,90\u{00A0}Kč, Lidl")
             ->and($messages['ending-soon']->badge)->toBe(2);
@@ -374,7 +374,7 @@ it('zprávu zašifruje a pošle push službě s podpisem VAPID', function (): vo
     $sender = new WebPushSender(app(Vapid::class), new Client(['handler' => $handler]));
     $keys = browserPushKeys();
     $subscription = PushSubscription::query()->create(['user_id' => $this->user->id, 'endpoint' => PUSH_ENDPOINT, 'public_key' => $keys['p256dh'], 'auth_token' => $keys['auth'], 'device' => 'Chrome']);
-    $message = new PushMessage('Máslo je v akci', 'Máslo 250 g — 39,90 Kč', '/', 'new-offers', 1);
+    $message = new PushMessage('V akci: Máslo', 'Máslo 250 g — 39,90 Kč', '/', 'new-offers', 1);
 
     expect($sender->send($subscription, $message))->toBe(PushDelivery::Sent)
         ->and($sender->send($subscription, $message))->toBe(PushDelivery::Expired);

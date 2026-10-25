@@ -93,6 +93,7 @@ Log rozhodnutí (kap. 8) se nepřepisuje — starší rozhodnutí nahrazují nov
 | **Chyby aplikace adminům (R154):** každá výjimka z logu jde přes `ErrorAlerts` adminům do centra upozornění a hned do telefonu (`system_alert`) se zprávou, místem v kódu a požadavkem bez parametrů; stejná chyba jednou za den, nejvýš 5 za hodinu, jen na produkci (`LETAKY_ERROR_ALERTS`) | Chyby, které nezpůsobily výpadek z `/health/*`, byly jen v logu na hostingu (čtení přes FTP) |
 | **Vypínač obchodu (R155):** `LETAKY_DISABLED_CHAINS=tesco` v `.env` — obchod se nestahuje (cron URL odpoví 200) a jeho uložené akce zmizí ze všech výpisů, upozornění, sitemapy i archivu týdnů (`Offer::active`, `fromEnabledChains`), stránka obchodu je 404; data a sledování obchodu zůstávají a po zapnutí se vrátí | Vyhovět výzvě obchodu (O6) šlo jen úpravou kódu a nasazením |
 | **Pasti projektu v `docs/PASTI.md` (R156)** po oblastech se stálými čísly bodů; CLAUDE.md má jen jádro a rozcestník | 52 bodů *Nejčastější zdroje chyb* přímo v CLAUDE.md |
+| **Admin se v GA a Clarity neměří (R157)** (`cookieConsent.measure`); IndexNow po 429 stojí 24 h; `/apple-touch-icon.png` z kořene webu; nadpis jedné nové akce „V akci: :name“ | Admin se měřil jako ostatní; IndexNow po 429 zkoušel znovu při každém stažení; nadpis „:name je v akci“ |
 | **Přečtení v centru upozornění (R127):** záznam je přečtený až po otevření, nad seznamem „Označit vše jako přečtené“; zvonek s nepřečtenými po načtení stránky dvakrát zacinká | Otevření seznamu označilo všechny záznamy jako přečtené (R74) |
 
 ---

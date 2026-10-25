@@ -24,6 +24,7 @@ use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Symfony\Component\HttpFoundation\Response;
 
 final class IndexNow
 {
@@ -38,6 +39,9 @@ final class IndexNow
 
     /** Kódy odpovědi, kterými vyhledávač ohlášení přijal (202 = klíč ještě ověřuje). */
     private const ACCEPTED_STATUSES = [200, 202];
+
+    /** Cache: ohlašování stojí po odpovědi 429 (příliš mnoho požadavků, R157). */
+    public const PAUSED_CACHE_KEY = 'indexnow.paused';
 
     /**
      * Ohlašuje se? Jen na produkci s platným klíčem.
@@ -58,20 +62,30 @@ final class IndexNow
     }
 
     /**
-     * Ohlásí adresy, které se v posledních `min_interval_hours` neohlásily.
+     * Ohlásí adresy, které se v posledních `min_interval_hours` neohlásily. Během pauzy po
+     * odpovědi 429 neohlásí nic — opakování by limit vyhledávače jen prodlužovalo (R157).
      *
      * @param  list<string>  $urls  Absolutní adresy webu
      */
     public function submit(array $urls): void
     {
         $key = $this->key();
-        if (! $this->enabled() || $key === null) {
+        if (! $this->enabled() || $key === null || Cache::has(self::PAUSED_CACHE_KEY)) {
             return;
         }
 
         $fresh = array_values(array_filter(array_unique($urls), fn (string $url): bool => ! Cache::has($this->cacheKey($url))));
         foreach (array_chunk($fresh, self::MAX_URLS_PER_REQUEST) as $chunk) {
-            if ($this->send($key, $chunk)) {
+            $status = $this->send($key, $chunk);
+            if ($status === Response::HTTP_TOO_MANY_REQUESTS) {
+                $hours = config()->integer('letaky.indexnow.pause_hours');
+                Cache::put(self::PAUSED_CACHE_KEY, true, CarbonImmutable::now()->addHours($hours));
+                Log::warning('IndexNow: příliš mnoho požadavků, ohlašování stojí.', ['pause_hours' => $hours]);
+
+                return;
+            }
+
+            if (in_array($status, self::ACCEPTED_STATUSES, true)) {
                 $until = CarbonImmutable::now()->addHours(config()->integer('letaky.indexnow.min_interval_hours'));
                 foreach ($chunk as $url) {
                     Cache::put($this->cacheKey($url), true, $until);
@@ -81,11 +95,12 @@ final class IndexNow
     }
 
     /**
-     * Jeden hromadný požadavek; vrátí, jestli ho vyhledávač přijal.
+     * Jeden hromadný požadavek; vrátí kód odpovědi, null = vyhledávač nešel zastihnout.
+     * Odmítnutí kromě 429 (to řeší submit) zapíše do logu.
      *
      * @param  list<string>  $urls
      */
-    private function send(string $key, array $urls): bool
+    private function send(string $key, array $urls): ?int
     {
         try {
             $response = Http::withUserAgent(config()->string('letaky.http.user_agent'))
@@ -100,16 +115,15 @@ final class IndexNow
         } catch (ConnectionException $error) {
             Log::warning('IndexNow: vyhledávače se nepodařilo zastihnout.', ['error' => $error->getMessage()]);
 
-            return false;
+            return null;
         }
 
-        if (! in_array($response->status(), self::ACCEPTED_STATUSES, true)) {
-            Log::warning('IndexNow: ohlášení stránek odmítnuto.', ['status' => $response->status(), 'body' => $response->body()]);
-
-            return false;
+        $status = $response->status();
+        if ($status !== Response::HTTP_TOO_MANY_REQUESTS && ! in_array($status, self::ACCEPTED_STATUSES, true)) {
+            Log::warning('IndexNow: ohlášení stránek odmítnuto.', ['status' => $status, 'body' => $response->body()]);
         }
 
-        return true;
+        return $status;
     }
 
     /**

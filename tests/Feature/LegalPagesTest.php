@@ -13,6 +13,7 @@ declare(strict_types=1);
 use App\Enums\ScrapeStatus;
 use App\Http\Responses\ErrorToast;
 use App\Models\ScrapeRun;
+use App\Models\User;
 use App\Support\Legal\LegalDocuments;
 use Illuminate\Http\Request;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -110,7 +111,14 @@ it('sdílí nastavení souhlasu s cookies; ID Google Analytics a Clarity jen na 
     $this->get(route('offers'))
         ->assertInertia(fn (Assert $page) => $page
             ->where('cookieConsent.measurementId', 'G-TEST123')
-            ->where('cookieConsent.clarityProjectId', 'clarity123'));
+            ->where('cookieConsent.clarityProjectId', 'clarity123')
+            ->where('cookieConsent.measure', true));
+
+    // Admina se neměří (R157), běžného přihlášeného ano
+    $this->actingAs(User::factory()->create(['is_admin' => true]))->get(route('offers'))
+        ->assertInertia(fn (Assert $page) => $page->where('cookieConsent.measure', false));
+    $this->actingAs(User::factory()->create())->get(route('offers'))
+        ->assertInertia(fn (Assert $page) => $page->where('cookieConsent.measure', true));
 });
 
 it('z kapitol dokumentu sestaví obsah a nadpisům dá id pro odkazy', function (): void {

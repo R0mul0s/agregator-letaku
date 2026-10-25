@@ -127,6 +127,9 @@ return [
         'key' => env('LETAKY_INDEXNOW_KEY', 'e95b18a32d1f9a6d13a434d40f8cccb7'),
         'endpoint' => 'https://api.indexnow.org/indexnow',
         'min_interval_hours' => 6,
+        // Po odpovědi 429 se neohlašuje nic (R157) — Bing ho vracel skoro denně a každé další
+        // stažení obchodu ho zkoušelo znovu
+        'pause_hours' => 24,
         'timeout_seconds' => 10,
     ],
 

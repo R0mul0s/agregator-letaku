@@ -47,7 +47,7 @@ export const consentState = reactive({
 });
 
 /** Konfigurace ze serveru (sdílený prop cookieConsent). */
-let config = { measurementId: null, clarityProjectId: null, version: 1, maxAgeDays: 180, redactedPaths: [] };
+let config = { measurementId: null, clarityProjectId: null, measure: true, version: 1, maxAgeDays: 180, redactedPaths: [] };
 
 let analyticsLoaded = false;
 
@@ -138,10 +138,11 @@ function deleteAnalyticsCookies() {
 }
 
 /**
- * Načte gtag.js a spustí měření (jen jednou, jen s ID měření — mimo produkci ho server nepošle).
+ * Načte gtag.js a spustí měření (jen jednou, jen s ID měření — mimo produkci ho server nepošle;
+ * admina se neměří, R157).
  */
 function loadAnalytics() {
-    if (analyticsLoaded || !config.measurementId) {
+    if (analyticsLoaded || !config.measurementId || !config.measure) {
         return;
     }
     analyticsLoaded = true;
@@ -212,7 +213,7 @@ function clarity(...args) {
  * nepošle). Na stránce s tokenem v adrese se nespustí, zkusí to až další přechod.
  */
 function loadClarity() {
-    if (clarityLoaded || !config.clarityProjectId || redactedPrefix(window.location.pathname)) {
+    if (clarityLoaded || !config.clarityProjectId || !config.measure || redactedPrefix(window.location.pathname)) {
         return;
     }
     clarityLoaded = true;
@@ -304,8 +305,16 @@ export function initConsent(initialPage) {
     gtag('consent', 'default', consentModeFor({ analytics: false, marketing: false }));
 
     // Přechod mezi stránkami SPA — titulek nastaví <Head> až po vykreslení nové stránky
-    router.on('navigate', () =>
+    router.on('navigate', (event) =>
         window.setTimeout(() => {
+            // Přihlášení admina uprostřed návštěvy (R157): už načtené měření zastaví jen nové načtení
+            // stránky — to už ho podle serveru nespustí
+            config.measure = event.detail.page.props.cookieConsent?.measure ?? config.measure;
+            if (!config.measure && (analyticsLoaded || clarityLoaded)) {
+                window.location.reload();
+
+                return;
+            }
             measurePageView();
             // Start na stránce s tokenem v adrese načtení Clarity odložil
             if (consentState.analytics) {

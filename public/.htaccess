@@ -57,6 +57,10 @@ Options -Indexes
     RewriteCond %{THE_REQUEST} ^[A-Z]+\ (/[^?\ ]*?)/+[?\ ]
     RewriteRule ^ %1 [L,R=301,NE]
 
+    # Ikona iPhonu v kořeni webu (R157): Safari a náhledy odkazů ji hledají na
+    # /apple-touch-icon.png i bez <link> a dostávaly 404 — vnitřně na ikonu v images/brand
+    RewriteRule ^apple-touch-icon(-precomposed)?\.png$ images/brand/apple-touch-icon.png [L]
+
     # Send Requests To Front Controller...
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_FILENAME} !-f

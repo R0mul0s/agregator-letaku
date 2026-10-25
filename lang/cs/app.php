@@ -248,9 +248,10 @@ return [
     // Centrum upozornění (R74, RecordNewOffers, NotificationPresenter) — nadpisy i pro upozornění v telefonu
     'notifications' => [
         'new_offers' => [
-            'title_one' => ':name je v akci',
+            // Bez slovesa — název hlídané položky bývá i v množném čísle („Sušenky je v akci“, R157)
+            'title_one' => 'V akci: :name',
             // Akce je nejlevnější za sledované období (PriceHistory, R59; etapa 11c)
-            'title_lowest' => ':name je nejlevněji za :weeks týdnů',
+            'title_lowest' => 'Nejlevněji za :weeks týdnů: :name',
             'title_many' => ':count nová akce na hlídané zboží|:count nové akce na hlídané zboží|:count nových akcí na hlídané zboží',
         ],
         'ending_soon' => [

@@ -106,7 +106,7 @@ describe('záznamy z cronu', function (): void {
 
         $this->actingAs($this->user)->get(route('notifications.index'))
             ->assertInertia(fn (Assert $page) => $page
-                ->where('notifications.0.title', 'Máslo je nejlevněji za 12 týdnů')
+                ->where('notifications.0.title', 'Nejlevněji za 12 týdnů: Máslo')
                 ->where('notifications.0.lowestCount', 1)
                 ->where('priceHistoryWeeks', 12));
         $this->get(route('notifications.show', $record->id))
@@ -154,7 +154,7 @@ describe('stránka', function (): void {
                 ->component('Notifications')
                 ->has('notifications', 1)
                 ->where('notifications.0.id', $record->id)
-                ->where('notifications.0.title', 'Máslo je v akci')
+                ->where('notifications.0.title', 'V akci: Máslo')
                 ->where('notifications.0.text', 'Máslo')
                 ->where('notifications.0.unread', true)
                 ->where('notifications.0.url', '/upozorneni/'.$record->id)
