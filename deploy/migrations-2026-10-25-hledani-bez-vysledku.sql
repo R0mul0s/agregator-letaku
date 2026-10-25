@@ -7,7 +7,7 @@
 
 CREATE TABLE IF NOT EXISTS `search_misses` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `source` varchar(16) NOT NULL COMMENT 'App\Enums\SearchMissSource — Všechny akce, nebo Hlídám',
+  `source` varchar(16) NOT NULL COMMENT 'App\\Enums\\SearchMissSource — Všechny akce, nebo Hlídám',
   `term` varchar(100) NOT NULL COMMENT 'hledaný text po TextNormalizer — klíč',
   `text` varchar(100) NOT NULL COMMENT 'hledaný text k zobrazení, jak ho někdo naposledy napsal',
   `hits` int(10) unsigned NOT NULL DEFAULT 1 COMMENT 'kolikrát se hledalo — jeden člověk nejvýš jednou za den',
