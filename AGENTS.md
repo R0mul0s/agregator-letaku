@@ -14,8 +14,8 @@ Tento soubor je jen rozcestník, aby existoval jeden zdroj pravdy.
 >
 > Data obchodů pocházejí z **neveřejných rozhraní, která se mění**. Testy nikdy
 > nesahají na síť (fixtures v `tests/Fixtures/<obchod>/`), ceny jsou v haléřích
-> jako `int` a akce bez původní ceny není sleva. Viz CLAUDE.md, sekce
-> *Nejčastější zdroje chyb*.
+> jako `int` a akce bez původní ceny není sleva. Viz CLAUDE.md, sekce *Pasti*,
+> a podrobně [docs/PASTI.md](docs/PASTI.md).
 >
 > Produkce je sdílený hosting bez SSH a fronty: každá migrace potřebuje SQL skript
 > v `deploy/` a nic nesmí implementovat `ShouldQueue`.

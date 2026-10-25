@@ -250,7 +250,7 @@ Pasti:
   (v letácích 5. a 8. 10. 2026 se nevyskytlo).
 - Název = řádky názvu („Hladká/ Polohrubá“ bez mezery za lomítkem), popis = celý popis, balení = první část popisu.
   `source_url` = stránka v prohlížeči letáku, obrázek není. ID `letak-` + otisk názvu, balení a velké ceny (R16).
-- **Duplicity s webem** (CLAUDE.md bod 7): dlaždice se vynechá, když akce z webu má stejnou cenu (bez aplikace nebo
+- **Duplicity s webem** (docs/PASTI.md bod 7): dlaždice se vynechá, když akce z webu má stejnou cenu (bez aplikace nebo
   s ní), překrývající se platnost a všechna výrazná slova (≥ 4 znaky, ne čísla) kratšího názvu jsou v delším. Jedno
   společné slovo nestačí — „PIKOK Kladenská pečeně“ a „PIKOK PURE Dušená šunka“ za 19,90 by splynuly.
 - **Web vychází po letáku** (R136): PDF letáku od čtvrtka je venku už v pondělí, stejné akce se v kampaních webu

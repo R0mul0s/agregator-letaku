@@ -148,7 +148,7 @@ final class LidlOfferSource implements OfferSource
     }
 
     /**
-     * Je akce z letáku táž jako akce z webu (CLAUDE.md bod 7)? Stejná cena (bez aplikace nebo s ní),
+     * Je akce z letáku táž jako akce z webu (docs/PASTI.md bod 7)? Stejná cena (bez aplikace nebo s ní),
      * překrývající se platnost a výrazná slova kratšího názvu jsou všechna v delším („Mango“ =
      * „Mango zralé“). Jedno společné slovo nestačí — bývá to značka nebo druh („PIKOK Kladenská
      * pečeně“ a „PIKOK PURE Dušená šunka“ za 19,90). Web má přednost — má ID produktu a obrázek.
