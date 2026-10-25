@@ -856,6 +856,68 @@ Měření 25. 10. 2026: leták 2026-44 112 ověřených ze 185 cen, 2026-45 98 z
 nepotraviny); stažení obou ~13 s, 210 akcí, 130 přiřazených ke katalogu. Leták pod `pdf_min_offers` (40)
 ověřenými akcemi = chyba (R16). Obrázky produktů nejsou, odkaz akce vede na stránku nabídky.
 
+## COOP
+
+**Cesta:** jen PDF letáků přes `pdftotext -bbox-layout` (R86), bez LLM — implementováno pro Čechy (R167,
+`app/Domain/Sources/Coop`). Průzkum 25. 10. 2026. COOP je ~45 spotřebních družstev (Jednota, Konzum, Terno,
+Trefa, TIP, TUTY, Tempo) s vlastními letáky. Textovou vrstvu mají jen letáky na **coopclub.cz** (WordPress COOP
+Centra): celostátní **CC** („ve vybraných prodejnách COOP v ČR“) a regionální **SČ, JČ, VČ, ZČ**. Moravská
+družstva (TIP Extra, TUTY Menu, Tempo `odtempo.cz`, Jednota Zlín, Jednota Hodonín) vydávají PDF nebo galerie jen
+s obrázky — bez OCR nebo LLM ne. `coopclub.cz/robots.txt` 404, bez WAF a cookies; `coop.cz` přesměruje na
+`skupina.coop` (Crawl-delay 5). Náročnost střední až vysoká.
+
+### Regiony (R167)
+
+Regionální leták platí jen v prodejnách svých družstev (výčet v patičce letáku). Regiony jsou „prodejny“
+obchodu (migrace `2026_10_25_100000_add_coop_regions`, kódy v `letaky.sources.coop.leaflets`):
+
+| Kód | Region | Družstva (cyklus 22/2026) |
+|---|---|---|
+| `coop-sc` | Střední Čechy | Jednota Benešov, Jednota Kladno, Jednota SD v Rakovníku, COOP Hořovice, Jednota SD v Nymburce, COOP Příbram, COOP Mnichovo Hradiště |
+| `coop-jc` | Jižní Čechy | SD Milevsko, OD Tábor, SD Vimperk, SD Volyně, DS v Kaplici, SD Jindřichův Hradec, SD Kamenice nad Lipou |
+| `coop-vc` | Východní Čechy | SD Nová Paka, SD v Pardubicích, COOP Dvůr Králové nad Labem |
+| `coop-zc` | Západní Čechy | COOP Plasy, Jednota SD v Tachově, SD Podbořany, ZKD Sušice (bez prodejny Prášily), COOP Plzeň (prodejna č. 451 bez plného sortimentu); jen prodejny s logem COOP Jednota a COOP Konzum |
+| `coop-ms` | Morava a Slezsko | bez regionálního letáku s textem — jen celostátní akce |
+
+Akce celostátního letáku platí všude (bez řádků v `offer_stores`), akce jen z regionálních letáků v jejich
+regionech; stejnou akci uloží první dávka (celostátní leták se zpracuje první). Seznam 1 450 prodejen
+(`/prodejny/`, markery s GPS bez družstva; družstvo jen v detailu prodejny) se nestahuje.
+
+### Endpointy
+
+| Účel | Požadavek |
+|---|---|
+| Seznam letáků | `GET https://www.coopclub.cz/letaky/feed/` — RSS 2.0, 10 posledních letáků: `title` „SČ 22 (od 21.10. do 3.11.)“ (bez roku, rok podle `pubDate`), `link` na stránku letáku, `guid` `?post_type=letaky&p=116126`; nový leták vychází v noci před středou, cyklus 14 dní st–út |
+| Stránka letáku | `GET /letaky/sc-aktualni-letak/` — odkaz `https://www.coopclub.cz/wp-content/uploads/2026/09/4426022-STC-22-26.pdf` (složka nesedí s platností — odkaz jen ze stránky; starší leták se přejmenuje na `sc-aktualni-letak44`) |
+| PDF | 2–9 MB, 2–4 strany, `Last-Modified` a `ETag` |
+| Prodejny (nepoužívá se) | `GET /prodejny/` (1,3 MB, 1 450 markerů), detail `/prodejny/jednota-vaclavice/` s polem „Družstvo“ |
+
+### Převod (`CoopLeafletParser`)
+
+Platnost z hlavičky první strany („OD STŘEDY 21. 10. DO ÚTERÝ 3. 11. 2026“, celostátní „od 21. 10. do 3. 11.
+2026“), jinak z RSS.
+
+- **Text dlaždice je jeden blok** `pdftotext`: značka verzálkami (regionální 11,5 b.), tučný název (12,2 b.),
+  upřesnění („vybrané druhy“) a řádek balení s cenou za jednotku **„130 g | 1 kg = 130,–“**; výrobce, záloha,
+  pult („1 kg = 219,– | pultový prodej“) a ceny s kupónem menším písmem v bloku těsně pod ním. Velikost písma se
+  liší po letácích — celostátní leták 16,8 b. verzálkami (převede se na běžný text), JČ 10,7 b. se značkou nad
+  názvem v samostatném bloku (nepoužije se) — řádky se třídí podle největšího písma bloku.
+- **Cena** koruny a haléře s čárkou jako dvě slova („34“ „,90“, „219“ „,–“), 16–47 b.
+- **Leták nemá přeškrtnuté ceny ani slevy** — všechny akce jsou `PromoPrice` (R8).
+- **Cena s kupónem v aplikaci COOP Česko:** „cena s kupónem v aplikaci“ (větší) a „CENA BEZ APLIKACE“ / „CENA BEZ
+  KUPÓNU“ (menší), v textu „s kupónem 1 l = 17,45“ / „bez kupónu 1 l = 18,45“ (celostátní verzálkami) — obě ceny se
+  ověří, kupónová jde do `loyalty_price`.
+- Víc velikostí balení „120/130 g | 1 kg = 290,83/268,46“, „16/47/59 PD | 1 PD = 5,62/1,91/1,52“ (každá cena za
+  jednotku k některému balení), tisíce s mezerou „1 kg = 1 495,–“, celostátní „… Kč“ na konci.
+- **Pult za 100 g:** odznak „100 g“ u ceny, v textu jen „1 kg = 219,–“ — ověří desetinásobek ceny.
+- Neověří se: dlaždice s cenou za jednotku jinde než v bloku textu, „cena za 1 ks“ bez balení; patička
+  a soutěže („HRAJTE S…“) cenu za jednotku nemají.
+
+Měření 25. 10. 2026 (cyklus 22): CC 46 ověřených z 56 cen, SČ 54/58, JČ 68/85, VČ 75/85, ZČ 56/60; stažení
+5 letáků ~18 s, 185 akcí (139 jen v některých regionech), 127 přiřazených ke katalogu. Leták pod `pdf_min_offers`
+(25) ověřenými akcemi = chyba (R16). Obrázky produktů nejsou (jen JPG celých stran), odkaz akce vede na stránku
+letáku.
+
 ## Makro (průzkum 2026-10-02 — zatím bez zdroje)
 
 Požadavek uživatele přidat Makro. Výsledek: **zdroj, který by šel použít v souladu s pravidly projektu, zatím není.**
@@ -885,7 +947,7 @@ platnost akcí strojově **i** úplně zároveň, kromě TETY.
 | **Rossmann** | výpis e-shopu (HTML) + PDF letáku kvůli platnosti | ~1 400 SKU akcí, ~4 900 se Clubem a 2+1 | jen u „Akce“ | ano (ROSSMANN CLUB) | střední |
 | **Norma** | PDF letáku — **implementováno (R166)**, viz kapitola [Norma](#norma) | ~110 akcí | část | ne | střední |
 | **Hruška** | PDF letáku — **implementováno (R165)**, viz kapitola [Hruška](#hruška) | ~170 dlaždic | ne | ano (Klubová cena) | střední |
-| **Coop** | PDF letáků na coopclub.cz — jen Čechy | 5 letáků po ~55–85 položkách | ne | ano (kupón v aplikaci) | střední až vysoká |
+| **Coop** | PDF letáků na coopclub.cz — **implementováno pro Čechy (R167)**, viz kapitola [COOP](#coop) | 5 letáků po 45–75 akcích | ne | ano (kupón v aplikaci) | střední až vysoká |
 | **dm** | — akce nemá („Super ceny bez akce“), jen Výprodej | ~100–140 výprodejových (odhad) | jen výprodej | ne | nevyplatí se |
 
 Lokální `pdftotext` v Git Bashi je Xpdf 4.00 (bez `-bbox-layout`, bez `-enc UTF-8` ztrácí diakritiku) —
@@ -954,24 +1016,6 @@ Leták: `/obsah/akce-a-letaky` (`box-leaflet__date` „21.10.2026 - 3.11.2026“
 text ano); Publitas `publikace.rossmann.cz/…/spreads.json` má text bez polohy a bez hotspotů. Leták platí
 v kamenných prodejnách, „na e-shopu se nabídka může lišit“ — ve vzorku 48 z 50 cen e-shopu bylo i v letáku.
 Část položek má vlastní platnost (Pampers od 7. 10.) a některé jsou „nedostupné na e-shopu“ (jen z PDF).
-
-### Coop
-
-**Cesta:** PDF letáků na **coopclub.cz** (WordPress COOP Centra) přes `pdftotext -bbox-layout`. Coop je ~45 družstev
-s vlastními letáky; textovou vrstvu má jen celostátní **CC** („ve vybraných prodejnách COOP“) a 4 regiony
-**SČ, JČ, VČ, ZČ** (výčet družstev v patičce). **Morava** (TIP Extra, TUTY Menu, Tempo, Jednota Zlín, Hodonín)
-má jen obrázková PDF nebo galerie — bez OCR/LLM ne. `coopclub.cz/robots.txt` 404, bez WAF.
-
-| Účel | Požadavek |
-|---|---|
-| Seznam letáků | `GET https://www.coopclub.cz/letaky/feed/` (RSS, titulek „SČ 22 (od 21.10. do 3.11.)“ bez roku) nebo `/letaky/` (s rokem) |
-| Detail | `GET /letaky/sc-aktualni-letak/` — odkaz na PDF `wp-content/uploads/2026/09/4426022-STC-22-26.pdf` (2–9 MB, 2–4 strany) |
-| Prodejny | `GET /prodejny/` (1 450 markerů s GPS, bez družstva); družstvo jen v detailu prodejny |
-
-Cyklus 14 dní st–út. Položka: název, balení a „1 l = 25,80“; cena rozdělená na dvě slova („42“ + „,90“) i „219,–“;
-**bez původní ceny**. Cena s kupónem v aplikaci „34,90 … 36,90 CENA BEZ APLIKACE / BEZ KUPÓNU“ → `loyalty_price`.
-Pasti: slug detailu se přejmenovává (`sc-aktualni-letak44`) — identifikovat podle PDF; složka uploads nesedí
-s datem; stejné produkty v CC i regionech; přiřazení prodejny k regionu by chtělo 1 450 požadavků na detail.
 
 ### dm drogerie markt
 

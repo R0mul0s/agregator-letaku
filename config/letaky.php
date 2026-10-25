@@ -15,6 +15,7 @@ declare(strict_types=1);
 
 use App\Domain\Sources\Albert\AlbertOfferSource;
 use App\Domain\Sources\Billa\BillaOfferSource;
+use App\Domain\Sources\Coop\CoopOfferSource;
 use App\Domain\Sources\Globus\GlobusOfferSource;
 use App\Domain\Sources\Hruska\HruskaOfferSource;
 use App\Domain\Sources\Kaufland\KauflandOfferSource;
@@ -415,6 +416,30 @@ return [
             // Stažení pak skončí chybou, aby import akce letáku neoznačil jako stažené (R16)
             'pdf_min_offers' => 40,
             'request_delay_ms' => (int) env('LETAKY_NORMA_REQUEST_DELAY_MS', 1000),
+        ],
+        'coop' => [
+            // Jen PDF letáků přes pdftotext (R167): textovou vrstvu mají na coopclub.cz celostátní leták
+            // a regionální letáky Čech, moravská družstva vydávají letáky jako obrázky (bez LLM ne)
+            'offers_source' => CoopOfferSource::class,
+            'has_store_formats' => false,
+            'has_eshop' => false,
+            // Seznam letáků: titulek „SČ 22 (od 21.10. do 3.11.)“ a odkaz na stránku letáku
+            'feed_url' => 'https://www.coopclub.cz/letaky/feed/',
+            // Odkaz na PDF na stránce letáku (složka nahrání nesedí s platností — jen ze stránky)
+            'pdf_url_pattern' => '#https://www\.coopclub\.cz/wp-content/uploads/\d{4}/\d{2}/[^"\'\s]+\.pdf#',
+            // Sledované letáky podle zkratky v titulku => region (kód prodejny, migrace 2026_10_25_100000);
+            // null = celostátní leták, platí ve všech prodejnách. TIP a TUTY (Morava) jsou jen obrázky
+            'leaflets' => [
+                'CSC' => null,
+                'SČ' => 'coop-sc',
+                'JČ' => 'coop-jc',
+                'VČ' => 'coop-vc',
+                'ZČ' => 'coop-zc',
+            ],
+            // Leták má 45–75 ověřených akcí (měření R167); méně = změněné rozvržení nebo rozbitý parser.
+            // Stažení pak skončí chybou, aby import akce letáku neoznačil jako stažené (R16)
+            'pdf_min_offers' => 25,
+            'request_delay_ms' => (int) env('LETAKY_COOP_REQUEST_DELAY_MS', 1000),
         ],
         'tesco' => [
             'offers_source' => TescoOfferSource::class,
@@ -869,6 +894,8 @@ return [
             'https://mojehruska.cz/',
             // Norma: stránka s letáky (R166)
             'https://www.norma-online.de/cz/angebote/',
+            // COOP: stránka letáku na coopclub.cz (R167)
+            'https://www.coopclub.cz/letaky/',
         ],
         // Text akce na více kusů verzálkami bez diakritiky (Tesco menu e-shopu „PECIVO+NAPOJ“):
         // slova, která před převodem na větu dostanou diakritiku (PromotionText, R101)

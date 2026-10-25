@@ -2,7 +2,7 @@
 
 # Slevohlídka — rychlý lovec slev
 
-Hlídání akčních nabídek z letáků obchodů **Kaufland, Tesco, Albert, Lidl, Penny, Globus, Billa, Hruška a Norma**.
+Hlídání akčních nabídek z letáků obchodů **Kaufland, Tesco, Albert, Lidl, Penny, Globus, Billa, Hruška, Norma a COOP**.
 Zadáš, co kupuješ: konkrétní produkt („Coca-Cola Zero“) nebo kategorii bez ohledu na značku
 („vejce“, „polotučné mléko“). Aplikace ukáže, kde a za kolik je to právě ve slevě, včetně cen
 s věrnostní kartou a ceny za jednotku, a dá vědět e-mailem, když přibude nová akce.
@@ -19,7 +19,7 @@ s věrnostní kartou a ceny za jednotku, a dá vědět e-mailem, když přibude 
 | **Správce** | Roman Hlaváček |
 
 > **Stav:** běží na [slevohlidka.cz](https://slevohlidka.cz) (Websupport,
-> [deploy/DEPLOYMENT.md](deploy/DEPLOYMENT.md)). Hotové je stahování akcí všech devíti obchodů
+> [deploy/DEPLOYMENT.md](deploy/DEPLOYMENT.md)). Hotové je stahování akcí všech deseti obchodů
 > (z webu, API a PDF letáků, i letáky, které ještě nezačaly), hlídání s katalogem 254 produktů,
 > Moje slevy, nákupní seznam se sdílením, centrum upozornění, upozornění e-mailem a v telefonu
 > (aplikace na plochu), veřejné Všechny akce s čistými adresami obchodů a produktů a Nejlepší

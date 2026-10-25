@@ -16,7 +16,7 @@ declare(strict_types=1);
 return [
 
     'meta' => [
-        'description' => 'Slevohlídka — rychlý lovec slev. Hlídá akce z letáků obchodů Kaufland, Tesco, Albert, Lidl, Penny, Globus, Billa, Hruška a Norma.',
+        'description' => 'Slevohlídka — rychlý lovec slev. Hlídá akce z letáků obchodů Kaufland, Tesco, Albert, Lidl, Penny, Globus, Billa, Hruška, Norma a COOP.',
     ],
 
     // Hlavička HTML pro vyhledávače a sdílení (R45, App\Support\Seo\SeoMeta). Titulek do 60 znaků,
@@ -85,7 +85,7 @@ return [
             'default' => [
                 'title' => 'Slevohlídka',
                 'heading' => 'Slevohlídka',
-                'description' => 'Slevohlídka — rychlý lovec slev. Hlídá akce z letáků obchodů Kaufland, Tesco, Albert, Lidl, Penny, Globus, Billa, Hruška a Norma.',
+                'description' => 'Slevohlídka — rychlý lovec slev. Hlídá akce z letáků obchodů Kaufland, Tesco, Albert, Lidl, Penny, Globus, Billa, Hruška, Norma a COOP.',
             ],
         ],
         // Obsah stránky pro roboty bez JavaScriptu (R94, resources/views/seo/content.blade.php) —
@@ -108,7 +108,7 @@ return [
         'og_image_alt' => 'Slevohlídka — rychlý lovec slev. Maskot s nákupním košíkem a cenovkou.',
         // Poslední oddělovač výčtu („Kaufland, Tesco a Billa“, R158)
         'list_last_separator' => ' a ',
-        'organization_description' => 'Slevohlídka hlídá akce z letáků obchodů Kaufland, Tesco, Albert, Lidl, Penny, Globus, Billa, Hruška a Norma.',
+        'organization_description' => 'Slevohlídka hlídá akce z letáků obchodů Kaufland, Tesco, Albert, Lidl, Penny, Globus, Billa, Hruška, Norma a COOP.',
     ],
 
     // App\Enums\Chain
@@ -122,6 +122,7 @@ return [
         'billa' => 'Billa',
         'hruska' => 'Hruška',
         'norma' => 'Norma',
+        'coop' => 'COOP',
     ],
 
     // Názvy obchodů ve 2. pádě (Chain::genitive) — „Aktuální akce Kauflandu“
@@ -135,6 +136,7 @@ return [
         'billa' => 'Billy',
         'hruska' => 'Hrušky',
         'norma' => 'Normy',
+        'coop' => 'COOP',
     ],
 
     // App\Enums\StoreFormat
@@ -185,7 +187,7 @@ return [
 
     // llms.txt (R45) — popis webu pro jazykové modely
     'llms' => [
-        'summary' => 'Slevohlídka je česká webová aplikace, která každý den stahuje akční nabídky z letáků a e-shopů obchodů Kaufland, Tesco, Albert, Lidl, Penny, Globus, Billa, Hruška a Norma a ukazuje je přehledně na jednom místě.',
+        'summary' => 'Slevohlídka je česká webová aplikace, která každý den stahuje akční nabídky z letáků a e-shopů obchodů Kaufland, Tesco, Albert, Lidl, Penny, Globus, Billa, Hruška, Norma a COOP a ukazuje je přehledně na jednom místě.',
         'about' => 'Přihlášený uživatel si vybere obchody, věrnostní karty a položky, které chce hlídat (produkt z katalogu nebo vlastní slova). Slevohlídka mu pak ukáže jen akce na tyto položky, seřazené podle ceny za kilogram, litr nebo kus, a u akce řekne, jestli je to opravdu sleva oproti dřívějším cenám. Akce si uživatel přidá do nákupního seznamu rozděleného podle obchodů a v obchodě („Jsem v obchodě“) je vidí jako kompaktní seznam. O nových akcích ho Slevohlídka upozorní e-mailem nebo v telefonu. Jde přidat na plochu telefonu jako aplikace; Moje slevy a nákupní seznam fungují i bez signálu. Přehled všech aktuálních akcí je veřejný.',
         'pages_title' => 'Veřejné stránky',
         'home' => 'Úvodní stránka',
@@ -777,6 +779,8 @@ return [
             'stores_hints' => [
                 'kaufland' => 'Pultové maso, ryby a pár dalších akcí se liší po prodejnách. Bez výběru uvidíte akce všech prodejen.',
                 'globus' => 'Část akcí má v některých hypermarketech jinou cenu a pár jich platí jen někde. Bez výběru uvidíte akce všech hypermarketů.',
+                // Regiony místo prodejen (R167) — podle družstva, které prodejnu provozuje
+                'coop' => 'Kromě celostátního letáku má každý region v Čechách vlastní. Vyberte region podle družstva, které vaši prodejnu provozuje: střední Čechy (Jednota Benešov, Kladno, Rakovník, Nymburk, COOP Hořovice, Příbram, Mnichovo Hradiště), jižní (Milevsko, Tábor, Vimperk, Volyně, Kaplice, Jindřichův Hradec, Kamenice nad Lipou), východní (Nová Paka, Pardubice, Dvůr Králové nad Labem), západní (COOP Plasy, Tachov, Podbořany, Sušice, Plzeň). Na Moravě a ve Slezsku zatím ukážeme jen celostátní akce. Bez výběru uvidíte akce všech regionů.',
             ],
             'stores_search' => 'Hledat prodejnu nebo město',
             'stores_all' => 'Všechny prodejny',
@@ -839,6 +843,8 @@ return [
             'muj_globus' => 'Můj Globus',
             'billa_klub' => 'BILLA Klub',
             'hruska_klub' => 'Hruška klub',
+            // Kupóny v aplikaci COOP Česko (R167)
+            'coop_cesko' => 'COOP Česko',
         ],
 
         // App\Enums\PackageUnit::unitPriceKey()
@@ -1350,7 +1356,7 @@ return [
             'intro' => ':name s vámi sdílí nákupní seznam. Odškrtávejte, co koupíte — :name to uvidí taky.',
             'empty' => 'Seznam je prázdný — teď není co nakupovat.',
             'cta_title' => 'Chcete taky vlastní seznam ze slev?',
-            'cta_text' => 'Slevohlídka hlídá letáky devíti obchodů a ukáže, kde je to, co kupujete, zrovna v akci.',
+            'cta_text' => 'Slevohlídka hlídá letáky deseti obchodů a ukáže, kde je to, co kupujete, zrovna v akci.',
             'cta_button' => 'Začít zdarma',
             'check_failed' => 'Odškrtnutí se nepodařilo uložit — zkontrolujte připojení a zkuste to znovu.',
         ],
@@ -1847,7 +1853,7 @@ return [
                 ],
                 'stores' => [
                     'question' => 'Platí akce ve všech prodejnách?',
-                    'answer' => 'Většinou ano. Kaufland a Globus mají některé akce jen v části prodejen a Globus u některých i jinou cenu — u takové akce to uvidíte a v Mých obchodech si vyberete prodejny, kam chodíte.',
+                    'answer' => 'Většinou ano. Kaufland a Globus mají některé akce jen v části prodejen a Globus u některých i jinou cenu, COOP má vedle celostátního letáku regionální — u takové akce to uvidíte a v Mých obchodech si vyberete prodejny nebo region, kam chodíte.',
                 ],
                 'app' => [
                     'question' => 'Funguje Slevohlídka v telefonu jako aplikace?',

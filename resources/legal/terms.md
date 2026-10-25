@@ -23,7 +23,7 @@
 
 ## 2. Co služba dělá
 
-1. Služba shromažďuje veřejně dostupné akční nabídky obchodů Albert, Billa, Globus, Hruška,
+1. Služba shromažďuje veřejně dostupné akční nabídky obchodů Albert, Billa, COOP, Globus, Hruška,
    Kaufland, Lidl, Norma, Penny a Tesco a ukazuje je přehledně podle vašeho výběru obchodů,
    prodejen a hlídaných položek.
 2. **Služba není oficiálním webem žádného z obchodů** a s obchody nijak nespolupracujeme,

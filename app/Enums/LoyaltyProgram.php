@@ -22,6 +22,7 @@ enum LoyaltyProgram: string
     case MujGlobus = 'muj_globus';
     case BillaKlub = 'billa_klub';
     case HruskaKlub = 'hruska_klub';
+    case CoopCesko = 'coop_cesko';
 
     /**
      * Obchod, ke kterému program patří.
@@ -37,6 +38,7 @@ enum LoyaltyProgram: string
             self::MujGlobus => Chain::Globus,
             self::BillaKlub => Chain::Billa,
             self::HruskaKlub => Chain::Hruska,
+            self::CoopCesko => Chain::Coop,
         };
     }
 

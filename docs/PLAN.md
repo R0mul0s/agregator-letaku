@@ -33,10 +33,10 @@ Log rozhodnutí (kap. 8) se nepřepisuje — starší rozhodnutí nahrazují nov
 
 | Platí | Neplatí (čím nahrazeno) |
 |---|---|
-| Obchody se sledují celé, u Tesca (a Albertu) podle **typu prodejny** HM / SM (R19, R21); **u Kauflandu a Globusu výběr více prodejen** (R49, R131) | Výběr **konkrétních prodejen** a seznamy prodejen (R3 → R21), výběr prodejen Kauflandu (R19 → R21) |
+| Obchody se sledují celé, u Tesca (a Albertu) podle **typu prodejny** HM / SM (R19, R21); **u Kauflandu a Globusu výběr více prodejen** (R49, R131), **u COOP regionu** (R167) | Výběr **konkrétních prodejen** a seznamy prodejen (R3 → R21), výběr prodejen Kauflandu (R19 → R21) |
 | Kaufland po prodejnách (R49): seznam 149 prodejen a jejich akcí (cron `import-stores`), k výchozí nabídce stránky prodejen s chybějícími akcemi; akce, která neplatí všude, má prodejny (`offer_stores`); Moje slevy jen akce vybraných prodejen, u akce „Jen Trutnov“ | Jedna výchozí varianta pro všechny prodejny (R15 → R49); stahování jen prodejen vybraných uživateli (R3) |
 | Globus po hypermarketech (R131): katalog akcí všech 16 hypermarketů souběžně, akce s jinou cenou v části hypermarketů jako samostatná nabídka s prodejnami (ID `vanr-ceny`), PDF budoucích letáků za každé cenové pásmo (Praha a Brno, ostatní); hypermarkety v `stores` zakládá migrace | Jeden hypermarket (Čakovice) pro všechny (R46 → R131); všech 16 PDF letáků (hosting by nestihl) |
-| Bez LLM: Kaufland, Tesco, Lidl (kampaně na webu + PDF letáku), Penny (API + parser SVG letáku), Albert (PDF letáku), Globus (REST API webu), Billa (API celého katalogu + PDF budoucích letáků), Hruška (PDF aktuálního letáku a letáku dalšího týdne, R165), Norma (PDF letáků tohoto a příštího týdne, natočené ceny, R166) (R23, R25, R26, R46, R48, R85–R89); dlaždice 1 kg / 1 ks bez ceny za jednotku u Albertu a Penny podle polohy a štítku slevy (R107), u Albertu cena mezi dvěma dlaždicemi té, jejíž soused má vlastní cenu (R142); akce Lidlu z webu převezme řádek dlaždice letáku, který vyšel dřív (R136); balení Lidlu jako štítek nad cenou (R150) | LLM jako hlavní cesta pro letáky (R6 → R23); LLM jen v etapě 6, pokud bude potřeba |
+| Bez LLM: Kaufland, Tesco, Lidl (kampaně na webu + PDF letáku), Penny (API + parser SVG letáku), Albert (PDF letáku), Globus (REST API webu), Billa (API celého katalogu + PDF budoucích letáků), Hruška (PDF aktuálního letáku a letáku dalšího týdne, R165), Norma (PDF letáků tohoto a příštího týdne, natočené ceny, R166), COOP (PDF celostátního a regionálních letáků Čech, R167) (R23, R25, R26, R46, R48, R85–R89); dlaždice 1 kg / 1 ks bez ceny za jednotku u Albertu a Penny podle polohy a štítku slevy (R107), u Albertu cena mezi dvěma dlaždicemi té, jejíž soused má vlastní cenu (R142); akce Lidlu z webu převezme řádek dlaždice letáku, který vyšel dřív (R136); balení Lidlu jako štítek nad cenou (R150) | LLM jako hlavní cesta pro letáky (R6 → R23); LLM jen v etapě 6, pokud bude potřeba |
 | **Zmínky v letácích bez ceny** — Lidl, Penny a Albert (R27, R36); vyloučená slova položky jen v okolí hledaného slova, zmínku skryje i akce, která už skončila, ale platila v období letáku (R107) | Vyhledávací API letáků Lidlu (zakázané v robots.txt); zmínky bez vyloučených slov (R27 → R107) |
 | Hlídaná položka = slova + varianta + vyloučení (R18); katalog produktů (R24, R28–R31) — kategorie ze stromu Tesca, produkty spravuje admin, přiřazení nabídek se ukládá s ručními opravami; hlídaná položka = produkt z katalogu, nebo vlastní slova | Dva oddělené typy hlídání produkt / kategorie (R9 → R18; tři stavy shody platí dál); vymýšlení vlastních kategorií (→ R28); šablony hlídaných položek v konfiguraci (→ produkty katalogu, R31) |
 | Obrázky produktů odkazem na CDN obchodu (R22), u Billy a Penny menší varianta CDN (R108); loga obchodů jako soubory aplikace (R32) | Ukládání obrázků; originály fotek Billy a Penny (→ R108) |
@@ -108,7 +108,7 @@ Log rozhodnutí (kap. 8) se nepřepisuje — starší rozhodnutí nahrazují nov
 ## 1. Rozsah a cíl
 
 ### Co systém dělá
-- Jednou až dvakrát denně stáhne aktuální akční nabídku z obchodů **Kaufland, Tesco, Albert, Lidl, Penny, Globus, Billa, Hruška a Norma**, včetně příštího týdne, pokud už je zveřejněný.
+- Jednou až dvakrát denně stáhne aktuální akční nabídku z obchodů **Kaufland, Tesco, Albert, Lidl, Penny, Globus, Billa, Hruška, Norma a COOP**, včetně příštího týdne, pokud už je zveřejněný.
 - Nabídky převede do jednotného tvaru: obchod, název, balení, cena, původní cena, cena s kartou nebo aplikací, cena za jednotku, platnost od–do a typ akce ([R7](ROZHODNUTI.md), [R8](ROZHODNUTI.md)).
 - Uživatel si založí účet, vybere **obchody** (u Tesca typ prodejny, akce jen z e-shopu) a věrnostní programy, které používá ([R19](ROZHODNUTI.md), [R21](ROZHODNUTI.md)).
 - Uživatel zadá **hlídané položky**, buď konkrétní produkt, nebo kategorii bez ohledu na značku ([R18](ROZHODNUTI.md)).
@@ -152,6 +152,7 @@ v [ZDROJE_DAT.md](ZDROJE_DAT.md). Přehled:
 | **Billa** | JSON API `billa.cz/api/product-discovery` s celým katalogem (R48) — hotovo, ~3 400 akcí včetně ~370 jen s BILLA Klubem; letáky, které ještě nezačaly, z **PDF přes `pdftotext`** spárované s katalogem podle běžné ceny (R89), ~190 akcí na příští týden | LLM pro neověřené dlaždice letáku | API nemá platnost akcí — akční týden st–út; budoucí ~50 % ověřených dlaždic letáku | nízká až střední |
 | **Hruška** | jen **PDF letáku přes `pdftotext`** z odkazu na úvodní stránce `mojehruska.cz` a leták dalšího týdne podle adresy (R165) — hotovo, ~170 akcí na leták, cena s Hruška klubem | — | ~95 % cen letáku | střední |
 | **Norma** | jen **PDF letáků přes `pdftotext`** ze stránky nabídky `norma-online.de/cz/angebote/` — tento a příští týden (R166), natočené ceny skládané ze znaků — hotovo, ~100–110 akcí na leták | — | ~95 % cen potravin (nepotraviny nemají cenu za jednotku) | střední |
+| **COOP** | jen **PDF letáků přes `pdftotext`** z RSS kanálu `coopclub.cz/letaky/feed/` — celostátní leták a regionální letáky Čech (SČ, JČ, VČ, ZČ), cena s kupónem v aplikaci COOP Česko (R167) — hotovo, 45–75 akcí na leták | LLM nebo OCR pro obrázkové letáky Moravy (TIP, TUTY, Tempo) | ~85 % cen letáků Čech | střední |
 
 Ověřeno na všech obchodech: **nikde není potřeba headless prohlížeč ani obcházení
 ochrany proti botům**. Stačí HTTP klient Laravelu.
@@ -168,6 +169,7 @@ ochrany proti botům**. Stačí HTTP klient Laravelu.
 | Billa | velký a malý leták podle velikosti prodejny, API jedna celostátní cena | — |
 | Hruška | jeden leták pro celou síť (421 prodejen, Morava a Slezsko), neplatí v Hruška Mini a Partner; pár položek „jen ve vybraných prodejnách“ | nerozlišuje se (R165) |
 | Norma | jeden leták pro celou síť, výjimky jen textem („Nabídka rozpékaného pečiva není platná pro prodejnu Praha – Větrník“) | nerozlišuje se (R166) |
+| COOP | ~45 družstev s vlastními letáky: celostátní leták ve „vybraných prodejnách“, regionální letáky Čech pro svá družstva, Morava jen obrázky | regiony jako prodejny `coop-sc`… (R167) |
 | Globus | cenová pásma a místní akce: z 656 akcí 31 s jinou cenou v části hypermarketů (Praha a Brno dražší), 97 jen někde (10. 10. 2026); PDF letáku má každý hypermarket vlastní | katalog akcí každého hypermarketu `/houses/{gsoaId}/actionProductsCatalog`, PDF za cenové pásmo (R131) |
 
 ---
@@ -310,7 +312,7 @@ GET / ──▶ MyOffers::forUser
 
 Doba stažení (2. 10. 2026): Kaufland ~2 s (1 požadavek, příští týden +1),
 Tesco ~45 s (seznam letáků, 2 letáky, 26 stránek akcí po 200 s pauzou 1,5 s),
-Lidl ~30 s (~40 kampaní s pauzou 0,5 s), Penny ~23 s (API + ~37 stran letáku s pauzou 0,5 s), Globus ~23 s (11 stránek API po 200 s pauzou 1,5 s), Billa ~47 s (25 stránek katalogu po 500 s pauzou 1 s), Hruška ~9 s (úvodní stránka a 2 PDF po 11–16 MB, 25. 10.), Norma ~13 s (stránka nabídky a 2 PDF po ~30 MB).
+Lidl ~30 s (~40 kampaní s pauzou 0,5 s), Penny ~23 s (API + ~37 stran letáku s pauzou 0,5 s), Globus ~23 s (11 stránek API po 200 s pauzou 1,5 s), Billa ~47 s (25 stránek katalogu po 500 s pauzou 1 s), Hruška ~9 s (úvodní stránka a 2 PDF po 11–16 MB, 25. 10.), Norma ~13 s (stránka nabídky a 2 PDF po ~30 MB), COOP ~18 s (RSS, 5 stránek letáků a 5 PDF po 2–9 MB).
 Všechny obchody najednou ~1,5 minuty — na hostingu poběží každý obchod samostatně (O8).
 
 Na produkci každý obchod stahuje vlastní cron URL `/cron/import-offers?chain=…&token=…`
@@ -348,6 +350,7 @@ z artisan příkazu i z kontroleru.
 | 5g | **Kaufland po prodejnách** (R49): seznam prodejen a jejich akcí, stránky prodejen s akcemi mimo výchozí nabídku, prodejny akce, výběr více prodejen v Mých obchodech, štítek „Jen Trutnov“ | hotovo 2026-10-03 |
 | 5h | **Hruška** (R165): osmý obchod jen z PDF letáku — aktuální leták z úvodní stránky a leták dalšího týdne podle adresy, cena ověřená cenou za jednotku, cena s Hruška klubem, ovoce a pult „1 kg“ podle polohy, rámeček „POUZE“ a sloupce dnů; sdílené ID dlaždice `LeafletOfferId` | hotovo 2026-10-25 |
 | 5i | **Norma** (R166): devátý obchod jen z PDF letáků tohoto a příštího týdne — natočená cena a procento slevy skládané ze znaků, ověření cenou za jednotku v závorce, sleva s přeškrtnutou cenou, platnost víkendových stran z hlavičky | hotovo 2026-10-25 |
+| 5j | **COOP pro Čechy** (R167): desátý obchod z PDF letáků coopclub.cz — celostátní a 4 regionální letáky, regiony jako prodejny, cena s kupónem v aplikaci, text dlaždice z bloků pdftotext s písmem podle letáku | hotovo 2026-10-25 |
 | 5e | **Vzhled podle zkoušení** (R47): toasty místo zpráv v obsahu, vlastní potvrzovací okno, Moje obchody s přepínači, katalog v Hlídám jako dlaždice oddělení, jedoucí košík v Mých slevách, oslovení v 5. pádě, posuvník v barvách webu | hotovo 2026-10-02 |
 | 6 | **LLM** (R23), jen pokud bude potřeba: neověřené dlaždice letáků (Albert, Lidl, Penny), „Super ceny“ Tesca, třídění nepřiřazených nabídek. Albert a zbytek letáku Lidlu vyřešil bez LLM `pdftotext` (R86, R87) | |
 | 7 | **Nasazení na Websupport** (R20, R38): cron URL pro stahování, hlídání stažení (`/health/imports`), HTTPS a bezpečnostní hlavičky v `public/.htaccess`, SQL skripty schématu a katalogu, build balíčku, [deploy/DEPLOYMENT.md](../deploy/DEPLOYMENT.md), ověření O8 | nasazeno 2026-10-02 (první verze `c5d45d7`, aktualizace `20ef035` s R39–R48, `ae88b48` s R49 2026-10-03; další verze v řádcích 8 a 9 a v [DEPLOYMENT.md](../deploy/DEPLOYMENT.md#nasazené-verze)) |
@@ -370,7 +373,7 @@ z artisan příkazu i z kontroleru.
 | O5 | **„Různé druhy“:** jde konkrétní variantu dohledat? Hotspoty letáku Tesco obsahují jednotlivé varianty (COCA-COLA ZERO 1,5l), Albert má katalog `productSearch`. U Kauflandu a Penny zřejmě ne | zatím stačí stav „Možná“ (R18); zpřesnění v [TODO.md](TODO.md) |
 | O6 | **Zveřejnění aplikace:** před zpřístupněním dalším lidem právně posoudit. Podmínky Tesco výslovně zakazují užití obsahu pro jinou než osobní potřebu, VOP Albert zakazují stahování obsahu e-shopu a aplikace; dále autorský zákon a právo pořizovatele databáze. Viz [R5](ROZHODNUTI.md) — technická a GDPR část v R51 a [ZVEREJNENI.md](ZVEREJNENI.md), zbývá právo k obsahu obchodů. Rozbor 3. 10. 2026 (kap. 5 ZVEREJNENI.md): ceny jsou fakta, právo pořizovatele databáze sporné (obchod ceny vytváří, C-203/02; C-762/19 vyžaduje újmu pořizovateli), střední riziko fotky přes hotlink a podmínky Tesca/Alberta; Kupi.cz má souhlas obchodů (placená propagace), my ne. Nejhorší reálný případ výzva k ukončení, riziko roste s monetizací — advokát před monetizací | odloženo do zveřejnění |
 | O7 | Obrázky produktů: zobrazovat odkazem na CDN obchodu, nebo vůbec? | rozhodnuto (R22): odkazem |
-| O8 | **Jak dlouho smí na Websupportu běžet PHP požadavek** (`max_execution_time`, timeout proxy)? Stažení trvá Billa ~47 s, Tesco ~45 s, Lidl ~30 s, Penny ~23 s, Globus ~23 s, Norma ~13 s, Hruška ~9 s, Kaufland ~2 s — cron URL proto po obchodech. Ověřit při nasazení; když nestačí, kratší pauza nebo stažení po částech | ověřit při nasazení |
+| O8 | **Jak dlouho smí na Websupportu běžet PHP požadavek** (`max_execution_time`, timeout proxy)? Stažení trvá Billa ~47 s, Tesco ~45 s, Lidl ~30 s, Penny ~23 s, Globus ~23 s, COOP ~18 s, Norma ~13 s, Hruška ~9 s, Kaufland ~2 s — cron URL proto po obchodech. Ověřit při nasazení; když nestačí, kratší pauza nebo stažení po částech | ověřit při nasazení |
 
 ### Katalog produktů (k O3, R24)
 

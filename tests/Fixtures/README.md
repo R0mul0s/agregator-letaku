@@ -66,6 +66,11 @@ s novým datem.
 | `norma/angebote-2026-10-25.html` | `www.norma-online.de/cz/angebote/` | jen blok dvou letáků (2026-44 a 2026-45, každý odkaz na PDF dvakrát) (R166) |
 | `norma/pdf-2026-44-2026-10-25-strana-1.html`, `strana-3`, `strana-6`, `strana-7` | `pdftotext -bbox-layout -f N -l N` nad PDF letáku Normy 2026-44 | celé strany beze změny: titulní strana s hlavičkou platnosti, balením v názvu („2,25 l“) a pevným podílem „PP 360 g“ (1); textil nahoře a potraviny dole, procento po znacích „2“ „5“ „%“, text zarovnaný k poslednímu řádku názvu (3); znaky „, 9“ s mezerou, menší cenovky dole, přeškrtnutá „114,9“ „0“, ligatura „ﬁ“ (6); víkendová strana „od čtvrtka 29. října“ (7) |
 | `norma/pdf-2026-45-2026-10-25-strana-4.html` | `pdftotext -bbox-layout -f 4 -l 4` nad PDF letáku 2026-45 | popis menším písmem (6,8 b.) |
+| `coop/feed-2026-10-25.xml` | `www.coopclub.cz/letaky/feed/` | RSS se 4 z 10 položek: SČ 22 a CSC 22 (od 21.10. do 3.11.), TUTY-TIP MENU 22 (obrázkový moravský leták, nestahuje se) a skončený CSC 21 (R167) |
+| `coop/letak-csc-2026-10-25.html`, `letak-sc-…` | `www.coopclub.cz/letaky/csc-aktualni-letak/`, `sc-aktualni-letak/` | jen ovládání prohlížeče s odkazem „Stáhnout jako PDF“ |
+| `coop/pdf-csc-22-2026-10-25-strana-1.html` | `pdftotext -bbox-layout -f 1 -l 1` nad PDF celostátního letáku CC 22/2026 | celá strana beze změny: verzálky 16,8 b., „… Kč“ za cenou za jednotku, „S KUPÓNEM“ verzálkami, pult „PÁRKY SE SÝREM“ s odznakem „100 g“ |
+| `coop/pdf-sc-22-2026-10-25-strana-1.html`, `strana-3` | `pdftotext -bbox-layout -f N -l N` nad PDF letáku střední Čechy SČ 22/2026 | celé strany beze změny: značka nad názvem, „130 g \| 1 kg = 130,–“, víc velikostí balení, pult Herkules v samostatném bloku (1); cena s kupónem Ariel, značka „VELKO-“ / „POPOVICKÝ“ (3) |
+| `coop/pdf-jc-22-2026-10-25-strana-1.html` | `pdftotext -bbox-layout -f 1 -l 1` nad PDF letáku jižní Čechy JČ 22/2026 | menší písmo (10,7 b.), značka v samostatném bloku nad názvem, „1 kg = 1 495,–“ |
 
 Fixtures vygeneroval jednorázový skript z odpovědí uložených při průzkumu. Položky jsou
 beze změny; skript jen vybral podmnožinu a akce e-shopu Tesco přeskládal po 5 na stránku
