@@ -271,6 +271,13 @@ return [
             'recovered_title' => 'Všechno zase běží',
             'recovered_body' => 'Stahování, úlohy cronu i kvalita dat jsou zase v pořádku. Výpadek měly: :names.',
         ],
+        // Chyba aplikace z logu (R154, ErrorAlerts) — stejná chyba jednou za den
+        'error_alert' => [
+            'title' => 'Chyba: :class',
+            'location' => 'Místo: :location',
+            'request' => 'Požadavek: :method :path',
+            'console' => 'Příkaz: :command',
+        ],
         'done' => 'Centrum upozornění — zapsáno: :count',
         'failed' => 'Centrum upozornění — chyba: :error',
     ],

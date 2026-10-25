@@ -369,6 +369,10 @@ Selhání po posledním úspěchu se připíše „(poté chyba …)“, výpade
 `task_heartbeats` (prodejny v `stores.offer_keys_fetched_at`); text chyby je v logu a v odpovědi cron URL.
 Po prvním nasazení zavolej úklid a kategorie ručně, jinak hlásí „nikdy“ až do svého cronu.
 
+**Chyby aplikace (R154):** každá výjimka z logu přijde adminům do centra upozornění a hned do telefonu
+(„Chyba: RuntimeException“ se zprávou, souborem a řádkem) — stejná chyba jednou za den, nejvýš 5 za
+hodinu. Celý záznam s trasou volání je dál v `storage/logs/laravel-<datum>.log` (FTP).
+
 ## Limit odesílání e-mailů
 
 Websupport (ochrana proti spamu, ověřeno 2026-10-03): **300 e-mailů za hodinu z jedné

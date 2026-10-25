@@ -535,6 +535,20 @@ return [
     ],
 
     /*
+    | Chyby aplikace adminům (R154, ErrorAlerts): každá výjimka, která jde do logu, se zapíše
+    | adminům do centra upozornění a hned do telefonu — na hostingu bez SSH log nikdo nečte.
+    | Stejná chyba (třída, soubor, řádek) jednou za repeat_minutes, všech nejvýš max_per_hour
+    | za hodinu. Výchozí stav jen na produkci; lokálně LETAKY_ERROR_ALERTS=true.
+    */
+    'error_alerts' => [
+        'enabled' => (bool) env('LETAKY_ERROR_ALERTS', env('APP_ENV') === 'production'),
+        'repeat_minutes' => 1440,
+        'max_per_hour' => 5,
+        // Text výjimky může obsahovat celý dotaz SQL — do záznamu jen začátek
+        'message_length' => 600,
+    ],
+
+    /*
     | Centrum upozornění (R74, /upozorneni). Cron /cron/send-digests po stažení s novými akcemi
     | zapíše každému uživateli záznam (i bez zapnutých upozornění v telefonu nebo e-mailu);
     | upozornění v telefonu se pak skládá ze záznamů. Po dávkách jako souhrny (R54). Odpoledne

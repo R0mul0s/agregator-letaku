@@ -10,6 +10,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Notifications\ErrorAlerts;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\TrackLastSeen;
 use App\Http\Responses\ErrorToast;
@@ -58,4 +59,8 @@ return Application::configure(basePath: dirname(__DIR__))
         // Chybové stránky jsou české Blade šablony (resources/views/errors). Vypršelá relace
         // a limit požadavků u formuláře Inertie skončí toastem místo stránky (R51).
         $exceptions->respond(fn (Response $response, Throwable $exception, Request $request): Response => ErrorToast::respond($response, $request));
+
+        // Chyby z logu hned adminům do centra upozornění a telefonu (R154) — log na hostingu
+        // bez SSH nikdo nečte. Zápis do logu tím nekončí
+        $exceptions->report(fn (Throwable $exception) => app(ErrorAlerts::class)->report($exception));
     })->create();
