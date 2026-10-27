@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 use App\Domain\Chains\ChainCatalog;
 use App\Domain\Sources\Coop\CoopStoreSource;
+use App\Domain\Sources\Exceptions\SourceResponseChanged;
 use App\Enums\Chain;
 use App\Models\Store;
 use Illuminate\Http\Client\Request;
@@ -63,6 +64,14 @@ it('leták VČ, na který žádná stránka prodejny neodkazuje, přiřadí podl
         ->and($source->parseLeaflets(responseFixture('coop/prodejna-tuty-dvur-kralove-nad-labem-2026-10-25.html'), 'tuty-dvur-kralove-nad-labem'))->toBe([])
         // Terno v Hradci Králové: družstvo z Českých Budějovic, žádný leták
         ->and($source->parseLeaflets(responseFixture('coop/prodejna-terno-hradec-kralove-2026-10-25.html'), 'terno-hradec-kralove'))->toBe([]);
+});
+
+it('stránka prodejny bez údaje o družstvu je prodejna bez sledovaného letáku, jiná stránka je chyba (R176)', function (): void {
+    $source = app(CoopStoreSource::class);
+
+    expect($source->parseLeaflets(responseFixture('coop/prodejna-konzum-susice-havlickova-90-2026-10-27.html'), 'konzum-susice-havlickova-90'))->toBe([])
+        ->and(fn () => $source->parseLeaflets('<!DOCTYPE html><html><body><h1>Stránka nenalezena</h1></body></html>', 'zrusena'))
+        ->toThrow(SourceResponseChanged::class, 'stránka prodejny zrusena bez kontaktů');
 });
 
 it('stránky prodejen stahuje po dávkách — nové a nejdéle neobnovené první', function (): void {

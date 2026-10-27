@@ -8,7 +8,8 @@
  *
  * Proč takové základy: nový leták s jiným rozvržením nemá vlastní historii, rozbitý parser
  * se ale pozná podle podílu ověřených cen, který na velikosti letáku nezávisí. Počet akcí se
- * porovnává jen v rámci letáku — letáky mají různou velikost.
+ * porovnává jen v rámci letáku — letáky mají různou velikost. Zvláštní letáky (katalogy, R176)
+ * mají jiné zboží a jiný podíl ověřených cen — porovnávají se jen samy se sebou.
  *
  * @author Roman Hlaváček
  *
@@ -19,6 +20,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Offers\Quality;
 
+use App\Domain\Offers\LocalCalendar;
 use App\Domain\Sources\SourceRegistry;
 use App\Enums\Chain;
 use App\Enums\ScrapeStatus;
@@ -33,6 +35,7 @@ final class DataQuality
     public function __construct(
         private readonly SourceRegistry $sources,
         private readonly ShortDate $dates,
+        private readonly LocalCalendar $calendar,
     ) {}
 
     /**
@@ -76,6 +79,8 @@ final class DataQuality
      */
     public function issues(LeafletStat $stat): array
     {
+        $stat->loadMissing('leaflet');
+
         return array_values(array_filter([$this->offersIssue($stat), $this->verifiedIssue($stat)]));
     }
 
@@ -120,10 +125,17 @@ final class DataQuality
     /**
      * Málo akcí: méně než nejvíc z předchozích stažení téhož letáku zmenšené o povolený propad.
      * Počítají se i akce, které z letáku převzal web (R136) — jinak by Lidl hlásil propad pokaždé,
-     * když akce letáku zveřejní i na webu.
+     * když akce letáku zveřejní i na webu. V poslední den platnosti letáku se propad nehlásí —
+     * obchod už odebírá akce, které skončily nebo došly (Lidl „Ovoce a zelenina“ po–út: v úterý zbyla
+     * polovina, R176).
      */
     private function offersIssue(LeafletStat $stat): ?QualityIssue
     {
+        $validTo = $stat->leaflet->valid_to;
+        if ($validTo !== null && $this->calendar->dateOfInstant($stat->created_at)->greaterThanOrEqualTo($validTo)) {
+            return null;
+        }
+
         $baseline = (int) LeafletStat::query()
             ->where('leaflet_id', $stat->leaflet_id)
             ->where('id', '<', $stat->id)
@@ -143,7 +155,8 @@ final class DataQuality
 
     /**
      * Nízký podíl ověřených cen: proti mediánu ostatních letáků obchodu (poslední statistika
-     * každého), bez nich proti nejvyššímu podílu předchozích stažení téhož letáku.
+     * každého), bez nich proti nejvyššímu podílu předchozích stažení téhož letáku. Zvláštní
+     * leták (katalog) jen proti svým předchozím stažením a do mediánu ostatních se nepočítá (R176).
      */
     private function verifiedIssue(LeafletStat $stat): ?QualityIssue
     {
@@ -153,7 +166,8 @@ final class DataQuality
             return null;
         }
 
-        $others = LeafletStat::query()
+        $others = $this->isSpecial($stat->leaflet) ? collect() : LeafletStat::query()
+            ->with('leaflet')
             ->whereIn('id', LeafletStat::query()
                 ->selectRaw('MAX(id)')
                 ->where('chain', $stat->chain)
@@ -162,6 +176,7 @@ final class DataQuality
                 ->where('created_at', '>=', CarbonImmutable::now()->subDays(config()->integer('letaky.data_quality.verified_baseline_days')))
                 ->groupBy('leaflet_id'))
             ->get()
+            ->reject(fn (LeafletStat $other): bool => $this->isSpecial($other->leaflet))
             ->map(fn (LeafletStat $other): ?int => $other->verifiedPercent())
             ->filter(fn (?int $percent): bool => $percent !== null)
             ->values();
@@ -181,5 +196,16 @@ final class DataQuality
         return $baseline > 0 && $current < $baseline * (1 - config()->float('letaky.data_quality.verified_drop_share'))
             ? new QualityIssue(QualityIssue::VERIFIED, $current, $baseline)
             : null;
+    }
+
+    /**
+     * Zvláštní leták (katalog): název nebo adresa odpovídá `special_leaflet_pattern` — Albert
+     * název neukládá, katalog pozná adresa „…/44hm_akcni_katalog_xmass/“.
+     */
+    private function isSpecial(Leaflet $leaflet): bool
+    {
+        $pattern = config()->string('letaky.data_quality.special_leaflet_pattern');
+
+        return preg_match($pattern, ($leaflet->title ?? '').' '.($leaflet->source_url ?? '')) === 1;
     }
 }

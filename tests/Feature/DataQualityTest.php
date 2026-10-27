@@ -162,6 +162,48 @@ it('propad ověřených cen: proti mediánu ostatních letáků obchodu, bez nic
     expect($quality->issues(qualityStat($only, 40, 100, 40)))->toEqual([new QualityIssue(QualityIssue::VERIFIED, 40, 75)]);
 });
 
+it('katalog porovná ověřené ceny jen se svými předchozími staženími a do mediánu ostatních se nepočítá (R176)', function (): void {
+    // Albert 27. 10.: vánoční katalog 47 % proti mediánu týdenních letáků 74 %
+    qualityStat(qualityLeaflet('3470647', Chain::Albert), 50, 100, 74);
+    qualityStat(qualityLeaflet('3470643', Chain::Albert), 50, 100, 74);
+    $catalog = Leaflet::factory()->create([
+        'chain' => Chain::Albert,
+        'kind' => LeafletKind::Leaflet,
+        'external_id' => '3477471',
+        'source_url' => 'https://letaky.albert.cz/44hm_akcni_katalog_xmass/',
+    ]);
+
+    $quality = app(DataQuality::class);
+    expect($quality->issues(qualityStat($catalog, 40, 100, 47)))->toBe([])
+        // Rozbitý parser se v katalogu pořád pozná podle jeho vlastní historie
+        ->and($quality->issues(qualityStat($catalog, 40, 100, 20)))->toEqual([new QualityIssue(QualityIssue::VERIFIED, 20, 47)]);
+
+    // Týdenní leták se s katalogem neporovnává: medián zůstal 74 %, ne 47 %
+    expect($quality->issues(qualityStat(qualityLeaflet('3470648', Chain::Albert), 40, 100, 50)))
+        ->toEqual([new QualityIssue(QualityIssue::VERIFIED, 50, 74)]);
+});
+
+it('v poslední den platnosti letáku propad akcí nehlásí (R176)', function (): void {
+    // Lidl „Ovoce a zelenina“ 26.–27. 10.: v úterý zbylo na webu 8 z 16 akcí
+    $leaflet = Leaflet::factory()->create([
+        'chain' => Chain::Lidl,
+        'kind' => LeafletKind::Web,
+        'external_id' => 'a10080058-2026-10-26',
+        'valid_from' => '2026-10-26',
+        'valid_to' => '2026-10-27',
+    ]);
+    $this->travelTo('2026-10-26 08:00:00');
+    qualityStat($leaflet, 16);
+
+    $quality = app(DataQuality::class);
+    $this->travelTo('2026-10-26 14:00:00');
+    expect($quality->issues(qualityStat($leaflet, 8)))->toEqual([new QualityIssue(QualityIssue::OFFERS, 8, 16)]);
+
+    // 23:30 UTC 26. 10. je už 27. 10. místního času
+    $this->travelTo('2026-10-26 23:30:00');
+    expect($quality->issues(qualityStat($leaflet, 8)))->toBe([]);
+});
+
 it('propad ohlásí adminům jako výpadek s odkazem na přehled kvality dat, trvající neopakuje', function (): void {
     $admin = User::factory()->create(['is_admin' => true]);
     $leaflet = qualityLeaflet();

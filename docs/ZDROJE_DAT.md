@@ -895,7 +895,7 @@ týchž družstev mají odkaz na svůj obrázkový leták, takže VČ nedostanou
 | Účel | Požadavek |
 |---|---|
 | Seznam prodejen | `GET https://www.coopclub.cz/prodejny/` — 1,3 MB; JSON v řetězci JavaScriptu `var config = '{…"markers":[…]}';` (~1 450 značek: `title` s odkazem `…/prodejny/{kód}/` a názvem „Jednota  Václavice“, `description` „Město,Ulice číslo,PSČ“, `lat`, `lng`; bez ID a bez družstva). Kvůli velikosti hledat hranice řetězce přímo, ne regulárním výrazem (limit PCRE). Ve stránce je i veřejný klíč mapového API — do fixtures nepatří |
-| Stránka prodejny | `GET /prodejny/{kód}/` — ~30 kB: oddíl „Družstvo“ (je na každé stránce prodejny) a „Letákové akce v této prodejně“ s odkazy `https://www.coopclub.cz/letaky/{zkratka}-aktualni-letak[číslo]/` |
+| Stránka prodejny | `GET /prodejny/{kód}/` — ~30 kB: oddíly „Adresa“ a „Kontakty“ (jsou na každé stránce prodejny), „Družstvo“ (někdy chybí — Konzum Sušice, Havlíčkova 90, 27. 10. 2026, bez družstva i bez letáků, R176) a „Letákové akce v této prodejně“ s odkazy `https://www.coopclub.cz/letaky/{zkratka}-aktualni-letak[číslo]/` |
 
 Kód prodejny je část adresy stránky (až 54 znaků — `stores.code` má 80). Stahuje `CoopStoreSource` přes
 `letaky:import-stores coop` / `/cron/import-stores?chain=coop`: seznam celý, stránky prodejen jen 120 nejdéle

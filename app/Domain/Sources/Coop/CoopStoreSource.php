@@ -39,8 +39,11 @@ final class CoopStoreSource implements StoreSource
     /** Odkaz na leták na stránce prodejny: „sc-aktualni-letak“, starší „tip-extra-aktualni-letak44-2“. */
     private const LEAFLET_LINK_PATTERN = '#coopclub\.cz/letaky/([a-z0-9-]+?)-aktualni-letak[0-9-]*/#';
 
-    /** Stránka prodejny (i bez letáku) má údaj o družstvu — bez něj je to jiná stránka. */
-    private const STORE_PAGE_MARKER = 'Družstvo';
+    /**
+     * Stránka prodejny (i bez letáku a bez družstva) má oddíl „Kontakty“ — bez něj je to jiná
+     * stránka. Údaj o družstvu někdy chybí (Konzum Sušice, Havlíčkova 90, R176).
+     */
+    private const STORE_PAGE_MARKER = '>Kontakty</h3>';
 
     /** Název družstva pod nadpisem „Družstvo“ („COOP Pardubice, družstvo“). */
     private const COOPERATIVE_PATTERN = '#>Družstvo</h3>\s*(?:<p>)?([^<]+)#u';
@@ -128,7 +131,7 @@ final class CoopStoreSource implements StoreSource
     public function parseLeaflets(string $page, string $storeCode): array
     {
         if (! str_contains($page, self::STORE_PAGE_MARKER)) {
-            throw SourceResponseChanged::because(Chain::Coop, "stránka prodejny {$storeCode} bez údaje o družstvu");
+            throw SourceResponseChanged::because(Chain::Coop, "stránka prodejny {$storeCode} bez kontaktů");
         }
 
         $slugs = config()->array('letaky.sources.coop.leaflet_slugs');

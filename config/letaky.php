@@ -130,7 +130,9 @@ return [
     'indexnow' => [
         'key' => env('LETAKY_INDEXNOW_KEY', 'e95b18a32d1f9a6d13a434d40f8cccb7'),
         'endpoint' => 'https://api.indexnow.org/indexnow',
-        'min_interval_hours' => 6,
+        // Úvodní stránka, Všechny akce a týden se mění s každým stažením (~20 za den) — každá adresa
+        // nejvýš jednou denně, častější ohlášení vyhledávače berou jako spam (R176)
+        'min_interval_hours' => 24,
         // Po odpovědi 429 se neohlašuje nic (R157) — Bing ho vracel skoro denně a každé další
         // stažení obchodu ho zkoušelo znovu
         'pause_hours' => 24,
@@ -736,6 +738,11 @@ return [
     |   ostatních letáků obchodu za verified_baseline_days (nový leták s jiným rozvržením nemá
     |   vlastní historii), bez nich nejvyšší podíl předchozích stažení téhož letáku; jen leták
     |   s aspoň min_candidates nalezenými cenami (titulní strana, malé letáky kolísají).
+    | - zvláštní letáky (název nebo adresa podle special_leaflet_pattern — katalogy: vánoční Albertu,
+    |   „Katalog Itálie“ Billy, tematické Globusu) mají jiné zboží, dárková balení bez ceny za
+    |   jednotku: ověřené ceny jen proti
+    |   vlastním předchozím stažením a do mediánu ostatních se nepočítají (R176);
+    | - v poslední den platnosti letáku se propad akcí nehlásí — obchod odebírá skončené akce (R176).
     */
     'data_quality' => [
         'history_runs' => 14,
@@ -746,6 +753,7 @@ return [
         'verified_drop_share' => 0.3,
         'verified_baseline_days' => 14,
         'min_candidates' => 20,
+        'special_leaflet_pattern' => '/katalog/iu',
     ],
 
     /*

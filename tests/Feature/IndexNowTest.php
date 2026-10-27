@@ -22,6 +22,7 @@ use App\Support\Seo\IndexNow;
 use App\Support\Seo\SeoMeta;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 const INDEXNOW_KEY = 'a1b2c3d4e5f60718293a4b5c6d7e8f90';
 const INDEXNOW_ENDPOINT = 'https://api.indexnow.org/*';
@@ -133,12 +134,20 @@ it('odmítnuté ohlášení zapíše do logu a adresy příště zkusí znovu', 
 
 it('po odpovědi 429 neohlašuje nic až do konce pauzy (R157)', function (): void {
     $this->app['env'] = 'production';
-    Http::fake([INDEXNOW_ENDPOINT => Http::sequence()->push('', 429)->push('', 200)]);
+    Http::fake([INDEXNOW_ENDPOINT => Http::sequence()->push('Too Many Requests', 429, ['Retry-After' => '3600'])->push('', 200)]);
+    Log::spy();
     $indexNow = app(IndexNow::class);
 
     $indexNow->submit([url('/akce')]);
     $indexNow->submit([url('/akce/lidl')]);
     expect(indexNowRequests())->toHaveCount(1);
+    // Důvod odmítnutí je v logu (R176)
+    Log::shouldHaveReceived('warning')->once()->with('IndexNow: příliš mnoho požadavků, ohlašování stojí.', [
+        'pause_hours' => config()->integer('letaky.indexnow.pause_hours'),
+        'urls' => 1,
+        'retry_after' => '3600',
+        'body' => 'Too Many Requests',
+    ]);
 
     $this->travel(config()->integer('letaky.indexnow.pause_hours') + 1)->hours();
     $indexNow->submit([url('/akce/lidl')]);

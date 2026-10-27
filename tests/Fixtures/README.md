@@ -73,6 +73,7 @@ s novým datem.
 | `coop/pdf-jc-22-2026-10-25-strana-1.html` | `pdftotext -bbox-layout -f 1 -l 1` nad PDF letáku jižní Čechy JČ 22/2026 | menší písmo (10,7 b.), značka v samostatném bloku nad názvem, „1 kg = 1 495,–“ |
 | `coop/prodejny-2026-10-25.html` | `www.coopclub.cz/prodejny/` | `var config` jen se 4 značkami mapy (Václavice, Terno Hradec Králové, TUTY Dvůr Králové, Kladno), klíč mapového API prázdný (R169) |
 | `coop/prodejna-{kód}-2026-10-25.html` | `www.coopclub.cz/prodejny/{kód}/` | jen oddíly „Družstvo“ a „Letákové akce v této prodejně“: Jednota Václavice (leták SČ), Terno Hradec Králové (družstvo České Budějovice, žádný leták), TUTY Dvůr Králové (jen TUTY/TIP), Jednota Pardubice („COOP Pardubice, družstvo“ bez odkazu — leták VČ podle družstva) |
+| `coop/prodejna-konzum-susice-havlickova-90-2026-10-27.html` | `www.coopclub.cz/prodejny/konzum-susice-havlickova-90/` | oddíly „Adresa“ a „Kontakty“ — stránka prodejny bez oddílu „Družstvo“ i bez letáků (R176) |
 
 Fixtures vygeneroval jednorázový skript z odpovědí uložených při průzkumu. Položky jsou
 beze změny; skript jen vybral podmnožinu a akce e-shopu Tesco přeskládal po 5 na stránku
