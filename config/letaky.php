@@ -368,7 +368,9 @@ return [
             'pdf_excluded_titles' => '/(drogerie|kosmetik|elektro|textil|oblečen|hračk|zahrad|domácnost|škol|sport|dekorac|nádobí|vánoční\s+dekor)/iu',
             // Velký leták má ~240 ověřených dlaždic (měření R89); méně = změněné rozvržení nebo rozbitý
             // parser. Stažení pak skončí chybou, aby import akce letáku neoznačil jako stažené (R16)
-            'pdf_main_title' => 'Velký leták',
+            // Pozná se podle adresy karty (…/velky-letak, …/velky-letak-nasledujici) — název karty se mění:
+            // 28. 10. 2026 „Aktuální leták“ místo „Velký leták“ a pojistka podle názvu se tiše vypnula (R177)
+            'pdf_main_path' => '#/velky-letak(?:-nasledujici)?$#',
             'pdf_main_min_items' => 40,
             // Text akce na množství z letáku ve tvaru API („od 2 ks: 13,90 Kč“, R48)
             'pdf_multibuy_text' => 'od %d ks',

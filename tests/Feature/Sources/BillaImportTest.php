@@ -19,6 +19,7 @@ use App\Enums\OfferType;
 use App\Enums\PackageUnit;
 use App\Enums\ScrapeStatus;
 use App\Models\Leaflet;
+use App\Models\LeafletStat;
 use App\Models\Offer;
 use App\Models\ScrapeRun;
 use Carbon\CarbonImmutable;
@@ -56,12 +57,13 @@ function fakeBilla(): void
 /**
  * Falešné odpovědi stránky letáků, stránky letáku a PDF.
  *
+ * @param  string|null  $listPage  Jiná stránka letáků než fixture (přejmenovaná karta)
  * @return array<string, mixed>
  */
-function billaLeafletResponses(): array
+function billaLeafletResponses(?string $listPage = null): array
 {
     return [
-        BILLA_LEAFLETS_URL => Http::response(responseFixture('billa/akcni-letaky-2026-10-06.html')),
+        BILLA_LEAFLETS_URL => Http::response($listPage ?? responseFixture('billa/akcni-letaky-2026-10-06.html')),
         BILLA_NEXT_LEAFLET_URL => Http::response(responseFixture('billa/letak-velky-nasledujici-2026-10-06.html')),
         BILLA_PDF_URL => Http::response('%PDF-1.7 leták'),
     ];
@@ -72,8 +74,9 @@ function billaLeafletResponses(): array
  * (jedna stránka), upravený podle dne, a výstup pdftotext těchto stran.
  *
  * @param  (callable(array<string, mixed>, CarbonImmutable): array<string, mixed>)|null  $product  Úprava produktu podle dne stažení
+ * @param  string|null  $listPage  Jiná stránka letáků než fixture (přejmenovaná karta)
  */
-function fakeBillaLeaflet(?callable $product = null): void
+function fakeBillaLeaflet(?callable $product = null, ?string $listPage = null): void
 {
     Http::fake([
         BILLA_API_URL.'*' => function () use ($product) {
@@ -84,7 +87,7 @@ function fakeBillaLeaflet(?callable $product = null): void
 
             return Http::response($page);
         },
-        ...billaLeafletResponses(),
+        ...billaLeafletResponses($listPage),
     ]);
     Process::fake(['*' => Process::result(responseFixture('billa/pdf-41-2026-10-06-strany-1-22-23.html'))]);
 }
@@ -383,7 +386,9 @@ it('akci, která pokračuje dnešní akcí se stejnou cenou, z letáku nezalož�
 
     expect(billaOffer('Olma Klasik'))
         ->valid_from->toDateString()->toBe('2026-09-30')
-        ->valid_to->toDateString()->toBe('2026-10-06');
+        ->valid_to->toDateString()->toBe('2026-10-06')
+        // Leták o akci nepřišel — v přehledu kvality dat se počítá jako převzatá (R177)
+        ->and(LeafletStat::query()->whereRelation('leaflet', 'external_id', 'pdf-2700042')->sole()->covered_offers)->toBe(1);
 
     $this->travelTo('2026-10-07 10:00:00');
     $this->artisan('letaky:import-offers', ['chain' => ['billa']])->assertSuccessful();
@@ -417,10 +422,11 @@ it('nedostupné PDF ukončí stažení Billy chybou', function (): void {
         ->and(Offer::query()->where('chain', Chain::Billa)->exists())->toBeFalse();
 });
 
-it('velký leták s podezřele málo ověřenými dlaždicemi je chyba', function (): void {
+it('velký leták s podezřele málo ověřenými dlaždicemi je chyba — i pod jiným názvem karty (R177)', function (): void {
     $this->travelTo('2026-10-06 10:00:00');
     config(['letaky.sources.billa.pdf_main_min_items' => 100]);
-    fakeBillaLeaflet();
+    // 28. 10. 2026 se karta velkého letáku jmenovala „Aktuální leták“ — pozná se podle adresy
+    fakeBillaLeaflet(listPage: str_replace('data-teaser-name="Velký leták"', 'data-teaser-name="Aktuální leták"', responseFixture('billa/akcni-letaky-2026-10-06.html')));
 
     $this->artisan('letaky:import-offers', ['chain' => ['billa']])->assertFailed();
 

@@ -18,7 +18,7 @@ final readonly class SourceBatch
      * @param  list<OfferData>  $offers
      * @param  list<LeafletPageData>  $pages  Text stránek letáku pro zmínky bez ceny (R27)
      * @param  TileStats|null  $tiles  Nalezené a ověřené ceny letáku z PDF nebo SVG (R129); jinde null
-     * @param  int  $coveredOffers  Akce letáku, které nese jiný zdroj obchodu, takže se z letáku neuložily (Lidl: web, R136)
+     * @param  int  $coveredOffers  Akce letáku, které nese jiný zdroj obchodu, takže se z letáku neuložily (Lidl: web, R136; Billa: API se stejnou cenou, R177)
      */
     public function __construct(
         public LeafletData $leaflet,

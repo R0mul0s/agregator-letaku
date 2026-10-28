@@ -152,9 +152,16 @@ final class BillaOfferSource implements OfferSource
             $pdfUrls[$pdfUrl] = true;
 
             $offers = [];
+            // Akce letáku, které už nese API se stejnou cenou — leták o ně nepřišel (R136, R177)
+            $covered = [];
             foreach ($this->leafletItems($leaflet, $pdfUrl) as $item) {
                 foreach ($this->matcher->match($item, $catalog) as $product) {
-                    if (isset($seen[$product->sku]) || $this->continues($item, $apiOffers[$product->sku] ?? null)) {
+                    if (isset($seen[$product->sku])) {
+                        continue;
+                    }
+                    if ($this->continues($item, $apiOffers[$product->sku] ?? null)) {
+                        $covered[$product->sku] = true;
+
                         continue;
                     }
                     $seen[$product->sku] = true;
@@ -175,6 +182,7 @@ final class BillaOfferSource implements OfferSource
                 ),
                 $offers,
                 tiles: $this->leafletParser->lastStats(),
+                coveredOffers: count($covered),
             );
         }
 
@@ -197,7 +205,8 @@ final class BillaOfferSource implements OfferSource
         $items = $this->leafletParser->items($this->pdf->readUrl($this->http, $pdfUrl, $this->delay()), [$leaflet['validFrom'], $leaflet['validTo']]);
 
         $minimum = config()->integer('letaky.sources.billa.pdf_main_min_items');
-        if ($leaflet['title'] === config()->string('letaky.sources.billa.pdf_main_title') && count($items) < $minimum) {
+        // Velký leták podle adresy karty — název se mění („Velký leták“, 28. 10. „Aktuální leták“, R177)
+        if (preg_match(config()->string('letaky.sources.billa.pdf_main_path'), $leaflet['path']) === 1 && count($items) < $minimum) {
             throw SourceResponseChanged::because(Chain::Billa, "leták {$leaflet['title']} od {$leaflet['validFrom']->toDateString()} má jen ".count($items)." ověřených dlaždic z PDF (méně než {$minimum})");
         }
 

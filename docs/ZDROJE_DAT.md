@@ -473,7 +473,7 @@ nezačaly, z PDF** (`pdftotext`, R89) spárované s katalogem. Náročnost nízk
 | **Celý katalog (hlavní zdroj)** | `GET https://www.billa.cz/api/product-discovery/products?page={n}&pageSize=500` — 12 184 produktů, 25 požadavků po ~1,2 MB, ~2 s každý |
 | Jen akce (nepoužívá se) | totéž s `&inPromotion=true` — 3 042 položek, ale **bez akcí jen s BILLA Klubem** |
 | Detail (nepoužívá se) | `GET /api/product-discovery/products/{sku}` (`82-100073`; se slugem 404) — platnost akce také nemá |
-| Seznam letáků (R89) | `GET https://www.billa.cz/akcni-letaky` — karty `<a class="ws-teaser …" data-teaser-name="Velký leták">` s textem „Platí od středy 7. 10. do úterý 13. 10. 2026“ (i „od středa“) |
+| Seznam letáků (R89) | `GET https://www.billa.cz/akcni-letaky` — karty `<a class="ws-teaser …" data-teaser-name="Velký leták">` (28. 10. 2026 velký leták pod názvem „Aktuální leták“ — název karty se mění, velký leták se pozná podle adresy `…/velky-letak`, R177) s textem „Platí od středy 7. 10. do úterý 13. 10. 2026“ (i „od středa“) |
 | Stránka letáku (R89) | odkaz karty: `/letaky-billa?tab=letaky-billa/velky-letak`, `…/maly-letak`, `…/velky-letak-nasledujici`, `/akcni-letaky/letak-billa-klub`, `/akcni-letaky/katalog-{název}`, `/akcni-letaky/special-{prodejna}` — tlačítko „Stáhnout PDF“ s přímým odkazem |
 | PDF letáku (R89) | `https://view.publitas.com/64069/{id}/pdfs/{uuid}.pdf` — velký leták 41 stran, 50–54 MB, ~4 s; Publitas skupina `billa-cz` |
 | Text stránek letáku — nepoužívá se | `https://view.publitas.com/billa-cz/{slug}/spreads.json` (`pages[].text`) |
@@ -555,8 +555,10 @@ dalšího týdne stránka ještě neodkazovala, katalogy a leták Klub platily o
   platností, která nemá vlastní velký nadpis, má platnost nejistou — dlaždice bez oddílu nad sebou se vynechají.
 - Neověřitelné (vynechají se): zelenina, ovoce a maso „volná, 1 kg“, „1 ks“, „cena za 1 kg“, pult „cena za 100 g“,
   víc velikostí „od 270 g“ (největší balení leták neuvádí), cena za jednotku z hmotnosti po odkapání bez ní v balení.
-- Velký leták s méně než `pdf_main_min_items` (40) ověřenými dlaždicemi a chyba stažení nebo převodu PDF
+- Velký leták (adresa karty podle `pdf_main_path`, R177) s méně než `pdf_main_min_items` (40) ověřenými dlaždicemi a chyba stažení nebo převodu PDF
   (`PdfTextFailed`, HTTP) ukončí stažení celé Billy — jinak by akce letáku byly „stažené“ (R16).
+- Dlaždice, kterou už dnes nese API se stejnou cenou (začátek akčního týdne, ve středu skoro celý leták), se z letáku
+  nezaloží (R54) — ve statistice letáku je `covered_offers`, ne propad (28. 10. 2026: 27 nových, 179 převzatých, R177).
 
 **Totožnost s katalogem** (`BillaCatalogMatcher`): PDF nemá kód zboží, ale API vrací celý katalog i s produkty, které
 dnes v akci nejsou, a jejich běžnou cenu (`standard.value`, když je vyšší než aktuální, jinak `regular.value`; u zboží
