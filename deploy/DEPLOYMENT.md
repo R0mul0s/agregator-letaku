@@ -124,7 +124,7 @@ pole *Opakovat* je zápis cronu (`minuta hodina den měsíc den_v_týdnu`). URL 
 |---|---|---|
 | Slevohlídka – Kaufland prodejny | `45 4,12 * * *` | `https://slevohlidka.cz/cron/import-stores?chain=kaufland&token=<LETAKY_CRON_TOKEN>` (~1,5 min; seznam prodejen a jejich akcí, R49 — před stažením Kauflandu) |
 | Slevohlídka – Kaufland | `0 5,13 * * *` | `https://slevohlidka.cz/cron/import-offers?chain=kaufland&token=<LETAKY_CRON_TOKEN>` |
-| Slevohlídka – Tesco | `10 5,13 * * *` | `…/cron/import-offers?chain=tesco&token=…` (~45 s, nejdelší) |
+| Slevohlídka – Tesco | `50 6,14 * * *` | `…/cron/import-offers?chain=tesco&token=…` (~45 s, nejdelší; v 6:50, ne 5:10 — při výměně týdne se e-shop v 5:10 ještě přepínal, R178) |
 | Slevohlídka – Lidl | `20 5,13 * * *` | `…/cron/import-offers?chain=lidl&token=…` (~30 s) |
 | Slevohlídka – Penny | `30 5,13 * * *` | `…/cron/import-offers?chain=penny&token=…` (~25 s) |
 | Slevohlídka – Albert | `40 5,13 * * *` | `…/cron/import-offers?chain=albert&token=…` |

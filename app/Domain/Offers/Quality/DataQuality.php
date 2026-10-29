@@ -26,6 +26,7 @@ use App\Enums\Chain;
 use App\Enums\ScrapeStatus;
 use App\Models\Leaflet;
 use App\Models\LeafletStat;
+use App\Models\Offer;
 use App\Models\ScrapeRun;
 use App\Support\ShortDate;
 use Carbon\CarbonImmutable;
@@ -127,28 +128,39 @@ final class DataQuality
      * Počítají se i akce, které z letáku převzal web (R136) — jinak by Lidl hlásil propad pokaždé,
      * když akce letáku zveřejní i na webu. V poslední den platnosti letáku se propad nehlásí —
      * obchod už odebírá akce, které skončily nebo došly (Lidl „Ovoce a zelenina“ po–út: v úterý zbyla
-     * polovina, R176).
+     * polovina, R176). Akce letáku, které od porovnávaných stažení normálně skončily, se k dnešnímu
+     * počtu přičtou — trvalé dávky bez platnosti (e-shop Tesca, akční nabídka Globusu) by jinak
+     * hlásily propad po každé výměně týdne (R178). Hlášený počet je ten skutečný.
      */
     private function offersIssue(LeafletStat $stat): ?QualityIssue
     {
+        $statDate = $this->calendar->dateOfInstant($stat->created_at);
         $validTo = $stat->leaflet->valid_to;
-        if ($validTo !== null && $this->calendar->dateOfInstant($stat->created_at)->greaterThanOrEqualTo($validTo)) {
+        if ($validTo !== null && $statDate->greaterThanOrEqualTo($validTo)) {
             return null;
         }
 
-        $baseline = (int) LeafletStat::query()
+        $previous = LeafletStat::query()
             ->where('leaflet_id', $stat->leaflet_id)
             ->where('id', '<', $stat->id)
             ->orderByDesc('id')
             ->limit(config()->integer('letaky.data_quality.offers_baseline_runs'))
-            ->get(['offers_count', 'covered_offers'])
-            ->map(fn (LeafletStat $previous): int => $previous->totalOffers())
-            ->max();
+            ->get(['offers_count', 'covered_offers', 'created_at']);
+        $baseline = (int) $previous->map(fn (LeafletStat $run): int => $run->totalOffers())->max();
+        $since = $previous->last()?->created_at;
+        if ($since === null || $baseline < config()->integer('letaky.data_quality.min_offers')) {
+            return null;
+        }
 
         $current = $stat->totalOffers();
+        $ended = Offer::query()
+            ->where('leaflet_id', $stat->leaflet_id)
+            ->where('valid_to', '>=', $this->calendar->dateOfInstant($since))
+            ->where('valid_to', '<', $statDate)
+            ->count();
         $limit = $baseline * (1 - config()->float('letaky.data_quality.offers_drop_share'));
 
-        return $baseline >= config()->integer('letaky.data_quality.min_offers') && $current < $limit
+        return $current + $ended < $limit
             ? new QualityIssue(QualityIssue::OFFERS, $current, $baseline)
             : null;
     }

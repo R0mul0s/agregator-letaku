@@ -27,6 +27,7 @@ use App\Enums\OfferType;
 use App\Enums\ScrapeStatus;
 use App\Models\Leaflet;
 use App\Models\LeafletStat;
+use App\Models\Offer;
 use App\Models\ScrapeRun;
 use App\Models\User;
 use Carbon\CarbonImmutable;
@@ -202,6 +203,22 @@ it('v poslední den platnosti letáku propad akcí nehlásí (R176)', function (
     // 23:30 UTC 26. 10. je už 27. 10. místního času
     $this->travelTo('2026-10-26 23:30:00');
     expect($quality->issues(qualityStat($leaflet, 8)))->toBe([]);
+});
+
+it('akce, které od porovnávaných stažení normálně skončily, nejsou propad (R178)', function (): void {
+    // Globus 29. 10.: akční nabídka 795 akcí po 1 212 — zbytek skončil 28. 10. s minulým týdnem
+    $leaflet = Leaflet::factory()->create(['chain' => Chain::Globus, 'kind' => LeafletKind::Web, 'external_id' => 'akcni-nabidka']);
+    $this->travelTo('2026-10-28 13:00:00');
+    qualityStat($leaflet, 100);
+    Offer::factory()->count(30)->create(['chain' => Chain::Globus, 'leaflet_id' => $leaflet->id, 'valid_from' => '2026-10-22', 'valid_to' => '2026-10-28']);
+    // Skončila dřív, než proběhlo porovnávané stažení — v jeho počtu nebyla
+    Offer::factory()->count(20)->create(['chain' => Chain::Globus, 'leaflet_id' => $leaflet->id, 'valid_from' => '2026-10-15', 'valid_to' => '2026-10-21']);
+
+    $this->travelTo('2026-10-29 05:00:00');
+    $quality = app(DataQuality::class);
+    expect($quality->issues(qualityStat($leaflet, 65)))->toBe([])
+        // Akce, které zmizely během platnosti, se pořád poznají
+        ->and($quality->issues(qualityStat($leaflet, 30)))->toEqual([new QualityIssue(QualityIssue::OFFERS, 30, 100)]);
 });
 
 it('propad ohlásí adminům jako výpadek s odkazem na přehled kvality dat, trvající neopakuje', function (): void {

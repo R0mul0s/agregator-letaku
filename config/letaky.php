@@ -129,7 +129,9 @@ return [
     */
     'indexnow' => [
         'key' => env('LETAKY_INDEXNOW_KEY', 'e95b18a32d1f9a6d13a434d40f8cccb7'),
-        'endpoint' => 'https://api.indexnow.org/indexnow',
+        // Vyhledávače v pořadí, v jakém se zkoušejí; ohlášení stačí jednomu, adresy si sdílejí. Seznam
+        // první — v Česku důležitější a api.indexnow.org (Bing) vracel 429 i po celodenní pauze (R178)
+        'endpoints' => ['https://search.seznam.cz/indexnow', 'https://api.indexnow.org/indexnow'],
         // Úvodní stránka, Všechny akce a týden se mění s každým stažením (~20 za den) — každá adresa
         // nejvýš jednou denně, častější ohlášení vyhledávače berou jako spam (R176)
         'min_interval_hours' => 24,
@@ -744,7 +746,9 @@ return [
     |   „Katalog Itálie“ Billy, tematické Globusu) mají jiné zboží, dárková balení bez ceny za
     |   jednotku: ověřené ceny jen proti
     |   vlastním předchozím stažením a do mediánu ostatních se nepočítají (R176);
-    | - v poslední den platnosti letáku se propad akcí nehlásí — obchod odebírá skončené akce (R176).
+    | - v poslední den platnosti letáku se propad akcí nehlásí — obchod odebírá skončené akce (R176);
+    |   akce letáku, které od porovnávaných stažení normálně skončily (valid_to před dneškem), se
+    |   k dnešnímu počtu přičtou — trvalé dávky (e-shop Tesca, akční nabídka Globusu) po výměně týdne (R178).
     */
     'data_quality' => [
         'history_runs' => 14,

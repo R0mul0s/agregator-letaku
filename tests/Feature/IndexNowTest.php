@@ -26,10 +26,13 @@ use Illuminate\Support\Facades\Log;
 
 const INDEXNOW_KEY = 'a1b2c3d4e5f60718293a4b5c6d7e8f90';
 const INDEXNOW_ENDPOINT = 'https://api.indexnow.org/*';
+const INDEXNOW_SEZNAM = 'https://search.seznam.cz/indexnow';
+const INDEXNOW_BING = 'https://api.indexnow.org/indexnow';
 
 beforeEach(function (): void {
     $this->travelTo('2026-10-02 10:00:00');
-    config(['letaky.indexnow.key' => INDEXNOW_KEY, 'letaky.cron.token' => 'test-cron-token']);
+    // Jeden vyhledávač — pořadí a záložní vyhledávač zkouší vlastní test (R178)
+    config(['letaky.indexnow.key' => INDEXNOW_KEY, 'letaky.indexnow.endpoints' => [INDEXNOW_BING], 'letaky.cron.token' => 'test-cron-token']);
 });
 
 /**
@@ -143,6 +146,7 @@ it('po odpovědi 429 neohlašuje nic až do konce pauzy (R157)', function (): vo
     expect(indexNowRequests())->toHaveCount(1);
     // Důvod odmítnutí je v logu (R176)
     Log::shouldHaveReceived('warning')->once()->with('IndexNow: příliš mnoho požadavků, ohlašování stojí.', [
+        'endpoint' => INDEXNOW_BING,
         'pause_hours' => config()->integer('letaky.indexnow.pause_hours'),
         'urls' => 1,
         'retry_after' => '3600',
@@ -153,6 +157,38 @@ it('po odpovědi 429 neohlašuje nic až do konce pauzy (R157)', function (): vo
     $indexNow->submit([url('/akce/lidl')]);
 
     expect(indexNowRequests())->toHaveCount(2);
+});
+
+it('ohlásí nejdřív Seznamu; po jeho 429 zkusí Bing a Seznam do konce pauzy vynechá (R178)', function (): void {
+    $this->app['env'] = 'production';
+    config(['letaky.indexnow.endpoints' => [INDEXNOW_SEZNAM, INDEXNOW_BING]]);
+    Http::fake([
+        INDEXNOW_SEZNAM => Http::sequence()->push('', 202)->push('', 429)->push('', 200),
+        INDEXNOW_BING => Http::response('', 200),
+    ]);
+    $indexNow = app(IndexNow::class);
+    $sent = fn (string $endpoint): array => Http::recorded(fn (Request $request): bool => $request->url() === $endpoint)
+        ->map(fn (array $pair): array => $pair[0]['urlList'])
+        ->values()
+        ->all();
+
+    // Seznam přijal — Bing nic nedostane, adresy si vyhledávače sdílejí
+    $indexNow->submit([url('/akce')]);
+    expect($sent(INDEXNOW_BING))->toBe([]);
+
+    // Seznam 429: stejné adresy dostane Bing
+    $indexNow->submit([url('/akce/lidl')]);
+    expect($sent(INDEXNOW_BING))->toBe([[url('/akce/lidl')]]);
+
+    // Během pauzy Seznamu jde ohlášení rovnou Bingu
+    $indexNow->submit([url('/akce/penny')]);
+    expect($sent(INDEXNOW_SEZNAM))->toHaveCount(2)
+        ->and($sent(INDEXNOW_BING))->toBe([[url('/akce/lidl')], [url('/akce/penny')]]);
+
+    $this->travel(config()->integer('letaky.indexnow.pause_hours') + 1)->hours();
+    $indexNow->submit([url('/akce/billa')]);
+    expect($sent(INDEXNOW_SEZNAM))->toHaveCount(3)
+        ->and($sent(INDEXNOW_BING))->toHaveCount(2);
 });
 
 it('ke změněným stránkám přidá produkty katalogu s novou nebo staženou akcí', function (): void {
