@@ -18,6 +18,7 @@ namespace App\Domain\Sources\Norma;
 use App\Domain\Offers\Data\LeafletData;
 use App\Domain\Offers\Data\SourceBatch;
 use App\Domain\Offers\LocalCalendar;
+use App\Domain\Offers\Parsing\Text;
 use App\Domain\Sources\Exceptions\PdfTextFailed;
 use App\Domain\Sources\Exceptions\SourceResponseChanged;
 use App\Domain\Sources\OfferSource;
@@ -34,6 +35,12 @@ final class NormaOfferSource implements OfferSource
     private const WEEK_LAST_DAY_OFFSET = 6;
 
     private const ISO_MONDAY = 1;
+
+    /** Titulek stránky v chybové hlášce. */
+    private const PAGE_TITLE_PATTERN = '#<title[^>]*>(.*?)</title>#is';
+
+    /** Nejvíc znaků titulku v chybové hlášce (obsah stránky je cizí). */
+    private const LOGGED_TITLE_LENGTH = 100;
 
     public function __construct(
         private readonly SourceHttp $http,
@@ -69,7 +76,22 @@ final class NormaOfferSource implements OfferSource
             $batches[$year.'-'.$week] ??= $this->batch(config()->string('letaky.sources.norma.base_url').$path, $year.'-'.$week, (int) $year, (int) $week);
         }
 
-        return $batches === [] ? throw SourceResponseChanged::because(Chain::Norma, 'stránka nabídky bez odkazu na PDF letáku') : array_values($batches);
+        return $batches === [] ? throw $this->pageWithoutLeaflets($page) : array_values($batches);
+    }
+
+    /**
+     * Chyba stránky bez odkazu na leták s její velikostí a titulkem — 2. 11. 2026 v 6:20 taková
+     * stránka přišla a o pár hodin později už odkazy měla, z logu nešlo poznat, co obsahovala.
+     */
+    private function pageWithoutLeaflets(string $page): SourceResponseChanged
+    {
+        $title = preg_match(self::PAGE_TITLE_PATTERN, $page, $match) === 1 ? Text::clean(html_entity_decode(strip_tags($match[1]))) : null;
+
+        return SourceResponseChanged::because(Chain::Norma, sprintf(
+            'stránka nabídky bez odkazu na PDF letáku (%d bajtů, titulek: %s)',
+            strlen($page),
+            Text::limit($title, self::LOGGED_TITLE_LENGTH) ?? 'žádný',
+        ));
     }
 
     /**

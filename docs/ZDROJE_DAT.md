@@ -860,6 +860,10 @@ Měření 25. 10. 2026: leták 2026-44 112 ověřených ze 185 cen, 2026-45 98 z
 nepotraviny); stažení obou ~13 s, 210 akcí, 130 přiřazených ke katalogu. Leták pod `pdf_min_offers` (40)
 ověřenými akcemi = chyba (R16). Obrázky produktů nejsou, odkaz akce vede na stránku nabídky.
 
+Stránka nabídky 2. 11. 2026 v 6:20 (pondělí, výměna týdne) odpověděla úspěšně, ale bez odkazů na PDF; o pár hodin
+později je měla (týdny 45 a 46) a stažení by prošlo. Co tehdy obsahovala, není známo — chybová hláška proto uvádí
+velikost a titulek stránky, ať se další výskyt dá posoudit (normální stránka má ~52 kB).
+
 ## COOP
 
 **Cesta:** jen PDF letáků přes `pdftotext -bbox-layout` (R86), bez LLM — implementováno pro Čechy (R167,

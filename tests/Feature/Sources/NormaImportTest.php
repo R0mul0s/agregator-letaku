@@ -88,15 +88,19 @@ it('uloží slevu s původní cenou a odkazem na stránku s letáky', function (
         ->leaflet_id->toBe(Leaflet::query()->where('external_id', '2026-44')->value('id'));
 });
 
-it('stránka bez odkazu na PDF je změna odpovědi a stažení selže', function (): void {
-    fakeNorma('<html><body><h3>Nabídka na týden</h3></body></html>');
+it('stránka bez odkazu na PDF je změna odpovědi a stažení selže, hláška popíše, co přišlo', function (string $page, string $title): void {
+    fakeNorma($page);
 
     $this->artisan('letaky:import-offers', ['chain' => ['norma']])->assertFailed();
 
     expect(ScrapeRun::query()->sole())
         ->status->toBe(ScrapeStatus::Failed)
-        ->error->toContain('bez odkazu na PDF');
-});
+        ->error->toContain('bez odkazu na PDF letáku ('.strlen($page).' bajtů, titulek: '.$title.')');
+})->with([
+    's titulkem' => ['<html><head><title>NORMA &amp;
+        Údržba</title></head><body><h3>Nabídka na týden</h3></body></html>', 'NORMA & Údržba'],
+    'bez titulku' => ['<html><body><h3>Nabídka na týden</h3></body></html>', 'žádný'],
+]);
 
 it('leták s málo ověřenými akcemi ukončí stažení chybou a akce neoznačí jako stažené (R16)', function (): void {
     fakeNorma();
