@@ -33,9 +33,11 @@ final class PennyOfferSource implements OfferSource
 {
     /**
      * Odkaz na leták na stránce letáků: …/PennyIntLeaflet/CZ/30_09_2026/, ale i s příponou
-     * verze …/07_10_2026_tl2/ (6. 10. 2026 — leták příštího týdne se jinak přeskočil).
+     * verze …/07_10_2026_tl2/ (6. 10. 2026 — leták příštího týdne se jinak přeskočil) a bez koncového
+     * lomítka …/04_11_2026_jb (4. 11. 2026 — stažení Penny kvůli tomu selhalo). Lomítko ke složce
+     * přidává `leafletOffers`.
      */
-    private const LEAFLET_LINK_PATTERN = '#PennyIntLeaflet/CZ/(\d{2}_\d{2}_\d{4}(?:_[A-Za-z0-9]+)*)/#';
+    private const LEAFLET_LINK_PATTERN = '#PennyIntLeaflet/CZ/(\d{2}_\d{2}_\d{4}(?:_[A-Za-z0-9]+)*)\b#';
 
     /** Odkazy na stránky v indexu letáku: href="./37/". */
     private const PAGE_LINK_PATTERN = '#href="\./(\d+)/"#';

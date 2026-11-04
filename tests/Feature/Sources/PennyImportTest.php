@@ -86,14 +86,13 @@ it('zapíše statistiku letáků pro přehled kvality dat: akce a nalezené a ov
         ->and($web->tile_candidates)->toBeNull();
 });
 
-it('najde i leták se složkou s příponou verze (07_10_2026_tl2)', function (): void {
-    $folder = '07_10_2026_tl2';
+it('najde leták se složkou s příponou verze, odkaz s koncovým lomítkem i bez něj', function (string $folder, string $link): void {
     $leafletUrl = str_replace('30_09_2026', $folder, PENNY_LEAFLET_URL);
     $pages = $leafletUrl.'files/assets/common/page-vectorlayers/';
 
     Http::fake([
         'https://www.penny.cz/api/product-discovery/products*' => Http::response(responseFixture('penny/products-2026-10-02.json')),
-        'https://www.penny.cz/nabidky/letaky' => Http::response(str_replace('30_09_2026', $folder, responseFixture('penny/letaky-2026-10-02.html'))),
+        'https://www.penny.cz/nabidky/letaky' => Http::response(str_replace('30_09_2026/', $link, responseFixture('penny/letaky-2026-10-02.html'))),
         $pages.'0001.svg' => Http::response(responseFixture('penny/page-0001-2026-10-02.svg')),
         $pages.'0002.svg' => Http::response(responseFixture('penny/page-0004-2026-10-02.svg')),
         $pages.'0003.svg' => Http::response(responseFixture('penny/page-0030-2026-10-02.svg')),
@@ -105,7 +104,12 @@ it('najde i leták se složkou s příponou verze (07_10_2026_tl2)', function ()
 
     expect(Leaflet::query()->where('kind', LeafletKind::Leaflet)->sole()->external_id)->toBe($folder)
         ->and(Offer::query()->whereHas('leaflet', fn ($q) => $q->where('kind', LeafletKind::Leaflet))->count())->toBe(27);
-});
+})->with([
+    // 6. 10. 2026
+    'přípona verze' => ['07_10_2026_tl2', '07_10_2026_tl2/'],
+    // 4. 11. 2026 — bez lomítka stažení Penny selhalo
+    'bez koncového lomítka' => ['04_11_2026_jb', '04_11_2026_jb'],
+]);
 
 it('uloží text stránek letáku s textovou vrstvou pro zmínky bez ceny (R27)', function (): void {
     fakePenny();
