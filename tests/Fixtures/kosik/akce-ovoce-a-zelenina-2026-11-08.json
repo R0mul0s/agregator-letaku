@@ -1,0 +1,416 @@
+{
+  "display": "full",
+  "productGroups": [],
+  "products": {
+    "totalCount": 3,
+    "items": [
+      {
+        "firstOrderDay": null,
+        "lastOrderDay": null,
+        "id": 794638,
+        "name": "Citron, 1 ks",
+        "cleanName": "Citron, 1 ks",
+        "brand": null,
+        "isSale": false,
+        "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/sn/WIDTHxHEIGHTx1_snygfqitqac3.png",
+        "url": "/p794638-citron-1-ks",
+        "price": 4.886,
+        "returnablePackagePrice": 0.0,
+        "unit": "ks",
+        "recommendedPrice": 9.786000000000003,
+        "percentageDiscount": 50,
+        "productQuantity": {
+          "prefix": "cca",
+          "value": 140.0,
+          "unit": "g"
+        },
+        "labels": [
+          {
+            "id": 0,
+            "name": "-50 %",
+            "url": "sale",
+            "background": "",
+            "priority": 1,
+            "styleKey": "strong secondary sale",
+            "excludeFromBox": false
+          }
+        ],
+        "actionLabel": "Akce platí do 10. 11.",
+        "infoLabels": [],
+        "priceLabels": [
+          {
+            "id": 0,
+            "name": "-50 % do 10. 11.",
+            "url": "sale",
+            "background": "",
+            "priority": 2,
+            "styleKey": "strong secondary sale",
+            "excludeFromBox": false
+          }
+        ],
+        "countryCode": "ZAF",
+        "pictographs": [],
+        "maxInCart": 4,
+        "limitInCart": null,
+        "plannedStock": null,
+        "relatedProduct": null,
+        "mainCategory": {
+          "id": 985,
+          "name": "Ovoce a zelenina",
+          "url": "c985-ovoce-a-zelenina",
+          "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/v1/WIDTHxHEIGHTx1_v1hh0213wofl.png",
+          "highlighted": false,
+          "vendorId": 1
+        },
+        "pricePerUnit": {
+          "price": 34.9,
+          "unit": "kg"
+        },
+        "cumulativePrices": [],
+        "giftIds": [],
+        "favorite": false,
+        "purchased": false,
+        "unitStep": 1.0,
+        "vendorId": 1,
+        "pharmacyCertificate": null,
+        "productGroups": [],
+        "recommendedSellPrice": 0.0,
+        "detail": null,
+        "hasAssociatedProducts": false,
+        "eLicence": false,
+        "marketplaceVendor": null,
+        "associationCode": null,
+        "loyaltyClubBenefitsPrice": null,
+        "hasLoyaltyClubBenefitsPrice": false,
+        "adultOnly": false,
+        "availability": [
+          {
+            "date": "2026-11-08",
+            "quantity": 4
+          },
+          {
+            "date": "2026-11-09",
+            "quantity": 4
+          },
+          {
+            "date": "2026-11-10",
+            "quantity": 4
+          },
+          {
+            "date": "2026-11-11",
+            "quantity": 4
+          }
+        ],
+        "transferrable": false,
+        "postponable": false,
+        "blacklisted": false,
+        "discountMethodology": "STANDARD"
+      },
+      {
+        "firstOrderDay": null,
+        "lastOrderDay": null,
+        "id": 823764,
+        "name": "Kaki Rojo Brillante, 1 ks",
+        "cleanName": "Kaki Rojo Brillante, 1 ks",
+        "brand": null,
+        "isSale": false,
+        "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/dg/WIDTHxHEIGHTx1_dgfdxefe3x93.png",
+        "url": "/p823764-kaki-rojo-brillante-1-ks",
+        "price": 24.9,
+        "returnablePackagePrice": 0.0,
+        "unit": "ks",
+        "recommendedPrice": 29.9,
+        "percentageDiscount": 16,
+        "productQuantity": null,
+        "labels": [
+          {
+            "id": 0,
+            "name": "-16 %",
+            "url": "sale",
+            "background": "",
+            "priority": 1,
+            "styleKey": "strong secondary sale",
+            "excludeFromBox": false
+          }
+        ],
+        "actionLabel": "Akce platí do 10. 11.",
+        "infoLabels": [],
+        "priceLabels": [
+          {
+            "id": 0,
+            "name": "-16 % do 10. 11.",
+            "url": "sale",
+            "background": "",
+            "priority": 2,
+            "styleKey": "strong secondary sale",
+            "excludeFromBox": false
+          }
+        ],
+        "countryCode": "ESP",
+        "pictographs": [],
+        "maxInCart": 50,
+        "limitInCart": null,
+        "plannedStock": null,
+        "relatedProduct": null,
+        "mainCategory": {
+          "id": 985,
+          "name": "Ovoce a zelenina",
+          "url": "c985-ovoce-a-zelenina",
+          "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/v1/WIDTHxHEIGHTx1_v1hh0213wofl.png",
+          "highlighted": false,
+          "vendorId": 1
+        },
+        "pricePerUnit": {
+          "price": 24.9,
+          "unit": "ks"
+        },
+        "cumulativePrices": [],
+        "giftIds": [],
+        "favorite": false,
+        "purchased": false,
+        "unitStep": 1.0,
+        "vendorId": 1,
+        "pharmacyCertificate": null,
+        "productGroups": [],
+        "recommendedSellPrice": 0.0,
+        "detail": null,
+        "hasAssociatedProducts": false,
+        "eLicence": false,
+        "marketplaceVendor": null,
+        "associationCode": null,
+        "loyaltyClubBenefitsPrice": null,
+        "hasLoyaltyClubBenefitsPrice": false,
+        "adultOnly": false,
+        "availability": [
+          {
+            "date": "2026-11-08",
+            "quantity": 70
+          },
+          {
+            "date": "2026-11-09",
+            "quantity": 70
+          },
+          {
+            "date": "2026-11-10",
+            "quantity": 70
+          },
+          {
+            "date": "2026-11-11",
+            "quantity": 70
+          }
+        ],
+        "transferrable": false,
+        "postponable": false,
+        "blacklisted": false,
+        "discountMethodology": "STANDARD"
+      },
+      {
+        "firstOrderDay": null,
+        "lastOrderDay": null,
+        "id": 818574,
+        "name": "Honestly Kimchi Pálivé",
+        "cleanName": "Kimchi Pálivé",
+        "brand": {
+          "id": 31218,
+          "name": "Honestly",
+          "url": "/b31218-honestly"
+        },
+        "isSale": false,
+        "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/d7/WIDTHxHEIGHTx1_d76i0fmsue3r.png",
+        "url": "/p818574-honestly-kimchi-palive",
+        "price": 109.9,
+        "returnablePackagePrice": 0.0,
+        "unit": "ks",
+        "recommendedPrice": 169.9,
+        "percentageDiscount": 35,
+        "productQuantity": {
+          "prefix": "",
+          "value": 300.0,
+          "unit": "g"
+        },
+        "labels": [
+          {
+            "id": 0,
+            "name": "-35 %",
+            "url": "sale",
+            "background": "",
+            "priority": 1,
+            "styleKey": "strong secondary sale",
+            "excludeFromBox": false
+          }
+        ],
+        "actionLabel": "Akce platí do 8. 11.",
+        "infoLabels": [],
+        "priceLabels": [
+          {
+            "id": 0,
+            "name": "-35 % do 8. 11.",
+            "url": "sale",
+            "background": "",
+            "priority": 2,
+            "styleKey": "strong secondary sale",
+            "excludeFromBox": false
+          }
+        ],
+        "countryCode": null,
+        "pictographs": [
+          "nonGlutinous",
+          "nonLactose",
+          "vegan"
+        ],
+        "maxInCart": 0,
+        "limitInCart": null,
+        "plannedStock": null,
+        "relatedProduct": null,
+        "mainCategory": {
+          "id": 36779,
+          "name": "Zdraví a životní styl",
+          "url": "c36779-zdravi-a-zivotni-styl",
+          "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/xd/WIDTHxHEIGHTx1_xd4y4ogq7ajx.png",
+          "highlighted": false,
+          "vendorId": 1
+        },
+        "pricePerUnit": {
+          "price": 366.33333333333337,
+          "unit": "kg"
+        },
+        "cumulativePrices": [],
+        "giftIds": [],
+        "favorite": false,
+        "purchased": false,
+        "unitStep": 1.0,
+        "vendorId": 1,
+        "pharmacyCertificate": null,
+        "productGroups": [],
+        "recommendedSellPrice": 0.0,
+        "detail": null,
+        "hasAssociatedProducts": false,
+        "eLicence": false,
+        "marketplaceVendor": null,
+        "associationCode": null,
+        "loyaltyClubBenefitsPrice": null,
+        "hasLoyaltyClubBenefitsPrice": false,
+        "adultOnly": false,
+        "availability": null,
+        "transferrable": true,
+        "postponable": false,
+        "blacklisted": false,
+        "discountMethodology": "STANDARD"
+      }
+    ],
+    "recommendationAnalyticsData": {
+      "resultCount": 20,
+      "resultId": "666",
+      "resultPodId": "",
+      "resultStrategyId": "",
+      "requestData": null,
+      "recommendationId": "",
+      "recommender": "",
+      "recommendationClientId": ""
+    },
+    "cursor": null
+  },
+  "title": "Akce - Ovoce a zelenina",
+  "descriptionBefore": null,
+  "descriptionAfter": null,
+  "url": "/akce/ovoce-a-zelenina",
+  "breadcrumbs": [
+    {
+      "id": null,
+      "name": "Akce",
+      "url": "/akce"
+    },
+    {
+      "id": 985,
+      "name": "Ovoce a zelenina",
+      "url": "/akce/ovoce-a-zelenina"
+    }
+  ],
+  "subCategories": [
+    {
+      "id": 1013,
+      "name": "Zelenina",
+      "url": "/akce/ovoce-a-zelenina/zelenina",
+      "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/r2/WIDTHxHEIGHTx1_r2k54f28qxks.png",
+      "highlighted": true,
+      "vendorId": 1
+    },
+    {
+      "id": 993,
+      "name": "Ovoce",
+      "url": "/akce/ovoce-a-zelenina/ovoce",
+      "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/st/WIDTHxHEIGHTx1_stpwimjbdxkj.png",
+      "highlighted": true,
+      "vendorId": 1
+    },
+    {
+      "id": 989,
+      "name": "Bylinky a koření",
+      "url": "/akce/ovoce-a-zelenina/bylinky-a-koreni",
+      "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/wn/WIDTHxHEIGHTx1_wn8ucqh4btms.jpg",
+      "highlighted": false,
+      "vendorId": 1
+    },
+    {
+      "id": 986,
+      "name": "BIO Ovoce a zelenina",
+      "url": "/akce/ovoce-a-zelenina/bio-ovoce-a-zelenina",
+      "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/co/WIDTHxHEIGHTx1_co3prkeqxlf4.jpg",
+      "highlighted": false,
+      "vendorId": 1
+    }
+  ],
+  "widgets": [],
+  "banners": [],
+  "filters": [],
+  "orderBy": [
+    {
+      "id": "price-default",
+      "name": "Doporučené",
+      "value": true
+    },
+    {
+      "id": "price-asc",
+      "name": "Od nejlevnějšího",
+      "value": false
+    },
+    {
+      "id": "price-desc",
+      "name": "Od nejdražšího",
+      "value": false
+    },
+    {
+      "id": "unit-price-asc",
+      "name": "Od nejlevnějšího za jednotku",
+      "value": false
+    },
+    {
+      "id": "unit-price-desc",
+      "name": "Od nejdražšího za jednotku",
+      "value": false
+    },
+    {
+      "id": "discount-absolute-desc",
+      "name": "Od největší slevy (Kč)",
+      "value": false
+    },
+    {
+      "id": "discount-percentage-desc",
+      "name": "Od největší slevy (%)",
+      "value": false
+    }
+  ],
+  "showProductsCount": false,
+  "totalCount": 3,
+  "vendorId": 1,
+  "pharmacyCertificates": [],
+  "otherProducts": {
+    "productCount": 0,
+    "vendorId": 2,
+    "nonRegulatedPharmacyProducts": [],
+    "maximumReached": false
+  },
+  "longName": "Akce - Ovoce a zelenina",
+  "shortDescription": null,
+  "metaDescription": null
+}

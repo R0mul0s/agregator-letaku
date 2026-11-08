@@ -1,0 +1,512 @@
+{
+  "display": "full",
+  "productGroups": [],
+  "products": {
+    "totalCount": 5,
+    "items": [
+      {
+        "firstOrderDay": null,
+        "lastOrderDay": null,
+        "id": 767408,
+        "name": "Fine Life Eidam plátky 30%",
+        "cleanName": "Eidam plátky 30%",
+        "brand": {
+          "id": 13769,
+          "name": "Fine Life",
+          "url": "/b13769-fine-life"
+        },
+        "isSale": false,
+        "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/wo/WIDTHxHEIGHTx1_wowaptda4oy7.jpg",
+        "url": "/p767408-fine-life-eidam-platky-30",
+        "price": 13.9,
+        "returnablePackagePrice": 0.0,
+        "unit": "ks",
+        "recommendedPrice": 18.9,
+        "percentageDiscount": 26,
+        "productQuantity": {
+          "prefix": "",
+          "value": 100.0,
+          "unit": "g"
+        },
+        "labels": [
+          {
+            "id": 0,
+            "name": "-26 %",
+            "url": "sale",
+            "background": "",
+            "priority": 1,
+            "styleKey": "strong secondary sale",
+            "excludeFromBox": false
+          }
+        ],
+        "actionLabel": "Akce platí do 10. 11.",
+        "infoLabels": [],
+        "priceLabels": [
+          {
+            "id": 0,
+            "name": "-26 % do 10. 11.",
+            "url": "sale",
+            "background": "",
+            "priority": 2,
+            "styleKey": "strong secondary sale",
+            "excludeFromBox": false
+          }
+        ],
+        "countryCode": "CZE",
+        "pictographs": [],
+        "maxInCart": 50,
+        "limitInCart": null,
+        "plannedStock": null,
+        "relatedProduct": null,
+        "mainCategory": {
+          "id": 898,
+          "name": "Mléčné a chlazené",
+          "url": "c898-mlecne-a-chlazene",
+          "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/np/WIDTHxHEIGHTx1_np3hbwlcq3ri.png",
+          "highlighted": false,
+          "vendorId": 1
+        },
+        "pricePerUnit": {
+          "price": 139.0,
+          "unit": "kg"
+        },
+        "cumulativePrices": [],
+        "giftIds": [],
+        "favorite": false,
+        "purchased": false,
+        "unitStep": 1.0,
+        "vendorId": 1,
+        "pharmacyCertificate": null,
+        "productGroups": [],
+        "recommendedSellPrice": 0.0,
+        "detail": null,
+        "hasAssociatedProducts": false,
+        "eLicence": false,
+        "marketplaceVendor": null,
+        "associationCode": null,
+        "loyaltyClubBenefitsPrice": null,
+        "hasLoyaltyClubBenefitsPrice": false,
+        "adultOnly": false,
+        "availability": [
+          {
+            "date": "2026-11-08",
+            "quantity": 200
+          },
+          {
+            "date": "2026-11-09",
+            "quantity": 200
+          },
+          {
+            "date": "2026-11-10",
+            "quantity": 200
+          },
+          {
+            "date": "2026-11-11",
+            "quantity": 200
+          }
+        ],
+        "transferrable": false,
+        "postponable": false,
+        "blacklisted": false,
+        "discountMethodology": "STANDARD"
+      },
+      {
+        "firstOrderDay": null,
+        "lastOrderDay": null,
+        "id": 74287,
+        "name": "Milko Řecký jogurt 0% bílý",
+        "cleanName": "Řecký jogurt 0% bílý",
+        "brand": {
+          "id": 2277,
+          "name": "Milko",
+          "url": "/b2277-milko"
+        },
+        "isSale": false,
+        "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/gi/WIDTHxHEIGHTx1_giokzhjner29.jpg",
+        "url": "/p74287-milko-recky-jogurt-0-bily",
+        "price": 12.9,
+        "returnablePackagePrice": 0.0,
+        "unit": "ks",
+        "recommendedPrice": 22.9,
+        "percentageDiscount": 43,
+        "productQuantity": {
+          "prefix": "",
+          "value": 140.0,
+          "unit": "g"
+        },
+        "labels": [
+          {
+            "id": 0,
+            "name": "-43 %",
+            "url": "sale",
+            "background": "",
+            "priority": 1,
+            "styleKey": "strong secondary sale",
+            "excludeFromBox": false
+          },
+          {
+            "id": 16766,
+            "name": "Klub Plná péče",
+            "url": "klub-plna-pece-cb",
+            "background": "klub-plna-pece-cb",
+            "priority": 2,
+            "styleKey": null,
+            "excludeFromBox": false
+          }
+        ],
+        "actionLabel": "Akce platí do 10. 11.",
+        "infoLabels": [
+          {
+            "id": 16766,
+            "name": "Klub Plná péče",
+            "url": "klub-plna-pece-cb",
+            "background": "klub-plna-pece-cb",
+            "priority": 1,
+            "styleKey": null,
+            "excludeFromBox": false,
+            "design": "neutral",
+            "description": null
+          }
+        ],
+        "priceLabels": [
+          {
+            "id": 0,
+            "name": "-43 % do 10. 11.",
+            "url": "sale",
+            "background": "",
+            "priority": 2,
+            "styleKey": "strong secondary sale",
+            "excludeFromBox": false
+          }
+        ],
+        "countryCode": "CZE",
+        "pictographs": [
+          "klasa"
+        ],
+        "maxInCart": 50,
+        "limitInCart": null,
+        "plannedStock": null,
+        "relatedProduct": null,
+        "mainCategory": {
+          "id": 898,
+          "name": "Mléčné a chlazené",
+          "url": "c898-mlecne-a-chlazene",
+          "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/np/WIDTHxHEIGHTx1_np3hbwlcq3ri.png",
+          "highlighted": false,
+          "vendorId": 1
+        },
+        "pricePerUnit": {
+          "price": 92.14285714285714,
+          "unit": "kg"
+        },
+        "cumulativePrices": [],
+        "giftIds": [],
+        "favorite": false,
+        "purchased": false,
+        "unitStep": 1.0,
+        "vendorId": 1,
+        "pharmacyCertificate": null,
+        "productGroups": [],
+        "recommendedSellPrice": 0.0,
+        "detail": null,
+        "hasAssociatedProducts": false,
+        "eLicence": false,
+        "marketplaceVendor": null,
+        "associationCode": null,
+        "loyaltyClubBenefitsPrice": null,
+        "hasLoyaltyClubBenefitsPrice": false,
+        "adultOnly": false,
+        "availability": [
+          {
+            "date": "2026-11-08",
+            "quantity": 200
+          },
+          {
+            "date": "2026-11-09",
+            "quantity": 200
+          },
+          {
+            "date": "2026-11-10",
+            "quantity": 200
+          },
+          {
+            "date": "2026-11-11",
+            "quantity": 200
+          }
+        ],
+        "transferrable": false,
+        "postponable": false,
+        "blacklisted": false,
+        "discountMethodology": "STANDARD"
+      },
+      {
+        "firstOrderDay": null,
+        "lastOrderDay": null,
+        "id": 15247,
+        "name": "Mlékárna Kunín Selské mléko čerstvé 3,8%",
+        "cleanName": "Selské mléko čerstvé 3,8%",
+        "brand": {
+          "id": 427,
+          "name": "Mlékárna Kunín",
+          "url": "/b427-mlekarna-kunin"
+        },
+        "isSale": false,
+        "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/hb/WIDTHxHEIGHTx1_hbtawscbfrow.jpg",
+        "url": "/p15247-mlekarna-kunin-selske-mleko-cerstve-3-8",
+        "price": 27.9,
+        "returnablePackagePrice": 0.0,
+        "unit": "ks",
+        "recommendedPrice": 44.9,
+        "percentageDiscount": 37,
+        "productQuantity": {
+          "prefix": "",
+          "value": 1.0,
+          "unit": "l"
+        },
+        "labels": [
+          {
+            "id": 0,
+            "name": "-37 %",
+            "url": "sale",
+            "background": "",
+            "priority": 1,
+            "styleKey": "strong secondary sale",
+            "excludeFromBox": false
+          }
+        ],
+        "actionLabel": "Akce platí do 10. 11.",
+        "infoLabels": [],
+        "priceLabels": [
+          {
+            "id": 0,
+            "name": "-37 % do 10. 11.",
+            "url": "sale",
+            "background": "",
+            "priority": 2,
+            "styleKey": "strong secondary sale",
+            "excludeFromBox": false
+          }
+        ],
+        "countryCode": "CZE",
+        "pictographs": [],
+        "maxInCart": 50,
+        "limitInCart": null,
+        "plannedStock": null,
+        "relatedProduct": null,
+        "mainCategory": {
+          "id": 898,
+          "name": "Mléčné a chlazené",
+          "url": "c898-mlecne-a-chlazene",
+          "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/np/WIDTHxHEIGHTx1_np3hbwlcq3ri.png",
+          "highlighted": false,
+          "vendorId": 1
+        },
+        "pricePerUnit": {
+          "price": 27.9,
+          "unit": "l"
+        },
+        "cumulativePrices": [],
+        "giftIds": [],
+        "favorite": false,
+        "purchased": false,
+        "unitStep": 1.0,
+        "vendorId": 1,
+        "pharmacyCertificate": null,
+        "productGroups": [],
+        "recommendedSellPrice": 0.0,
+        "detail": null,
+        "hasAssociatedProducts": false,
+        "eLicence": false,
+        "marketplaceVendor": null,
+        "associationCode": null,
+        "loyaltyClubBenefitsPrice": null,
+        "hasLoyaltyClubBenefitsPrice": false,
+        "adultOnly": false,
+        "availability": [
+          {
+            "date": "2026-11-08",
+            "quantity": 200
+          },
+          {
+            "date": "2026-11-09",
+            "quantity": 200
+          },
+          {
+            "date": "2026-11-10",
+            "quantity": 200
+          },
+          {
+            "date": "2026-11-11",
+            "quantity": 200
+          }
+        ],
+        "transferrable": false,
+        "postponable": false,
+        "blacklisted": false,
+        "discountMethodology": "STANDARD"
+      }
+    ],
+    "recommendationAnalyticsData": {
+      "resultCount": 30,
+      "resultId": "666",
+      "resultPodId": "",
+      "resultStrategyId": "",
+      "requestData": null,
+      "recommendationId": "",
+      "recommender": "",
+      "recommendationClientId": ""
+    },
+    "cursor": "eJwtUkkSBDEI+lAOLrj9/2OD9lzsChEk2B029QyOxtNsr6cjyRqm9Sq9YU87ipBFEwJYO1y3SQ9fWkFCjBcRPDj2uvNqzJHZmhrIeVUFzZeOUXkZkSYUEzkxsKLsVOTqusqK1Soiy1uCJYUn+5qavta73Sx8UNjef1bk6nx0F5rQib4T5LOfT0s+TcpYahtWs5e6EF+32VjpRbBe2DPzUFnlpCsuQXoFB6SvS1LME0ot4FTSN/ROhg54MIR7QNLUCFMsMx97VgyDLV7usQPpraqn8zmToLk7/T/N/llQnbNfjEzqKuYqujF7+mhLrLcK/8B+zoWvCPZfUOpx5aA32toPs+IOd+nSZszIw+sHMClyVg=="
+  },
+  "title": "Akce - Mléčné a chlazené",
+  "descriptionBefore": null,
+  "descriptionAfter": null,
+  "url": "/akce/mlecne-a-chlazene",
+  "breadcrumbs": [
+    {
+      "id": null,
+      "name": "Akce",
+      "url": "/akce"
+    },
+    {
+      "id": 898,
+      "name": "Mléčné a chlazené",
+      "url": "/akce/mlecne-a-chlazene"
+    }
+  ],
+  "subCategories": [
+    {
+      "id": 936,
+      "name": "Sýry",
+      "url": "/akce/mlecne-a-chlazene/syry",
+      "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/4m/WIDTHxHEIGHTx1_4mxx682bn6px.jpg",
+      "highlighted": true,
+      "vendorId": 1
+    },
+    {
+      "id": 915,
+      "name": "Jogurty a mléčné dezerty",
+      "url": "/akce/mlecne-a-chlazene/jogurty-a-mlecne-dezerty",
+      "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/1u/WIDTHxHEIGHTx1_1utusbbi8lr2.png",
+      "highlighted": true,
+      "vendorId": 1
+    },
+    {
+      "id": 927,
+      "name": "Mléko a mléčné nápoje",
+      "url": "/akce/mlecne-a-chlazene/mleko-a-mlecne-napoje",
+      "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/qs/WIDTHxHEIGHTx1_qsnyxygpyo1z.png",
+      "highlighted": false,
+      "vendorId": 1
+    },
+    {
+      "id": 902,
+      "name": "Máslo, margaríny, tuky",
+      "url": "/akce/mlecne-a-chlazene/maslo-margariny-tuky",
+      "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/db/WIDTHxHEIGHTx1_db69hxtujgnr.png",
+      "highlighted": false,
+      "vendorId": 1
+    },
+    {
+      "id": 931,
+      "name": "Smetany a šlehačky",
+      "url": "/akce/mlecne-a-chlazene/smetany-a-slehacky",
+      "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/44/WIDTHxHEIGHTx1_447ci6tzwhxy.png",
+      "highlighted": false,
+      "vendorId": 1
+    },
+    {
+      "id": 899,
+      "name": "Majonézy a dresingy",
+      "url": "/akce/mlecne-a-chlazene/majonezy-tatarky-a-dresingy",
+      "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/ks/WIDTHxHEIGHTx1_ksdn3o5idgya.jpg",
+      "highlighted": false,
+      "vendorId": 1
+    },
+    {
+      "id": 1703,
+      "name": "Bez laktózy",
+      "url": "/akce/mlecne-a-chlazene/bez-laktozy",
+      "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/5o/WIDTHxHEIGHTx1_5on8u951m9am.png",
+      "highlighted": false,
+      "vendorId": 1
+    },
+    {
+      "id": 922,
+      "name": "Mléčné výrobky pro děti",
+      "url": "/akce/mlecne-a-chlazene/mlecne-vyrobky-pro-deti",
+      "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/5y/WIDTHxHEIGHTx1_5yd0zus6dzcy.png",
+      "highlighted": false,
+      "vendorId": 1
+    },
+    {
+      "id": 35518,
+      "name": "XXL balení",
+      "url": "/akce/mlecne-a-chlazene/xxl-baleni",
+      "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/ce/WIDTHxHEIGHTx1_cezrw8acq10c.png",
+      "highlighted": false,
+      "vendorId": 1
+    },
+    {
+      "id": 2504,
+      "name": "BIO mléčné a chlazené",
+      "url": "/akce/mlecne-a-chlazene/bio",
+      "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/wm/WIDTHxHEIGHTx1_wmzi1xec8fd9.png",
+      "highlighted": false,
+      "vendorId": 1
+    }
+  ],
+  "widgets": [],
+  "banners": [],
+  "filters": [],
+  "orderBy": [
+    {
+      "id": "price-default",
+      "name": "Doporučené",
+      "value": true
+    },
+    {
+      "id": "price-asc",
+      "name": "Od nejlevnějšího",
+      "value": false
+    },
+    {
+      "id": "price-desc",
+      "name": "Od nejdražšího",
+      "value": false
+    },
+    {
+      "id": "unit-price-asc",
+      "name": "Od nejlevnějšího za jednotku",
+      "value": false
+    },
+    {
+      "id": "unit-price-desc",
+      "name": "Od nejdražšího za jednotku",
+      "value": false
+    },
+    {
+      "id": "discount-absolute-desc",
+      "name": "Od největší slevy (Kč)",
+      "value": false
+    },
+    {
+      "id": "discount-percentage-desc",
+      "name": "Od největší slevy (%)",
+      "value": false
+    }
+  ],
+  "showProductsCount": false,
+  "totalCount": 5,
+  "vendorId": 1,
+  "pharmacyCertificates": [],
+  "otherProducts": {
+    "productCount": 0,
+    "vendorId": 2,
+    "nonRegulatedPharmacyProducts": [],
+    "maximumReached": false
+  },
+  "longName": "Akce - Mléčné a chlazené výrobky",
+  "shortDescription": null,
+  "metaDescription": null
+}

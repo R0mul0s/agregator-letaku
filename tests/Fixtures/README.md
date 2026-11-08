@@ -74,7 +74,12 @@ s novým datem.
 | `coop/prodejny-2026-10-25.html` | `www.coopclub.cz/prodejny/` | `var config` jen se 4 značkami mapy (Václavice, Terno Hradec Králové, TUTY Dvůr Králové, Kladno), klíč mapového API prázdný (R169) |
 | `coop/prodejna-{kód}-2026-10-25.html` | `www.coopclub.cz/prodejny/{kód}/` | jen oddíly „Družstvo“ a „Letákové akce v této prodejně“: Jednota Václavice (leták SČ), Terno Hradec Králové (družstvo České Budějovice, žádný leták), TUTY Dvůr Králové (jen TUTY/TIP), Jednota Pardubice („COOP Pardubice, družstvo“ bez odkazu — leták VČ podle družstva) |
 | `coop/prodejna-konzum-susice-havlickova-90-2026-10-27.html` | `www.coopclub.cz/prodejny/konzum-susice-havlickova-90/` | oddíly „Adresa“ a „Kontakty“ — stránka prodejny bez oddílu „Družstvo“ i bez letáků (R176) |
+| `kosik/akce-2026-11-08.json` | `www.kosik.cz/api/front/page/products/flexible?slug=akce&limit=30` | úvodní stránka kategorie akcí: jen 2 položky, `filters` a `banners` prázdné, `totalCount` 9 = součet oddělení ve fixtures (R179) |
+| `kosik/akce-mlecne-a-chlazene-2026-11-08.json`, `more-mlecne-a-chlazene-…` | `…/flexible?slug=akce/mlecne-a-chlazene` a POST `…/api/front/products/more` s kurzorem | první stránka (Fine Life Eidam se slevou, Milko jogurt se štítkem „Klub Plná péče“, mléko 1 l; `totalCount` 5, kurzor) a další stránka (Mini Babybel, Rama) |
+| `kosik/akce-ovoce-a-zelenina-2026-11-08.json` | `…/flexible?slug=akce/ovoce-a-zelenina` | citron na kusy vážený („cca“ 140 g, cena 4,886 Kč za kus a 34,90 Kč/kg), kaki bez `productQuantity`, kimchi „Akce platí do 8. 11.“; bez kurzoru |
+| `kosik/akce-lekarna-dr-max-2026-11-08.json` | `…/flexible?slug=akce/lekarna-dr-max` | jedna položka prodejce Dr. Max (`vendorId` 2), `totalCount` 1 — oddělení se nestahuje, jen počítá |
 
 Fixtures vygeneroval jednorázový skript z odpovědí uložených při průzkumu. Položky jsou
 beze změny; skript jen vybral podmnožinu a akce e-shopu Tesco přeskládal po 5 na stránku
-(`info.total`, `page`, `count`, `offset`), aby šlo testovat stránkování.
+(`info.total`, `page`, `count`, `offset`), aby šlo testovat stránkování; u Košíku upravil `totalCount`
+podle vybraných položek a vyprázdnil `filters` a `banners`.

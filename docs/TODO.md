@@ -53,6 +53,10 @@ v [PLAN.md](PLAN.md). Větší celky se z toho stávají etapou.
   - **COOP** — hotový pro Čechy (R167, po prodejnách podle letáků na jejich stránce R169); Terno má vlastní letáky po prodejnách na terno.cz (neprozkoumáno); Morava (TIP, TUTY, Tempo, Jednota Zlín a Hodonín) má letáky jen jako obrázky — chtělo by OCR nebo LLM; přiřazení prodejen k regionům (1 450 detailů prodejen) by dovolilo vybrat konkrétní prodejnu
   - **dm** — ne: akce záměrně nemá, jen výprodej
   - drogerie rozšiřuje záběr nad potraviny (Lidl ukládá jen potraviny, R25) — rozhodnout před implementací
+- **Online supermarkety — průzkum 2026-11-08** ([ZDROJE_DAT.md](ZDROJE_DAT.md#online-supermarkety-košík-a-rohlík-průzkum-2026-11-08)):
+  - **Košík** — hotový (R179); dál: ověřit, jestli se nabídka liší podle oblasti doručení, a co znamená štítek „Klub Plná péče“ (cena pro členy?)
+  - **Rohlík** — JSON API technicky snadné (~180 požadavků, ~3 150 akcí, platnost strojově), ale obchodní podmínky výslovně zakazují automatizované získávání obsahu bez písemného souhlasu — nejdřív požádat o souhlas
+  - u Rohlíku rozhodnout, jestli akce jen pro předplatitele Xtra zobrazovat jako cenu s kartou
 - **Makro** — průzkum 2026-10-02: makro.cz je za ochranou proti robotům (403 i `robots.txt`), jinde jen agregátory (R1). Čeká na oficiální přístup, viz [ZDROJE_DAT.md](ZDROJE_DAT.md#makro-průzkum-2026-10-02--zatím-bez-zdroje).
 
 ## Stahování — rozšíření

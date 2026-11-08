@@ -133,6 +133,7 @@ pole *Opakovat* je zápis cronu (`minuta hodina den měsíc den_v_týdnu`). URL 
 | Slevohlídka – Hruška | `10 6,14 * * *` | `…/cron/import-offers?chain=hruska&token=…` (~10 s; PDF aktuálního letáku a letáku dalšího týdne, R165) |
 | Slevohlídka – Norma | `20 6,14 * * *` | `…/cron/import-offers?chain=norma&token=…` (~15 s; PDF letáků tohoto a příštího týdne po ~30 MB, R166) |
 | Slevohlídka – COOP | `30 6,14 * * *` | `…/cron/import-offers?chain=coop&token=…` (~20 s; RSS a PDF celostátního a regionálních letáků Čech, R167) |
+| Slevohlídka – Košík | `40 6,14 * * *` | `…/cron/import-offers?chain=kosik&token=…` (~30 s; ~70 stránek JSON API e-shopu po odděleních akcí, R179) |
 | Slevohlídka – COOP prodejny | `40 */3 * * *` | `…/cron/import-stores?chain=coop&token=…` (~1,5 min; seznam prodejen a letáky 120 nejdéle neobnovených prodejen, R169 — obnova všech ~1,5 dne; po nasazení pustit ručně asi 13× za sebou) |
 | Slevohlídka – kategorie | `0 4 1 * *` | `…/cron/import-categories?token=…` — strom kategorií (stačí občas) |
 | Slevohlídka – souhrn | `30 6-22 * * *` | `…/cron/send-digests?token=…` — e-mailové souhrny a okamžitá upozornění nových akcí (R42, R58) a upozornění v telefonu (R66); jedno volání = dávka 100 uživatelů na e-mail a 200 na telefon, kterým je čas a od jejichž souhrnu doběhlo stažení (R54) |

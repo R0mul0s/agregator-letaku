@@ -1,7 +1,7 @@
 # Slevohlídka (agregátor letáků)
 
 Webová aplikace **Slevohlídka** („Rychlý lovec slev“, R34), která hlídá akční nabídky z letáků obchodů **Kaufland, Tesco,
-Albert, Lidl, Penny, Globus, Billa, Hruška, Norma a COOP**. Uživatel si vybere obchody a hlídané položky (konkrétní
+Albert, Lidl, Penny, Globus, Billa, Hruška, Norma a COOP** a e-shopu **Košík.cz**. Uživatel si vybere obchody a hlídané položky (konkrétní
 produkt nebo kategorii) a vidí, kde a za kolik jsou ve slevě. Osobní projekt
 Romana Hlaváčka (IČO), připravuje se zveřejnění pro cizí uživatele (R51, [docs/ZVEREJNENI.md](docs/ZVEREJNENI.md)).
 
@@ -39,7 +39,7 @@ Hotové etapy a funkce jsou v PLAN.md (tabulka *Co platí a co ne*, kap. 6 Etapy
 
 Produkce běží na `https://slevohlidka.cz` (nasazeno 2026-10-02, přestěhováno ze `slevohlidka.rhsoft.cz` R93, naposledy `8c00335` 2026-11-04);
 postup aktualizace a nasazené verze jsou v `deploy/DEPLOYMENT.md`, poznámky k dřívějším nasazením
-v `deploy/HISTORIE_NASAZENI.md`. Sleduje se 10 obchodů (COOP jen Čechy); Makro zatím nejde (ochrana proti robotům).
+v `deploy/HISTORIE_NASAZENI.md`. Sleduje se 11 obchodů (COOP jen Čechy, Košík.cz jako e-shop); Makro zatím nejde (ochrana proti robotům).
 Etapa 6 (LLM) jen když bude potřeba.
 
 Vývojový uživatel ze seederu: `test@example.com` / `password` (admin katalogu; seeder
@@ -76,7 +76,7 @@ Stažení nabídek od obchodů (skutečné požadavky, šetrně s pauzami; Tesco
 potřebuje `TESCO_API_KEY` v `.env`, viz ZDROJE_DAT.md):
 ```bash
 docker compose exec app php artisan letaky:import-offers            # všechny obchody se zdrojem
-docker compose exec app php artisan letaky:import-offers kaufland   # jen vybrané (kaufland, tesco, albert, lidl, penny, globus, billa, hruska, norma, coop)
+docker compose exec app php artisan letaky:import-offers kaufland   # jen vybrané (kaufland, tesco, albert, lidl, penny, globus, billa, hruska, norma, coop, kosik)
 docker compose exec app php artisan letaky:import-stores kaufland     # prodejny Kauflandu a jejich akce (R49), před import-offers
 docker compose exec app php artisan letaky:import-categories        # strom kategorií katalogu (Tesco, R28)
 docker compose exec app php artisan letaky:admin email@example.com  # správa katalogu /katalog (R29), --revoke odebere
@@ -135,7 +135,7 @@ MariaDB 11.4 · Pest 4 · Larastan · Pint. Text s polohou z PDF letáků: `pdft
 
 ## Pasti
 
-Podrobně po oblastech v **[docs/PASTI.md](docs/PASTI.md)** (69 bodů se stálými čísly) — **před prací
+Podrobně po oblastech v **[docs/PASTI.md](docs/PASTI.md)** (70 bodů se stálými čísly) — **před prací
 na oblasti si přečti její kapitolu**: ceny a platnost, stahování a zdroje, jednotlivé obchody
 (Tesco, Penny, Globus, Billa, Kaufland, PDF letáky), hlídání a katalog, výpisy a hledání,
 upozornění a e-maily, účty a právo, SEO, vzhled a přístupnost, aplikace v telefonu, nákupní

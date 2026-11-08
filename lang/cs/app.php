@@ -16,7 +16,7 @@ declare(strict_types=1);
 return [
 
     'meta' => [
-        'description' => 'Slevohlídka — rychlý lovec slev. Hlídá akce z letáků obchodů Kaufland, Tesco, Albert, Lidl, Penny, Globus, Billa, Hruška, Norma a COOP.',
+        'description' => 'Slevohlídka — rychlý lovec slev. Hlídá akce z letáků obchodů Kaufland, Tesco, Albert, Lidl, Penny, Globus, Billa, Hruška, Norma, COOP a e-shopu Košík.cz.',
     ],
 
     // Hlavička HTML pro vyhledávače a sdílení (R45, App\Support\Seo\SeoMeta). Titulek do 60 znaků,
@@ -91,7 +91,7 @@ return [
             'default' => [
                 'title' => 'Slevohlídka',
                 'heading' => 'Slevohlídka',
-                'description' => 'Slevohlídka — rychlý lovec slev. Hlídá akce z letáků obchodů Kaufland, Tesco, Albert, Lidl, Penny, Globus, Billa, Hruška, Norma a COOP.',
+                'description' => 'Slevohlídka — rychlý lovec slev. Hlídá akce z letáků obchodů Kaufland, Tesco, Albert, Lidl, Penny, Globus, Billa, Hruška, Norma, COOP a e-shopu Košík.cz.',
             ],
         ],
         // Obsah stránky pro roboty bez JavaScriptu (R94, resources/views/seo/content.blade.php) —
@@ -114,7 +114,7 @@ return [
         'og_image_alt' => 'Slevohlídka — rychlý lovec slev. Maskot s nákupním košíkem a cenovkou.',
         // Poslední oddělovač výčtu („Kaufland, Tesco a Billa“, R158)
         'list_last_separator' => ' a ',
-        'organization_description' => 'Slevohlídka hlídá akce z letáků obchodů Kaufland, Tesco, Albert, Lidl, Penny, Globus, Billa, Hruška, Norma a COOP.',
+        'organization_description' => 'Slevohlídka hlídá akce z letáků obchodů Kaufland, Tesco, Albert, Lidl, Penny, Globus, Billa, Hruška, Norma, COOP a e-shopu Košík.cz.',
     ],
 
     // App\Enums\Chain
@@ -129,6 +129,7 @@ return [
         'hruska' => 'Hruška',
         'norma' => 'Norma',
         'coop' => 'COOP',
+        'kosik' => 'Košík.cz',
     ],
 
     // Názvy obchodů ve 2. pádě (Chain::genitive) — „Aktuální akce Kauflandu“
@@ -143,6 +144,7 @@ return [
         'hruska' => 'Hrušky',
         'norma' => 'Normy',
         'coop' => 'COOP',
+        'kosik' => 'Košíku.cz',
     ],
 
     // App\Enums\StoreFormat
@@ -193,7 +195,7 @@ return [
 
     // llms.txt (R45) — popis webu pro jazykové modely
     'llms' => [
-        'summary' => 'Slevohlídka je česká webová aplikace, která každý den stahuje akční nabídky z letáků a e-shopů obchodů Kaufland, Tesco, Albert, Lidl, Penny, Globus, Billa, Hruška, Norma a COOP a ukazuje je přehledně na jednom místě.',
+        'summary' => 'Slevohlídka je česká webová aplikace, která každý den stahuje akční nabídky z letáků a e-shopů obchodů Kaufland, Tesco, Albert, Lidl, Penny, Globus, Billa, Hruška, Norma, COOP a Košík.cz a ukazuje je přehledně na jednom místě.',
         'about' => 'Přihlášený uživatel si vybere obchody, věrnostní karty a položky, které chce hlídat (produkt z katalogu nebo vlastní slova). Slevohlídka mu pak ukáže jen akce na tyto položky, seřazené podle ceny za kilogram, litr nebo kus, a u akce řekne, jestli je to opravdu sleva oproti dřívějším cenám. Akce si uživatel přidá do nákupního seznamu rozděleného podle obchodů a v obchodě („Jsem v obchodě“) je vidí jako kompaktní seznam. O nových akcích ho Slevohlídka upozorní e-mailem nebo v telefonu. Jde přidat na plochu telefonu jako aplikace; Moje slevy a nákupní seznam fungují i bez signálu. Přehled všech aktuálních akcí je veřejný.',
         'pages_title' => 'Veřejné stránky',
         'home' => 'Úvodní stránka',
@@ -1403,7 +1405,7 @@ return [
             'intro' => ':name s vámi sdílí nákupní seznam. Odškrtávejte, co koupíte — :name to uvidí taky.',
             'empty' => 'Seznam je prázdný — teď není co nakupovat.',
             'cta_title' => 'Chcete taky vlastní seznam ze slev?',
-            'cta_text' => 'Slevohlídka hlídá letáky deseti obchodů a ukáže, kde je to, co kupujete, zrovna v akci.',
+            'cta_text' => 'Slevohlídka hlídá akce jedenácti obchodů a ukáže, kde je to, co kupujete, zrovna v akci.',
             'cta_button' => 'Začít zdarma',
             'check_failed' => 'Odškrtnutí se nepodařilo uložit — zkontrolujte připojení a zkuste to znovu.',
         ],

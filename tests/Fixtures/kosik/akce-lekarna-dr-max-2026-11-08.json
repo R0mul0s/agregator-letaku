@@ -1,0 +1,263 @@
+{
+  "display": "full",
+  "productGroups": [],
+  "products": {
+    "totalCount": 1,
+    "items": [
+      {
+        "firstOrderDay": "2026-11-09",
+        "lastOrderDay": "2026-11-10",
+        "id": 793400,
+        "name": "Dr.Max Mořská voda Extra hypertonická 6+ 30 ml",
+        "cleanName": "Mořská voda Extra hypertonická 6+ 30 ml",
+        "brand": {
+          "id": 26243,
+          "name": "Dr.Max",
+          "url": "/b26243-dr-max"
+        },
+        "isSale": false,
+        "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/7b/WIDTHxHEIGHTx1_7bbbh4vmsv80.jpg",
+        "url": "/p793400-dr-max-dr-max-morska-voda-extra-hypertonicka-6-30-ml",
+        "price": 104.0,
+        "returnablePackagePrice": 0.0,
+        "unit": "ks",
+        "recommendedPrice": 146.0,
+        "percentageDiscount": 28,
+        "productQuantity": null,
+        "labels": [
+          {
+            "id": 0,
+            "name": "-28 %",
+            "url": "sale",
+            "background": "",
+            "priority": 1,
+            "styleKey": "strong secondary sale",
+            "excludeFromBox": false
+          }
+        ],
+        "actionLabel": "Akce platí do 30. 11.",
+        "infoLabels": [],
+        "priceLabels": [
+          {
+            "id": 0,
+            "name": "-28 % do 30. 11.",
+            "url": "sale",
+            "background": "",
+            "priority": 2,
+            "styleKey": "strong secondary sale",
+            "excludeFromBox": false
+          }
+        ],
+        "countryCode": null,
+        "pictographs": [],
+        "maxInCart": 7,
+        "limitInCart": null,
+        "plannedStock": null,
+        "relatedProduct": null,
+        "mainCategory": {
+          "id": 33877,
+          "name": "Lékárna Dr. Max",
+          "url": "c33877-lekarna-dr-max",
+          "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/px/WIDTHxHEIGHTx1_pxfm2otiubg3.png",
+          "highlighted": false,
+          "vendorId": 2
+        },
+        "pricePerUnit": {
+          "price": 104.0,
+          "unit": "ks"
+        },
+        "cumulativePrices": [],
+        "giftIds": [],
+        "favorite": false,
+        "purchased": false,
+        "unitStep": 1.0,
+        "vendorId": 2,
+        "pharmacyCertificate": null,
+        "productGroups": [
+          "Zdravotnické prostředky"
+        ],
+        "recommendedSellPrice": 0.0,
+        "detail": null,
+        "hasAssociatedProducts": false,
+        "eLicence": false,
+        "marketplaceVendor": null,
+        "associationCode": null,
+        "loyaltyClubBenefitsPrice": null,
+        "hasLoyaltyClubBenefitsPrice": false,
+        "adultOnly": false,
+        "availability": [
+          {
+            "date": "2026-11-09",
+            "quantity": 7
+          },
+          {
+            "date": "2026-11-10",
+            "quantity": 7
+          },
+          {
+            "date": "2026-11-11",
+            "quantity": 7
+          }
+        ],
+        "transferrable": true,
+        "postponable": true,
+        "blacklisted": false,
+        "discountMethodology": "L30D"
+      }
+    ],
+    "recommendationAnalyticsData": {
+      "resultCount": 30,
+      "resultId": "666",
+      "resultPodId": "",
+      "resultStrategyId": "",
+      "requestData": null,
+      "recommendationId": "",
+      "recommender": "",
+      "recommendationClientId": ""
+    },
+    "cursor": "eJw1VscRBDEIa+geOBH6b+yQxL48G0wQQhD+3spf7Irnvzhr++0nz37KtSqdT2G/yOvZx05/+xf1zPEt19m4fs36gh03vYSVctjsb/1L7lWePHLT0W63WVa4nhcejlXdX1qHgutRq196VMFm2OafL/At7SJcM4ZULxXSYyzlPGz3t7sPXrpXKc3EkVmM7ITye3zZydORMbET9Lcf/XnHmauYLeLc/BPeOxXYjBd4WfsZjEXuvteI4XrHqQu15Q/5udttQJafyQ916HAv4WmruF5JJI4Dl7U2c1i4fvfdBNkAMtK8yq/vRRgSO5lv/A2QDnRP6t5SqYALoDOGdGDMjokFTk6YEc+DPzujy3umGp1gAUgGeOiXeWzx8EWQo4xcWgRy0XSx4P2UDP4S8k5TsG5T+Sd4et+iqauM9NBx0m0tVdOAWb8UC04KwUhhDUJ3lSZ4Hgel6g64rBgziny4nu8SnnJ868TEOr5sm5d024rzwHtDLvYUatTVuy5i8pcELrCyiQu+NRwx1N+ClbjkEgQmhgRDumAP0rwEcqOM55B1za/2UJk05vkhMd5JlKOeLhOel+EWoWs7IgO+ISM185GVLeiGRFcU5pHk4M56YqSKs96YvgTk4wvAilEUeod4bD6Bpq0LjRKVgd/OQZo3jyrNdqokkD5acGJYoJb5SDQgk9CLEKQnwx0rNyVIhK7bN2lTkIuDHSY73CKJNWFtJm4hn0JCHc5Y6q4xxtxJ7+5lvRQLmmcSTlOrHd7b8ueiDUWgQVpq9DuNwHAdIYEv7LinMkrPupkVhLrqPVPwLvEgQy7jzCvlC/HMRjyOlAFkgPcplcI9Uj5h7UchqRGKet3KYFKbISbvhe49V41K0OECauustMr4niAPFUCS4IvsWY9CRoKBUikISHaZjvuNCTFSk8TB+dMjR9RPGqP3/nQ0gXzLw5gWsyYIheQkdEOgkCZpOmpUZ8qo4M90XJm+GhomUU3h2RBYa50cmVgXEp01w00NJDXlFD1X4+WuK9FJFbXGn1gQQwZ1eIlLsnmWntjTQbnY4WJWLkGnwVepSfnx5eoQr2uGouJU4daRhxxODMFIKWKNewIZs6NVypTKwiZwVOmQsKChdG+UjyHdqaaGfj61thSa8wgHWEfa4NAFdVWYJsnWxkIl6jRdko7gkZ88HMXpFNUtcdxoEogqJ1fm/JI6NCbuHJypXlKwEAtSE28rwJoAXce8hL7E49rUB5oknEOquD1BwcRyZAtZQ+d0x4hZXKK6c4xtkeqx4ugh50si15x3CdlsJUFHl6sYZghfmpqESOSD99PNwW8b3qGtqkpoLZTcm9qQqwM2DyK/tlaHZGRr1FTisQF5d8Idhmh1GEkXhTOkUqM22jxQDk48oSv2bBV1qdKHhesROc08+6eWPUrCmvX1vRFqASlO6F63vUwn0nQLyT2RKC6loM0sUeL1Hq0z7q2hl2tWDkYmXBILHSqtLaiuWPDEiUcyoGIkgzbcUCrL/7JNWkw="
+  },
+  "title": "Akce - Lékárna Dr. Max",
+  "descriptionBefore": null,
+  "descriptionAfter": null,
+  "url": "/akce/lekarna-dr-max",
+  "breadcrumbs": [
+    {
+      "id": null,
+      "name": "Akce",
+      "url": "/akce"
+    },
+    {
+      "id": 33877,
+      "name": "Lékárna Dr. Max",
+      "url": "/akce/lekarna-dr-max"
+    }
+  ],
+  "subCategories": [
+    {
+      "id": 33878,
+      "name": "Zdraví a léky",
+      "url": "/akce/lekarna-dr-max/zdravi-a-leky",
+      "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/7b/WIDTHxHEIGHTx1_7b7rzp5jawqs.jpg",
+      "highlighted": true,
+      "vendorId": 2
+    },
+    {
+      "id": 33907,
+      "name": "Doplňky stravy",
+      "url": "/akce/lekarna-dr-max/doplnky-stravy",
+      "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/u2/WIDTHxHEIGHTx1_u29izm72x31p.jpg",
+      "highlighted": true,
+      "vendorId": 2
+    },
+    {
+      "id": 33958,
+      "name": "Zdravá výživa",
+      "url": "/akce/lekarna-dr-max/zdrava-vyziva",
+      "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/hz/WIDTHxHEIGHTx1_hzfaz4ol8r8o.jpg",
+      "highlighted": true,
+      "vendorId": 2
+    },
+    {
+      "id": 33973,
+      "name": "Zdravotnické potřeby",
+      "url": "/akce/lekarna-dr-max/zdravotnicke-potreby",
+      "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/3f/WIDTHxHEIGHTx1_3fxzsltqxbqm.jpg",
+      "highlighted": false,
+      "vendorId": 2
+    },
+    {
+      "id": 33938,
+      "name": "Krása a péče",
+      "url": "/akce/lekarna-dr-max/krasa-a-pece",
+      "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/em/WIDTHxHEIGHTx1_em120yw7wh5i.jpg",
+      "highlighted": false,
+      "vendorId": 2
+    },
+    {
+      "id": 33928,
+      "name": "Matka - dítě",
+      "url": "/akce/lekarna-dr-max/matka-a-dite",
+      "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/5h/WIDTHxHEIGHTx1_5h2larrnj5bg.jpg",
+      "highlighted": false,
+      "vendorId": 2
+    },
+    {
+      "id": 33989,
+      "name": "Pro zvířata",
+      "url": "/akce/lekarna-dr-max/pro-zvirata",
+      "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/e9/WIDTHxHEIGHTx1_e90ku1z229a5.jpg",
+      "highlighted": false,
+      "vendorId": 2
+    },
+    {
+      "id": 33966,
+      "name": "Pro sportovce",
+      "url": "/akce/lekarna-dr-max/pro-sportovce",
+      "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/bv/WIDTHxHEIGHTx1_bv8in7p6bpz0.jpg",
+      "highlighted": false,
+      "vendorId": 2
+    },
+    {
+      "id": 33994,
+      "name": "Domácnost - drogerie ",
+      "url": "/akce/lekarna-dr-max/domacnost-a-drogerie",
+      "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/oo/WIDTHxHEIGHTx1_oo9vfci1gxmr.jpg",
+      "highlighted": false,
+      "vendorId": 2
+    }
+  ],
+  "widgets": [],
+  "banners": [],
+  "filters": [],
+  "orderBy": [
+    {
+      "id": "price-default",
+      "name": "Doporučené",
+      "value": true
+    },
+    {
+      "id": "price-asc",
+      "name": "Od nejlevnějšího",
+      "value": false
+    },
+    {
+      "id": "price-desc",
+      "name": "Od nejdražšího",
+      "value": false
+    },
+    {
+      "id": "unit-price-asc",
+      "name": "Od nejlevnějšího za jednotku",
+      "value": false
+    },
+    {
+      "id": "unit-price-desc",
+      "name": "Od nejdražšího za jednotku",
+      "value": false
+    },
+    {
+      "id": "discount-absolute-desc",
+      "name": "Od největší slevy (Kč)",
+      "value": false
+    },
+    {
+      "id": "discount-percentage-desc",
+      "name": "Od největší slevy (%)",
+      "value": false
+    }
+  ],
+  "showProductsCount": false,
+  "totalCount": 1,
+  "vendorId": 2,
+  "pharmacyCertificates": [],
+  "otherProducts": {
+    "productCount": 0,
+    "vendorId": 2,
+    "nonRegulatedPharmacyProducts": [],
+    "maximumReached": false
+  },
+  "longName": "Akce - Lékárna Dr.Max",
+  "shortDescription": null,
+  "metaDescription": null
+}

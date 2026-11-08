@@ -1056,6 +1056,99 @@ v kamenných prodejnách, „na e-shopu se nabídka může lišit“ — ve vzor
 
 ---
 
+## Online supermarkety Košík a Rohlík (průzkum 2026-11-08)
+
+Ověřeno skutečnými požadavky s naším User-Agentem. Oba mají veřejné JSON API backendu webu, žádnou ochranu
+proti robotům, cookies nejsou potřeba. Akce platí jen pro nákup s doručením — šly by jako e-shop
+s `online_only` (jako e-shop Tesca, [R4](ROZHODNUTI.md)). **(předpoklad)** Ceny a nabídka se mohou lišit podle
+oblasti doručení: anonymní návštěvník Rohlíku dostal sklad 8799 (Praha 8), neověřeno.
+
+| Obchod | Zdroj | Akcí | Původní cena | Platnost | Požadavků | Podmínky webu |
+|---|---|---|---|---|---|---|
+| **Košík** | JSON API `/api/front/…` po odděleních — **implementováno (R179)** | ~1 330 (+ 456 lékárna Dr. Max) | ano | jen „do 10. 11.“ textem | ~70 | obecné „pro svou potřebu“ |
+| **Rohlík** | JSON API `/api/v1/…` po odděleních | ~3 150 (z toho 945 týdenních) | ano | `validTill` strojově | ~180 | **výslovný zákaz automatizovaného získávání** |
+
+### Košík
+
+**Implementováno (R179):** `KosikOfferSource` a `KosikParser`, konfigurace `letaky.sources.kosik`. Skutečné stažení
+8. 11. 2026: 1 331 akcí za 29 s (~70 požadavků s pauzou 0,5 s), všechny se slevou.
+
+`robots.txt` zakazuje jen `/l*_c*`, košík a nákupní lístek. Ceny v Kč jako float (`13.9`) — přes sdílený parser.
+
+| Účel | Požadavek |
+|---|---|
+| První stránka oddělení | `GET https://www.kosik.cz/api/front/page/products/flexible?slug=akce/{oddělení}&limit=30` — `products{totalCount, items[], cursor}`, `subCategories[]` s adresami oddělení (`/akce/mlecne-a-chlazene`) |
+| Další stránky | `POST https://www.kosik.cz/api/front/products/more`, tělo `{"cursor":"…","limit":30}` — `{products[], cursor}` |
+| Obchodní podmínky | `GET https://www.kosik.cz/api/front/static-page/obchodni-podminky` (web je SPA, HTML stránky obsah nemá) |
+
+Oddělení 8. 11. 2026: `ovoce-a-zelenina` 20, `maso-drubez-a-ryby` 22, `mlecne-a-chlazene` 118, `trvanlive` 495,
+`napoje` 87, `uzeniny-a-lahudky` 57, `pekarna-a-cukrarna` 25, `drogerie` 324, `mrazene` 63, `domacnost-a-zahrada` 140,
+`deti` 49, `zdravi-a-zivotni-styl` 57, `mazlicci` 10, `lekarna-dr-max` 456 — celkem 1 787 bez duplicit, 69 požadavků.
+
+Položka: `id`, `name`, `brand.name`, `price` (akční), `recommendedPrice` (původní), `percentageDiscount`,
+`pricePerUnit{price,unit}`, `productQuantity{value,unit}` (balení), `mainCategory`, `image` (`WIDTHxHEIGHT` v adrese
+nahradit rozměrem), `url` (`/p767408-…`), `vendorId`, `actionLabel` („Akce platí do 10. 11.“).
+
+Pasti:
+- **`limit` nad 30 vrací 400** („use cursor to load more products“).
+- **Celá kategorie `slug=akce` se kurzorem nestáhne** — kurzor skončí po 560 položkách z 1 787 (`totalCount`). Stahovat po odděleních.
+- **Platnost jen textem bez roku a bez začátku** (`actionLabel`, `priceLabels[].name` „-26 % do 10. 11.“). Rok odvodit
+  (přelom roku), začátek = den prvního stažení. 8. 11.: do 10. 11. 848, do 30. 11. 603, zbytek do 1. 12.–31. 12.
+- **Lékárna Dr. Max** (`vendorId` ≠ 1, oddělení `lekarna-dr-max`) je jiný prodejce — vynechat.
+- Štítek „Klub Plná péče“ (16 akcí) — `loyaltyClubBenefitsPrice` je prázdné a `hasLoyaltyClubBenefitsPrice` false;
+  **(předpoklad)** zobrazená cena platí pro všechny, neověřeno. `cumulativePrices` (vícekusové) bylo vždy prázdné.
+- **Zboží na kusy vážené** (`productQuantity.prefix` „cca“, 16 akcí ovoce a zeleniny): `price` je cena odhadovaného kusu
+  s nesmyslnými desetinami (`4.886`, `9.786000000000001`), `pricePerUnit` cena za kg. Bere se cena za kg a původní cena
+  vydělená hmotností kusu (9,786 / 0,14 = 69,90 Kč/kg).
+- `percentageDiscount` je zaokrouhlené **dolů** (29,90 z 54,90 = 45,5 % → 45). `recommendedPrice` je u `discountMethodology`
+  `L30D` (1 515 z 1 787) nejnižší cena za 30 dní před akcí, u `STANDARD` běžná cena.
+- Stejný produkt bývá ve dvou odděleních (`mainCategory` je jen jedno) — duplicity podle `id`.
+- Popisek „Akce platí do 8. 11.“ zůstává ještě den po konci — taková položka se vynechá (ne jako nepřevedená).
+- Obchodní podmínky čl. 11.1: zákazník portál užívá „výhradně pro svou potřebu“; výslovný zákaz robotů ani stahování
+  tam není ([O6](PLAN.md#7-otevřené-otázky)).
+
+### Rohlík
+
+`robots.txt` pro `*` zakazuje jen `/regal/*` (výslovně povoluje i `ClaudeBot`, `GPTBot` aj.). Web je Next.js,
+data stránky jsou v `__NEXT_DATA__` (`dehydratedState.queries[].queryKey` ukazuje volaná API).
+
+| Účel | Požadavek |
+|---|---|
+| Počet akcí oddělení | `GET https://www.rohlik.cz/api/v1/categories/sales/{oddělení}/products/count` — `{"results":122}` |
+| ID akcí oddělení | `GET …/api/v1/categories/sales/{oddělení}/products?page={n}&size=100&sort=recommended` — `productIds[]` |
+| Ceny a akce | `GET …/api/v1/products/prices?products={id}&products={id}…` (po 50) — `price`, `pricePerUnit`, `sales[]` |
+| Název, balení, značka | `GET …/api/v1/products?products={id}&…` — `name`, `textualAmount` („100 g“), `brand`, `mainCategoryId`, `images[]` |
+| Karta produktu | `GET …/api/v1/products/card?products={id}` — `prices{originalPrice, salePrice, saleValidTill, saleText}`, `badges[]` |
+
+Oddělení: `300101000` pekárna, `…102000` ovoce a zelenina, `…103000` maso a ryby, `…104000` uzeniny, `…105000` mléčné,
+`…106000` trvanlivé, `…107000` mražené, `…108000` nápoje, `…109000` drogerie, `…110000` dítě, `…111000` domácnost,
+`…112000` zvíře. 8. 11. 2026: 3 149 produktů v akci, 114 požadavků (ID + ceny), názvy dalších ~65.
+
+`sales[]`: `{type, triggerAmount, price.amount, originalPrice.amount, validTill: "2026-11-13T23:59:00+01:00", active, badges[]}`.
+
+| `type` | Počet 8. 11. | Co je |
+|---|---|---|
+| `sale` | 945 | týdenní akce („-20 %, Do 13. 11.“), většina do neděle/pondělí |
+| `longtermAction` | 2 072 | dlouhodobá akce (často do 31. 12.), sleva bývá malá (94,90 → 89,90) |
+| `multipack` | 183 | „Kup 5, -10 %“ — `triggerAmount` je počet kusů |
+| `premium` | 84 | jen s placeným předplatným Xtra („-10 % pro vás“) — obdoba ceny s kartou |
+| `babyClub` | 41 | dětský klub, u anonymního `active: false` |
+| `sameDayDeliveryDiscount` | 21 | jen při doručení dnes — není akce |
+| `expiration` | 6 | krátká trvanlivost („Spotřeba do 10. 11.“) — není akce v našem smyslu |
+| `groupDiscount` | (mimo `sales`) | „-8 % od 4 různých ks“ |
+
+Pasti:
+- **Filtr `?filter=options:sales` u `categories/normal/…` API tiše ignoruje** (i jiné tvary) a vrátí celý katalog —
+  17 432 produktů, 557 požadavků. Správně je typ kategorie `sales` v cestě. `categories/sale/…` vrací 400.
+- Začátek akce API nemá, jen `validTill` (místní čas s posunem).
+- Celý katalog (`categories/normal`) by dal i **běžné ceny mimo akci** (`price` bez `sales`) — ~560 požadavků.
+- **Všeobecné obchodní podmínky** (`https://cdn.rohlik.cz/files/vop/VOP_VP_2026_01_19_CZ2.pdf`, čl. 2 c): zákazník
+  se zavazuje, že nebude „bez písemného souhlasu Rohlik.cz získávat, sledovat nebo kopírovat jakýkoli obsah nebo
+  informace poskytované prostřednictvím e-shopu Rohlik.cz (a to včetně jakýchkoliv automatizovaných prostředků …)
+  pro jakýkoli účel“. Nejpřísnější ze všech obchodů — **bez písemného souhlasu Rohlíku nestahovat** ([O6](PLAN.md#7-otevřené-otázky)).
+
+---
+
 ## Výsledky testovacích scénářů (leták 30. 9.–6. 10. 2026)
 
 Slouží jako referenční data pro první testy párování.

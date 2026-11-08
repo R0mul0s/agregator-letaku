@@ -2,7 +2,7 @@
     "$schema": "https://getcomposer.org/schema.json",
     "name": "r0mul0s/agregator-letaku",
     "type": "project",
-    "description": "Slevohlídka — hlídání akčních nabídek z letáků obchodů Kaufland, Tesco, Albert, Lidl, Penny, Globus, Billa, Hruška, Norma a COOP",
+    "description": "Slevohlídka — hlídání akčních nabídek z letáků obchodů Kaufland, Tesco, Albert, Lidl, Penny, Globus, Billa, Hruška, Norma, COOP a e-shopu Košík.cz",
     "keywords": [
         "letaky",
         "akce",

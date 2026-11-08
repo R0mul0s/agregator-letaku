@@ -1,0 +1,554 @@
+{
+  "display": "full",
+  "productGroups": [],
+  "products": {
+    "totalCount": 9,
+    "items": [
+      {
+        "firstOrderDay": null,
+        "lastOrderDay": null,
+        "id": 767408,
+        "name": "Fine Life Eidam plátky 30%",
+        "cleanName": "Eidam plátky 30%",
+        "brand": {
+          "id": 13769,
+          "name": "Fine Life",
+          "url": "/b13769-fine-life"
+        },
+        "isSale": false,
+        "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/wo/WIDTHxHEIGHTx1_wowaptda4oy7.jpg",
+        "url": "/p767408-fine-life-eidam-platky-30",
+        "price": 13.9,
+        "returnablePackagePrice": 0.0,
+        "unit": "ks",
+        "recommendedPrice": 18.9,
+        "percentageDiscount": 26,
+        "productQuantity": {
+          "prefix": "",
+          "value": 100.0,
+          "unit": "g"
+        },
+        "labels": [
+          {
+            "id": 0,
+            "name": "-26 %",
+            "url": "sale",
+            "background": "",
+            "priority": 1,
+            "styleKey": "strong secondary sale",
+            "excludeFromBox": false
+          }
+        ],
+        "actionLabel": "Akce platí do 10. 11.",
+        "infoLabels": [],
+        "priceLabels": [
+          {
+            "id": 0,
+            "name": "-26 % do 10. 11.",
+            "url": "sale",
+            "background": "",
+            "priority": 2,
+            "styleKey": "strong secondary sale",
+            "excludeFromBox": false
+          }
+        ],
+        "countryCode": "CZE",
+        "pictographs": [],
+        "maxInCart": 50,
+        "limitInCart": null,
+        "plannedStock": null,
+        "relatedProduct": null,
+        "mainCategory": {
+          "id": 898,
+          "name": "Mléčné a chlazené",
+          "url": "c898-mlecne-a-chlazene",
+          "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/np/WIDTHxHEIGHTx1_np3hbwlcq3ri.png",
+          "highlighted": false,
+          "vendorId": 1
+        },
+        "pricePerUnit": {
+          "price": 139.0,
+          "unit": "kg"
+        },
+        "cumulativePrices": [],
+        "giftIds": [],
+        "favorite": false,
+        "purchased": false,
+        "unitStep": 1.0,
+        "vendorId": 1,
+        "pharmacyCertificate": null,
+        "productGroups": [],
+        "recommendedSellPrice": 0.0,
+        "detail": null,
+        "hasAssociatedProducts": false,
+        "eLicence": false,
+        "marketplaceVendor": null,
+        "associationCode": null,
+        "loyaltyClubBenefitsPrice": null,
+        "hasLoyaltyClubBenefitsPrice": false,
+        "adultOnly": false,
+        "availability": [
+          {
+            "date": "2026-11-08",
+            "quantity": 200
+          },
+          {
+            "date": "2026-11-09",
+            "quantity": 200
+          },
+          {
+            "date": "2026-11-10",
+            "quantity": 200
+          },
+          {
+            "date": "2026-11-11",
+            "quantity": 200
+          }
+        ],
+        "transferrable": false,
+        "postponable": false,
+        "blacklisted": false,
+        "discountMethodology": "STANDARD"
+      },
+      {
+        "firstOrderDay": null,
+        "lastOrderDay": null,
+        "id": 767412,
+        "name": "Fine Life Gouda 48% plátky",
+        "cleanName": "Gouda 48% plátky",
+        "brand": {
+          "id": 13769,
+          "name": "Fine Life",
+          "url": "/b13769-fine-life"
+        },
+        "isSale": false,
+        "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/0v/WIDTHxHEIGHTx1_0vi2jxt8j9b4.jpg",
+        "url": "/p767412-fine-life-gouda-48-platky",
+        "price": 13.9,
+        "returnablePackagePrice": 0.0,
+        "unit": "ks",
+        "recommendedPrice": 19.9,
+        "percentageDiscount": 30,
+        "productQuantity": {
+          "prefix": "",
+          "value": 100.0,
+          "unit": "g"
+        },
+        "labels": [
+          {
+            "id": 0,
+            "name": "-30 %",
+            "url": "sale",
+            "background": "",
+            "priority": 1,
+            "styleKey": "strong secondary sale",
+            "excludeFromBox": false
+          }
+        ],
+        "actionLabel": "Akce platí do 10. 11.",
+        "infoLabels": [],
+        "priceLabels": [
+          {
+            "id": 0,
+            "name": "-30 % do 10. 11.",
+            "url": "sale",
+            "background": "",
+            "priority": 2,
+            "styleKey": "strong secondary sale",
+            "excludeFromBox": false
+          }
+        ],
+        "countryCode": "CZE",
+        "pictographs": [],
+        "maxInCart": 50,
+        "limitInCart": null,
+        "plannedStock": null,
+        "relatedProduct": null,
+        "mainCategory": {
+          "id": 898,
+          "name": "Mléčné a chlazené",
+          "url": "c898-mlecne-a-chlazene",
+          "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/np/WIDTHxHEIGHTx1_np3hbwlcq3ri.png",
+          "highlighted": false,
+          "vendorId": 1
+        },
+        "pricePerUnit": {
+          "price": 139.0,
+          "unit": "kg"
+        },
+        "cumulativePrices": [],
+        "giftIds": [],
+        "favorite": false,
+        "purchased": false,
+        "unitStep": 1.0,
+        "vendorId": 1,
+        "pharmacyCertificate": null,
+        "productGroups": [],
+        "recommendedSellPrice": 0.0,
+        "detail": null,
+        "hasAssociatedProducts": false,
+        "eLicence": false,
+        "marketplaceVendor": null,
+        "associationCode": null,
+        "loyaltyClubBenefitsPrice": null,
+        "hasLoyaltyClubBenefitsPrice": false,
+        "adultOnly": false,
+        "availability": [
+          {
+            "date": "2026-11-08",
+            "quantity": 200
+          },
+          {
+            "date": "2026-11-09",
+            "quantity": 200
+          },
+          {
+            "date": "2026-11-10",
+            "quantity": 200
+          },
+          {
+            "date": "2026-11-11",
+            "quantity": 200
+          }
+        ],
+        "transferrable": false,
+        "postponable": false,
+        "blacklisted": false,
+        "discountMethodology": "L30D"
+      }
+    ],
+    "recommendationAnalyticsData": {
+      "resultCount": 30,
+      "resultId": "666",
+      "resultPodId": "",
+      "resultStrategyId": "",
+      "requestData": null,
+      "recommendationId": "",
+      "recommender": "",
+      "recommendationClientId": ""
+    },
+    "cursor": "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"
+  },
+  "title": "Akce",
+  "descriptionBefore": null,
+  "descriptionAfter": null,
+  "url": "/akce",
+  "breadcrumbs": [
+    {
+      "id": null,
+      "name": "Akce",
+      "url": "/akce"
+    }
+  ],
+  "subCategories": [
+    {
+      "id": 985,
+      "name": "Ovoce a zelenina",
+      "url": "/akce/ovoce-a-zelenina",
+      "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/v1/WIDTHxHEIGHTx1_v1hh0213wofl.png",
+      "highlighted": true,
+      "vendorId": 1
+    },
+    {
+      "id": 960,
+      "name": "Maso a ryby",
+      "url": "/akce/maso-drubez-a-ryby",
+      "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/8m/WIDTHxHEIGHTx1_8mpdxcxr06se.png",
+      "highlighted": true,
+      "vendorId": 1
+    },
+    {
+      "id": 898,
+      "name": "Mléčné a chlazené",
+      "url": "/akce/mlecne-a-chlazene",
+      "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/np/WIDTHxHEIGHTx1_np3hbwlcq3ri.png",
+      "highlighted": true,
+      "vendorId": 1
+    },
+    {
+      "id": 1211,
+      "name": "Trvanlivé",
+      "url": "/akce/trvanlive",
+      "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/bj/WIDTHxHEIGHTx1_bj1d9mn32232.png",
+      "highlighted": false,
+      "vendorId": 1
+    },
+    {
+      "id": 1107,
+      "name": "Nápoje",
+      "url": "/akce/napoje",
+      "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/ry/WIDTHxHEIGHTx1_rykklvxfqyxw.png",
+      "highlighted": false,
+      "vendorId": 1
+    },
+    {
+      "id": 1046,
+      "name": "Uzeniny a lahůdky",
+      "url": "/akce/uzeniny-a-lahudky",
+      "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/un/WIDTHxHEIGHTx1_unedto6526fe.png",
+      "highlighted": false,
+      "vendorId": 1
+    },
+    {
+      "id": 1026,
+      "name": "Pekárna a cukrárna",
+      "url": "/akce/pekarna-a-cukrarna",
+      "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/ht/WIDTHxHEIGHTx1_htzx1c0eswky.png",
+      "highlighted": false,
+      "vendorId": 1
+    },
+    {
+      "id": 1455,
+      "name": "Drogerie a kosmetika",
+      "url": "/akce/drogerie",
+      "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/p3/WIDTHxHEIGHTx1_p3908s4ewp7v.png",
+      "highlighted": false,
+      "vendorId": 1
+    },
+    {
+      "id": 1083,
+      "name": "Mražené",
+      "url": "/akce/mrazene",
+      "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/9p/WIDTHxHEIGHTx1_9p5nq345t2ff.png",
+      "highlighted": false,
+      "vendorId": 1
+    },
+    {
+      "id": 1390,
+      "name": "Domácnost a zahrada",
+      "url": "/akce/domacnost-a-zahrada",
+      "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/b7/WIDTHxHEIGHTx1_b7rfpzlrnlen.png",
+      "highlighted": false,
+      "vendorId": 1
+    },
+    {
+      "id": 1369,
+      "name": "Děti",
+      "url": "/akce/deti",
+      "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/k3/WIDTHxHEIGHTx1_k3qsb18gjbmm.png",
+      "highlighted": false,
+      "vendorId": 1
+    },
+    {
+      "id": 36779,
+      "name": "Zdraví a životní styl",
+      "url": "/akce/zdravi-a-zivotni-styl",
+      "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/xd/WIDTHxHEIGHTx1_xd4y4ogq7ajx.png",
+      "highlighted": false,
+      "vendorId": 1
+    },
+    {
+      "id": 1363,
+      "name": "Mazlíčci",
+      "url": "/akce/mazlicci",
+      "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/7b/WIDTHxHEIGHTx1_7b8p65wbw5g7.png",
+      "highlighted": false,
+      "vendorId": 1
+    },
+    {
+      "id": 33877,
+      "name": "Lékárna Dr. Max",
+      "url": "/akce/lekarna-dr-max",
+      "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/px/WIDTHxHEIGHTx1_pxfm2otiubg3.png",
+      "highlighted": false,
+      "vendorId": 2
+    },
+    {
+      "id": 37220,
+      "name": "Benefit pro firmy",
+      "url": "/akce/benefit-pro-firmy",
+      "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/rd/WIDTHxHEIGHTx1_rdig44ccttz9.png",
+      "highlighted": false,
+      "vendorId": 1
+    },
+    {
+      "id": 36092,
+      "name": "Naše značky",
+      "url": "/akce/nase-znacky",
+      "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/gi/WIDTHxHEIGHTx1_giwszqocscpt.png",
+      "highlighted": false,
+      "vendorId": 1
+    },
+    {
+      "id": 36385,
+      "name": "Chuťovky ze světa",
+      "url": "/akce/chutovky-ze-sveta",
+      "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/qx/WIDTHxHEIGHTx1_qxhaie8yod0u.png",
+      "highlighted": false,
+      "vendorId": 1
+    },
+    {
+      "id": 1685,
+      "name": "Vánoce",
+      "url": "/akce/vanoce",
+      "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/0a/WIDTHxHEIGHTx1_0azr8uwz7rmu.png",
+      "highlighted": false,
+      "vendorId": 1
+    },
+    {
+      "id": 37160,
+      "name": "Snídaňové kombo",
+      "url": "/akce/snidanove-kombo",
+      "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/xf/WIDTHxHEIGHTx1_xfbrflsa2epm.png",
+      "highlighted": false,
+      "vendorId": 1
+    },
+    {
+      "id": 37134,
+      "name": "Zpátky v režimu",
+      "url": "/akce/zpatky-v-rezimu",
+      "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/7w/WIDTHxHEIGHTx1_7wwdc3ulj154.png",
+      "highlighted": false,
+      "vendorId": 1
+    },
+    {
+      "id": 36282,
+      "name": "Imunita",
+      "url": "/akce/imunita",
+      "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/n5/WIDTHxHEIGHTx1_n5hhj3ghljc6.png",
+      "highlighted": false,
+      "vendorId": 1
+    },
+    {
+      "id": 36348,
+      "name": "Podzimní svátky",
+      "url": "/akce/podzimni-svatky",
+      "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/d6/WIDTHxHEIGHTx1_d65o3z3jp5rf.png",
+      "highlighted": false,
+      "vendorId": 1
+    },
+    {
+      "id": 26659,
+      "name": "Mezinárodní kuchyně",
+      "url": "/akce/mezinarodni-kuchyne",
+      "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/41/WIDTHxHEIGHTx1_41q7hsmibspa.png",
+      "highlighted": false,
+      "vendorId": 1
+    },
+    {
+      "id": 36239,
+      "name": "Podzimní kavárna",
+      "url": "/akce/podzimni-kavarna",
+      "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/n2/WIDTHxHEIGHTx1_n2hlrqhg34zy.png",
+      "highlighted": false,
+      "vendorId": 1
+    },
+    {
+      "id": 36227,
+      "name": "Pivní festival",
+      "url": "/akce/pivni-festival",
+      "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/rd/WIDTHxHEIGHTx1_rdhu15ql6sza.png",
+      "highlighted": false,
+      "vendorId": 1
+    },
+    {
+      "id": 36445,
+      "name": "Svatý Martin",
+      "url": "/akce/svaty-martin",
+      "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/zh/WIDTHxHEIGHTx1_zh5oqb2dzv7p.png",
+      "highlighted": false,
+      "vendorId": 1
+    },
+    {
+      "id": 36196,
+      "name": "Babyweeks",
+      "url": "/akce/babyweeks",
+      "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/bj/WIDTHxHEIGHTx1_bjk1qs52wqk6.png",
+      "highlighted": false,
+      "vendorId": 1
+    },
+    {
+      "id": 14060,
+      "name": "Authentic",
+      "url": "/akce/authentic-the-real-food-story",
+      "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/pw/WIDTHxHEIGHTx1_pwqgmpyiiwpu.png",
+      "highlighted": false,
+      "vendorId": 1
+    },
+    {
+      "id": 36625,
+      "name": "Zdravé snackování",
+      "url": "/akce/zdrave-snackovani",
+      "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/iv/WIDTHxHEIGHTx1_iv5cca56yvgh.png",
+      "highlighted": false,
+      "vendorId": 1
+    },
+    {
+      "id": 36990,
+      "name": "Pet weeks",
+      "url": "/akce/pet-weeks",
+      "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/kk/WIDTHxHEIGHTx1_kkt17rnvlnz3.png",
+      "highlighted": false,
+      "vendorId": 1
+    },
+    {
+      "id": 34947,
+      "name": "Francouzské značky",
+      "url": "/akce/francouzske-znacky",
+      "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/us/WIDTHxHEIGHTx1_us0w3pvxq7wp.jpg",
+      "highlighted": false,
+      "vendorId": 1
+    },
+    {
+      "id": 5929,
+      "name": "DELMART",
+      "url": "/akce/delmart",
+      "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/8c/WIDTHxHEIGHTx1_8cwpsnykekla.png",
+      "highlighted": false,
+      "vendorId": 1
+    }
+  ],
+  "widgets": [],
+  "banners": [],
+  "filters": [],
+  "orderBy": [
+    {
+      "id": "price-default",
+      "name": "Doporučené",
+      "value": true
+    },
+    {
+      "id": "price-asc",
+      "name": "Od nejlevnějšího",
+      "value": false
+    },
+    {
+      "id": "price-desc",
+      "name": "Od nejdražšího",
+      "value": false
+    },
+    {
+      "id": "unit-price-asc",
+      "name": "Od nejlevnějšího za jednotku",
+      "value": false
+    },
+    {
+      "id": "unit-price-desc",
+      "name": "Od nejdražšího za jednotku",
+      "value": false
+    },
+    {
+      "id": "discount-absolute-desc",
+      "name": "Od největší slevy (Kč)",
+      "value": false
+    },
+    {
+      "id": "discount-percentage-desc",
+      "name": "Od největší slevy (%)",
+      "value": false
+    }
+  ],
+  "showProductsCount": false,
+  "totalCount": 9,
+  "vendorId": 1,
+  "pharmacyCertificates": [],
+  "otherProducts": {
+    "productCount": 0,
+    "vendorId": 2,
+    "nonRegulatedPharmacyProducts": [],
+    "maximumReached": false
+  },
+  "longName": null,
+  "shortDescription": null,
+  "metaDescription": null
+}

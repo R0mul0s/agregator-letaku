@@ -24,6 +24,7 @@ enum Chain: string
     case Hruska = 'hruska';
     case Norma = 'norma';
     case Coop = 'coop';
+    case Kosik = 'kosik';
 
     /**
      * Název obchodu pro zobrazení (lang/cs/app.php, skupina chains).

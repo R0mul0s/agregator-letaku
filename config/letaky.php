@@ -21,6 +21,7 @@ use App\Domain\Sources\Globus\GlobusOfferSource;
 use App\Domain\Sources\Hruska\HruskaOfferSource;
 use App\Domain\Sources\Kaufland\KauflandOfferSource;
 use App\Domain\Sources\Kaufland\KauflandStoreSource;
+use App\Domain\Sources\Kosik\KosikOfferSource;
 use App\Domain\Sources\Lidl\LidlOfferSource;
 use App\Domain\Sources\Norma\NormaOfferSource;
 use App\Domain\Sources\Penny\PennyOfferSource;
@@ -88,7 +89,7 @@ return [
         'directory' => 'legal',
         'terms_version' => 1,
         'marketing_consent_version' => 1,
-        'effective_from' => '2026-10-25',
+        'effective_from' => '2026-11-08',
     ],
 
     /*
@@ -477,6 +478,55 @@ return [
             // Stažení pak skončí chybou, aby import akce letáku neoznačil jako stažené (R16)
             'pdf_min_offers' => 25,
             'request_delay_ms' => (int) env('LETAKY_COOP_REQUEST_DELAY_MS', 1000),
+        ],
+        'kosik' => [
+            // Online supermarket (R179): JSON API webu po odděleních akcí (~70 požadavků, ~1 330 akcí).
+            // Všechny akce jsou jen s doručením (online_only) — přepínač „akce jen z e-shopu“ v Mých
+            // obchodech by u čistého e-shopu nedával smysl, skrýt je jde filtrem „Bez e-shopu“
+            'offers_source' => KosikOfferSource::class,
+            'has_store_formats' => false,
+            'has_eshop' => false,
+            // Akce nemá začátek, jen „Akce platí do 10. 11.“ — začátek je den stažení a pokračující akce
+            // se stejnou cenou prodlouží svůj řádek (R54), jinak by byla každý den „nová“
+            'extends_continuing_offers' => true,
+            'base_url' => 'https://www.kosik.cz',
+            'page_api_path' => '/api/front/page/products/flexible',
+            // Další stránka: POST {cursor, limit}
+            'more_api_path' => '/api/front/products/more',
+            'offers_slug' => 'akce',
+            'offers_page_url' => 'https://www.kosik.cz/akce',
+            // Nejvíc, co API dovolí (víc = 400)
+            'page_size' => 30,
+            // Oddělení akcí (`akce/{oddělení}`) — celá kategorie „akce“ se kurzorem stáhnout nedá. Tematické
+            // výběry (Vánoce, Svatý Martin…) jsou podmnožiny oddělení
+            'departments' => [
+                'ovoce-a-zelenina', 'maso-drubez-a-ryby', 'mlecne-a-chlazene', 'trvanlive', 'napoje',
+                'uzeniny-a-lahudky', 'pekarna-a-cukrarna', 'drogerie', 'mrazene', 'domacnost-a-zahrada',
+                'deti', 'zdravi-a-zivotni-styl', 'mazlicci',
+            ],
+            // Oddělení, která se vědomě nestahují (jen jejich počet do pojistky úplnosti): lékárna Dr. Max
+            // je jiný prodejce (vendorId 2) s léky a doplňky stravy
+            'excluded_departments' => ['lekarna-dr-max'],
+            // Prodejce Košík; položky jiných prodejců se vynechají
+            'vendor_id' => 1,
+            // Oddělení musí pokrýt aspoň (1 − podíl) všech akcí kategorie „akce“ (jinak přibylo oddělení)
+            // a nepřevedených položek smí být nejvýš tolik (jiný popisek platnosti) — stažení jinak skončí
+            // chybou, aby import zbytek akcí neoznačil jako stažené (R16)
+            'max_missing_share' => 0.05,
+            // Pojistka proti nekonečnému kurzoru — největší oddělení (trvanlivé, ~500 akcí) má ~17 stránek
+            'max_pages_per_department' => 60,
+            // Konec akce „Akce platí do 10. 11.“ (den, měsíc; rok chybí)
+            'valid_to_pattern' => '/do\s+(\d{1,2})\.\s*(\d{1,2})\./u',
+            // Konec, který letos minul nejvýš před tolika dny, je skončená akce (popisek se ještě nezměnil);
+            // starší datum je konec v příštím roce („do 5. 1.“ v prosinci)
+            'past_end_tolerance_days' => 31,
+            // Zboží na kusy vážené („Citron, 1 ks“, cca 140 g): cena je za odhadovaný kus, bere se cena za kg
+            'estimated_weight_prefix' => 'cca',
+            'kilogram_unit' => 'kg',
+            // Adresa obrázku má místo rozměrů zástupný text
+            'image_size_placeholder' => 'WIDTHxHEIGHT',
+            'image_size' => '300x300',
+            'request_delay_ms' => (int) env('LETAKY_KOSIK_REQUEST_DELAY_MS', 500),
         ],
         'tesco' => [
             'offers_source' => TescoOfferSource::class,

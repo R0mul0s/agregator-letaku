@@ -1,0 +1,242 @@
+{
+  "products": [
+    {
+      "firstOrderDay": null,
+      "lastOrderDay": null,
+      "id": 763842,
+      "name": "Mini Babybel Original ",
+      "cleanName": "Original ",
+      "brand": {
+        "id": 3412,
+        "name": "Mini Babybel",
+        "url": "/b3412-mini-babybel"
+      },
+      "isSale": false,
+      "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/zh/WIDTHxHEIGHTx1_zhi9efny1r9x.png",
+      "url": "/p763842-mini-babybel-original",
+      "price": 48.9,
+      "returnablePackagePrice": 0.0,
+      "unit": "ks",
+      "recommendedPrice": 69.9,
+      "percentageDiscount": 30,
+      "productQuantity": {
+        "prefix": "",
+        "value": 100.0,
+        "unit": "g"
+      },
+      "labels": [
+        {
+          "id": 0,
+          "name": "-30 %",
+          "url": "sale",
+          "background": "",
+          "priority": 1,
+          "styleKey": "strong secondary sale",
+          "excludeFromBox": false
+        },
+        {
+          "id": 20700,
+          "name": "10 % zpět",
+          "url": "https://www.kosik.cz/c1369-deti",
+          "background": "benjaminek",
+          "priority": 2,
+          "styleKey": null,
+          "excludeFromBox": false
+        }
+      ],
+      "actionLabel": "Akce platí do 10. 11.",
+      "infoLabels": [
+        {
+          "id": 20700,
+          "name": "10 % zpět",
+          "url": "https://www.kosik.cz/c1369-deti",
+          "background": "benjaminek",
+          "priority": 1,
+          "styleKey": null,
+          "excludeFromBox": false,
+          "design": "benjaminek",
+          "description": null
+        }
+      ],
+      "priceLabels": [
+        {
+          "id": 0,
+          "name": "-30 % do 10. 11.",
+          "url": "sale",
+          "background": "",
+          "priority": 2,
+          "styleKey": "strong secondary sale",
+          "excludeFromBox": false
+        }
+      ],
+      "countryCode": "SVK",
+      "pictographs": [],
+      "maxInCart": 49,
+      "limitInCart": null,
+      "plannedStock": null,
+      "relatedProduct": null,
+      "mainCategory": {
+        "id": 898,
+        "name": "Mléčné a chlazené",
+        "url": "c898-mlecne-a-chlazene",
+        "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/np/WIDTHxHEIGHTx1_np3hbwlcq3ri.png",
+        "highlighted": false,
+        "vendorId": 1
+      },
+      "pricePerUnit": {
+        "price": 488.99999999999994,
+        "unit": "kg"
+      },
+      "cumulativePrices": [],
+      "giftIds": [],
+      "favorite": false,
+      "purchased": false,
+      "unitStep": 1.0,
+      "vendorId": 1,
+      "pharmacyCertificate": null,
+      "productGroups": [],
+      "recommendedSellPrice": 0.0,
+      "detail": null,
+      "hasAssociatedProducts": false,
+      "eLicence": false,
+      "marketplaceVendor": null,
+      "associationCode": null,
+      "loyaltyClubBenefitsPrice": null,
+      "hasLoyaltyClubBenefitsPrice": false,
+      "adultOnly": false,
+      "availability": [
+        {
+          "date": "2026-11-08",
+          "quantity": 49
+        },
+        {
+          "date": "2026-11-09",
+          "quantity": 49
+        },
+        {
+          "date": "2026-11-10",
+          "quantity": 49
+        },
+        {
+          "date": "2026-11-11",
+          "quantity": 49
+        }
+      ],
+      "transferrable": false,
+      "postponable": false,
+      "blacklisted": false,
+      "discountMethodology": "L30D"
+    },
+    {
+      "firstOrderDay": null,
+      "lastOrderDay": null,
+      "id": 740502,
+      "name": "Rama máslová příchuť",
+      "cleanName": "máslová příchuť",
+      "brand": {
+        "id": 512,
+        "name": "Rama",
+        "url": "/b512-rama"
+      },
+      "isSale": false,
+      "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/ce/WIDTHxHEIGHTx1_ce6b38tuy6rj.png",
+      "url": "/p740502-rama-maslova-prichut",
+      "price": 59.9,
+      "returnablePackagePrice": 0.0,
+      "unit": "ks",
+      "recommendedPrice": 94.9,
+      "percentageDiscount": 36,
+      "productQuantity": {
+        "prefix": "",
+        "value": 400.0,
+        "unit": "g"
+      },
+      "labels": [
+        {
+          "id": 0,
+          "name": "-36 %",
+          "url": "sale",
+          "background": "",
+          "priority": 1,
+          "styleKey": "strong secondary sale",
+          "excludeFromBox": false
+        }
+      ],
+      "actionLabel": "Akce platí do 10. 11.",
+      "infoLabels": [],
+      "priceLabels": [
+        {
+          "id": 0,
+          "name": "-36 % do 10. 11.",
+          "url": "sale",
+          "background": "",
+          "priority": 2,
+          "styleKey": "strong secondary sale",
+          "excludeFromBox": false
+        }
+      ],
+      "countryCode": null,
+      "pictographs": [
+        "vegan",
+        "nonPalmOil"
+      ],
+      "maxInCart": 50,
+      "limitInCart": null,
+      "plannedStock": null,
+      "relatedProduct": null,
+      "mainCategory": {
+        "id": 898,
+        "name": "Mléčné a chlazené",
+        "url": "c898-mlecne-a-chlazene",
+        "image": "https://static-new.kosik.cz/k3wCdnContainerk3w-static-ne-cz-prod/images/thumbs/np/WIDTHxHEIGHTx1_np3hbwlcq3ri.png",
+        "highlighted": false,
+        "vendorId": 1
+      },
+      "pricePerUnit": {
+        "price": 149.75,
+        "unit": "kg"
+      },
+      "cumulativePrices": [],
+      "giftIds": [],
+      "favorite": false,
+      "purchased": false,
+      "unitStep": 1.0,
+      "vendorId": 1,
+      "pharmacyCertificate": null,
+      "productGroups": [],
+      "recommendedSellPrice": 0.0,
+      "detail": null,
+      "hasAssociatedProducts": false,
+      "eLicence": false,
+      "marketplaceVendor": null,
+      "associationCode": null,
+      "loyaltyClubBenefitsPrice": null,
+      "hasLoyaltyClubBenefitsPrice": false,
+      "adultOnly": false,
+      "availability": [
+        {
+          "date": "2026-11-08",
+          "quantity": 200
+        },
+        {
+          "date": "2026-11-09",
+          "quantity": 200
+        },
+        {
+          "date": "2026-11-10",
+          "quantity": 200
+        },
+        {
+          "date": "2026-11-11",
+          "quantity": 200
+        }
+      ],
+      "transferrable": false,
+      "postponable": false,
+      "blacklisted": false,
+      "discountMethodology": "L30D"
+    }
+  ],
+  "cursor": "eJwtkMkBxDAIAxviwS3ov7EV8X7iIKNBxrwXsj0KQUzmiK06xLzySeV3b5Sm9fvS0ZEbKoBtzVclq9TSFoM+JjHeNp7HnLOeNFV9fNj9B5HXsyuJBoJ242Q6CpRgTcmbFo9OIyvzo3RQyulJyYwyfQ9ohlpVF7jHujgmwZZARN1AZgNmpyUGynBf9T+G/XuiBWdLrW7bEfuI4VbJHOOdlw0VTxwJbRwkfS88g7gkszHWHdyVTXEHo+POHUUFfkQLTLg=",
+  "pharmacyCertificates": []
+}
