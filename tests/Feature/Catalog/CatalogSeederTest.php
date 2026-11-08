@@ -54,17 +54,30 @@ it('každý produkt katalogu má slovo dost dlouhé pro předvýběr (R54)', fun
     expect(array_column($tooShort, 'name'))->toBe([]);
 });
 
-it('energetický nápoj chytá Red Bull, ale ne „bullet“ ani kosmetiku Bull Dog', function (string $name, bool $matches): void {
+it('pravidla energetického nápoje a Fanty nechytají slova se stejným začátkem', function (string $product, string $name, bool $matches): void {
     $normalizer = app(TextNormalizer::class);
-    $product = collect(require database_path('seeders/data/catalog-products.php'))->firstWhere('name', 'Energetický nápoj');
-    $rule = WatchRule::fromText($product['keywords'], $product['variant_keywords'], $product['exclude_keywords'], $normalizer);
+    $data = collect(require database_path('seeders/data/catalog-products.php'))->firstWhere('name', $product);
+    $rule = WatchRule::fromText($data['keywords'], $data['variant_keywords'], $data['exclude_keywords'], $normalizer);
 
     expect(app(WatchItemMatcher::class)->matchText($rule, $normalizer->normalize($name), false) !== null)->toBe($matches);
 })->with([
-    'Red Bull' => ['Red Bull Energy Drink 250 ml', true],
-    'Red Bull bez slova energy' => ['Red Bull Sugarfree 250ml plech', true],
+    'Red Bull' => ['Energetický nápoj', 'Red Bull Energy Drink 250 ml', true],
+    'Red Bull bez slova energy' => ['Energetický nápoj', 'Red Bull Sugarfree 250ml plech', true],
+    'Monster' => ['Energetický nápoj', 'Monster Energy Ultra Fantasy Ruby Red 500ml', true],
     // Párování hledá začátek slova — „bull“ našlo vibrátor z Košíku (8. 11. 2026)
-    'vibrátor' => ['Durex Vibrátor Mini Delight bullet', false],
-    'Bull Dog' => ['Bull Dog Original solný sprej pro styling vlasů 150ml', false],
-    'Bulldog' => ['Bulldog Skincare Sensitive hydratační krém 100ml', false],
+    'vibrátor bullet' => ['Energetický nápoj', 'Durex Vibrátor Mini Delight bullet', false],
+    'Bull Dog' => ['Energetický nápoj', 'Bull Dog Original solný sprej pro styling vlasů 150ml', false],
+    'Bulldog' => ['Energetický nápoj', 'Bulldog Skincare Sensitive hydratační krém 100ml', false],
+    'krém Energy' => ['Energetický nápoj', 'Nivea Q10 Pleťový krém Energy', false],
+    'Energy Snack' => ['Energetický nápoj', 'Energy Snack', false],
+    'Monster Munch' => ['Energetický nápoj', 'Lorenz Monster munch Bramborový snack', false],
+    'pěna do koupele' => ['Energetický nápoj', 'Naturalis Pěnivá koupel Ginseng Energy', false],
+    'Fanta' => ['Fanta', 'Fanta Zero pomeranč 500ml', true],
+    'Coca-Cola/Fanta' => ['Fanta', 'Coca-Cola/Fanta', true],
+    // „fanta“ našlo „Pure fantasy“, jogurty Fantasia, krmivo Felix Fantastic i Monster Ultra Fantasy
+    'vibrátor fantasy' => ['Fanta', 'Durex Vibrátor Pure fantasy', false],
+    'Fantasia' => ['Fanta', 'Danone Fantasia Jogurt', false],
+    'Felix Fantastic' => ['Fanta', 'Felix Fantastic kapsičky pro kočky hovězí, kuře v želé 4 x 85g', false],
+    'Monster Fantasy' => ['Fanta', 'Monster Energy Ultra Fantasy Ruby Red 500ml', false],
+    'Fantaisie' => ['Fanta', 'Custo Fantaisie kryt volantu', false],
 ]);
