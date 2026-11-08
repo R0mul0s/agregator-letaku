@@ -39,13 +39,17 @@ const LIDL_PDF_HOST = 'assets.leaflets.schwarz';
  * @param  string  $leafletPages  Fixture výstupu `pdftotext -bbox-layout`
  * @param  string  $thursdayCampaign  Fixture čtvrteční kampaně (6. 10. = akce od 8. 10. jako v letáku)
  * @param  int  $pdfStatus  HTTP status odpovědi s PDF letáku
+ * @param  array<string, int>  $failing  Cesta kampaně => chybový HTTP status (404 = skončená kampaň, na kterou úvodní stránka ještě odkazuje)
  */
-function fakeLidl(bool $withoutTiles = false, string $leafletPages = LIDL_LEAFLET_PAGES, string $thursdayCampaign = 'lidl/ctvrtecni-nabidka-2026-10-02.html', int $pdfStatus = 200): void
+function fakeLidl(bool $withoutTiles = false, string $leafletPages = LIDL_LEAFLET_PAGES, string $thursdayCampaign = 'lidl/ctvrtecni-nabidka-2026-10-02.html', int $pdfStatus = 200, array $failing = []): void
 {
     Process::fake(['*' => Process::result(responseFixture($leafletPages))]);
 
-    Http::fake(function (Request $request) use ($withoutTiles, $thursdayCampaign, $pdfStatus) {
+    Http::fake(function (Request $request) use ($withoutTiles, $thursdayCampaign, $pdfStatus, $failing) {
         $path = parse_url($request->url(), PHP_URL_PATH);
+        if (isset($failing[$path])) {
+            return Http::response('Error', $failing[$path]);
+        }
 
         if ($path === '/v4/flyer') {
             return Http::response(responseFixture('lidl/flyer-'.$request['flyer_identifier'].'-2026-10-02.json'));
@@ -243,6 +247,24 @@ it('nedostupné PDF ukončí stažení chybou', function (): void {
 
     expect(ScrapeRun::query()->sole()->status)->toBe(ScrapeStatus::Failed)
         ->and(Offer::query()->count())->toBe(0);
+});
+
+it('skončenou kampaň, jejíž stránka vrací 404, přeskočí a ostatní uloží', function (): void {
+    // 8. 11. 2026: úvodní stránka odkazovala na „Čtvrteční nabídku“ týdne 45 a stránka vracela 404
+    fakeLidl(failing: ['/c/1-1-zdarma/a10103790' => 404]);
+
+    $this->artisan('letaky:import-offers', ['chain' => ['lidl']])->assertSuccessful();
+
+    expect(Leaflet::query()->where('kind', LeafletKind::Web)->pluck('external_id')->sort()->values()->all())
+        ->toBe(['a10103788-2026-10-01', 'a10103791-2026-10-02']);
+});
+
+it('jiná chyba stránky kampaně ukončí celé stažení (R16)', function (): void {
+    fakeLidl(failing: ['/c/1-1-zdarma/a10103790' => 500]);
+
+    $this->artisan('letaky:import-offers', ['chain' => ['lidl']])->assertFailed();
+
+    expect(ScrapeRun::query()->sole()->status)->toBe(ScrapeStatus::Failed);
 });
 
 it('vyloučenou kampaň nestáhne', function (): void {

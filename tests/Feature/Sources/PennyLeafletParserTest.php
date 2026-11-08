@@ -200,3 +200,13 @@ it('glyf čárky z písma letáku (U+E012) v názvu převede na čárku, ID nech
         ->and($pepsi->externalId)->toBe('letak-'.substr(sha1(mb_strtolower($pepsi->raw['name']).'|'.$pepsi->raw['package'].'|'.$pepsi->price), 0, 16))
         ->and($pepsi->raw['name'])->toContain("\u{E012}");
 });
+
+it('platnost přečte se dny v týdnu i bez nich (vánoční katalog)', function (string $text, string $from, string $to): void {
+    $validity = app(PennyLeafletParser::class)->pageValidity([new SvgToken(0.0, 0.0, 10.0, '#000', $text)]);
+
+    expect([$validity[0]->toDateString(), $validity[1]->toDateString()])->toBe([$from, $to]);
+})->with([
+    'týdenní leták' => ['Nabídka platná od pátku 2. 10. do neděle 4. 10. 2026', '2026-10-02', '2026-10-04'],
+    // 8. 11. 2026 — katalog bez dnů v týdnu shodil celé stažení Penny
+    'vánoční katalog' => ['Nabídka platí od 11. 11. do 24. 11. 2026', '2026-11-11', '2026-11-24'],
+]);

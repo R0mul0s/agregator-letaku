@@ -217,8 +217,11 @@ final class PennyLeafletParser
     /** Řádek, který nepatří do názvu (cena za 30 dní „< 13,90 Kč“ apod.). */
     private const NOT_NAME_PATTERN = '/Kč|^<$/u';
 
-    /** Platnost na stránce: „od pátku 2. 10. do neděle 4. 10. 2026“. */
-    private const VALIDITY_PATTERN = '/(platí|platná)\s+od\s+\p{L}+\s+(\d{1,2})\.\s*(\d{1,2})\.\s*do\s+\p{L}+\s+(\d{1,2})\.\s*(\d{1,2})\.\s*(\d{4})/u';
+    /**
+     * Platnost na stránce: „od pátku 2. 10. do neděle 4. 10. 2026“, katalog i bez dnů v týdnu
+     * („Nabídka platí od 11. 11. do 24. 11. 2026“, vánoční katalog 8. 11. 2026).
+     */
+    private const VALIDITY_PATTERN = '/(platí|platná)\s+od\s+(?:\p{L}+\s+)?(\d{1,2})\.\s*(\d{1,2})\.\s*do\s+(?:\p{L}+\s+)?(\d{1,2})\.\s*(\d{1,2})\.\s*(\d{4})/u';
 
     /** Externí ID nabídky z letáku — leták nemá kód zboží, ID je otisk názvu, balení a ceny. */
     private const EXTERNAL_ID_PREFIX = 'letak-';

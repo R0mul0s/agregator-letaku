@@ -31,6 +31,7 @@ use App\Domain\Sources\Pdf\PdfTextReader;
 use App\Domain\Sources\SourceHttp;
 use App\Enums\Chain;
 use App\Enums\LeafletKind;
+use Symfony\Component\HttpFoundation\Response;
 
 final class LidlOfferSource implements OfferSource
 {
@@ -67,7 +68,11 @@ final class LidlOfferSource implements OfferSource
 
         $batches = [];
         foreach ($campaigns as $path => $campaignId) {
-            $offers = $this->parser->offers($this->download($baseUrl.$path), $categories, $baseUrl);
+            $page = $this->campaignPage($baseUrl.$path);
+            if ($page === null) {
+                continue;
+            }
+            $offers = $this->parser->offers($page, $categories, $baseUrl);
             if ($offers !== []) {
                 $batches[] = new SourceBatch($this->leaflet($campaignId, $baseUrl.$path, $offers), $offers);
             }
@@ -222,5 +227,17 @@ final class LidlOfferSource implements OfferSource
     private function download(string $url): string
     {
         return $this->http->request(config()->integer('letaky.sources.lidl.request_delay_ms'))->get($url)->body();
+    }
+
+    /**
+     * HTML stránky kampaně; null, když kampaň skončila a stránka vrací 404 — úvodní stránka na ni
+     * může odkazovat ještě dny (8. 11. 2026 „Čtvrteční nabídka“ týdne 45). Jiná chyba stažení dál
+     * ukončí celé stažení (R16).
+     */
+    private function campaignPage(string $url): ?string
+    {
+        $response = $this->http->request(config()->integer('letaky.sources.lidl.request_delay_ms'), allowNotFound: true)->get($url);
+
+        return $response->status() === Response::HTTP_NOT_FOUND ? null : $response->body();
     }
 }

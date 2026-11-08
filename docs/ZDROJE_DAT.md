@@ -290,7 +290,7 @@ Implementace: `app/Domain/Sources/Lidl/` — kampaně z úvodní stránky, jen k
 - Potraviny na příští týden jsou často **jen v letáku**, web je zatím nemá (2. 10.: vejce 30 ks a Coca-Cola Zero na 8. 10. jen v PDF).
 - **„Ušetřete* xx %“ je úspora na ceně za jednotku** (větší balení), ne sleva oproti původní ceně ([R8](ROZHODNUTI.md)).
 - „Rozšířená nabídka“ znamená jen ve vybraných prodejnách. Limity „Max. N balení na nákup“ jsou jen v letáku.
-- Úterní nabídka po skončení zmizí z webu (404).
+- Úterní nabídka po skončení zmizí z webu (404). **Úvodní stránka na skončenou kampaň může ještě odkazovat** (8. 11. 2026 „Čtvrteční nabídka“ týdne 45 `a10106555`) — stránka kampaně s 404 se přeskočí, jiná chyba stažení dál ukončí celé stažení (R16).
 - „Freeway Cola Zero“ je privátní značka Lidlu, ne Coca-Cola.
 - CDN Myra Security za ~60 požadavků s 1s pauzou neblokovala.
 
@@ -355,7 +355,7 @@ Implementace: `app/Domain/Sources/Penny/PennyLeafletParser.php`, podrobný postu
 - Adresa produktu na webu: `https://www.penny.cz/products/{slug}` (`/produkty/` vrací 404).
 - API: `price.loyalty` bez štítku `pt-aktion` u `regular` = akce jen s PENNY kartou, `regular` je běžná cena.
 - API pokrývá jen malou část letáku: polotučné mléko v akci bylo **jen v letáku**.
-- Víkendové akce mají platnost jen v textu stránky („platí od pátku 2. 10. do neděle 4. 10.“).
+- Víkendové akce mají platnost jen v textu stránky („platí od pátku 2. 10. do neděle 4. 10.“). **Katalog uvádí platnost bez dnů v týdnu** („Nabídka platí od 11. 11. do 24. 11. 2026“, vánoční katalog `11_11_2026_katalog_Vanoce`, 8. 11. 2026) — bez ní parser hlásí „leták … neuvádí platnost“ a stažení Penny selže.
 - „Jedinečná nabídka“ bez přeškrtnuté ceny není sleva. `lowestPrice` = nejnižší cena za 30 dní.
 - **Starý leták zmizí** (404) a API drží jen aktuální týden, takže archivovat ([R10](ROZHODNUTI.md)).
 - Nový leták se objeví zřejmě v úterý nebo ve středu **(předpoklad)**.
