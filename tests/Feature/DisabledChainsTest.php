@@ -101,10 +101,29 @@ it('uložení Mých obchodů vypnutý obchod nenabízí, ale jeho sledování ne
     expect($this->user->followedChains()->pluck('chain')->all())->toEqualCanonicalizing([Chain::Kaufland, Chain::Tesco]);
 });
 
+it('obchod vypnutý ve výchozím stavu zapne LETAKY_ENABLED_CHAINS, vypnutí má přednost (R180)', function (): void {
+    config(['letaky.sources.kaufland.enabled_by_default' => false]);
+
+    expect(Chain::Kaufland->isDisabled())->toBeTrue()
+        ->and(app(SourceRegistry::class)->chainsWithOffers())->not->toContain(Chain::Kaufland)
+        // Rohlík je vypnutý, dokud nepřijde souhlas obchodu
+        ->and(Chain::Rohlik->isDisabled())->toBeTrue();
+
+    config(['letaky.enabled_chains' => ['Kaufland ', 'rohlik']]);
+    expect(Chain::Kaufland->isDisabled())->toBeFalse()
+        ->and(Chain::Rohlik->isDisabled())->toBeFalse()
+        ->and(listedOfferNames())->toBe(['Vejce Kaufland', 'Vejce Tesco']);
+
+    config(['letaky.disabled_chains' => ['kaufland']]);
+    expect(Chain::Kaufland->isDisabled())->toBeTrue()
+        ->and(Chain::disabled())->toBe([Chain::Kaufland]);
+});
+
 it('neznámou hodnotu a velká písmena v proměnné snese', function (): void {
     config(['letaky.disabled_chains' => ['Tesco', 'makro']]);
 
-    expect(Chain::disabled())->toBe([Chain::Tesco])
+    // Rohlík je vypnutý ve výchozím stavu (R180)
+    expect(Chain::disabled())->toBe([Chain::Tesco, Chain::Rohlik])
         ->and(Chain::Tesco->isDisabled())->toBeTrue()
         ->and(Chain::enabled())->not->toContain(Chain::Tesco);
 });

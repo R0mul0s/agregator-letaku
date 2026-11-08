@@ -1,0 +1,1224 @@
+[
+  {
+    "productId": 1294755,
+    "price": {
+      "amount": 39.9,
+      "currency": "CZK"
+    },
+    "pricePerUnit": {
+      "amount": 39.9,
+      "currency": "CZK"
+    },
+    "sales": [
+      {
+        "id": 15467320,
+        "type": "sale",
+        "triggerAmount": 1,
+        "price": {
+          "amount": 19.9,
+          "currency": "CZK"
+        },
+        "pricePerUnit": {
+          "amount": 19.9,
+          "currency": "CZK"
+        },
+        "originalPrice": {
+          "amount": 39.9,
+          "currency": "CZK"
+        },
+        "originalPricePerUnit": null,
+        "badges": [
+          {
+            "type": "discount",
+            "title": "-50 %",
+            "subtitle": "Do 9. 11.",
+            "tooltip": null,
+            "description": {
+              "icon": "https://cdn.rohlik.cz/images/icons/sale_badge_discount.png",
+              "text": "ušetříte 50 %",
+              "url": null
+            }
+          }
+        ],
+        "validTill": "2026-11-09T23:59:00+01:00",
+        "active": true,
+        "welcomePrice": false,
+        "silent": false,
+        "bundleId": null
+      }
+    ],
+    "lastMinuteTitle": null
+  },
+  {
+    "productId": 1331029,
+    "price": {
+      "amount": 39.9,
+      "currency": "CZK"
+    },
+    "pricePerUnit": {
+      "amount": 79.8,
+      "currency": "CZK"
+    },
+    "sales": [
+      {
+        "id": 15480768,
+        "type": "sale",
+        "triggerAmount": 1,
+        "price": {
+          "amount": 29.9,
+          "currency": "CZK"
+        },
+        "pricePerUnit": {
+          "amount": 59.8,
+          "currency": "CZK"
+        },
+        "originalPrice": {
+          "amount": 39.9,
+          "currency": "CZK"
+        },
+        "originalPricePerUnit": null,
+        "badges": [
+          {
+            "type": "discount",
+            "title": "-25 %",
+            "subtitle": "Do 9. 11.",
+            "tooltip": null,
+            "description": {
+              "icon": "https://cdn.rohlik.cz/images/icons/sale_badge_discount.png",
+              "text": "ušetříte 25 %",
+              "url": null
+            }
+          }
+        ],
+        "validTill": "2026-11-09T23:59:00+01:00",
+        "active": true,
+        "welcomePrice": false,
+        "silent": false,
+        "bundleId": null
+      }
+    ],
+    "lastMinuteTitle": null
+  },
+  {
+    "productId": 1350677,
+    "price": {
+      "amount": 30.45,
+      "currency": "CZK"
+    },
+    "pricePerUnit": {
+      "amount": 60.9,
+      "currency": "CZK"
+    },
+    "sales": [
+      {
+        "id": 15480766,
+        "type": "sale",
+        "triggerAmount": 1,
+        "price": {
+          "amount": 21.45,
+          "currency": "CZK"
+        },
+        "pricePerUnit": {
+          "amount": 42.9,
+          "currency": "CZK"
+        },
+        "originalPrice": {
+          "amount": 30.45,
+          "currency": "CZK"
+        },
+        "originalPricePerUnit": null,
+        "badges": [
+          {
+            "type": "discount",
+            "title": "-29 %",
+            "subtitle": "Do 9. 11.",
+            "tooltip": null,
+            "description": {
+              "icon": "https://cdn.rohlik.cz/images/icons/sale_badge_discount.png",
+              "text": "ušetříte 29 %",
+              "url": null
+            }
+          }
+        ],
+        "validTill": "2026-11-09T23:59:00+01:00",
+        "active": true,
+        "welcomePrice": false,
+        "silent": false,
+        "bundleId": null
+      }
+    ],
+    "lastMinuteTitle": null
+  },
+  {
+    "productId": 1350881,
+    "price": {
+      "amount": 7.99,
+      "currency": "CZK"
+    },
+    "pricePerUnit": {
+      "amount": 99.9,
+      "currency": "CZK"
+    },
+    "sales": [
+      {
+        "id": 15465896,
+        "type": "sale",
+        "triggerAmount": 1,
+        "price": {
+          "amount": 5.59,
+          "currency": "CZK"
+        },
+        "pricePerUnit": {
+          "amount": 69.9,
+          "currency": "CZK"
+        },
+        "originalPrice": {
+          "amount": 7.99,
+          "currency": "CZK"
+        },
+        "originalPricePerUnit": null,
+        "badges": [
+          {
+            "type": "discount",
+            "title": "-30 %",
+            "subtitle": "Do 9. 11.",
+            "tooltip": null,
+            "description": {
+              "icon": "https://cdn.rohlik.cz/images/icons/sale_badge_discount.png",
+              "text": "ušetříte 30 %",
+              "url": null
+            }
+          }
+        ],
+        "validTill": "2026-11-09T23:59:00+01:00",
+        "active": true,
+        "welcomePrice": false,
+        "silent": false,
+        "bundleId": null
+      }
+    ],
+    "lastMinuteTitle": null
+  },
+  {
+    "productId": 1313889,
+    "price": {
+      "amount": 44.9,
+      "currency": "CZK"
+    },
+    "pricePerUnit": {
+      "amount": 44.9,
+      "currency": "CZK"
+    },
+    "sales": [
+      {
+        "id": 15480767,
+        "type": "sale",
+        "triggerAmount": 1,
+        "price": {
+          "amount": 29.9,
+          "currency": "CZK"
+        },
+        "pricePerUnit": {
+          "amount": 29.9,
+          "currency": "CZK"
+        },
+        "originalPrice": {
+          "amount": 44.9,
+          "currency": "CZK"
+        },
+        "originalPricePerUnit": null,
+        "badges": [
+          {
+            "type": "discount",
+            "title": "-33 %",
+            "subtitle": "Do 9. 11.",
+            "tooltip": null,
+            "description": {
+              "icon": "https://cdn.rohlik.cz/images/icons/sale_badge_discount.png",
+              "text": "ušetříte 33 %",
+              "url": null
+            }
+          }
+        ],
+        "validTill": "2026-11-09T23:59:00+01:00",
+        "active": true,
+        "welcomePrice": false,
+        "silent": false,
+        "bundleId": null
+      }
+    ],
+    "lastMinuteTitle": null
+  },
+  {
+    "productId": 1321589,
+    "price": {
+      "amount": 80.9,
+      "currency": "CZK"
+    },
+    "pricePerUnit": {
+      "amount": 161.8,
+      "currency": "CZK"
+    },
+    "sales": [
+      {
+        "id": 15480765,
+        "type": "sale",
+        "triggerAmount": 1,
+        "price": {
+          "amount": 59.9,
+          "currency": "CZK"
+        },
+        "pricePerUnit": {
+          "amount": 119.8,
+          "currency": "CZK"
+        },
+        "originalPrice": {
+          "amount": 80.9,
+          "currency": "CZK"
+        },
+        "originalPricePerUnit": null,
+        "badges": [
+          {
+            "type": "discount",
+            "title": "-25 %",
+            "subtitle": "Do 9. 11.",
+            "tooltip": null,
+            "description": {
+              "icon": "https://cdn.rohlik.cz/images/icons/sale_badge_discount.png",
+              "text": "ušetříte 25 %",
+              "url": null
+            }
+          }
+        ],
+        "validTill": "2026-11-09T23:59:00+01:00",
+        "active": true,
+        "welcomePrice": false,
+        "silent": false,
+        "bundleId": null
+      }
+    ],
+    "lastMinuteTitle": null
+  },
+  {
+    "productId": 1362491,
+    "price": {
+      "amount": 60.88,
+      "currency": "CZK"
+    },
+    "pricePerUnit": {
+      "amount": 179.9,
+      "currency": "CZK"
+    },
+    "sales": [
+      {
+        "id": 15542484,
+        "type": "sale",
+        "triggerAmount": 1,
+        "price": {
+          "amount": 48.7,
+          "currency": "CZK"
+        },
+        "pricePerUnit": {
+          "amount": 143.92,
+          "currency": "CZK"
+        },
+        "originalPrice": {
+          "amount": 60.88,
+          "currency": "CZK"
+        },
+        "originalPricePerUnit": null,
+        "badges": [
+          {
+            "type": "discount",
+            "title": "-20 %",
+            "subtitle": "Do 8. 11.",
+            "tooltip": null,
+            "description": {
+              "icon": "https://cdn.rohlik.cz/images/icons/sale_badge_discount.png",
+              "text": "ušetříte 20 %",
+              "url": null
+            }
+          }
+        ],
+        "validTill": "2026-11-08T23:44:00+01:00",
+        "active": true,
+        "welcomePrice": false,
+        "silent": false,
+        "bundleId": null
+      }
+    ],
+    "lastMinuteTitle": null
+  },
+  {
+    "productId": 1482697,
+    "price": {
+      "amount": 249.9,
+      "currency": "CZK"
+    },
+    "pricePerUnit": {
+      "amount": 249.9,
+      "currency": "CZK"
+    },
+    "sales": [
+      {
+        "id": 15519736,
+        "type": "sale",
+        "triggerAmount": 1,
+        "price": {
+          "amount": 169.9,
+          "currency": "CZK"
+        },
+        "pricePerUnit": {
+          "amount": 169.9,
+          "currency": "CZK"
+        },
+        "originalPrice": {
+          "amount": 249.9,
+          "currency": "CZK"
+        },
+        "originalPricePerUnit": null,
+        "badges": [
+          {
+            "type": "discount",
+            "title": "-32 %",
+            "subtitle": "Do 13. 11.",
+            "tooltip": null,
+            "description": {
+              "icon": "https://cdn.rohlik.cz/images/icons/sale_badge_discount.png",
+              "text": "ušetříte 32 %",
+              "url": null
+            }
+          }
+        ],
+        "validTill": "2026-11-13T23:59:00+01:00",
+        "active": true,
+        "welcomePrice": false,
+        "silent": false,
+        "bundleId": null
+      }
+    ],
+    "lastMinuteTitle": null
+  },
+  {
+    "productId": 1415134,
+    "price": {
+      "amount": 129.9,
+      "currency": "CZK"
+    },
+    "pricePerUnit": {
+      "amount": 129.9,
+      "currency": "CZK"
+    },
+    "sales": [
+      {
+        "id": 15514057,
+        "type": "sale",
+        "triggerAmount": 1,
+        "price": {
+          "amount": 89.9,
+          "currency": "CZK"
+        },
+        "pricePerUnit": {
+          "amount": 89.9,
+          "currency": "CZK"
+        },
+        "originalPrice": {
+          "amount": 129.9,
+          "currency": "CZK"
+        },
+        "originalPricePerUnit": null,
+        "badges": [
+          {
+            "type": "discount",
+            "title": "-30 %",
+            "subtitle": "Do 10. 11.",
+            "tooltip": null,
+            "description": {
+              "icon": "https://cdn.rohlik.cz/images/icons/sale_badge_discount.png",
+              "text": "ušetříte 30 %",
+              "url": null
+            }
+          }
+        ],
+        "validTill": "2026-11-10T23:59:00+01:00",
+        "active": true,
+        "welcomePrice": false,
+        "silent": false,
+        "bundleId": null
+      }
+    ],
+    "lastMinuteTitle": null
+  },
+  {
+    "productId": 1410880,
+    "price": {
+      "amount": 109.9,
+      "currency": "CZK"
+    },
+    "pricePerUnit": {
+      "amount": 879.2,
+      "currency": "CZK"
+    },
+    "sales": [
+      {
+        "id": 15541803,
+        "type": "sameDayDeliveryDiscount",
+        "triggerAmount": 1,
+        "price": {
+          "amount": 82.42,
+          "currency": "CZK"
+        },
+        "pricePerUnit": {
+          "amount": 659.36,
+          "currency": "CZK"
+        },
+        "originalPrice": {
+          "amount": 109.9,
+          "currency": "CZK"
+        },
+        "originalPricePerUnit": null,
+        "badges": [
+          {
+            "type": "discount",
+            "title": "-25 %",
+            "subtitle": "Dnešní doručení",
+            "tooltip": null,
+            "description": {
+              "icon": "https://cdn.rohlik.cz/images/icons/sale_badge_discount.png",
+              "text": "ušetříte 25 %",
+              "url": null
+            }
+          }
+        ],
+        "validTill": "2026-11-08T23:00:00+01:00",
+        "active": true,
+        "welcomePrice": false,
+        "silent": false,
+        "bundleId": null
+      }
+    ],
+    "lastMinuteTitle": null
+  },
+  {
+    "productId": 1466886,
+    "price": {
+      "amount": 109.9,
+      "currency": "CZK"
+    },
+    "pricePerUnit": {
+      "amount": 3663.33,
+      "currency": "CZK"
+    },
+    "sales": [
+      {
+        "id": 15544996,
+        "type": "sale",
+        "triggerAmount": 1,
+        "price": {
+          "amount": 82.43,
+          "currency": "CZK"
+        },
+        "pricePerUnit": {
+          "amount": 2747.67,
+          "currency": "CZK"
+        },
+        "originalPrice": {
+          "amount": 109.9,
+          "currency": "CZK"
+        },
+        "originalPricePerUnit": null,
+        "badges": [
+          {
+            "type": "discount",
+            "title": "-24 %",
+            "subtitle": "Do 5. 1.",
+            "tooltip": null,
+            "description": {
+              "icon": "https://cdn.rohlik.cz/images/icons/sale_badge_discount.png",
+              "text": "ušetříte 24 %",
+              "url": null
+            }
+          }
+        ],
+        "validTill": "2027-01-05T16:30:11+01:00",
+        "active": true,
+        "welcomePrice": false,
+        "silent": false,
+        "bundleId": null
+      }
+    ],
+    "lastMinuteTitle": null
+  },
+  {
+    "productId": 1353745,
+    "price": {
+      "amount": 179.68,
+      "currency": "CZK"
+    },
+    "pricePerUnit": {
+      "amount": 399.9,
+      "currency": "CZK"
+    },
+    "sales": [
+      {
+        "id": 15387965,
+        "type": "sale",
+        "triggerAmount": 1,
+        "price": {
+          "amount": 134.75,
+          "currency": "CZK"
+        },
+        "pricePerUnit": {
+          "amount": 299.9,
+          "currency": "CZK"
+        },
+        "originalPrice": {
+          "amount": 179.68,
+          "currency": "CZK"
+        },
+        "originalPricePerUnit": null,
+        "badges": [
+          {
+            "type": "discount",
+            "title": "-25 %",
+            "subtitle": "Do 9. 11.",
+            "tooltip": null,
+            "description": {
+              "icon": "https://cdn.rohlik.cz/images/icons/sale_badge_discount.png",
+              "text": "ušetříte 25 %",
+              "url": null
+            }
+          }
+        ],
+        "validTill": "2026-11-09T23:59:00+01:00",
+        "active": true,
+        "welcomePrice": false,
+        "silent": false,
+        "bundleId": null
+      }
+    ],
+    "lastMinuteTitle": null
+  },
+  {
+    "productId": 1446262,
+    "price": {
+      "amount": 244.78,
+      "currency": "CZK"
+    },
+    "pricePerUnit": {
+      "amount": 399.9,
+      "currency": "CZK"
+    },
+    "sales": [
+      {
+        "id": 15566159,
+        "type": "sale",
+        "triggerAmount": 1,
+        "price": {
+          "amount": 183.59,
+          "currency": "CZK"
+        },
+        "pricePerUnit": {
+          "amount": 299.93,
+          "currency": "CZK"
+        },
+        "originalPrice": {
+          "amount": 244.78,
+          "currency": "CZK"
+        },
+        "originalPricePerUnit": null,
+        "badges": [
+          {
+            "type": "discount",
+            "title": "-24 %",
+            "subtitle": "Do 7. 1.",
+            "tooltip": null,
+            "description": {
+              "icon": "https://cdn.rohlik.cz/images/icons/sale_badge_discount.png",
+              "text": "ušetříte 24 %",
+              "url": null
+            }
+          }
+        ],
+        "validTill": "2027-01-07T14:30:05+01:00",
+        "active": true,
+        "welcomePrice": false,
+        "silent": false,
+        "bundleId": null
+      }
+    ],
+    "lastMinuteTitle": null
+  },
+  {
+    "productId": 1482633,
+    "price": {
+      "amount": 160.08,
+      "currency": "CZK"
+    },
+    "pricePerUnit": {
+      "amount": 549.9,
+      "currency": "CZK"
+    },
+    "sales": [
+      {
+        "id": 15388652,
+        "type": "sale",
+        "triggerAmount": 1,
+        "price": {
+          "amount": 125.14,
+          "currency": "CZK"
+        },
+        "pricePerUnit": {
+          "amount": 429.9,
+          "currency": "CZK"
+        },
+        "originalPrice": {
+          "amount": 160.08,
+          "currency": "CZK"
+        },
+        "originalPricePerUnit": null,
+        "badges": [
+          {
+            "type": "discount",
+            "title": "-21 %",
+            "subtitle": "Do 9. 11.",
+            "tooltip": null,
+            "description": {
+              "icon": "https://cdn.rohlik.cz/images/icons/sale_badge_discount.png",
+              "text": "ušetříte 21 %",
+              "url": null
+            }
+          }
+        ],
+        "validTill": "2026-11-09T23:59:00+01:00",
+        "active": true,
+        "welcomePrice": false,
+        "silent": false,
+        "bundleId": null
+      }
+    ],
+    "lastMinuteTitle": null
+  },
+  {
+    "productId": 1353981,
+    "price": {
+      "amount": 1081.86,
+      "currency": "CZK"
+    },
+    "pricePerUnit": {
+      "amount": 299.9,
+      "currency": "CZK"
+    },
+    "sales": [
+      {
+        "id": 15565272,
+        "type": "sale",
+        "triggerAmount": 1,
+        "price": {
+          "amount": 757.3,
+          "currency": "CZK"
+        },
+        "pricePerUnit": {
+          "amount": 209.93,
+          "currency": "CZK"
+        },
+        "originalPrice": {
+          "amount": 1081.86,
+          "currency": "CZK"
+        },
+        "originalPricePerUnit": null,
+        "badges": [
+          {
+            "type": "discount",
+            "title": "-30 %",
+            "subtitle": "Do 9. 11.",
+            "tooltip": null,
+            "description": {
+              "icon": "https://cdn.rohlik.cz/images/icons/sale_badge_discount.png",
+              "text": "ušetříte 30 %",
+              "url": null
+            }
+          }
+        ],
+        "validTill": "2026-11-09T23:59:00+01:00",
+        "active": true,
+        "welcomePrice": false,
+        "silent": false,
+        "bundleId": null
+      }
+    ],
+    "lastMinuteTitle": null
+  },
+  {
+    "productId": 1404475,
+    "price": {
+      "amount": 199.9,
+      "currency": "CZK"
+    },
+    "pricePerUnit": {
+      "amount": 999.5,
+      "currency": "CZK"
+    },
+    "sales": [
+      {
+        "id": 15388653,
+        "type": "sale",
+        "triggerAmount": 1,
+        "price": {
+          "amount": 159.9,
+          "currency": "CZK"
+        },
+        "pricePerUnit": {
+          "amount": 799.5,
+          "currency": "CZK"
+        },
+        "originalPrice": {
+          "amount": 199.9,
+          "currency": "CZK"
+        },
+        "originalPricePerUnit": null,
+        "badges": [
+          {
+            "type": "discount",
+            "title": "-20 %",
+            "subtitle": "Do 9. 11.",
+            "tooltip": null,
+            "description": {
+              "icon": "https://cdn.rohlik.cz/images/icons/sale_badge_discount.png",
+              "text": "ušetříte 20 %",
+              "url": null
+            }
+          }
+        ],
+        "validTill": "2026-11-09T23:59:00+01:00",
+        "active": true,
+        "welcomePrice": false,
+        "silent": false,
+        "bundleId": null
+      }
+    ],
+    "lastMinuteTitle": null
+  },
+  {
+    "productId": 1450968,
+    "price": {
+      "amount": 699.27,
+      "currency": "CZK"
+    },
+    "pricePerUnit": {
+      "amount": 699.9,
+      "currency": "CZK"
+    },
+    "sales": [
+      {
+        "id": 15544675,
+        "type": "sale",
+        "triggerAmount": 1,
+        "price": {
+          "amount": 559.42,
+          "currency": "CZK"
+        },
+        "pricePerUnit": {
+          "amount": 559.92,
+          "currency": "CZK"
+        },
+        "originalPrice": {
+          "amount": 699.27,
+          "currency": "CZK"
+        },
+        "originalPricePerUnit": null,
+        "badges": [
+          {
+            "type": "discount",
+            "title": "-19 %",
+            "subtitle": "Do 11. 11.",
+            "tooltip": null,
+            "description": {
+              "icon": "https://cdn.rohlik.cz/images/icons/sale_badge_discount.png",
+              "text": "ušetříte 19 %",
+              "url": null
+            }
+          }
+        ],
+        "validTill": "2026-11-11T23:59:00+01:00",
+        "active": true,
+        "welcomePrice": false,
+        "silent": false,
+        "bundleId": null
+      }
+    ],
+    "lastMinuteTitle": null
+  },
+  {
+    "productId": 1426187,
+    "price": {
+      "amount": 167.11,
+      "currency": "CZK"
+    },
+    "pricePerUnit": {
+      "amount": 549.9,
+      "currency": "CZK"
+    },
+    "sales": [
+      {
+        "id": 15379661,
+        "type": "sale",
+        "triggerAmount": 1,
+        "price": {
+          "amount": 133.69,
+          "currency": "CZK"
+        },
+        "pricePerUnit": {
+          "amount": 439.9,
+          "currency": "CZK"
+        },
+        "originalPrice": {
+          "amount": 167.11,
+          "currency": "CZK"
+        },
+        "originalPricePerUnit": null,
+        "badges": [
+          {
+            "type": "discount",
+            "title": "-19 %",
+            "subtitle": "Do 9. 11.",
+            "tooltip": null,
+            "description": {
+              "icon": "https://cdn.rohlik.cz/images/icons/sale_badge_discount.png",
+              "text": "ušetříte 19 %",
+              "url": null
+            }
+          }
+        ],
+        "validTill": "2026-11-09T23:59:00+01:00",
+        "active": true,
+        "welcomePrice": false,
+        "silent": false,
+        "bundleId": null
+      }
+    ],
+    "lastMinuteTitle": null
+  },
+  {
+    "productId": 1458135,
+    "price": {
+      "amount": 49.9,
+      "currency": "CZK"
+    },
+    "pricePerUnit": {
+      "amount": 37.8,
+      "currency": "CZK"
+    },
+    "sales": [
+      {
+        "id": 15110387,
+        "type": "sale",
+        "triggerAmount": 1,
+        "price": {
+          "amount": 39.9,
+          "currency": "CZK"
+        },
+        "pricePerUnit": {
+          "amount": 30.23,
+          "currency": "CZK"
+        },
+        "originalPrice": {
+          "amount": 49.9,
+          "currency": "CZK"
+        },
+        "originalPricePerUnit": null,
+        "badges": [
+          {
+            "type": "discount",
+            "title": "-20 %",
+            "subtitle": "Do 9. 11.",
+            "tooltip": null,
+            "description": {
+              "icon": "https://cdn.rohlik.cz/images/icons/sale_badge_discount.png",
+              "text": "ušetříte 20 %",
+              "url": null
+            }
+          }
+        ],
+        "validTill": "2026-11-09T23:59:00+01:00",
+        "active": true,
+        "welcomePrice": false,
+        "silent": false,
+        "bundleId": null
+      },
+      {
+        "id": 15228591,
+        "type": "longtermAction",
+        "triggerAmount": 1,
+        "price": {
+          "amount": 49.9,
+          "currency": "CZK"
+        },
+        "pricePerUnit": {
+          "amount": 37.8,
+          "currency": "CZK"
+        },
+        "originalPrice": {
+          "amount": 69.9,
+          "currency": "CZK"
+        },
+        "originalPricePerUnit": null,
+        "badges": [],
+        "validTill": "2026-12-31T23:59:00+01:00",
+        "active": true,
+        "welcomePrice": false,
+        "silent": false,
+        "bundleId": null
+      }
+    ],
+    "lastMinuteTitle": null
+  },
+  {
+    "productId": 1462148,
+    "price": {
+      "amount": 36.9,
+      "currency": "CZK"
+    },
+    "pricePerUnit": {
+      "amount": 147.6,
+      "currency": "CZK"
+    },
+    "sales": [
+      {
+        "id": 15100837,
+        "type": "longtermAction",
+        "triggerAmount": 1,
+        "price": {
+          "amount": 36.9,
+          "currency": "CZK"
+        },
+        "pricePerUnit": {
+          "amount": 147.6,
+          "currency": "CZK"
+        },
+        "originalPrice": {
+          "amount": 44.9,
+          "currency": "CZK"
+        },
+        "originalPricePerUnit": null,
+        "badges": [],
+        "validTill": "2026-12-13T23:59:00+01:00",
+        "active": true,
+        "welcomePrice": false,
+        "silent": false,
+        "bundleId": null
+      },
+      {
+        "id": 15101962,
+        "type": "premium",
+        "triggerAmount": 1,
+        "price": {
+          "amount": 33.21,
+          "currency": "CZK"
+        },
+        "pricePerUnit": {
+          "amount": 132.84,
+          "currency": "CZK"
+        },
+        "originalPrice": {
+          "amount": 36.9,
+          "currency": "CZK"
+        },
+        "originalPricePerUnit": null,
+        "badges": [
+          {
+            "type": "discount",
+            "title": "-10 % pro vás",
+            "subtitle": null,
+            "tooltip": null,
+            "description": {
+              "icon": "https://cdn.rohlik.cz/images/icons/sale_badge_discount.png",
+              "text": "ušetříte 10 %",
+              "url": null
+            }
+          }
+        ],
+        "validTill": "2026-12-13T23:59:00+01:00",
+        "active": true,
+        "welcomePrice": true,
+        "silent": false,
+        "bundleId": null
+      }
+    ],
+    "lastMinuteTitle": null
+  },
+  {
+    "productId": 1325173,
+    "price": {
+      "amount": 59.9,
+      "currency": "CZK"
+    },
+    "pricePerUnit": {
+      "amount": 133.11,
+      "currency": "CZK"
+    },
+    "sales": [
+      {
+        "id": 15231897,
+        "type": "longtermAction",
+        "triggerAmount": 1,
+        "price": {
+          "amount": 59.9,
+          "currency": "CZK"
+        },
+        "pricePerUnit": {
+          "amount": 133.11,
+          "currency": "CZK"
+        },
+        "originalPrice": {
+          "amount": 64.9,
+          "currency": "CZK"
+        },
+        "originalPricePerUnit": null,
+        "badges": [],
+        "validTill": "2026-12-31T23:59:00+01:00",
+        "active": true,
+        "welcomePrice": false,
+        "silent": false,
+        "bundleId": null
+      },
+      {
+        "id": 15433559,
+        "type": "multipack",
+        "triggerAmount": 2,
+        "price": {
+          "amount": 49.9,
+          "currency": "CZK"
+        },
+        "pricePerUnit": {
+          "amount": 110.89,
+          "currency": "CZK"
+        },
+        "originalPrice": {
+          "amount": 59.9,
+          "currency": "CZK"
+        },
+        "originalPricePerUnit": null,
+        "badges": [
+          {
+            "type": "multipack",
+            "title": "Kup 2",
+            "subtitle": "-16 %",
+            "tooltip": null,
+            "description": {
+              "icon": "https://cdn.rohlik.cz/images/icons/sale_badge_discount.png",
+              "text": "-16 % od 2 ks",
+              "url": null
+            }
+          }
+        ],
+        "validTill": "2026-12-31T23:59:00+01:00",
+        "active": true,
+        "welcomePrice": false,
+        "silent": false,
+        "bundleId": null
+      }
+    ],
+    "lastMinuteTitle": null
+  },
+  {
+    "productId": 1357121,
+    "price": {
+      "amount": 11.9,
+      "currency": "CZK"
+    },
+    "pricePerUnit": {
+      "amount": 238.0,
+      "currency": "CZK"
+    },
+    "sales": [
+      {
+        "id": 14013916,
+        "type": "multipack",
+        "triggerAmount": 3,
+        "price": {
+          "amount": 9.9,
+          "currency": "CZK"
+        },
+        "pricePerUnit": {
+          "amount": 198.0,
+          "currency": "CZK"
+        },
+        "originalPrice": {
+          "amount": 11.9,
+          "currency": "CZK"
+        },
+        "originalPricePerUnit": null,
+        "badges": [
+          {
+            "type": "multipack",
+            "title": "Kup 3",
+            "subtitle": "-16 %",
+            "tooltip": null,
+            "description": {
+              "icon": "https://cdn.rohlik.cz/images/icons/sale_badge_discount.png",
+              "text": "-16 % od 3 ks",
+              "url": null
+            }
+          }
+        ],
+        "validTill": "2026-12-31T23:59:00+01:00",
+        "active": true,
+        "welcomePrice": false,
+        "silent": false,
+        "bundleId": null
+      }
+    ],
+    "lastMinuteTitle": null
+  },
+  {
+    "productId": 1477988,
+    "price": {
+      "amount": 159.9,
+      "currency": "CZK"
+    },
+    "pricePerUnit": {
+      "amount": 266.5,
+      "currency": "CZK"
+    },
+    "sales": [
+      {
+        "id": 13262122,
+        "type": "premium",
+        "triggerAmount": 1,
+        "price": {
+          "amount": 135.89,
+          "currency": "CZK"
+        },
+        "pricePerUnit": {
+          "amount": 226.48,
+          "currency": "CZK"
+        },
+        "originalPrice": {
+          "amount": 159.9,
+          "currency": "CZK"
+        },
+        "originalPricePerUnit": null,
+        "badges": [
+          {
+            "type": "discount",
+            "title": "-15 % pro vás",
+            "subtitle": null,
+            "tooltip": null,
+            "description": {
+              "icon": "https://cdn.rohlik.cz/images/icons/sale_badge_discount.png",
+              "text": "ušetříte 15 %",
+              "url": null
+            }
+          }
+        ],
+        "validTill": "2027-01-05T23:59:00+01:00",
+        "active": true,
+        "welcomePrice": true,
+        "silent": false,
+        "bundleId": null
+      }
+    ],
+    "lastMinuteTitle": null
+  }
+]

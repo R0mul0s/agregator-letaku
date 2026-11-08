@@ -1066,7 +1066,7 @@ oblasti doručení: anonymní návštěvník Rohlíku dostal sklad 8799 (Praha 8
 | Obchod | Zdroj | Akcí | Původní cena | Platnost | Požadavků | Podmínky webu |
 |---|---|---|---|---|---|---|
 | **Košík** | JSON API `/api/front/…` po odděleních — **implementováno (R179)** | ~1 330 (+ 456 lékárna Dr. Max) | ano | jen „do 10. 11.“ textem | ~70 | obecné „pro svou potřebu“ |
-| **Rohlík** | JSON API `/api/v1/…` po odděleních | ~3 150 (z toho 945 týdenních) | ano | `validTill` strojově | ~180 | **výslovný zákaz automatizovaného získávání** |
+| **Rohlík** | JSON API `/api/v1/…` po odděleních — **implementováno, vypnuté do souhlasu (R180)** | ~3 150 (z toho 945 týdenních) | ano | `validTill` strojově | ~180 | **výslovný zákaz automatizovaného získávání** |
 
 ### Košík
 
@@ -1108,6 +1108,10 @@ Pasti:
   tam není ([O6](PLAN.md#7-otevřené-otázky)).
 
 ### Rohlík
+
+**Implementováno (R180), ve výchozím stavu vypnuté** (`enabled_by_default` false) kvůli obchodním podmínkám níže —
+zapne ho `LETAKY_ENABLED_CHAINS=rohlik` až po písemném souhlasu Rohlíku. `RohlikOfferSource` a `RohlikParser`, konfigurace
+`letaky.sources.rohlik`. Bere `sale` a `longtermAction` (kusová cena, nižší vyhrává) a `multipack` jako akci na množství.
 
 `robots.txt` pro `*` zakazuje jen `/regal/*` (výslovně povoluje i `ClaudeBot`, `GPTBot` aj.). Web je Next.js,
 data stránky jsou v `__NEXT_DATA__` (`dehydratedState.queries[].queryKey` ukazuje volaná API).

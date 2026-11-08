@@ -1,0 +1,47 @@
+{
+  "categoryId": 300106000,
+  "categoryType": "sales",
+  "productIds": [
+    1458135,
+    1462148,
+    1325173,
+    1357121,
+    1477988
+  ],
+  "productsWithType": [
+    {
+      "id": 1458135,
+      "type": "PRODUCT"
+    },
+    {
+      "id": 1462148,
+      "type": "PRODUCT"
+    },
+    {
+      "id": 1325173,
+      "type": "PRODUCT"
+    },
+    {
+      "id": 1357121,
+      "type": "PRODUCT"
+    },
+    {
+      "id": 1477988,
+      "type": "PRODUCT"
+    }
+  ],
+  "impressions": [],
+  "interactiveProductCardAds": [],
+  "pageable": {
+    "pageNumber": 0,
+    "pageSize": 100,
+    "sort": {
+      "empty": true,
+      "unsorted": true,
+      "sorted": false
+    },
+    "offset": 0,
+    "unpaged": false,
+    "paged": true
+  }
+}

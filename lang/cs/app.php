@@ -130,6 +130,7 @@ return [
         'norma' => 'Norma',
         'coop' => 'COOP',
         'kosik' => 'Košík.cz',
+        'rohlik' => 'Rohlik.cz',
     ],
 
     // Názvy obchodů ve 2. pádě (Chain::genitive) — „Aktuální akce Kauflandu“
@@ -145,6 +146,7 @@ return [
         'norma' => 'Normy',
         'coop' => 'COOP',
         'kosik' => 'Košíku.cz',
+        'rohlik' => 'Rohlíku.cz',
     ],
 
     // App\Enums\StoreFormat

@@ -25,6 +25,7 @@ use App\Domain\Sources\Kosik\KosikOfferSource;
 use App\Domain\Sources\Lidl\LidlOfferSource;
 use App\Domain\Sources\Norma\NormaOfferSource;
 use App\Domain\Sources\Penny\PennyOfferSource;
+use App\Domain\Sources\Rohlik\RohlikOfferSource;
 use App\Domain\Sources\Tesco\TescoOfferSource;
 
 return [
@@ -201,10 +202,18 @@ return [
     | nasazení kódu — `LETAKY_DISABLED_CHAINS=tesco,albert` v .env na hostingu. Obchod se nestahuje
     | a jeho už uložené akce zmizí ze všech výpisů, souhrnů, upozornění a sitemapy (scope
     | Offer::active); v databázi zůstávají a po odebrání z proměnné se zase ukážou.
+    |
+    | Zapnuté obchody (R180): obchod s `enabled_by_default` false u zdroje (Rohlík — do písemného
+    | souhlasu obchodu) je vypnutý, dokud není v `LETAKY_ENABLED_CHAINS=rohlik`. Vypnutí přes
+    | LETAKY_DISABLED_CHAINS má přednost. Obojí čte App\Enums\Chain::disabled().
     */
     'disabled_chains' => array_values(array_filter(array_map(
         trim(...),
         explode(',', (string) env('LETAKY_DISABLED_CHAINS', '')),
+    ))),
+    'enabled_chains' => array_values(array_filter(array_map(
+        trim(...),
+        explode(',', (string) env('LETAKY_ENABLED_CHAINS', '')),
     ))),
 
     /*
@@ -527,6 +536,62 @@ return [
             'image_size_placeholder' => 'WIDTHxHEIGHT',
             'image_size' => '300x300',
             'request_delay_ms' => (int) env('LETAKY_KOSIK_REQUEST_DELAY_MS', 500),
+        ],
+        'rohlik' => [
+            // Online supermarket (R180): JSON API webu — ID akcí po odděleních, k nim ceny s typy akcí
+            // a detaily produktů po dávkách (~180 požadavků, ~3 100 produktů v akci)
+            'offers_source' => RohlikOfferSource::class,
+            // Obchodní podmínky Rohlik.cz (čl. 2 c) zakazují bez písemného souhlasu automatizované získávání
+            // obsahu — vypnutý, dokud souhlas nepřijde; zapne ho LETAKY_ENABLED_CHAINS=rohlik
+            'enabled_by_default' => false,
+            'has_store_formats' => false,
+            // Všechno jsou akce s doručením (online_only) — přepínač „akce jen z e-shopu“ jako u Košíku ne
+            'has_eshop' => false,
+            // Akce nemá začátek, jen konec (validTill) — začátek je den stažení a pokračující akce se stejnou
+            // cenou prodlouží svůj řádek (R54)
+            'extends_continuing_offers' => true,
+            'base_url' => 'https://www.rohlik.cz',
+            // ID produktů v akci oddělení (typ kategorie „sales“ — filtr ?filter=options:sales API tiše
+            // ignoruje a vrátí celý katalog)
+            'sales_ids_path' => '/api/v1/categories/sales/%d/products',
+            // Ceny a akce produktů (sales[] s typem) a detaily (název, balení, značka, obrázek), po dávkách
+            'prices_path' => '/api/v1/products/prices',
+            'products_path' => '/api/v1/products',
+            'product_url' => 'https://www.rohlik.cz/%d-%s',
+            // Web nemá stránku všech akcí — zdroj odkazuje na úvodní stránku
+            'offers_page_url' => 'https://www.rohlik.cz/',
+            'page_size' => 100,
+            'batch_size' => 50,
+            // Pojistka proti nekonečnému stránkování — největší oddělení (nápoje, ~920 akcí) má 10 stránek
+            'max_pages_per_department' => 30,
+            // Hlavní oddělení (ID kategorie => název pro zdrojovou kategorii akce)
+            'departments' => [
+                300101000 => 'Pekárna a cukrárna',
+                300102000 => 'Ovoce a zelenina',
+                300103000 => 'Maso a ryby',
+                300104000 => 'Uzeniny a lahůdky',
+                300105000 => 'Mléčné a chlazené',
+                300106000 => 'Trvanlivé',
+                300107000 => 'Mražené',
+                300108000 => 'Nápoje',
+                300109000 => 'Drogerie',
+                300110000 => 'Dítě',
+                300111000 => 'Domácnost a zahrada',
+                300112000 => 'Zvíře',
+            ],
+            // Akce pro všechny (kusová cena): týdenní a dlouhodobá. Ne: premium (jen předplatitelé Xtra,
+            // „−10 % pro vás“), babyClub, sameDayDeliveryDiscount, expiration, groupDiscount (R180)
+            'offer_sale_types' => ['sale', 'longtermAction'],
+            // Akce na množství („Kup 3“, triggerAmount = počet kusů)
+            'multibuy_sale_type' => 'multipack',
+            'multibuy_text' => 'od %d ks',
+            // Prodejce Rohlík; produkty partnerů a produkty jen pro Xtra (premiumOnly) se vynechají
+            'seller_id' => 1,
+            'kilogram_unit' => 'kg',
+            // Produktů s akcí, ke kterým chybí detail nebo konec akce, smí být nejvýš tolik — jinak se API
+            // změnilo a stažení skončí chybou (R16)
+            'max_missing_share' => 0.05,
+            'request_delay_ms' => (int) env('LETAKY_ROHLIK_REQUEST_DELAY_MS', 300),
         ],
         'tesco' => [
             'offers_source' => TescoOfferSource::class,

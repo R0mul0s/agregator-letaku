@@ -25,6 +25,7 @@ enum Chain: string
     case Norma = 'norma';
     case Coop = 'coop';
     case Kosik = 'kosik';
+    case Rohlik = 'rohlik';
 
     /**
      * Název obchodu pro zobrazení (lang/cs/app.php, skupina chains).
@@ -43,15 +44,32 @@ enum Chain: string
     }
 
     /**
-     * Obchody vypnuté v konfiguraci (`letaky.disabled_chains`, R155); neznámé hodnoty vynechá.
+     * Vypnuté obchody v pořadí výčtu (R155, R180): uvedené v `letaky.disabled_chains`
+     * (`LETAKY_DISABLED_CHAINS`) a obchody vypnuté ve výchozím stavu (`sources.<obchod>.enabled_by_default`
+     * false — Rohlík do písemného souhlasu), které nejsou v `letaky.enabled_chains` (`LETAKY_ENABLED_CHAINS`).
+     * Vypnutí má přednost před zapnutím.
      *
      * @return list<self>
      */
     public static function disabled(): array
     {
+        $disabled = self::fromConfigList('letaky.disabled_chains');
+        $enabled = self::fromConfigList('letaky.enabled_chains');
+
+        return array_values(array_filter(self::cases(), fn (self $chain): bool => in_array($chain, $disabled, true)
+            || (config("letaky.sources.{$chain->value}.enabled_by_default") === false && ! in_array($chain, $enabled, true))));
+    }
+
+    /**
+     * Obchody ze seznamu v konfiguraci (hodnoty z .env, na velikosti písmen nezáleží); neznámé vynechá.
+     *
+     * @return list<self>
+     */
+    private static function fromConfigList(string $key): array
+    {
         return array_values(array_filter(array_map(
-            fn (mixed $value): ?self => is_string($value) ? self::tryFrom(mb_strtolower($value)) : null,
-            config()->array('letaky.disabled_chains'),
+            fn (mixed $value): ?self => is_string($value) ? self::tryFrom(mb_strtolower(trim($value))) : null,
+            config()->array($key),
         )));
     }
 

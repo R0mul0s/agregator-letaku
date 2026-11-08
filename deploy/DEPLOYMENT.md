@@ -134,6 +134,7 @@ pole *Opakovat* je zápis cronu (`minuta hodina den měsíc den_v_týdnu`). URL 
 | Slevohlídka – Norma | `20 6,14 * * *` | `…/cron/import-offers?chain=norma&token=…` (~15 s; PDF letáků tohoto a příštího týdne po ~30 MB, R166) |
 | Slevohlídka – COOP | `30 6,14 * * *` | `…/cron/import-offers?chain=coop&token=…` (~20 s; RSS a PDF celostátního a regionálních letáků Čech, R167) |
 | Slevohlídka – Košík | `40 6,14 * * *` | `…/cron/import-offers?chain=kosik&token=…` (~30 s; ~70 stránek JSON API e-shopu po odděleních akcí, R179) |
+| Slevohlídka – Rohlík | `50 6,14 * * *` | `…/cron/import-offers?chain=rohlik&token=…` (~1,5 min odhadem) — **zakládat až po zapnutí** `LETAKY_ENABLED_CHAINS=rohlik` (R180; do písemného souhlasu Rohlíku vypnutý, cron by odpovídal „Obchod … je vypnutý“) |
 | Slevohlídka – COOP prodejny | `40 */3 * * *` | `…/cron/import-stores?chain=coop&token=…` (~1,5 min; seznam prodejen a letáky 120 nejdéle neobnovených prodejen, R169 — obnova všech ~1,5 dne; po nasazení pustit ručně asi 13× za sebou) |
 | Slevohlídka – kategorie | `0 4 1 * *` | `…/cron/import-categories?token=…` — strom kategorií (stačí občas) |
 | Slevohlídka – souhrn | `30 6-22 * * *` | `…/cron/send-digests?token=…` — e-mailové souhrny a okamžitá upozornění nových akcí (R42, R58) a upozornění v telefonu (R66); jedno volání = dávka 100 uživatelů na e-mail a 200 na telefon, kterým je čas a od jejichž souhrnu doběhlo stažení (R54) |
@@ -380,13 +381,17 @@ Po prvním nasazení zavolej úklid a kategorie ručně, jinak hlásí „nikdy�
 („Chyba: RuntimeException“ se zprávou, souborem a řádkem) — stejná chyba jednou za den, nejvýš 5 za
 hodinu. Celý záznam s trasou volání je dál v `storage/logs/laravel-<datum>.log` (FTP).
 
-## Vypnutí obchodu (R155)
+## Vypnutí a zapnutí obchodu (R155, R180)
 
 Když obchod požádá, ať ho nezobrazujeme (O6, [ZVEREJNENI.md](../docs/ZVEREJNENI.md#5-právo-k-obsahu-obchodů-o6--podklady-pro-advokáta)):
 do `.env` na hostingu přidej `LETAKY_DISABLED_CHAINS=tesco` (víc obchodů čárkou). Nasazení ani SQL
 není potřeba — obchod se přestane stahovat a jeho akce zmizí ze všech výpisů hned, z úvodní
 stránky, týdne a našeptávače do hodiny (cache). Cron URL obchodu odpoví 200 „Obchod … je vypnutý“,
 cron ve WebAdminu pak vypni. Data zůstávají; odebráním hodnoty z proměnné se obchod vrátí.
+
+**Zapnutí obchodu vypnutého ve výchozím stavu (R180):** obchod s `enabled_by_default` false u zdroje
+(Rohlík — do písemného souhlasu obchodu) zapne `LETAKY_ENABLED_CHAINS=rohlik` v `.env` (víc obchodů čárkou),
+pak založ jeho cron z tabulky výše. `LETAKY_DISABLED_CHAINS` má přednost.
 
 ## Limit odesílání e-mailů
 

@@ -78,6 +78,9 @@ s novým datem.
 | `kosik/akce-mlecne-a-chlazene-2026-11-08.json`, `more-mlecne-a-chlazene-…` | `…/flexible?slug=akce/mlecne-a-chlazene` a POST `…/api/front/products/more` s kurzorem | první stránka (Fine Life Eidam se slevou, Milko jogurt se štítkem „Klub Plná péče“, mléko 1 l; `totalCount` 5, kurzor) a další stránka (Mini Babybel, Rama) |
 | `kosik/akce-ovoce-a-zelenina-2026-11-08.json` | `…/flexible?slug=akce/ovoce-a-zelenina` | citron na kusy vážený („cca“ 140 g, cena 4,886 Kč za kus a 34,90 Kč/kg), kaki bez `productQuantity`, kimchi „Akce platí do 8. 11.“; bez kurzoru |
 | `kosik/akce-lekarna-dr-max-2026-11-08.json` | `…/flexible?slug=akce/lekarna-dr-max` | jedna položka prodejce Dr. Max (`vendorId` 2), `totalCount` 1 — oddělení se nestahuje, jen počítá |
+| `rohlik/sales-300102000-2026-11-08.json`, `sales-300103000-…` | `www.rohlik.cz/api/v1/categories/sales/{oddělení}/products?page=0&size=100` | celé seznamy ID akcí oddělení ovoce a zelenina (11) a maso a ryby (7) (R180) |
+| `rohlik/sales-300106000-2026-11-08.json` | tvar téže odpovědi | **složená** stránka s 5 ID z dat průzkumu 8. 11. (Kofola s týdenní i dlouhodobou akcí, máslo s dlouhodobou a Xtra, Jar s dlouhodobou a „Kup 2“, müsli „Kup 3“, polévka jen Xtra) — skutečné oddělení se kvůli podmínkám Rohlíku nestahovalo |
+| `rohlik/prices-2026-11-08.json`, `products-…` | `…/api/v1/products/prices?products=…` a `…/api/v1/products?products=…` | ceny s `sales[]` a detaily všech 23 produktů: týdenní akce, vážené zboží „cca“ (batát, husa), sleva při doručení dnes (rybíz), akce končící dnes (batát fialový) a ukázky výše |
 
 Fixtures vygeneroval jednorázový skript z odpovědí uložených při průzkumu. Položky jsou
 beze změny; skript jen vybral podmnožinu a akce e-shopu Tesco přeskládal po 5 na stránku

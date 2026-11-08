@@ -30,7 +30,8 @@ it('ukáže všechny obchody, sledovatelné jen ty se zdrojem nabídek', functio
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('Preferences')
-            ->has('chains', count(Chain::cases()))
+            // Vypnuté obchody (R155, Rohlík ve výchozím stavu R180) se nenabízejí
+            ->has('chains', count(Chain::enabled()))
             ->where('chains.0.value', 'kaufland')
             ->where('chains.0.available', true)
             ->where('chains.0.loyaltyProgram', 'kaufland_card')

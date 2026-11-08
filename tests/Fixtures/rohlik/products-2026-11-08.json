@@ -1,0 +1,1058 @@
+[
+  {
+    "id": 1294755,
+    "name": "Mrkev s natí, svazek (cca 500 g)",
+    "slug": "mrkev-s-nati-svazek-cca-500-g",
+    "mainCategoryId": 300102012,
+    "unit": "ks",
+    "textualAmount": "1 ks",
+    "badges": [
+      {
+        "type": "freshly-harvested",
+        "title": "Čerstvě sklizeno",
+        "subtitle": null,
+        "tooltip": ""
+      }
+    ],
+    "archived": false,
+    "premiumOnly": false,
+    "brand": null,
+    "brandPageLink": null,
+    "brandPageDeeplink": null,
+    "images": [
+      "https://cdn.rohlik.cz/images/grocery/products/1294755/1294755-1482836916.jpg",
+      "https://cdn.rohlik.cz/images/grocery/products/1294755/1294755-1534763707.jpg"
+    ],
+    "countries": [
+      {
+        "name": "Česká republika",
+        "nameId": "ceska-republika",
+        "code": "CZ"
+      }
+    ],
+    "canBeFavorite": true,
+    "canBeRated": true,
+    "information": [],
+    "image3dData": null,
+    "adviceForSafeUse": null,
+    "countryOfOriginFlagIcon": "https://cdn.rohlik.cz/images/countryFlags/cz.svg",
+    "productStory": null,
+    "filters": [],
+    "type": "PRODUCT",
+    "weightedItem": false,
+    "packageRatio": null,
+    "sellerId": 1,
+    "flag": "cz",
+    "attachments": []
+  },
+  {
+    "id": 1331029,
+    "name": "Citrony balené, síť",
+    "slug": "citrony-balene-sit",
+    "mainCategoryId": 300102005,
+    "unit": "kg",
+    "textualAmount": "500 g",
+    "badges": [
+      {
+        "type": "best-buy",
+        "title": "Denní kontrola cen",
+        "subtitle": null,
+        "tooltip": ""
+      }
+    ],
+    "archived": false,
+    "premiumOnly": false,
+    "brand": null,
+    "brandPageLink": null,
+    "brandPageDeeplink": null,
+    "images": [
+      "https://cdn.rohlik.cz/images/grocery/products/1331029/1331029-1509356868.jpg",
+      "https://cdn.rohlik.cz/images/grocery/products/1331029/1331029-1781788412947.jpg",
+      "https://cdn.rohlik.cz/images/grocery/products/1331029/1331029-1779424982940.jpg",
+      "https://cdn.rohlik.cz/images/grocery/products/1331029/1331029-1546935905.jpg"
+    ],
+    "countries": [
+      {
+        "name": "Španělsko",
+        "nameId": "spanelsko",
+        "code": "E"
+      },
+      {
+        "name": "Itálie",
+        "nameId": "italie",
+        "code": "IT"
+      },
+      {
+        "name": "Jihoafrická republika",
+        "nameId": "jizni-afrika",
+        "code": "ZA"
+      }
+    ],
+    "canBeFavorite": true,
+    "canBeRated": true,
+    "information": [],
+    "image3dData": null,
+    "adviceForSafeUse": null,
+    "countryOfOriginFlagIcon": null,
+    "productStory": null,
+    "filters": [],
+    "type": "PRODUCT",
+    "weightedItem": false,
+    "packageRatio": null,
+    "sellerId": 1,
+    "flag": null,
+    "attachments": []
+  },
+  {
+    "id": 1350677,
+    "name": "Batát – sladká brambora (oranžomasá) volná 1 ks",
+    "slug": "batat-sladka-brambora-oranzomasa-volna-1-ks",
+    "mainCategoryId": 300102009,
+    "unit": "kg",
+    "textualAmount": "cca 500 g",
+    "badges": [],
+    "archived": false,
+    "premiumOnly": false,
+    "brand": null,
+    "brandPageLink": null,
+    "brandPageDeeplink": null,
+    "images": [
+      "https://cdn.rohlik.cz/images/grocery/products/1350677/1350677-1567345962.jpg",
+      "https://cdn.rohlik.cz/images/grocery/products/1313891/1313891-1535955783.jpg"
+    ],
+    "countries": [
+      {
+        "name": "Egypt",
+        "nameId": "egypt",
+        "code": "ET"
+      }
+    ],
+    "canBeFavorite": true,
+    "canBeRated": true,
+    "information": [],
+    "image3dData": null,
+    "adviceForSafeUse": null,
+    "countryOfOriginFlagIcon": null,
+    "productStory": null,
+    "filters": [],
+    "type": "PRODUCT",
+    "weightedItem": true,
+    "packageRatio": null,
+    "sellerId": 1,
+    "flag": null,
+    "attachments": []
+  },
+  {
+    "id": 1350881,
+    "name": "Bluma tmavá skládaná 1 ks",
+    "slug": "bluma-tmava-skladana-1-ks",
+    "mainCategoryId": 300102007,
+    "unit": "kg",
+    "textualAmount": "cca 80 g",
+    "badges": [],
+    "archived": false,
+    "premiumOnly": false,
+    "brand": null,
+    "brandPageLink": null,
+    "brandPageDeeplink": null,
+    "images": [
+      "https://cdn.rohlik.cz/images/grocery/products/1312825/1312825-1516800402.jpg",
+      "https://cdn.rohlik.cz/images/grocery/products/1312825/1312825-1539093614.jpg"
+    ],
+    "countries": [
+      {
+        "name": "Španělsko",
+        "nameId": "spanelsko",
+        "code": "E"
+      },
+      {
+        "name": "Itálie",
+        "nameId": "italie",
+        "code": "IT"
+      }
+    ],
+    "canBeFavorite": true,
+    "canBeRated": true,
+    "information": [],
+    "image3dData": null,
+    "adviceForSafeUse": null,
+    "countryOfOriginFlagIcon": null,
+    "productStory": null,
+    "filters": [],
+    "type": "PRODUCT",
+    "weightedItem": true,
+    "packageRatio": null,
+    "sellerId": 1,
+    "flag": null,
+    "attachments": []
+  },
+  {
+    "id": 1313889,
+    "name": "Celer bulva s natí 1 ks",
+    "slug": "celer-bulva-s-nati-1-ks",
+    "mainCategoryId": 300102012,
+    "unit": "ks",
+    "textualAmount": "1 ks",
+    "badges": [],
+    "archived": false,
+    "premiumOnly": false,
+    "brand": null,
+    "brandPageLink": null,
+    "brandPageDeeplink": null,
+    "images": [
+      "https://cdn.rohlik.cz/images/grocery/products/1313889/1313889-1469798157.jpg",
+      "https://cdn.rohlik.cz/images/grocery/products/1313889/1313889-1534755481.jpg"
+    ],
+    "countries": [
+      {
+        "name": "Portugalsko",
+        "nameId": "portugalsko",
+        "code": "P"
+      }
+    ],
+    "canBeFavorite": true,
+    "canBeRated": true,
+    "information": [],
+    "image3dData": null,
+    "adviceForSafeUse": null,
+    "countryOfOriginFlagIcon": null,
+    "productStory": null,
+    "filters": [],
+    "type": "PRODUCT",
+    "weightedItem": false,
+    "packageRatio": null,
+    "sellerId": 1,
+    "flag": null,
+    "attachments": []
+  },
+  {
+    "id": 1321589,
+    "name": "Avokádo balené, síť",
+    "slug": "avokado-balene-sit",
+    "mainCategoryId": 300102002,
+    "unit": "kg",
+    "textualAmount": "500 g",
+    "badges": [],
+    "archived": false,
+    "premiumOnly": false,
+    "brand": null,
+    "brandPageLink": null,
+    "brandPageDeeplink": null,
+    "images": [
+      "https://cdn.rohlik.cz/images/grocery/products/1321589/1321589-1487764961.jpg",
+      "https://cdn.rohlik.cz/images/grocery/products/1321589/1321589-1644399325092.jpg"
+    ],
+    "countries": [
+      {
+        "name": "Kolumbie",
+        "nameId": "kolumbie",
+        "code": "CO"
+      },
+      {
+        "name": "Chile",
+        "nameId": "chile",
+        "code": "RCH"
+      }
+    ],
+    "canBeFavorite": true,
+    "canBeRated": true,
+    "information": [],
+    "image3dData": null,
+    "adviceForSafeUse": null,
+    "countryOfOriginFlagIcon": null,
+    "productStory": null,
+    "filters": [],
+    "type": "PRODUCT",
+    "weightedItem": false,
+    "packageRatio": null,
+    "sellerId": 1,
+    "flag": null,
+    "attachments": []
+  },
+  {
+    "id": 1362491,
+    "name": "Batát fialový, volně 1 ks",
+    "slug": "batat-fialovy-volne-1-ks",
+    "mainCategoryId": 300102009,
+    "unit": "kg",
+    "textualAmount": "cca 340 g",
+    "badges": [],
+    "archived": false,
+    "premiumOnly": false,
+    "brand": null,
+    "brandPageLink": null,
+    "brandPageDeeplink": null,
+    "images": [
+      "https://cdn.rohlik.cz/images/grocery/products/1362491/1362491-1652903469487.jpg"
+    ],
+    "countries": [
+      {
+        "name": "Egypt",
+        "nameId": "egypt",
+        "code": "ET"
+      },
+      {
+        "name": "USA",
+        "nameId": "usa",
+        "code": "USA"
+      }
+    ],
+    "canBeFavorite": true,
+    "canBeRated": true,
+    "information": [],
+    "image3dData": null,
+    "adviceForSafeUse": null,
+    "countryOfOriginFlagIcon": null,
+    "productStory": null,
+    "filters": [],
+    "type": "PRODUCT",
+    "weightedItem": true,
+    "packageRatio": null,
+    "sellerId": 1,
+    "flag": null,
+    "attachments": []
+  },
+  {
+    "id": 1482697,
+    "name": "Kytice s růžemi",
+    "slug": "kytice-s-ruzemi",
+    "mainCategoryId": 300112203,
+    "unit": "kytice",
+    "textualAmount": "1 kytice",
+    "badges": [],
+    "archived": false,
+    "premiumOnly": false,
+    "brand": null,
+    "brandPageLink": null,
+    "brandPageDeeplink": null,
+    "images": [
+      "https://cdn.rohlik.cz/images/grocery/products/1482697/1482697-1783512756705.jpg"
+    ],
+    "countries": [
+      {
+        "name": "Holandsko",
+        "nameId": "holandsko",
+        "code": "NL"
+      }
+    ],
+    "canBeFavorite": true,
+    "canBeRated": true,
+    "information": [],
+    "image3dData": null,
+    "adviceForSafeUse": null,
+    "countryOfOriginFlagIcon": null,
+    "productStory": null,
+    "filters": [],
+    "type": "PRODUCT",
+    "weightedItem": false,
+    "packageRatio": null,
+    "sellerId": 1,
+    "flag": null,
+    "attachments": []
+  },
+  {
+    "id": 1415134,
+    "name": "Gaultheria Ø květináče 10,5 cm",
+    "slug": "gaultheria-kvetinace-10-5-cm",
+    "mainCategoryId": 300112363,
+    "unit": "ks",
+    "textualAmount": "1 ks",
+    "badges": [],
+    "archived": false,
+    "premiumOnly": false,
+    "brand": null,
+    "brandPageLink": null,
+    "brandPageDeeplink": null,
+    "images": [
+      "https://cdn.rohlik.cz/images/grocery/products/1415134/1415134-1665994582721.jpg",
+      "https://cdn.rohlik.cz/images/grocery/products/1415134/1415134-1668773939498.jpg"
+    ],
+    "countries": [
+      {
+        "name": "Holandsko",
+        "nameId": "holandsko",
+        "code": "NL"
+      }
+    ],
+    "canBeFavorite": true,
+    "canBeRated": true,
+    "information": [],
+    "image3dData": null,
+    "adviceForSafeUse": null,
+    "countryOfOriginFlagIcon": null,
+    "productStory": null,
+    "filters": [],
+    "type": "PRODUCT",
+    "weightedItem": false,
+    "packageRatio": null,
+    "sellerId": 1,
+    "flag": null,
+    "attachments": []
+  },
+  {
+    "id": 1410880,
+    "name": "Rybíz bílý, vanička",
+    "slug": "rybiz-bily-vanicka",
+    "mainCategoryId": 300102007,
+    "unit": "kg",
+    "textualAmount": "125 g",
+    "badges": [],
+    "archived": false,
+    "premiumOnly": false,
+    "brand": null,
+    "brandPageLink": null,
+    "brandPageDeeplink": null,
+    "images": [
+      "https://cdn.rohlik.cz/images/grocery/products/1410880/1410880-1787811347041.jpg",
+      "https://cdn.rohlik.cz/images/grocery/products/1410880/1410880-1624458670038.jpg"
+    ],
+    "countries": [
+      {
+        "name": "Holandsko",
+        "nameId": "holandsko",
+        "code": "NL"
+      }
+    ],
+    "canBeFavorite": true,
+    "canBeRated": true,
+    "information": [],
+    "image3dData": null,
+    "adviceForSafeUse": null,
+    "countryOfOriginFlagIcon": null,
+    "productStory": null,
+    "filters": [],
+    "type": "PRODUCT",
+    "weightedItem": false,
+    "packageRatio": null,
+    "sellerId": 1,
+    "flag": null,
+    "attachments": []
+  },
+  {
+    "id": 1466886,
+    "name": "Stroček trubkovitý sušený, balení",
+    "slug": "strocek-trubkovity-suseny-baleni",
+    "mainCategoryId": 300102024,
+    "unit": "kg",
+    "textualAmount": "30 g",
+    "badges": [],
+    "archived": false,
+    "premiumOnly": false,
+    "brand": null,
+    "brandPageLink": null,
+    "brandPageDeeplink": null,
+    "images": [
+      "https://cdn.rohlik.cz/images/grocery/products/1466886/1466886-1733313031039.jpg"
+    ],
+    "countries": [
+      {
+        "name": "Česká republika",
+        "nameId": "ceska-republika",
+        "code": "CZ"
+      }
+    ],
+    "canBeFavorite": true,
+    "canBeRated": true,
+    "information": [],
+    "image3dData": null,
+    "adviceForSafeUse": null,
+    "countryOfOriginFlagIcon": "https://cdn.rohlik.cz/images/countryFlags/cz.svg",
+    "productStory": null,
+    "filters": [],
+    "type": "PRODUCT",
+    "weightedItem": false,
+    "packageRatio": null,
+    "sellerId": 1,
+    "flag": "cz",
+    "attachments": []
+  },
+  {
+    "id": 1353745,
+    "name": "Pražma královská kuchaná",
+    "slug": "prazma-kralovska-kuchana",
+    "mainCategoryId": 300117389,
+    "unit": "kg",
+    "textualAmount": "cca 450 g",
+    "badges": [
+      {
+        "type": "best-buy",
+        "title": "Denní kontrola cen",
+        "subtitle": null,
+        "tooltip": ""
+      }
+    ],
+    "archived": false,
+    "premiumOnly": false,
+    "brand": "Fjord",
+    "brandPageLink": null,
+    "brandPageDeeplink": null,
+    "images": [
+      "https://cdn.rohlik.cz/images/grocery/products/1353745/1353745-1677505834146.jpg"
+    ],
+    "countries": [],
+    "canBeFavorite": true,
+    "canBeRated": true,
+    "information": [],
+    "image3dData": null,
+    "adviceForSafeUse": null,
+    "countryOfOriginFlagIcon": null,
+    "productStory": null,
+    "filters": [
+      {
+        "type": "BRAND",
+        "slug": "znacka",
+        "values": [
+          {
+            "name": "Fjord",
+            "slug": "fjord"
+          }
+        ]
+      }
+    ],
+    "type": "PRODUCT",
+    "weightedItem": true,
+    "packageRatio": null,
+    "sellerId": 1,
+    "flag": null,
+    "attachments": []
+  },
+  {
+    "id": 1446262,
+    "name": "Banquet Kachní stehna sous-vide, 2 ks",
+    "slug": "banquet-kachni-stehna-sous-vide-2-ks",
+    "mainCategoryId": 300117329,
+    "unit": "kg",
+    "textualAmount": "cca 0,61 kg",
+    "badges": [],
+    "archived": false,
+    "premiumOnly": false,
+    "brand": "Banquet",
+    "brandPageLink": null,
+    "brandPageDeeplink": null,
+    "images": [
+      "https://cdn.rohlik.cz/images/grocery/products/1446262/1446262-1697109195093.jpg"
+    ],
+    "countries": [
+      {
+        "name": "Česká republika",
+        "nameId": "ceska-republika",
+        "code": "CZ"
+      }
+    ],
+    "canBeFavorite": true,
+    "canBeRated": true,
+    "information": [],
+    "image3dData": null,
+    "adviceForSafeUse": null,
+    "countryOfOriginFlagIcon": "https://cdn.rohlik.cz/images/countryFlags/cz.svg",
+    "productStory": null,
+    "filters": [
+      {
+        "type": "BRAND",
+        "slug": "znacka",
+        "values": [
+          {
+            "name": "Banquet",
+            "slug": "banquet"
+          }
+        ]
+      }
+    ],
+    "type": "PRODUCT",
+    "weightedItem": true,
+    "packageRatio": null,
+    "sellerId": 1,
+    "flag": "cz",
+    "attachments": []
+  },
+  {
+    "id": 1482633,
+    "name": "Campese Kuřecí vykostěná stehna z volného chovu",
+    "slug": "campese-kureci-vykostena-stehna-z-volneho-chovu",
+    "mainCategoryId": 300117329,
+    "unit": "kg",
+    "textualAmount": "cca 290 g",
+    "badges": [],
+    "archived": false,
+    "premiumOnly": false,
+    "brand": "Amadori",
+    "brandPageLink": null,
+    "brandPageDeeplink": null,
+    "images": [
+      "https://cdn.rohlik.cz/images/grocery/products/1482633/1482633-178298369190809759.jpeg"
+    ],
+    "countries": [
+      {
+        "name": "Itálie",
+        "nameId": "italie",
+        "code": "IT"
+      }
+    ],
+    "canBeFavorite": true,
+    "canBeRated": true,
+    "information": [],
+    "image3dData": null,
+    "adviceForSafeUse": null,
+    "countryOfOriginFlagIcon": null,
+    "productStory": null,
+    "filters": [
+      {
+        "type": "BRAND",
+        "slug": "znacka",
+        "values": [
+          {
+            "name": "Amadori",
+            "slug": "amadori"
+          }
+        ]
+      }
+    ],
+    "type": "PRODUCT",
+    "weightedItem": true,
+    "packageRatio": null,
+    "sellerId": 1,
+    "flag": null,
+    "attachments": []
+  },
+  {
+    "id": 1353981,
+    "name": "Svatomartinská husa s droby chlazená",
+    "slug": "svatomartinska-husa-s-droby-chlazena",
+    "mainCategoryId": 300117361,
+    "unit": "kg",
+    "textualAmount": "cca 3,61 kg",
+    "badges": [],
+    "archived": false,
+    "premiumOnly": false,
+    "brand": null,
+    "brandPageLink": null,
+    "brandPageDeeplink": null,
+    "images": [
+      "https://cdn.rohlik.cz/images/grocery/products/1341209/1341209-1540985071.jpg"
+    ],
+    "countries": [
+      {
+        "name": "Maďarsko",
+        "nameId": "madarsko",
+        "code": "H"
+      }
+    ],
+    "canBeFavorite": true,
+    "canBeRated": true,
+    "information": [],
+    "image3dData": null,
+    "adviceForSafeUse": null,
+    "countryOfOriginFlagIcon": null,
+    "productStory": null,
+    "filters": [],
+    "type": "PRODUCT",
+    "weightedItem": true,
+    "packageRatio": null,
+    "sellerId": 1,
+    "flag": null,
+    "attachments": []
+  },
+  {
+    "id": 1404475,
+    "name": "Křepelčí prsa marinovaná ve středomořské marinádě",
+    "slug": "krepelci-prsa-marinovana-ve-stredomorske-marinade",
+    "mainCategoryId": 300117325,
+    "unit": "kg",
+    "textualAmount": "200 g",
+    "badges": [],
+    "archived": false,
+    "premiumOnly": false,
+    "brand": null,
+    "brandPageLink": null,
+    "brandPageDeeplink": null,
+    "images": [
+      "https://cdn.rohlik.cz/images/grocery/products/1404475/1404475-1647616399051.jpg"
+    ],
+    "countries": [
+      {
+        "name": "Španělsko",
+        "nameId": "spanelsko",
+        "code": "E"
+      }
+    ],
+    "canBeFavorite": true,
+    "canBeRated": true,
+    "information": [],
+    "image3dData": null,
+    "adviceForSafeUse": null,
+    "countryOfOriginFlagIcon": null,
+    "productStory": null,
+    "filters": [],
+    "type": "PRODUCT",
+    "weightedItem": false,
+    "packageRatio": null,
+    "sellerId": 1,
+    "flag": null,
+    "attachments": []
+  },
+  {
+    "id": 1450968,
+    "name": "Svatomartinská husí prsa chlazená s kostí (1 ks)",
+    "slug": "svatomartinska-husi-prsa-chlazena-s-kosti-1-ks",
+    "mainCategoryId": 300117325,
+    "unit": "kg",
+    "textualAmount": "cca 1 kg",
+    "badges": [],
+    "archived": false,
+    "premiumOnly": false,
+    "brand": null,
+    "brandPageLink": null,
+    "brandPageDeeplink": null,
+    "images": [
+      "https://cdn.rohlik.cz/images/grocery/products/1450968/1450968-1699273797402.jpg"
+    ],
+    "countries": [
+      {
+        "name": "Maďarsko",
+        "nameId": "madarsko",
+        "code": "H"
+      }
+    ],
+    "canBeFavorite": true,
+    "canBeRated": true,
+    "information": [],
+    "image3dData": null,
+    "adviceForSafeUse": null,
+    "countryOfOriginFlagIcon": null,
+    "productStory": null,
+    "filters": [],
+    "type": "PRODUCT",
+    "weightedItem": true,
+    "packageRatio": null,
+    "sellerId": 1,
+    "flag": null,
+    "attachments": []
+  },
+  {
+    "id": 1426187,
+    "name": "Maso Klouda Trhané hovězí maso",
+    "slug": "maso-klouda-trhane-hovezi-maso",
+    "mainCategoryId": 300117219,
+    "unit": "kg",
+    "textualAmount": "cca 300 g",
+    "badges": [
+      {
+        "type": "premium-product",
+        "title": "Prémiová kvalita",
+        "subtitle": null,
+        "tooltip": ""
+      }
+    ],
+    "archived": false,
+    "premiumOnly": false,
+    "brand": "Maso Klouda",
+    "brandPageLink": null,
+    "brandPageDeeplink": null,
+    "images": [
+      "https://cdn.rohlik.cz/images/grocery/products/1426187/1426187-1767686446322.jpg"
+    ],
+    "countries": [
+      {
+        "name": "Česká republika",
+        "nameId": "ceska-republika",
+        "code": "CZ"
+      }
+    ],
+    "canBeFavorite": true,
+    "canBeRated": true,
+    "information": [],
+    "image3dData": null,
+    "adviceForSafeUse": null,
+    "countryOfOriginFlagIcon": "https://cdn.rohlik.cz/images/countryFlags/cz.svg",
+    "productStory": null,
+    "filters": [
+      {
+        "type": "BRAND",
+        "slug": "znacka",
+        "values": [
+          {
+            "name": "Maso Klouda",
+            "slug": "maso-klouda"
+          }
+        ]
+      }
+    ],
+    "type": "PRODUCT",
+    "weightedItem": true,
+    "packageRatio": null,
+    "sellerId": 1,
+    "flag": "cz",
+    "attachments": []
+  },
+  {
+    "id": 1458135,
+    "name": "Kofola Original 4×0,33 l plech",
+    "slug": "kofola-original-4-0-33-l-plech",
+    "mainCategoryId": 300122179,
+    "unit": "l",
+    "textualAmount": "1,32 l",
+    "badges": [],
+    "archived": false,
+    "premiumOnly": false,
+    "brand": "Kofola",
+    "brandPageLink": null,
+    "brandPageDeeplink": null,
+    "images": [
+      "https://cdn.rohlik.cz/images/grocery/products/1458135/1458135-1739439887686.jpg"
+    ],
+    "countries": [
+      {
+        "name": "Česká republika",
+        "nameId": "ceska-republika",
+        "code": "CZ"
+      }
+    ],
+    "canBeFavorite": true,
+    "canBeRated": true,
+    "information": [],
+    "image3dData": null,
+    "adviceForSafeUse": null,
+    "countryOfOriginFlagIcon": "https://cdn.rohlik.cz/images/countryFlags/cz.svg",
+    "productStory": null,
+    "filters": [
+      {
+        "type": "BRAND",
+        "slug": "znacka",
+        "values": [
+          {
+            "name": "Kofola",
+            "slug": "kofola"
+          }
+        ]
+      }
+    ],
+    "type": "PRODUCT",
+    "weightedItem": false,
+    "packageRatio": null,
+    "sellerId": 1,
+    "flag": "cz",
+    "attachments": []
+  },
+  {
+    "id": 1462148,
+    "name": "Miil Máslo 82%",
+    "slug": "miil-maslo-82",
+    "mainCategoryId": 300105049,
+    "unit": "kg",
+    "textualAmount": "250 g",
+    "badges": [
+      {
+        "type": "basket-limit",
+        "title": "Max. 4 ks",
+        "subtitle": null,
+        "tooltip": ""
+      },
+      {
+        "type": "best-buy",
+        "title": "Denní kontrola cen",
+        "subtitle": null,
+        "tooltip": ""
+      }
+    ],
+    "archived": false,
+    "premiumOnly": false,
+    "brand": "Miil",
+    "brandPageLink": null,
+    "brandPageDeeplink": null,
+    "images": [
+      "https://cdn.rohlik.cz/images/grocery/products/1462148/1462148-1722952177279.jpg"
+    ],
+    "countries": [
+      {
+        "name": "Německo",
+        "nameId": "nemecko",
+        "code": "DE"
+      }
+    ],
+    "canBeFavorite": true,
+    "canBeRated": true,
+    "information": [],
+    "image3dData": null,
+    "adviceForSafeUse": null,
+    "countryOfOriginFlagIcon": null,
+    "productStory": null,
+    "filters": [
+      {
+        "type": "BRAND",
+        "slug": "znacka",
+        "values": [
+          {
+            "name": "Miil",
+            "slug": "miil"
+          }
+        ]
+      }
+    ],
+    "type": "PRODUCT",
+    "weightedItem": false,
+    "packageRatio": null,
+    "sellerId": 1,
+    "flag": null,
+    "attachments": []
+  },
+  {
+    "id": 1325173,
+    "name": "Jar Sensitive Aloe vera & pink jasmin Tekutý prostředek na nádobí",
+    "slug": "jar-sensitive-aloe-vera-pink-jasmin-tekuty-prostredek-na-nadobi",
+    "mainCategoryId": 300109043,
+    "unit": "l",
+    "textualAmount": "450 ml",
+    "badges": [],
+    "archived": false,
+    "premiumOnly": false,
+    "brand": "Jar",
+    "brandPageLink": null,
+    "brandPageDeeplink": null,
+    "images": [
+      "https://cdn.rohlik.cz/images/grocery/products/1325173/1325173-1550842522.jpg"
+    ],
+    "countries": [
+      {
+        "name": "Česká republika",
+        "nameId": "ceska-republika",
+        "code": "CZ"
+      }
+    ],
+    "canBeFavorite": true,
+    "canBeRated": true,
+    "information": [],
+    "image3dData": null,
+    "adviceForSafeUse": "<p><strong style=\"color: rgb(28, 37, 41);\">Standardní věty o nebezpečnosti:</strong></p><p>H319 Způsobuje vážné podráždění očí.</p><p>H412 Škodlivý pro vodní organismy, s dlouhodobými účinky.</p><p><strong style=\"color: rgb(28, 37, 41);\">Pokyny pro bezpečné zacházení:</strong></p><p>P102 - Uchovávejte mimo dosah dětí.</p><p>P305+P351+P338 PŘI ZASAŽENÍ OČÍ: Několik minut opatrně vyplachujte vodou. Vyjměte kontaktní čočky, jsou-li nasazeny a pokud je lze vyjmout snadno. Pokračujte ve vyplachování.</p><p>P337+P313 Přetrvává-li podráždění očí: Vyhledejte lékařskou pomoc/ošetření.</p><p>P501 Odstraňte obsah/obal v příslušném místním zařízení schváleném pro likvidaci odpadů.</p><p><br></p>",
+    "countryOfOriginFlagIcon": "https://cdn.rohlik.cz/images/countryFlags/cz.svg",
+    "productStory": null,
+    "filters": [
+      {
+        "type": "BRAND",
+        "slug": "znacka",
+        "values": [
+          {
+            "name": "Jar",
+            "slug": "jar"
+          }
+        ]
+      }
+    ],
+    "type": "PRODUCT",
+    "weightedItem": false,
+    "packageRatio": null,
+    "sellerId": 1,
+    "flag": "cz",
+    "attachments": [
+      {
+        "type": "hazardous_sheet",
+        "link": "https://cdn.rohlik.cz/pdf/hazardous-products/1325173-1685595495915.pdf",
+        "text": null
+      }
+    ]
+  },
+  {
+    "id": 1357121,
+    "name": "Semix Müsli srdíčka s čokoládou",
+    "slug": "semix-muesli-srdicka-s-cokoladou",
+    "mainCategoryId": 300124853,
+    "unit": "kg",
+    "textualAmount": "50 g",
+    "badges": [],
+    "archived": false,
+    "premiumOnly": false,
+    "brand": "Semix",
+    "brandPageLink": null,
+    "brandPageDeeplink": null,
+    "images": [
+      "https://cdn.rohlik.cz/images/grocery/products/1357121/1357121-1696404879211.jpg"
+    ],
+    "countries": [
+      {
+        "name": "Česká republika",
+        "nameId": "ceska-republika",
+        "code": "CZ"
+      }
+    ],
+    "canBeFavorite": true,
+    "canBeRated": true,
+    "information": [],
+    "image3dData": null,
+    "adviceForSafeUse": null,
+    "countryOfOriginFlagIcon": "https://cdn.rohlik.cz/images/countryFlags/cz.svg",
+    "productStory": null,
+    "filters": [
+      {
+        "type": "BRAND",
+        "slug": "znacka",
+        "values": [
+          {
+            "name": "Semix",
+            "slug": "semix"
+          }
+        ]
+      }
+    ],
+    "type": "PRODUCT",
+    "weightedItem": false,
+    "packageRatio": null,
+    "sellerId": 1,
+    "flag": "cz",
+    "attachments": []
+  },
+  {
+    "id": 1477988,
+    "name": "Rohlik.cz Qualivo Frankfurtská polévka s párkem",
+    "slug": "rohlik-cz-qualivo-frankfurtska-polevka-s-parkem",
+    "mainCategoryId": 300117187,
+    "unit": "l",
+    "textualAmount": "0,6 l",
+    "badges": [
+      {
+        "type": "farmer-product",
+        "title": "Od českého farmáře",
+        "subtitle": null,
+        "tooltip": ""
+      }
+    ],
+    "archived": false,
+    "premiumOnly": false,
+    "brand": "Rohlík BEZ KOMPROMISU",
+    "brandPageLink": null,
+    "brandPageDeeplink": null,
+    "images": [
+      "https://cdn.rohlik.cz/images/grocery/products/1477988/1477988-1765445035111.jpg"
+    ],
+    "countries": [
+      {
+        "name": "Česká republika",
+        "nameId": "ceska-republika",
+        "code": "CZ"
+      }
+    ],
+    "canBeFavorite": true,
+    "canBeRated": true,
+    "information": [],
+    "image3dData": null,
+    "adviceForSafeUse": null,
+    "countryOfOriginFlagIcon": "https://cdn.rohlik.cz/images/countryFlags/cz.svg",
+    "productStory": null,
+    "filters": [
+      {
+        "type": "BRAND",
+        "slug": "znacka",
+        "values": [
+          {
+            "name": "Rohlík BEZ KOMPROMISU",
+            "slug": "rohlik-bez-kompromisu"
+          }
+        ]
+      }
+    ],
+    "type": "PRODUCT",
+    "weightedItem": false,
+    "packageRatio": null,
+    "sellerId": 1,
+    "flag": "cz",
+    "attachments": []
+  }
+]

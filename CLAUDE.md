@@ -126,7 +126,8 @@ powershell -ExecutionPolicy Bypass -File deploy\build-upload.ps1   # jen z commi
 - **CSP a hlavičky** jsou v `public/.htaccess` — nový externí zdroj ve stránce = úprava CSP;
   `public/theme-init.js` má v CSP otisk (PASTI.md bod 54). Service worker `/sw.js` je routa (bod 55).
 - **Chyby aplikace** chodí adminům do centra upozornění a telefonu (R154, PASTI.md bod 56); obchod jde vypnout
-  proměnnou `LETAKY_DISABLED_CHAINS` v `.env` bez nasazení (R155, bod 57).
+  proměnnou `LETAKY_DISABLED_CHAINS` v `.env` bez nasazení (R155, bod 57); obchod vypnutý ve výchozím stavu
+  (Rohlík do souhlasu obchodu) zapne `LETAKY_ENABLED_CHAINS` (R180).
 
 ## Stack
 
