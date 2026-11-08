@@ -12,6 +12,7 @@
 declare(strict_types=1);
 
 use App\Domain\Matching\TextNormalizer;
+use App\Domain\Matching\WatchItemMatcher;
 use App\Domain\Matching\WatchRule;
 use App\Models\Offer;
 use App\Models\OfferProduct;
@@ -52,3 +53,18 @@ it('každý produkt katalogu má slovo dost dlouhé pro předvýběr (R54)', fun
 
     expect(array_column($tooShort, 'name'))->toBe([]);
 });
+
+it('energetický nápoj chytá Red Bull, ale ne „bullet“ ani kosmetiku Bull Dog', function (string $name, bool $matches): void {
+    $normalizer = app(TextNormalizer::class);
+    $product = collect(require database_path('seeders/data/catalog-products.php'))->firstWhere('name', 'Energetický nápoj');
+    $rule = WatchRule::fromText($product['keywords'], $product['variant_keywords'], $product['exclude_keywords'], $normalizer);
+
+    expect(app(WatchItemMatcher::class)->matchText($rule, $normalizer->normalize($name), false) !== null)->toBe($matches);
+})->with([
+    'Red Bull' => ['Red Bull Energy Drink 250 ml', true],
+    'Red Bull bez slova energy' => ['Red Bull Sugarfree 250ml plech', true],
+    // Párování hledá začátek slova — „bull“ našlo vibrátor z Košíku (8. 11. 2026)
+    'vibrátor' => ['Durex Vibrátor Mini Delight bullet', false],
+    'Bull Dog' => ['Bull Dog Original solný sprej pro styling vlasů 150ml', false],
+    'Bulldog' => ['Bulldog Skincare Sensitive hydratační krém 100ml', false],
+]);

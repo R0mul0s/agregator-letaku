@@ -315,7 +315,7 @@ return [
         'category' => ['Nápoje', 'Vody, minerálky a funkční vody']],
     ['name' => 'Džus', 'keywords' => 'džus|nektar|šťáva|cappy|rauch|granini|pfanner|capri|relax|toma|hello', 'variant_keywords' => null, 'exclude_keywords' => 'příchu citronová maso masu pečeně nektarink sirup pyré svačink kapsičk čaj guláš čínu lemonade limonád relaxing relaxační tomat vložk sprchov espresso káva kitty yogo gerber koncentrát waterrr',
         'category' => ['Nápoje', 'Džusy, nektary a ovocné nápoje']],
-    ['name' => 'Energetický nápoj', 'keywords' => 'energy|energetický|bull|monster|semtex|shock', 'variant_keywords' => null, 'exclude_keywords' => 'sprchov gel boost',
+    ['name' => 'Energetický nápoj', 'keywords' => 'energy|energetický|bull|monster|semtex|shock', 'variant_keywords' => null, 'exclude_keywords' => 'sprchov gel boost bullet bulldog dog',
         'category' => ['Nápoje', 'Energetické a sportovní nápoje']],
     ['name' => 'Fanta', 'keywords' => 'fanta', 'variant_keywords' => null, 'exclude_keywords' => null,
         'category' => ['Nápoje', 'Limonády a ledové čaje']],
