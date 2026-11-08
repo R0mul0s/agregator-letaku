@@ -28,6 +28,7 @@ use App\Domain\Offers\Exceptions\ImportTookTooLong;
 use App\Domain\Offers\Exceptions\SourceReturnedNoOffers;
 use App\Domain\Offers\Exceptions\SuspiciousWithdrawal;
 use App\Domain\Offers\Import\BatchWriter;
+use App\Domain\Offers\Import\ExcludedOffers;
 use App\Domain\Offers\Import\RecordLeafletStats;
 use App\Domain\Offers\LocalCalendar;
 use App\Domain\Sources\SourceRegistry;
@@ -54,6 +55,7 @@ final class ImportChainOffers
         private readonly ChangedOfferPages $changedPages,
         private readonly IndexNow $indexNow,
         private readonly RecordLeafletStats $leafletStats,
+        private readonly ExcludedOffers $excludedOffers,
     ) {}
 
     /**
@@ -109,7 +111,8 @@ final class ImportChainOffers
         $run = ScrapeRun::start($chain);
 
         try {
-            $batches = $this->sources->offers($chain)->fetch();
+            // Erotické pomůcky se neukládají u žádného obchodu (R181)
+            $batches = $this->excludedOffers->filter($this->sources->offers($chain)->fetch());
             $this->assertTimeForWriting($chain, $run);
 
             // Souběžné stažení jiného obchodu může skončit deadlockem (označení stažených akcí zamyká

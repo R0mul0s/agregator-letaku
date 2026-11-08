@@ -136,7 +136,7 @@ MariaDB 11.4 · Pest 4 · Larastan · Pint. Text s polohou z PDF letáků: `pdft
 
 ## Pasti
 
-Podrobně po oblastech v **[docs/PASTI.md](docs/PASTI.md)** (70 bodů se stálými čísly) — **před prací
+Podrobně po oblastech v **[docs/PASTI.md](docs/PASTI.md)** (72 bodů se stálými čísly) — **před prací
 na oblasti si přečti její kapitolu**: ceny a platnost, stahování a zdroje, jednotlivé obchody
 (Tesco, Penny, Globus, Billa, Kaufland, PDF letáky), hlídání a katalog, výpisy a hledání,
 upozornění a e-maily, účty a právo, SEO, vzhled a přístupnost, aplikace v telefonu, nákupní

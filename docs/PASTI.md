@@ -17,7 +17,7 @@ nepoužije. Co jde hlídat testem (jako `ThemeInitCspTest`), patří do testu �
 | Kapitola | Body |
 |---|---|
 | [1. Ceny, akce a platnost](#1-ceny-akce-a-platnost) | 1–6, 9, 13, 43, 60 |
-| [2. Stahování a zdroje](#2-stahování-a-zdroje) | 7, 8, 10, 12, 14, 15, 17, 23, 57–59 |
+| [2. Stahování a zdroje](#2-stahování-a-zdroje) | 7, 8, 10, 12, 14, 15, 17, 23, 57–59, 72 |
 | [3. Obchody](#3-obchody) | 16, 22, 32, 34, 35, 45, 70, 71 |
 | [4. Hlídání, párování a katalog](#4-hlídání-párování-a-katalog) | 19–21, 24, 25, 27, 36, 49, 51 |
 | [5. Výpisy, hledání a výkon](#5-výpisy-hledání-a-výkon) | 41, 48, 68 |
@@ -56,6 +56,7 @@ nepoužije. Co jde hlídat testem (jako `ThemeInitCspTest`), patří do testu �
 - **57.** **Vypnutý obchod (R155, R180):** `LETAKY_DISABLED_CHAINS` (`letaky.disabled_chains`, `Chain::disabled` / `isDisabled` / `enabled`) a obchod s `sources.<obchod>.enabled_by_default` false, který není v `LETAKY_ENABLED_CHAINS` (Rohlík do souhlasu obchodu; vypnutí má přednost), schová už uložené akce obchodu všude a obchod se nestahuje. Výpis přes `Offer::active()` nebo `OfferProduct::joinCurrentOffers` ho vynechá sám; nový dotaz na akce **bez** `active()` (archiv, akce podle ID ze záznamu, historie) musí přidat `->fromEnabledChains()`, dotaz nad `leaflets` `whereNotIn('chain', Chain::disabledValues())`. Seznam obchodů pro výběr a výpisy bere `SourceRegistry::chainsWithOffers()` (bez vypnutých) nebo `Chain::enabled()`, ne `Chain::cases()` — `cases()` jen tam, kde jde o názvy a loga (`chainInfo`). Uložení Mých obchodů sledování vypnutého obchodu nesmaže.
 - **58.** **Stahuje se jen z veřejných adres přes https (R170):** `SourceHttp` před odesláním i při každém přesměrování odmítne jiné schéma, IP adresu místo domény a `localhost` (`SourceUrlRejected`, neopakuje se) — adresy letáků přicházejí i z dat obchodu (RSS COOP). Nový zdroj s adresou `http://` nebo IP selže; DNS jména vedoucí do vnitřní sítě to nechytí. Odkazy pro uživatele (`source_url`, obrázky) hlídá zvlášť `WebUrl` při zápisu (R67).
 - **59.** **Pojistka „podezřele málo“ i u prodejen (R170, jako R54 u akcí):** `ImportStores` nesmaže prodejny ani výběr uživatelů, když jich ze seznamu zmizí víc než `letaky.stores.max_closed_share` — stažení skončí chybou a seznamy akcí ostatních prodejen se přesto obnoví. Prodejny akcím určí Kaufland i COOP jen s čerstvým seznamem aspoň u `store_lists_min_share` prodejen (`StoreOfferLists::complete`), jinak akce platí všude. `/health/tasks` měří, od kdy je čerstvých aspoň tolik seznamů (`Store::lastListFetchedAt`), s limitem obchodu `store_lists_health_hours` — nejnovější seznam by výpadek části prodejen neukázal. Testy s fixturou o 3 prodejnách nastavují `max_closed_share` 1.
+- **72.** **Vyřazené akce (R181):** `ImportChainOffers` pustí dávky zdroje přes `ExcludedOffers` — akce s názvem podle `letaky.import.excluded_name_pattern` (erotické pomůcky) se neuloží u žádného obchodu a dřív uložená se v dalším stažení označí jako stažená (R16). Vzor je nad původním názvem s `` a `/iu` (české znaky) — nový výraz ověřit na skutečných názvech (`ExcludedOffersTest`), ať nevyřadí běžné zboží (kondomy, intimní hygiena, „sexy“ v názvu deodorantu). Filtr je jen nad názvem: zdroj, který dává jen kategorii, by potřeboval vlastní pravidlo.
 
 ## 3. Obchody
 

@@ -676,6 +676,10 @@ return [
     */
     'import' => [
         'max_withdrawn_share' => 0.4,
+        // Akce, které se u žádného obchodu neukládají (R181, ExcludedOffers): erotické pomůcky — s vysokou
+        // slevou by se dostaly do Nejlepších slev týdne a na úvodní stránku. Kondomy, lubrikanty a intimní
+        // gely ne (běžná drogerie). Vzor nad názvem akce; prázdný = nic se nevyřazuje
+        'excluded_name_pattern' => '/\b(?:vibrátor\w*|masturbátor\w*|erotick\w*|vibrační\s+(?:kroužek|masér|vajíčko)\w*)/iu',
         // Zámek jednoho stažení obchodu (R57): delší než limit běhu cronu (cron.time_limit_seconds),
         // aby nevypršel během stažení; stažení „běží“ déle než tohle = nedoběhlo, označí se jako chyba
         'lock_seconds' => 600,

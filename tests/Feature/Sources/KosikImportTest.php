@@ -205,3 +205,22 @@ it('změněný tvar odpovědi stažení zastaví', function (): void {
 
     expect(ScrapeRun::query()->sole()->error)->toContain('nemá products.totalCount nebo products.items');
 });
+
+it('erotickou pomůcku neuloží a už uloženou označí jako staženou (R181)', function (): void {
+    // Odpoledne Košík přejmenuje Babybel (další stránka mléčných výrobků) na vibrátor
+    fakeKosik(function (array $data): array {
+        if (now()->hour >= 14 && is_array($data['products'] ?? null) && array_is_list($data['products'])) {
+            $data['products'][0]['name'] = 'Durex Vibrátor Mini Delight bullet';
+        }
+
+        return $data;
+    });
+    $this->artisan('letaky:import-offers', ['chain' => ['kosik']]);
+    $babybel = kosikOffer('Mini Babybel');
+
+    $this->travelTo('2026-11-08 14:00:00');
+    $this->artisan('letaky:import-offers', ['chain' => ['kosik']])->assertSuccessful();
+
+    expect(Offer::query()->where('name', 'like', '%Vibrátor%')->exists())->toBeFalse()
+        ->and($babybel->fresh()->withdrawn_at)->not->toBeNull();
+});
