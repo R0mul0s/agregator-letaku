@@ -109,7 +109,7 @@ const packageText = computed(() => packageLabel(props.offer, locale.value, t));
              Sleva jako červená cenovka přes obrázek (motiv z loga); čtečka ji má i u ceny.
              Klepnutí na obrázek i název otevře detail akce (R159) — z klávesnice tlačítko v názvu. -->
         <div v-if="hasImage" class="offer-card__media offer-card__media--open" @click="openDetail">
-            <img :src="offer.imageUrl" alt="" class="offer-card__image" loading="lazy" referrerpolicy="no-referrer" @error="imageBroken = true" />
+            <img v-fade-in :src="offer.imageUrl" alt="" class="offer-card__image" loading="lazy" referrerpolicy="no-referrer" @error="imageBroken = true" />
             <span v-if="discount" class="offer-card__sticker" aria-hidden="true">{{ formatDiscount(discount) }}</span>
         </div>
         <!-- Bez fotky (Penny, Albert, letáky Lidlu a Globusu) jemný přechod se siluetou maskota —

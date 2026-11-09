@@ -63,12 +63,26 @@
 @keyframes confirm-dialog-in {
     from {
         opacity: 0;
-        transform: translateY(var(--toast-travel)) scale(0.98);
+        transform: translateY(var(--toast-travel)) scale(var(--dialog-enter-scale));
     }
 }
 
 @keyframes confirm-backdrop-in {
     from {
+        opacity: 0;
+    }
+}
+
+// Zavření (R182) — opačně než náběh, rychleji
+@keyframes confirm-dialog-out {
+    to {
+        opacity: 0;
+        transform: translateY(var(--toast-travel)) scale(var(--dialog-enter-scale));
+    }
+}
+
+@keyframes confirm-backdrop-out {
+    to {
         opacity: 0;
     }
 }

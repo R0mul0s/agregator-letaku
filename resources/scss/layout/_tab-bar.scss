@@ -58,6 +58,21 @@ html:has(.tab-bar) {
         text-decoration: none;
         // Na dotyk bez šedého záblesku Safari — stav ukáže barva
         -webkit-tap-highlight-color: transparent;
+        transition: color var(--duration-fast) var(--ease-out);
+
+        // Stisk prstem: ikona se lehce zmenší a pružně vrátí (R182)
+        .nav-icon {
+            transition: transform var(--duration-medium) var(--ease-spring);
+        }
+
+        &:active .nav-icon {
+            transform: scale(var(--press-scale));
+        }
+
+        // Do nákupního seznamu právě přibyla akce (R182) — ikona záložky poskočí, ať je vidět, kam
+        &--bump .nav-icon {
+            animation: tab-bar-bump var(--duration-pop) var(--ease-out);
+        }
 
         // Aktivní záložka i proužkem nahoře — barva sama se od neaktivní skoro neliší (WCAG 1.4.1, R99)
         &--active {
@@ -72,7 +87,16 @@ html:has(.tab-bar) {
                 background: var(--color-accent);
                 border-radius: 0 0 var(--radius-pill) var(--radius-pill);
                 content: '';
+                // Proužek po přechodu na záložku vyroste od středu (R182)
+                animation: tab-bar-indicator var(--duration-medium) var(--ease-out);
             }
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        &__item--active::before,
+        &__item--bump .nav-icon {
+            animation: none;
         }
     }
 
@@ -93,4 +117,16 @@ html:has(.tab-bar) {
     stroke-width: var(--svg-stroke-icon);
     stroke-linecap: round;
     stroke-linejoin: round;
+}
+
+@keyframes tab-bar-indicator {
+    from {
+        transform: scaleX(0);
+    }
+}
+
+@keyframes tab-bar-bump {
+    40% {
+        transform: translateY(var(--bump-lift)) scale(var(--pop-scale));
+    }
 }

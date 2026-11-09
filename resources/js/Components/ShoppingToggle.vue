@@ -6,6 +6,7 @@
     @created 2026-10-04
 -->
 <script setup>
+import { bumpShoppingList } from '@/lib/feedback';
 import { useTranslations } from '@/lib/i18n';
 import { showToast } from '@/lib/toast';
 import { router, usePage } from '@inertiajs/vue3';
@@ -30,6 +31,9 @@ const pending = ref(null);
 
 const inList = computed(() => pending.value ?? list.value?.offerIds.includes(props.offerId) ?? false);
 
+/** Právě přidáno — tlačítko „poskočí“ (R182); po konci animace zase false. */
+const popping = ref(false);
+
 /**
  * Přidá, nebo odebere; stránka zůstane, jak je (rozbalené skupiny, vybraný obchod). Posílá chtěný
  * stav, ne „přepni“ — opakovaný požadavek nic nezvrátí. Asynchronně, ať klepnutí na jinou kartu
@@ -37,6 +41,11 @@ const inList = computed(() => pending.value ?? list.value?.offerIds.includes(pro
  */
 function toggle() {
     pending.value = !inList.value;
+    // Přidání je vidět hned: tlačítko poskočí, záložka seznamu taky a telefon krátce zavibruje (R182)
+    if (pending.value) {
+        popping.value = true;
+        bumpShoppingList();
+    }
     router.post(
         list.value.toggleUrl,
         { offer_id: props.offerId, in_list: pending.value },
@@ -63,10 +72,11 @@ function toggle() {
         v-if="list"
         type="button"
         class="button shopping-toggle"
-        :class="{ 'button--ghost': compact, 'button--soft': !compact, 'shopping-toggle--added': inList, 'shopping-toggle--compact': compact }"
+        :class="{ 'button--ghost': compact, 'button--soft': !compact, 'shopping-toggle--added': inList, 'shopping-toggle--compact': compact, 'shopping-toggle--pop': popping }"
         :aria-pressed="compact ? (inList ? 'true' : 'false') : undefined"
         :disabled="processing"
         @click="toggle"
+        @animationend="popping = false"
     >
         <template v-if="compact">
             <span aria-hidden="true">{{ inList ? '✓' : '+' }}</span>

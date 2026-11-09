@@ -34,7 +34,7 @@
     &__input {
         width: 100%;
         padding-left: var(--search-input-padding-left);
-        transition: border-color var(--duration-fast), box-shadow var(--duration-fast);
+        transition: border-color var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out);
 
         &:focus {
             border-color: var(--color-accent);
@@ -435,7 +435,7 @@
 .offer-rows--loading {
     opacity: var(--opacity-loading);
     pointer-events: none;
-    transition: opacity var(--duration-fast);
+    transition: opacity var(--duration-fast) var(--ease-out);
 }
 
 @media (prefers-reduced-motion: reduce) {

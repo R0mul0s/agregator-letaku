@@ -34,7 +34,7 @@
     font-size: var(--font-size-sm);
     font-weight: var(--font-weight-semibold);
     cursor: pointer;
-    transition: border-color var(--duration-fast), background-color var(--duration-fast);
+    transition: border-color var(--duration-fast) var(--ease-out), background-color var(--duration-fast) var(--ease-out);
 
     &:hover {
         border-color: var(--color-accent);

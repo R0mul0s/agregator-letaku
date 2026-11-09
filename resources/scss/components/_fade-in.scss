@@ -1,0 +1,14 @@
+// _fade-in.scss
+// Fotka akce, která se po načtení plynule objeví (direktiva v-fade-in, lib/fadeInImage.js, R182).
+// Při omezeném pohybu přechod vypne _reset.scss — fotka se ukáže hned po načtení.
+//
+// @author Roman Hlaváček
+// @created 2026-11-09
+
+.fade-in {
+    transition: opacity var(--duration-medium) var(--ease-out);
+
+    &--loading {
+        opacity: 0;
+    }
+}

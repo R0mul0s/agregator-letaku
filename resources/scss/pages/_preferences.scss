@@ -37,7 +37,7 @@
     border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
     box-shadow: var(--shadow-card);
-    transition: opacity var(--duration-fast), box-shadow var(--duration-fast);
+    transition: opacity var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out);
 
     // Nesledovaný obchod ustoupí — šedé logo, tlumený text; přepínač zůstává výrazný
     &--off {
@@ -212,7 +212,7 @@
             stroke-width: var(--svg-stroke-icon);
             stroke-linecap: round;
             stroke-linejoin: round;
-            transition: transform var(--duration-fast);
+            transition: transform var(--duration-fast) var(--ease-out);
         }
     }
 

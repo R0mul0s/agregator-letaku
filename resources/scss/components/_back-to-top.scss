@@ -25,7 +25,7 @@
     opacity: 0;
     pointer-events: none;
     transform: translateY(var(--back-to-top-offset));
-    transition: opacity var(--duration-fast), transform var(--duration-fast);
+    transition: opacity var(--duration-fast) var(--ease-out), transform var(--duration-fast) var(--ease-out);
 
     &--visible {
         opacity: 1;

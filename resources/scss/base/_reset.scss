@@ -158,3 +158,10 @@ option {
         transform: rotate(360deg);
     }
 }
+
+// Poskočení potvrzení (R182): „Do seznamu“, „Hlídáte“ — o kolik, říká --pop-amount prvku
+@keyframes pop {
+    40% {
+        transform: scale(var(--pop-amount));
+    }
+}

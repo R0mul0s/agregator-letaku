@@ -198,7 +198,7 @@
         grid-template-rows: auto auto;
         column-gap: var(--space-3);
         align-items: center;
-        transition: box-shadow var(--duration-fast);
+        transition: box-shadow var(--duration-fast) var(--ease-out);
 
         &:hover {
             box-shadow: var(--shadow-card-hover);
@@ -321,7 +321,7 @@
         font: inherit;
         font-weight: var(--font-weight-semibold);
         cursor: pointer;
-        transition: border-color var(--duration-fast), background-color var(--duration-fast), color var(--duration-fast);
+        transition: border-color var(--duration-fast) var(--ease-out), background-color var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out);
 
         .contact-icon {
             width: var(--icon-size);
@@ -428,8 +428,8 @@
 .contact-panel-swap-enter-active,
 .contact-panel-swap-leave-active {
     transition:
-        opacity var(--duration-fast) ease-out,
-        transform var(--duration-fast) ease-out;
+        opacity var(--duration-fast) var(--ease-out),
+        transform var(--duration-fast) var(--ease-out);
 }
 
 .contact-panel-swap-enter-from {
@@ -452,7 +452,7 @@
 
     &__item {
         padding: 0;
-        transition: box-shadow var(--duration-fast);
+        transition: box-shadow var(--duration-fast) var(--ease-out);
 
         &:hover,
         &[open] {
@@ -483,7 +483,7 @@
             border-right: calc(var(--svg-stroke-icon) * 1px) solid currentcolor;
             border-bottom: calc(var(--svg-stroke-icon) * 1px) solid currentcolor;
             transform: rotate(45deg);
-            transition: transform var(--duration-fast);
+            transition: transform var(--duration-fast) var(--ease-out);
         }
     }
 
@@ -501,7 +501,7 @@
         border-radius: 50%;
         color: var(--color-accent-strong);
         font-weight: var(--font-weight-black);
-        transition: background-color var(--duration-fast), color var(--duration-fast);
+        transition: background-color var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out);
     }
 
     &__item[open] &__mark {
@@ -517,7 +517,7 @@
 
     // Odpověď se po rozbalení plynule objeví
     &__item[open] &__answer {
-        animation: contact-faq-open var(--duration-toast) ease-out;
+        animation: contact-faq-open var(--duration-toast) var(--ease-out);
     }
 }
 

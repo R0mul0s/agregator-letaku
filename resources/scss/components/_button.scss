@@ -4,6 +4,8 @@
 // @author Roman Hlaváček
 // @created 2026-10-02
 
+@use '../abstracts/mixins' as *;
+
 .button {
     display: inline-flex;
     align-items: center;
@@ -15,7 +17,17 @@
     font-weight: var(--font-weight-bold);
     text-decoration: none;
     cursor: pointer;
-    transition: transform var(--duration-fast), box-shadow var(--duration-fast), background-color var(--duration-fast);
+    // Návrat po stisku pružinou (R182); barvy a stín plynule
+    transition:
+        transform var(--duration-medium) var(--ease-spring),
+        box-shadow var(--duration-fast) var(--ease-out),
+        background-color var(--duration-fast) var(--ease-out),
+        border-color var(--duration-fast) var(--ease-out),
+        color var(--duration-fast) var(--ease-out);
+    -webkit-tap-highlight-color: transparent;
+
+    // Stisk je cítit (R182); hlavní a žluté tlačítko místo zmenšení zajede o spodní hranu níž
+    @include press;
 
     &:disabled {
         opacity: var(--opacity-disabled);
@@ -42,9 +54,11 @@
         box-shadow: 0 var(--button-edge) 0 var(--color-button-edge);
         color: var(--color-on-accent);
 
-        &:hover:not(:disabled) {
-            transform: translateY(var(--hover-lift));
-            box-shadow: 0 calc(var(--button-edge) - var(--hover-lift)) 0 var(--color-button-edge);
+        @include hover {
+            &:not(:disabled) {
+                transform: translateY(var(--hover-lift));
+                box-shadow: 0 calc(var(--button-edge) - var(--hover-lift)) 0 var(--color-button-edge);
+            }
         }
 
         &:active:not(:disabled) {
@@ -62,9 +76,11 @@
         color: var(--color-on-landing-highlight);
         font-weight: var(--font-weight-extrabold);
 
-        &:hover:not(:disabled) {
-            transform: translateY(var(--hover-lift));
-            box-shadow: 0 calc(var(--button-edge) - var(--hover-lift)) 0 var(--color-landing-highlight-edge), var(--shadow-landing-highlight);
+        @include hover {
+            &:not(:disabled) {
+                transform: translateY(var(--hover-lift));
+                box-shadow: 0 calc(var(--button-edge) - var(--hover-lift)) 0 var(--color-landing-highlight-edge), var(--shadow-landing-highlight);
+            }
         }
 
         &:active:not(:disabled) {
@@ -155,6 +171,13 @@
     border-radius: var(--radius-sm);
     color: var(--color-text-muted);
     cursor: pointer;
+    transition:
+        transform var(--duration-medium) var(--ease-spring),
+        background-color var(--duration-fast) var(--ease-out),
+        color var(--duration-fast) var(--ease-out);
+    -webkit-tap-highlight-color: transparent;
+
+    @include press;
 
     &:hover {
         background: var(--color-accent-soft);
@@ -187,6 +210,14 @@
     font: inherit;
     font-size: var(--font-size-sm);
     cursor: pointer;
+    transition:
+        transform var(--duration-medium) var(--ease-spring),
+        background-color var(--duration-fast) var(--ease-out),
+        border-color var(--duration-fast) var(--ease-out),
+        color var(--duration-fast) var(--ease-out);
+    -webkit-tap-highlight-color: transparent;
+
+    @include press;
 
     &:hover {
         border-color: var(--color-accent);

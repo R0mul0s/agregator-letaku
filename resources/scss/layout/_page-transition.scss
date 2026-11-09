@@ -1,0 +1,52 @@
+// _page-transition.scss
+// Přechod mezi stránkami (R182, lib/pageTransition.js): View Transitions API — stará stránka
+// rychle zmizí, nová se prolne s lehkým vyjetím zespodu. Hlavička a spodní lišta záložek mají
+// vlastní jméno, takže se s obsahem neprolínají a zůstanou stát. Prohlížeč bez podpory přejde
+// jako dřív; při omezeném pohybu se přechod nespustí vůbec (pojistka i tady).
+//
+// @author Roman Hlaváček
+// @created 2026-11-09
+
+.app-header {
+    view-transition-name: app-header;
+}
+
+.tab-bar {
+    view-transition-name: tab-bar;
+}
+
+::view-transition-old(root) {
+    animation: page-out var(--duration-page-out) var(--ease-in) both;
+}
+
+::view-transition-new(root) {
+    animation: page-in var(--duration-medium) var(--ease-out) both;
+}
+
+// Hlavička jiné výšky (úvodní stránka bez linky) se přizpůsobí stejně rychle jako obsah
+::view-transition-group(app-header),
+::view-transition-group(tab-bar) {
+    animation-duration: var(--duration-medium);
+    animation-timing-function: var(--ease-out);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    ::view-transition-group(*),
+    ::view-transition-old(*),
+    ::view-transition-new(*) {
+        animation: none;
+    }
+}
+
+@keyframes page-out {
+    to {
+        opacity: 0;
+    }
+}
+
+@keyframes page-in {
+    from {
+        opacity: 0;
+        transform: translateY(var(--page-enter-travel));
+    }
+}

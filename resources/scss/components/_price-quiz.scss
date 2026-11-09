@@ -5,6 +5,8 @@
 // @author Roman Hlaváček
 // @created 2026-10-06
 
+@use '../abstracts/mixins' as *;
+
 .price-quiz {
     display: flex;
     flex-direction: column;
@@ -75,13 +77,18 @@
         font: inherit;
         text-align: left;
         cursor: pointer;
-        transition: transform var(--duration-fast), border-color var(--duration-fast), box-shadow var(--duration-fast), opacity var(--duration-fast);
+        transition: transform var(--duration-medium) var(--ease-spring), border-color var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out), opacity var(--duration-fast) var(--ease-out);
 
-        &:hover:not(:disabled) {
-            border-color: var(--color-accent);
-            box-shadow: var(--shadow-card-hover);
-            transform: translateY(var(--hover-lift));
+        @include hover {
+            &:not(:disabled) {
+                border-color: var(--color-accent);
+                box-shadow: var(--shadow-card-hover);
+                transform: translateY(var(--hover-lift));
+            }
         }
+
+        // Stisk prstem (R182)
+        @include press;
 
         // Po tipu se ztlumí jen obrázek — cena za jednotku zůstane čitelná (kontrast, R99)
         &:disabled {

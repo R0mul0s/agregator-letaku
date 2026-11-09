@@ -8,6 +8,7 @@
     @created 2026-10-04
 -->
 <script setup>
+import { vibrateTap } from '@/lib/feedback';
 import { useTranslations } from '@/lib/i18n';
 import { showToast } from '@/lib/toast';
 import { Link, router, usePage } from '@inertiajs/vue3';
@@ -25,6 +26,8 @@ const props = defineProps({
 const t = useTranslations();
 const page = usePage();
 const processing = ref(false);
+/** Hlídání právě začalo — potvrzení „✓ Hlídáte“ naskočí s poskočením (R182). */
+const justWatched = ref(false);
 
 const isGuest = computed(() => !page.props.auth.user);
 
@@ -48,6 +51,10 @@ function watchProduct() {
             preserveScroll: true,
             onStart: () => (processing.value = true),
             onFinish: () => (processing.value = false),
+            onSuccess: () => {
+                justWatched.value = true;
+                vibrateTap();
+            },
             onError: (errors) => showToast(Object.values(errors)[0]),
         },
     );
@@ -55,7 +62,7 @@ function watchProduct() {
 </script>
 
 <template>
-    <span v-if="target.watched" class="watch-offer watch-offer--done" :class="{ 'watch-offer--hero': hero }">{{ t('offers.watch.watched', { name: target.name }) }}</span>
+    <span v-if="target.watched" class="watch-offer watch-offer--done" :class="{ 'watch-offer--hero': hero, 'watch-offer--pop': justWatched }">{{ t('offers.watch.watched', { name: target.name }) }}</span>
     <Link v-else-if="isGuest" :href="registerHref" :class="buttonClass">
         {{ target.productId ? t('offers.watch.product', { name: target.name }) : t('offers.watch.own') }}
     </Link>

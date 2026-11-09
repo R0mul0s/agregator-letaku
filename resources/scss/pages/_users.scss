@@ -74,8 +74,8 @@
         text-align: left;
         cursor: pointer;
         transition:
-            border-color var(--duration-fast) ease,
-            box-shadow var(--duration-fast) ease;
+            border-color var(--duration-fast) var(--ease-out),
+            box-shadow var(--duration-fast) var(--ease-out);
 
         &:hover {
             box-shadow: var(--shadow-card-hover);

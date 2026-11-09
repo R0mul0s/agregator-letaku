@@ -51,7 +51,7 @@
         font-size: var(--font-size-sm);
         font-weight: var(--font-weight-extrabold);
         cursor: pointer;
-        transition: background-color var(--duration-fast);
+        transition: background-color var(--duration-fast) var(--ease-out);
 
         &:hover {
             background: var(--color-landing-hero-chip);
@@ -137,7 +137,7 @@
         color: var(--color-text);
         text-align: center;
         text-decoration: none;
-        transition: transform var(--duration-fast);
+        transition: transform var(--duration-fast) var(--ease-out);
 
         &--1 {
             width: var(--weekly-podium-ticket-width-first);
@@ -283,7 +283,7 @@
         font-size: var(--font-size-sm);
         font-weight: var(--font-weight-extrabold);
         text-decoration: none;
-        transition: border-color var(--duration-fast);
+        transition: border-color var(--duration-fast) var(--ease-out);
 
         &:hover {
             border-color: var(--color-accent);
@@ -444,10 +444,15 @@
     border-radius: var(--radius-md);
     color: var(--color-text);
     text-decoration: none;
-    transition: transform var(--duration-fast);
+    transition: transform var(--duration-medium) var(--ease-spring);
 
-    &:is(a):hover {
-        transform: translateY(var(--hover-lift));
+    &:is(a) {
+        @include hover {
+            transform: translateY(var(--hover-lift));
+        }
+
+        // Stisk prstem (R182)
+        @include press;
     }
 
     &__image {
@@ -534,7 +539,7 @@
         box-shadow: var(--shadow-card);
         color: var(--color-text);
         text-decoration: none;
-        transition: border-color var(--duration-fast);
+        transition: border-color var(--duration-fast) var(--ease-out);
 
         &:hover {
             border-color: var(--color-accent);

@@ -27,9 +27,9 @@
     opacity: 0;
     transform: translateY(-100%);
     transition:
-        opacity var(--duration-fast),
-        transform var(--duration-fast),
-        visibility var(--duration-fast);
+        opacity var(--duration-fast) var(--ease-out),
+        transform var(--duration-fast) var(--ease-out),
+        visibility var(--duration-fast) var(--ease-out);
 
     &--visible {
         visibility: visible;

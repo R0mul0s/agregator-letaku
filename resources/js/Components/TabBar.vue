@@ -7,19 +7,36 @@
     setrvačností, telefon první klepnutí spotřebuje na zastavení posunu a odkaz nevyvolá — v liště
     se pak muselo klepat dvakrát. Myš a klávesnice jdou přes odkaz jako dřív.
 
+    Po přidání akce do nákupního seznamu jeho záložka poskočí (R182, lib/feedback.js).
+
     @author Roman Hlaváček
     @created 2026-10-04
 -->
 <script setup>
 import NavIcon from '@/Components/NavIcon.vue';
+import { shoppingListBumps } from '@/lib/feedback';
 import { useTranslations } from '@/lib/i18n';
 import { Link, router, usePage } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { computed, nextTick, ref, watch } from 'vue';
 
 const t = useTranslations();
 const page = usePage();
 
 const items = computed(() => page.props.navigation.filter((item) => item.tab));
+
+/** Klíč záložky nákupního seznamu (HandleInertiaRequests::NAVIGATION). */
+const SHOPPING_LIST_KEY = 'shopping_list';
+
+/** Záložka nákupního seznamu právě poskakuje. */
+const bumping = ref(false);
+
+// Každé přidání do seznamu poskočení spustí znovu — třída musí na snímek zmizet, jinak by
+// prohlížeč běžící animaci nerestartoval
+watch(shoppingListBumps, async () => {
+    bumping.value = false;
+    await nextTick();
+    window.requestAnimationFrame(() => (bumping.value = true));
+});
 
 /** Kolik px smí prst mezi dotykem a puštěním ujet, aby šlo o klepnutí, ne o tah. */
 const TAP_SLOP_PX = 10;
@@ -68,11 +85,12 @@ function onTouchEnd(event, url) {
             :key="item.url"
             :href="item.url"
             class="tab-bar__item"
-            :class="{ 'tab-bar__item--active': item.active }"
+            :class="{ 'tab-bar__item--active': item.active, 'tab-bar__item--bump': bumping && item.key === SHOPPING_LIST_KEY }"
             :aria-current="item.active ? 'page' : undefined"
             @touchstart.passive="onTouchStart"
             @touchend="onTouchEnd($event, item.url)"
             @touchcancel="onTouchCancel"
+            @animationend="bumping = false"
         >
             <NavIcon :name="item.key" />
             <span class="tab-bar__label">{{ t(`nav.tabs.${item.key}`) }}</span>

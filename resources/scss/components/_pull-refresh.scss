@@ -35,7 +35,7 @@
     // Po puštění (pod hranicí zpět, nad ní na místo načítání) dojede plynule, během tahu ne
     &:not(.pull-refresh--visible),
     &--refreshing {
-        transition: opacity var(--duration-fast), transform var(--duration-fast);
+        transition: opacity var(--duration-fast) var(--ease-out), transform var(--duration-fast) var(--ease-out);
     }
 
     &--ready {

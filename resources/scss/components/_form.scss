@@ -116,7 +116,7 @@
         background: var(--color-input-border);
         border-radius: var(--radius-pill);
         cursor: pointer;
-        transition: background-color var(--duration-fast);
+        transition: background-color var(--duration-fast) var(--ease-out);
         appearance: none;
 
         &::before {
@@ -129,7 +129,8 @@
             background: var(--color-switch-knob);
             border-radius: 50%;
             box-shadow: var(--shadow-card);
-            transition: transform var(--duration-fast);
+            // Jezdec dojede pružně s malým přešvihem (R182)
+            transition: transform var(--duration-medium) var(--ease-spring);
         }
 
         &:checked {

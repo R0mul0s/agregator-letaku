@@ -13,6 +13,7 @@
 @use 'layout/page-hero';
 @use 'layout/app-footer';
 @use 'layout/tab-bar';
+@use 'layout/page-transition';
 @use 'components/button';
 @use 'components/form';
 @use 'components/card';
@@ -23,6 +24,7 @@
 @use 'components/tag';
 @use 'components/chain';
 @use 'components/offer-card';
+@use 'components/fade-in';
 @use 'components/mention-card';
 @use 'components/search-form';
 @use 'components/search-panel';

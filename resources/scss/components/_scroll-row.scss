@@ -22,7 +22,7 @@
         width: var(--scroll-row-fade-width);
         opacity: 0;
         pointer-events: none;
-        transition: opacity var(--duration-fast);
+        transition: opacity var(--duration-fast) var(--ease-out);
     }
 
     &::before {

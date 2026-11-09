@@ -8,6 +8,25 @@
  */
 import { nextTick, onBeforeUnmount, onMounted, ref, toValue, watch } from 'vue';
 
+/** Atribut okna během animace zavření (R182) — CSS podle něj spustí odjezd okna a pozadí. */
+const CLOSING_ATTRIBUTE = 'data-closing';
+
+/** Pojistka: nejdéle tolik ms se čeká na animaci zavření (delší je jen chyba ve stylech). */
+const CLOSE_ANIMATION_MAX_MS = 500;
+
+/**
+ * Spustí animaci zavření okna a počká na její konec. Bez animace (omezený pohyb, starý
+ * prohlížeč) skončí hned.
+ *
+ * @param {HTMLDialogElement} element
+ * @returns {Promise<void>}
+ */
+async function playCloseAnimation(element) {
+    element.setAttribute(CLOSING_ATTRIBUTE, '');
+    const finished = Promise.allSettled(element.getAnimations().map((animation) => animation.finished));
+    await Promise.race([finished, new Promise((resolve) => window.setTimeout(resolve, CLOSE_ANIMATION_MAX_MS))]);
+}
+
 /**
  * Okno podle stavu `isOpen`. Vrácený `dialog` patří do `ref="dialog"`, `onClick` na `@click` okna.
  *
@@ -19,6 +38,8 @@ import { nextTick, onBeforeUnmount, onMounted, ref, toValue, watch } from 'vue';
  */
 export function useModalDialog(isOpen, { onBackdrop, onDismiss, beforeOpen, focusOnOpen } = {}) {
     const dialog = ref(null);
+    /** Probíhá animace zavření — další zavření se nespouští. */
+    let closing = false;
 
     /**
      * Otevře nebo zavře okno podle stavu.
@@ -31,8 +52,23 @@ export function useModalDialog(isOpen, { onBackdrop, onDismiss, beforeOpen, focu
             dialog.value?.showModal();
             await nextTick();
             toValue(focusOnOpen)?.focus();
-        } else if (!open && dialog.value?.open) {
-            dialog.value.close();
+        } else if (!open && dialog.value?.open && !closing) {
+            // Okno odjede a pozadí zesvětlá (R182), teprve pak se zavře — close() by ho schoval hned
+            const element = dialog.value;
+            closing = true;
+            await playCloseAnimation(element);
+            closing = false;
+            // Během odjezdu ho stránka mohla znovu otevřít (další potvrzení hned po prvním) — pak
+            // zůstane, najede zpátky a připraví se jako při otevření
+            if (toValue(isOpen)) {
+                element.removeAttribute(CLOSING_ATTRIBUTE);
+                await beforeOpen?.();
+                toValue(focusOnOpen)?.focus();
+
+                return;
+            }
+            element.close();
+            element.removeAttribute(CLOSING_ATTRIBUTE);
         }
     }
 

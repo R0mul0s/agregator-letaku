@@ -95,11 +95,24 @@
     &[open] {
         display: flex;
         flex-direction: column;
-        animation: bottom-sheet-in var(--duration-toast) ease-out;
+        animation: bottom-sheet-in var(--duration-toast) var(--ease-out);
     }
 
     &::backdrop {
         background: var(--color-backdrop);
+    }
+
+    &[open]::backdrop {
+        animation: confirm-backdrop-in var(--duration-toast) var(--ease-out);
+    }
+
+    // Zavření (data-closing z lib/modalDialog.js, R182): okno sjede dolů, pozadí zesvětlá
+    &[open][data-closing] {
+        animation: bottom-sheet-out var(--duration-exit) var(--ease-in) forwards;
+    }
+
+    &[open][data-closing]::backdrop {
+        animation: confirm-backdrop-out var(--duration-exit) var(--ease-in) forwards;
     }
 
     // Na širším displeji (okno se tam otevře jen výjimečně) uprostřed jako dialog
@@ -145,7 +158,10 @@
     }
 
     @media (prefers-reduced-motion: reduce) {
-        &[open] {
+        &[open],
+        &[open]::backdrop,
+        &[open][data-closing],
+        &[open][data-closing]::backdrop {
             animation: none;
         }
     }
@@ -153,6 +169,12 @@
 
 @keyframes bottom-sheet-in {
     from {
+        transform: translateY(var(--bottom-sheet-travel));
+    }
+}
+
+@keyframes bottom-sheet-out {
+    to {
         transform: translateY(var(--bottom-sheet-travel));
     }
 }

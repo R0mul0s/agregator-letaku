@@ -109,6 +109,32 @@
     --sticker-rotation: -6deg;
     --header-accent-height: 3px;
     --duration-fast: 150ms;
+    // Pohyb (R182): křivky a délky pro přechody a mikrointerakce. Rychlý náběh a měkký doběh
+    // místo výchozího „ease“ — pohyb působí živěji; pružina s malým přešvihem jen na „pop“
+    // potvrzení a návrat po stisku; odchod (zavření okna) zrychluje ven
+    --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+    --ease-in: cubic-bezier(0.55, 0, 1, 0.45);
+    --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --duration-medium: 220ms;
+    --duration-exit: 180ms;
+    --duration-pop: 450ms;
+    // Stisk tlačítka, čipu nebo dlaždice prstem — lehké zmenšení, ať je klepnutí cítit
+    --press-scale: 0.96;
+    // Okno nad ztmaveným pozadím při náběhu a zavření lehce menší
+    --dialog-enter-scale: 0.98;
+    // Výraznější „pop“ potvrzení (Do seznamu, Hlídám) a poskočení záložky nákupního seznamu
+    --pop-scale: 1.25;
+    --pop-scale-button: 1.08;
+    --bump-lift: -0.3rem;
+    // Vjezd karty akce při posunu stránky a prolnutí obsahu při přechodu na jinou stránku
+    --enter-travel: 0.75rem;
+    // Úsek vjezdu karty do okna, během kterého se karta objeví (animation-range)
+    --enter-range: entry 0% entry 40%;
+    --page-enter-travel: 0.5rem;
+    --duration-page-out: 90ms;
+    // Přeškrtnutí koupené položky nákupního seznamu se protáhne zleva
+    --strike-thickness: 2px;
+    --strike-position: 55%;
     // „Rychlostní čárky“ z loga u nadpisů stránek
     --speed-lines-width: 1.25rem;
     --speed-lines-height: 0.75em;

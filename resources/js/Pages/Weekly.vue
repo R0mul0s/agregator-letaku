@@ -177,7 +177,7 @@ async function share() {
                     >
                         <span class="weekly-podium__rank">{{ t('weekly.rank', { rank: item.rank }) }}</span>
                         <span class="weekly-podium__image" :class="{ 'weekly-podium__image--none': !item.offer.imageUrl }">
-                            <img v-if="item.offer.imageUrl" :src="item.offer.imageUrl" alt="" referrerpolicy="no-referrer" />
+                            <img v-if="item.offer.imageUrl" v-fade-in :src="item.offer.imageUrl" alt="" referrerpolicy="no-referrer" />
                             <img v-else src="/images/brand/mascot-192.webp" width="192" height="192" alt="" class="weekly-podium__placeholder" />
                         </span>
                         <span class="weekly-podium__name">{{ item.offer.name }}</span>
@@ -256,7 +256,7 @@ async function share() {
                             class="weekly-mini"
                         >
                             <span class="weekly-mini__image" :class="{ 'weekly-mini__image--none': !offer.imageUrl }">
-                                <img v-if="offer.imageUrl" :src="offer.imageUrl" alt="" loading="lazy" referrerpolicy="no-referrer" />
+                                <img v-if="offer.imageUrl" v-fade-in :src="offer.imageUrl" alt="" loading="lazy" referrerpolicy="no-referrer" />
                                 <img v-else src="/images/brand/mascot-192.webp" width="192" height="192" alt="" class="weekly-mini__placeholder" loading="lazy" />
                             </span>
                             <span v-if="discountPercent(offer)" class="weekly-mini__sticker">{{ formatDiscount(discountPercent(offer)) }}</span>

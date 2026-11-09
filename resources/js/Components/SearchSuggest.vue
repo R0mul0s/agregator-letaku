@@ -395,7 +395,7 @@ onBeforeUnmount(() => {
 
                         <template v-else-if="option.kind === 'offer'">
                             <span class="search-panel__thumb">
-                                <img v-if="option.offer.imageUrl" :src="option.offer.imageUrl" alt="" loading="lazy" referrerpolicy="no-referrer" />
+                                <img v-if="option.offer.imageUrl" v-fade-in :src="option.offer.imageUrl" alt="" loading="lazy" referrerpolicy="no-referrer" />
                             </span>
                             <span class="search-panel__main">
                                 <span class="search-panel__name"><HighlightText :text="option.offer.name" :query="highlightQuery" /></span>

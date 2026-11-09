@@ -46,6 +46,24 @@
     outline-offset: var(--focus-outline-offset);
 }
 
+/// Najetí myší jen na zařízení, které ho opravdu umí (R182) — na dotykovém displeji zůstane
+/// :hover po klepnutí „přilepený“ (karta by zůstala nadzvednutá, dokud se neklepne jinam).
+@mixin hover {
+    @media (hover: hover) {
+        &:hover {
+            @content;
+        }
+    }
+}
+
+/// Odezva na stisk (R182): prvek se pod prstem nebo myší lehce zmenší a pružně vrátí. Prvek musí
+/// mít v `transition` i `transform` (s `--ease-spring`, ať návrat lehce přešvihne).
+@mixin press {
+    &:active:not(:disabled) {
+        transform: scale(var(--press-scale));
+    }
+}
+
 /// Zruší visually-hidden — prvek skrytý jen vizuálně se zase ukáže.
 @mixin visually-shown {
     position: static;
@@ -166,7 +184,8 @@
 }
 
 /// Okno nad ztmaveným pozadím (nativní <dialog>, R47) — karta uprostřed, náběh zespodu.
-/// Animace confirm-dialog-in / confirm-backdrop-in jsou v components/_confirm-dialog.scss.
+/// Při zavření (data-closing z lib/modalDialog.js, R182) odjede dolů a pozadí zesvětlá.
+/// Animace confirm-dialog-in/-out a confirm-backdrop-in/-out jsou v components/_confirm-dialog.scss.
 @mixin dialog-surface($max-width) {
     width: min(calc(100% - 2 * var(--space-3)), #{$max-width});
     padding: var(--space-4);
@@ -181,16 +200,26 @@
     }
 
     &[open] {
-        animation: confirm-dialog-in var(--duration-toast) ease-out;
+        animation: confirm-dialog-in var(--duration-toast) var(--ease-out);
     }
 
     &[open]::backdrop {
-        animation: confirm-backdrop-in var(--duration-toast) ease-out;
+        animation: confirm-backdrop-in var(--duration-toast) var(--ease-out);
+    }
+
+    &[open][data-closing] {
+        animation: confirm-dialog-out var(--duration-exit) var(--ease-in) forwards;
+    }
+
+    &[open][data-closing]::backdrop {
+        animation: confirm-backdrop-out var(--duration-exit) var(--ease-in) forwards;
     }
 
     @media (prefers-reduced-motion: reduce) {
         &[open],
-        &[open]::backdrop {
+        &[open]::backdrop,
+        &[open][data-closing],
+        &[open][data-closing]::backdrop {
             animation: none;
         }
     }

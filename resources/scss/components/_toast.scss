@@ -88,16 +88,24 @@
     }
 }
 
-// Vyjede zespodu a zmizí; při omezení pohybu jen prolne
-.toast-enter-active,
+// Vyjede zespodu s lehkým přešvihem a zmizí; ostatní toasty se plynule posunou (R182); při
+// omezení pohybu jen prolne
+.toast-enter-active {
+    transition: opacity var(--duration-toast) var(--ease-out), transform var(--duration-pop) var(--ease-spring);
+}
+
 .toast-leave-active {
-    transition: opacity var(--duration-toast), transform var(--duration-toast);
+    transition: opacity var(--duration-exit) var(--ease-in), transform var(--duration-exit) var(--ease-in);
+}
+
+.toast-move {
+    transition: transform var(--duration-toast) var(--ease-out);
 }
 
 .toast-enter-from,
 .toast-leave-to {
     opacity: 0;
-    transform: translateY(var(--toast-travel));
+    transform: translateY(var(--toast-travel)) scale(var(--dialog-enter-scale));
 }
 
 @media (prefers-reduced-motion: reduce) {

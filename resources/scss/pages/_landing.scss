@@ -170,7 +170,7 @@
         font: inherit;
         font-weight: var(--font-weight-bold);
         cursor: pointer;
-        transition: background-color var(--duration-fast);
+        transition: background-color var(--duration-fast) var(--ease-out);
 
         &:hover {
             background: var(--color-landing-hero-chip-hover);
@@ -433,7 +433,7 @@
     &__logo {
         display: block;
         border-radius: var(--radius-sm);
-        transition: transform var(--duration-fast);
+        transition: transform var(--duration-fast) var(--ease-out);
 
         &:hover {
             transform: translateY(var(--hover-lift));
@@ -888,7 +888,7 @@
         cursor: pointer;
         pointer-events: auto;
         transform: rotate(var(--landing-peek-tilt));
-        transition: transform var(--duration-fast);
+        transition: transform var(--duration-fast) var(--ease-out);
 
         @include from-md {
             width: var(--landing-peek-size);

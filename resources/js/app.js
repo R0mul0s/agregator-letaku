@@ -6,6 +6,8 @@
  */
 import { initAccessibility } from '@/lib/a11y';
 import { initConsent } from '@/lib/consent';
+import { fadeInImage } from '@/lib/fadeInImage';
+import { pageVisitOptions } from '@/lib/pageTransition';
 import { initPwa } from '@/lib/pwa';
 import { installStatusToasts } from '@/lib/toast';
 import { createInertiaApp } from '@inertiajs/vue3';
@@ -17,6 +19,9 @@ const APP_NAME = document.querySelector('meta[name="application-name"]')?.conten
 /** Třída kořene aplikace — rozvržení stránky přes celou výšku okna (layout/_page.scss). */
 const ROOT_CLASS = 'app-root';
 
+/** Barva lišty načítání stránky — akcent z tokenů (base/_tokens.scss), i v tmavém režimu. */
+const PROGRESS_COLOR = 'var(--color-accent)';
+
 /** Obsah stránky ze serveru pro roboty (resources/views/seo/content.blade.php). */
 const SEO_CONTENT_SELECTOR = '[data-seo-content]';
 
@@ -25,6 +30,10 @@ createInertiaApp({
     // s názvem aplikace (úvodní stránka) se nezdvojí
     title: (title) => (title && APP_NAME && !title.includes(APP_NAME) ? `${title} · ${APP_NAME}` : title || APP_NAME),
     // Stránky se načítají líně — každá má vlastní chunk.
+    // Přechod na jinou stránku s prolnutím (R182, lib/pageTransition.js)
+    defaults: { visitOptions: pageVisitOptions },
+    // Lišta načítání v barvě značky místo výchozí modré (R182)
+    progress: { color: PROGRESS_COLOR },
     resolve: (name) => {
         const pages = import.meta.glob('./Pages/**/*.vue');
 
@@ -38,6 +47,8 @@ createInertiaApp({
         document.querySelector(SEO_CONTENT_SELECTOR)?.remove();
         createApp({ render: () => h(App, props) })
             .use(plugin)
+            // Fotka akce se po načtení plynule objeví (R182)
+            .directive('fade-in', fadeInImage)
             .mount(el);
         installStatusToasts(props.initialPage);
         // Fokus a oznámení po přechodu na jinou stránku, fokus na chybné pole formuláře (R99)

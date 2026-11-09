@@ -202,12 +202,16 @@
         font-size: var(--font-size-sm);
         font-weight: var(--font-weight-extrabold);
         cursor: pointer;
-        transition: background-color var(--duration-fast), transform var(--duration-fast);
+        transition: background-color var(--duration-fast) var(--ease-out), transform var(--duration-medium) var(--ease-spring);
+        -webkit-tap-highlight-color: transparent;
 
-        &:hover {
+        @include hover {
             background: var(--color-landing-hero-chip-hover);
             transform: translateY(var(--hover-lift));
         }
+
+        // Stisk prstem (R182)
+        @include press;
 
         &--all {
             padding-inline: var(--space-3);
@@ -272,7 +276,7 @@
         font-weight: var(--font-weight-extrabold);
         text-decoration: none;
         transform: rotate(var(--home-ticket-tilt));
-        transition: transform var(--duration-fast);
+        transition: transform var(--duration-fast) var(--ease-out);
 
         &:hover {
             transform: rotate(var(--home-ticket-tilt)) translateY(var(--hover-lift));

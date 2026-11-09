@@ -40,6 +40,7 @@ const imageBroken = ref(false);
         <!-- Náhled stránky z CDN obchodu (R22); obsah nese text karty, obrázek je dekorativní -->
         <img
             v-if="mention.imageUrl && !imageBroken"
+            v-fade-in
             :src="mention.imageUrl"
             alt=""
             class="mention-card__image"

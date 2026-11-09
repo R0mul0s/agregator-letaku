@@ -135,7 +135,7 @@
         font-weight: var(--font-weight-semibold);
         text-decoration: none;
         cursor: pointer;
-        transition: background-color var(--duration-fast);
+        transition: background-color var(--duration-fast) var(--ease-out);
 
         &:hover {
             background: var(--color-landing-hero-chip-hover);
@@ -218,7 +218,7 @@
         text-align: left;
         cursor: pointer;
         transform: rotate(var(--home-ticket-tilt));
-        transition: transform var(--duration-fast);
+        transition: transform var(--duration-fast) var(--ease-out);
 
         &:hover {
             transform: rotate(var(--home-ticket-tilt)) translateY(var(--hover-lift));
@@ -520,7 +520,7 @@
             stroke: currentcolor;
             stroke-width: var(--svg-stroke-icon);
             stroke-linecap: round;
-            transition: transform var(--duration-fast);
+            transition: transform var(--duration-fast) var(--ease-out);
         }
     }
 
@@ -547,7 +547,7 @@
         stroke-width: var(--svg-stroke-check);
         stroke-linecap: round;
         stroke-linejoin: round;
-        transition: transform var(--duration-fast);
+        transition: transform var(--duration-fast) var(--ease-out);
     }
 
     &--expanded &__chevron {

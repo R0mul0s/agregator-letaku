@@ -99,7 +99,7 @@
         border: 0;
         border-radius: var(--radius-sm);
         cursor: pointer;
-        transition: transform var(--duration-fast), opacity var(--duration-fast), filter var(--duration-fast);
+        transition: transform var(--duration-fast) var(--ease-out), opacity var(--duration-fast) var(--ease-out), filter var(--duration-fast) var(--ease-out);
 
         &:hover {
             transform: translateY(var(--hover-lift));

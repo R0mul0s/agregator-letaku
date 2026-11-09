@@ -317,7 +317,7 @@
         color: var(--color-install-notify-text);
         font-size: var(--font-size-install-notify);
         line-height: var(--line-height-heading);
-        animation: install-notify-in var(--duration-toast) ease-out both;
+        animation: install-notify-in var(--duration-toast) var(--ease-out) both;
 
         img {
             flex: none;

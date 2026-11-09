@@ -91,7 +91,7 @@ const showHistory = computed(() => (history.value?.points?.length ?? 0) >= MIN_H
     <BottomSheet v-model:open="open" :title="offer?.name ?? ''">
         <div v-if="offer" class="offer-detail">
             <div v-if="hasImage" class="offer-detail__media">
-                <img :src="offer.imageUrl" alt="" class="offer-detail__image" referrerpolicy="no-referrer" @error="imageBroken = true" />
+                <img v-fade-in :src="offer.imageUrl" alt="" class="offer-detail__image" referrerpolicy="no-referrer" @error="imageBroken = true" />
                 <span v-if="discount" class="offer-card__sticker" aria-hidden="true">{{ formatDiscount(discount) }}</span>
             </div>
 

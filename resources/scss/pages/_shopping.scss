@@ -144,9 +144,34 @@
 }
 
 .shopping-list {
+    // Umístěný předek mizející položky (shopping-item-leave-active)
+    position: relative;
     margin: 0;
     padding: 0;
     list-style: none;
+}
+
+// Pohyb položek (R182, TransitionGroup v ShoppingGroups.vue): odškrtnutá se plynule přesune na
+// konec skupiny, nová se prolne, smazaná zmizí a ostatní se k sobě plynule posunou. Při omezeném
+// pohybu přechody vypne _reset.scss
+.shopping-item-move {
+    transition: transform var(--duration-toast) var(--ease-out);
+}
+
+.shopping-item-enter-active {
+    transition: opacity var(--duration-medium) var(--ease-out);
+}
+
+// Mizející položka mimo tok stránky — ostatní se posunou hned, ne až po jejím zmizení
+.shopping-item-leave-active {
+    position: absolute;
+    width: 100%;
+    transition: opacity var(--duration-exit) var(--ease-in);
+}
+
+.shopping-item-enter-from,
+.shopping-item-leave-to {
+    opacity: 0;
 }
 
 // Řádek: zaškrtávátko, název s balením a platností, cena, smazat — velké cíle pro palec v obchodě
@@ -175,6 +200,23 @@
     &__name {
         font-weight: var(--font-weight-bold);
         line-height: var(--line-height-heading);
+        transition: color var(--duration-medium) var(--ease-out);
+    }
+
+    // Přeškrtnutí koupené položky se protáhne zleva (R182) — čára je přechod v pozadí textu
+    // (text-decoration animovat nejde); dlouhý název přeškrtne řádek po řádku
+    &__strike {
+        background: linear-gradient(currentcolor, currentcolor) no-repeat 0 var(--strike-position) / 0 var(--strike-thickness);
+        transition: background-size var(--duration-toast) var(--ease-out);
+    }
+
+    // Stisk zaškrtávátka palcem: políčko se lehce zmenší a pružně vrátí (R182)
+    &__check .form-checkbox__input {
+        transition: transform var(--duration-medium) var(--ease-spring);
+    }
+
+    &__check:active .form-checkbox__input {
+        transform: scale(var(--press-scale));
     }
 
     &__meta {
@@ -197,6 +239,7 @@
         color: var(--color-price);
         font-weight: var(--font-weight-black);
         white-space: nowrap;
+        transition: color var(--duration-medium) var(--ease-out);
         // Cena za celé množství (R133) pod cenou kusu
         text-align: right;
 
@@ -213,6 +256,13 @@
     &--checked &__name,
     &--checked &__price {
         color: var(--color-text-muted);
+    }
+
+    &--checked &__strike {
+        background-size: 100% var(--strike-thickness);
+    }
+
+    &--checked &__price {
         text-decoration: line-through;
     }
 }
@@ -227,6 +277,17 @@
         border-color: transparent;
         background: var(--color-success-soft);
         color: var(--color-success-text);
+    }
+
+    // Právě přidáno (R182) — tlačítko poskočí
+    &--pop {
+        --pop-amount: var(--pop-scale-button);
+
+        animation: pop var(--duration-pop) var(--ease-out);
+
+        @media (prefers-reduced-motion: reduce) {
+            animation: none;
+        }
     }
 }
 

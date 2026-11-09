@@ -25,13 +25,17 @@
     font: inherit;
     text-align: left;
     cursor: pointer;
-    transition: border-color var(--duration-fast), box-shadow var(--duration-fast), transform var(--duration-fast);
+    transition: border-color var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out), transform var(--duration-medium) var(--ease-spring);
+    -webkit-tap-highlight-color: transparent;
 
-    &:hover {
+    @include hover {
         border-color: var(--color-accent);
         box-shadow: var(--shadow-card);
         transform: translateY(var(--hover-lift));
     }
+
+    // Stisk prstem (R182)
+    @include press;
 
     @media (prefers-reduced-motion: reduce) {
         transition: none;

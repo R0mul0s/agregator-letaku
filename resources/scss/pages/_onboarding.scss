@@ -282,7 +282,7 @@ html:has(.onboarding-footbar) {
     font: inherit;
     text-align: left;
     cursor: pointer;
-    transition: border-color var(--duration-fast), background var(--duration-fast);
+    transition: border-color var(--duration-fast) var(--ease-out), background var(--duration-fast) var(--ease-out);
 
     &:hover {
         border-color: var(--color-input-border);

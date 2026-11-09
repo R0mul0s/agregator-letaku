@@ -4,6 +4,7 @@
     štítek „2×“ před názvem; vlastník klepnutím na název otevře −/+ a cena ukáže „2 × 33,90 Kč“
     i cenu za celé množství. Akce, která ještě nezačala, se odškrtne až po potvrzení (R76). Sdílí ji stránka vlastníka (ShoppingList.vue)
     i seznam sdílený odkazem (SharedShoppingList.vue); co se po odškrtnutí stane, řeší stránka.
+    Odškrtnutá položka se plynule přesune na konec skupiny, smazaná zmizí (TransitionGroup, R182).
 
     @author Roman Hlaváček
     @created 2026-10-10
@@ -106,7 +107,7 @@ function remaining(group) {
             <ChainLogo v-else :chain="group.chain" with-name />
             <span class="shopping-group__remaining">{{ t('shopping.remaining', { count: remaining(group) }) }}</span>
         </h2>
-        <ul class="shopping-list">
+        <TransitionGroup tag="ul" name="shopping-item" class="shopping-list">
             <li
                 v-for="item in group.items"
                 :key="item.id"
@@ -129,9 +130,9 @@ function remaining(group) {
                             :aria-controls="`quantity-${item.id}`"
                             @click="editing = editing === item.id ? null : item.id"
                         >
-                            {{ item.name }}
+                            <span class="shopping-item__strike">{{ item.name }}</span>
                         </button>
-                        <template v-else>{{ item.name }}</template>
+                        <span v-else class="shopping-item__strike">{{ item.name }}</span>
                     </p>
                     <div v-if="item.quantityUrl && editing === item.id" :id="`quantity-${item.id}`" class="shopping-item__stepper">
                         <button
@@ -199,6 +200,6 @@ function remaining(group) {
                     <span class="visually-hidden">{{ t('shopping.remove', { name: item.name }) }}</span>
                 </button>
             </li>
-        </ul>
+        </TransitionGroup>
     </section>
 </template>
