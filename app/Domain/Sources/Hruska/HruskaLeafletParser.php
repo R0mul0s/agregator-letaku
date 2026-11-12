@@ -3,7 +3,9 @@
 /**
  * Akce s cenou z PDF letáku Hrušky — text s polohou z `pdftotext -bbox-layout` (R86, R165), bez LLM.
  *
- * Leták nemá web s akcemi ani API, PDF je jediný zdroj (ZDROJE_DAT.md, Hruška). Dlaždice:
+ * Leták nemá web s akcemi ani API, PDF je jediný zdroj (ZDROJE_DAT.md, Hruška). Výšky písma se mezi
+ * letáky změnily (od 46/26, R183) — rozvržení (`HruskaLayout`) se pozná podle výšky cen za jednotku.
+ * Dlaždice (výšky letáků 43/26–45/26):
  * - **cenovka** „NAŠE CENA“ s velkými korunami „24“ (~34,7 b.) a vedle nahoře haléři „90“ (~20,2 b.);
  *   u akce s Hruška klubem „KLUBOVÁ CENA“ s korunami ~37 b. a pod ní menší běžná cena „22“ „90“ (~23,5 b.);
  * - pod cenou (zřídka vedle ní) **název** ~11,1 b., u masa nad ním značka ~10,9 b. („Krásno“);
@@ -57,19 +59,11 @@ final class HruskaLeafletParser
 {
     use CountsTiles;
 
-    /** Výška korun ceny (body PDF): běžná cenovka ~34,7, klubová ~37,1, běžná cena pod klubovou ~23,5. */
-    private const PRICE_MIN_HEIGHT = 20.0;
-
-    /** Cena, ke které se hledá dlaždice — cenovka „NAŠE CENA“ nebo „KLUBOVÁ CENA“, ne běžná cena pod klubovou. */
-    private const ANCHOR_MIN_HEIGHT = 30.0;
-
-    /** Klubová cena má větší koruny než běžná cenovka. */
-    private const CLUB_MIN_HEIGHT = 36.0;
-
-    /** Běžná cena pod klubovou: menší a nejvýš tak daleko (body PDF). */
-    private const REGULAR_MAX_HEIGHT = 30.0;
-
+    /** Běžná cena pod klubovou: nejvýš tak daleko od ní (body PDF); výšky jsou v `HruskaLayout`. */
     private const REGULAR_MAX_DISTANCE = 60.0;
+
+    /** Hodnota ceny za jednotku („159,00“) — podle její výšky se pozná rozvržení letáku (R183). */
+    private const UNIT_VALUE_PATTERN = '/^\d+,\d{2}$/';
 
     /** Haléře ceny: vpravo od korun (mezera v bodech) a nahoře (podíl výšky korun). */
     private const FRACTION_MIN_GAP = -4.0;
@@ -79,23 +73,6 @@ final class HruskaLeafletParser
     private const FRACTION_TOP_RATIO = 0.4;
 
     private const FRACTION_TOP_TOLERANCE = 2.0;
-
-    /** Výška řádků názvu (~11,1) a značky nad ním (~10,9 — menší než název). */
-    private const NAME_MIN_HEIGHT = 10.7;
-
-    private const NAME_MAX_HEIGHT = 11.3;
-
-    private const BRAND_MAX_HEIGHT = 11.0;
-
-    /** Výška popisu s balením (~8,5; „PŘI KOUPI“ na nálepkách má 7,7, „od 200 g“ 9,3). */
-    private const DETAIL_MIN_HEIGHT = 8.3;
-
-    private const DETAIL_MAX_HEIGHT = 8.7;
-
-    /** Výška ceny za jednotku (~7,3; štítky „NAŠE CENA“ a „BEZ LEPKU“ mají 7,4). */
-    private const UNIT_MIN_HEIGHT = 7.2;
-
-    private const UNIT_MAX_HEIGHT = 7.35;
 
     /** Slova jednoho řádku: odchylka horního okraje a největší mezera mezi slovy. */
     private const ROW_TOLERANCE = 1.5;
@@ -191,13 +168,47 @@ final class HruskaLeafletParser
 
     private const NAME_SEPARATOR = ', ';
 
+    /** Rozvržení právě převáděného letáku (nastaví `offers()`). */
+    private HruskaLayout $layout;
+
     public function __construct(
         private readonly PriceParser $priceParser,
         private readonly PackageParser $packages,
         private readonly VariantNote $variants,
         private readonly LeafletDates $dates,
         private readonly LeafletOfferId $ids,
-    ) {}
+    ) {
+        $this->layout = HruskaLayout::original();
+    }
+
+    /**
+     * Rozvržení letáku: to, v jehož výšce ceny za jednotku je nejvíc hodnot „159,00“ (R183).
+     * Cena za jednotku je u každé dlaždice a její výška se mezi rozvrženími liší.
+     *
+     * @param  list<PdfPage>  $pages
+     */
+    public function layout(array $pages): HruskaLayout
+    {
+        $values = [];
+        foreach ($pages as $page) {
+            foreach ($page->words() as $word) {
+                if (preg_match(self::UNIT_VALUE_PATTERN, $word->text) === 1) {
+                    $values[] = $word->height();
+                }
+            }
+        }
+
+        $best = null;
+        $bestCount = -1;
+        foreach (HruskaLayout::all() as $layout) {
+            $count = count(array_filter($values, fn (float $height): bool => $height >= $layout->unitMinHeight && $height <= $layout->unitMaxHeight));
+            if ($count > $bestCount) {
+                [$best, $bestCount] = [$layout, $count];
+            }
+        }
+
+        return $best ?? HruskaLayout::original();
+    }
 
     /**
      * Platnost letáku z hlavičky první strany; null, když tam není.
@@ -226,6 +237,7 @@ final class HruskaLeafletParser
     public function offers(array $pages, array $validity, string $sourceUrl): array
     {
         $this->resetTileCount();
+        $this->layout = $this->layout($pages);
         $offers = [];
         foreach ($pages as $page) {
             foreach ($this->pageOffers($page, $validity, $sourceUrl) as $offer) {
@@ -246,7 +258,7 @@ final class HruskaLeafletParser
     {
         $words = $page->words();
         $prices = $this->prices($words);
-        $anchors = array_values(array_filter($prices, fn (PdfBox $price): bool => $price->height() >= self::ANCHOR_MIN_HEIGHT));
+        $anchors = array_values(array_filter($prices, fn (PdfBox $price): bool => $price->height() >= $this->layout->anchorMinHeight));
         $tiles = $this->tiles($words, $prices);
         $singleDay = $this->singleDayBoxes($words);
         $weekdayColumns = $this->weekdayColumns($words, $singleDay);
@@ -291,7 +303,7 @@ final class HruskaLeafletParser
 
         $prices = [];
         foreach ($words as $crowns) {
-            if ($crowns->height() < self::PRICE_MIN_HEIGHT || preg_match(self::CROWNS_PATTERN, $crowns->text, $m) !== 1) {
+            if ($crowns->height() < $this->layout->priceMinHeight || preg_match(self::CROWNS_PATTERN, $crowns->text, $m) !== 1) {
                 continue;
             }
             if (($m[2] ?? '') === self::WHOLE_CROWNS) {
@@ -334,9 +346,10 @@ final class HruskaLeafletParser
     private function tiles(array $words, array $prices): array
     {
         $text = array_values(array_filter($words, fn (PdfWord $word): bool => ! PdfLayout::isInside($word, $prices)));
-        $names = PdfLayout::rows(PdfLayout::byHeight($text, self::NAME_MIN_HEIGHT, self::NAME_MAX_HEIGHT), self::ROW_TOLERANCE, self::WORD_GAP);
-        $details = PdfLayout::rows(PdfLayout::byHeight($text, self::DETAIL_MIN_HEIGHT, self::DETAIL_MAX_HEIGHT), self::ROW_TOLERANCE, self::WORD_GAP);
-        $units = PdfLayout::rows(PdfLayout::byHeight($text, self::UNIT_MIN_HEIGHT, self::UNIT_MAX_HEIGHT), self::ROW_TOLERANCE, self::WORD_GAP);
+        $layout = $this->layout;
+        $names = PdfLayout::rows(PdfLayout::byHeight($text, $layout->nameMinHeight, $layout->nameMaxHeight), self::ROW_TOLERANCE, self::WORD_GAP);
+        $details = PdfLayout::rows(PdfLayout::byHeight($text, $layout->detailMinHeight, $layout->detailMaxHeight), self::ROW_TOLERANCE, self::WORD_GAP);
+        $units = PdfLayout::rows(PdfLayout::byHeight($text, $layout->unitMinHeight, $layout->unitMaxHeight), self::ROW_TOLERANCE, self::WORD_GAP);
 
         $usedNames = [];
         $usedDetails = [];
@@ -352,6 +365,10 @@ final class HruskaLeafletParser
             $last = $nameLines[array_key_last($nameLines)];
             $detailLines = $this->below($details, $first, $last, $usedDetails);
             $unitLines = $this->below($units, $first, $detailLines === [] ? $last : $detailLines[array_key_last($detailLines)], $usedUnits);
+            // Balení písmem ceny za jednotku nad ní („250 g“ u másla na titulní straně 46/26) patří do popisu
+            while ($unitLines !== [] && preg_match(self::UNIT_PRICE_PATTERN, $unitLines[0]->text) !== 1 && TileUnits::packages($unitLines[0]->text) !== []) {
+                $detailLines[] = array_shift($unitLines);
+            }
             $detailText = implode(' ', array_map(fn (PdfBox $line): string => $line->text, $detailLines));
             $packages = TileUnits::packages($detailText);
             $singleUnit = $unitLines === [] && (in_array($packages, self::SINGLE_UNIT_PACKAGES, true) || ($packages['ks'] ?? null) === self::SINGLE_PIECE);
@@ -359,8 +376,10 @@ final class HruskaLeafletParser
                 continue;
             }
 
-            // Značka nad názvem má menší písmo („Krásno“ nad „Amálka šunka“)
-            $brand = count($nameLines) > 1 && $first->height() < self::BRAND_MAX_HEIGHT ? array_shift($nameLines) : null;
+            // Značka nad názvem má menší písmo („Krásno“ nad „Amálka šunka“); od 46/26 stejné jako
+            // název — zůstane jeho první částí („Kostelecké uzeniny Babiččina sekaná“)
+            $brandMax = $layout->brandMaxHeight;
+            $brand = count($nameLines) > 1 && $brandMax !== null && $first->height() < $brandMax ? array_shift($nameLines) : null;
             $tiles[] = [
                 'brand' => $brand?->text,
                 'name' => array_map(fn (PdfBox $line): string => $line->text, $nameLines),
@@ -487,7 +506,7 @@ final class HruskaLeafletParser
         }, self::SINGLE_UNIT_AMBIGUITY_RATIO);
         foreach ($nearest as $anchorIndex => $tileIndex) {
             $anchor = $anchors[$anchorIndex];
-            if ($anchor->height() < self::CLUB_MIN_HEIGHT) {
+            if (! $this->isClub($anchor, $prices)) {
                 $pairs[] = [$tileIndex, $anchorIndex, ['price' => $anchor->value, 'loyalty' => null]];
 
                 continue;
@@ -527,7 +546,7 @@ final class HruskaLeafletParser
         if ($club === []) {
             return ['price' => $anchor->value, 'loyalty' => null];
         }
-        if ($anchor->height() < self::CLUB_MIN_HEIGHT) {
+        if (! $this->isClub($anchor, $prices)) {
             return null;
         }
 
@@ -543,6 +562,22 @@ final class HruskaLeafletParser
     }
 
     /**
+     * Je cenovka klubová? Ve starém rozvržení má větší koruny; od 46/26 je stejně velká jako běžná
+     * cenovka a klubovou ji dělá menší vyšší běžná cena hned u ní (R183).
+     *
+     * @param  list<PdfBox>  $prices
+     */
+    private function isClub(PdfBox $anchor, array $prices): bool
+    {
+        $clubMin = $this->layout->clubMinHeight;
+        if ($clubMin !== null) {
+            return $anchor->height() >= $clubMin;
+        }
+
+        return array_any($this->regularPrices($anchor, $prices), fn (PdfBox $price): bool => $price->value > $anchor->value);
+    }
+
+    /**
      * Kandidáti na běžnou cenu u klubové ceny: menší ceny blízko ní, nejbližší první.
      *
      * @param  list<PdfBox>  $prices
@@ -550,7 +585,7 @@ final class HruskaLeafletParser
      */
     private function regularPrices(PdfBox $club, array $prices): array
     {
-        $candidates = array_values(array_filter($prices, fn (PdfBox $price): bool => $price->height() < self::REGULAR_MAX_HEIGHT
+        $candidates = array_values(array_filter($prices, fn (PdfBox $price): bool => $price->height() < $this->layout->regularMaxHeight
             && $club->distanceTo($price) <= self::REGULAR_MAX_DISTANCE));
         usort($candidates, fn (PdfBox $a, PdfBox $b): int => $club->distanceTo($a) <=> $club->distanceTo($b));
 

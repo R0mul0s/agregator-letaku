@@ -3,7 +3,8 @@
 /**
  * Dlaždice PDF letáku Hrušky (R165) — strany 1, 4, 6 a 12 letáku 43/26 (21.–27. 10. 2026) a strana 1
  * letáku 44/26: cena ověřená cenou za jednotku, klubová cena, značka nad názvem, text zarovnaný
- * vpravo, ovoce a pult „1 kg“ podle polohy, rámeček „POUZE“ a sloupce s názvy dnů.
+ * vpravo, ovoce a pult „1 kg“ podle polohy, rámeček „POUZE“ a sloupce s názvy dnů. Strany 1 a 3
+ * letáku 46/26 (11.–17. 11. 2026) mají jiné výšky písma a klubovou cenu stejně velkou (R183).
  *
  * @author Roman Hlaváček
  *
@@ -13,6 +14,7 @@
 declare(strict_types=1);
 
 use App\Domain\Offers\Data\OfferData;
+use App\Domain\Sources\Hruska\HruskaLayout;
 use App\Domain\Sources\Hruska\HruskaLeafletParser;
 use App\Domain\Sources\Pdf\PdfTextReader;
 use App\Enums\LoyaltyProgram;
@@ -156,4 +158,40 @@ it('stejný název, balení a cena dají při dalším stažení stejné ID (R16
     expect($first['Tatranky']->externalId)->toBe($second['Tatranky']->externalId)
         ->toStartWith('letak-')
         ->not->toBe($first['Donut Halloween']->externalId);
+});
+
+it('pozná rozvržení letáku podle výšky cen za jednotku (R183)', function (): void {
+    $parser = app(HruskaLeafletParser::class);
+    $reader = app(PdfTextReader::class);
+
+    // 43/26: cena za jednotku 7,3 b., klubová cena větší než cenovka; 46/26: 7,8 b., stejně velká
+    expect($parser->layout($reader->parse(responseFixture('hruska/pdf-43-2026-10-25-strana-1.html'))))->toEqual(HruskaLayout::original())
+        ->and($parser->layout($reader->parse(responseFixture('hruska/pdf-46-2026-11-12-strana-1.html'))))->toEqual(HruskaLayout::web());
+});
+
+it('převede leták 46/26 s novými výškami písma a klubovou cenou stejně velkou jako cenovka (R183)', function (): void {
+    $offers = hruskaLeafletOffers('hruska/pdf-46-2026-11-12-strana-1.html');
+
+    // „NAŠE CENA“ „44“ „90“, vpravo od ní „Máslo“, balení „250 g“ písmem ceny za jednotku, „1 kg = 179,60 Kč“
+    expect($offers['Máslo'])
+        ->price->toBe(4490)
+        ->loyaltyPrice->toBeNull()
+        ->packageText->toBe('250 g')
+        // „12“ „90“ se štítkem „S KLUBEM“ a pod ní menší „14“ „90“ — klubová pozná běžná cena u ní
+        ->and($offers['Mouka pšeničná'])
+        ->price->toBe(1490)
+        ->loyaltyPrice->toBe(1290)
+        ->loyaltyProgram->toBe(LoyaltyProgram::HruskaKlub)
+        ->and($offers)->toHaveCount(14);
+});
+
+it('u letáku 46/26 nechá značku na začátku názvu — má stejně velké písmo (R183)', function (): void {
+    $offers = hruskaLeafletOffers('hruska/pdf-46-2026-11-12-strana-3.html');
+
+    // „Kostelecké uzeniny“ nad „Javořické párky*“, „1 kg = 109,00 Kč s klubem/ 119,00 Kč bez klubu“
+    expect($offers['Kostelecké uzeniny Javořické párky'])
+        ->brand->toBeNull()
+        ->price->toBe(1190)
+        ->loyaltyPrice->toBe(1090)
+        ->and($offers)->toHaveCount(11);
 });

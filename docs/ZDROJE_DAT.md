@@ -775,8 +775,8 @@ aplikace to nerozlišuje.
 
 | Účel | Požadavek |
 |---|---|
-| Aktuální leták | `GET https://mojehruska.cz/` — `<h1>Aktuální leták<br> 21.10.2026 - 27.10.2026</h1>` a odkaz `<a class="btn" href="https://media.mojehruska.cz/2026/10/43_26.pdf">` (11 MB, 12 stran, ~4 s); PDF má `Last-Modified` a `ETag`, bez cookies |
-| Leták dalšího týdne | `media.mojehruska.cz/{rok}/{měsíc nahrání bez nuly}/{ISO týden začátku}_{rok2}.pdf` — na serveru od pátku (44/26: `Last-Modified` pá 23. 10.), **web na něj neodkazuje**; zdroj zkusí `HEAD` pro měsíc dneška, začátku a týden před ním (`2026/11/44_26.pdf` vrací 404) |
+| Aktuální leták | `GET https://mojehruska.cz/` — `<h1>Aktuální leták<br> 21.10.2026 - 27.10.2026</h1>` a odkaz `<a class="btn" href="https://media.mojehruska.cz/2026/10/43_26.pdf">` (11 MB, 12 stran, ~4 s); PDF má `Last-Modified` a `ETag`, bez cookies. **Od 46/26 (11. 11. 2026) s příponou:** `media.mojehruska.cz/2026/11/46_26-web.pdf` (9 MB, 14 stran; bez přípony 404, R183) |
+| Leták dalšího týdne | `media.mojehruska.cz/{rok}/{měsíc nahrání bez nuly}/{ISO týden začátku}_{rok2}{přípona}.pdf` — na serveru od pátku (44/26: `Last-Modified` pá 23. 10.), **web na něj neodkazuje**; zdroj zkusí `HEAD` pro měsíc dneška, začátku a týden před ním, v každém bez přípony a s „-web“ (`pdf_name_suffixes`; `2026/11/44_26.pdf` vrací 404) |
 | Starší leták | zmizí (`42_26.pdf` 404) |
 | Katalog (nepoužívá se) | `GET /katalog/` → `media.mojehruska.cz/2026/9/Katalog-5.pdf` (15. 9.–9. 11.) |
 | Prodejny (nepoužívá se) | `GET /prodejny/` — HTML tabulka `div.row > div.cell` (číslo, adresa, okres, telefon, otevírací doba) |
@@ -784,7 +784,9 @@ aplikace to nerozlišuje.
 ### Převod (`HruskaLeafletParser`)
 
 Platnost z hlavičky první strany: „Platnost: 21. 10.–27. 10. 2026 | 43/26“ (týden st–út, při svátku jinak:
-44/26 je 29. 10.–3. 11., 28. 10. zavřeno). Výšky písma (body PDF) jsou na všech stranách stejné:
+44/26 je 29. 10.–3. 11., 28. 10. zavřeno). Výšky písma (body PDF) jsou na všech stranách letáku stejné, ale
+**mezi letáky se změnily** (R183) — rozvržení (`HruskaLayout`) parser pozná podle výšky cen za jednotku.
+Letáky 43/26–45/26 (`original`):
 
 | Prvek | Výška | Příklad |
 |---|---|---|
@@ -795,6 +797,17 @@ Platnost z hlavičky první strany: „Platnost: 21. 10.–27. 10. 2026 | 43/26�
 | popis s balením | 8,5 | „vybrané druhy \| 0,5 l \| sklo“, „100 g“, „500 g \| váleček“ |
 | cena za jednotku | 7,3 | „1 kg = 249,00 Kč“, „1 l= 35,80 Kč“, „1 kg = od 749,50 Kč“ |
 | štítky „NAŠE CENA“, „BEZ LEPKU“ | 7,4 | — |
+
+Od letáku 46/26 (`web`, soubor „-web.pdf“, Adobe InDesign 21.6):
+
+| Prvek | Výška | Příklad |
+|---|---|---|
+| koruny a haléře cenovky „NAŠE CENA“ i klubové ceny (štítek „S KLUBEM“) | 37,7 / 22,0 | klubová se pozná jen podle běžné ceny u ní |
+| běžná cena pod klubovou | 23,4 / 13,6 | „14“ „90“ pod „12“ „90“ |
+| značka i název (stejné písmo) | 10,4 | „Kostelecké uzeniny“ / „Javořické párky*“ — značka zůstane v názvu |
+| popis s balením | 9,1 | „vybrané druhy \| 100 g“; štítek „NAŠE CENA“ nad cenou taky 9,1, nálepky „od 300 g“ 9,3 |
+| cena za jednotku | 7,8 | štítky „BEZ LEPKU“, „S KLUBEM“ taky 7,8; na titulní straně i balení („250 g“ u másla) |
+| sleva v procentech | 13,0 / 15,7 | „-13“ „%“ u 10 cen bez původní ceny — neukládá se (TODO) |
 
 - Cenovka leží **nad textem dlaždice**; text je zarovnaný vlevo, u obrázku vpravo zarovnaný doprava (Kozel, Bohemia).
 - **Původní cena ani sleva v letáku nejsou** — všechny akce jsou `PromoPrice` (R8). Znak „%“ je jen ozdoba odznaku.
@@ -814,7 +827,7 @@ Platnost z hlavičky první strany: „Platnost: 21. 10.–27. 10. 2026 | 43/26�
   odkazuje na poznámku o pultovém zboží a z názvu se maže.
 - `pdftotext -layout` slévá překrývající se nápisy („KLUABKOKVTUÁIPVCOEUNJNATE“) — jen `-bbox-layout`.
 
-Měření 25. 10. 2026: leták 43/26 168 ověřených ze 177 cen, 44/26 171 ze 178; stažení obou ~9 s, 339 akcí,
+Měření 25. 10. 2026: leták 43/26 168 ověřených ze 177 cen, 44/26 171 ze 178 (12. 11.: 45/26 160 ze 171, 46/26 173 ze 179); stažení obou ~9 s, 339 akcí,
 217 z nich se přiřadilo k produktům katalogu. Leták pod `pdf_min_offers` (60) ověřenými akcemi = chyba (R16).
 Obrázky produktů nejsou (jen rastr PDF), odkaz akce vede na úvodní stránku s letákem.
 

@@ -420,10 +420,14 @@ return [
             'base_url' => 'https://mojehruska.cz/',
             // Akce nemají vlastní stránku — odkaz vede na úvodní stránku s letákem
             'offers_page_url' => 'https://mojehruska.cz/',
-            // Odkaz na PDF: rok, měsíc nahrání (bez nuly), týden a dvoumístný rok („2026/10/43_26.pdf“)
-            'pdf_url_pattern' => '#https://media\.mojehruska\.cz/(\d{4})/(\d{1,2})/(\d{1,2})_(\d{2})\.pdf#',
-            // Leták dalšího týdne (od pátku na serveru, bez odkazu): rok a měsíc nahrání, týden, rok2
-            'pdf_url_format' => 'https://media.mojehruska.cz/%d/%d/%d_%02d.pdf',
+            // Odkaz na PDF: rok, měsíc nahrání (bez nuly), týden a dvoumístný rok („2026/10/43_26.pdf“),
+            // od letáku 46/26 s příponou za číslem („2026/11/46_26-web.pdf“)
+            'pdf_url_pattern' => '#https://media\.mojehruska\.cz/(\d{4})/(\d{1,2})/(\d{1,2})_(\d{2})(?:-[a-z]+)?\.pdf#',
+            // Leták dalšího týdne (od pátku na serveru, bez odkazu): rok a měsíc nahrání, týden, rok2, přípona
+            'pdf_url_format' => 'https://media.mojehruska.cz/%d/%d/%d_%02d%s.pdf',
+            // Přípony názvu PDF, které se u letáku dalšího týdne zkusí v tomto pořadí: 45/26 byl bez
+            // přípony, 46/26 jen „-web“ (bez přípony 404) — nevíme, kterou dostane další
+            'pdf_name_suffixes' => ['', '-web'],
             // Leták má ~170 ověřených akcí (měření R165); méně = změněné rozvržení nebo rozbitý parser.
             // Stažení pak skončí chybou, aby import akce letáku neoznačil jako stažené (R16)
             'pdf_min_offers' => 60,

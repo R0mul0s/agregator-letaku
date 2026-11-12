@@ -48,7 +48,9 @@ v [PLAN.md](PLAN.md). Větší celky se z toho stávají etapou.
 - **Další obchody — průzkum 2026-10-25** ([ZDROJE_DAT.md](ZDROJE_DAT.md#další-obchody-průzkum-2026-10-25)):
   - **TETA** — nejsnazší: JSON API s běžnou, akční i klubovou cenou v haléřích a platností akce; ~330 požadavků na stažení
   - **Rossmann** — výpis e-shopu po druzích akcí (HTML, ~75 požadavků), platnost jen z PDF letáku
-  - **Hruška** — hotová (R165); u akcí „Jen ve vybraných prodejnách“ a mimo Hruška Mini a Partner by šlo doplnit, kde neplatí
+  - **Hruška** — hotová (R165); u akcí „Jen ve vybraných prodejnách“ a mimo Hruška Mini a Partner by šlo doplnit, kde neplatí.
+    Od letáku 46/26 má 10 cen procento slevy („−13 %“) bez původní ceny (R183) — šlo by uložit jako slevu z letáku
+    (`discount_percent`), pokud procento ověří něco dalšího; značku od názvu v novém rozvržení neoddělujeme (stejné písmo)
   - **Norma** — hotová (R166); „Víno měsíce“ na stránce nabídky (3 položky v HTML) se nestahuje
   - **COOP** — hotový pro Čechy (R167, po prodejnách podle letáků na jejich stránce R169); Terno má vlastní letáky po prodejnách na terno.cz (neprozkoumáno); Morava (TIP, TUTY, Tempo, Jednota Zlín a Hodonín) má letáky jen jako obrázky — chtělo by OCR nebo LLM; přiřazení prodejen k regionům (1 450 detailů prodejen) by dovolilo vybrat konkrétní prodejnu
   - **dm** — ne: akce záměrně nemá, jen výprodej

@@ -4,7 +4,8 @@
  * Zdroj Hrušky — akce s cenou z PDF letáku (R86, R165, ZDROJE_DAT.md, Hruška). Web nemá akce
  * ani API; úvodní stránka odkazuje na PDF aktuálního letáku. Leták dalšího týdne je na serveru
  * od pátku, ale nic na něj neodkazuje — adresa se odvodí z čísla týdne (`{rok}/{měsíc nahrání}/
- * {týden}_{rok2}.pdf`) a zkusí se pro několik měsíců nahrání.
+ * {týden}_{rok2}{přípona}.pdf`, přípona od 46/26 „-web“) a zkusí se pro několik měsíců nahrání
+ * a přípon.
  *
  * @author Roman Hlaváček
  *
@@ -108,7 +109,8 @@ final class HruskaOfferSource implements OfferSource
 
     /**
      * Adresa PDF letáku dalšího týdne, nebo null, když na serveru ještě není. Složka je měsíc
-     * nahrání (týden až dva před začátkem) — zkusí se měsíc dneška, začátku a týden před ním.
+     * nahrání (týden až dva před začátkem) — zkusí se měsíc dneška, začátku a týden před ním,
+     * v každém názvy s příponami z konfigurace (bez přípony, „-web“).
      *
      * @throws RequestException
      */
@@ -120,10 +122,14 @@ final class HruskaOfferSource implements OfferSource
             $months[$day->format('Y-n')] = $day;
         }
 
+        /** @var list<string> $suffixes */
+        $suffixes = config()->array('letaky.sources.hruska.pdf_name_suffixes');
         foreach ($months as $day) {
-            $url = sprintf(config()->string('letaky.sources.hruska.pdf_url_format'), $day->year, $day->month, (int) $week, (int) $year);
-            if ($this->http->request($this->delay(), allowNotFound: true)->head($url)->status() !== Response::HTTP_NOT_FOUND) {
-                return $url;
+            foreach ($suffixes as $suffix) {
+                $url = sprintf(config()->string('letaky.sources.hruska.pdf_url_format'), $day->year, $day->month, (int) $week, (int) $year, $suffix);
+                if ($this->http->request($this->delay(), allowNotFound: true)->head($url)->status() !== Response::HTTP_NOT_FOUND) {
+                    return $url;
+                }
             }
         }
 
