@@ -182,6 +182,12 @@ return [
         'timeout_seconds' => 30,
         'retries' => 2,
         'retry_delay_ms' => 2000,
+        // Po odpovědi 429 (R184) se opakuje až v čase, který server uvede (`Retry-After`, Globus v textu
+        // „You can access API after 2026-Nov-15 04:51:00+0000 UTC“ — kvóta za minutu), s rezervou na
+        // rozdíl hodin; bez času po pevné pauze. Nejdéle se čeká `rate_limit_max_wait_ms`
+        'rate_limit_margin_ms' => 2000,
+        'rate_limit_fallback_ms' => 20000,
+        'rate_limit_max_wait_ms' => 70000,
         // Pauza mezi požadavky na stejný obchod
         'request_delay_ms' => (int) env('LETAKY_REQUEST_DELAY_MS', 1500),
         // Stažení PDF letáku (25–35 MB) trvá déle než běžná odpověď

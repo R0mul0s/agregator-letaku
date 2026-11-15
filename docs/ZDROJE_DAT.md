@@ -647,6 +647,8 @@ Katalogy akcí všech 16 hypermarketů týž den (656 akcí VKA0 bez módy):
   Štěrboholy 51 stran místo 56.
 - **Globus Fresh** (4301, 4303, 4304, 4353, `motherGsoaId`) letáky nemá („Pobočka nemá tuto možnost“), API vrací data mateřského hypermarketu.
 - Stránka katalogu (200 položek, ~750 kB) trvá **~2,4 s**; položky letáku ~0,6 s.
+- **Kvóta API po minutách** (15. 11. 2026 při souběžném stahování katalogů): 429 s textem `{"error":"You have exceeded your quota .You can
+  access API after 2026-Nov-15 04:51:00+0000 UTC", …}` bez hlavičky `Retry-After` — `SourceHttp` počká do uvedeného času + 2 s (R184).
 
 **Stažení** (`GlobusOfferSource`, `GlobusHouseOffers`): katalogy hypermarketů z `price_zones` po stránkách souběžně (nejvýš
 `house_concurrency` = 4 požadavky, `SourceHttp::pool`), položky letáku a seznam letáků jen od zástupců cenových pásem (4005, 4007).
