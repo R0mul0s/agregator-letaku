@@ -15,7 +15,8 @@
  *   skončí chybou sítě a aplikace ukáže toast (resources/js/lib/pwa.js).
  * - Upozornění v telefonu (web push): ukáže upozornění a číslo na ikoně, klepnutí otevře aplikaci.
  *
- * Uložené stránky obsahují data uživatele — při odhlášení je smaže aplikace (clearOfflineData).
+ * Uložené stránky obsahují data uživatele — při odhlášení je smaže aplikace (clearOfflineData),
+ * přesměrování uložené stránky na přihlášení (`loginPath`, vypršelé přihlášení) service worker sám.
  *
  * @author Roman Hlaváček
  * @created 2026-10-04
@@ -197,6 +198,10 @@ async function networkFirst(event, cacheKey) {
     const network = fetch(request).then(async (response) => {
         if (isCacheable(response)) {
             await cache.put(cacheKey, await withFetchedAt(response.clone()));
+        } else if (response.redirected && new URL(response.url).pathname === CONFIG.loginPath) {
+            // Přihlášení vypršelo nebo ho zrušilo jiné zařízení (R186): uložené stránky patří
+            // účtu, který tu už přihlášený není — bez připojení by je jinak ukázaly dál
+            await caches.delete(PAGES_CACHE);
         }
 
         return response;

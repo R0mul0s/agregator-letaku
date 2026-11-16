@@ -20,6 +20,7 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Middleware\ThrottleRequests;
+use Inertia\Inertia;
 use Symfony\Component\HttpFoundation\Response;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -56,7 +57,12 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->trustHosts();
 
         // Nepřihlášený jde na přihlášení, přihlášený z přihlášení na svůj seznam slev
-        $middleware->redirectGuestsTo(fn (): string => route('login'));
+        // Vypršelé přihlášení: klíč šifrované historie pryč, jako po odhlášení (R186)
+        $middleware->redirectGuestsTo(function (): string {
+            Inertia::clearHistory();
+
+            return route('login');
+        });
         $middleware->redirectUsersTo(fn (): string => route('home'));
     })
     ->withExceptions(function (Exceptions $exceptions): void {

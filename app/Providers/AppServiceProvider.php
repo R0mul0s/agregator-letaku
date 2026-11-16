@@ -17,6 +17,8 @@ use App\Domain\Catalog\CategoryPaths;
 use App\Domain\Offers\OfferPages;
 use App\Domain\Push\PushSender;
 use App\Domain\Push\WebPushSender;
+use App\Domain\Sources\DnsHostResolver;
+use App\Domain\Sources\HostResolver;
 use App\Enums\SocialProvider;
 use App\Models\User;
 use App\Support\RateLimits;
@@ -37,6 +39,8 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(PushSender::class, WebPushSender::class);
+        // Kontrola adres ke stažení přes DNS (R186) — testy ho podvrhnou (TestCase)
+        $this->app->singleton(HostResolver::class, DnsHostResolver::class);
         // Čisté adresy výpisu akcí (R94) — produkty katalogu se načtou jednou za požadavek
         $this->app->scoped(OfferPages::class);
         // Strom kategorií (~1 700 řádků) jednou za požadavek — Všechny akce ho potřebují

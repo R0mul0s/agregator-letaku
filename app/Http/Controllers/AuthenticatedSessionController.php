@@ -18,6 +18,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 use Laravel\Fortify\Contracts\LogoutResponse;
 use Laravel\Fortify\Http\Controllers\AuthenticatedSessionController as FortifyAuthenticatedSessionController;
 
@@ -25,6 +26,7 @@ final class AuthenticatedSessionController extends FortifyAuthenticatedSessionCo
 {
     /**
      * Odhlásí uživatele jen na tomto zařízení; zapamatované přihlášení ostatních zařízení zůstane.
+     * Prohlížeč zahodí klíč šifrované historie — Zpět pak data uživatele neukáže (R186).
      */
     public function destroy(Request $request): LogoutResponse
     {
@@ -33,6 +35,8 @@ final class AuthenticatedSessionController extends FortifyAuthenticatedSessionCo
         if ($request->hasSession()) {
             $request->session()->invalidate();
             $request->session()->regenerateToken();
+            // Do nové relace — příznak si vyzvedne stránka po přesměrování
+            Inertia::clearHistory();
         }
 
         return app(LogoutResponse::class);

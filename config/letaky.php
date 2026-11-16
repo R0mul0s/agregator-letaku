@@ -192,6 +192,8 @@ return [
         'request_delay_ms' => (int) env('LETAKY_REQUEST_DELAY_MS', 1500),
         // Stažení PDF letáku (25–35 MB) trvá déle než běžná odpověď
         'pdf_timeout_seconds' => 120,
+        // Největší stažený soubor (R186): letáky mají 25–55 MB, podvržený by zaplnil disk hostingu (100 MB)
+        'download_max_bytes' => 100 * 1024 * 1024,
     ],
 
     /*

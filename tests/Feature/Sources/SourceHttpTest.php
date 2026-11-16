@@ -12,10 +12,14 @@
 
 declare(strict_types=1);
 
+use App\Domain\Sources\Exceptions\SourceFileTooLarge;
 use App\Domain\Sources\Exceptions\SourceUrlRejected;
+use App\Domain\Sources\HostResolver;
 use App\Domain\Sources\SourceHttp;
+use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Sleep;
+use Tests\TestHostResolver;
 
 it('stáhne z https adresy s doménou', function (): void {
     Http::fake(['https://www.coopclub.cz/*' => Http::response('ok')]);
@@ -35,6 +39,49 @@ it('odmítne adresu bez https, s IP adresou nebo localhost a neopakuje ji', func
     'IPv6' => 'https://[::1]/admin',
     'localhost' => 'https://localhost/admin',
 ]);
+
+it('odmítne jméno, které se přeloží na neveřejnou adresu, i zkrácený zápis IP (R186)', function (string $host, string $address): void {
+    app()->instance(HostResolver::class, new TestHostResolver([$host => [TestHostResolver::PUBLIC_ADDRESS, $address]]));
+    Http::fake();
+
+    expect(fn () => (new SourceHttp)->request(0)->get("https://{$host}/letak.pdf"))->toThrow(SourceUrlRejected::class);
+    Http::assertNothingSent();
+})->with([
+    'zkrácený zápis 127.1' => ['127.1', '127.0.0.1'],
+    'číslo místo IP' => ['2130706433', '127.0.0.1'],
+    'localhost s tečkou' => ['localhost.', '127.0.0.1'],
+    'doména do vnitřní sítě' => ['letaky.zly.example', '10.0.0.5'],
+    'metadata cloudu' => ['meta.zly.example', '169.254.169.254'],
+    'CGNAT' => ['cgnat.zly.example', '100.64.0.1'],
+    'IPv6 lokální' => ['v6.zly.example', 'fd00::1'],
+]);
+
+it('odmítne přesměrování na jméno s neveřejnou adresou (R186)', function (): void {
+    app()->instance(HostResolver::class, new TestHostResolver(['vnitrni.zly.example' => ['192.168.1.1']]));
+    Sleep::fake();
+    Http::fake([
+        'https://www.coopclub.cz/*' => Http::response('', 302, ['Location' => 'https://vnitrni.zly.example/']),
+        '*' => Http::response('tajné'),
+    ]);
+
+    expect(fn () => (new SourceHttp)->request(0)->get('https://www.coopclub.cz/letaky/'))->toThrow(SourceUrlRejected::class);
+    Http::assertNotSent(fn (Request $request): bool => str_contains($request->url(), 'vnitrni.zly.example'));
+    // Odmítnutá adresa se neopakuje
+    Sleep::assertNeverSlept();
+});
+
+it('soubor nad limit velikosti odmítne, neopakuje a nenechá ho projít (R186)', function (): void {
+    config(['letaky.http.download_max_bytes' => 5, 'letaky.http.retries' => 3, 'letaky.http.retry_delay_ms' => 0]);
+    Http::fake(['https://example.com/letak.pdf' => Http::response('%PDF-test')]);
+    $path = (string) tempnam(sys_get_temp_dir(), 'test');
+
+    try {
+        expect(fn () => (new SourceHttp)->download('https://example.com/letak.pdf', $path, 0))->toThrow(SourceFileTooLarge::class);
+        Http::assertSentCount(1);
+    } finally {
+        @unlink($path);
+    }
+});
 
 it('odmítne nebezpečnou adresu i v souběžných požadavcích', function (): void {
     Http::fake();

@@ -37,4 +37,15 @@ return [
         'ensure_pages_exist' => true,
     ],
 
+    /*
+    | Data stránek (Moje slevy, seznam, e-mail v Mém účtu) ukládá Inertia do historie
+    | prohlížeče a tlačítko Zpět je vykreslí bez dotazu na server. Šifrovaná historie
+    | (R186) jde přečíst jen s klíčem v sessionStorage panelu; odhlášení klíč zahodí
+    | (Inertia::clearHistory), takže Zpět po odhlášení načte stránku ze serveru — ten pošle
+    | na přihlášení. Šifruje window.crypto.subtle: jen HTTPS nebo localhost.
+    */
+    'history' => [
+        'encrypt' => true,
+    ],
+
 ];

@@ -69,6 +69,19 @@ it('odhlásí uživatele', function (): void {
     $this->assertGuest();
 });
 
+it('historii stránek šifruje a odhlášení i vypršelé přihlášení zahodí její klíč (R186)', function (): void {
+    $user = User::factory()->create();
+    expect($this->actingAs($user)->get('/')->viewData('page'))->toMatchArray(['encryptHistory' => true])
+        ->not->toHaveKey('clearHistory');
+
+    $this->post(route('logout'));
+    expect($this->get('/')->viewData('page'))->toMatchArray(['clearHistory' => true]);
+
+    // Vypršelé přihlášení: stránka pro přihlášené pošle na přihlášení a ta klíč zahodí
+    $this->get(route('watch-items.index'))->assertRedirect(route('login'));
+    expect($this->get(route('login'))->viewData('page'))->toMatchArray(['clearHistory' => true]);
+});
+
 it('odhlášení na jednom zařízení nechá zapamatované přihlášení ostatních zařízení (R151)', function (): void {
     $user = User::factory()->create(['remember_token' => 'token-telefonu']);
 

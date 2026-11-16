@@ -230,6 +230,8 @@ class AccountController extends Controller
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+        // Klíč šifrované historie pryč — Zpět neukáže data zrušeného účtu (R186)
+        Inertia::clearHistory();
 
         return to_route('login')->with('status', self::STATUS_DELETED);
     }

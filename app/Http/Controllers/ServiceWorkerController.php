@@ -68,6 +68,8 @@ class ServiceWorkerController extends Controller
             'precache' => [...$this->buildFiles($manifest), ...self::STATIC_FILES, ...$this->chainLogos(), route('offline', absolute: false)],
             'offlineUrl' => route('offline', absolute: false),
             'offlinePaths' => config()->array('letaky.pwa.offline_paths'),
+            // Přesměrování sem = nikdo přihlášený, uložené stránky pryč (R186)
+            'loginPath' => route('login', absolute: false),
             'networkTimeoutMs' => config()->integer('letaky.pwa.network_timeout_ms'),
             'notification' => [
                 'icon' => '/images/brand/icon-192.png',

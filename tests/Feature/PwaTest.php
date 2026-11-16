@@ -78,6 +78,7 @@ it('service worker dostane soubory buildu bez písma, které čeština nepotřeb
     expect($config['precache'])->toContain('/build/assets/app-abc12345.js', '/build/assets/app-def67890.css', '/build/assets/nunito-latin-wght-normal-AAAA1111.woff2', '/offline', '/images/chains/lidl.svg')
         ->not->toContain('/build/assets/nunito-cyrillic-wght-normal-BBBB2222.woff2')
         ->and($config['offlinePaths'])->toBe(['/', '/seznam', '/hlidam'])
+        ->and($config['loginPath'])->toBe('/prihlaseni')
         ->and($config['version'])->toBeString()
         ->and($response->getContent())->toContain("addEventListener('push'");
 });

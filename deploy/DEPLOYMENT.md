@@ -439,7 +439,10 @@ nahrát celý `vendor/`; bez SQL skriptu a bez nových proměnných v `.env`. Ap
 host z `APP_URL` a subdomény (`trustHosts`): hned po nahrání otevři `https://slevohlidka.cz/akce`
 a `https://www.slevohlidka.cz/` — odpověď **400 Bad Request** znamená, že proxy hostingu posílá jiný
 host; pak v `bootstrap/app.php` řádek `$middleware->trustHosts()` dočasně odeber a nahraj znovu.
-Ověř taky, že projde URL cronu a `/health/imports` (UptimeRobot).
+Ověř taky, že projde URL cronu a `/health/imports` (UptimeRobot). **R186:** šifrovaná historie
+stránek — po nasazení se přihlas, projdi pár stránek, odhlas se a klepni na Zpět: má přijít
+přihlášení, ne Moje slevy. Ruční stažení PDF obchodu (Lidl nebo Albert) musí projít —
+kontrola adres teď překládá jména přes DNS hostingu.
 
 ---
 

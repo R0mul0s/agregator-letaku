@@ -16,6 +16,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Sources;
 
+use App\Domain\Sources\Exceptions\SourceFileTooLarge;
 use App\Domain\Sources\Exceptions\SourceUrlRejected;
 use Carbon\CarbonImmutable;
 use Carbon\Exceptions\InvalidFormatException;
@@ -44,6 +45,16 @@ final class SourceHttp
     private const RETRY_AFTER_TEXT_FORMAT = 'Y-M-d H:i:sO';
 
     private ?CarbonImmutable $lastRequestAt = null;
+
+    private readonly HostResolver $resolver;
+
+    /**
+     * @param  HostResolver|null  $resolver  Převod jmen pro kontrolu adres; null = z kontejneru
+     */
+    public function __construct(?HostResolver $resolver = null)
+    {
+        $this->resolver = $resolver ?? app(HostResolver::class);
+    }
 
     /**
      * Připravený požadavek; před ním počká, aby mezi požadavky byla nastavená pauza.
@@ -110,46 +121,84 @@ final class SourceHttp
 
     /**
      * Stáhne velký soubor (PDF letáku, 25–55 MB) rovnou na disk s delším časovým limitem —
-     * celý obsah se nedrží v paměti. Chyba stažení vyhodí výjimku.
+     * celý obsah se nedrží v paměti. Chyba stažení vyhodí výjimku. Soubor nad
+     * `download_max_bytes` se přeruší už podle hlavičky `Content-Length` nebo během stahování
+     * a neopakuje se (R186); kontrola velikosti na disku pak platí i bez hlavičky.
      *
      * @param  int|null  $delayMs  Pauza zdroje; null = výchozí z konfigurace
+     *
+     * @throws SourceFileTooLarge
      */
     public function download(string $url, string $path, ?int $delayMs = null): void
     {
+        $maxBytes = config()->integer('letaky.http.download_max_bytes');
+
         $this->request($delayMs)
             ->timeout(config()->integer('letaky.http.pdf_timeout_seconds'))
+            ->withOptions([
+                'on_headers' => function (ResponseInterface $response) use ($url, $maxBytes): void {
+                    $length = (int) $response->getHeaderLine('Content-Length');
+                    if ($length > $maxBytes) {
+                        throw SourceFileTooLarge::for($url, $length, $maxBytes);
+                    }
+                },
+                'progress' => function (int $total, int $downloaded) use ($url, $maxBytes): void {
+                    if ($downloaded > $maxBytes) {
+                        throw SourceFileTooLarge::for($url, $downloaded, $maxBytes);
+                    }
+                },
+            ])
             ->sink($path)
             ->get($url);
+
+        clearstatcache(true, $path);
+        $size = (int) filesize($path);
+        if ($size > $maxBytes) {
+            throw SourceFileTooLarge::for($url, $size, $maxBytes);
+        }
     }
 
     /**
-     * Stahovat jen z veřejných adres přes https (R170): před odesláním i při každém přesměrování
-     * odmítne jiné schéma, IP adresu místo domény a localhost. Adresy letáků přicházejí i z dat
-     * obchodu — podvržená by jinak vedla na vnitřní síť hostingu (SSRF).
+     * Stahovat jen z veřejných adres přes https (R170, R186): před odesláním i při každém
+     * přesměrování odmítne jiné schéma, IP adresu místo domény, localhost a jméno, které se
+     * přeloží na neveřejnou adresu. Adresy letáků přicházejí i z dat obchodu — podvržená by
+     * jinak vedla na vnitřní síť hostingu (SSRF).
      */
     private function guarded(PendingRequest $request): PendingRequest
     {
         return $request
-            ->beforeSending(fn (Request $sent) => self::assertPublicUrl($sent->url()))
+            ->beforeSending(fn (Request $sent) => $this->assertPublicUrl($sent->url()))
             // Ostatní volby přesměrování (počet) doplní Guzzle z RedirectMiddleware::DEFAULT_SETTINGS
             ->withOptions(['allow_redirects' => [
                 'protocols' => [self::SCHEME],
-                'on_redirect' => fn (RequestInterface $from, ResponseInterface $response, UriInterface $to) => self::assertPublicUrl((string) $to),
+                'on_redirect' => fn (RequestInterface $from, ResponseInterface $response, UriInterface $to) => $this->assertPublicUrl((string) $to),
             ]]);
     }
 
     /**
-     * Vyhodí výjimku, když adresa není https s doménovým jménem.
+     * Vyhodí výjimku, když adresa není https s doménovým jménem, které se přeloží jen na veřejné
+     * adresy. Zkrácené zápisy IP („127.1“) pozná až překlad — `filter_var` je za IP nepovažuje,
+     * curl ano. Jméno bez překladu projde: požadavek pak selže sám.
+     *
+     * Adresa se ověřuje zvlášť před připojením curl — jméno s krátkou platností záznamu DNS by
+     * mezi kontrolou a připojením mohlo změnit adresu (DNS rebinding; TODO.md, R186).
      *
      * @throws SourceUrlRejected
      */
-    private static function assertPublicUrl(string $url): void
+    private function assertPublicUrl(string $url): void
     {
         $scheme = parse_url($url, PHP_URL_SCHEME);
         $host = parse_url($url, PHP_URL_HOST);
         $host = is_string($host) ? strtolower(trim($host, '[]')) : '';
         if ($scheme !== self::SCHEME || $host === '' || $host === 'localhost' || filter_var($host, FILTER_VALIDATE_IP) !== false) {
             throw SourceUrlRejected::for($url);
+        }
+
+        foreach ($this->resolver->addresses($host) as $address) {
+            // Veřejná adresa: bez soukromých, rezervovaných, CGNAT a dalších rozsahů (RFC 6890)
+            if (filter_var($address, FILTER_VALIDATE_IP, FILTER_FLAG_GLOBAL_RANGE) === false) {
+                throw SourceUrlRejected::for($url);
+            }
         }
     }
 
@@ -211,8 +260,12 @@ final class SourceHttp
      */
     private function shouldRetry(Throwable $error): bool
     {
-        if ($error instanceof SourceUrlRejected) {
-            return false;
+        // Odmítnutá adresa ani příliš velký soubor se opakováním nezmění; Guzzle výjimku
+        // z on_headers / progress obalí
+        for ($cause = $error; $cause !== null; $cause = $cause->getPrevious()) {
+            if ($cause instanceof SourceUrlRejected || $cause instanceof SourceFileTooLarge) {
+                return false;
+            }
         }
         if (! $error instanceof RequestException) {
             return true;

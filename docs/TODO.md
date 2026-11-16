@@ -112,11 +112,10 @@ v [PLAN.md](PLAN.md). Větší celky se z toho stávají etapou.
 
 ## Z bezpečnostní revize 16. 11. 2026 (R185) — zatím neudělané
 
-**Odkud:** revize kódu a `composer audit` / `npm audit` 16. 11. 2026. Opravené nálezy jsou v R185.
+**Odkud:** revize kódu a `composer audit` / `npm audit` 16. 11. 2026. Opravené nálezy jsou v R185 a R186.
 
-- **Stahování (SSRF):** `SourceHttp` pozná vnitřní adresu jen podle `filter_var` — zkrácené zápisy IP (`127.1`, `2130706433`, `0x7f.0.0.1`), `localhost.` a doména přeložená do vnitřní sítě projdou (PASTI bod 58). Přeložit jméno a odmítnout soukromé a rezervované adresy, nejlépe připnout IP přes `CURLOPT_RESOLVE`. `download()` nemá limit velikosti souboru (kontrola `Content-Length` nebo průběžný limit)
+- **Stahování (DNS rebinding):** `SourceHttp` ověří adresy jména před požadavkem (R186), curl ho ale při připojení překládá znovu — jméno s krátkou platností záznamu DNS by mezi tím mohlo změnit adresu na vnitřní. Připnout ověřenou IP (`CURLOPT_RESOLVE`) jde jen pro první adresu, přesměrování mají vlastní; riziko je malé (útočník by musel ovládat zdroj adres i DNS)
 - **Hledání:** dotaz až 100 znaků = až 50 slov, každé ~20 podmínek `LIKE` na tři sloupce i v řazení — omezit počet slov (např. 6) a jednoznaková slova vynechat; změřit na produkční databázi
-- **Historie prohlížeče:** Inertia ukládá props (e-mail, hlídané položky, seznam) do `history.state` — na sdíleném počítači je po odhlášení ukáže tlačítko Zpět. `Inertia::encryptHistory()` pro přihlášené routy a `clearHistory()` při odhlášení; uloženou offline stránku nevracet, když ze sítě přijde přesměrování na přihlášení
 - **Účty:** změna e-mailu nepošle upozornění na starou adresu; limit přihlášení je podle e-mailu + IP a podle IP (útok z mnoha IP na jeden účet nic nezastaví); token `RegistrationGuard` jde opakovaně použít 120 minut
 - **CSP:** `style-src 'unsafe-inline'`, `https://www.googletagmanager.com` ve `script-src` (známé obejití CSP), HSTS bez `includeSubDomains` a `preload`
 - **Ověřit na produkci:** `SESSION_SECURE_COOKIE=true` v `.env`; `deploy/hosting-check.php` na hostingu není; zda proxy Websupportu přepisuje `X-Forwarded-For` a `X-Forwarded-Host` (jinak spoléhá limit podle IP na nejpravější adresu)
