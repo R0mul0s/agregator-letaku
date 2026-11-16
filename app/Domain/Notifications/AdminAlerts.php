@@ -43,9 +43,10 @@ final readonly class AdminAlerts
         foreach ($admins as $admin) {
             $notification = new AdminAlertNotification($kind, $title, $body, $url);
             // ID předem — upozornění v telefonu na něj odkazuje
-            $notification->id = (string) Str::uuid();
+            $notificationId = (string) Str::uuid();
+            $notification->id = $notificationId;
             $admin->notify($notification);
-            $this->push($admin, $kind, $notification->id, $title, $body);
+            $this->push($admin, $kind, $notificationId, $title, $body);
         }
 
         return $admins->count();
