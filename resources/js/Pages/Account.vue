@@ -25,6 +25,7 @@ import { formatDateTime } from '@/lib/format';
 import { confirmDialog } from '@/lib/confirm';
 import { useTranslations } from '@/lib/i18n';
 import { squareImage } from '@/lib/image';
+import { currentPushEndpoint } from '@/lib/push';
 import { useScrollSpy } from '@/lib/scrollSpy';
 import { useSectionNav } from '@/lib/sectionNav';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
@@ -143,9 +144,13 @@ function updateProfile() {
     });
 }
 
-/** Změní heslo; pole s hesly se po odeslání vždy vymažou. */
-function updatePassword() {
-    passwordForm.put(props.urls.password, {
+/**
+ * Změní heslo; pole s hesly se po odeslání vždy vymažou. Ostatní zařízení se odhlásí
+ * a upozornění v telefonu zůstanou jen tomuto (R185).
+ */
+async function updatePassword() {
+    const pushEndpoint = await currentPushEndpoint();
+    passwordForm.transform((data) => ({ ...data, push_endpoint: pushEndpoint })).put(props.urls.password, {
         errorBag: props.errorBags.password,
         preserveScroll: true,
         onFinish: () => passwordForm.reset(),
@@ -216,9 +221,13 @@ function updateMarketing() {
     });
 }
 
-/** Odhlásí ostatní zařízení po zadání hesla; po úspěchu pole s heslem zase schová. */
-function logoutOtherDevices() {
-    devicesForm.delete(props.urls.logoutOtherDevices, {
+/**
+ * Odhlásí ostatní zařízení po zadání hesla; po úspěchu pole s heslem zase schová.
+ * Upozornění v telefonu zůstanou jen tomuto zařízení (R185).
+ */
+async function logoutOtherDevices() {
+    const pushEndpoint = await currentPushEndpoint();
+    devicesForm.transform((data) => ({ ...data, push_endpoint: pushEndpoint })).delete(props.urls.logoutOtherDevices, {
         errorBag: props.errorBags.devices,
         preserveScroll: true,
         onSuccess: () => (devicesFormOpen.value = false),

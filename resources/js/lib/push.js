@@ -40,6 +40,24 @@ export async function currentSubscription() {
 }
 
 /**
+ * Adresa odběru tohoto prohlížeče pro formuláře, které odhlašují ostatní zařízení (R185) —
+ * server pak upozornění nechá jen jemu. Selhání nevadí: bez adresy zmizí i upozornění tady
+ * a uživatel si je zapne znovu.
+ *
+ * @returns {Promise<string|null>}
+ */
+export async function currentPushEndpoint() {
+    if (!isPushSupported()) {
+        return null;
+    }
+    try {
+        return (await currentSubscription())?.endpoint ?? null;
+    } catch {
+        return null;
+    }
+}
+
+/**
  * Požádá o povolení a přihlásí prohlížeč k odběru. Starý odběr s jiným klíčem serveru
  * (klíče VAPID se změnily) se nejdřív zruší — jinak prohlížeč nový odmítne.
  *

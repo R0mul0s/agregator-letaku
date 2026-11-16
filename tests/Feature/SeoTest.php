@@ -102,6 +102,14 @@ it('za proxy bere IP klienta z X-Forwarded-For, adresy ale vždy z APP_URL (R67)
         ->and($html)->toContain('<link rel="canonical" href="'.rtrim(config()->string('app.url'), '/').'/akce">');
 });
 
+it('na produkci přijme jen host z APP_URL a jeho subdomény, i z X-Forwarded-Host (R185)', function (): void {
+    $this->app['env'] = 'production';
+
+    $this->get('/akce')->assertOk();
+    $this->withHeaders(['X-Forwarded-Host' => 'www.'.parse_url(config()->string('app.url'), PHP_URL_HOST)])->get('/akce')->assertOk();
+    $this->withHeaders(['X-Forwarded-Host' => 'zly.example'])->get('/akce')->assertBadRequest();
+});
+
 it('robots.txt mimo produkci zakáže vše, na produkci soukromé cesty a odkáže na sitemap', function (): void {
     $this->get('/robots.txt')->assertOk()->assertSeeText('Disallow: /');
 
@@ -207,6 +215,15 @@ it('omezí registraci a obnovu hesla na pár pokusů za minutu z jedné IP', fun
 
     // Čtení stránek limit měnících požadavků nepočítá
     $this->get('/akce')->assertOk();
+});
+
+it('potvrzení hesla z Fortify má přísný limit jako ostatní formuláře s heslem (R185)', function (): void {
+    config(['letaky.rate_limits.sensitive_writes_per_minute' => 2]);
+    $user = User::factory()->create();
+
+    $this->actingAs($user)->post(route('password.confirm.store'), ['password' => 'spatne-heslo'])->assertStatus(302);
+    $this->actingAs($user)->post(route('password.confirm.store'), ['password' => 'spatne-heslo'])->assertStatus(302);
+    $this->actingAs($user)->post(route('password.confirm.store'), ['password' => 'spatne-heslo'])->assertStatus(429);
 });
 
 it('omezí čtení stránek přihlášeného podle účtu, nepřihlášenému nechá limit veřejných stránek (R170)', function (): void {

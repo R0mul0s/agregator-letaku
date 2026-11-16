@@ -110,6 +110,17 @@ v [PLAN.md](PLAN.md). Větší celky se z toho stávají etapou.
 - **Ponecháno záměrně:** odpověď cron URL nese text výjimky (za tokenem, WebAdmin ho ukáže v e-mailu o chybě); `set_time_limit(180)` pod limitem hostingu 600 s (timeout proxy Websupportu neznáme, O8); `SocialLoginController` posílá do toastu text odmítnutí (stejný text je i chybou formuláře přihlášení); na Všech akcích jsou filtry v okně na telefonu a v pruhu na širokém displeji dvakrát — jsou to různé ovládací prvky (štítky × výběry)
 - **Testy a prostředí:** stejné pomocné funkce pod třemi názvy (`importedOffer`, `centerImportedOffer`, `pushImportedOffer`) a token cronu v 7 testech do `tests/Pest.php`; `pcov` pro měření pokrytí; Pint `declare_strict_types`; kontejner bez `icu-data-full` a GD, `max_execution_time` 300 proti 600 na hostingu; `axllent/mailpit:latest` bez verze
 
+## Z bezpečnostní revize 16. 11. 2026 (R185) — zatím neudělané
+
+**Odkud:** revize kódu a `composer audit` / `npm audit` 16. 11. 2026. Opravené nálezy jsou v R185.
+
+- **Stahování (SSRF):** `SourceHttp` pozná vnitřní adresu jen podle `filter_var` — zkrácené zápisy IP (`127.1`, `2130706433`, `0x7f.0.0.1`), `localhost.` a doména přeložená do vnitřní sítě projdou (PASTI bod 58). Přeložit jméno a odmítnout soukromé a rezervované adresy, nejlépe připnout IP přes `CURLOPT_RESOLVE`. `download()` nemá limit velikosti souboru (kontrola `Content-Length` nebo průběžný limit)
+- **Hledání:** dotaz až 100 znaků = až 50 slov, každé ~20 podmínek `LIKE` na tři sloupce i v řazení — omezit počet slov (např. 6) a jednoznaková slova vynechat; změřit na produkční databázi
+- **Historie prohlížeče:** Inertia ukládá props (e-mail, hlídané položky, seznam) do `history.state` — na sdíleném počítači je po odhlášení ukáže tlačítko Zpět. `Inertia::encryptHistory()` pro přihlášené routy a `clearHistory()` při odhlášení; uloženou offline stránku nevracet, když ze sítě přijde přesměrování na přihlášení
+- **Účty:** změna e-mailu nepošle upozornění na starou adresu; limit přihlášení je podle e-mailu + IP a podle IP (útok z mnoha IP na jeden účet nic nezastaví); token `RegistrationGuard` jde opakovaně použít 120 minut
+- **CSP:** `style-src 'unsafe-inline'`, `https://www.googletagmanager.com` ve `script-src` (známé obejití CSP), HSTS bez `includeSubDomains` a `preload`
+- **Ověřit na produkci:** `SESSION_SECURE_COOKIE=true` v `.env`; `deploy/hosting-check.php` na hostingu není; zda proxy Websupportu přepisuje `X-Forwarded-For` a `X-Forwarded-Host` (jinak spoléhá limit podle IP na nejpravější adresu)
+
 ## Měření používání (Clarity) — co ubrat
 
 **Odkud:** revize 7. 10. 2026 — za týden přibylo přes sto rozhodnutí a Moje slevy mají výběr obchodu,

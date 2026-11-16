@@ -21,6 +21,9 @@ class PushSubscriptionRequest extends FormRequest
     /** Nejdelší adresa odběru (sloupec push_subscriptions.endpoint). */
     public const ENDPOINT_MAX_LENGTH = 500;
 
+    /** Pole s odběrem aktuálního zařízení ve formulářích, které odhlašují ostatní zařízení (R185). */
+    public const CURRENT_ENDPOINT_FIELD = 'push_endpoint';
+
     /** Klíče prohlížeče v base64url (případně s doplněním „=“). */
     private const BASE64URL_PATTERN = '/^[A-Za-z0-9_-]+={0,2}$/';
 
@@ -37,6 +40,17 @@ class PushSubscriptionRequest extends FormRequest
             'keys.p256dh' => ['required', 'string', 'between:80,100', 'regex:'.self::BASE64URL_PATTERN],
             'keys.auth' => ['required', 'string', 'between:16,50', 'regex:'.self::BASE64URL_PATTERN],
         ];
+    }
+
+    /**
+     * Pravidla pro odběr aktuálního zařízení (`CURRENT_ENDPOINT_FIELD`) — jen filtr mezi odběry
+     * uživatele, proto stačí délka.
+     *
+     * @return list<string>
+     */
+    public static function currentEndpointRules(): array
+    {
+        return ['nullable', 'string', 'max:'.self::ENDPOINT_MAX_LENGTH];
     }
 
     /**

@@ -48,6 +48,22 @@ it('uloží hlášení a další hlášení stejné akce ho přepíše a znovu o
         ->resolved_at->toBeNull();
 });
 
+it('opakované hlášení otevřeného hlášení adminy znovu neupozorní, znovu otevřené ano (R185)', function (): void {
+    $admin = User::factory()->create(['is_admin' => true]);
+    $offer = Offer::factory()->create();
+    $this->actingAs($this->user);
+    $report = fn () => $this->post(route('offer-reports.store'), ['offer_id' => $offer->id, 'reason' => 'wrong_price'])->assertSessionHasNoErrors();
+
+    $report();
+    $report();
+    $report();
+    expect($admin->notifications()->count())->toBe(1);
+
+    OfferReport::query()->update(['resolved_at' => now()]);
+    $report();
+    expect($admin->notifications()->count())->toBe(2);
+});
+
 it('pošle adminům upozornění do telefonu, i tomu, kdo hlásí, a chyba push služby hlášení nezastaví', function (): void {
     $sender = new class implements PushSender
     {

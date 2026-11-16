@@ -18,6 +18,7 @@ use App\Enums\OffersSort;
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\AvatarController;
 use App\Http\Requests\OffersPreferencesRequest;
+use App\Models\PushSubscription;
 use App\Models\User;
 use App\Models\WatchItem;
 use Carbon\CarbonImmutable;
@@ -304,4 +305,42 @@ it('uloží předvolby Mých slev a nepovolenou hodnotu odmítne (R41)', functio
 
     $this->put(route('account.offers-preferences'), ['offers_sort' => 'nahodne', 'min_discount_percent' => 33])
         ->assertSessionHasErrorsIn(OffersPreferencesRequest::ERROR_BAG, ['offers_sort', 'min_discount_percent']);
+});
+
+it('odhlášení ostatních zařízení i změna hesla nechají upozornění jen tomuto zařízení (R185)', function (string $action): void {
+    $user = User::factory()->create();
+    $other = User::factory()->create();
+    foreach (['tady' => $user, 'stary-mobil' => $user, 'cizi' => $other] as $endpoint => $owner) {
+        PushSubscription::query()->create(['user_id' => $owner->id, 'endpoint' => 'https://fcm.googleapis.com/fcm/send/'.$endpoint, 'public_key' => 'k', 'auth_token' => 'a', 'device' => 'Chrome']);
+    }
+    $current = ['push_endpoint' => 'https://fcm.googleapis.com/fcm/send/tady'];
+    $this->actingAs($user)->from(route('account'));
+
+    if ($action === 'devices') {
+        $this->delete(route('account.devices.logout'), ['password' => UserFactory::PASSWORD, ...$current])
+            ->assertSessionHas('status', AccountController::STATUS_DEVICES_LOGGED_OUT);
+    } else {
+        $this->put(route('user-password.update'), [
+            'current_password' => UserFactory::PASSWORD,
+            'password' => 'Nove-heslo-2026',
+            'password_confirmation' => 'Nove-heslo-2026',
+            ...$current,
+        ])->assertSessionHas('status', 'password-updated');
+    }
+
+    expect(PushSubscription::query()->orderBy('endpoint')->pluck('endpoint')->all())->toBe([
+        'https://fcm.googleapis.com/fcm/send/cizi',
+        'https://fcm.googleapis.com/fcm/send/tady',
+    ]);
+})->with(['odhlášení zařízení' => 'devices', 'změna hesla' => 'password']);
+
+it('bez odběru tohoto zařízení zruší odhlášení ostatních zařízení všechna upozornění účtu (R185)', function (): void {
+    $user = User::factory()->create();
+    PushSubscription::query()->create(['user_id' => $user->id, 'endpoint' => 'https://fcm.googleapis.com/fcm/send/mobil', 'public_key' => 'k', 'auth_token' => 'a', 'device' => 'Chrome']);
+
+    $this->actingAs($user)->from(route('account'))
+        ->delete(route('account.devices.logout'), ['password' => UserFactory::PASSWORD])
+        ->assertSessionHas('status', AccountController::STATUS_DEVICES_LOGGED_OUT);
+
+    expect($user->pushSubscriptions()->exists())->toBeFalse();
 });

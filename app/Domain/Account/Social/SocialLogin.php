@@ -91,13 +91,15 @@ final class SocialLogin
     /**
      * Přečte, kdo se u poskytovatele přihlásil. Zrušené přihlášení, neplatný stav (návrat
      * otevřený podruhé, vypršelá relace) i chyba spojení jsou SocialLoginRefused::FAILED.
+     * Odpověď bez ID uživatele taky (R185) — všechny takové by se jinak párovaly na jeden
+     * propojený účet s prázdným ID.
      *
      * @throws SocialLoginRefused
      */
     public function identity(SocialProvider $provider): SocialIdentity
     {
         try {
-            return SocialIdentity::fromSocialite($provider, $this->driver($provider)->user());
+            $identity = SocialIdentity::fromSocialite($provider, $this->driver($provider)->user());
         } catch (InvalidStateException $exception) {
             throw new SocialLoginRefused(SocialLoginRefused::FAILED, previous: $exception);
         } catch (GuzzleException $exception) {
@@ -106,6 +108,12 @@ final class SocialLogin
 
             throw new SocialLoginRefused(SocialLoginRefused::FAILED, previous: $exception);
         }
+
+        if ($identity->id === '') {
+            throw new SocialLoginRefused(SocialLoginRefused::FAILED);
+        }
+
+        return $identity;
     }
 
     /**

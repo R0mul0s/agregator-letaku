@@ -34,18 +34,21 @@ class OfferReportController extends Controller
 
     /**
      * Uloží hlášení; další hlášení stejné akce od stejného uživatele přepíše předchozí
-     * a znovu ho otevře.
+     * a znovu ho otevře. Adminy upozorní jen nové nebo znovu otevřené hlášení (R185) —
+     * opakované odeslání otevřeného hlášení denní limit nepočítá (řádků nepřibývá) a každé
+     * by jinak poslalo upozornění do telefonu všem adminům.
      */
     public function store(OfferReportRequest $request, NotifyAdminsOfReport $notifyAdmins): RedirectResponse
     {
         /** @var User $user */
         $user = $request->user();
-        $report = OfferReport::query()->updateOrCreate(
-            ['offer_id' => $request->integer('offer_id'), 'user_id' => $user->id],
-            [...$request->reportData(), 'resolved_at' => null],
-        );
-        // Adminům do centra upozornění a hned do telefonu — cron by hlášení poslal až za hodinu
-        $notifyAdmins($report);
+        $key = ['offer_id' => $request->integer('offer_id'), 'user_id' => $user->id];
+        $alreadyOpen = OfferReport::query()->where($key)->open()->exists();
+        $report = OfferReport::query()->updateOrCreate($key, [...$request->reportData(), 'resolved_at' => null]);
+        if (! $alreadyOpen) {
+            // Adminům do centra upozornění a hned do telefonu — cron by hlášení poslal až za hodinu
+            $notifyAdmins($report);
+        }
 
         // Z okna akce bez toastu — poděkuje okno samo
         return WatchItemExclusionController::done($request, self::STATUS_REPORTED);

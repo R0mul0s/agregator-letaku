@@ -27,6 +27,7 @@ use App\Enums\SocialProvider;
 use App\Http\Requests\DigestRequest;
 use App\Http\Requests\MarketingRequest;
 use App\Http\Requests\OffersPreferencesRequest;
+use App\Http\Requests\PushSubscriptionRequest;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -195,14 +196,19 @@ class AccountController extends Controller
     /**
      * Odhlásí ostatní zařízení po zadání hesla (účet bez hesla po potvrzení u poskytovatele,
      * R96). Aktuální zařízení zůstane přihlášené; jeho cookie „Zapamatovat si mě“ dostane nový token.
+     * Upozornění v telefonu zůstanou jen tomuto zařízení (odběr posílá prohlížeč, R185).
      */
     public function logoutOtherDevices(Request $request, UserSessions $sessions, IdentityConfirmation $confirmation): RedirectResponse
     {
-        $request->validateWithBag(self::ERROR_BAG_DEVICES, ['password' => $confirmation->rules($this->user($request))]);
+        $endpointField = PushSubscriptionRequest::CURRENT_ENDPOINT_FIELD;
+        $request->validateWithBag(self::ERROR_BAG_DEVICES, [
+            'password' => $confirmation->rules($this->user($request)),
+            $endpointField => PushSubscriptionRequest::currentEndpointRules(),
+        ]);
         $user = $this->user($request);
         $remembered = $request->hasCookie(Auth::guard('web')->getRecallerName());
 
-        $sessions->logoutOthers($user, $request->session()->getId());
+        $sessions->logoutOthers($user, $request->session()->getId(), $request->filled($endpointField) ? $request->string($endpointField)->toString() : null);
         if ($remembered) {
             Auth::guard('web')->login($user, remember: true);
         }

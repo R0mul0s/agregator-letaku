@@ -50,6 +50,10 @@ return Application::configure(basePath: dirname(__DIR__))
             | Request::HEADER_X_FORWARDED_HOST
             | Request::HEADER_X_FORWARDED_PORT
             | Request::HEADER_X_FORWARDED_PROTO);
+        // Host požadavku (i z X-Forwarded-Host) jen doména z APP_URL a její subdomény (R185) —
+        // odkazy skládá forceRootUrl, ale podpisy adres, url.intended a budoucí kód berou host
+        // z požadavku. Lokálně a v testech Laravel kontrolu vynechává.
+        $middleware->trustHosts();
 
         // Nepřihlášený jde na přihlášení, přihlášený z přihlášení na svůj seznam slev
         $middleware->redirectGuestsTo(fn (): string => route('login'));

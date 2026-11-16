@@ -434,6 +434,13 @@ Co bylo zvláštní na jednotlivých dřívějších nasazeních (SQL skripty, n
 je v [HISTORIE_NASAZENI.md](HISTORIE_NASAZENI.md). Poznámky k nasazení, které se teprve chystá,
 patří sem pod tenhle postup; po nasazení se přesunou tam (R106).
 
+**Příští nasazení (R185, bezpečnostní revize):** změněný `composer.lock` (Laravel 13.42, Symfony 7.4) —
+nahrát celý `vendor/`; bez SQL skriptu a bez nových proměnných v `.env`. Aplikace nově přijme jen
+host z `APP_URL` a subdomény (`trustHosts`): hned po nahrání otevři `https://slevohlidka.cz/akce`
+a `https://www.slevohlidka.cz/` — odpověď **400 Bad Request** znamená, že proxy hostingu posílá jiný
+host; pak v `bootstrap/app.php` řádek `$middleware->trustHosts()` dočasně odeber a nahraj znovu.
+Ověř taky, že projde URL cronu a `/health/imports` (UptimeRobot).
+
 ---
 
 ## Záloha databáze

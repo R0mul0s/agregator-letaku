@@ -14,6 +14,7 @@ namespace App\Actions\Fortify;
 
 use App\Domain\Account\IdentityConfirmation;
 use App\Domain\Account\UserSessions;
+use App\Http\Requests\PushSubscriptionRequest;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -43,15 +44,17 @@ class UpdateUserPassword implements UpdatesUserPasswords
      */
     public function update(User $user, array $input): void
     {
+        $endpointField = PushSubscriptionRequest::CURRENT_ENDPOINT_FIELD;
         Validator::make($input, [
             'current_password' => $this->confirmation->rules($user),
             'password' => $this->passwordRules(),
+            $endpointField => PushSubscriptionRequest::currentEndpointRules(),
         ])->validateWithBag(self::ERROR_BAG);
 
         $user->forceFill([
             'password' => Hash::make($input['password']),
         ])->save();
 
-        $this->sessions->logoutOthers($user, session()->getId());
+        $this->sessions->logoutOthers($user, session()->getId(), $input[$endpointField] ?? null);
     }
 }

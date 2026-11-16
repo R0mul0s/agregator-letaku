@@ -18,6 +18,7 @@ use App\Http\Controllers\AccountController;
 use App\Http\Controllers\SocialLoginController;
 use App\Http\Responses\RegisterResponse;
 use App\Models\Product;
+use App\Models\PushSubscription;
 use App\Models\SocialAccount;
 use App\Models\User;
 use App\Support\AnalyticsEvents;
@@ -293,6 +294,16 @@ it('bez e-mailu od poskytovatele účet nezaloží', function (): void {
         ->assertSessionHasErrors([SocialLoginController::ERROR_KEY => __('app.ui.auth.social.refused.'.SocialLoginRefused::EMAIL_MISSING)]);
 });
 
+it('odpověď poskytovatele bez ID uživatele odmítne (R185)', function (): void {
+    fakeSocialUser(SocialProvider::Google, ['id' => null]);
+
+    $this->get(route('social.callback', ['provider' => 'google']))
+        ->assertRedirect(route('login'))
+        ->assertSessionHasErrors([SocialLoginController::ERROR_KEY => __('app.ui.auth.social.refused.'.SocialLoginRefused::FAILED)]);
+    $this->assertGuest();
+    expect(SocialAccount::query()->exists())->toBeFalse();
+});
+
 it('zrušené přihlášení u poskytovatele vrátí na přihlášení s vysvětlením', function (): void {
     fakeSocialUser(SocialProvider::Google);
 
@@ -422,4 +433,19 @@ it('heslem se účet bez hesla nepřihlásí', function (): void {
     $this->post(route('login.store'), ['email' => 'roman@gmail.com', 'password' => 'cokoli-dlouheho'])->assertSessionHasErrors('email');
 
     $this->assertGuest();
+});
+
+it('při převzetí neověřeného účtu zmizí upozornění zakladatele v telefonu i odkaz na jeho seznam (R185)', function (): void {
+    // Útočník založil účet na cizí adresu, zapnul si upozornění a zkopíroval odkaz na seznam
+    $user = User::factory()->create(['email' => 'roman@gmail.com', 'email_verified_at' => null]);
+    $user->renewShoppingShareToken();
+    $shareToken = (string) $user->shopping_share_token;
+    PushSubscription::query()->create(['user_id' => $user->id, 'endpoint' => 'https://fcm.googleapis.com/fcm/send/utocnik', 'public_key' => 'k', 'auth_token' => 'a', 'device' => 'Chrome']);
+    fakeSocialUser(SocialProvider::Google);
+
+    $this->get(route('social.callback', ['provider' => 'google']));
+
+    expect($user->pushSubscriptions()->exists())->toBeFalse()
+        ->and($user->fresh()?->shopping_share_token)->toBeNull();
+    $this->get(route('shopping-list.shared', ['token' => $shareToken]))->assertNotFound();
 });

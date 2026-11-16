@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Account;
 
+use App\Domain\Push\PushSubscriptions;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Query\Builder;
@@ -21,6 +22,8 @@ use Illuminate\Support\Str;
 
 final class UserSessions
 {
+    public function __construct(private readonly PushSubscriptions $pushSubscriptions) {}
+
     /**
      * Přihlášení od posledního použitého; aktuální zařízení označené.
      *
@@ -53,10 +56,13 @@ final class UserSessions
     }
 
     /**
-     * Odhlásí uživatele všude kromě aktuálního zařízení: smaže ostatní session a změní
-     * token „Zapamatovat si mě“, aby se jiná zařízení nepřihlásila znovu z cookie.
+     * Odhlásí uživatele všude kromě aktuálního zařízení: smaže ostatní session, změní
+     * token „Zapamatovat si mě“, aby se jiná zařízení nepřihlásila znovu z cookie, a zruší
+     * jejich upozornění v telefonu (R185).
+     *
+     * @param  string|null  $currentPushEndpoint  Odběr upozornění aktuálního zařízení (posílá prohlížeč)
      */
-    public function logoutOthers(User $user, string $currentSessionId): void
+    public function logoutOthers(User $user, string $currentSessionId, ?string $currentPushEndpoint = null): void
     {
         if ($this->usesDatabase()) {
             $this->query($user)->where('id', '!=', $currentSessionId)->delete();
@@ -64,6 +70,17 @@ final class UserSessions
 
         $user->setRememberToken(Str::random(60));
         $user->save();
+        $this->pushSubscriptions->revokeExcept($user, $currentPushEndpoint);
+    }
+
+    /**
+     * Odhlásí uživatele na všech zařízeních včetně upozornění v telefonu (obnova hesla,
+     * převzetí účtu, R185). Token „Zapamatovat si mě“ mění volající.
+     */
+    public function logoutEverywhere(User $user): void
+    {
+        $this->deleteAll($user);
+        $this->pushSubscriptions->revokeExcept($user, null);
     }
 
     /**

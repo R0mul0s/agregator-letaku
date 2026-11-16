@@ -1692,7 +1692,7 @@ return [
             'avatar_remove' => 'Odebrat',
             'avatar_unreadable' => 'Obrázek se nepodařilo načíst — zkuste JPG nebo PNG.',
             'devices' => 'Přihlášená zařízení',
-            'devices_hint' => 'Kde jste teď přihlášeni. Když jste se přihlásili na cizím počítači, odhlaste ostatní zařízení.',
+            'devices_hint' => 'Kde jste teď přihlášeni. Když jste se přihlásili na cizím počítači, odhlaste ostatní zařízení — přestanou jim chodit i upozornění.',
             'devices_empty' => 'Seznam přihlášení teď není k dispozici.',
             'this_device' => 'Toto zařízení',
             'last_active' => 'naposledy :at',

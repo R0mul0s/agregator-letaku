@@ -11,6 +11,7 @@
 declare(strict_types=1);
 
 use App\Enums\SocialProvider;
+use App\Models\PushSubscription;
 use App\Models\User;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Support\Facades\DB;
@@ -148,3 +149,28 @@ it('obnova hesla neověřeného účtu ověří e-mail a zruší propojení ciz�
     expect($user->hasVerifiedEmail())->toBeTrue()
         ->and($user->socialAccounts()->exists())->toBeFalse();
 });
+
+it('obnova hesla zruší upozornění v telefonu, neověřenému účtu i odkaz na sdílený seznam (R185)', function (bool $verified): void {
+    Notification::fake();
+    $user = User::factory()->create(['email_verified_at' => $verified ? now() : null]);
+    $user->renewShoppingShareToken();
+    PushSubscription::query()->create(['user_id' => $user->id, 'endpoint' => 'https://fcm.googleapis.com/fcm/send/utocnik', 'public_key' => 'k', 'auth_token' => 'a', 'device' => 'Chrome']);
+    $shareToken = $user->shopping_share_token;
+    $this->post(route('password.email'), ['email' => $user->email]);
+
+    Notification::assertSentTo($user, ResetPassword::class, function (ResetPassword $notification) use ($user): bool {
+        $this->post(route('password.update'), [
+            'token' => $notification->token,
+            'email' => $user->email,
+            'password' => 'Nove-heslo-2026',
+            'password_confirmation' => 'Nove-heslo-2026',
+        ])->assertRedirect(route('login'));
+
+        return true;
+    });
+
+    $user->refresh();
+    expect($user->pushSubscriptions()->exists())->toBeFalse()
+        // Ověřený účet sdílel odkaz sám — rodině ho obnova hesla nebere
+        ->and($user->shopping_share_token)->toBe($verified ? $shareToken : null);
+})->with(['ověřený účet' => true, 'neověřený účet' => false]);

@@ -51,6 +51,9 @@ final class RateLimits
         'user-profile-information.update',
         'account.destroy',
         'account.devices.logout',
+        // Potvrzení hesla z Fortify aplikace nepoužívá, ale routa existuje a heslo ověřuje —
+        // s obecným limitem by se přes ni dalo hádat heslo účtu s ukradenou relací (R185)
+        'password.confirm.store',
         // Znovu poslat ověřovací e-mail (R67)
         'verification.send',
         // Zkušební upozornění v telefonu posílá požadavek push službě (R66)

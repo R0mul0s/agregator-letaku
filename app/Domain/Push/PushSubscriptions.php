@@ -69,6 +69,19 @@ final class PushSubscriptions
     }
 
     /**
+     * Zruší odběry všech zařízení uživatele kromě jednoho (R185) — upozornění patří přihlášení:
+     * odhlášené zařízení (cizí, ztracené, útočníka před převzetím účtu) je dostávat nesmí.
+     *
+     * @param  string|null  $keepEndpoint  Odběr aktuálního zařízení, který zůstane; null = zrušit vše
+     */
+    public function revokeExcept(User $user, ?string $keepEndpoint): void
+    {
+        $user->pushSubscriptions()
+            ->when($keepEndpoint !== null, fn ($query) => $query->where('endpoint', '!=', $keepEndpoint))
+            ->delete();
+    }
+
+    /**
      * Zruší odběr zařízení uživatele (cizí adresu nesmaže).
      */
     public function unsubscribe(User $user, string $endpoint): void
