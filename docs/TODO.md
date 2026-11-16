@@ -118,7 +118,7 @@ v [PLAN.md](PLAN.md). Větší celky se z toho stávají etapou.
 - **Hledání:** dotaz až 100 znaků = až 50 slov, každé ~20 podmínek `LIKE` na tři sloupce i v řazení — omezit počet slov (např. 6) a jednoznaková slova vynechat; změřit na produkční databázi
 - **Účty:** změna e-mailu nepošle upozornění na starou adresu; limit přihlášení je podle e-mailu + IP a podle IP (útok z mnoha IP na jeden účet nic nezastaví); token `RegistrationGuard` jde opakovaně použít 120 minut
 - **CSP:** `style-src 'unsafe-inline'`, `https://www.googletagmanager.com` ve `script-src` (známé obejití CSP), HSTS bez `includeSubDomains` a `preload`
-- **Ověřit na produkci:** `SESSION_SECURE_COOKIE=true` v `.env`; `deploy/hosting-check.php` na hostingu není; zda proxy Websupportu přepisuje `X-Forwarded-For` a `X-Forwarded-Host` (jinak spoléhá limit podle IP na nejpravější adresu)
+- **Ověřit na produkci:** `SESSION_SECURE_COOKIE=true` v `.env`; `deploy/hosting-check.php` na hostingu není; zda proxy Websupportu přepisuje `X-Forwarded-For` (limit podle IP spoléhá na nejpravější adresu); podvržený `X-Forwarded-Host` po 57. nasazení dostal 200 — proxy ho nejspíš přepíše, ale tím není ověřené, že `trustHosts` na produkci kontroluje (diagnostický skript: `APP_ENV` a co přijde v `$_SERVER`)
 
 ## Měření používání (Clarity) — co ubrat
 

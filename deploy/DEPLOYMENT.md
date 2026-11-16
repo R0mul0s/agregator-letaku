@@ -434,16 +434,6 @@ Co bylo zvláštní na jednotlivých dřívějších nasazeních (SQL skripty, n
 je v [HISTORIE_NASAZENI.md](HISTORIE_NASAZENI.md). Poznámky k nasazení, které se teprve chystá,
 patří sem pod tenhle postup; po nasazení se přesunou tam (R106).
 
-**Příští nasazení (R185, bezpečnostní revize):** změněný `composer.lock` (Laravel 13.42, Symfony 7.4) —
-nahrát celý `vendor/`; bez SQL skriptu a bez nových proměnných v `.env`. Aplikace nově přijme jen
-host z `APP_URL` a subdomény (`trustHosts`): hned po nahrání otevři `https://slevohlidka.cz/akce`
-a `https://www.slevohlidka.cz/` — odpověď **400 Bad Request** znamená, že proxy hostingu posílá jiný
-host; pak v `bootstrap/app.php` řádek `$middleware->trustHosts()` dočasně odeber a nahraj znovu.
-Ověř taky, že projde URL cronu a `/health/imports` (UptimeRobot). **R186:** šifrovaná historie
-stránek — po nasazení se přihlas, projdi pár stránek, odhlas se a klepni na Zpět: má přijít
-přihlášení, ne Moje slevy. Ruční stažení PDF obchodu (Lidl nebo Albert) musí projít —
-kontrola adres teď překládá jména přes DNS hostingu.
-
 ---
 
 ## Záloha databáze
@@ -561,3 +551,4 @@ Co běží na produkci — pro `git log <commit>..HEAD` při dalším nasazení
 | 2026-11-09 | `398c246` | padesáté čtvrté nasazení: živější pohyb (R182) — křivky přechodů z tokenů, odezva na stisk, nadzvednutí jen s myší, animované zavírání oken, prolnutí při přechodu na jinou stránku (View Transitions), lišta načítání v barvě akcentu, poskočení „Do seznamu“ / „Hlídáte“ a záložky Seznam, pohyb v nákupním seznamu, prolnutí fotek a vjezd karet při posunu; jen frontend, bez SQL skriptu a změn v `.env`. Hlášky v konzoli po nasazení nejsou chyby aplikace: `runtime.lastError` je z rozšíření prohlížeče, „Banner not shown“ je záměrně potlačená nabídka instalace (vlastní výzva R66) |
 | 2026-11-12 | `401f85e` | padesáté páté nasazení: Hruška z letáku „-web.pdf“ s novým rozvržením písma (R183); bez SQL skriptu a změn v `.env`. Přesné datum nahrání není zapsané — první úspěšné stažení Hrušky po nasazení 13. 11. 6:10 (access log, ~3,6 s), od té doby každé stažení prošlo |
 | 2026-11-15 | `772ebd4` | padesáté šesté nasazení: po odpovědi 429 se opakuje až v čase z `Retry-After` nebo z textu odpovědi (Globus má kvótu po minutách), s rezervou 2 s, bez času po 20 s, nejdéle 70 s (R184); bez SQL skriptu a změn v `.env`. Ráno 15. 11. skončilo stažení Globusu chybou 429 ještě se starým kódem |
+| 2026-11-16 | `462ac94` | padesáté sedmé nasazení: bezpečnostní revize — Laravel 13.42 a Symfony 7.4.23 (`composer audit` bez nálezů), upozornění v telefonu jen přihlášeným zařízením, převzatý účet bez odkazu zakladatele na seznam, hlášení chyby upozorní adminy jednou, `trustHosts`, přísný limit potvrzení hesla (R185); šifrovaná historie stránek, stahování jen z veřejných adres a nejvýš 100 MB (R186); nahrán celý `vendor/`, bez SQL skriptu a změn v `.env` (poznámky v HISTORIE_NASAZENI.md) |

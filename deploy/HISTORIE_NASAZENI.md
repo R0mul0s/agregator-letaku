@@ -603,3 +603,18 @@ nabídek bez historie, staré řádky `leaflets` bez data zůstávají s akcemi 
 - **Dodatek (16. 10.):** R151 změnilo text zásad, ale datum účinnosti (`letaky.legal.effective_from`, R69)
   zůstalo 2026-10-13 — opraveno v `c372815` a nahrán jen `config/letaky.php` (`version.txt` zůstává
   `605be8c`). Ověřeno: `/ochrana-udaju` ukazuje 2026-10-16.
+
+### Aktualizace z `772ebd4` (padesáté sedmé nasazení — provedeno, `462ac94`)
+
+Bezpečnostní revize 16. 11. 2026: aktualizace Laravelu 13.42 a Symfony 7.4.23 (`composer audit`
+bez nálezů), odhlášená zařízení bez upozornění v telefonu, převzatý účet bez odkazu zakladatele na
+seznam, hlášení chyby bez zahlcení adminů, `trustHosts`, přísný limit potvrzení hesla (R185);
+šifrovaná historie stránek a stahování jen z veřejných adres s limitem 100 MB (R186). Změněný
+`composer.lock` — nahrán celý `vendor/`; bez SQL skriptu a bez nových proměnných v `.env`.
+
+- **Ověřeno (16. 11.):** `version.txt` = `462ac94`; `/akce`, `/health/imports` i `/health/tasks` 200,
+  `www.slevohlidka.cz` přesměruje 301 na `slevohlidka.cz`, `/hlidam` bez přihlášení na přihlášení.
+  Ruční stažení PDF a Zpět po odhlášení (přijde přihlášení) prošly.
+- **Zjištění:** požadavek s podvrženou hlavičkou `X-Forwarded-Host: zly.example` dostal 200, ne 400 —
+  proxy Websupportu hlavičku od klienta nejspíš přepíše skutečnou doménou (podvržená se do aplikace
+  nedostane). Zda `trustHosts` na produkci opravdu kontroluje, tím ověřené není (TODO.md).
