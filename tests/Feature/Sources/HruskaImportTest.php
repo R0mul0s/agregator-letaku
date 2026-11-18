@@ -109,9 +109,9 @@ it('bez letáku dalšího týdne na serveru uloží jen aktuální leták', func
     Http::assertNotSent(fn (Request $request): bool => $request->method() === 'GET' && $request->url() === HRUSKA_NEXT_PDF);
 });
 
-it('najde leták i s příponou v názvu souboru („46_26-web.pdf“)', function (): void {
-    // Od letáku 46/26 (11. 11. 2026) má PDF příponu „-web“ a bez ní vrací 404
-    $current = 'https://media.mojehruska.cz/2026/10/43_26-web.pdf';
+it('najde leták i s příponou v názvu souboru („46_26-web.pdf“, „47_26-kor11.pdf“)', function (string $suffix): void {
+    // Od letáku 46/26 (11. 11. 2026) má PDF příponu a bez ní vrací 404; leták dalšího týdne se zkusí s „-web“
+    $current = 'https://media.mojehruska.cz/2026/10/43_26'.$suffix.'.pdf';
     $next = 'https://media.mojehruska.cz/2026/10/44_26-web.pdf';
     Http::fake(function (Request $request) use ($current, $next) {
         if ($request->url() === 'https://mojehruska.cz/') {
@@ -129,7 +129,12 @@ it('najde leták i s příponou v názvu souboru („46_26-web.pdf“)', functio
 
     expect(Leaflet::query()->where('chain', Chain::Hruska)->orderBy('external_id')->pluck('source_url', 'external_id')->all())
         ->toBe(['43_26' => $current, '44_26' => $next]);
-});
+})->with([
+    // Od letáku 46/26 (11. 11. 2026)
+    'web' => ['-web'],
+    // Leták 47/26 (18. 11. 2026) — přípona s číslicemi, stažení selhalo
+    'oprava' => ['-kor11'],
+]);
 
 it('úvodní stránka bez odkazu na PDF je změna odpovědi a stažení selže', function (): void {
     fakeHruska(home: '<html><body><h1>Aktuální leták</h1></body></html>');

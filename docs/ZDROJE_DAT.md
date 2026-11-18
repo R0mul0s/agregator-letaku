@@ -778,7 +778,7 @@ aplikace to nerozlišuje.
 | Účel | Požadavek |
 |---|---|
 | Aktuální leták | `GET https://mojehruska.cz/` — `<h1>Aktuální leták<br> 21.10.2026 - 27.10.2026</h1>` a odkaz `<a class="btn" href="https://media.mojehruska.cz/2026/10/43_26.pdf">` (11 MB, 12 stran, ~4 s); PDF má `Last-Modified` a `ETag`, bez cookies. **Od 46/26 (11. 11. 2026) s příponou:** `media.mojehruska.cz/2026/11/46_26-web.pdf` (9 MB, 14 stran; bez přípony 404, R183) |
-| Leták dalšího týdne | `media.mojehruska.cz/{rok}/{měsíc nahrání bez nuly}/{ISO týden začátku}_{rok2}{přípona}.pdf` — na serveru od pátku (44/26: `Last-Modified` pá 23. 10.), **web na něj neodkazuje**; zdroj zkusí `HEAD` pro měsíc dneška, začátku a týden před ním, v každém bez přípony a s „-web“ (`pdf_name_suffixes`; `2026/11/44_26.pdf` vrací 404) |
+| Leták dalšího týdne | `media.mojehruska.cz/{rok}/{měsíc nahrání bez nuly}/{ISO týden začátku}_{rok2}{přípona}.pdf` — na serveru od pátku (44/26: `Last-Modified` pá 23. 10.), **web na něj neodkazuje**; zdroj zkusí `HEAD` pro měsíc dneška, začátku a týden před ním, v každém bez přípony a s „-web“ (`pdf_name_suffixes`; `2026/11/44_26.pdf` vrací 404). **Přípona může mít i číslice** (47/26: `2026/11/47_26-kor11.pdf`, 18. 11. 2026 — vzor odkazu jen s písmeny ho nenašel a stažení selhalo); takovou příponu u letáku dalšího týdne odhadnout nejde, ten se pak stáhne až s odkazem z úvodní stránky |
 | Starší leták | zmizí (`42_26.pdf` 404) |
 | Katalog (nepoužívá se) | `GET /katalog/` → `media.mojehruska.cz/2026/9/Katalog-5.pdf` (15. 9.–9. 11.) |
 | Prodejny (nepoužívá se) | `GET /prodejny/` — HTML tabulka `div.row > div.cell` (číslo, adresa, okres, telefon, otevírací doba) |
